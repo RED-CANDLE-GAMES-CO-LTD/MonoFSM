@@ -1,0 +1,16 @@
+{
+    "name": "rcg.rcgmakercore.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:f2f860dd0c0594e9d880d20baa7b20c3"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
