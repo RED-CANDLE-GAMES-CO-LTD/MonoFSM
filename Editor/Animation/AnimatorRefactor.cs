@@ -1,10 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityEngine;
-using System.IO;
+using System.Linq;
 using System.Text;
+using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
 
 namespace RCGMaker.Core.Editor
 {
@@ -325,6 +324,24 @@ namespace RCGMaker.Core.Editor
       //    var animationWindow = EditorWindow.GetWindow<AnimationWindow>();
       //    animationWindow.recording = !animationWindow.recording;
       // }
+
+
+      //TODO: 找有沒有PrefabVariant?
+      public static IEnumerable<GameObject> FindAllPrefabVariants(string parentAssetPath)
+      {
+         return FindAllPrefabVariants(AssetDatabase.LoadAssetAtPath<GameObject>(parentAssetPath));
+      }
+
+      public static IEnumerable<GameObject> FindAllPrefabVariants(GameObject parent)
+      {
+         return AssetDatabase.FindAssets("t:prefab").Select(AssetDatabase.GUIDToAssetPath)
+            .Select(AssetDatabase.LoadAssetAtPath<GameObject>).Where(go => go != null)
+            .Where(go => PrefabUtility.GetPrefabAssetType(go) == PrefabAssetType.Variant)
+            .Where(go => PrefabUtility.GetCorrespondingObjectFromSource(go) == parent);
+      }
+
    }
+   
+   
 
 }
