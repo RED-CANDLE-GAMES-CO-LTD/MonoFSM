@@ -1,0 +1,17 @@
+{
+    "name": "barbaro.autoattributes",
+    "references": [
+        "GUID:c2f440c9fef6c8c40ac5c50eea18c599"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

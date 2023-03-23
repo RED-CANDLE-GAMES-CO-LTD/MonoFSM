@@ -1,7 +1,9 @@
 {
     "name": "rcg.rcgmakercore.Runtime",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:c2f440c9fef6c8c40ac5c50eea18c599"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

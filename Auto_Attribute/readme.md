@@ -1,0 +1,2 @@
+Credits to Vecteezy.com https://www.vecteezy.com/free-vector/car-dealership-logo for the car logo symbol.
+Credits to Rizal Khurasan https://creativemarket.com/khurasan?u=khurasan for the font Tahu, used for Auto's logo.
