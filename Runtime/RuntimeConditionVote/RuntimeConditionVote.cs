@@ -92,7 +92,9 @@ public  class RuntimeConditionVote :IRuntimeConditionImplementation
     }
 
     private bool _lastResult = false;
-    
+
+
+    public bool VoteResult => _lastResult;
     public RuntimeConditionVote(ConditionType type ,bool defaultValue,OnValueChangeDelegate onValueChangeDelegate)
     {
         _getConditionTypeDelegate = ()=>type;
