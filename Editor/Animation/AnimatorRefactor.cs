@@ -48,11 +48,14 @@ namespace RCGMaker.Core.Editor
          if (PrefabStageUtility.GetCurrentPrefabStage())
          {
             //TODO: 還可以更好，不用每次都取得所有的RefactorNode，進入PrefabStage時才要
-            nodes = PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot.GetComponentsInChildren<RefactorNode>();
+            nodes = PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot
+               .GetComponentsInChildren<RefactorNode>(true);
+            Debug.Log("Find all RefactorNode in Prefab" + nodes.Length);
          }
          else
          {
-            nodes = GameObject.FindObjectsOfType<RefactorNode>();
+            nodes = Object.FindObjectsOfType<RefactorNode>(true);
+            Debug.Log("Find all RefactorNode in Scene" + nodes.Length);
          }
       
         

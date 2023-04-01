@@ -110,5 +110,7 @@ public  class RuntimeConditionVote :IRuntimeConditionImplementation
          _lastResult = GetDefaultValue();
         OnValueChange(_lastResult);
     }
-    
+
+    public bool Result => _lastResult;
+
 }
