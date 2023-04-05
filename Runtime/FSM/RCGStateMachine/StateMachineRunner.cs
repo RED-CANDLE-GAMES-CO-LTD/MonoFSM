@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using Object = System.Object;
 
-namespace RCGSetting.StateMachine
+namespace RCGMaker.Core
 {
     public class StateMachineRunner : MonoBehaviour
     {
