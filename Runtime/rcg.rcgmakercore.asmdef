@@ -2,7 +2,8 @@
     "name": "rcg.rcgmakercore.Runtime",
     "rootNamespace": "",
     "references": [
-        "GUID:c2f440c9fef6c8c40ac5c50eea18c599"
+        "GUID:c2f440c9fef6c8c40ac5c50eea18c599",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
