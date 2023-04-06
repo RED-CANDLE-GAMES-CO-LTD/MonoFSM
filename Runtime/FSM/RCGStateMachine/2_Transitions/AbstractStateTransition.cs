@@ -4,6 +4,11 @@ using RCGMaker.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+public interface IState
+{
+    bool ForceTransition(GeneralState stateType);
+    // bool TransitionCheck(GeneralState stateType);
+}
 public class AbstractStateTransition : AbstractBehaviour
 {
     [ValueDropdown("FindStates")]
@@ -40,19 +45,19 @@ public class AbstractStateTransition : AbstractBehaviour
         if (conditions.IsAllValid() == false)
             return false;
 
-        // var anyState = GetComponentInParent<RCGFSMAnyState>();
-        // if (anyState)//走any，直接過
-        // {
-        //     this.Log("[Transition] GoTo:", target.stateType, gameObject);
-        //     anyState.ForceTransition(target.stateType);
-        //     return true;
-        // }
+        //TODO: 這個runtime拿蠻不好的, 改成通通拿IState? 合併anyState和State
+        var anyState = GetComponentInParent<IState>();
+        if (anyState != null) //走any，直接過
+        {
+            this.Log("[Transition] GoTo:", target.stateType, gameObject);
+            anyState.ForceTransition(target.stateType);
+            return true;
+        }
         
         if (bindingState == null)
-            bindingState = GetComponentInParent<GeneralState>();
+            Debug.LogError("Why no parent State" + anyState, gameObject);
 
-        if (bindingState == null)
-            Debug.LogError("Null binding State", gameObject);
+     
         // this.Log("[Transition] Check3:" + target.stateType, gameObject);
         //好像不該回頭做？可是要不然要怎麼辦...不能用事件接
         
