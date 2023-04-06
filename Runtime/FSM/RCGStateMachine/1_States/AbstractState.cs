@@ -6,7 +6,9 @@ using UnityEngine.Events;
 
 namespace RCGMaker.Core
 {
-
+    // public abstract class AbstractBaseState : AbstractState<AbstractBaseState>
+    // {
+    // }
     public abstract class AbstractState<T> : MonoBehaviour
     {
         [HideInInspector] [Required] public T stateType;

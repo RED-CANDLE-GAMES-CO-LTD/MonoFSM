@@ -10,6 +10,7 @@ public interface IResetter
     //3. Cmd+R  
     //4. 還有從 pool出來。
     void EnterLevelResetAndStart();
+    void ExitLevelAndDestroy();
 }
 
 // public interface IResetPriority

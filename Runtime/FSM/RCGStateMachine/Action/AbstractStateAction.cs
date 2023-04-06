@@ -1,3 +1,5 @@
+using System;
+using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 
 public abstract class AbstractStateAction : AbstractBehaviour
@@ -39,16 +41,16 @@ public abstract class AbstractStateAction : AbstractBehaviour
     DelayActionModifier delayActionModifier;
 
     //一定是AND的啦
-    public bool OnActionEnter()
+    public async void OnActionEnter()
     {
         //TODO: conditions
-        if (!IsValid) return false; //not valid也要用字串？
+        if (!IsValid) return; //not valid也要用字串？
 
         if (delayActionModifier != null)
-            this.AddTask(OnStateEnterImplement, delayActionModifier.delayTime);
-        else
-            OnStateEnterImplement();
-        return true;
+            await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime));
+
+        // this.AddTask(OnStateEnterImplement, delayActionModifier.delayTime);
+        OnStateEnterImplement();
     }
     protected abstract void OnStateEnterImplement();
     public void OnActionUpdate()
@@ -63,13 +65,12 @@ public abstract class AbstractStateAction : AbstractBehaviour
             OnSpriteUpdateImplement();
     }
     protected virtual void OnSpriteUpdateImplement() { }
-    public void OnActionExit()
+
+    public async void OnActionExit()
     {
         if (!IsValid) return;
-        if (delayActionModifier != null)
-            this.AddTask(OnStateExitImplement, delayActionModifier.delayTime);
-        else
-            OnStateExitImplement();
+        if (delayActionModifier != null) await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime));
+        OnStateExitImplement();
     }
     protected virtual void OnStateExitImplement() { }
 }

@@ -3,8 +3,6 @@ using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core
 {
-
-
     public abstract class StateMachineContext<T, TState> : MonoBehaviour
         where TState : AbstractState<T> //where T : ScriptableObject 
     {
@@ -40,10 +38,16 @@ namespace RCGMaker.Core
             fsm.ChangeState(stateType);
         }
 
-        public TState AddState(System.Type type)
+        public TCustomState AddState<TCustomState>(System.Type type) where TCustomState : TState
         {
             var state = gameObject.AddChildrenComponent(type, "[State] NewState");
-            return state as TState;
+            return state as TCustomState;
+        }
+
+        public GeneralState AddState(System.Type type)
+        {
+            var state = gameObject.AddChildrenComponent(type, "[State] NewState");
+            return state as GeneralState;
         }
     }
 }

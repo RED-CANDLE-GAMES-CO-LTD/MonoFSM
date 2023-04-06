@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -24,7 +25,8 @@ public class AbstractStateTransition : AbstractBehaviour
     {
         TransitionCheck(0);
     }
-    GeneralState bindingState;
+
+    [AutoParent()] private GeneralState bindingState;
     public bool TransitionCheck(float timeOffset=0)
     {
 
@@ -38,20 +40,22 @@ public class AbstractStateTransition : AbstractBehaviour
         if (conditions.IsAllValid() == false)
             return false;
 
-        // this.Log("[Transition] Check2:" + target.stateType, gameObject);
-        var anyState = GetComponentInParent<RCGFSMAnyState>();
-        if (anyState)//走any，直接過
-        {
-            this.Log("[Transition] GoTo:", target.stateType, gameObject);
-            anyState.ForceTransition(target.stateType);
-            return true;
-        }
+        // var anyState = GetComponentInParent<RCGFSMAnyState>();
+        // if (anyState)//走any，直接過
+        // {
+        //     this.Log("[Transition] GoTo:", target.stateType, gameObject);
+        //     anyState.ForceTransition(target.stateType);
+        //     return true;
+        // }
+        
         if (bindingState == null)
-            bindingState = this.GetComponentInParent<GeneralState>();
+            bindingState = GetComponentInParent<GeneralState>();
 
-
+        if (bindingState == null)
+            Debug.LogError("Null binding State", gameObject);
         // this.Log("[Transition] Check3:" + target.stateType, gameObject);
         //好像不該回頭做？可是要不然要怎麼辦...不能用事件接
+        
         if (bindingState.TransitionCheck(target.stateType,timeOffset))
         {
             bindingState.Context.lastTransition = this;

@@ -1,0 +1,61 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using Sirenix.OdinInspector;
+using UnityEngine;
+
+[CreateAssetMenu(fileName = "NewFloatFlag", menuName = "GameFlag/Float", order = 1)]
+public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
+{
+    [SerializeField]
+    StatData MaxStat;
+    public float MaxValue => MaxStat.Value; 
+    const float minValue = 0;
+    [InlineEditor()]
+    [SerializeField] private StatData AddValuePerMinute;
+    [InlineEditor()]
+    [SerializeField] private StatData ReduceValuePerMinute;
+    [Header("開始扣的話要乘上消耗倍率")]
+    public float ReducePunishReduceRatio = 1;
+
+    public int ValueInt => (int)CurrentValue;
+    [ReadOnly]
+    [ShowInInspector]
+    public float CurrentRate
+    {
+        get
+        {
+            if (AddValuePerMinute == null || ReduceValuePerMinute == null)
+                return 0;
+            var addValue =  (AddValuePerMinute.Value - ReduceValuePerMinute.Value) /60;
+            if (addValue < 0)
+            {
+                //消耗時，懲罰倍率
+                addValue *= ReducePunishReduceRatio; //TODO: 特規，要
+            }
+
+            return addValue;
+        }
+    }
+    [ReadOnly]
+    [ShowInInspector]
+    public float EstimateTimeCountDown
+    {
+        get
+        {
+            return CurrentValue / CurrentRate;
+        }
+    }
+    public void UpdateValue() //要讓誰update，
+    {
+        var tempValue = CurrentValue;
+        tempValue += Time.deltaTime * CurrentRate;
+        if (tempValue > MaxStat.Value)
+            tempValue = MaxStat.Value;
+        if (tempValue < minValue)
+            tempValue = minValue;
+        CurrentValue = tempValue;
+        //TODO: CurrentValue會太早變成0...要float才對最後再轉型，GameFlagInt不好用
+    }
+}
+
+//ScriptableDataFloat

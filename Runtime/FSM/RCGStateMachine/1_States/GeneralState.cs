@@ -5,10 +5,9 @@ using System.Linq;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
-using RCGFSM.Animation;
 using UnityEditor;
 #endif
-
+using RCGMaker.Core;
 public interface INodeModel
 {
     public Vector2 position { get; set; }
@@ -113,33 +112,52 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel
     }
 
 #if UNITY_EDITOR
-    [Button("Add Animator Play")]
-    void AddAnimatorPlay()
+    [Component(typeof(AbstractStateAction))]
+    private void AddAction()
     {
-        Undo.AddComponent(gameObject, typeof(AnimatorPlayAction));
+        
     }
 
-    [Button("Add Event Transition")]
-    public void AddEventTransitionEditor()
+    [Component(typeof(AbstractStateTransition))]
+    private void AddTransition()
     {
-        AddEventTransition();
+        
     }
 
+    public AbstractStateTransition AddTransition(System.Type transitionType)
+    {
+        var t = this.AddChildrenComponent<AbstractStateTransition>(transitionType, "[Transition] NewTransition");
+        transitions.Add(t);
+        return t;
+    }
+    // [Button("Add Animator Play")]
+    // void AddAnimatorPlay()
+    // {
+    //     Undo.AddComponent(gameObject, typeof(AnimatorPlayAction));
+    // }
+    //
+    // [Button("Add Event Transition")]
+    // public void AddEventTransitionEditor()
+    // {
+    //     AddEventTransition();
+    // }
+
+    // public RCGEventReceiveTransition AddEventTransition()
+    // {
+    //     Undo.RecordObject(this, "Add To Transition List");
+    //     var t = gameObject.AddChildrenComponent<RCGEventReceiveTransition>("[Transition] NewTransition");
+    //     // Undo.RegisterCompleteObjectUndo()
+    //     // Undo.IncrementCurrentGroup();
+    //     transitions.Add(t);
+    //     // EditorUtility.SetDirty(this);
+    //     return t;
+    // }
     [Button("Add Delay Node")]
     public void AddDelayNode()
     {
         gameObject.AddChildrenComponent<DelayActionModifier>("[Delay Node]");
     }
-    public RCGEventReceiveTransition AddEventTransition()
-    {
-        Undo.RecordObject(this, "Add To Transition List");
-        var t = gameObject.AddChildrenComponent<RCGEventReceiveTransition>("[Transition] NewTransition");
-        // Undo.RegisterCompleteObjectUndo()
-        // Undo.IncrementCurrentGroup();
-        transitions.Add(t);
-        // EditorUtility.SetDirty(this);
-        return t;
-    }
+    
     private void OnValidate()
     {
         stateType = this;
