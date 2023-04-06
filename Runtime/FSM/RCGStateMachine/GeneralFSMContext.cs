@@ -29,11 +29,7 @@ namespace RCGMaker.Core
             return state;
         }
 
-        public GeneralState AddState(Type type)
-        {
-            var state = gameObject.AddChildrenComponent(type, "[State] NewState");
-            return state as GeneralState;
-        }
+       
 
 
         public GeneralState AddState()

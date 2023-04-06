@@ -39,5 +39,11 @@ namespace RCGMaker.Core
         {
             fsm.ChangeState(stateType);
         }
+
+        public TState AddState(System.Type type)
+        {
+            var state = gameObject.AddChildrenComponent(type, "[State] NewState");
+            return state as TState;
+        }
     }
 }
