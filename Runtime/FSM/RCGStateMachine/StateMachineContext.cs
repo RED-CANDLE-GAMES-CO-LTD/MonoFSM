@@ -1,37 +1,49 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
-using System;
-using RCGSetting.StateMachine;
-public abstract class StateMachineContext<T, TState> : MonoBehaviour where TState : AbstractState<T> //where T : ScriptableObject 
+
+namespace RCGMaker.Core
 {
-    [InfoBox("企劃應該不用改這層！大家都去init state , Init Default Transition 決定初始狀態")]
-    public bool ShowStartState = false;
 
-    [ShowIf("ShowStartState")]
-    public TState startState;
-    public StateMachine<T> fsm;
-    protected virtual void Awake()
+
+    public abstract class StateMachineContext<T, TState> : MonoBehaviour
+        where TState : AbstractState<T> //where T : ScriptableObject 
     {
-        StateMapping<T> stateBehaviorMapping = new StateMapping<T>();
-        var states = GetComponentsInChildren<TState>();
-        // var stateDict = new Dictionary<T, TState>();
-        foreach (var state in states)
+        [InfoBox("企劃應該不用改這層！大家都去init state , Init Default Transition 決定初始狀態")]
+        public bool ShowStartState = false;
+
+        [ShowIf("ShowStartState")] public TState startState;
+        public StateMachine<T> fsm;
+
+        protected virtual void Awake()
         {
-            // stateDict.Add(state.stateType, state);
-            stateBehaviorMapping.AddStateBehaviorMapping(state.stateType, state, this);
-        }
-        fsm = StateMachine<T>.Initialize(this, stateBehaviorMapping);
+            StateMapping<T> stateBehaviorMapping = new StateMapping<T>();
+            var states = GetComponentsInChildren<TState>();
+            // var stateDict = new Dictionary<T, TState>();
+            foreach (var state in states)
+            {
+                // stateDict.Add(state.stateType, state);
+                stateBehaviorMapping.AddStateBehaviorMapping(state.stateType, state, this);
+            }
 
-    }
-    protected virtual void Start()
-    {
-        fsm.ChangeState(startState.stateType);
-    }
-    //TODO:init?
-    public void ChangeState(T stateType)
-    {
-        fsm.ChangeState(stateType);
+            fsm = StateMachine<T>.Initialize(this, stateBehaviorMapping);
+
+        }
+
+        protected virtual void Start()
+        {
+            fsm.ChangeState(startState.stateType);
+        }
+
+        //TODO:init?
+        public void ChangeState(T stateType)
+        {
+            fsm.ChangeState(stateType);
+        }
+
+        public TState AddState(System.Type type)
+        {
+            var state = gameObject.AddChildrenComponent(type, "[State] NewState");
+            return state as TState;
+        }
     }
 }
