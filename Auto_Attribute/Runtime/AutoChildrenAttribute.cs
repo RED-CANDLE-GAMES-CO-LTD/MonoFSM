@@ -58,6 +58,10 @@ public class AutoChildrenAttribute : AutoFamily
         {
             // var list = new List<Component>();
             var all = new List<object>();
+
+            var comps = mb.GetComponents(componentType);
+            all.AddRange(comps);
+            
             foreach (Transform t in mb.transform)
             {
                 var result = t.GetComponents(componentType);

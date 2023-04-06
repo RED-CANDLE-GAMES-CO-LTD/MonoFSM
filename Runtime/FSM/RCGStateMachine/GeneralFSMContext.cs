@@ -1,0 +1,155 @@
+using System.Collections;
+using System.Collections.Generic;
+using Sirenix.OdinInspector;
+using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+// using RCG.StateMachine;
+[System.Serializable]
+public class RCGEventBinding
+{
+    //吃到事件，執行transition
+    //TODO: 是不是可以執行別的?作為一個介面而已...RCGEventReceiver
+    public RCGEventBinding(RCGEventType type)
+    {
+        this.type = type;
+    }
+    public RCGEventType type;
+    public List<RCGEventWrapper> eventSenders = new List<RCGEventWrapper>();
+    public List<RCGEventReceiveTransition> eventReceivers = new List<RCGEventReceiveTransition>();
+}
+//FIXME: 不要在這綁了應該拿掉，用RCGArgEvent做掉
+public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
+{
+#if UNITY_EDITOR
+
+    // [Button("Open Graph")]
+    // void OpenGraph()
+    // {
+
+    // }
+
+    public GeneralState AddState()
+    {
+        var state = gameObject.AddChildrenComponent<GeneralState>("[State] NewState");
+        return state;
+    }
+    [Button("Add State")]
+    void AddStateVoid()
+    {
+        AddState();
+    }
+
+    [Button("Open Graph")]
+    void OpenGraph()
+    {
+        Selection.activeGameObject = gameObject;
+        EditorApplication.ExecuteMenuItem("Window/FSMGraphView Window");
+        // EditorWindow.GetWindow(System.Type.GetType("FSMGraphEditorWindow"));
+    }
+#endif
+    public List<GeneralState> GetAllStates()
+    {
+        if (states == null)
+            states = new List<GeneralState>();
+        states.Clear();
+        GetComponentsInChildren<GeneralState>(states);
+        return states;
+    }
+    List<GeneralState> states;
+    [ReadOnly]
+    public AbstractStateTransition lastTransition;
+    [ReadOnly]
+    public RCGEventBinding[] eventBindings; //TODO:這樣有比較好看懂嗎...？
+    protected override void Awake()
+    {
+        base.Awake();
+        //TODO: getComponents?
+        //GenerateBindingTable
+    }
+    protected override void Start()
+    {
+        base.Start();
+        BindEvents();
+    }
+    void BindEvents() //用綁的？
+    {
+
+
+        for (var i = 0; i < eventBindings.Length; i++)
+        {
+            var binding = eventBindings[i];
+            foreach (var sender in binding.eventSenders)
+            {
+                sender.BindingEvent.AddListener(() =>
+                {
+                    foreach (var item in binding.eventReceivers)
+                    {
+                        item.EventReceived(binding.type);
+                    }
+                });
+            }
+
+        }
+    }
+    //把Event分在一起，Transition分會比較好嗎??
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        GetBindingTable();
+    }
+
+    private void Reset()
+    {
+        GetBindingTable();
+    }
+
+    private void GetBindingTable()
+    {
+        var owner = GetComponentInParent<StateMachineOwner>();
+        if (owner == null)
+        {
+            return;
+        }
+        var senders = owner.GetComponentsInChildren<RCGEventWrapper>(true);
+        var receivers = GetComponentsInChildren<RCGEventReceiveTransition>(true);
+        var dict = new Dictionary<RCGEventType, RCGEventBinding>();
+        // var binding = new EventBinding();
+        foreach (var sender in senders)
+        {
+            var type = sender.type;
+            if (!dict.ContainsKey(type))
+            {
+                dict.Add(type, new RCGEventBinding(type));
+            }
+            dict[type].eventSenders.Add(sender);
+        }
+
+        // foreach (var receiver in receivers)
+        // {
+        //     var type = receiver.eventType;
+        //     if (type == null)
+        //     {
+        //         // Debug.LogError("receiver event not assign" + receiver.eventType, receiver);
+        //         continue;
+        //     }
+        //     if (!dict.ContainsKey(type))
+        //     {
+        //         dict.Add(type, new RCGEventBinding(type));
+        //     }
+        //     dict[type].eventReceivers.Add(receiver);
+        // }
+        
+        
+        eventBindings = new RCGEventBinding[dict.Values.Count];
+        dict.Values.CopyTo(eventBindings, 0);
+        // 
+    }
+#endif
+
+    // public void ChangeState(GeneralStateType newState)
+    // {
+    //     fsm.ChangeState(newState, true);
+    // }
+}
