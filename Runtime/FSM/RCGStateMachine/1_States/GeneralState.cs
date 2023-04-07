@@ -120,13 +120,13 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     }
 
 #if UNITY_EDITOR
-    [Component(typeof(AbstractStateAction))]
-    private void AddAction()
-    {
-        
-    }
+    // [Component(typeof(AbstractStateAction))]
+    // private void AddAction()
+    // {
+    //     
+    // }
 
-    [Component(typeof(AbstractStateTransition))]
+    [Component(typeof(AbstractStateTransition), AddComponentAt.Children, "[Transition]")]
     private void AddTransition()
     {
         
@@ -180,7 +180,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // public AbstractStateAction testAction;
 
     [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")]
-    void AddInpsectorFunc()
+    private void AddActionFunc()
     {
 
     }

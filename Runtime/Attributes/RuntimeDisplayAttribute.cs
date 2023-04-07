@@ -6,9 +6,9 @@ using UnityEngine;
 namespace RCGMaker.Core.Attributes
 {
     [IncludeMyAttributes]
+    [ShowIf("@UnityEngine.Application.isPlaying")]
     [ReadOnly]
     [ShowInInspector]
-    [ShowIf("@UnityEngine.Application.isPlaying")]
     [Conditional("UNITY_EDITOR")]
     public class RuntimeDisplayAttribute : Attribute
     {
