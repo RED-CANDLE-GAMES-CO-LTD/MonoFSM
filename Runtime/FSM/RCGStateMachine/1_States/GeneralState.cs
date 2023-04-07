@@ -14,7 +14,7 @@ public interface INodeModel
 
 }
 
-public class GeneralState : AbstractState<GeneralState>, INodeModel
+public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>
 {
 
     [FormerlySerializedAs("enterOffsetDuration")] public float EnterTimeOffset = 0;
@@ -109,6 +109,14 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel
             return true;
         }
         return false;
+    }
+
+    public bool TransitionCheck(GeneralState toState)
+    {
+        var fsm = context.fsm;
+        if (fsm.State != stateType) return false; //現在是我才能
+        fsm.ChangeState(toState, CanSelfTransition);
+        return true;
     }
 
 #if UNITY_EDITOR

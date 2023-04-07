@@ -4,9 +4,12 @@ using RCGMaker.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public interface IState
+public interface IState<TState>
 {
-    bool ForceTransition(GeneralState stateType);
+    bool TransitionCheck(TState toState, float timeOffset);
+
+    bool TransitionCheck(TState toState);
+    // bool ForceTransition(GeneralState stateType);
     // bool TransitionCheck(GeneralState stateType);
 }
 public class AbstractStateTransition : AbstractBehaviour
@@ -32,6 +35,7 @@ public class AbstractStateTransition : AbstractBehaviour
     }
 
     [AutoParent()] private GeneralState bindingState;
+    [AutoParent()] private IState<GeneralState> parentState;
     public bool TransitionCheck(float timeOffset=0)
     {
 
@@ -46,12 +50,20 @@ public class AbstractStateTransition : AbstractBehaviour
             return false;
 
         //TODO: 這個runtime拿蠻不好的, 改成通通拿IState? 合併anyState和State
-        var anyState = GetComponentInParent<IState>();
+        var anyState = GetComponentInParent<IState<GeneralState>>();
         if (anyState != null) //走any，直接過
         {
             this.Log("[Transition] GoTo:", target.stateType, gameObject);
-            anyState.ForceTransition(target.stateType);
+            anyState.TransitionCheck(target.stateType, timeOffset);
             return true;
+        }
+
+        if (parentState == null)
+            Debug.LogError("Why no parent State" + anyState, gameObject);
+
+        if (parentState.TransitionCheck(target, timeOffset))
+        {
+            
         }
         
         if (bindingState == null)
@@ -72,7 +84,7 @@ public class AbstractStateTransition : AbstractBehaviour
         }
         else
         {
-            // this.Log("[Transition] Fail:" + target.stateType, gameObject);
+            this.Log("[Transition] Fail:" + target.stateType, gameObject);
         }
         return false;
     }
