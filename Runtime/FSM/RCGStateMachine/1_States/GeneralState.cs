@@ -36,8 +36,13 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public bool CanSelfTransition = false;
     [AutoParent] GeneralFSMContext context;
     public GeneralFSMContext Context => context;
+
+    [InlineEditor()]
     public List<AbstractStateTransition> transitions;
-    List<AbstractStateAction> actions;
+    //TODO: 其實不需要用list? graphView會需要嗎？
+
+    [AutoChildren()] [InlineEditor()] [ShowInInspector]
+    private AbstractStateAction[] actions;
     public bool IsCurrentPlaying
     {
         get
@@ -51,8 +56,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     private void Awake()
     {
         context = GetComponentInParent<GeneralFSMContext>();
-        actions = new List<AbstractStateAction>();
-        GetComponentsInChildren<AbstractStateAction>(actions);
+        // actions = new List<AbstractStateAction>();
+        // GetComponentsInChildren<AbstractStateAction>(actions);
     }
 
 
@@ -104,6 +109,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (fsm.State == stateType) //現在是我才能
         {
             toState.EnterTimeOffset = timeOffset;
+            
             fsm.ChangeState(toState, CanSelfTransition);
 
             return true;

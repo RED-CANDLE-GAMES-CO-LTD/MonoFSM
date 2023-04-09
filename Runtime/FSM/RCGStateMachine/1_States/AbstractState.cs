@@ -65,6 +65,7 @@ namespace RCGMaker.Core
         public virtual void OnStateExit()
         {
             CurrentCoolDown = StateCoolDown;
+            statusTimer = -statusTimer;
         }
 
 
