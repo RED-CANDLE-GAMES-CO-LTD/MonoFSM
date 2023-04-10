@@ -210,6 +210,14 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // [SerializeReference]
     // ICommand command;
 
+    [Button("編輯動畫")]
+    private void EditClip()
+    {
+        //get interface IAnimatorPlayAction in children, and edit clip
+        var animatorPlayAction = GetComponentInChildren<IAnimatorPlayAction>();
+        animatorPlayAction?.EditClip();
+        //哭了我還不知道AnimatorPlayAction
+    }
 
 #endif
 }
