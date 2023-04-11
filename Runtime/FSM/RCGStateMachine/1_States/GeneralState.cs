@@ -104,6 +104,12 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     }
     public bool TransitionCheck(GeneralState toState,float timeOffset)
     {
+        if (isActiveAndEnabled == false)
+        {
+            this.Log("TransitionCheck fail isActiveAndEnabled false");
+            return false;
+        }
+            
         var fsm = context.fsm;
  
         if (fsm.State == stateType) //現在是我才能

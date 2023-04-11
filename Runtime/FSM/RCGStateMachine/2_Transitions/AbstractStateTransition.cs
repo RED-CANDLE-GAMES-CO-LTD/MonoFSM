@@ -54,6 +54,11 @@ public class AbstractStateTransition : AbstractBehaviour
         if (anyState != null) //走any，直接過
         {
             this.Log("[Transition] GoTo:", target.stateType, gameObject);
+            if (target.stateType.isActiveAndEnabled == false)
+            {
+                this.Log("[Transition] Fail ChangeState target inactive" + target.stateType, gameObject);
+                return false;
+            }
             anyState.TransitionCheck(target.stateType, timeOffset);
             return true;
         }
