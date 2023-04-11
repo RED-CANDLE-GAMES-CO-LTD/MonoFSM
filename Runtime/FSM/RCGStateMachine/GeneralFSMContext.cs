@@ -58,42 +58,9 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         //TODO: getComponents?
         //GenerateBindingTable
     }
-    protected override void Start()
-    {
-        base.Start();
-        // BindEvents();
-    }
-    // void BindEvents() //用綁的？
-    // {
-    //
-    //
-    //     for (var i = 0; i < eventBindings.Length; i++)
-    //     {
-    //         var binding = eventBindings[i];
-    //         foreach (var sender in binding.eventSenders)
-    //         {
-    //             sender.BindingEvent.AddListener(() =>
-    //             {
-    //                 foreach (var item in binding.eventReceivers)
-    //                 {
-    //                     item.EventReceived(binding.type);
-    //                 }
-    //             });
-    //         }
-    //
-    //     }
-    // }
-    //把Event分在一起，Transition分會比較好嗎??
+  
 #if UNITY_EDITOR
-    private void OnValidate()
-    {
-        // GetBindingTable();
-    }
-
-    private void Reset()
-    {
-        // GetBindingTable();
-    }
+    
 
     // private void GetBindingTable()
     // {

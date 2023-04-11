@@ -7,9 +7,10 @@ namespace RCGMaker.Core
         where TState : AbstractState<T> //where T : ScriptableObject 
     {
         [InfoBox("企劃應該不用改這層！大家都去init state , Init Default Transition 決定初始狀態")]
-        public bool ShowStartState = false;
-
-        [ShowIf("ShowStartState")] public TState startState;
+        // public bool ShowStartState = true;
+        [Required]
+        [DisallowModificationsIn(PrefabKind.Variant)]
+        public TState startState;
         public StateMachine<T> fsm;
 
         protected virtual void Awake()
@@ -29,7 +30,8 @@ namespace RCGMaker.Core
 
         protected virtual void Start()
         {
-            fsm.ChangeState(startState.stateType);
+            var initType = startState.stateType;
+            fsm.ChangeState(initType);
         }
 
         //TODO:init?

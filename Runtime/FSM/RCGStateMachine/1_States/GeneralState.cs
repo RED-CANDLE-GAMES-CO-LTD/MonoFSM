@@ -16,6 +16,7 @@ public interface INodeModel
 
 public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>
 {
+    [HideInInspector] [Required] public new GeneralState stateType => this;
 
     [FormerlySerializedAs("enterOffsetDuration")] public float EnterTimeOffset = 0;
     
@@ -41,7 +42,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public List<AbstractStateTransition> transitions;
     //TODO: 其實不需要用list? graphView會需要嗎？
 
-    [AutoChildren()] [InlineEditor()] [ShowInInspector]
+    [AutoChildren(false)] [InlineEditor()] [ShowInInspector]
     private AbstractStateAction[] actions;
     public bool IsCurrentPlaying
     {
@@ -180,7 +181,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     
     private void OnValidate()
     {
-        stateType = this;
+        // stateType = this;
         GetComponentsInChildren<AbstractStateTransition>(true, transitions);
         // transitions.RemoveAllNull();
     }

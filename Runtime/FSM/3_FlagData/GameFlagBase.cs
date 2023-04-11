@@ -4,9 +4,16 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using System.Runtime.Serialization;
+using System.Linq;
+#if UNITY_2022_2_OR_NEWER
+using Unity.Plastic.Newtonsoft.Json;
+using Unity.Plastic.Newtonsoft.Json.Linq;
+
+#else
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Linq;
+#endif
+
 public class AbstractScriptableData<TField, TType> : GameFlagBase where TField : FlagField<TType>
 {
     public TField field;

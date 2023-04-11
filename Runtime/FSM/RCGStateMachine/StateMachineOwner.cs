@@ -6,7 +6,7 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter
 {
     [AutoChildren] private GeneralFSMContext fsmContext;
 
-    [Title("超連結，最好給prefab改就好")] [InlineEditor]
+    [Title("超連結，只有prefab可以改")] [InlineEditor] [DisallowModificationsIn(PrefabKind.NonPrefabInstance)]
     public List<Component> quickFindLinks;
 
     public void EnterLevelResetAndStart()
