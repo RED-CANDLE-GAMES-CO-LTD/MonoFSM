@@ -16,10 +16,10 @@ public interface INodeModel
 
 public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>
 {
-    [HideInInspector] [Required] public new GeneralState stateType => this;
+    // [HideInInspector] [Required] public new GeneralState stateType => this;
 
     [FormerlySerializedAs("enterOffsetDuration")] public float EnterTimeOffset = 0;
-    
+
     [HideInInspector]
     public Vector2 _position;
     public Vector2 position
@@ -42,7 +42,9 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public List<AbstractStateTransition> transitions;
     //TODO: 其實不需要用list? graphView會需要嗎？
 
-    [AutoChildren(false)] [InlineEditor()] [ShowInInspector]
+    [AutoChildren(false)]
+    [InlineEditor()]
+    [ShowInInspector]
     private AbstractStateAction[] actions;
     public bool IsCurrentPlaying
     {
@@ -103,20 +105,20 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     {
         context.ChangeState(this);
     }
-    public bool TransitionCheck(GeneralState toState,float timeOffset)
+    public bool TransitionCheck(GeneralState toState, float timeOffset)
     {
         if (isActiveAndEnabled == false)
         {
             this.Log("TransitionCheck fail isActiveAndEnabled false");
             return false;
         }
-            
+
         var fsm = context.fsm;
- 
+
         if (fsm.State == stateType) //現在是我才能
         {
             toState.EnterTimeOffset = timeOffset;
-            
+
             fsm.ChangeState(toState, CanSelfTransition);
 
             return true;
@@ -142,7 +144,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     [Component(typeof(AbstractStateTransition), AddComponentAt.Children, "[Transition]")]
     private void AddTransition()
     {
-        
+
     }
 
     public AbstractStateTransition AddTransition(System.Type transitionType)
@@ -178,10 +180,10 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     {
         gameObject.AddChildrenComponent<DelayActionModifier>("[Delay Node]");
     }
-    
+
     private void OnValidate()
     {
-        // stateType = this;
+        stateType = this;
         GetComponentsInChildren<AbstractStateTransition>(true, transitions);
         // transitions.RemoveAllNull();
     }
