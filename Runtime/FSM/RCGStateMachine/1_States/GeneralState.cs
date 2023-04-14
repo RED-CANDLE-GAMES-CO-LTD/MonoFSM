@@ -72,7 +72,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 #endif
         foreach (var action in actions)
         {
-            action.OnActionEnter();
+            if (action.isActiveAndEnabled)
+                action.OnActionEnter();
         }
     }
     public override void OnStateUpdate()
@@ -80,15 +81,18 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         base.OnStateUpdate();
         foreach (var action in actions)
         {
-            action.OnActionUpdate();
+            if (action.isActiveAndEnabled)
+                action.OnActionUpdate();
         }
     }
+
     public override void OnSpriteUpdate()
     {
         base.OnSpriteUpdate();
         foreach (var action in actions)
         {
-            action.OnActionSpriteUpdate();
+            if (action.isActiveAndEnabled)
+                action.OnActionSpriteUpdate();
         }
     }
     public override void OnStateExit()
@@ -96,7 +100,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         base.OnStateExit();
         foreach (var action in actions)
         {
-            action.OnActionExit();
+            if (action.isActiveAndEnabled)
+                action.OnActionExit();
         }
     }
 
