@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using Sirenix.OdinInspector;
 
@@ -6,11 +7,19 @@ namespace RCGMaker.Core
     public abstract class StateMachineContext<T, TState> : MonoBehaviour
         where TState : AbstractState<T> //where T : ScriptableObject 
     {
-        [InfoBox("企劃應該不用改這層！大家都去init state , Init Default Transition 決定初始狀態")]
+        // [InfoBox("企劃應該不用改這層！大家都去init state , Init Default Transition 決定初始狀態")]
         // public bool ShowStartState = true;
         [Required]
-        [DisallowModificationsIn(PrefabKind.Variant)]
+        [DisallowModificationsIn(PrefabKind.Variant | PrefabKind.PrefabInstanceAndNonPrefabInstance)]
+        [ValueDropdown("GetAllStates")]
+        [DropDownRef]
         public TState startState;
+
+        public IEnumerable GetAllStates()
+        {
+            return GetComponentsInChildren<TState>();
+        }
+        
         public StateMachine<T> fsm;
 
         protected virtual void Awake()
