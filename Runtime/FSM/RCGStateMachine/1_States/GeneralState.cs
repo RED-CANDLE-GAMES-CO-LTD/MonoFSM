@@ -223,15 +223,23 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // // [MovedFrom("PlayerTestState")]
     // [SerializeReference]
     // ICommand command;
-
-    [Button("編輯動畫")]
+    [ShowIf("@GetAnimatorPlayAction()")]
+    [Button("編輯動畫 Shift+E")]
     private void EditClip()
     {
         //get interface IAnimatorPlayAction in children, and edit clip
-        var animatorPlayAction = GetComponentInChildren<IAnimatorPlayAction>();
+        // GetAnimatorPlayAction
         animatorPlayAction?.EditClip();
         //哭了我還不知道AnimatorPlayAction
     }
 
+    private IAnimatorPlayAction GetAnimatorPlayAction()
+    {
+        if (animatorPlayAction == null)
+            animatorPlayAction = GetComponentInChildren<IAnimatorPlayAction>();
+        return animatorPlayAction;
+    }
+
+    private IAnimatorPlayAction animatorPlayAction;
 #endif
 }

@@ -39,15 +39,17 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         // EditorWindow.GetWindow(System.Type.GetType("FSMGraphEditorWindow"));
     }
 #endif
-    public List<GeneralState> GetAllStates()
+    public GeneralState[] GetAllStates()
     {
         if (states == null)
-            states = new List<GeneralState>();
-        states.Clear();
-        GetComponentsInChildren<GeneralState>(states);
+            states = GetComponentsInChildren<GeneralState>();
+        // states = new List<GeneralState>();
+        // states.Clear();
+        
         return states;
     }
-    List<GeneralState> states;
+
+    private GeneralState[] states;
     [ReadOnly]
     public AbstractStateTransition lastTransition;
     [ReadOnly]
