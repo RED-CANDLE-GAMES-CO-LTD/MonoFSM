@@ -22,8 +22,9 @@ public class AbstractStateTransition : AbstractBehaviour
     [ReadOnly] [ShowInInspector] public GeneralState Target => target;
     IEnumerable<GeneralState> FindStates()
     {
-        return GetComponentInParent<GeneralFSMContext>().GetAllStates()
-            .Where(state => state != this.GetComponentInParent<GeneralState>());
+        return GetComponentInParent<GeneralFSMContext>(true).GetAllStates();
+        // return GetComponentInParent<GeneralFSMContext>().GetAllStates()
+        //     .Where(state => state != this.GetComponentInParent<GeneralState>());
     }
     [AutoChildren(false)] AbstractConditionComp[] conditions;
     // protected override void Awake()
