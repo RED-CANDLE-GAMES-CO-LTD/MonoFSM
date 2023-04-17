@@ -41,14 +41,12 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
 #endif
     public GeneralState[] GetAllStates()
     {
-        if (states == null)
-            states = GetComponentsInChildren<GeneralState>();
-        // states = new List<GeneralState>();
-        // states.Clear();
-        
+        // if (states == null)
+        states = GetComponentsInChildren<GeneralState>();
         return states;
     }
 
+    [ShowInInspector, ReadOnly]
     private GeneralState[] states;
     [ReadOnly]
     public AbstractStateTransition lastTransition;

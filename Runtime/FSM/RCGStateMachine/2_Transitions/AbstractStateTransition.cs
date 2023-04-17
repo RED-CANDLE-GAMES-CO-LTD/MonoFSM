@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using RCGMaker.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public interface IState<TState>
+public interface IState<in TState>
 {
     bool TransitionCheck(TState toState, float timeOffset);
 
@@ -21,7 +22,8 @@ public class AbstractStateTransition : AbstractBehaviour
     [ReadOnly] [ShowInInspector] public GeneralState Target => target;
     IEnumerable<GeneralState> FindStates()
     {
-        return GetComponentInParent<GeneralFSMContext>().GetAllStates();
+        return GetComponentInParent<GeneralFSMContext>().GetAllStates()
+            .Where(state => state != this.GetComponentInParent<GeneralState>());
     }
     [AutoChildren(false)] AbstractConditionComp[] conditions;
     // protected override void Awake()

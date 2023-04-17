@@ -20,7 +20,6 @@ namespace RCGMaker.Core.Editor
 
       public static void Activate()
       {
-
          if(_isRefactoring)
             return;
          Debug.Log("Activate");
