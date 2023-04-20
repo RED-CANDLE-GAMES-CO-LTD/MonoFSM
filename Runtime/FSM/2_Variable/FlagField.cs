@@ -359,7 +359,10 @@ public class FlagField<T> : FlagFieldBase
 
         
     }
-    TestMode lastMode = TestMode.Undefined;
+
+    [ShowInInspector] private TestMode lastMode = TestMode.DeveloperDynamicTest;
+    //FIXME: local field...不會有一般的init途徑，怎麼辦？
+    
 
 
     public void Reset()
@@ -372,6 +375,8 @@ public class FlagField<T> : FlagFieldBase
         }
         else
             CurrentValue = ProductionValue;
+
+        // Debug.Break();
     }
 
 }

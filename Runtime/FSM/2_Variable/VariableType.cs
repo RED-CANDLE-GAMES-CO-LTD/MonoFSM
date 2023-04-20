@@ -57,7 +57,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     // [HideInInspector]
     // public UnityEvent ValueChangedEvent;
     [HideIf("VariableSource")] [HideIf("scriptableData")] [SerializeField]
-    protected TField localField = new();
+    protected TField localField; // = new();
 
     public TField Field => ScriptableData ? ScriptableData.field : localField;
 
@@ -93,7 +93,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
             if (modifiers != null)
                 foreach (var modifier in modifiers)
                     tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
-
+            // this.Log("[Variable] Set", value); 
             if (ScriptableData == null)
                 // if (localField == null)
                 //     localField = default(TField);
@@ -126,7 +126,9 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     void IResetter.EnterLevelResetAndStart()
     {
+        Debug.Log("[VariableType] Before local Reset" + localField.CurrentValue, gameObject);
         localField.Reset();
+        Debug.Log("[VariableType] After local Reset" + localField.CurrentValue, gameObject);
     }
 
     public void ExitLevelAndDestroy()

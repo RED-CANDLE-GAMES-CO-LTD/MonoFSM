@@ -22,24 +22,24 @@ namespace RCGSetting
         // public static DebugCheatNode debugNode;
         public static bool IsDebugMode
         {
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
             get => BoolProperties[nameof(IsDebugMode)];
             set => SetBoolProperty(nameof(IsDebugMode), value);
-#else
-            get => false;
-            set {}
-#endif
+// #else
+//             get => false;
+//             set {}
+// #endif
         }
 
         public static bool PlayerOneHitKill
         {
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
             get => BoolProperties[nameof(PlayerOneHitKill)];
             set => SetBoolProperty(nameof(PlayerOneHitKill), value);
-#else
-            get=>false;
-            set{};
-#endif
+// #else
+//             get=>false;
+//             set{}
+// #endif
         }
 
         public static bool IsPlayerInvincible;
@@ -55,36 +55,34 @@ namespace RCGSetting
         {
             IsPlayerInvincible = activate;
         }
-
-//         static DebugSetting()
-//         {
-// #if UNITY_EDITOR
-//             _isDebugMode = EditorPrefs.GetBool("HierarchyDebugMode", false);
-//             IsPlayerInvincible = EditorPrefs.GetBool("IsPlayerInvincible", true);
-//             _PlayerOneHitKill = EditorPrefs.GetBool("PlayerOneHitKill", true);
-// #else
-//              _isDebugMode = false;
-// #endif
-//             
-//         }
+        
         private static readonly Dictionary<string, bool> BoolProperties = new();
 
         static DebugSetting()
         {
+
             foreach (var property in typeof(DebugSetting).GetProperties())
             {
                 if (property.PropertyType != typeof(bool)) continue;
+#if UNITY_EDITOR
                 var value = EditorPrefs.GetBool(property.Name, false);
+#else
+                var value = false;
+#endif
                 BoolProperties[property.Name] = value;
                 property.SetValue(null, value);
             }
+
         }
 
         // Save all properties to EditorPrefs when any one of them is set
         private static void SetPropertyValue(string propertyName, bool value)
         {
+
             BoolProperties[propertyName] = value;
+#if UNITY_EDITOR
             EditorPrefs.SetBool(propertyName, value);
+#endif
         }
 
         // Use the dictionary to set the property and save to EditorPrefs
