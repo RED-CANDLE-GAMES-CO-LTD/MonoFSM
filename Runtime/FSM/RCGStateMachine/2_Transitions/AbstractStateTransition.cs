@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,12 @@ public class AbstractStateTransition : AbstractBehaviour
     [ValueDropdown("FindStates")]
     [Required]
     public GeneralState target;
+
+    private void OnValidate()
+    {
+        if(target == null)
+            Debug.LogError("No Target! 選一個",gameObject);
+    }
 
     [ReadOnly] [ShowInInspector] public GeneralState Target => target;
     IEnumerable<GeneralState> FindStates()
@@ -49,7 +56,7 @@ public class AbstractStateTransition : AbstractBehaviour
             // this.Log("[Transition] Check1 fail active false" + target.stateType, gameObject);
             return false;
         }
-        if (conditions.IsAllValid() == false)
+        if (conditions != null && conditions.IsAllValid() == false)
             return false;
 
         //TODO: 這個runtime拿蠻不好的, 改成通通拿IState? 合併anyState和State

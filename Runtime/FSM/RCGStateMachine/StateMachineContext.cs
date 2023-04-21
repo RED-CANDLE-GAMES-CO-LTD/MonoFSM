@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using Sirenix.OdinInspector;
@@ -7,7 +8,7 @@ namespace RCGMaker.Core
     public abstract class StateMachineContext<T, TState> : MonoBehaviour
         where TState : AbstractState<T> //where T : ScriptableObject 
     {
-        // [InfoBox("企劃應該不用改這層！大家都去init state , Init Default Transition 決定初始狀態")]
+        [InfoBox("出現不能改但卻是Null，找易衡討論討論")]
         // public bool ShowStartState = true;
         [Required]
         [DisallowModificationsIn(PrefabKind.Variant | PrefabKind.PrefabInstanceAndNonPrefabInstance)]
@@ -22,8 +23,15 @@ namespace RCGMaker.Core
         
         public StateMachine<T> fsm;
 
+        private void OnValidate()
+        {
+            if(startState == null)
+                Debug.LogError("為什麼沒有StartState?",gameObject);
+        }
+
         protected virtual void Awake()
         {
+            
             StateMapping<T> stateBehaviorMapping = new StateMapping<T>();
             var states = GetComponentsInChildren<TState>();
             // var stateDict = new Dictionary<T, TState>();

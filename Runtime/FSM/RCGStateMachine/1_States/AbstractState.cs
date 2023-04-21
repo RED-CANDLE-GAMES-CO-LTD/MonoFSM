@@ -115,7 +115,7 @@ namespace RCGMaker.Core
     public class StateMapping<T>
     {
         private List<MappingEntry> mappingList = new List<MappingEntry>();
-        private Dictionary<T, AbstractState<T>> mapping = new Dictionary<T, AbstractState<T>>();
+        private Dictionary<T, AbstractState<T>> mapping = new();
         public List<MappingEntry> getAllStates => mappingList;
 
         public bool HasState(T state)
