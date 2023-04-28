@@ -22,7 +22,8 @@ public class AbstractStateTransition : AbstractBehaviour
 
     private void OnValidate()
     {
-        if(target == null)
+        
+        if( this.isActiveAndEnabled&&target == null)
             Debug.LogError("No Target! 選一個",gameObject);
     }
 

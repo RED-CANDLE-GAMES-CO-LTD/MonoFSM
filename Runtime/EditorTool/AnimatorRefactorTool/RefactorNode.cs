@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core.Editor
 {
+    #if UNITY_EDITOR
     [ExecuteInEditMode]
     public sealed class RefactorNode : MonoBehaviour
     {
@@ -54,5 +55,6 @@ namespace RCGMaker.Core.Editor
             
         }
     }
+    #endif
     
 }
