@@ -1,14 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
+#endif
 using UnityEngine;
 
 namespace RCGMaker.Core.Editor
 {
    public static class AnimatorRefactor
    {
+#if UNITY_EDITOR
       private const string menuPath = "GameObject/赤燭RCG/Refactor 節點 #r";
 
       // [InitializeOnLoadMethod]
@@ -20,6 +23,7 @@ namespace RCGMaker.Core.Editor
 
       public static void Activate()
       {
+         
          if(_isRefactoring)
             return;
          Debug.Log("Activate");
@@ -341,6 +345,7 @@ namespace RCGMaker.Core.Editor
             .Where(go => PrefabUtility.GetPrefabAssetType(go) == PrefabAssetType.Variant)
             .Where(go => PrefabUtility.GetCorrespondingObjectFromSource(go) == parent);
       }
+#endif
 
    }
    

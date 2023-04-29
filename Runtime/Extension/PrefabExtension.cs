@@ -1,7 +1,9 @@
 using System.Linq;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
+#endif
 using UnityEngine;
 
 namespace Extension
