@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
+using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -9,15 +10,16 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 {
     protected virtual void OnValidate()
     {
-#if UNITY_EDITOR
-        if (!EditorUtility.IsPersistent(this))
-            //檢查有沒有綁定data
-            if (MustGenButNotYet())
-                Debug.LogError("我需要生flag data", this);
-        //TODO: 自動生？
-        //好像也不用傳了？
-        // GenData();
-#endif
+// #if UNITY_EDITOR
+//         // if (OdinPrefabUtility.GetPrefabKind(this) == PrefabKind.PrefabInstance)
+//             //檢查有沒有綁定data
+//             if (EditorUtility.IsPersistent(this)) return;
+//             if (MustGenButNotYet())
+//                 Debug.LogError("Instance需要生flag data", this);
+//             //FIXME: 用validator檢查就好了？
+//         //好像也不用傳了？
+//         // GenData();
+// #endif
     }
 
 #if UNITY_EDITOR
@@ -44,10 +46,11 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     }
 
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
+
     [InfoBox("需要生Flag!", InfoMessageType.Error, "MustGenButNotYet")]
     [HideIf("VariableSource")]
+    [HideIn(PrefabKind.PrefabAsset | PrefabKind.InstanceInPrefab)] //scriptable binding, 只想要在景裡編輯
     [Header("存擋")]
-
     // [FormerlySerializedAs("boolFlag")]
     [GameFlag]
     public TScriptableData scriptableData; //FIXME:
