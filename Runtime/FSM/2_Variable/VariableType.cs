@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
+#endif
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -47,9 +49,9 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     }
 
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
-
+#if UNITY_EDITOR
     [ShowInInspector] private PrefabKind myPrefabKind => OdinPrefabUtility.GetPrefabKind(this);
-    
+    #endif
     [InfoBox("需要生Flag!", InfoMessageType.Error, "MustGenButNotYet")]
     [HideIf("VariableSource")]
     [HideIn(PrefabKind.PrefabAsset )] //scriptable binding, 只想要在景裡編輯
