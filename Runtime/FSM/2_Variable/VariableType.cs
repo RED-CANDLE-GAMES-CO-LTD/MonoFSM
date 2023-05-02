@@ -52,7 +52,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     
     [InfoBox("需要生Flag!", InfoMessageType.Error, "MustGenButNotYet")]
     [HideIf("VariableSource")]
-    [HideIn(PrefabKind.PrefabAsset | PrefabKind.InstanceInPrefab)] //scriptable binding, 只想要在景裡編輯
+    [HideIn(PrefabKind.PrefabAsset )] //scriptable binding, 只想要在景裡編輯
     [Header("存擋")]
     // [FormerlySerializedAs("boolFlag")]
     [GameFlag]
