@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
@@ -17,13 +18,15 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 //             if (EditorUtility.IsPersistent(this)) return;
 //             if (MustGenButNotYet())
 //                 Debug.LogError("Instance需要生flag data", this);
-//             //FIXME: 用validator檢查就好了？
+
 //         //好像也不用傳了？
 //         // GenData();
 // #endif
     }
 
 #if UNITY_EDITOR
+
+    //FIXME: 用validator檢查，然後自動Fix?
     [Button("Test Auto Gen")]
     private void GenData()
     {
@@ -33,7 +36,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 #endif
     private bool MustGenButNotYet()
     {
-        if (GetComponent<MustGenScriptableDataTag>() != null && scriptableData == null)
+        if (GetComponent<AutoGenFlagDataTag>() != null && scriptableData == null)
             return true;
         return false;
     }
@@ -43,7 +46,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     [Button("[Prefab設計]必須存擋")]
     private void AddTag()
     {
-        this.TryGetCompOrAdd<MustGenScriptableDataTag>();
+        this.TryGetCompOrAdd<AutoGenFlagDataTag>();
     }
 
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
@@ -53,17 +56,25 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     [InfoBox("需要生Flag!", InfoMessageType.Error, "MustGenButNotYet")]
     [HideIf("VariableSource")]
     [HideIn(PrefabKind.PrefabAsset )] //scriptable binding, 只想要在景裡編輯
+
     [Header("存擋")]
     // [FormerlySerializedAs("boolFlag")]
-    [GameFlag]
-    public TScriptableData scriptableData; //FIXME:
+    // [GameFlag]
+    [GameState]
+    // [ShowDrawerChain]
+    [InlineEditor()]
+    [HideIf("IsAutoGen")]
+    public TScriptableData scriptableData;
 
+    bool IsAutoGen => GetComponent<AutoGenFlagDataTag>() != null;
+    
     [ShowInInspector] [InlineEditor] public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
 
     // [HideInInspector]
     // public UnityEvent ValueChangedEvent;
     [HideIf("VariableSource")] [HideIf("scriptableData")] [SerializeField]
     protected TField localField; // = new();
+    
 
     public TField Field => ScriptableData ? ScriptableData.field : localField;
 
