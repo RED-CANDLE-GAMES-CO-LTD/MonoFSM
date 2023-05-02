@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
+[Searchable]
 public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IResetter
     where TScriptableData : AbstractScriptableData<TField, TType> where TField : FlagField<TType>, new()
 {
@@ -47,6 +48,8 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
 
+    [ShowInInspector] private PrefabKind myPrefabKind => OdinPrefabUtility.GetPrefabKind(this);
+    
     [InfoBox("需要生Flag!", InfoMessageType.Error, "MustGenButNotYet")]
     [HideIf("VariableSource")]
     [HideIn(PrefabKind.PrefabAsset | PrefabKind.InstanceInPrefab)] //scriptable binding, 只想要在景裡編輯
