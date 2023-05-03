@@ -7,7 +7,7 @@ using UnityEngine.Events;
 public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICondition
 {
     // [FormerlySerializedAs("boolFlag")]
-    [HideInInlineEditors] [Header("Deprecated=>scriptableData")]
+    [ReadOnly] [HideInInlineEditors] [Header("Deprecated=>scriptableData")]
     public GameFlagBool boolFlag; // scriptableData;
 
     public override GameFlagBool ScriptableData => scriptableData == null ? boolFlag : scriptableData;

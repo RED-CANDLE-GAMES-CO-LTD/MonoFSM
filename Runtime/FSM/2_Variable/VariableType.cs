@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
@@ -121,6 +122,29 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         }
     }
 
+    private void Save()
+    {
+        //把localValue 依照key存到
+        guidComponent.GetGuid();
+    }
+
+    private void Load()
+    {
+        //from a static class
+        //key用guid, 夾帶meta? scene.game
+        guidComponent.GetGuid();
+    }
+
+
+    private GuidComponent guidComponent;
+    [AutoParent()] private IGameEntity gameEntity;
+
+    [RuntimeDisplay]
+    private string GameStateID => gameEntity != null
+        ? $"{gameObject.scene.name}_{gameEntity.name}_{gameObject.name}"
+        : $"{gameObject.scene.name}_{gameObject.name}";
+
+   
     private void Start()
     {
         // if (ScriptableData != null)

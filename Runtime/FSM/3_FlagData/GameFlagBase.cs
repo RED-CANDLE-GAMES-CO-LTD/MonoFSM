@@ -5,6 +5,8 @@ using System.Reflection;
 using UnityEngine;
 using System.Runtime.Serialization;
 using System.Linq;
+using Sirenix.OdinInspector;
+
 #if UNITY_2022_2_OR_NEWER
 using Unity.Plastic.Newtonsoft.Json;
 using Unity.Plastic.Newtonsoft.Json.Linq;
@@ -39,6 +41,14 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable
     public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
     // protected bool inited = false;
     public string flagpath = "";
+
+    private string GetGuid()
+    {
+        UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier(this, out var guid, out long localId);
+        return guid;
+    }
+
+    [ShowInInspector] public string AssetGuid => GetGuid();
     // public Vector3 position;//該在這裡綁嗎?
     public virtual void FlagAwake(TestMode mode) //抓default Value或currentValue
     {

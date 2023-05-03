@@ -6,10 +6,12 @@ namespace RCGMaker.Core.Attributes
     public class SOConfigAttribute : Attribute
     {
         public string SubFolderPath = "";
+        public string PostProcessMethodName = "";
 
-        public SOConfigAttribute(string subFolderPath)
+        public SOConfigAttribute(string subFolderPath, string PostProcessMethodName = "")
         {
             SubFolderPath = subFolderPath;
+            this.PostProcessMethodName = PostProcessMethodName;
         }
 
         public string GetPathFromOwnerObj(GameObject gObj, string configName)
