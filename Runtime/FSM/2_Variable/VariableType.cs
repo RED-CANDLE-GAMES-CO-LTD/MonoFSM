@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
-using UnityEditor;
+#endif
+
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -26,16 +28,28 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     }
 
 #if UNITY_EDITOR
-
+    [BoxGroup("GameState")]
     [DisableIf("@!IsAutoGenButNotYet()")] //FIXME: 用validate檢查
     [Button("Auto Gen Fix")]
     private void GenData()
     {
+        //get type of scriptableData field using reflection
+        var type = GetType().GetField("scriptableData").FieldType;
+
+        var path = GameStateAttribute.GetPathOf(gameObject, "", true);
+        scriptableData =
+            type.CreateGameStateSO(path, this) as TScriptableData;
+        // var gameStateSo = type.CreateGameStateSO(Attribute.GetPath(gameObject, true), this);
         // scriptableData = FlagGenerator.GenerateFlagForVariable(this, scriptableData);
         Debug.Log("自動生成flag修正" + scriptableData, scriptableData);
         //FIXME: 用validator檢查，然後自動Fix?
     }
 #endif
+
+    [BoxGroup("GameState")]
+    // [PropertyOrder(-1)]
+    [LabelText("自動生成")]
+    [ShowInInspector]
     private bool IsAutoGen //TODO: IsAutoGen?
     {
         get
@@ -52,9 +66,10 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         return scriptableData == null;
     }
 
+    [BoxGroup("GameState")]
     [HideInInlineEditors]
     [DisableIf("IsAutoGen")]
-    [Button("[Prefab設計]Add Auto State Save")]
+    [Button("[Prefab設計]Add AutoGen GameState")]
     private void AddTag()
     {
         this.TryGetCompOrAdd<AutoGenGameState>();
@@ -65,13 +80,15 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     [ShowInInspector] private PrefabKind myPrefabKind => OdinPrefabUtility.GetPrefabKind(this);
 
 
-    [ShowDrawerChain]
+    // [ShowDrawerChain]
+    [BoxGroup("GameState")]
     [InfoBox("需要生GameState!", InfoMessageType.Error, "IsAutoGenButNotYet")]
     // [HideIf("VariableSource")]
     [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
     [Header("存擋")]
     // [FormerlySerializedAs("boolFlag")]
     // [GameFlag]
+    
     [GameState]
     [InlineEditor()]
     // [DisableIf("IsAutoGen")]
@@ -80,7 +97,9 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     [InfoBox("GameState的類型不對", InfoMessageType.Error, "IsGameStateTypeNotMatch")]
     public TScriptableData scriptableData;
 
-    private bool IsGameStateSaveIDNotMatch() //複製時，造成同個gameState ref, 檢查saveID
+
+    //<summary> 用來檢查auto gen時, 但是saveID不對 </summary>
+    private bool IsGameStateSaveIDNotMatch() //需檢查情境：複製時，造成綁到同一個gameState ref, 檢查saveID
     {
         if (IsAutoGen)
         {
@@ -95,6 +114,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     }
 
 
+    // <summary> 用來檢查是否有auto gen, 但是type不對 </summary>
     private bool IsGameStateTypeNotMatch()
     {
         if (scriptableData == null) return false;
@@ -218,7 +238,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     [HideInInlineEditors] public UnityEvent<TType> OnValueChanged = new();
 }
 
-public class AbstractVariable : AbstractFlag
+public abstract class AbstractVariable : AbstractFlag
 {
     protected virtual void Awake()
     {

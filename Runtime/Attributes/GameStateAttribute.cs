@@ -48,5 +48,19 @@ namespace RCGMaker.Core.Attributes
             else
                 return $"{folderPath}/{SubFolderName}/{scenePrefixAct}/{finalName}.asset";
         }
+
+        public static string GetPathOf(GameObject gObj, string subFolderName = "", bool isAutoGen = false)
+        {
+            var folderPath = GameStateFolderPath;
+            if (isAutoGen)
+                folderPath += "/AutoGen";
+            var sceneTokens = gObj.scene.name.Split("_");
+            var scenePrefixAct = sceneTokens.Length > 1 ? sceneTokens[0] : "Test";
+            var finalName = $"{gObj.scene.name}_{gObj.name}";
+            if (subFolderName == "")
+                return $"{folderPath}/{scenePrefixAct}/{finalName}.asset";
+            else
+                return $"{folderPath}/{subFolderName}/{scenePrefixAct}/{finalName}.asset";
+        }
     }
 }
