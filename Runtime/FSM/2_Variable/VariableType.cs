@@ -34,7 +34,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         Debug.Log("自動生成flag???" + scriptableData, scriptableData);
     }
 #endif
-    private bool MustGenButNotYet()
+    private bool IsAutoGen() //TODO: IsAutoGen?
     {
         if (GetComponent<AutoGenFlagDataTag>() != null && scriptableData == null)
             return true;
@@ -52,21 +52,22 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
 
     [ShowInInspector] private PrefabKind myPrefabKind => OdinPrefabUtility.GetPrefabKind(this);
-    
-    [InfoBox("需要生Flag!", InfoMessageType.Error, "MustGenButNotYet")]
-    [HideIf("VariableSource")]
-    [HideIn(PrefabKind.PrefabAsset )] //scriptable binding, 只想要在景裡編輯
+
+    // [InfoBox("需要生Flag!", InfoMessageType.Error, "IsAutoGen")]
+    // [HideIf("VariableSource")]
+    [DisableIn(PrefabKind.PrefabAsset)] //scriptable binding, 只想要在景裡編輯
 
     [Header("存擋")]
     // [FormerlySerializedAs("boolFlag")]
     // [GameFlag]
     [GameState]
-    // [ShowDrawerChain]
+    
     [InlineEditor()]
     [HideIf("IsAutoGen")]
+    //FIXME: IsSceneAutoGen, PrefabMustGen?
     public TScriptableData scriptableData;
 
-    bool IsAutoGen => GetComponent<AutoGenFlagDataTag>() != null;
+    // bool IsAutoGen => GetComponent<AutoGenFlagDataTag>() != null;
     
     [ShowInInspector] [InlineEditor] public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
 
@@ -168,7 +169,7 @@ public class AbstractVariable : AbstractFlag
     }
 
     [ShowIf("VariableSource")] [InlineEditor]
-    public AbstractVariable VariableSource; //用別人的值
+    public AbstractVariable VariableSource; //用別人的值 //FIXME: 什麼時候會用到這個？
 
     [ReadOnly] public List<AbstractVariableConsumer> consumers; //有誰有用我，binder綁一下
 }

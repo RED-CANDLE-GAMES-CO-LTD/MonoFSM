@@ -3,18 +3,18 @@ using UnityEngine;
 
 namespace RCGMaker.Core.Attributes
 {
-    public class ConfigSOAttribute : Attribute
+    public class SOConfigAttribute : Attribute
     {
         public string SubFolderPath = "";
 
-        public ConfigSOAttribute(string subFolderPath)
+        public SOConfigAttribute(string subFolderPath)
         {
             SubFolderPath = subFolderPath;
         }
 
-        public string GetPathFromOwnerObj(GameObject gObj)
+        public string GetPathFromOwnerObj(GameObject gObj, string configName)
         {
-            var finalName = $"{gObj.scene.name}_{gObj.transform.position}_{gObj.name}";
+            var finalName = $"{gObj.name}_{configName}";
             if (SubFolderPath == "")
                 return $"{finalName}.asset";
             else
