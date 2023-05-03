@@ -27,51 +27,98 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
 #if UNITY_EDITOR
 
-    //FIXME: 用validator檢查，然後自動Fix?
-    [Button("Test Auto Gen")]
+    [DisableIf("@!IsAutoGenButNotYet()")] //FIXME: 用validate檢查
+    [Button("Auto Gen Fix")]
     private void GenData()
     {
         // scriptableData = FlagGenerator.GenerateFlagForVariable(this, scriptableData);
-        Debug.Log("自動生成flag???" + scriptableData, scriptableData);
+        Debug.Log("自動生成flag修正" + scriptableData, scriptableData);
+        //FIXME: 用validator檢查，然後自動Fix?
     }
 #endif
-    private bool IsAutoGen() //TODO: IsAutoGen?
+    private bool IsAutoGen //TODO: IsAutoGen?
     {
-        if (GetComponent<AutoGenFlagDataTag>() != null && scriptableData == null)
-            return true;
-        return false;
+        get
+        {
+            if (GetComponent<AutoGenGameState>() != null)
+                return true;
+            return false;
+        }
     }
 
+    private bool IsAutoGenButNotYet()
+    {
+        if (!IsAutoGen) return false;
+        return scriptableData == null;
+    }
 
     [HideInInlineEditors]
-    [Button("[Prefab設計]必須存擋")]
+    [DisableIf("IsAutoGen")]
+    [Button("[Prefab設計]Add Auto State Save")]
     private void AddTag()
     {
-        this.TryGetCompOrAdd<AutoGenFlagDataTag>();
+        this.TryGetCompOrAdd<AutoGenGameState>();
     }
 
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
-
+    
     [ShowInInspector] private PrefabKind myPrefabKind => OdinPrefabUtility.GetPrefabKind(this);
 
-    // [InfoBox("需要生Flag!", InfoMessageType.Error, "IsAutoGen")]
-    // [HideIf("VariableSource")]
-    [DisableIn(PrefabKind.PrefabAsset)] //scriptable binding, 只想要在景裡編輯
 
+    [ShowDrawerChain]
+    [InfoBox("需要生GameState!", InfoMessageType.Error, "IsAutoGenButNotYet")]
+    // [HideIf("VariableSource")]
+    [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
     [Header("存擋")]
     // [FormerlySerializedAs("boolFlag")]
     // [GameFlag]
     [GameState]
-    
     [InlineEditor()]
-    [HideIf("IsAutoGen")]
+    // [DisableIf("IsAutoGen")]
     //FIXME: IsSceneAutoGen, PrefabMustGen?
+    [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, "IsGameStateSaveIDNotMatch")]
+    [InfoBox("GameState的類型不對", InfoMessageType.Error, "IsGameStateTypeNotMatch")]
     public TScriptableData scriptableData;
 
-    // bool IsAutoGen => GetComponent<AutoGenFlagDataTag>() != null;
+    private bool IsGameStateSaveIDNotMatch() //複製時，造成同個gameState ref, 檢查saveID
+    {
+        if (IsAutoGen)
+        {
+            var autoComp = GetComponent<AutoGenGameState>();
+            if (autoComp != null && scriptableData != null)
+                if (autoComp.SaveID != scriptableData.SaveID)
+                    // Debug.LogError("SaveID不一致", this);
+                    return true;
+        }
+
+        return false;
+    }
+
+
+    private bool IsGameStateTypeNotMatch()
+    {
+        if (scriptableData == null) return false;
+
+        var autoComp = GetComponent<AutoGenGameState>();
+        if (autoComp != null)
+        {
+            //有auto gen, 但是type不對
+            if (scriptableData.type != GameFlagBase.GameStateType.AutoUnique) return true;
+        }
+        else
+        {
+            if (scriptableData.type != GameFlagBase.GameStateType.Manual)
+                return true;
+        }
+
+        return false;
+    }
     
+
     [ShowInInspector] [InlineEditor] public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
 
+    
+    
     // [HideInInspector]
     // public UnityEvent ValueChangedEvent;
     [HideIf("VariableSource")] [HideIf("scriptableData")] [SerializeField]
@@ -121,22 +168,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
                 ScriptableData.CurrentValue = tempValue;
         }
     }
-
-    private void Save()
-    {
-        //把localValue 依照key存到
-        guidComponent.GetGuid();
-    }
-
-    private void Load()
-    {
-        //from a static class
-        //key用guid, 夾帶meta? scene.game
-        guidComponent.GetGuid();
-    }
-
-
-    private GuidComponent guidComponent;
+    
     [AutoParent()] private IGameEntity gameEntity;
 
     [RuntimeDisplay]

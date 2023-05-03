@@ -8,7 +8,7 @@ namespace RCGMaker.Core.Attributes
     //ConfigSO
     public class GameStateAttribute : Attribute
     {
-        public static string FlagFolderPath = "10_Flags"; //TODO: 弄成一個config
+        public static string GameStateFolderPath = "10_Flags"; //TODO: 弄成一個config
 
         public GameStateAttribute()
         {
@@ -35,14 +35,18 @@ namespace RCGMaker.Core.Attributes
         //         return $"{FlagFolderPath}/{SubFolderName}/{FlagName}.asset";
         // }
 
-        public string GetPath(GameObject gObj)
+        public string GetPath(GameObject gObj, bool isAutoGen = false)
         {
-            var scenePrefixAct = gObj.scene.name.Split("_")[0];
-            var finalName = $"{gObj.scene.name}_{gObj.transform.position}_{gObj.name}";
+            var folderPath = GameStateFolderPath;
+            if (isAutoGen)
+                folderPath += "/AutoGen";
+            var sceneTokens = gObj.scene.name.Split("_");
+            var scenePrefixAct = sceneTokens.Length > 1 ? sceneTokens[0] : "Test";
+            var finalName = $"{gObj.scene.name}_{gObj.name}";
             if (SubFolderName == "")
-                return $"{FlagFolderPath}/{scenePrefixAct}/{finalName}.asset";
+                return $"{folderPath}/{scenePrefixAct}/{finalName}.asset";
             else
-                return $"{FlagFolderPath}/{SubFolderName}/{scenePrefixAct}/{finalName}.asset";
+                return $"{folderPath}/{SubFolderName}/{scenePrefixAct}/{finalName}.asset";
         }
     }
 }

@@ -5,7 +5,9 @@ using System.Reflection;
 using UnityEngine;
 using System.Runtime.Serialization;
 using System.Linq;
+using RCGMaker.Core;
 using Sirenix.OdinInspector;
+using UnityEditor;
 
 #if UNITY_2022_2_OR_NEWER
 using Unity.Plastic.Newtonsoft.Json;
@@ -38,17 +40,31 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
 [System.Serializable]
 public abstract class GameFlagBase : ScriptableObject, ISerializable
 {
-    public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
+    // public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
     // protected bool inited = false;
-    public string flagpath = "";
+    [ReadOnly] public string SaveID = "";
 
-    private string GetGuid()
+    public enum GameStateType
     {
-        UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier(this, out var guid, out long localId);
-        return guid;
+        Manual, //手動串，可能多對一
+        AutoUnique //一對一最單純的，自動生成，可以整包砍掉重建
     }
 
-    [ShowInInspector] public string AssetGuid => GetGuid();
+    [ReadOnly] public GameStateType type;
+
+    private void OnValidate()
+    {
+        if (type == GameStateType.AutoUnique)
+        {
+            //不用做事
+        }
+        else //manual, duplicate的時候會需要重新assign
+        {
+            var guid = this.GetGUID();
+            SaveID = guid;
+        }
+    }
+
     // public Vector3 position;//該在這裡綁嗎?
     public virtual void FlagAwake(TestMode mode) //抓default Value或currentValue
     {
@@ -201,7 +217,8 @@ public class FlagJsonConverter : JsonConverter
                 //     info.AddValue(myField[i].Name, myField[i].GetValue(this));
                 // }
             }
-            result.Add(flag.flagpath, o);
+
+            result.Add(flag.SaveID, o);
 
         }
         result.WriteTo(writer);

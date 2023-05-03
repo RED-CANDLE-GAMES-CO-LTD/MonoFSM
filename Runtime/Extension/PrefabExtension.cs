@@ -6,7 +6,7 @@ using UnityEditor.SceneManagement;
 #endif
 using UnityEngine;
 
-namespace Extension
+namespace RCGMaker.Core
 {
     public static class PrefabExtension
     {

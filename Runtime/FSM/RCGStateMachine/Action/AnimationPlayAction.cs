@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using RCG.Extensions;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEditor.Animations;

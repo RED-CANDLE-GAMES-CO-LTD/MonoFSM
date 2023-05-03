@@ -1,4 +1,6 @@
-namespace RCG.Extensions
+
+
+namespace RCGMaker.Core
 {
     public static class StringExtension
     {
@@ -6,5 +8,7 @@ namespace RCG.Extensions
         {
             return path[..path.LastIndexOf('/')];
         }
+
+     
     }
 }
