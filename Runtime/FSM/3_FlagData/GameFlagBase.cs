@@ -66,7 +66,8 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
         else //manual, duplicate的時候會需要重新assign
         {
             var guid = this.GetGUID();
-            SaveID = guid;
+            if (SaveID != guid)
+                SaveID = guid;
         }
     }
 
