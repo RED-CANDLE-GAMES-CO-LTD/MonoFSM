@@ -38,7 +38,7 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
 }
 //最基礎的GameFlag元件
 [System.Serializable]
-public abstract class GameFlagBase : ScriptableObject, ISerializable
+public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializationCallbackReceiver
 {
     // public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
     // protected bool inited = false;
@@ -50,11 +50,16 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable
         AutoUnique //一對一最單純的，自動生成，可以整包砍掉重建
     }
 
-    [ReadOnly] public GameStateType type;
+    [EnumToggleButtons] [ReadOnly] public GameStateType gameStateType = GameStateType.Manual;
 
-    private void OnValidate()
+    protected virtual void OnValidate()
     {
-        if (type == GameStateType.AutoUnique)
+        ValidateSaveID();
+    }
+
+    private void ValidateSaveID()
+    {
+        if (gameStateType == GameStateType.AutoUnique)
         {
             //不用做事
         }
@@ -173,6 +178,15 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable
     }
 
 
+    public void OnBeforeSerialize()
+    {
+        ValidateSaveID();
+    }
+
+    public void OnAfterDeserialize()
+    {
+        // throw new NotImplementedException();
+    }
 }
 
 public class FlagJsonConverter : JsonConverter

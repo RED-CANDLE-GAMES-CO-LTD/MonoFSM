@@ -25,7 +25,7 @@ namespace RCGMaker.Core
             if (!refObj.TryGetComponent<AutoGenGameState>(out var autoGenGameState)) return gameStateSo;
 
             //自動生成的，SaveID另外做
-            gameStateSo.type = GameFlagBase.GameStateType.AutoUnique;
+            gameStateSo.gameStateType = GameFlagBase.GameStateType.AutoUnique;
             gameStateSo.SaveID = autoGenGameState.SaveID;
 
             return gameStateSo;
@@ -46,7 +46,7 @@ namespace RCGMaker.Core
             var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/" + fileRelativePath);
             if (asset != null)
             {
-                Debug.LogWarning("File already exist, linked");
+                Debug.Log("File already exist, linked");
                 return asset;
             }
 

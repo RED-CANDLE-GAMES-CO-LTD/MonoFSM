@@ -170,7 +170,8 @@ namespace RCGMaker.Core.Editor
       }
 
       private static GameObject selectingNode;
-      private static string savedLastNewName = "GameObject"; 
+
+      // private static string savedLastNewName = "GameObject"; 
       [MenuItem(menuPath)]
       static void RenameNode()
       {

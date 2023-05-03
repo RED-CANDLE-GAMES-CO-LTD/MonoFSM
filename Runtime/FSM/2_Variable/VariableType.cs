@@ -66,9 +66,14 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         return scriptableData == null;
     }
 
+    private bool IsSuggestingAutoGen()
+    {
+        if (IsAutoGen) return false;
+        return scriptableData == null;
+    }
     [BoxGroup("GameState")]
     [HideInInlineEditors]
-    [DisableIf("IsAutoGen")]
+    [EnableIf("IsSuggestingAutoGen")]
     [Button("[Prefab設計]Add AutoGen GameState")]
     private void AddTag()
     {
@@ -123,11 +128,11 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         if (autoComp != null)
         {
             //有auto gen, 但是type不對
-            if (scriptableData.type != GameFlagBase.GameStateType.AutoUnique) return true;
+            if (scriptableData.gameStateType != GameFlagBase.GameStateType.AutoUnique) return true;
         }
         else
         {
-            if (scriptableData.type != GameFlagBase.GameStateType.Manual)
+            if (scriptableData.gameStateType != GameFlagBase.GameStateType.Manual)
                 return true;
         }
 
