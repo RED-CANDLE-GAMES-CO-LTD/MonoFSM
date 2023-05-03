@@ -9,6 +9,8 @@ public abstract class AbstractStateAction : AbstractBehaviour
     {
         get
         {
+            if (_delay) return false;
+
             return conditions.IsAllValid();
         }
     }
@@ -40,21 +42,32 @@ public abstract class AbstractStateAction : AbstractBehaviour
     [AutoParent]
     DelayActionModifier delayActionModifier;
 
+    private bool _delay = false;
+
     //一定是AND的啦
     public async void OnActionEnter()
     {
+        if (_delay)
+            UnityEngine.Debug.LogError("Delay 還沒結束又DELAY 死罪", this);
+
+        _delay = false;
         //TODO: conditions
         if (!IsValid) return; //not valid也要用字串？
 
+        _delay = true;
         if (delayActionModifier != null)
+        {
             await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime));
+        }
 
+        _delay = false;
         // this.AddTask(OnStateEnterImplement, delayActionModifier.delayTime);
         OnStateEnterImplement();
     }
     protected abstract void OnStateEnterImplement();
     public void OnActionUpdate()
     {
+
         if (IsValid)
             OnStateUpdateImplement();
     }
