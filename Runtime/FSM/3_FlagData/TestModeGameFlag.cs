@@ -4,9 +4,9 @@ using UnityEngine;
 public enum TestMode
 {
     Undefined = -1,
-    PlayerMode,
+    Production,
     //DeveloperStaticTest,
-    DeveloperDynamicTest,
+    Development,
 
     BetaTest,
 }
@@ -17,7 +17,7 @@ public class TestModeGameFlag : GameFlagBase
 {
 
     //最單純所有的flag都直接改成on
-    public TestMode mode = TestMode.DeveloperDynamicTest;
+    public TestMode mode = TestMode.Development;
     public bool isDemo = false;
     //TODO: 把ability flag放到gameflagmanager的一個list?
     // public bool AllAbilityOn;

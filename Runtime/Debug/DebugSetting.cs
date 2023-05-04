@@ -12,6 +12,12 @@ namespace RCGSetting
 #endif
     public static class DebugSetting
     {
+        public static bool IsProductionMode
+        {
+            get => BoolProperties[nameof(IsProductionMode)];
+            set => SetBoolProperty(nameof(IsProductionMode), value);
+        }
+        
         public static bool IsShowDebugNumber
         {
             get => BoolProperties[nameof(IsShowDebugNumber)];

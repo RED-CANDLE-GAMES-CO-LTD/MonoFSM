@@ -360,8 +360,8 @@ public class FlagField<T> : FlagFieldBase
 #endif
         _currentValue = mode switch
         {
-            TestMode.DeveloperDynamicTest => DevValue,
-            TestMode.PlayerMode => ProductionValue,
+            TestMode.Development => DevValue,
+            TestMode.Production => ProductionValue,
             TestMode.BetaTest => PlayTestValue,
             _ => _currentValue
         };
@@ -370,7 +370,7 @@ public class FlagField<T> : FlagFieldBase
         
     }
 
-    [ShowInInspector] private TestMode lastMode = TestMode.DeveloperDynamicTest;
+    [ShowInInspector] private TestMode lastMode = TestMode.Development;
     //FIXME: local field...不會有一般的init途徑，怎麼辦？
     
 
