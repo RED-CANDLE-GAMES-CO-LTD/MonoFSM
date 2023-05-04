@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 using Sirenix.OdinInspector;
 public interface ICondition
@@ -55,12 +56,8 @@ public abstract class AbstractConditionComp : MonoBehaviour
 {
     public bool FinalResultInverted = false;
     protected abstract bool isValid { get; }
-    // public bool isNotValid => !isValid;
-    bool IsRuntime()
-    {
-        return Application.isPlaying;
-    }
-    [ShowIf("IsRuntime"), ReadOnly, ShowInInspector]
+
+    [RuntimeDisplay]
     public bool FinalResult
     {
         get
@@ -73,6 +70,5 @@ public abstract class AbstractConditionComp : MonoBehaviour
             else
                 return isValid;
         }
-
     }
 }

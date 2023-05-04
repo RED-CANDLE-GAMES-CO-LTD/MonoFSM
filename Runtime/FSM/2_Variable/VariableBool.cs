@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 // using mixpanel;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -22,6 +23,7 @@ public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICo
 
     // [FormerlySerializedAs("tempFlag")]
     // public FlagFieldBool localField;// localField;
+    [RuntimeDisplay]
     public bool FlagValue
     {
         get => Value;
@@ -35,8 +37,6 @@ public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICo
             //     { "value", value }
             // });
             Value = value;
-
-
             ValueChangedEvent.Invoke();
         }
     }

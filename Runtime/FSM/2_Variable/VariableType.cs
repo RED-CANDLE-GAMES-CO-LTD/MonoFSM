@@ -157,6 +157,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     // Start is called before the first frame update
     [AutoChildren(false)] private AbstractVariableModifier<TType>[] modifiers;
 
+    [RuntimeDisplay]
     public TType Value
     {
         get
