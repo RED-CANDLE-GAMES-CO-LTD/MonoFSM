@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
@@ -235,9 +236,11 @@ public class FlagField<T> : FlagFieldBase
     // [Header("Current State")]
     
     // [OnChangedCallAttribute("SetCurrentValue")]
-    [SerializeField]
+    
     protected T _currentValue;
-    public bool isDirty = false;
+
+    // public bool isDirty = false;
+    [ShowInInspector]
     protected T _lastValue;
     public T LastValue => _lastValue;
 
@@ -245,8 +248,8 @@ public class FlagField<T> : FlagFieldBase
     {
         CurrentValue = LastValue;
     }
-[ReadOnly]
-    [ShowInInspector]
+
+    [RuntimeDisplay]
     public virtual T CurrentValue
     {
         get => _currentValue;
@@ -342,7 +345,7 @@ public class FlagField<T> : FlagFieldBase
         listener?.OnChange(value, false);
         listenerOnce?.OnChange(value, true);
 
-        isDirty = true;
+        // isDirty = true;
 
     }
 
@@ -350,7 +353,7 @@ public class FlagField<T> : FlagFieldBase
 
     public void Init(TestMode mode)
     {
-        isDirty = false;
+        // isDirty = false;
 
       
 
