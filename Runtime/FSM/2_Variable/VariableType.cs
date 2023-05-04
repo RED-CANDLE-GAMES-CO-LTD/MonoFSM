@@ -33,6 +33,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     [EditorOnly]
     private void GenData()
     {
+#if UNITY_EDITOR
         //get type of scriptableData field using reflection
         var type = GetType().GetField("scriptableData").FieldType;
 
@@ -42,6 +43,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         // var gameStateSo = type.CreateGameStateSO(Attribute.GetPath(gameObject, true), this);
         // scriptableData = FlagGenerator.GenerateFlagForVariable(this, scriptableData);
         Debug.Log("自動生成flag修正" + scriptableData, scriptableData);
+#endif
         //FIXME: 用validator檢查，然後自動Fix?
     }
 
@@ -79,9 +81,9 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     }
 
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
-    
+#if UNITY_EDITOR
     [ShowInInspector] private PrefabKind myPrefabKind => OdinPrefabUtility.GetPrefabKind(this);
-
+#endif
 
     // [ShowDrawerChain]
     [BoxGroup("GameState")]
@@ -102,6 +104,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
 
     //<summary> 用來檢查auto gen時, 但是saveID不對 </summary>
+#if UNITY_EDITOR
     private bool IsGameStateSaveIDNotMatch() //需檢查情境：複製時，造成綁到同一個gameState ref, 檢查saveID
     {
         if (IsAutoGen)
@@ -115,6 +118,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
         return false;
     }
+#endif
 
 
     // <summary> 用來檢查是否有auto gen, 但是type不對 </summary>
@@ -223,9 +227,9 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     void IResetter.EnterLevelResetAndStart()
     {
-        Debug.Log("[VariableType] Before local Reset" + localField.CurrentValue, gameObject);
+        // this.Log("[VariableType] Before local Reset" + localField.CurrentValue, gameObject);
         localField.Reset();
-        Debug.Log("[VariableType] After local Reset" + localField.CurrentValue, gameObject);
+        // this.Log("[VariableType] After local Reset" + localField.CurrentValue, gameObject);
     }
 
     public void ExitLevelAndDestroy()

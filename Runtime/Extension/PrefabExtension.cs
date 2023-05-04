@@ -1,7 +1,7 @@
 using System.Linq;
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
 #if UNITY_EDITOR
+using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
@@ -18,6 +18,9 @@ namespace RCGMaker.Core
     }
     public static class PrefabExtension
     {
+#if UNITY_EDITOR
+
+        //給validate用的，想要不同情況下做不同validate
         public static bool IsInPrefab(this GameObject gObj)
         {
             return OdinPrefabUtility.GetPrefabKind(gObj) is PrefabKind.Variant or PrefabKind.Regular
@@ -33,8 +36,7 @@ namespace RCGMaker.Core
         {
             return OdinPrefabUtility.GetPrefabKind(gObj) is PrefabKind.InstanceInScene or PrefabKind.NonPrefabInstance;
         }
-
-        public static readonly PrefabKind InScene = PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance;
+#endif
 
 
 //TODO: 還沒測試

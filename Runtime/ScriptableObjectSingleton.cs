@@ -14,9 +14,10 @@ public class ScriptableObjectConfig<T> : ScriptableObjectSingleton<T> where T : 
 //Singleton config，要放到Resources的Config資料夾裡
 public class ScriptableObjectSingleton<T> : ScriptableObject, ISelfValidator where T : ScriptableObject
 {
-    [EditorOnly]
+
     public void Validate(SelfValidationResult result)
     {
+#if UNITY_EDITOR
         //check if asset is in Resources/Config
         var assetPath = AssetDatabase.GetAssetPath(this);
         if (!assetPath.Contains("Resources/Configs"))
@@ -30,7 +31,9 @@ public class ScriptableObjectSingleton<T> : ScriptableObject, ISelfValidator whe
                     Debug.LogError("Move Result:" + moveResult);
                 // AssetDatabase.Refresh();
             });
+#endif
     }
+    
     private static T s_Instance;
     
     public static T Instance
@@ -50,7 +53,6 @@ public class ScriptableObjectSingleton<T> : ScriptableObject, ISelfValidator whe
 
                 var assets = Resources.LoadAll<T>("Configs");
                 s_Instance = assets[0];
-                Debug.Log("Loaded", s_Instance);
 // #else
                 //TODO: 這裡要改成從Resources讀取
 // if(TestModeGameFlag.Instance.test

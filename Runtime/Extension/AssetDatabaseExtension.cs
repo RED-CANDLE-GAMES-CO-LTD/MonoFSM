@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
-
 namespace RCGMaker.Core
 {
     public static class AssetDatabaseExtension

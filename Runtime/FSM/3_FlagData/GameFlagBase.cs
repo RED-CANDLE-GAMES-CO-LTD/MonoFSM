@@ -6,6 +6,7 @@ using UnityEngine;
 using System.Runtime.Serialization;
 using System.Linq;
 using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEditor;
 
@@ -50,16 +51,19 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
         AutoUnique //一對一最單純的，自動生成，可以整包砍掉重建
     }
 
-    #if UNITY_EDITOR
+    
     [EnumToggleButtons] [ReadOnly] public GameStateType gameStateType = GameStateType.Manual;
 
+    [EditorOnly]
     protected virtual void OnValidate()
     {
         ValidateSaveID();
     }
 
+    [EditorOnly]
     private void ValidateSaveID()
     {
+#if UNITY_EDITOR
         if (gameStateType == GameStateType.AutoUnique)
         {
             //不用做事
@@ -70,8 +74,9 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
             if (SaveID != guid)
                 SaveID = guid;
         }
-    }
 #endif
+    }
+
     // public Vector3 position;//該在這裡綁嗎?
     public virtual void FlagAwake(TestMode mode) //抓default Value或currentValue
     {
