@@ -6,6 +6,7 @@ public interface IDataOwner
     public string Name { get; }
 }
 //點ref: GameFlagGeneratorPropertyDrawer
+
 public class GameFlagAttribute : PropertyAttribute
 {
     public GameFlagAttribute()

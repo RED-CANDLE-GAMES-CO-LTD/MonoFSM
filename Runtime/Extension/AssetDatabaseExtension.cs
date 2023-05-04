@@ -1,10 +1,38 @@
+
+using RCGMaker.Core.Attributes;
+using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
+using Debug = UnityEngine.Debug;
+
 namespace RCGMaker.Core
 {
     public static class AssetDatabaseExtension
     {
+        //"Resources/Configs"
+        [EditorOnly]
+        public static void AssetInFolderValidate(this ScriptableObject asset, string folderName,
+            SelfValidationResult result)
+        {
+#if UNITY_EDITOR
+            //check if asset is in Resources/Config
+            var assetPath = AssetDatabase.GetAssetPath(asset);
+            if (!assetPath.Contains(folderName))
+                result.AddError($"ScriptableObject {asset} should be in Resources/Config folder").WithFix(() =>
+                {
+                    //move asset to Resources/Config
+                    var newPath = assetPath.Replace("Assets/", "Assets/" + folderName + "/");
+                    Debug.Log("Move SO To:" + newPath);
+                    var moveResult = AssetDatabase.MoveAsset(assetPath, newPath);
+                    if (moveResult != "")
+                        Debug.LogError("Move Result:" + moveResult);
+                    // AssetDatabase.Refresh();
+                });
+#endif
+        }
+#if UNITY_EDITOR
         public static string GetGUID(this Object obj)
         {
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out var guid, out long localId);
@@ -30,8 +58,10 @@ namespace RCGMaker.Core
             return gameStateSo;
         }
 
+        
         public static ScriptableObject CreateScriptableObject(this System.Type type, string fileRelativePath)
         {
+
             var folderRelativePath = fileRelativePath.FolderPath();
             Debug.Log("Want to Create Asset at: Assets/" + fileRelativePath);
             if (!AssetDatabase.IsValidFolder("Assets/" + folderRelativePath))
@@ -54,9 +84,12 @@ namespace RCGMaker.Core
             AssetDatabase.SaveAssets();
             return asset;
         }
+#endif
 
+        [EditorOnly]
         public static void CreateFolderAtPath(string folderPath)
         {
+#if UNITY_EDITOR
             var folders = folderPath.Split('/');
             var currentPath = "Assets";
 
@@ -73,7 +106,7 @@ namespace RCGMaker.Core
                     currentPath = newPath;
                 }
             }
+#endif
         }
     }
 }
-#endif

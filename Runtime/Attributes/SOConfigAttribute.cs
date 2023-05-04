@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core.Attributes
 {
+    [EditorOnly]
     public class SOConfigAttribute : Attribute
     {
         public string SubFolderPath = "";

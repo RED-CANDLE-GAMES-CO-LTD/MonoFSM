@@ -240,16 +240,10 @@ public class FlagField<T> : FlagFieldBase
     protected T _currentValue;
 
     // public bool isDirty = false;
+
+
+    [GUIColor(0, 1, 0.5f, 1)]
     [ShowInInspector]
-    protected T _lastValue;
-    public T LastValue => _lastValue;
-
-    public void RevertToLastValue()
-    {
-        CurrentValue = LastValue;
-    }
-
-    [RuntimeDisplay]
     public virtual T CurrentValue
     {
         get => _currentValue;
@@ -257,7 +251,14 @@ public class FlagField<T> : FlagFieldBase
             // SetCurrentValue(value);
             //有事件而且值不同
             //   Debug.Log("FlagField Set CurrentValue" + value);
-      
+    }
+
+    protected T _lastValue;
+    [RuntimeDisplay] public T LastValue => _lastValue;
+
+    public void RevertToLastValue()
+    {
+        CurrentValue = LastValue;
     }
     public ValueChangedListener<T> listener =  new ();
     public ValueChangedListener<T> listenerOnce = new();
@@ -373,7 +374,7 @@ public class FlagField<T> : FlagFieldBase
         
     }
 
-    [ShowInInspector] private TestMode lastMode = TestMode.EditorDevelopment;
+    private TestMode lastMode = TestMode.EditorDevelopment;
     //FIXME: local field...不會有一般的init途徑，怎麼辦？
     
 

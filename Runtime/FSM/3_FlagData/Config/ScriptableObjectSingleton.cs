@@ -1,3 +1,4 @@
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEditor;
@@ -17,21 +18,7 @@ public class ScriptableObjectSingleton<T> : ScriptableObject, ISelfValidator whe
 
     public void Validate(SelfValidationResult result)
     {
-#if UNITY_EDITOR
-        //check if asset is in Resources/Config
-        var assetPath = AssetDatabase.GetAssetPath(this);
-        if (!assetPath.Contains("Resources/Configs"))
-            result.AddError($"ScriptableObject {typeof(T)} should be in Resources/Config folder").WithFix(() =>
-            {
-                //move asset to Resources/Config
-                var newPath = assetPath.Replace("Assets/", "Assets/Resources/Configs/");
-                Debug.Log("Move SO To:" + newPath);
-                var moveResult = AssetDatabase.MoveAsset(assetPath, newPath);
-                if (moveResult != "")
-                    Debug.LogError("Move Result:" + moveResult);
-                // AssetDatabase.Refresh();
-            });
-#endif
+        this.AssetInFolderValidate("Resources/Configs", result);
     }
     
     private static T s_Instance;

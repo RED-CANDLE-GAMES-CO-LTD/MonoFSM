@@ -6,6 +6,7 @@ namespace RCGMaker.Core.Attributes
     //SavedFlagLink
     //GameStateSO
     //ConfigSO
+    [EditorOnly]
     public class GameStateAttribute : Attribute
     {
         public static string GameStateFolderPath = "10_Flags"; //TODO: 弄成一個config

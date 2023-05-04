@@ -9,6 +9,7 @@ namespace RCGMaker.Core.Attributes
     [ShowIf("@UnityEngine.Application.isPlaying")]
     [ReadOnly]
     [ShowInInspector]
+    [EditorOnly]
     // [Conditional("UNITY_EDITOR")]
     public class RuntimeDisplayAttribute : Attribute
     {

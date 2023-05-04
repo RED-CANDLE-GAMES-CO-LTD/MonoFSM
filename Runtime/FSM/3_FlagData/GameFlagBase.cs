@@ -39,11 +39,12 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
 }
 //最基礎的GameFlag元件
 [System.Serializable]
-public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializationCallbackReceiver
+public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializationCallbackReceiver, ISelfValidator
 {
     // public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
     // protected bool inited = false;
     [ReadOnly] public string SaveID = "";
+
 
     public enum GameStateType
     {
@@ -193,6 +194,11 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
     public void OnAfterDeserialize()
     {
         // throw new NotImplementedException();
+    }
+
+    public void Validate(SelfValidationResult result)
+    {
+        this.AssetInFolderValidate(GameStateAttribute.GameStateFolderPath, result);
     }
 }
 
