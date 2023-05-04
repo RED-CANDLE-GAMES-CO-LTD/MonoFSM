@@ -13,4 +13,10 @@ namespace RCGMaker.Core.Attributes
     public class RuntimeDisplayAttribute : Attribute
     {
     }
+
+    [IncludeMyAttributes]
+    [Conditional("UNITY_EDITOR")]
+    public class EditorOnlyAttribute : Attribute
+    {
+    }
 }

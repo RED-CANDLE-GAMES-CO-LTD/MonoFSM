@@ -1,4 +1,6 @@
 using System.Linq;
+using Sirenix.OdinInspector;
+using Sirenix.OdinInspector.Editor;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Animations;
@@ -8,10 +10,34 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
+    public static class PrefabKindExt
+    {
+#if UNITY_EDITOR
+        public static readonly PrefabKind InAnyPrefabAsset = PrefabKind.PrefabAsset | PrefabKind.InstanceInPrefab;
+#endif
+    }
     public static class PrefabExtension
     {
-        //TODO: 還沒測試
+        public static bool IsInPrefab(this GameObject gObj)
+        {
+            return OdinPrefabUtility.GetPrefabKind(gObj) is PrefabKind.Variant or PrefabKind.Regular
+                or PrefabKind.InstanceInPrefab;
+        }
 
+        public static bool IsInPrefabVariant(this GameObject gObj)
+        {
+            return OdinPrefabUtility.GetPrefabKind(gObj) == PrefabKind.Variant;
+        }
+
+        public static bool IsInScene(this GameObject gObj) //想要在場景上才validate
+        {
+            return OdinPrefabUtility.GetPrefabKind(gObj) is PrefabKind.InstanceInScene or PrefabKind.NonPrefabInstance;
+        }
+
+        public static readonly PrefabKind InScene = PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance;
+
+
+//TODO: 還沒測試
         public static T GenerateScriptableObjectInPrefabFolder<T>(this GameObject gObj) where T : ScriptableObject
         {
             //動畫對應是clip？

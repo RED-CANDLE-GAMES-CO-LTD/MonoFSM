@@ -26,11 +26,11 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 //         // GenData();
 // #endif
     }
-
-#if UNITY_EDITOR
+    
     [BoxGroup("GameState")]
     [DisableIf("@!IsAutoGenButNotYet()")] //FIXME: 用validate檢查
     [Button("Auto Gen Fix")]
+    [EditorOnly]
     private void GenData()
     {
         //get type of scriptableData field using reflection
@@ -44,10 +44,8 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         Debug.Log("自動生成flag修正" + scriptableData, scriptableData);
         //FIXME: 用validator檢查，然後自動Fix?
     }
-#endif
 
     [BoxGroup("GameState")]
-    // [PropertyOrder(-1)]
     [LabelText("自動生成")]
     [ShowInInspector]
     private bool IsAutoGen //TODO: IsAutoGen?
