@@ -6,18 +6,18 @@ public enum TestMode
     Undefined = -1,
     Production,
     //DeveloperStaticTest,
-    Development,
-
-    BetaTest,
+    EditorDevelopment
+    //BetaTest,
+    
 }
 
 //TODO: 改名 RCGBuildMode
 [CreateAssetMenu(fileName = "TestModeGameFlag", menuName = "GameFlag/TestModeGameFlag", order = 1)]
-public class TestModeGameFlag : GameFlagBase
+public class TestModeGameFlag : ScriptableObjectSingleton<TestModeGameFlag>
 {
 
     //最單純所有的flag都直接改成on
-    public TestMode mode = TestMode.Development;
+    public TestMode mode = TestMode.EditorDevelopment;
     public bool isDemo = false;
     //TODO: 把ability flag放到gameflagmanager的一個list?
     // public bool AllAbilityOn;

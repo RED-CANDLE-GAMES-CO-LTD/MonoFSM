@@ -1,29 +1,61 @@
+using RCGMaker.Core.Attributes;
+using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class ScriptableObjectSingleton<T> : ScriptableObject where T : ScriptableObject
+//大部分的Static Config用這個, 可以依照testMode來選擇不同組config
+public class ScriptableObjectConfig<T> : ScriptableObjectSingleton<T> where T : ScriptableObject
 {
-    private static T s_Instance;
+    [EnumToggleButtons] public TestMode forTestMode;
+}
 
+//singleton SO, 有instance
+//Singleton config，要放到Resources的Config資料夾裡
+public class ScriptableObjectSingleton<T> : ScriptableObject, ISelfValidator where T : ScriptableObject
+{
+    [EditorOnly]
+    public void Validate(SelfValidationResult result)
+    {
+        //check if asset is in Resources/Config
+        var assetPath = AssetDatabase.GetAssetPath(this);
+        if (!assetPath.Contains("Resources/Configs"))
+            result.AddError($"ScriptableObject {typeof(T)} should be in Resources/Config folder").WithFix(() =>
+            {
+                //move asset to Resources/Config
+                var newPath = assetPath.Replace("Assets/", "Assets/Resources/Configs/");
+                Debug.Log("Move SO To:" + newPath);
+                var moveResult = AssetDatabase.MoveAsset(assetPath, newPath);
+                if (moveResult != "")
+                    Debug.LogError("Move Result:" + moveResult);
+                // AssetDatabase.Refresh();
+            });
+    }
+    private static T s_Instance;
+    
     public static T Instance
     {
         get
         {
             if (s_Instance == null)
             {
-#if UNITY_EDITOR
-                var findAssets = AssetDatabase.FindAssets($"t:{typeof(T).Name}");
-                if (findAssets == null || findAssets.Length == 0)
-                    Debug.LogError($"Please create ScriptableObject typeof {typeof(T)} first...");
-                else if (findAssets.Length > 1)
-                    Debug.LogError($"ScriptableObject typeof {typeof(T)} exist multiple，please check they...");
-                else
-                    s_Instance = AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(findAssets[0]));
+// #if UNITY_EDITOR
+                // var findAssets = AssetDatabase.FindAssets($"t:{typeof(T).Name}");
+                // if (findAssets == null || findAssets.Length == 0)
+                //     Debug.LogError($"Please create ScriptableObject typeof {typeof(T)} first...");
+                // else if (findAssets.Length > 1)
+                //     Debug.LogError($"ScriptableObject typeof {typeof(T)} exist multiple，please check they...");
+                // else
+                //     s_Instance = AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(findAssets[0]));
 
-#else
+                var assets = Resources.LoadAll<T>("Configs");
+                s_Instance = assets[0];
+                Debug.Log("Loaded", s_Instance);
+// #else
                 //TODO: 這裡要改成從Resources讀取
-                s_Instance = Resources.Load<T>(typeof(T).Name);
-#endif
+// if(TestModeGameFlag.Instance.test
+                // s_Instance = Resources.Load<T>(typeof(T).Name);
+// #endif
             }
 
             return s_Instance;
