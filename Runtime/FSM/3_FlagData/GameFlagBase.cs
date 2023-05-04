@@ -50,6 +50,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
         AutoUnique //一對一最單純的，自動生成，可以整包砍掉重建
     }
 
+    #if UNITY_EDITOR
     [EnumToggleButtons] [ReadOnly] public GameStateType gameStateType = GameStateType.Manual;
 
     protected virtual void OnValidate()
@@ -70,7 +71,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
                 SaveID = guid;
         }
     }
-
+#endif
     // public Vector3 position;//該在這裡綁嗎?
     public virtual void FlagAwake(TestMode mode) //抓default Value或currentValue
     {
