@@ -254,7 +254,7 @@ public class FlagField<T> : FlagFieldBase
     }
 
     protected T _lastValue;
-    [RuntimeDisplay] public T LastValue => _lastValue;
+    [ShowInPlayMode] public T LastValue => _lastValue;
 
     public void RevertToLastValue()
     {

@@ -154,7 +154,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     // Start is called before the first frame update
     [AutoChildren(false)] private AbstractVariableModifier<TType>[] modifiers;
 
-    [RuntimeDisplay]
+    [ShowInPlayMode]
     public TType Value
     {
         get
@@ -196,7 +196,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     
     [AutoParent()] private IGameEntity gameEntity;
 
-    [RuntimeDisplay]
+    [ShowInPlayMode]
     private string GameStateID => gameEntity != null
         ? $"{gameObject.scene.name}_{gameEntity.name}_{gameObject.name}"
         : $"{gameObject.scene.name}_{gameObject.name}";
@@ -244,8 +244,10 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     public void Validate(SelfValidationResult result)
     {
+#if UNITY_EDITOR
         if (IsAutoGenButNotYet()) result.AddError("No AutoGenGameState").WithFix(GenData);
         if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
+#endif
     }
 }
 

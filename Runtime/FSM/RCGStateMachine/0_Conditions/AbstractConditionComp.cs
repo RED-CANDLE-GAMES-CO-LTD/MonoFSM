@@ -57,7 +57,7 @@ public abstract class AbstractConditionComp : MonoBehaviour
     public bool FinalResultInverted = false;
     protected abstract bool isValid { get; }
 
-    [RuntimeDisplay]
+    [ShowInPlayMode]
     public bool FinalResult
     {
         get

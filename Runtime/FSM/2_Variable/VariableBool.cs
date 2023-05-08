@@ -23,7 +23,7 @@ public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICo
 
     // [FormerlySerializedAs("tempFlag")]
     // public FlagFieldBool localField;// localField;
-    [RuntimeDisplay]
+    [ShowInPlayMode]
     public bool FlagValue
     {
         get => Value;

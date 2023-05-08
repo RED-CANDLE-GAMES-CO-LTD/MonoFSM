@@ -196,6 +196,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
         // throw new NotImplementedException();
     }
 
+    [EditorOnly]
     public void Validate(SelfValidationResult result)
     {
         this.AssetInFolderValidate(GameStateAttribute.GameStateFolderPath, result);

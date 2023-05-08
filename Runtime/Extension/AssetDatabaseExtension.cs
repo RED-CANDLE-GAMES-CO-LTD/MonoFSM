@@ -94,7 +94,7 @@ namespace RCGMaker.Core
             AssetDatabase.SaveAssets();
             return asset;
         }
-#endif
+
         [EditorOnly]
         private static void CreateAssetFolderIfParentNotExist(string fileRelativePath)
         {
@@ -106,11 +106,10 @@ namespace RCGMaker.Core
                 CreateAssetFolderAtPathRecursive(folderRelativePath);
             }
         }
+
         [EditorOnly]
         private static void CreateAssetFolderAtPathRecursive(string folderPath) //一層一層往下建立資料夾
         {
-            
-#if UNITY_EDITOR
             var folders = folderPath.Split('/');
             var currentPath = "Assets";
 
@@ -127,7 +126,7 @@ namespace RCGMaker.Core
                     currentPath = newPath;
                 }
             }
-#endif
         }
+#endif
     }
 }
