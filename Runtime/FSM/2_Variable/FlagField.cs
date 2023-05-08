@@ -355,13 +355,6 @@ public class FlagField<T> : FlagFieldBase
     public void Init(TestMode mode)
     {
         // isDirty = false;
-
-      
-
-#if RCG_PLAYTEST //build出來強set成BetaTest
-        if (!Application.isEditor)
-            mode = TestMode.BetaTest;
-#endif
         _currentValue = mode switch
         {
             TestMode.EditorDevelopment => DevValue,
