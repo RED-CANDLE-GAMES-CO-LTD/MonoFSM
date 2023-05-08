@@ -85,7 +85,10 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     [BoxGroup("GameState")]
     [InfoBox("需要生GameState!", InfoMessageType.Error, "IsAutoGenButNotYet")]
     // [HideIf("VariableSource")]
-    [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
+
+    //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
+    // [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
+    
     [Header("存擋")]
     // [FormerlySerializedAs("boolFlag")]
     // [GameFlag]
