@@ -36,32 +36,59 @@ namespace RCGMaker.Core.Attributes
         //         return $"{FlagFolderPath}/{SubFolderName}/{FlagName}.asset";
         // }
 
-        public string GetPath(GameObject gObj, bool isAutoGen = false)
+        public static string GetFullPath(GameObject gObj, bool isAutoGen = false)
         {
-            var folderPath = GameStateFolderPath;
-            if (isAutoGen)
-                folderPath += "/AutoGen";
-            var sceneTokens = gObj.scene.name.Split("_");
-            var scenePrefixAct = sceneTokens.Length > 1 ? sceneTokens[0] : "Test";
-            var finalName = $"{gObj.scene.name}_{gObj.name}";
-            if (SubFolderName == "")
-                return $"{folderPath}/{scenePrefixAct}/{finalName}.asset";
-            else
-                return $"{folderPath}/{SubFolderName}/{scenePrefixAct}/{finalName}.asset";
+            return $"{GetRelativePath(gObj, "", isAutoGen)}/{GetFileName(gObj)}.asset";
         }
 
-        public static string GetPathOf(GameObject gObj, string subFolderName = "", bool isAutoGen = false)
+
+        public static string GetFileName(GameObject gObj)
+        {
+            var finalName = $"{gObj.scene.name}_{gObj.name}";
+            return finalName;
+        }
+
+        public string GetRelativePath(GameObject gObj, bool isAutoGen = false)
+        {
+            return GetRelativePath(gObj, SubFolderName, isAutoGen);
+            // var folderPath = GameStateFolderPath;
+            // if (isAutoGen)
+            //     folderPath += "/AutoGen";
+            //
+            // var sceneTokens = gObj.scene.name.Split("_");
+            // var scenePrefixAct = sceneTokens.Length > 1 ? sceneTokens[0] : "Test";
+            // if (SubFolderName == "")
+            //     return $"{folderPath}/{scenePrefixAct}";
+            // else
+            //     return $"{folderPath}/{SubFolderName}/{scenePrefixAct}";
+        }
+
+        public static string GetRelativePath(GameObject gObj, string subFolderName = "", bool isAutoGen = false)
         {
             var folderPath = GameStateFolderPath;
             if (isAutoGen)
                 folderPath += "/AutoGen";
+
             var sceneTokens = gObj.scene.name.Split("_");
             var scenePrefixAct = sceneTokens.Length > 1 ? sceneTokens[0] : "Test";
-            var finalName = $"{gObj.scene.name}_{gObj.name}";
             if (subFolderName == "")
-                return $"{folderPath}/{scenePrefixAct}/{finalName}.asset";
+                return $"{folderPath}/{scenePrefixAct}";
             else
-                return $"{folderPath}/{subFolderName}/{scenePrefixAct}/{finalName}.asset";
+                return $"{folderPath}/{subFolderName}/{scenePrefixAct}";
         }
+
+        // public static string GetPathOf(GameObject gObj, string subFolderName = "", bool isAutoGen = false)
+        // {
+        //     var folderPath = GameStateFolderPath;
+        //     if (isAutoGen)
+        //         folderPath += "/AutoGen";
+        //     var sceneTokens = gObj.scene.name.Split("_");
+        //     var scenePrefixAct = sceneTokens.Length > 1 ? sceneTokens[0] : "Test";
+        //     var finalName = $"{gObj.scene.name}_{gObj.name}";
+        //     if (subFolderName == "")
+        //         return $"{folderPath}/{scenePrefixAct}/{finalName}.asset";
+        //     else
+        //         return $"{folderPath}/{subFolderName}/{scenePrefixAct}/{finalName}.asset";
+        // }
     }
 }

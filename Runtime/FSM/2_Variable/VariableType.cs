@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [Searchable]
-public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IResetter
+public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator
     where TScriptableData : AbstractScriptableData<TField, TType> where TField : FlagField<TType>, new()
 {
     protected virtual void OnValidate()
@@ -36,12 +36,8 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 #if UNITY_EDITOR
         //get type of scriptableData field using reflection
         var type = GetType().GetField("scriptableData").FieldType;
-
-        var path = GameStateAttribute.GetPathOf(gameObject, "", true);
         scriptableData =
-            type.CreateGameStateSO(path, this) as TScriptableData;
-        // var gameStateSo = type.CreateGameStateSO(Attribute.GetPath(gameObject, true), this);
-        // scriptableData = FlagGenerator.GenerateFlagForVariable(this, scriptableData);
+            type.CreateGameStateSO(this) as TScriptableData;
         Debug.Log("自動生成flag修正" + scriptableData, scriptableData);
 #endif
         //FIXME: 用validator檢查，然後自動Fix?
@@ -98,6 +94,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     [InlineEditor()]
     // [DisableIf("IsAutoGen")]
     //FIXME: IsSceneAutoGen, PrefabMustGen?
+    //TODO: 這個可以自動拿掉然後修起來嗎？
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, "IsGameStateSaveIDNotMatch")]
     [InfoBox("GameState的類型不對", InfoMessageType.Error, "IsGameStateTypeNotMatch")]
     public TScriptableData scriptableData;
@@ -244,6 +241,12 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     }
 
     [HideInInlineEditors] public UnityEvent<TType> OnValueChanged = new();
+
+    public void Validate(SelfValidationResult result)
+    {
+        if (IsAutoGenButNotYet()) result.AddError("No AutoGenGameState").WithFix(GenData);
+        if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
+    }
 }
 
 public abstract class AbstractVariable : AbstractFlag

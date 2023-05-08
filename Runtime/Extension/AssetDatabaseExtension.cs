@@ -39,38 +39,48 @@ namespace RCGMaker.Core
             return guid;
         }
 
-        public static GameFlagBase CreateGameStateSO(this System.Type type, string fileRelativePath,
-            MonoBehaviour refObj)
+        public static GameFlagBase CreateGameStateSO(this System.Type type, MonoBehaviour refObj)
         {
-            var gameStateSo = CreateScriptableObject(type, fileRelativePath) as GameFlagBase;
-            if (gameStateSo == null)
+            if (!refObj.TryGetComponent<AutoGenGameState>(out var autoGenGameState))
             {
-                Debug.LogError("Create Scriptable Object Failed", refObj);
+                //不是自動生的
+                var gameStateSo =
+                    CreateScriptableObject(type, GameStateAttribute.GetFullPath(refObj.gameObject, false)) as
+                        GameFlagBase;
+                if (gameStateSo == null)
+                {
+                    Debug.LogError("Create Scriptable Object Failed", refObj);
+                    return null;
+                }
+
+                return gameStateSo;
+            }
+            else
+            {
+                var folderRelativePath = GameStateAttribute.GetRelativePath(refObj.gameObject, "", true);
+                var fileName = GameStateAttribute.GetFileName(refObj.gameObject) + autoGenGameState.MyGuid + ".asset";
+                var gameStateSo =
+                    CreateScriptableObject(type, folderRelativePath + "/" + fileName) as GameFlagBase;
+
+                //自動生成的，SaveID另外做
+                if (gameStateSo != null)
+                {
+                    gameStateSo.gameStateType = GameFlagBase.GameStateType.AutoUnique;
+                    gameStateSo.SaveID = autoGenGameState.SaveID;
+
+                    return gameStateSo;
+                }
+
+                Debug.LogError("Create gameStateSo Auto Object Failed", refObj);
                 return null;
             }
-
-            if (!refObj.TryGetComponent<AutoGenGameState>(out var autoGenGameState)) return gameStateSo;
-
-            //自動生成的，SaveID另外做
-            gameStateSo.gameStateType = GameFlagBase.GameStateType.AutoUnique;
-            gameStateSo.SaveID = autoGenGameState.SaveID;
-
-            return gameStateSo;
         }
 
-        
+
+        //單純給任何scriptable object用
         public static ScriptableObject CreateScriptableObject(this System.Type type, string fileRelativePath)
         {
-
-            var folderRelativePath = fileRelativePath.FolderPath();
-            Debug.Log("Want to Create Asset at: Assets/" + fileRelativePath);
-            if (!AssetDatabase.IsValidFolder("Assets/" + folderRelativePath))
-            {
-                Debug.Log("Create Folder: Assets/" + folderRelativePath);
-                CreateFolderAtPath(folderRelativePath);
-            }
-
-
+            CreateAssetFolderIfParentNotExist(fileRelativePath);
             //check if file exist
             var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/" + fileRelativePath);
             if (asset != null)
@@ -85,10 +95,21 @@ namespace RCGMaker.Core
             return asset;
         }
 #endif
-
         [EditorOnly]
-        public static void CreateFolderAtPath(string folderPath)
+        private static void CreateAssetFolderIfParentNotExist(string fileRelativePath)
         {
+            var folderRelativePath = fileRelativePath.FolderPath();
+            Debug.Log("Want to Create Asset at: Assets/" + fileRelativePath);
+            if (!AssetDatabase.IsValidFolder("Assets/" + folderRelativePath))
+            {
+                Debug.Log("Create Folder: Assets/" + folderRelativePath);
+                CreateAssetFolderAtPathRecursive(folderRelativePath);
+            }
+        }
+        [EditorOnly]
+        private static void CreateAssetFolderAtPathRecursive(string folderPath) //一層一層往下建立資料夾
+        {
+            
 #if UNITY_EDITOR
             var folders = folderPath.Split('/');
             var currentPath = "Assets";

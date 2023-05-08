@@ -23,6 +23,7 @@ public class AutoGenGameState : GuidComponent
 
     [ShowInInspector] private string SceneGUID => FindSceneGUID();
     [ShowInInspector] public string SaveID => SceneGUID + "_" + GetGuid();
+    public string MyGuid => "" + GetGuid();
 #endif
 }
 

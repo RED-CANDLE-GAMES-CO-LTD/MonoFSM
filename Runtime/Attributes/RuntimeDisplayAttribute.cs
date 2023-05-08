@@ -1,12 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
-using Sirenix.Utilities;
-using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace RCGMaker.Core.Attributes
 {
@@ -31,39 +25,5 @@ namespace RCGMaker.Core.Attributes
     {
     }
 
-    public class MyProcessedClassAttributeProcessor : OdinAttributeProcessor
-    {
-        // public override void ProcessSelfAttributes(InspectorProperty property, List<Attribute> attributes)
-        // {
-        //     // attributes.Add(new InfoBoxAttribute("Dynamically added attributes!"));
-        //     // attributes.Add(new InlinePropertyAttribute());
-        //     Debug.Log(property.Name);
-        //     var memberInfo = property.Info.GetMemberInfo();
-        //     // Debug.Log(memberInfo);
-        //     var runtimeDisplayAttribute = property.Info.GetMemberInfo().GetAttribute<RuntimeDisplayAttribute>();
-        //     // Debug.Log(runtimeDisplayAttribute);
-        //     if (runtimeDisplayAttribute != null)
-        //     {
-        //         if (Application.isPlaying)
-        //         {
-        //             attributes.Add(new ShowInInspectorAttribute());
-        //         }
-        //     }
-        // }
-
-        public override void ProcessChildMemberAttributes(
-            InspectorProperty parentProperty,
-            MemberInfo member,
-            List<Attribute> attributes)
-        {
-            var runtimeDisplayAttribute = member.GetAttribute<RuntimeDisplayAttribute>();
-            if (runtimeDisplayAttribute != null)
-            {
-                if (Application.isPlaying)
-                {
-                    attributes.Add(new ShowInInspectorAttribute());
-                }
-            }
-        }
-    }
+    
 }
