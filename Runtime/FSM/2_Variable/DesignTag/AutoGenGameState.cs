@@ -7,6 +7,17 @@ using UnityEngine;
 
 // [RequireComponent(typeof(GuidComponent))]
 
+
+//要用requireComponent嗎？
+
+//疊積木：
+//繼承：
+//Component has Component [Auto]
+//Component+RequireComponent
+//Prefab=>Component+Component
+
+//[]: 一定是景上才會有Auto Gen?
+//Mode: InScene, InPrefab?
 public class AutoGenGameState : GuidComponent
 {
 #if UNITY_EDITOR

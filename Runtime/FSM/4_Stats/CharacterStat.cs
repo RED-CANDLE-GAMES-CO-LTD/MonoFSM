@@ -7,12 +7,11 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [Serializable]
-public class CharacterStat
+public class CharacterStat //這個改名會爛掉嗎?
 {
     public float BaseValue;
     protected bool isDirty = true;
     protected float lastBaseValue;
-
     protected float _value;
 
 

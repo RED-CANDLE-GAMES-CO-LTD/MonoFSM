@@ -26,9 +26,20 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 //         // GenData();
 // #endif
     }
-    
+
+    private bool PrefabKindCheck()
+    {
+        var tag = GetComponent<GameStateRequireAtPrefabKind>();
+        if (tag == null) return true;
+        if ((tag.prefabKind & myPrefabKind) != 0) return true;
+        return false; //不是那個環境就不用顯示了
+    }
+
+    private bool IsCheckingPrefabKind => GetComponent<GameStateRequireAtPrefabKind>() != null;
+
     [BoxGroup("GameState")]
-    [DisableIf("@!IsAutoGenButNotYet()")] //FIXME: 用validate檢查
+    [EnableIf("PrefabKindCheck")]
+    // [DisableIf("@!IsAutoGenButNotYet()")] //FIXME: 用validate檢查
     [Button("Auto Gen Fix")]
     [EditorOnly]
     private void GenData()
@@ -64,16 +75,28 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     private bool IsSuggestingAutoGen()
     {
+        if ((myPrefabKind & PrefabKind.InstanceInScene) == 0) return false;
         if (IsAutoGen) return false;
         return scriptableData == null;
     }
+    
     [BoxGroup("GameState")]
     [HideInInlineEditors]
     [EnableIf("IsSuggestingAutoGen")]
+    [HideIf("IsAutoGen")] //[]: 已經裝了的話要藏嗎？
     [Button("[Prefab設計]Add AutoGen GameState")]
     private void AddTag()
     {
         this.TryGetCompOrAdd<AutoGenGameState>();
+    }
+
+    [BoxGroup("GameState")]
+    [HideIf("IsCheckingPrefabKind")] //[]: 已經裝了的話要藏嗎？
+    [EnableIf("IsSuggestingAutoGen")]
+    [Button("[Prefab設計]Add GameState Require Tag")]
+    private void AddRequireInPrefab()
+    {
+        this.TryGetCompOrAdd<GameStateRequireAtPrefabKind>();
     }
 
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
@@ -83,7 +106,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     // [ShowDrawerChain]
     [BoxGroup("GameState")]
-    [InfoBox("需要生GameState!", InfoMessageType.Error, "IsAutoGenButNotYet")]
+    // [InfoBox("需要生GameState!", InfoMessageType.Error, "IsAutoGenButNotYet")]
     // [HideIf("VariableSource")]
 
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
@@ -95,6 +118,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     
     [GameState]
     [InlineEditor()]
+    [EnableIf("PrefabKindCheck")]
     // [DisableIf("IsAutoGen")]
     //FIXME: IsSceneAutoGen, PrefabMustGen?
     //TODO: 這個可以自動拿掉然後修起來嗎？
@@ -248,7 +272,16 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     public void Validate(SelfValidationResult result)
     {
 #if UNITY_EDITOR
-        if (IsAutoGenButNotYet()) result.AddError("No AutoGenGameState").WithFix(GenData);
+
+        if (IsAutoGen)
+        {
+            //不在景裏，不需要
+            if ((OdinPrefabUtility.GetPrefabKind(this) & PrefabKind.InstanceInScene) == 0) return;
+            if (IsAutoGenButNotYet()) result.AddError("需要GameState Not Gen").WithFix(GenData);
+        }
+        
+        
+        
         if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
 #endif
     }
