@@ -7,7 +7,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     public float value = 1f;
     public StatModType modType = StatModType.Flat;
     public StatData statData;
-    public StatModDuration Duration;
+    public StatModDurationType DurationType;
     protected StatModifier modifier;
     public CharacterStat bindStat => statData.stat;
 
@@ -15,7 +15,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     {
         modifier = new StatModifier(value, modType, 0, source)
         {
-            Duration = Duration
+            DurationType = DurationType
         };
         // statData.flagStat.AddModifier(modifier);
         bindStat.AddModifier(modifier);

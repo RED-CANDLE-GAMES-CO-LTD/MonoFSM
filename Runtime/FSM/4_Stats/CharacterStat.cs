@@ -48,7 +48,6 @@ public class CharacterStat
         get
         {
             if (isDirty || lastBaseValue != BaseValue) CalValues();
-
             return _permanentValue;
         }
     }
@@ -187,7 +186,7 @@ public class CharacterStat
 
     public virtual float CalculateFinalValueWithoutTemporary()
     {
-        var modifiers = statModifiers.FindAll(x => x.Duration != StatModDuration.Temporary);
+        var modifiers = statModifiers.FindAll(x => x.DurationType != StatModDurationType.Temporary);
         modifiers.Sort(CompareModifierOrder);
         return CalValueAfterModifier(modifiers);
     }
