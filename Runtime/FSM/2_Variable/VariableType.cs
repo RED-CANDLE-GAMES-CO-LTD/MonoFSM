@@ -34,7 +34,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     private bool AutoGenCheck()
     {
-        if (PrefabKindMatchTagCheck())
+        if (PrefabKindMatchTagCheck() && IsAutoGen)
         {
             if (scriptableData == null)
             {
@@ -59,7 +59,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     {
         var tag = GetComponent<GameStateRequireAtPrefabKind>();
 
-        //[]: 該給過嗎？
+        //[]: 該給過嗎？ 不該，要不然prefab會很吵
         if (tag == null) return false;
         if ((tag.prefabKind & myPrefabKind) != 0) return true;
         return false; //不是那個環境就不用顯示了
@@ -323,7 +323,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 #endif
     }
 
-    public void OnBeforeSerialize()
+    public void OnBeforeSerialize() //存檔的時候就會自動生，複製、instance的時候也會自動生
     {
         // throw new System.NotImplementedException();
         AutoGenCheck();
