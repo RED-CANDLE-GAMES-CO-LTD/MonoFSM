@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public enum StatModType
 {
@@ -8,7 +9,7 @@ public enum StatModType
     PercentMult = 300,
 }
 
-public enum StatModDuration
+public enum StatModDurationType
 {
     Permanent = 0,
     Temporary = 1
@@ -20,7 +21,7 @@ public class StatModifier
     public float Value;
     public StatModType Type;
 
-    public StatModDuration Duration;
+    [FormerlySerializedAs("Duration")] public StatModDurationType DurationType;
     public int Order;
     public readonly object Source;
     public ScriptableObject dataSource;
