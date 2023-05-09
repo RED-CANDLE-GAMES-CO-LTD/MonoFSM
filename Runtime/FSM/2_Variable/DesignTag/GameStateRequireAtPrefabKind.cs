@@ -6,7 +6,7 @@ namespace RCGMaker.Core
     public class GameStateRequireAtPrefabKind : MonoBehaviour
     {
         [DisallowModificationsIn(PrefabKind.InstanceInScene)]
-        public PrefabKind prefabKind;
+        public PrefabKind prefabKind = PrefabKind.InstanceInScene; //default以scene危單位在存
 
         private AbstractVariable variable; //好像也不用反向指
         //讓AbstractVariable可以來反查

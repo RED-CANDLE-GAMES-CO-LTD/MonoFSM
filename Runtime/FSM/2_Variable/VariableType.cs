@@ -1,36 +1,66 @@
+using System;
 using System.Collections.Generic;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
+using UnityEditor;
 #endif
 
 using UnityEngine;
 using UnityEngine.Events;
 
 [Searchable]
-public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator
+public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator,
+    ISerializationCallbackReceiver
     where TScriptableData : AbstractScriptableData<TField, TType> where TField : FlagField<TType>, new()
 {
     protected virtual void OnValidate()
     {
-// #if UNITY_EDITOR
-//         // if (OdinPrefabUtility.GetPrefabKind(this) == PrefabKind.PrefabInstance)
+#if UNITY_EDITOR
+        // if (OdinPrefabUtility.GetPrefabKind(this) == PrefabKind.PrefabInstance)
 //             //檢查有沒有綁定data
 //             if (EditorUtility.IsPersistent(this)) return;
 //             if (MustGenButNotYet())
 //                 Debug.LogError("Instance需要生flag data", this);
 
 //         //好像也不用傳了？
-//         // GenData();
-// #endif
+//        
+
+        // GenData();
+#endif
     }
 
-    private bool PrefabKindCheck()
+    private bool AutoGenCheck()
+    {
+        if (PrefabKindMatchTagCheck())
+        {
+            if (scriptableData == null)
+            {
+                Debug.Log("Empty, About to Auto Gen" + myPrefabKind, this);
+                GenData();
+                if (scriptableData)
+                    return true;
+            }
+            else if (IsGameStateSaveIDNotMatch())
+            {
+                Debug.Log("SaveID NotMatch, About to Auto Gen" + myPrefabKind, this);
+                GenData();
+                if (scriptableData)
+                    return true;
+            }
+        }
+
+        return true;
+    }
+
+    private bool PrefabKindMatchTagCheck()
     {
         var tag = GetComponent<GameStateRequireAtPrefabKind>();
-        if (tag == null) return true;
+
+        //[]: 該給過嗎？
+        if (tag == null) return false;
         if ((tag.prefabKind & myPrefabKind) != 0) return true;
         return false; //不是那個環境就不用顯示了
     }
@@ -38,7 +68,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     private bool IsCheckingPrefabKind => GetComponent<GameStateRequireAtPrefabKind>() != null;
 
     [BoxGroup("GameState")]
-    [EnableIf("PrefabKindCheck")]
+    [EnableIf("PrefabKindMatchTagCheck")]
     // [DisableIf("@!IsAutoGenButNotYet()")] //FIXME: 用validate檢查
     [Button("Auto Gen Fix")]
     [EditorOnly]
@@ -49,6 +79,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         var type = GetType().GetField("scriptableData").FieldType;
         scriptableData =
             type.CreateGameStateSO(this) as TScriptableData;
+        this.SetDirty();
         Debug.Log("自動生成flag修正" + scriptableData, scriptableData);
 #endif
         //FIXME: 用validator檢查，然後自動Fix?
@@ -75,15 +106,20 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     private bool IsSuggestingAutoGen()
     {
-        if ((myPrefabKind & PrefabKind.InstanceInScene) == 0) return false;
+       
         if (IsAutoGen) return false;
         return scriptableData == null;
+    }
+
+    private bool IsSuggestingDesignTag()
+    {
+        return gameObject.IsInPrefab();
     }
     
     [BoxGroup("GameState")]
     [HideInInlineEditors]
-    [EnableIf("IsSuggestingAutoGen")]
-    [HideIf("IsAutoGen")] //[]: 已經裝了的話要藏嗎？
+    [EnableIf("IsSuggestingDesignTag")]
+    [HideIf("IsAutoGen")] //[]: 已經裝了的話要藏嗎？ 還是應該要透明
     [Button("[Prefab設計]Add AutoGen GameState")]
     private void AddTag()
     {
@@ -92,7 +128,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     [BoxGroup("GameState")]
     [HideIf("IsCheckingPrefabKind")] //[]: 已經裝了的話要藏嗎？
-    [EnableIf("IsSuggestingAutoGen")]
+    [EnableIf("IsSuggestingDesignTag")]
     [Button("[Prefab設計]Add GameState Require Tag")]
     private void AddRequireInPrefab()
     {
@@ -118,12 +154,13 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     
     [GameState]
     [InlineEditor()]
-    [EnableIf("PrefabKindCheck")]
+    [EnableIf("PrefabKindMatchTagCheck")]
     // [DisableIf("IsAutoGen")]
     //FIXME: IsSceneAutoGen, PrefabMustGen?
     //TODO: 這個可以自動拿掉然後修起來嗎？
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, "IsGameStateSaveIDNotMatch")]
     [InfoBox("GameState的類型不對", InfoMessageType.Error, "IsGameStateTypeNotMatch")]
+    // [ValidateInput("AutoGenCheck", "自動生成檢查失敗")]
     public TScriptableData scriptableData;
 
 
@@ -284,6 +321,17 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         
         if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
 #endif
+    }
+
+    public void OnBeforeSerialize()
+    {
+        // throw new System.NotImplementedException();
+        AutoGenCheck();
+    }
+
+    public void OnAfterDeserialize()
+    {
+        // throw new System.NotImplementedException();
     }
 }
 

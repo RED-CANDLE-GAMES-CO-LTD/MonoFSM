@@ -11,6 +11,14 @@ namespace RCGMaker.Core
 {
     public static class AssetDatabaseExtension
     {
+        [EditorOnly]
+        public static void SetDirty(this Object obj)
+        {
+#if UNITY_EDITOR
+            EditorUtility.SetDirty(obj);
+#endif
+        }
+
         //"Resources/Configs"
         [EditorOnly]
         public static void AssetInFolderValidate(this ScriptableObject asset, string folderName,
@@ -91,7 +99,8 @@ namespace RCGMaker.Core
 
             asset = ScriptableObject.CreateInstance(type);
             AssetDatabase.CreateAsset(asset, "Assets/" + fileRelativePath);
-            AssetDatabase.SaveAssets();
+            //[]: 這個不call OK 嗎？
+            // AssetDatabase.SaveAssets();
             return asset;
         }
 
