@@ -8,11 +8,19 @@ public enum StatModType
     PercentMult = 300,
 }
 
+public enum StatModDuration
+{
+    Permanent = 0,
+    Temporary = 1
+}
+
 [System.Serializable]
 public class StatModifier
 {
     public float Value;
     public StatModType Type;
+
+    public StatModDuration Duration;
     public int Order;
     public readonly object Source;
     public ScriptableObject dataSource;

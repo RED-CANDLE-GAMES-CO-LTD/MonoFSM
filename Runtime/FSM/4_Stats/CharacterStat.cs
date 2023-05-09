@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
@@ -13,21 +14,42 @@ public class CharacterStat
     protected float lastBaseValue;
 
     protected float _value;
-    public float InspectorValue;
+
+
+    [ShowInPlayMode]
     public virtual float Value
     {
         get
         {
             if (isDirty || lastBaseValue != BaseValue)
             {
-                lastBaseValue = BaseValue;
-                _value = CalculateFinalValue();
-                isDirty = false;
+                CalValues();
                if(listener != null)listener.OnChange(_value,false);
             }
-            InspectorValue = _value;
-            
+
             return _value;
+        }
+    }
+
+    private void CalValues()
+    {
+        lastBaseValue = BaseValue;
+        _value = CalculateFinalValue();
+        _permanentValue = CalculateFinalValueWithoutTemporary();
+        isDirty = false;
+    }
+
+    private float _permanentValue;
+
+    [ShowInPlayMode]
+    public float PermanentValue
+    {
+        //calculate value without temporary modifier
+        get
+        {
+            if (isDirty || lastBaseValue != BaseValue) CalValues();
+
+            return _permanentValue;
         }
     }
 
@@ -93,7 +115,7 @@ public class CharacterStat
     public void Clear()
     {
         statModifiers.Clear();
-        InspectorValue = 0;
+        _value = BaseValue;
         isDirty = true;
     }
     public virtual bool RemoveAllModifiersFromSource(object source)
@@ -117,16 +139,16 @@ public class CharacterStat
         return 0; //if (a.Order == b.Order)
     }
 
-    protected virtual float CalculateFinalValue()
-    {
-        float finalValue = BaseValue;
-        float sumPercentAdd = 0;
-        // Debug.Log("Cal Value:" + BaseValue + "," + statModifiers.Count);
-        statModifiers.Sort(CompareModifierOrder);
+    // Calculate FinalValue For PermanentModifiers Only
 
-        for (int i = 0; i < statModifiers.Count; i++)
+
+    private float CalValueAfterModifier(List<StatModifier> statModifiers)
+    {
+        var finalValue = BaseValue;
+        float sumPercentAdd = 0;
+        for (var i = 0; i < statModifiers.Count; i++)
         {
-            StatModifier mod = statModifiers[i];
+            var mod = statModifiers[i];
 
             if (mod.Type == StatModType.Flat)
             {
@@ -152,6 +174,22 @@ public class CharacterStat
 
         // Workaround for float calculation errors, like displaying 12.00001 instead of 12
         return (float)Math.Round(finalValue, 4);
+    }
+    
+
+
+    protected virtual float CalculateFinalValue()
+    {
+        // Debug.Log("Cal Value:" + BaseValue + "," + statModifiers.Count);
+        statModifiers.Sort(CompareModifierOrder);
+        return CalValueAfterModifier(statModifiers);
+    }
+
+    public virtual float CalculateFinalValueWithoutTemporary()
+    {
+        var modifiers = statModifiers.FindAll(x => x.Duration != StatModDuration.Temporary);
+        modifiers.Sort(CompareModifierOrder);
+        return CalValueAfterModifier(modifiers);
     }
 }
 

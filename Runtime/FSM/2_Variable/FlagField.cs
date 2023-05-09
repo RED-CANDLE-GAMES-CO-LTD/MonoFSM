@@ -243,7 +243,7 @@ public class FlagField<T> : FlagFieldBase
 
 
     [GUIColor(0, 1, 0.5f, 1)]
-    [ShowInInspector]
+    [ShowInPlayMode]
     public virtual T CurrentValue
     {
         get => _currentValue;
