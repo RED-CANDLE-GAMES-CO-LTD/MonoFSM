@@ -34,6 +34,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     private bool AutoGenCheck()
     {
+        #if UNITY_EDITOR
         if (PrefabKindMatchTagCheck() && IsAutoGen)
         {
             if (scriptableData == null)
@@ -51,6 +52,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
                     return true;
             }
         }
+        #endif
 
         return true;
     }
@@ -98,6 +100,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         }
     }
 
+#if UNITY_EDITOR
     private bool IsAutoGenButNotYet()
     {
         if (!IsAutoGen) return false;
@@ -111,11 +114,12 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         return scriptableData == null;
     }
 
+
     private bool IsSuggestingDesignTag()
     {
         return gameObject.IsInPrefab();
     }
-    
+#endif
     [BoxGroup("GameState")]
     [HideInInlineEditors]
     [EnableIf("IsSuggestingDesignTag")]
