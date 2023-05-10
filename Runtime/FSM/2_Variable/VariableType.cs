@@ -34,6 +34,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     private bool AutoGenCheck()
     {
+        #if UNITY_EDITOR
         if (PrefabKindMatchTagCheck() && IsAutoGen)
         {
             if (scriptableData == null)
@@ -51,10 +52,11 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
                     return true;
             }
         }
+        #endif
 
         return true;
     }
-
+#if UNITY_EDITOR
     private bool PrefabKindMatchTagCheck()
     {
         var tag = GetComponent<GameStateRequireAtPrefabKind>();
@@ -64,7 +66,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         if ((tag.prefabKind & myPrefabKind) != 0) return true;
         return false; //不是那個環境就不用顯示了
     }
-
+#endif
     private bool IsCheckingPrefabKind => GetComponent<GameStateRequireAtPrefabKind>() != null;
 
     [BoxGroup("GameState")]
@@ -98,6 +100,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         }
     }
 
+#if UNITY_EDITOR
     private bool IsAutoGenButNotYet()
     {
         if (!IsAutoGen) return false;
@@ -118,11 +121,12 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         return scriptableData == null;
     }
 
+
     private bool IsSuggestingDesignTag()
     {
         return gameObject.IsInPrefab();
     }
-    
+#endif
     [BoxGroup("GameState")]
     [HideInInlineEditors]
     [EnableIf("IsSuggestingDesignTag")]
