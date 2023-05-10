@@ -47,13 +47,14 @@ namespace RCGMaker.Core
             return guid;
         }
 
-        public static GameFlagBase CreateGameStateSO(this System.Type type, MonoBehaviour refObj)
+        public static GameFlagBase CreateGameStateSO(this System.Type type, MonoBehaviour refObj,
+            string subFolderName = "")
         {
             if (!refObj.TryGetComponent<AutoGenGameState>(out var autoGenGameState))
             {
                 //不是自動生的
                 var gameStateSo =
-                    CreateScriptableObject(type, GameStateAttribute.GetFullPath(refObj.gameObject, false)) as
+                    CreateScriptableObject(type, GameStateAttribute.GetFullPath(refObj.gameObject, subFolderName)) as
                         GameFlagBase;
                 if (gameStateSo == null)
                 {
@@ -65,7 +66,7 @@ namespace RCGMaker.Core
             }
             else
             {
-                var folderRelativePath = GameStateAttribute.GetRelativePath(refObj.gameObject, "", true);
+                var folderRelativePath = GameStateAttribute.GetRelativePath(refObj.gameObject, subFolderName, true);
                 var fileName = GameStateAttribute.GetFileName(refObj.gameObject) + autoGenGameState.MyGuid + ".asset";
                 var gameStateSo =
                     CreateScriptableObject(type, folderRelativePath + "/" + fileName) as GameFlagBase;

@@ -36,6 +36,11 @@ namespace RCGMaker.Core
         {
             return OdinPrefabUtility.GetPrefabKind(gObj) is PrefabKind.InstanceInScene or PrefabKind.NonPrefabInstance;
         }
+
+        public static PrefabKind CurrentPrefabKind(this Object obj)
+        {
+            return OdinPrefabUtility.GetPrefabKind(obj);
+        }
 #endif
 
 

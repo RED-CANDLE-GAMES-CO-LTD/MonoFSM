@@ -13,7 +13,7 @@ using UnityEngine.Events;
 
 [Searchable]
 public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator,
-    ISerializationCallbackReceiver
+    IGameStateOwner
     where TScriptableData : AbstractScriptableData<TField, TType> where TField : FlagField<TType>, new()
 {
     protected virtual void OnValidate()
@@ -104,6 +104,13 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         return scriptableData == null;
     }
 
+    private bool IsGameStateRequiredButMissing()
+    {
+        if (PrefabKindMatchTagCheck() && scriptableData == null)
+            return true;
+        return false;
+    }
+
     private bool IsSuggestingAutoGen()
     {
        
@@ -137,21 +144,29 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
 #if UNITY_EDITOR
-    [ShowInInspector] private PrefabKind myPrefabKind => OdinPrefabUtility.GetPrefabKind(this);
+
+
+    //lazy get prefabKind
+    private PrefabKind _myPrefabKind;
+
+    [ShowInInspector]
+    private PrefabKind myPrefabKind => _myPrefabKind == PrefabKind.None
+        ? _myPrefabKind = OdinPrefabUtility.GetPrefabKind(this)
+        : _myPrefabKind;
+
+    //FIXME: 這個可以cache嗎...
 #endif
 
     // [ShowDrawerChain]
     [BoxGroup("GameState")]
-    // [InfoBox("需要生GameState!", InfoMessageType.Error, "IsAutoGenButNotYet")]
+
+    //給非Auto的人看的，要綁，Auto自己就會生，就結束了
+    [InfoBox("需要綁GameState!", InfoMessageType.Error, "IsGameStateRequiredButMissing")]
     // [HideIf("VariableSource")]
 
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
     // [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
-    
-    [Header("存擋")]
-    // [FormerlySerializedAs("boolFlag")]
-    // [GameFlag]
-    
+    [Header("存檔")]
     [GameState]
     [InlineEditor()]
     [EnableIf("PrefabKindMatchTagCheck")]
@@ -323,16 +338,17 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 #endif
     }
 
-    public void OnBeforeSerialize() //存檔的時候就會自動生，複製、instance的時候也會自動生
-    {
-        // throw new System.NotImplementedException();
-        AutoGenCheck();
-    }
-
-    public void OnAfterDeserialize()
-    {
-        // throw new System.NotImplementedException();
-    }
+    // public void OnBeforeSerialize() //存檔的時候就會自動生，複製、instance的時候也會自動生
+    // {
+    //     // throw new System.NotImplementedException();
+    //     if (EditorUtility.IsPersistent(this)) return;
+    //     AutoGenCheck();
+    // }
+    //
+    // public void OnAfterDeserialize()
+    // {
+    //     // throw new System.NotImplementedException();
+    // }
 }
 
 public abstract class AbstractVariable : AbstractFlag

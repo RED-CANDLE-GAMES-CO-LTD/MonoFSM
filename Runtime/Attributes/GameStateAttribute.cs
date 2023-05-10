@@ -36,10 +36,11 @@ namespace RCGMaker.Core.Attributes
         //         return $"{FlagFolderPath}/{SubFolderName}/{FlagName}.asset";
         // }
 
-        public static string GetFullPath(GameObject gObj, bool isAutoGen = false)
+        public static string GetFullPath(GameObject gObj, string subFolderName = "", bool isAutoGen = false)
         {
-            return $"{GetRelativePath(gObj, "", isAutoGen)}/{GetFileName(gObj)}.asset";
+            return $"{GetRelativePath(gObj, subFolderName, isAutoGen)}/{GetFileName(gObj)}.asset";
         }
+        
 
 
         public static string GetFileName(GameObject gObj)
