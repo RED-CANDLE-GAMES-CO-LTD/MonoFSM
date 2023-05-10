@@ -56,12 +56,6 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
                 return context.fsm.State == stateType;
         }
     }
-    private void Awake()
-    {
-        context = GetComponentInParent<GeneralFSMContext>();
-        // actions = new List<AbstractStateAction>();
-        // GetComponentsInChildren<AbstractStateAction>(actions);
-    }
 
 
     public override void OnStateEnter()

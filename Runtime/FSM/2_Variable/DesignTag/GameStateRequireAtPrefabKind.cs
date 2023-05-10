@@ -8,10 +8,12 @@ namespace RCGMaker.Core
         [DisallowModificationsIn(PrefabKind.InstanceInScene)]
         public PrefabKind prefabKind = PrefabKind.InstanceInScene; //default以scene危單位在存
 
-        public bool IsPrefabKindMatch()
+#if UNITY_EDITOR
+        public bool IsPrefabKindMatch() //TODO: 這段最好拿去drawer就好
         {
             return (this.CurrentPrefabKind() & prefabKind) != 0;
         }
+#endif
         private AbstractVariable variable; //好像也不用反向指
         //讓AbstractVariable可以來反查
         //MonoVariable
