@@ -56,7 +56,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
         return true;
     }
-
+#if UNITY_EDITOR
     private bool PrefabKindMatchTagCheck()
     {
         var tag = GetComponent<GameStateRequireAtPrefabKind>();
@@ -66,7 +66,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         if ((tag.prefabKind & myPrefabKind) != 0) return true;
         return false; //不是那個環境就不用顯示了
     }
-
+#endif
     private bool IsCheckingPrefabKind => GetComponent<GameStateRequireAtPrefabKind>() != null;
 
     [BoxGroup("GameState")]
