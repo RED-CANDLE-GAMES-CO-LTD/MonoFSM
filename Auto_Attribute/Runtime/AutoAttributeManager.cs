@@ -22,9 +22,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Auto.Utils;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Sirenix.OdinInspector;
+using Debug = UnityEngine.Debug;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -58,6 +60,33 @@ public class AutoAttributeManager : MonoBehaviour
         SweeepScene();
     }
 
+    //async版本的auto
+    public static async UniTask AsyncAutoReferenceAllChildren(GameObject targetGo)
+    {
+        int startFrame = Time.frameCount;
+        var componentsInChildren = targetGo.GetComponentsInChildren<MonoBehaviour>(true);
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        foreach (var mono in componentsInChildren)
+        {
+            AutoReference(mono);
+
+            if (stopwatch.Elapsed.TotalSeconds >= 0.016f) // Maximum time per frame in seconds (60fps)
+            {
+                await UniTask.Yield(targetGo.GetCancellationTokenOnDestroy());
+
+                stopwatch.Reset();
+                stopwatch.Start();
+            }
+
+#if UNITY_EDITOR
+            Debug.Log("AsyncAutoReferenceAllChildren" + mono.name + ",frame:" + (Time.frameCount - startFrame));
+#endif
+        }
+
+        stopwatch.Stop();
+    }
 
     public static void AutoReference(GameObject targetGo)
     {
@@ -93,7 +122,6 @@ public class AutoAttributeManager : MonoBehaviour
     // void setValue(MonoBehaviour mb, object val){
 
     // }
-
     public static void AutoReference(MonoBehaviour targetMb, out int successfullyAssigments, out int failedAssignments)
     {
         successfullyAssigments = 0;

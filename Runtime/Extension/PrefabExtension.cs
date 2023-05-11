@@ -41,6 +41,11 @@ namespace RCGMaker.Core
         {
             return OdinPrefabUtility.GetPrefabKind(obj);
         }
+
+        public static PrefabKind IsPrefabKindMatch(this Object obj)
+        {
+            return OdinPrefabUtility.GetPrefabKind(obj);
+        }
 #endif
 
 
