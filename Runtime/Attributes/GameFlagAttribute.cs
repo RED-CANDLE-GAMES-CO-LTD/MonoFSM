@@ -1,12 +1,8 @@
 using UnityEngine;
 using UnityEngine.Events;
-public interface IDataOwner
-{
-    void FlagGeneratedPostProcess(GameFlagBase flag);
-    public string Name { get; }
-}
-//點ref: GameFlagGeneratorPropertyDrawer
 
+//點ref: GameFlagGeneratorPropertyDrawer
+//FIXME: Deprecated 這個之後可能不用了，已經都用GameState了
 public class GameFlagAttribute : PropertyAttribute
 {
     public GameFlagAttribute()
