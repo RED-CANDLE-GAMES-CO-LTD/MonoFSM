@@ -26,6 +26,8 @@ using UnityEngine;
 public interface IGameStateOwner
 {
 }
+
+[RequireComponent(typeof(GameStateRequireAtPrefabKind))]
 public class AutoGenGameState : GuidComponent
 {
 #if UNITY_EDITOR
