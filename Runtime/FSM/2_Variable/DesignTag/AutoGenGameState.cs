@@ -68,12 +68,17 @@ public class AutoGenGameState : GuidComponent
             if (gameStateAttribute == null) continue;
             // Debug.Log("Auto Gen When Save: gameStateAttribute " + field.Name);
             //check value of field is not null
-            var value = field.GetValue(_ownerMono) as Object;
-            if (value != null) continue;
+            var value = field.GetValue(_ownerMono) as GameFlagBase;
+            if (value != null)
+                //檢查ID有沒有對
+                if (SaveID == value.SaveID)
+                    continue;
 
-//幫他生成
+
+            //幫他生成
             //if null, create new instance
-            var fieldType = field.FieldType;
+            // var fieldType = field.FieldType;
+            
             var gameStateData =
                 field.FieldType.CreateGameStateSO(_ownerMono);
             if (gameStateData == null)
