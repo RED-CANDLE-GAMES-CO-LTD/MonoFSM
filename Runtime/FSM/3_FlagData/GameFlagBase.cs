@@ -9,14 +9,14 @@ using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEditor;
-
-#if UNITY_2022_2_OR_NEWER
-using Unity.Plastic.Newtonsoft.Json;
-using Unity.Plastic.Newtonsoft.Json.Linq;
-
-#else
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+#if UNITY_2022_2_OR_NEWER
+// using Unity.Plastic.Newtonsoft.Json;
+// using Unity.Plastic.Newtonsoft.Json.Linq;
+
+#else
+
 #endif
 
 public class AbstractScriptableData<TField, TType> : GameFlagBase where TField : FlagField<TType>
