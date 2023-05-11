@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 
@@ -56,6 +58,13 @@ public  class RuntimeConditionVote :IRuntimeConditionImplementation
         }
 
         CheckResult();
+    }
+
+    public async UniTask AddForSeconds(MonoBehaviour m, float seconds)
+    {
+        Vote(m, true);
+        await UniTask.Delay(TimeSpan.FromSeconds(seconds));
+        Vote(m, false);
     }
 
     private void CheckResult()
