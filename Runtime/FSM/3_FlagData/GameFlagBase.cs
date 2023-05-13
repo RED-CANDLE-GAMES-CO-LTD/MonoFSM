@@ -22,8 +22,6 @@ using Newtonsoft.Json.Linq;
 public class AbstractScriptableData<TField, TType> : GameFlagBase where TField : FlagField<TType>
 {
     public TField field;
-
-    //
     public void Revert()
     {
         field.RevertToLastValue();
@@ -72,7 +70,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
         else //manual, duplicate的時候會需要重新assign
         {
             var guid = this.GetGUID();
-            if (SaveID != guid)
+            if (SaveID != null && SaveID != guid)
                 SaveID = guid;
         }
 #endif

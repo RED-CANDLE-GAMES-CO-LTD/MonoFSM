@@ -69,11 +69,11 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 #endif
     private bool IsCheckingPrefabKind => GetComponent<GameStateRequireAtPrefabKind>() != null;
 
-    [BoxGroup("GameState")]
-    [EnableIf("PrefabKindMatchTagCheck")]
-    // [DisableIf("@!IsAutoGenButNotYet()")] //FIXME: 用validate檢查
-    [Button("Auto Gen Fix")]
-    [EditorOnly]
+    // [BoxGroup("GameState")]
+    // [EnableIf("PrefabKindMatchTagCheck")]
+    // // [DisableIf("@!IsAutoGenButNotYet()")] //FIXME: 用validate檢查
+    // [Button("Auto Gen Fix")]
+    // [EditorOnly]
     private void GenData()
     {
 #if UNITY_EDITOR
@@ -85,6 +85,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         Debug.Log("自動生成flag修正" + scriptableData, scriptableData);
 #endif
         //FIXME: 用validator檢查，然後自動Fix?
+        //[]:已經在Auto那邊用OnBeforeSerialize全部做掉了
     }
 
     [BoxGroup("GameState")]
@@ -335,8 +336,6 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
             if ((OdinPrefabUtility.GetPrefabKind(this) & PrefabKind.InstanceInScene) == 0) return;
             if (IsAutoGenButNotYet()) result.AddError("需要GameState Not Gen").WithFix(GenData);
         }
-        
-        
         
         if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
 #endif

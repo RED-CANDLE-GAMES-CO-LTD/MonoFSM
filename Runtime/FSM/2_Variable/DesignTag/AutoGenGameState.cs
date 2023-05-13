@@ -42,15 +42,20 @@ public class AutoGenGameState : GuidComponent
         return guid;
     }
 
+    
     [ShowInInspector] private string SceneGUID => FindSceneGUID();
     [ShowInInspector] public string SaveID => SceneGUID + "_" + GetGuid();
-    public string MyGuid => "" + GetGuid();
+    [ShowInInspector] public string MyGuid => GetGuid().ToString();
 
     [ShowInInspector] private MonoBehaviour _ownerMono => GetComponent<IGameStateOwner>() as MonoBehaviour;
 
     public override void OnBeforeSerialize()
     {
         base.OnBeforeSerialize();
+
+        //再玩
+        if (Application.isPlaying)
+            Debug.Log("OnBeforeSerialize" + this);
         if (IsAssetOnDisk()) return; //prefab就不可能auto gen?
         if (EditorUtility.IsPersistent(this)) return;
         // Debug.Log("Auto Gen When Save: " + gameObject.name);
@@ -78,14 +83,18 @@ public class AutoGenGameState : GuidComponent
             //幫他生成
             //if null, create new instance
             // var fieldType = field.FieldType;
-            
-            var gameStateData =
-                field.FieldType.CreateGameStateSO(_ownerMono);
-            if (gameStateData == null)
+
+
+            var data = field.FieldType.CreateGameStateSO(_ownerMono);
+            if (data == null)
             {
-                Debug.LogError("Fail to create GameStateSO for " + field.Name, this);
+                // Debug.LogError("Fail to create GameStateSO for " + field.Name, this);
                 continue;
             }
+
+            var gameStateData = data;
+            
+            
 
             // Debug.Log("Auto Gen When Save: " + field.Name + " " + gameStateData.name, gameStateData);
             field.SetValue(_ownerMono, gameStateData);

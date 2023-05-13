@@ -50,6 +50,9 @@ namespace RCGMaker.Core
         public static GameFlagBase CreateGameStateSO(this System.Type type, MonoBehaviour refObj,
             string subFolderName = "")
         {
+            //遊戲中不該建state
+            if (Application.isPlaying)
+                return null;
             if (!refObj.TryGetComponent<AutoGenGameState>(out var autoGenGameState))
             {
                 //不是自動生的
