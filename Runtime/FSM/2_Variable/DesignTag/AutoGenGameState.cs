@@ -53,9 +53,10 @@ public class AutoGenGameState : GuidComponent
     {
         base.OnBeforeSerialize();
 
-        //再玩
+        //從場景A 走到場景Ｂ 再走回場景Ａ SaveID 會變。 所以Application.IsPlaying 的狀態下不能做這件事。
         if (Application.isPlaying)
-            Debug.Log("OnBeforeSerialize" + this);
+            return;
+        
         if (IsAssetOnDisk()) return; //prefab就不可能auto gen?
         if (EditorUtility.IsPersistent(this)) return;
         // Debug.Log("Auto Gen When Save: " + gameObject.name);
