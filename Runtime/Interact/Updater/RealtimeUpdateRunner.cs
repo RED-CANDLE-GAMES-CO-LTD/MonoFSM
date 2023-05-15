@@ -18,21 +18,23 @@ namespace RCGMaker.Core
     public class RealtimeUpdateRunner : MonoBehaviour, IUpdateRunner
     {
         //一個buff會維持多久
-        public StatData LastForSeconds;
+        // public StatData LastForSeconds;
 
         //多久造成效果
         //ex: 1s，0.5f造成一次傷害
-        public float interval = 0.1f;
+        [Header("多久發動一次效果")] public float UpdateInterval = 0.1f;
         private float _intervalTimer;
-        private float LastForSecondsValue => LastForSeconds ? LastForSeconds.Value : lastForSecondsValue;
-        public float lastForSecondsValue;
+
+        // private float LastForSecondsValue => LastForSeconds ? LastForSeconds.Value : lastForSecondsValue;
+        private float LastForSecondsValue => lastForSecondsValue;
+        [Header("持續多久")] public float lastForSecondsValue = 0.5f;
         private float _timer;
 
-        private IUpdatable[] _updatables;
+        [Auto] private IUpdatable _updatable;
 
         [ShowInInspector] //可以用attribute讓interface變成可以看嗎？
-        private Component[] _updatableComponents =>
-            _updatables.Select(a => a as Component).ToArray();
+        // private Component[] _updatableComponents =>
+        //     _updatables.Select(a => a as Component).ToArray();
 
         //如果owner已經有同個BuffModule，就不要再加了
         //要登記...BuffContainer        
@@ -58,8 +60,9 @@ namespace RCGMaker.Core
             _intervalTimer -= Time.deltaTime;
             if (_intervalTimer <= 0)
             {
-                _intervalTimer = interval + _intervalTimer;
-                foreach (var updatable in _updatables) updatable.UpdateEffect();
+                _intervalTimer = UpdateInterval + _intervalTimer;
+                // foreach (var updatable in _updatables) updatable.UpdateEffect();
+                _updatable.UpdateEffect();
             }
 
             _timer -= Time.deltaTime;

@@ -111,7 +111,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
     //Reset還會去用lastMode...這個狀態有點多餘
     public virtual void Reset() //抓default Value或currentValue
     {
-        Debug.Log("Reset data:" + name);
+        // Debug.Log("Reset data:" + name);
         FieldInfo[] myField = GetType().GetFields();
         // Debug.Log("Flag Convertor WriteJSON");
         foreach (var fieldInfo in myField)

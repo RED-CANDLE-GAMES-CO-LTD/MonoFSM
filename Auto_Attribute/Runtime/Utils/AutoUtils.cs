@@ -4,8 +4,7 @@ using System.Collections.Generic;
 namespace Auto.Utils{
     public static class AutoUtils
     {
-
-        internal static Type GetElementType(Type seqType)
+	    public static Type GetElementType(Type seqType)
         {
             Type ienum = FindIEnumerable(seqType);
             if (ienum == null) return seqType;

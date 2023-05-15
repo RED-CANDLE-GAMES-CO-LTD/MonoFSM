@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using RCGMaker.Core;
@@ -49,10 +50,14 @@ public class AutoGenGameState : GuidComponent
 
     [ShowInInspector] private MonoBehaviour _ownerMono => GetComponent<IGameStateOwner>() as MonoBehaviour;
 
+    
     public override void OnBeforeSerialize()
     {
         base.OnBeforeSerialize();
 
+
+        //[]: EditorSceneManager.sceneSaving 試試看
+        
         //FIXME: 還是會遇到error...
         //UnityException: Calls to "AssetDatabase.LoadAssetAtPath" are restricted during domain backup. Assets may not be loaded while domain backup is running, as this will change the underlying state.
 
@@ -62,6 +67,8 @@ public class AutoGenGameState : GuidComponent
         
         if (IsAssetOnDisk()) return; //prefab就不可能auto gen?
         if (EditorUtility.IsPersistent(this)) return;
+        if (!IsGuidAssigned()) //guid 0000的時候，不要gen，先等下面gen, 只是這個OnBeforeSerialize不會遞迴嗎... call stack有點醜的感覺
+            return;
         // Debug.Log("Auto Gen When Save: " + gameObject.name);
         //改成ShowInInspector Property?
         if (_ownerMono == null)
@@ -75,14 +82,15 @@ public class AutoGenGameState : GuidComponent
             var gameStateAttribute = field.GetAttribute<GameStateAttribute>();
 
             if (gameStateAttribute == null) continue;
-            // Debug.Log("Auto Gen When Save: gameStateAttribute " + field.Name);
+          
             //check value of field is not null
             var value = field.GetValue(_ownerMono) as GameFlagBase;
             if (value != null)
                 //檢查ID有沒有對
                 if (SaveID == value.SaveID)
                     continue;
-            
+
+            Debug.Log("Need Auto Gen: gameStateAttribute " + ",value:" + value + ",saveID:" + SaveID, gameObject);
             //幫他生成
             //if null, create new instance
             // var fieldType = field.FieldType;
@@ -94,12 +102,12 @@ public class AutoGenGameState : GuidComponent
                 // Debug.LogError("Fail to create GameStateSO for " + field.Name, this);
                 continue;
             }
+            
 
             var gameStateData = data;
-            
-            
 
-            // Debug.Log("Auto Gen When Save: " + field.Name + " " + gameStateData.name, gameStateData);
+
+            Debug.Log("Auto Gen When Serialize: " + field.Name + " " + gameStateData.name, gameObject);
             field.SetValue(_ownerMono, gameStateData);
             _ownerMono.SetDirty();
         }
