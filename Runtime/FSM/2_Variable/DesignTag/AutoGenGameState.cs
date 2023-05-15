@@ -67,7 +67,9 @@ public class AutoGenGameState : GuidComponent
         
         if (IsAssetOnDisk()) return; //prefab就不可能auto gen?
         if (EditorUtility.IsPersistent(this)) return;
+
         if (!IsGuidAssigned()) //guid 0000的時候，不要gen，先等下面gen, 只是這個OnBeforeSerialize不會遞迴嗎... call stack有點醜的感覺
+
             return;
         // Debug.Log("Auto Gen When Save: " + gameObject.name);
         //改成ShowInInspector Property?
