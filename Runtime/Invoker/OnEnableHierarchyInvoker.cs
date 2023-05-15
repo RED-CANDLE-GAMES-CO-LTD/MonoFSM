@@ -7,6 +7,11 @@ public interface IOnEnableInvokable
     void OnDisableInvoke();
 }
 
+public interface IEffectReceivedProcessor
+{
+    void EffectHitResult(IEffectHitData hitData);
+}
+
 public interface IDataOwner
 {
     void FlagGeneratedPostProcess(GameFlagBase flag);

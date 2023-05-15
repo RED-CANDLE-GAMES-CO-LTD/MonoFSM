@@ -53,6 +53,9 @@ public class AutoGenGameState : GuidComponent
     {
         base.OnBeforeSerialize();
 
+        //FIXME: 還是會遇到error...
+        //UnityException: Calls to "AssetDatabase.LoadAssetAtPath" are restricted during domain backup. Assets may not be loaded while domain backup is running, as this will change the underlying state.
+
         //從場景A 走到場景Ｂ 再走回場景Ａ SaveID 會變。 所以Application.IsPlaying 的狀態下不能做這件事。
         if (Application.isPlaying)
             return;
@@ -79,8 +82,7 @@ public class AutoGenGameState : GuidComponent
                 //檢查ID有沒有對
                 if (SaveID == value.SaveID)
                     continue;
-
-
+            
             //幫他生成
             //if null, create new instance
             // var fieldType = field.FieldType;
