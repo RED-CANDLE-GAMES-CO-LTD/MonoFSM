@@ -62,6 +62,8 @@ public class AutoGenGameState : GuidComponent
         
         if (IsAssetOnDisk()) return; //prefab就不可能auto gen?
         if (EditorUtility.IsPersistent(this)) return;
+        if (!IsGuidAssigned())
+            return;
         // Debug.Log("Auto Gen When Save: " + gameObject.name);
         //改成ShowInInspector Property?
         if (_ownerMono == null)
@@ -94,12 +96,12 @@ public class AutoGenGameState : GuidComponent
                 // Debug.LogError("Fail to create GameStateSO for " + field.Name, this);
                 continue;
             }
+            
 
             var gameStateData = data;
-            
-            
 
-            // Debug.Log("Auto Gen When Save: " + field.Name + " " + gameStateData.name, gameStateData);
+
+            Debug.Log("Auto Gen When Serialize: " + field.Name + " " + gameStateData.name, gameObject);
             field.SetValue(_ownerMono, gameStateData);
             _ownerMono.SetDirty();
         }
