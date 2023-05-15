@@ -7,6 +7,7 @@ namespace RCGMaker.Core
     public interface IUpdatable
     {
         void UpdateEffect();
+        void Stop();
     }
 
     public interface IUpdateRunner //算時間，算回合，時間到了更新
@@ -68,6 +69,7 @@ namespace RCGMaker.Core
             _timer -= Time.deltaTime;
             if (_timer <= 0)
             {
+                // _updatable.Stop();
                 gameObject.SetActive(false);
                 //至少先disable就不會有效果了
                 //[]: Pool return..? 應該讓buff module自己return就好

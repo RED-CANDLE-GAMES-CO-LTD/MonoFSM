@@ -18,8 +18,13 @@ public interface IEffectHitData
     void Override(IEffectDealer dealer, IEffectReceiver receiver);
 }
 
+public interface IEffectType
+{
+}
 public interface IEffectDealer
 {
+    // IEffectType getEffectType { get; }
+    
     // void OnHitEnter(IEffectHitData data);
     // void OnHitStay(IEffectHitData data);
     // void OnHitExit(IEffectHitData data);
