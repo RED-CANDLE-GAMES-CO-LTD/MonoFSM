@@ -27,6 +27,11 @@ namespace RCGMaker.Core
                 or PrefabKind.InstanceInPrefab;
         }
 
+        public static bool IsPrefabInAssetNotEditing(this GameObject gameObject)
+        {
+            return gameObject.IsInPrefab() && PrefabStageUtility.GetCurrentPrefabStage() == null;
+        }
+
         public static bool IsInPrefabVariant(this GameObject gObj)
         {
             return OdinPrefabUtility.GetPrefabKind(gObj) == PrefabKind.Variant;
