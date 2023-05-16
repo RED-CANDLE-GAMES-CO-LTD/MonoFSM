@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 
@@ -21,8 +22,12 @@ public enum ConditionType
     OR
 }
 
+[Serializable]
 public  class RuntimeConditionVote :IRuntimeConditionImplementation
 {
+    [ShowInInspector] private MonoBehaviour[] keys => votes.Keys.ToArray();
+    [ShowInInspector] private bool[] values => votes.Values.ToArray();
+
     public Dictionary<MonoBehaviour, bool> votes = new Dictionary<MonoBehaviour, bool>();
 
     public ConditionType GetConditionType()
@@ -57,6 +62,13 @@ public  class RuntimeConditionVote :IRuntimeConditionImplementation
             votes.Add(m,vote);
         }
 
+        CheckResult();
+    }
+
+    public void Revoke(MonoBehaviour m)
+    {
+        if (votes.ContainsKey(m))
+            votes.Remove(m);
         CheckResult();
     }
 
