@@ -59,10 +59,13 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 #if UNITY_EDITOR
     private bool PrefabKindMatchTagCheck()
     {
+        if (myPrefabKind == PrefabKind.NonPrefabInstance) //場景上的非prefab給過
+            return true;
+        
+        
         var tag = GetComponent<GameStateRequireAtPrefabKind>();
 
-        //[]: 該給過嗎？ 不該，要不然prefab會很吵
-        if (tag == null) return false;
+        if (tag == null) return false; //[]: 該給過嗎？ 不該，要不然prefab會很吵
         if ((tag.prefabKind & myPrefabKind) != 0) return true;
         return false; //不是那個環境就不用顯示了
     }
@@ -125,9 +128,11 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     private bool IsSuggestingDesignTag()
     {
-        return gameObject.IsInPrefab();
+        return gameObject.IsInPrefab() || myPrefabKind == PrefabKind.NonPrefabInstance;
     }
 #endif
+
+    //TODO: 可以直接弄到drawer上？
     [BoxGroup("GameState")]
     [HideInInlineEditors]
     [EnableIf("IsSuggestingDesignTag")]
@@ -154,10 +159,10 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     //lazy get prefabKind
     private PrefabKind _myPrefabKind;
 
-    [ShowInInspector]
-    private PrefabKind myPrefabKind => _myPrefabKind == PrefabKind.None
-        ? _myPrefabKind = OdinPrefabUtility.GetPrefabKind(this)
-        : _myPrefabKind;
+    [ShowInInspector] private PrefabKind myPrefabKind => OdinPrefabUtility.GetPrefabKind(this);
+    // private PrefabKind myPrefabKind => _myPrefabKind == PrefabKind.None
+    //     ? _myPrefabKind = OdinPrefabUtility.GetPrefabKind(this)
+    //     : _myPrefabKind;
 
     //FIXME: 這個可以cache嗎...
 #endif

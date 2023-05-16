@@ -29,7 +29,7 @@ public interface IGameStateOwner
 }
 
 [RequireComponent(typeof(GameStateRequireAtPrefabKind))]
-public class AutoGenGameState : GuidComponent
+public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
 {
 #if UNITY_EDITOR
     private string FindSceneGUID()
@@ -125,6 +125,10 @@ public class AutoGenGameState : GuidComponent
     //TODO: 找到旁邊class裡的[GameState], 幫他gen掉 
     
 #endif
+    public void OnBeforeSceneSave()
+    {
+        AutoGenCheck();
+    }
 }
 
 //TODO: 要直接用dictionary access嗎？unique id怎麼來？c?
