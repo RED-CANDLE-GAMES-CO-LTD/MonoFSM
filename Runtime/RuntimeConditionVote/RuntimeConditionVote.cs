@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -25,8 +26,8 @@ public enum ConditionType
 [Serializable]
 public  class RuntimeConditionVote :IRuntimeConditionImplementation
 {
-    [ShowInInspector] private MonoBehaviour[] keys => votes.Keys.ToArray();
-    [ShowInInspector] private bool[] values => votes.Values.ToArray();
+    [ShowInPlayMode] private MonoBehaviour[] keys => votes.Keys.ToArray();
+    [ShowInPlayMode] private bool[] values => votes.Values.ToArray();
 
     public Dictionary<MonoBehaviour, bool> votes = new Dictionary<MonoBehaviour, bool>();
 
