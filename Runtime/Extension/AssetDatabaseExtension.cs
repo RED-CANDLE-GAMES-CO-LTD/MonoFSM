@@ -97,7 +97,7 @@ namespace RCGMaker.Core
             var asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/" + fileRelativePath);
             if (asset != null)
             {
-                Debug.Log("File already exist, linked");
+                Debug.Log("File already exist, linked" + fileRelativePath);
                 return asset;
             }
 
@@ -112,10 +112,10 @@ namespace RCGMaker.Core
         private static void CreateAssetFolderIfParentNotExist(string fileRelativePath)
         {
             var folderRelativePath = fileRelativePath.FolderPath();
-            Debug.Log("Want to Create Asset at: Assets/" + fileRelativePath);
+            // Debug.Log("Want to Create Asset at: Assets/" + fileRelativePath);
             if (!AssetDatabase.IsValidFolder("Assets/" + folderRelativePath))
             {
-                Debug.Log("Create Folder: Assets/" + folderRelativePath);
+                // Debug.Log("Create Folder: Assets/" + folderRelativePath);
                 CreateAssetFolderAtPathRecursive(folderRelativePath);
             }
         }

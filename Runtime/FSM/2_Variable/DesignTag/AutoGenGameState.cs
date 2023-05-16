@@ -50,21 +50,11 @@ public class AutoGenGameState : GuidComponent
 
     [ShowInInspector] private MonoBehaviour _ownerMono => GetComponent<IGameStateOwner>() as MonoBehaviour;
 
-    
-    public override void OnBeforeSerialize()
+    public void AutoGenCheck()
     {
-        base.OnBeforeSerialize();
-
-
-        //[]: EditorSceneManager.sceneSaving 試試看
-        
-        //FIXME: 還是會遇到error...
-        //UnityException: Calls to "AssetDatabase.LoadAssetAtPath" are restricted during domain backup. Assets may not be loaded while domain backup is running, as this will change the underlying state.
-
-        //從場景A 走到場景Ｂ 再走回場景Ａ SaveID 會變。 所以Application.IsPlaying 的狀態下不能做這件事。
         if (Application.isPlaying)
             return;
-        
+
         if (IsAssetOnDisk()) return; //prefab就不可能auto gen?
         if (EditorUtility.IsPersistent(this)) return;
 
@@ -84,7 +74,7 @@ public class AutoGenGameState : GuidComponent
             var gameStateAttribute = field.GetAttribute<GameStateAttribute>();
 
             if (gameStateAttribute == null) continue;
-          
+
             //check value of field is not null
             var value = field.GetValue(_ownerMono) as GameFlagBase;
             if (value != null)
@@ -92,7 +82,8 @@ public class AutoGenGameState : GuidComponent
                 if (SaveID == value.SaveID)
                     continue;
 
-            Debug.Log("Need Auto Gen: gameStateAttribute " + ",value:" + value + ",saveID:" + SaveID, gameObject);
+            // Debug.Log("Need Auto Gen: gameStateAttribute " + ",value:" + value + ",saveID:" + SaveID, gameObject);
+            
             //幫他生成
             //if null, create new instance
             // var fieldType = field.FieldType;
@@ -100,11 +91,9 @@ public class AutoGenGameState : GuidComponent
 
             var data = field.FieldType.CreateGameStateSO(_ownerMono);
             if (data == null)
-            {
                 // Debug.LogError("Fail to create GameStateSO for " + field.Name, this);
                 continue;
-            }
-            
+
 
             var gameStateData = data;
 
@@ -115,10 +104,24 @@ public class AutoGenGameState : GuidComponent
         }
     }
 
-    public override void OnAfterDeserialize()
-    {
-        base.OnAfterDeserialize();
-    }
+    // public override void OnBeforeSerialize()
+    // {
+    //     base.OnBeforeSerialize();
+    //
+    //
+    //     //[]: EditorSceneManager.sceneSaving 試試看
+    //     
+    //     //FIXME: 還是會遇到error...
+    //     //UnityException: Calls to "AssetDatabase.LoadAssetAtPath" are restricted during domain backup. Assets may not be loaded while domain backup is running, as this will change the underlying state.
+    //
+    //     //從場景A 走到場景Ｂ 再走回場景Ａ SaveID 會變。 所以Application.IsPlaying 的狀態下不能做這件事。
+    //     
+    // }
+
+    // public override void OnAfterDeserialize()
+    // {
+    //     base.OnAfterDeserialize();
+    // }
     //TODO: 找到旁邊class裡的[GameState], 幫他gen掉 
     
 #endif
