@@ -11,7 +11,7 @@ namespace RCGMaker.Core
         [InfoBox("出現不能改但卻是Null，找易衡討論討論")]
         // public bool ShowStartState = true;
         [Required]
-        [DisallowModificationsIn(PrefabKind.Variant | PrefabKind.PrefabInstance)]
+        // [DisallowModificationsIn(PrefabKind.Variant | PrefabKind.PrefabInstance)]
         [ValueDropdown("GetAllStates")]
         [DropDownRef]
         public TState startState;
