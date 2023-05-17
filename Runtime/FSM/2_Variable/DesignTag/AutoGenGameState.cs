@@ -127,7 +127,9 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
 #endif
     public void OnBeforeSceneSave()
     {
+#if UNITY_EDITOR   
         AutoGenCheck();
+#endif
     }
 }
 
