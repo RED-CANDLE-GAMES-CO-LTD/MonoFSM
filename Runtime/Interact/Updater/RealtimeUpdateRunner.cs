@@ -12,7 +12,7 @@ namespace RCGMaker.Core
 
     public interface IUpdateRunner //算時間，算回合，時間到了更新
     {
-        void Reset();
+        void ResetCounter();
     }
 
     //動作遊戲用，照著時間decay
@@ -39,16 +39,16 @@ namespace RCGMaker.Core
 
         //如果owner已經有同個BuffModule，就不要再加了
         //要登記...BuffContainer        
-
-
-        public void Reset()
+        public void ResetCounter()
         {
             _timer = LastForSecondsValue;
+            
         }
 
         private void OnEnable()
         {
             _timer = LastForSecondsValue;
+            _intervalTimer = UpdateInterval;
         }
 
 
@@ -56,12 +56,12 @@ namespace RCGMaker.Core
         //動作遊戲可以自己maintain, 回合制應該讓外部的runner來做
         // Buff Runner Type...
 
-        private void Update()
+        private void Update() //FIXME: 這個好像不對...要反過來嗎，value從time反推，
         {
             _intervalTimer -= Time.deltaTime;
             if (_intervalTimer <= 0)
             {
-                _intervalTimer = UpdateInterval + _intervalTimer;
+                _intervalTimer += UpdateInterval;
                 // foreach (var updatable in _updatables) updatable.UpdateEffect();
                 _updatable.UpdateEffect();
             }
