@@ -93,13 +93,11 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
             if (data == null)
                 // Debug.LogError("Fail to create GameStateSO for " + field.Name, this);
                 continue;
-
-
+            
             var gameStateData = data;
-
-
             Debug.Log("Auto Gen When Serialize: " + field.Name + " " + gameStateData.name, gameObject);
             field.SetValue(_ownerMono, gameStateData);
+            if (_ownerMono is IDataOwner flagOwner) flagOwner.FlagGeneratedPostProcess(gameStateData);
             _ownerMono.SetDirty();
         }
     }

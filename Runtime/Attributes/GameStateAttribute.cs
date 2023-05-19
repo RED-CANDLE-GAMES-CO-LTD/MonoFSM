@@ -1,4 +1,5 @@
 using System;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Core.Attributes
@@ -6,6 +7,8 @@ namespace RCGMaker.Core.Attributes
     //SavedFlagLink
     //GameStateSO
     //ConfigSO
+    [IncludeMyAttributes]
+    [InlineEditor()]
     [EditorOnly]
     public class GameStateAttribute : Attribute
     {
