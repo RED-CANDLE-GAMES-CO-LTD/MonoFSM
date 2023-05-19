@@ -41,6 +41,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
 {
     // public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
     // protected bool inited = false;
+    [Header("Asset GUID")]
     [ReadOnly] public string SaveID = "";
 
 
@@ -60,6 +61,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
     }
 
     [EditorOnly]
+    // [Button]
     private void ValidateSaveID()
     {
 #if UNITY_EDITOR
