@@ -1,11 +1,14 @@
 using System.Linq;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Core
 {
+    
     public interface IUpdatable
     {
+        void MonoBindAwake();
         void UpdateEffect();
         void Stop();
     }
@@ -13,6 +16,7 @@ namespace RCGMaker.Core
     public interface IUpdateRunner //算時間，算回合，時間到了更新
     {
         void ResetCounter();
+        void MonoBindAwake();
     }
 
     //動作遊戲用，照著時間decay
@@ -29,9 +33,11 @@ namespace RCGMaker.Core
         // private float LastForSecondsValue => LastForSeconds ? LastForSeconds.Value : lastForSecondsValue;
         private float LastForSecondsValue => lastForSecondsValue;
         [Header("持續多久")] public float lastForSecondsValue = 0.5f;
+
+        [PreviewInInspector]
         private float _timer;
 
-        [Auto] private IUpdatable _updatable;
+        [PreviewInInspector] [AutoChildren()] private IUpdatable[] _updatables;
 
         [ShowInInspector] //可以用attribute讓interface變成可以看嗎？
         // private Component[] _updatableComponents =>
@@ -49,21 +55,26 @@ namespace RCGMaker.Core
         {
             _timer = LastForSecondsValue;
             _intervalTimer = UpdateInterval;
+           
         }
 
+        public void MonoBindAwake()
+        {
+            foreach (var updatable in _updatables) updatable.MonoBindAwake();
+        }
 
         //自己跑Update，還是要讓外部的人來call
         //動作遊戲可以自己maintain, 回合制應該讓外部的runner來做
         // Buff Runner Type...
 
-        private void Update() //FIXME: 這個好像不對...要反過來嗎，value從time反推，
+        private void Update()
         {
             _intervalTimer -= Time.deltaTime;
             if (_intervalTimer <= 0)
             {
                 _intervalTimer += UpdateInterval;
                 // foreach (var updatable in _updatables) updatable.UpdateEffect();
-                _updatable.UpdateEffect();
+                foreach (var updatable in _updatables) updatable.UpdateEffect();
             }
 
             _timer -= Time.deltaTime;
@@ -71,6 +82,7 @@ namespace RCGMaker.Core
             {
                 // _updatable.Stop();
                 gameObject.SetActive(false);
+                foreach (var updatable in _updatables) updatable.Stop();
                 //至少先disable就不會有效果了
                 //[]: Pool return..? 應該讓buff module自己return就好
                 return;
