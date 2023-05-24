@@ -4,4 +4,8 @@ namespace RCGMaker.Core
     {
         void OnBeforeSceneSave();
     }
+
+    public interface IGameStateOwner : ISceneSavingCallbackReceiver
+    {
+    }
 }

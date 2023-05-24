@@ -28,13 +28,14 @@ namespace RCGSetting
         // public static DebugCheatNode debugNode;
         public static bool IsDebugMode
         {
-// #if UNITY_EDITOR
+            //為什麼之前要註解掉editor if?
+#if UNITY_EDITOR
             get => BoolProperties[nameof(IsDebugMode)];
             set => SetBoolProperty(nameof(IsDebugMode), value);
-// #else
-//             get => false;
-//             set {}
-// #endif
+#else
+             get => false;
+             set {}
+#endif
         }
 
         public static bool PlayerOneHitKill
