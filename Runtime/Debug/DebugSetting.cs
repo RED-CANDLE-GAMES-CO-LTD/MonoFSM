@@ -31,7 +31,12 @@ namespace RCGSetting
             //為什麼之前要註解掉editor if?
 #if UNITY_EDITOR
             get => BoolProperties[nameof(IsDebugMode)];
-            set => SetBoolProperty(nameof(IsDebugMode), value);
+            set
+            {
+                SetBoolProperty(nameof(IsDebugMode), value);
+                //進入debug mode就先無敵ㄅ
+                if (value) IsPlayerInvincible = true;
+            }
 #else
              get => false;
              set {}
