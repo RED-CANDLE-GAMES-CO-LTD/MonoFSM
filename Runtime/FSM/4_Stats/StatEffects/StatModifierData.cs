@@ -1,14 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 [System.Serializable]
 public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 {
     public float value = 1f;
     public StatModType modType = StatModType.Flat;
+
+    [InlineEditor()]
     public StatData statData;
     public StatModDurationType DurationType;
     protected StatModifier modifier;
+    [TextArea] public string note;
     public CharacterStat bindStat => statData.stat;
 
     public void Apply(ScriptableObject source)
