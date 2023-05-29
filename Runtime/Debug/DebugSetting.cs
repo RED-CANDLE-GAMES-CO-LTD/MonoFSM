@@ -35,7 +35,7 @@ namespace RCGSetting
             {
                 SetBoolProperty(nameof(IsDebugMode), value);
                 //進入debug mode就先無敵ㄅ
-                if (value) IsPlayerInvincible = true;
+                // if (value) IsPlayerInvincible = true;
             }
 #else
              get => false;
