@@ -54,6 +54,15 @@ namespace RCGSetting
 // #endif
         }
 
+
+        public static bool SkipHackMiniGame
+        {
+            get => BoolProperties[nameof(SkipHackMiniGame)];
+            set => SetBoolProperty(nameof(SkipHackMiniGame), value);
+        }
+
+
+
         public static bool IsPlayerInvincible;
 
         // [Command("test.PlayerOneHitKill")]
