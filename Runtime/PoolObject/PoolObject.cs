@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -44,9 +45,13 @@ public class AnimatorReseter
         }
     }
 }
+
+public interface IPoolObjectPlayer
+{
+}
 public class PoolObject : MonoBehaviour//, IResetter
 {
-    
+    [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
     [Button("Find fx to assign")]
     void Find()
     {

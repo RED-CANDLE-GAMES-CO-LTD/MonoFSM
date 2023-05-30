@@ -42,9 +42,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public List<AbstractStateTransition> transitions;
     //TODO: 其實不需要用list? graphView會需要嗎？
 
-    [AutoChildren(false)]
-    [InlineEditor()]
-    [ShowInInspector]
+    [AutoChildren(false)] [InlineEditor()] [ShowInInspector]
     private AbstractStateAction[] actions;
     public bool IsCurrentPlaying
     {
@@ -64,6 +62,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 #if UNITY_EDITOR
         EditorApplication.RepaintHierarchyWindow();
 #endif
+        if (actions == null) return;
         foreach (var action in actions)
         {
             if (action.isActiveAndEnabled)
@@ -73,6 +72,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateUpdate()
     {
         base.OnStateUpdate();
+        if (actions == null) return;
         foreach (var action in actions)
         {
             if (action.isActiveAndEnabled)
@@ -83,6 +83,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnSpriteUpdate()
     {
         base.OnSpriteUpdate();
+        if (actions == null) return;
         foreach (var action in actions)
         {
             if (action.isActiveAndEnabled)
@@ -92,6 +93,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateExit()
     {
         base.OnStateExit();
+        if (actions == null) return;
         foreach (var action in actions)
         {
             if (action.isActiveAndEnabled)

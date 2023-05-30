@@ -270,7 +270,7 @@ public class AutoAttributeManager : MonoBehaviour
         Stopwatch sw = new Stopwatch();
         // sw.Start();
         IEnumerable<MonoBehaviour> monoBehaviours = GameObject.FindObjectsOfType<MonoBehaviour>(true)
-                .Where(mb =>mb!=null && mb.gameObject.scene == this.gameObject.scene);
+            .Where(mb => mb != null && mb.gameObject.scene == gameObject.scene);
 
         // sw.Stop();
         // UnityEngine.Debug.Log("[Auto]: Find All Obj" + sw.ElapsedMilliseconds + ",mb Count:" + monoBehaviours.Count());
