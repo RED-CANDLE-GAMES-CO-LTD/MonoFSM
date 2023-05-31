@@ -43,7 +43,7 @@ public  class RuntimeConditionVote :IRuntimeConditionImplementation
 
     public void OnValueChange(bool value)
     {
-        _onValueChangeDelegate(value);
+        _onValueChangeDelegate?.Invoke(value);
     }
 
     private GetDefaultValueDelegate _getDefaultValueDelegate;
@@ -117,7 +117,9 @@ public  class RuntimeConditionVote :IRuntimeConditionImplementation
 
 
     public bool VoteResult => _lastResult;
-    public RuntimeConditionVote(ConditionType type ,bool defaultValue,OnValueChangeDelegate onValueChangeDelegate)
+
+    public RuntimeConditionVote(ConditionType type, bool defaultValue,
+        OnValueChangeDelegate onValueChangeDelegate = null)
     {
         _getConditionTypeDelegate = ()=>type;
         _getDefaultValueDelegate = ()=>defaultValue;
