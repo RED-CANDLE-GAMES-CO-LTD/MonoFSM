@@ -128,7 +128,8 @@ public  class RuntimeConditionVote :IRuntimeConditionImplementation
         OnValueChange(_lastResult);
     }
 
-    public RuntimeConditionVote(GetConditionTypeDelegate getConditionTypeDelegate ,GetDefaultValueDelegate getDefaultValueDelegate,OnValueChangeDelegate onValueChangeDelegate)
+    public RuntimeConditionVote(GetConditionTypeDelegate getConditionTypeDelegate,
+        GetDefaultValueDelegate getDefaultValueDelegate, OnValueChangeDelegate onValueChangeDelegate = null)
     {
          _getConditionTypeDelegate = getConditionTypeDelegate;
          _getDefaultValueDelegate = getDefaultValueDelegate;
