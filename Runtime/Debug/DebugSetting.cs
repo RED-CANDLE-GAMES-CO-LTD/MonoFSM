@@ -43,6 +43,23 @@ namespace RCGSetting
 #endif
         }
 
+        public static bool IsSceneTestMode
+        {
+            //為什麼之前要註解掉editor if?
+#if UNITY_EDITOR
+            get => BoolProperties[nameof(IsSceneTestMode)];
+            set
+            {
+                SetBoolProperty(nameof(IsSceneTestMode), value);
+                //進入debug mode就先無敵ㄅ
+                // if (value) IsPlayerInvincible = true;
+            }
+#else
+             get => false;
+             set {}
+#endif
+        }
+
         public static bool PlayerOneHitKill
         {
 // #if UNITY_EDITOR
