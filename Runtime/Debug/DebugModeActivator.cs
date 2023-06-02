@@ -5,6 +5,7 @@ using RCGSetting;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+//下面的節點，在特定測試模式下才會打開
 public class DebugModeActivator : MonoBehaviour
 {
     public Transform childNode;

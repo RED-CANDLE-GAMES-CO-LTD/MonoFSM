@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
+using RCGSetting;
 using UnityEngine;
 using Sirenix.OdinInspector;
 public interface ICondition
@@ -64,11 +65,18 @@ public abstract class AbstractConditionComp : MonoBehaviour
         {
             if (Application.isPlaying == false)
                 return false;
-
+#if UNITY_EDITOR
+            if (debugConditionResultOverrider != null) return debugConditionResultOverrider.OverrideResultValue;
+#endif
+            
             if (FinalResultInverted)
                 return !isValid;
             else
                 return isValid;
         }
     }
+
+    [Component(typeof(DebugConditionResultOverrider), AddComponentAt.Children)] [AutoChildren(false)]
+    private DebugConditionResultOverrider debugConditionResultOverrider;
 }
+

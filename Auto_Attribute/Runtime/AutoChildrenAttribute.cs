@@ -27,7 +27,8 @@ public class AutoChildrenAttribute : AutoFamily
 {
     public bool DepthOneOnly = false;//只找一層
     public bool includeActive = true;
-    public AutoChildrenAttribute(bool logMissingAsError = true) : base(logMissingAsError)
+
+    public AutoChildrenAttribute(bool logMissingAsError = false) : base(logMissingAsError)
     {
 
     }
