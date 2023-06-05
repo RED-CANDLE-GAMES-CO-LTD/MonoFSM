@@ -71,6 +71,17 @@ namespace RCGSetting
 // #endif
         }
 
+        public static bool PlayerFullMana
+        {
+// #if UNITY_EDITOR
+            get => BoolProperties[nameof(PlayerFullMana)];
+            set => SetBoolProperty(nameof(PlayerFullMana), value);
+// #else
+//             get=>false;
+//             set{}
+// #endif
+        }
+
 
         public static bool SkipHackMiniGame
         {
