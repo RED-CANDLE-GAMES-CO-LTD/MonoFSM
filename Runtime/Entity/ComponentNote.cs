@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Core
@@ -7,5 +8,6 @@ namespace RCGMaker.Core
     {
         //displayed in hierarchy view window
         [TextArea] public string Note;
+        [ColorPalette] public Color color;
     }
 }
