@@ -32,6 +32,6 @@ public class StatData : ScriptableObject
     [ReadOnly]
     [ShowInInspector]
     [PropertyOrder(-1)]
-    public float Value => stat.Value;
+    public virtual float Value => stat.Value;
     public string note;
 }
