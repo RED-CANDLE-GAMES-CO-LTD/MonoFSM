@@ -6,13 +6,14 @@ using Cysharp.Threading.Tasks;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 
-public interface IRuntimeConditionImplementation
+public interface IRuntimeConditionImplementation //這個interface的目的是？
 {
     ConditionType GetConditionType();
     void OnValueChange(bool value);
-    void Vote(MonoBehaviour m, bool vote);
+    void Vote(Object m, bool vote);
     bool GetDefaultValue();
 }
 
@@ -24,17 +25,18 @@ public enum ConditionType
 }
 
 [Serializable]
-public  class RuntimeConditionVote :IRuntimeConditionImplementation
+public class RuntimeConditionVote : IRuntimeConditionImplementation
 {
-    [ShowInPlayMode] private MonoBehaviour[] keys => votes.Keys.ToArray();
+    [ShowInPlayMode] private Object[] keys => votes.Keys.ToArray();
     [ShowInPlayMode] private bool[] values => votes.Values.ToArray();
 
-    public Dictionary<MonoBehaviour, bool> votes = new Dictionary<MonoBehaviour, bool>();
+    public Dictionary<Object, bool> votes = new();
 
     public ConditionType GetConditionType()
     {
         return _getConditionTypeDelegate();
     }
+    
 
     public bool GetDefaultValue()
     {
@@ -53,8 +55,8 @@ public  class RuntimeConditionVote :IRuntimeConditionImplementation
     public delegate bool GetDefaultValueDelegate();
     public delegate void OnValueChangeDelegate(bool value);
     public delegate ConditionType GetConditionTypeDelegate ();
-    
-    public void Vote(MonoBehaviour m, bool vote)
+
+    public void Vote(Object m, bool vote)
     {
         if (votes.ContainsKey(m))
             votes[m] = vote;
@@ -66,7 +68,7 @@ public  class RuntimeConditionVote :IRuntimeConditionImplementation
         CheckResult();
     }
 
-    public void Revoke(MonoBehaviour m)
+    public void Revoke(Object m)
     {
         if (votes.ContainsKey(m))
             votes.Remove(m);
