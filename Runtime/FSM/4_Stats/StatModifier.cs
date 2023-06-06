@@ -30,20 +30,23 @@ public class StatModifier
     public int Order;
     // public readonly object Source;
 
-    [ShowInInspector] public IStatModifierOwner source;
+    [ShowInInspector] public ScriptableObject Source;
 
-    public StatModifier(float value, StatModType type, int order, IStatModifierOwner source = null)
+    public StatModifier(float value, StatModType type, int order, IStatModifierOwner source)
     {
         Value = value;
         Type = type;
         Order = order;
         // Source = source;
-        this.source = source;
+        // Debug.Log("[StatModifier Source]" + Source, Source);
+        Source = source as ScriptableObject; //TODO: 一定要有source嗎？
     }
 
-    public StatModifier(float value, StatModType type) : this(value, type, (int)type, null) { }
+    public StatModifier(float value, StatModType type, IStatModifierOwner source) : this(value, type, (int)type, source)
+    {
+    }
 
-    public StatModifier(float value, StatModType type, int order) : this(value, type, order, null) { }
+    // public StatModifier(float value, StatModType type, int order) : this(value, type, order, null) { }
 
     // public StatModifier(float value, StatModType type, object source) : this(value, type, (int)type, source) { }
 }

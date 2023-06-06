@@ -91,7 +91,7 @@ public class CharacterStat //這個改名會爛掉嗎?
     }
     public virtual void AddModifier(StatModifier mod)
     {
-        // Debug.Log("Stat modifier" + this);
+        // Debug.Log("Add Stat modifier" + this);
         if (statModifiers.Contains(mod) == false)
         {
             isDirty = true;
@@ -120,7 +120,7 @@ public class CharacterStat //這個改名會爛掉嗎?
 
     public virtual bool RemoveAllModifiersFromSource(IStatModifierOwner source)
     {
-        var numRemovals = statModifiers.RemoveAll(mod => mod.source == source);
+        var numRemovals = statModifiers.RemoveAll(mod => mod.Source == source);
 
         if (numRemovals > 0)
         {
