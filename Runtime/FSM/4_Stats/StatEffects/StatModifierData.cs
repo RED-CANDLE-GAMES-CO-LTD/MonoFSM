@@ -15,12 +15,14 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     [TextArea] public string note;
     public CharacterStat bindStat => statData.stat;
 
-    public void Apply(ScriptableObject source)
+    public void Apply(IStatModifierOwner source)
     {
-        modifier = new StatModifier(value, modType, 0, source)
-        {
-            DurationType = DurationType
-        };
+        if (modifier == null)
+            modifier = new StatModifier(value, modType, 0, source)
+            {
+                DurationType = DurationType
+            };
+
         // statData.flagStat.AddModifier(modifier);
         bindStat.AddModifier(modifier);
     }
@@ -32,9 +34,9 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 
 }
 
-
+//[]: 誰在用這個？
 [CreateAssetMenu(fileName = "StatModifierData", menuName = "ScriptableObjects/StatModifierData", order = 1)]
-public class StatModifierData : ScriptableObject
+public class StatModifierData : ScriptableObject, IStatModifierOwner
 {
 
     public float value = 1f;
@@ -74,4 +76,5 @@ public class StatModifierData : ScriptableObject
     // {
 
     // }
+    public bool IsActivated => true;
 }
