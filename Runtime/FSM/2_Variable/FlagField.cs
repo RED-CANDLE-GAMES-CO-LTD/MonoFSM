@@ -218,6 +218,7 @@ public abstract class FlagFieldBase
 }
 public class FlagField<T> : FlagFieldBase
 {
+    [ShowInPlayMode]
     private FlagFieldModifier<T> _modifier;
     public FlagField()
     {
