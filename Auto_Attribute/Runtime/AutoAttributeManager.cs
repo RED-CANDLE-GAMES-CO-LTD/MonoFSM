@@ -52,12 +52,12 @@ public class FieldCache
 [Auto.Utils.ScriptTiming(-20000)]
 public class AutoAttributeManager : MonoBehaviour
 {
-    public bool IsFindAllBehavior = true;
+    // public bool IsFindAllBehavior = true;
     private List<MonoBehaviour> monoBehavioursInSceneWithAuto = new List<MonoBehaviour>();
 
     private void Awake()
     {
-        SweeepScene();
+        SweepScene();
     }
 
     //async版本的auto
@@ -183,7 +183,7 @@ public class AutoAttributeManager : MonoBehaviour
         FieldCache.Clear();
     }
     [Button("Bind")]
-    public void SweeepScene()
+    public void SweepScene()
     {
         // fieldDict.Clear();
 #if DEB
@@ -220,9 +220,16 @@ public class AutoAttributeManager : MonoBehaviour
             // {
             //     dict[type]++;
             // }
+            // var stopwatch = new Stopwatch();
+            // stopwatch.Start();
             AutoReference(mb, out int succ, out int fail);
             autoVarialbesAssigned_count += succ;
             autoVarialbesNotAssigned_count += fail;
+            // stopwatch.Stop();
+            // if (stopwatch.ElapsedMilliseconds > 0)
+            // Debug.LogFormat($"[Auto] Ref: {mb}:{stopwatch.ElapsedMilliseconds} milliseconds");
+            // stopwatch.Reset();
+            // stopwatch.Start();
         }
         // foreach (var item in dict)
         // {
@@ -295,7 +302,7 @@ public class AutoAttributeManager : MonoBehaviour
         var fieldDict = FieldCache.fieldDict;
         if (fieldDict.ContainsKey(t))
         {
-            // UnityEngine.Debug.Log("Cached Field");
+            Debug.Log("Cached Field");
             return fieldDict[t];
         }
 

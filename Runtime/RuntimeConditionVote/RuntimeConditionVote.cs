@@ -24,6 +24,7 @@ public enum ConditionType
     OR
 }
 
+//[]: 如果想要放在Scriptable上，需要FlagInit時把資料清乾淨，如果沒有reload domain會殘留
 [Serializable]
 public class RuntimeConditionVote : IRuntimeConditionImplementation
 {
