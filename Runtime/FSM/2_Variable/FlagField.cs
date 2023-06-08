@@ -182,7 +182,6 @@ public class FlagFieldModifier<T>
 [Serializable]
 public class FlagFieldBool : FlagField<bool>
 {
-    
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj)) return false;
@@ -190,9 +189,7 @@ public class FlagFieldBool : FlagField<bool>
         if (obj.GetType() != GetType()) return false;
         return Equals((FlagFieldBool)obj);
     }
-
-
-
+    
     public FlagFieldBool() : base()
     {
 
@@ -398,6 +395,7 @@ public class FlagField<T> : FlagFieldBase
 
     public void Reset()
     {
+        _modifier = null;
         // listener = null;
         // listenerOnce = null;
         if (lastMode != TestMode.Undefined)
