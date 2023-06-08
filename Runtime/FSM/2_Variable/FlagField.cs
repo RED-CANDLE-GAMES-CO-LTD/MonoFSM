@@ -174,6 +174,7 @@ public class ValueChangedListener<T>
     }
 }
 
+[Serializable]
 public class FlagFieldModifier<T>
 {
     public T OverrideValue;
@@ -215,7 +216,7 @@ public abstract class FlagFieldBase
 }
 public class FlagField<T> : FlagFieldBase
 {
-    [ShowInPlayMode]
+    [ShowInInspector] [ReadOnly]
     private FlagFieldModifier<T> _modifier;
     public FlagField()
     {
@@ -375,6 +376,7 @@ public class FlagField<T> : FlagFieldBase
 
     public void Init(TestMode mode)
     {
+        _modifier = null;
         // isDirty = false;
         _currentValue = mode switch
         {
@@ -384,18 +386,15 @@ public class FlagField<T> : FlagFieldBase
             _ => _currentValue
         };
         lastMode = mode;
-
-        
     }
 
     private TestMode lastMode = TestMode.EditorDevelopment;
     //FIXME: local field...不會有一般的init途徑，怎麼辦？
-    
 
 
-    public void Reset()
+    public void ResetToDefault()
     {
-        _modifier = null;
+
         // listener = null;
         // listenerOnce = null;
         if (lastMode != TestMode.Undefined)
@@ -404,8 +403,6 @@ public class FlagField<T> : FlagFieldBase
         }
         else
             CurrentValue = ProductionValue;
-
-        // Debug.Break();
     }
 
 }

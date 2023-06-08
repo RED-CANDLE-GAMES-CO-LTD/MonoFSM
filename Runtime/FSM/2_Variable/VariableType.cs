@@ -315,7 +315,8 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     void IResetter.EnterLevelResetAndStart()
     {
         // this.Log("[VariableType] Before local Reset" + localField.CurrentValue, gameObject);
-        localField.Reset();
+        //Scene裡的物件沒有要存檔的必要，重置
+        localField.ResetToDefault();
         // this.Log("[VariableType] After local Reset" + localField.CurrentValue, gameObject);
     }
 
