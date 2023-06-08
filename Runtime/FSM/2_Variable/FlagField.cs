@@ -275,6 +275,8 @@ public class FlagField<T> : FlagFieldBase
             //   Debug.Log("FlagField Set CurrentValue" + value);
     }
 
+    public T SaveValue => _currentValue;
+
     protected T _lastValue;
     [ShowInPlayMode] public T LastValue => _lastValue;
 
