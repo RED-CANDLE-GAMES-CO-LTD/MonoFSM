@@ -302,7 +302,7 @@ public class AutoAttributeManager : MonoBehaviour
         var fieldDict = FieldCache.fieldDict;
         if (fieldDict.ContainsKey(t))
         {
-            Debug.Log("Cached Field");
+            // Debug.Log("Cached Field");
             return fieldDict[t];
         }
 
