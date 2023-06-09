@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
@@ -11,67 +12,84 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     [InlineEditor()]
     public StatData statData;
     public StatModDurationType DurationType;
+
+    // [ShowInInspector]
+    [NonSerialized]
     protected StatModifier modifier;
     [TextArea] public string note;
-    public CharacterStat bindStat => statData.stat;
+    public CharacterStat TargetStat => statData.stat;
 
-    public void Apply(ScriptableObject source)
+    public void Apply(IStatModifierOwner source)
     {
-        modifier = new StatModifier(value, modType, 0, source)
+        if (modifier == null)
         {
-            DurationType = DurationType
-        };
+            Debug.Log("[Apply StatModifierEntry]: " + source, source as ScriptableObject);
+            modifier = new StatModifier(value, modType, source)
+            {
+                DurationType = DurationType
+            };
+        }
+        else
+        {
+            modifier.Value = value;
+            modifier.Type = modType;
+            modifier.Source = source as ScriptableObject;
+            modifier.DurationType = DurationType;
+        }
+
+        // Debug.Log("[Apply StatModifierEntry]: " + this, source as ScriptableObject);
         // statData.flagStat.AddModifier(modifier);
-        bindStat.AddModifier(modifier);
+        TargetStat.AddModifier(modifier);
     }
     public void Remove()
     {
         // statData.flagStat.RemoveModifier(modifier);
-        bindStat.RemoveModifier(modifier);
+        TargetStat.RemoveModifier(modifier);
     }
 
 }
-
-
-[CreateAssetMenu(fileName = "StatModifierData", menuName = "ScriptableObjects/StatModifierData", order = 1)]
-public class StatModifierData : ScriptableObject
-{
-
-    public float value = 1f;
-    // public ActorStatType statType;
-    public StatModType modType = StatModType.Flat;
-    public StatData statData;
-
-    private void Awake()
-    {
-        modifier = new StatModifier(value, modType, 0, this);
-    }
-
-    protected StatModifier modifier;
-    public CharacterStat bindStat => statData.stat;
-    // public CharacterStat bindStat
-    // {
-    //     get
-    //     {
-    //         return GameCore.Instance.player.statManager.FindStat(statType);
-    //     }
-    // }
-
-    public void Apply()
-    {
-        // if (bindStat == null)
-        // {
-        //     BindStat(player);
-        // }
-        // Debug.Log("add effect to stat" + +modifier.Value);
-        bindStat.AddModifier(modifier);
-    }
-    public void Remove()
-    {
-        bindStat.RemoveModifier(modifier);
-    }
-    // public virtual void PlayAnimation()
-    // {
-
-    // }
-}
+//
+// //[]: 誰在用這個？
+// [CreateAssetMenu(fileName = "StatModifierData", menuName = "ScriptableObjects/StatModifierData", order = 1)]
+// public class StatModifierData : ScriptableObject, IStatModifierOwner
+// {
+//
+//     public float value = 1f;
+//     // public ActorStatType statType;
+//     public StatModType modType = StatModType.Flat;
+//     public StatData statData;
+//
+//     private void Awake()
+//     {
+//         modifier = new StatModifier(value, modType, 0, this);
+//     }
+//
+//     protected StatModifier modifier;
+//     public CharacterStat bindStat => statData.stat;
+//     // public CharacterStat bindStat
+//     // {
+//     //     get
+//     //     {
+//     //         return GameCore.Instance.player.statManager.FindStat(statType);
+//     //     }
+//     // }
+//
+//     public void Apply()
+//     {
+//         // if (bindStat == null)
+//         // {
+//         //     BindStat(player);
+//         // }
+//         // Debug.Log("add effect to stat" + +modifier.Value);
+//         bindStat.AddModifier(modifier);
+//     }
+//     public void Remove()
+//     {
+//         bindStat.RemoveModifier(modifier);
+//     }
+//     // public virtual void PlayAnimation()
+//     // {
+//
+//     // }
+//     public bool IsActivated => true;
+// }

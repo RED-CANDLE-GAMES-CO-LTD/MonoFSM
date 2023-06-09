@@ -1,4 +1,5 @@
 
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -15,6 +16,10 @@ public enum StatModDurationType
     Temporary = 1
 }
 
+public interface IStatModifierOwner
+{
+    public bool IsActivated { get; }
+}
 [System.Serializable]
 public class StatModifier
 {
@@ -23,22 +28,25 @@ public class StatModifier
 
     [FormerlySerializedAs("Duration")] public StatModDurationType DurationType;
     public int Order;
-    public readonly object Source;
-    public ScriptableObject dataSource;
+    // public readonly object Source;
 
-    public StatModifier(float value, StatModType type, int order, object source)
+    [ShowInInspector] public ScriptableObject Source;
+
+    public StatModifier(float value, StatModType type, int order, IStatModifierOwner source)
     {
         Value = value;
         Type = type;
         Order = order;
-        Source = source;
-        if (source is ScriptableObject)
-            dataSource = source as ScriptableObject;
+        // Source = source;
+        // Debug.Log("[StatModifier Source]" + Source, Source);
+        Source = source as ScriptableObject; //TODO: 一定要有source嗎？
     }
 
-    public StatModifier(float value, StatModType type) : this(value, type, (int)type, null) { }
+    public StatModifier(float value, StatModType type, IStatModifierOwner source) : this(value, type, (int)type, source)
+    {
+    }
 
-    public StatModifier(float value, StatModType type, int order) : this(value, type, order, null) { }
+    // public StatModifier(float value, StatModType type, int order) : this(value, type, order, null) { }
 
-    public StatModifier(float value, StatModType type, object source) : this(value, type, (int)type, source) { }
+    // public StatModifier(float value, StatModType type, object source) : this(value, type, (int)type, source) { }
 }

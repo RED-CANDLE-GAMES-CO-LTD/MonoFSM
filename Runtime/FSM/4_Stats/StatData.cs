@@ -11,11 +11,11 @@ public class StatData : ScriptableObject
     void Reset()
     {
         // Debug.Log("StatData Reset" + name);
-        stat.Clear();
+        stat?.Clear();
     }
     public void Clear() //重load時清除
     {
-        stat.Clear();
+        stat?.Clear();
     }
     void OnEnable()
     {
@@ -32,6 +32,6 @@ public class StatData : ScriptableObject
     [ReadOnly]
     [ShowInInspector]
     [PropertyOrder(-1)]
-    public float Value => stat.Value;
+    public virtual float Value => stat.Value;
     public string note;
 }

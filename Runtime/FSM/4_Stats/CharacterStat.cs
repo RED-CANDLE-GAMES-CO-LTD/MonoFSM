@@ -22,6 +22,7 @@ public class CharacterStat //這個改名會爛掉嗎?
         {
             if (isDirty || lastBaseValue != BaseValue)
             {
+                //條件一變，值就變？dirty也是一路問，問每個statmodifier
                 CalValues();
                if(listener != null)listener.OnChange(_value,false);
             }
@@ -53,7 +54,7 @@ public class CharacterStat //這個改名會爛掉嗎?
 
     ValueChangedListener<float> listener;
 
-    [ReadOnly]
+    [ShowInPlayMode] [NonSerialized]
     public List<StatModifier> statModifiers;
     //protected readonly
     public readonly ReadOnlyCollection<StatModifier> StatModifiers;
@@ -90,7 +91,7 @@ public class CharacterStat //這個改名會爛掉嗎?
     }
     public virtual void AddModifier(StatModifier mod)
     {
-        // Debug.Log("Stat modifier" + this);
+        // Debug.Log("Add Stat modifier" + this);
         if (statModifiers.Contains(mod) == false)
         {
             isDirty = true;
@@ -116,9 +117,10 @@ public class CharacterStat //這個改名會爛掉嗎?
         _value = BaseValue;
         isDirty = true;
     }
-    public virtual bool RemoveAllModifiersFromSource(object source)
+
+    public virtual bool RemoveAllModifiersFromSource(IStatModifierOwner source)
     {
-        int numRemovals = statModifiers.RemoveAll(mod => mod.Source == source);
+        var numRemovals = statModifiers.RemoveAll(mod => mod.Source == source);
 
         if (numRemovals > 0)
         {

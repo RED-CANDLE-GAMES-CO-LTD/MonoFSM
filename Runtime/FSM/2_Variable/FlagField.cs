@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Mono.CSharp;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -59,7 +60,7 @@ public class FlagFieldFloat : FlagField<float>
 
 public class ValueChangedListener<T>
 {
-    Dictionary<int, Tuple<object, UnityAction<T>>> onChangeActionDict;
+    private Dictionary<int, System.Tuple<object, UnityAction<T>>> onChangeActionDict;
 
     private List<int> keys = new List<int>();
     public void OnChange(T value, bool clearAll)
@@ -97,7 +98,7 @@ public class ValueChangedListener<T>
         var key = tuple.GetHashCode();
 
         if (onChangeActionDict == null)
-            onChangeActionDict = new Dictionary<int, Tuple<object, UnityAction<T>>>();
+            onChangeActionDict = new Dictionary<int, System.Tuple<object, UnityAction<T>>>();
         if (onChangeActionDict.ContainsKey(key))
         {
 
@@ -174,6 +175,12 @@ public class ValueChangedListener<T>
 }
 
 [Serializable]
+public class FlagFieldModifier<T>
+{
+    public T OverrideValue;
+    public IStatModifierOwner source;
+}
+[Serializable]
 public class FlagFieldBool : FlagField<bool>
 {
     public override bool Equals(object obj)
@@ -183,9 +190,7 @@ public class FlagFieldBool : FlagField<bool>
         if (obj.GetType() != GetType()) return false;
         return Equals((FlagFieldBool)obj);
     }
-
-
-
+    
     public FlagFieldBool() : base()
     {
 
@@ -211,6 +216,8 @@ public abstract class FlagFieldBase
 }
 public class FlagField<T> : FlagFieldBase
 {
+    [ShowInInspector] [ReadOnly]
+    private FlagFieldModifier<T> _modifier;
     public FlagField()
     {
         ProductionValue = default(T);
@@ -240,18 +247,33 @@ public class FlagField<T> : FlagFieldBase
     protected T _currentValue;
 
     // public bool isDirty = false;
+    // private List<FlagFieldModifier<T>> modifiers = new();
 
+    public void AddModifier(FlagFieldModifier<T> modifier)
+    {
+        // if (!modifiers.Contains(modifier)) modifiers.Add(modifier);
+        _modifier = modifier;
+    }
+
+    public void RemoveModifier(FlagFieldModifier<T> modifier)
+    {
+        // if (modifiers.Contains(modifier)) modifiers.Remove(modifier);
+        _modifier = null;
+    }
+    
 
     [GUIColor(0, 1, 0.5f, 1)]
     [ShowInPlayMode]
     public virtual T CurrentValue
     {
-        get => _currentValue;
+        get => _modifier != null ? _modifier.OverrideValue : _currentValue; //有modifier的話...
         set => SetCurrentValue(value);
             // SetCurrentValue(value);
             //有事件而且值不同
             //   Debug.Log("FlagField Set CurrentValue" + value);
     }
+
+    public T SaveValue => _currentValue;
 
     protected T _lastValue;
     [ShowInPlayMode] public T LastValue => _lastValue;
@@ -354,6 +376,7 @@ public class FlagField<T> : FlagFieldBase
 
     public void Init(TestMode mode)
     {
+        _modifier = null;
         // isDirty = false;
         _currentValue = mode switch
         {
@@ -363,17 +386,15 @@ public class FlagField<T> : FlagFieldBase
             _ => _currentValue
         };
         lastMode = mode;
-
-        
     }
 
     private TestMode lastMode = TestMode.EditorDevelopment;
     //FIXME: local field...不會有一般的init途徑，怎麼辦？
-    
 
 
-    public void Reset()
+    public void ResetToDefault()
     {
+
         // listener = null;
         // listenerOnce = null;
         if (lastMode != TestMode.Undefined)
@@ -382,8 +403,6 @@ public class FlagField<T> : FlagFieldBase
         }
         else
             CurrentValue = ProductionValue;
-
-        // Debug.Break();
     }
 
 }

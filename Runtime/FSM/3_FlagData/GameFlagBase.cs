@@ -121,22 +121,22 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
             if (fieldInfo.FieldType == typeof(FlagFieldBool))
             {
                 var field = fieldInfo.GetValue(this) as FlagFieldBool;
-                field?.Reset();
+                field?.ResetToDefault();
             }
             else if (fieldInfo.FieldType == typeof(FlagFieldInt))
             {
                 var field = fieldInfo.GetValue(this) as FlagFieldInt;
-                field?.Reset();
+                field?.ResetToDefault();
             }
             else if (fieldInfo.FieldType == typeof(FlagFieldString))
             {
                 var field = fieldInfo.GetValue(this) as FlagFieldString;
-                field?.Reset();
+                field?.ResetToDefault();
             }
             else if (fieldInfo.FieldType == typeof(FlagFieldFloat))
             {
                 var field = fieldInfo.GetValue(this) as FlagFieldFloat;
-                field?.Reset();
+                field?.ResetToDefault();
             }
         }
     }
