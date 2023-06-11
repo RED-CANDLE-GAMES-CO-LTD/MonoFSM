@@ -450,7 +450,7 @@ public class PoolObject : MonoBehaviour//, IResetter
         //被別人越權刪除前 跟pool講一聲
         if (this.IsFromPool)
         {
-            _bindingPoolManager.PoolDictionary[this.OriginalPrefab].PoolObjectOnDestroySignal(this);
+            _bindingPoolManager.PoolObjectDestroyed(this);
         }
     }
 }
