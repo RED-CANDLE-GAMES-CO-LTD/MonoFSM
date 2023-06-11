@@ -1,6 +1,12 @@
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using Sirenix.OdinInspector;
+using UnityEditorInternal;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
+using Object = UnityEngine.Object;
 
 public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay//往上找
 {
@@ -8,6 +14,7 @@ public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay//往上找
     {
         if(IsLogInChildren)
             Debug.Log("[DebugProvider] Is LogInChildren"+this.gameObject.name,this.gameObject);
+        SaveLog("Awake",this);
     }
 
     public bool IsLogInChildren = false;
@@ -23,6 +30,53 @@ public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay//往上找
             return false;
 #endif
         }
+    }
+    public List<LogEntry> logEntries = new List<LogEntry>();
+    [Button("Test")]
+    public void Test()
+    {
+       SaveLog("Test",this);
+       
+    }
+    public void SaveLog(object message, Object context = null)
+    {
+        if (IsLogInChildren)
+        {
+            LogEntry logEntry = new LogEntry(message, context);
+            logEntries.Add(logEntry);
+        }
+    }
+}
+
+[Serializable]
+public class LogEntry
+{
+    [ShowInInspector]
+    public string messageStr => message != null ? message.ToString():"";
+    public object message;
+    public Object context;
+    public string fileName;
+    public int lineNumber;
+    public LogEntry(object message, Object context)
+    {   
+        this.message = message;
+        this.context = context;
+        StackTrace stackTrace = new StackTrace(true);
+        var frame = stackTrace.GetFrame(2);
+        
+        this.fileName = frame.GetFileName();
+        this.lineNumber = frame.GetFileLineNumber();
+        
+        Debug.Log("fileName:"+fileName+" lineNumber:"+lineNumber);
+        // Application.OpenURL("jetbrains://idea/navigate/reference?project=Assets&path=Assets/3_Script/MonsterStates/AttackStateTrick/LinkMove/LinkNextMoveStateWeight.cs");
+    }
+
+    [Button]
+    public void GotoFile()
+
+    {
+        // 1, not 0, to skip the current method
+        InternalEditorUtility.OpenFileAtLineExternal(fileName, lineNumber);
     }
 
 }

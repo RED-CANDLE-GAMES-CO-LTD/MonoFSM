@@ -71,11 +71,11 @@ namespace RCGSetting
 // #endif
         }
 
-        public static bool PlayerFullMana
+        public static bool IsPlayerInfiniteMana
         {
 // #if UNITY_EDITOR
-            get => BoolProperties[nameof(PlayerFullMana)];
-            set => SetBoolProperty(nameof(PlayerFullMana), value);
+            get => BoolProperties[nameof(IsPlayerInfiniteMana)];
+            set => SetBoolProperty(nameof(IsPlayerInfiniteMana), value);
 // #else
 //             get=>false;
 //             set{}
