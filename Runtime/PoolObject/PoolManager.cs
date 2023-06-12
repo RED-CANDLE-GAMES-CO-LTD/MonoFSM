@@ -27,6 +27,7 @@ public delegate void BeforeActiveHandler(PoolObject obj);
 
 public class PoolManager : SingletonBehaviour<PoolManager>
 {
+    
     public bool IsReady = false;
     [Header("PrewarmData Logger")] public Transform poolbjects;
     public PoolPrewarmData prewarmDataLogger;
@@ -88,6 +89,12 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         PoolObjectEntries.Clear();
 
         for (var i = 0; i < records.Count; i++) AddEntry(PoolObjectEntries, records[i]._prefab, records[i]._count);
+    }
+
+    public void PoolObjectDestroyed(PoolObject poolobj)
+    {
+        if(PoolDictionary.ContainsKey(poolobj.OriginalPrefab))
+          PoolDictionary[poolobj.OriginalPrefab].PoolObjectOnDestroySignal(poolobj);
     }
 
     private void AddEntry(List<PoolObjectEntry> list, PoolObject poolObject, int count)
@@ -343,6 +350,23 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         private bool init = false;
 
+        public void PoolObjectOnDestroySignal(PoolObject p)
+        {
+            if (AllObjs.Contains(p))
+            {
+                AllObjs.Remove(p);
+            }
+            
+            if (DisabledObjs.Contains(p))
+                DisabledObjs.Remove(p);
+            
+            if (OnUseObjs.Contains(p))
+                OnUseObjs.Remove(p);
+            
+    
+            
+        }
+
         public void ReturnAllObjects()
         {
             var StillOnUses = new List<PoolObject>();
@@ -518,6 +542,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
             if (OnUseObjs.Contains(obj))
             {
+                
+                
+                
                 obj.BeforeObjectReturnToPool(_poolManager);
                 // if (obj.UnsolvedIssueBeforeDestroy <= 0)
                 // {

@@ -445,10 +445,14 @@ public class PoolObject : MonoBehaviour//, IResetter
     private float autoDestroyTimer = 0;
 
 
-
-
-
-
+    private void OnDestroy()
+    {
+        //被別人越權刪除前 跟pool講一聲
+        if (this.IsFromPool)
+        {
+            _bindingPoolManager.PoolObjectDestroyed(this);
+        }
+    }
 }
 
 public class PoolObjEvent : UnityEvent<PoolObject> { }
