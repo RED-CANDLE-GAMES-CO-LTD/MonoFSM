@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
 using UnityEditorInternal;
+#endif
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -70,7 +72,7 @@ public class LogEntry
         Debug.Log("fileName:"+fileName+" lineNumber:"+lineNumber);
         // Application.OpenURL("jetbrains://idea/navigate/reference?project=Assets&path=Assets/3_Script/MonsterStates/AttackStateTrick/LinkMove/LinkNextMoveStateWeight.cs");
     }
-
+#if UNITY_EDITOR
     [Button]
     public void GotoFile()
 
@@ -78,5 +80,5 @@ public class LogEntry
         // 1, not 0, to skip the current method
         InternalEditorUtility.OpenFileAtLineExternal(fileName, lineNumber);
     }
-
+#endif
 }
