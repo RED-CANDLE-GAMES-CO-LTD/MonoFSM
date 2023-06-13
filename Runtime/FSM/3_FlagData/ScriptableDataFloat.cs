@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewFloatFlag", menuName = "GameFlag/Float", order = 1)]
@@ -8,16 +6,42 @@ public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
 {
     [SerializeField]
     StatData MaxStat;
-    public float MaxValue => MaxStat.Value; 
+
+    public float MaxValue => MaxStat.Value;
+    public ScriptableDataFloat ExternalRepository;
+    
     const float minValue = 0;
     [InlineEditor()]
     [SerializeField] private StatData AddValuePerMinute;
     [InlineEditor()]
     [SerializeField] private StatData ReduceValuePerMinute;
-    [Header("開始扣的話要乘上消耗倍率")]
-    public float ReducePunishReduceRatio = 1;
+
+    [Header("開始扣的話要乘上消耗倍率")] public const float ReducePunishReduceRatio = 2;
 
     public int ValueInt => (int)CurrentValue;
+
+    public override float CurrentValue
+    {
+        get => base.CurrentValue;
+        set
+        {
+            //太多的時候存到repository
+            if (ExternalRepository)
+                if (value > MaxValue)
+                {
+                    ExternalRepository.CurrentValue += value - MaxValue;
+                    value = MaxValue;
+                }
+
+            //bound by max
+            if (value > MaxValue)
+                value = MaxValue;
+            base.CurrentValue = value;
+        }
+    }
+
+
+
     [ReadOnly]
     [ShowInInspector]
     public float CurrentRate

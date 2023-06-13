@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
-using UnityEngine;
-using System.Runtime.Serialization;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
-using UnityEditor;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using UnityEngine;
+
 #if UNITY_2022_2_OR_NEWER
 // using Unity.Plastic.Newtonsoft.Json;
 // using Unity.Plastic.Newtonsoft.Json.Linq;
@@ -26,7 +25,8 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
     {
         field.RevertToLastValue();
     }
-    public TType CurrentValue
+
+    public virtual TType CurrentValue
     {
         get => field.CurrentValue;
         set
@@ -36,7 +36,7 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
     }
 }
 //最基礎的GameFlag元件
-[System.Serializable]
+[Serializable]
 public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializationCallbackReceiver, ISelfValidator
 {
     // public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
