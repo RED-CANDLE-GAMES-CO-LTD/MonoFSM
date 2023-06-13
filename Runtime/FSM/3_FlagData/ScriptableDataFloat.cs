@@ -7,7 +7,7 @@ public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
     [SerializeField]
     StatData MaxStat;
 
-    public float MaxValue => MaxStat.Value;
+    public float MaxValue => MaxStat ? MaxStat.Value : 99999; 
     public ScriptableDataFloat ExternalRepository;
     
     const float minValue = 0;
