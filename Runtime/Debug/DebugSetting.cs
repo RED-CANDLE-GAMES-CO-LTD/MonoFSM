@@ -1,5 +1,6 @@
-using System.Collections.Generic;
 // using QFSW.QC;
+
+using System.Collections.Generic;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -12,24 +13,43 @@ namespace RCGSetting
 #endif
     public static class DebugSetting
     {
+        public static bool IsPlayerInvincible;
+
+        private static readonly Dictionary<string, bool> BoolProperties = new();
+
+        static DebugSetting()
+        {
+            foreach (var property in typeof(DebugSetting).GetProperties())
+            {
+                if (property.PropertyType != typeof(bool)) continue;
+#if UNITY_EDITOR
+                var value = EditorPrefs.GetBool(property.Name, false);
+#else
+                var value = false;
+#endif
+                BoolProperties[property.Name] = value;
+                property.SetValue(null, value);
+            }
+        }
+
         public static bool IsProductionMode
         {
             get => BoolProperties[nameof(IsProductionMode)];
             set => SetBoolProperty(nameof(IsProductionMode), value);
         }
-        
+
         public static bool IsShowDebugNumber
         {
             get => BoolProperties[nameof(IsShowDebugNumber)];
             set => SetBoolProperty(nameof(IsShowDebugNumber), value);
         }
-
-
         // public static DebugCheatNode debugNode;
+
+        // 所有的測試view / 快捷鍵都要綁這個
         public static bool IsDebugMode
         {
             //為什麼之前要註解掉editor if?
-#if UNITY_EDITOR
+#if UNITY_EDITOR||DEVELOPMENT_BUILD
             get => BoolProperties[nameof(IsDebugMode)];
             set
             {
@@ -90,8 +110,10 @@ namespace RCGSetting
         }
 
 
-
-        public static bool IsPlayerInvincible;
+        public static void ToggleDebugMode()
+        {
+            IsDebugMode = !IsDebugMode;
+        }
 
         // [Command("test.PlayerOneHitKill")]
         private static void SetPlayerOneHitKill(bool activate)
@@ -104,30 +126,10 @@ namespace RCGSetting
         {
             IsPlayerInvincible = activate;
         }
-        
-        private static readonly Dictionary<string, bool> BoolProperties = new();
-
-        static DebugSetting()
-        {
-
-            foreach (var property in typeof(DebugSetting).GetProperties())
-            {
-                if (property.PropertyType != typeof(bool)) continue;
-#if UNITY_EDITOR
-                var value = EditorPrefs.GetBool(property.Name, false);
-#else
-                var value = false;
-#endif
-                BoolProperties[property.Name] = value;
-                property.SetValue(null, value);
-            }
-
-        }
 
         // Save all properties to EditorPrefs when any one of them is set
         private static void SetPropertyValue(string propertyName, bool value)
         {
-
             BoolProperties[propertyName] = value;
 #if UNITY_EDITOR
             EditorPrefs.SetBool(propertyName, value);
