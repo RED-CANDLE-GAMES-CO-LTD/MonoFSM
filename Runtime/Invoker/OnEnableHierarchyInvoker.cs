@@ -1,6 +1,7 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
 
+//FIXME: 這個不太健康，用下面的
 public interface IOnEnableInvokable
 {
     void OnEnableInvoke();
