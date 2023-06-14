@@ -17,7 +17,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     [NonSerialized]
     protected StatModifier modifier;
     [TextArea] public string note;
-    public CharacterStat TargetStat => statData.stat;
+    public CharacterStat TargetStat => statData.Stat;
 
     public void Apply(IStatModifierOwner source)
     {

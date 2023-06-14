@@ -1,14 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Sirenix.OdinInspector;
-using UnityEditor;
 using UnityEngine;
+
 [CreateAssetMenu(fileName = "StatData", menuName = "ScriptableObjects/StatData", order = 1)]
 public class StatData : ScriptableObject
 {
-    //TODO: 不知道有沒有allStat裡？
-    // [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    void Reset()
+//reset game的時候，要清除
+
+
+    private void Init()
     {
         // Debug.Log("StatData Reset" + name);
         stat?.Clear();
@@ -19,19 +19,34 @@ public class StatData : ScriptableObject
     }
     void OnEnable()
     {
-        Reset();
+        Init();
     }
     private void OnDisable()
     {
-        Reset();
+        Init();
     }
     [Header("能力值")]
     // public FlagFieldStat flagStat;
     //TODO:
-    public CharacterStat stat;
+    [SerializeField]
+    private CharacterStat stat;
+
+    public CharacterStat Stat => stat;
     [ReadOnly]
     [ShowInInspector]
     [PropertyOrder(-1)]
     public virtual float Value => stat.Value;
+
+    public List<StatData> baseRatios;
+
+    private float CalculateFinalValue()
+    {
+        var finalValue = Value;
+        foreach (var ratio in baseRatios) finalValue *= ratio.Value;
+        return finalValue;
+    }
+
+    public float ValueWithBaseRatio => CalculateFinalValue();
     public string note;
+
 }
