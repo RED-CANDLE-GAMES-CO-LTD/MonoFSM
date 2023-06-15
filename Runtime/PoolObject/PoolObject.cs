@@ -64,6 +64,8 @@ public class PoolObject : MonoBehaviour//, IResetter
         HitData = 0,
         FxPlayer = 1,
     }
+
+    [Header("決定要跟fxplayer, 還是hitData(Receiver)的位置")]
     public ShootFrom InitPosType = ShootFrom.HitData;//TODO: 應該是IPoolObject... PoolOnShoot, OnSpawn
     // public bool IsShootFromHitData = true;
     // public List<EffectPositionConstrain> posContraints;
