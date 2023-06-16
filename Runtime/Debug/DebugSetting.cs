@@ -49,7 +49,7 @@ namespace RCGSetting
         public static bool IsDebugMode
         {
             //為什麼之前要註解掉editor if?
-#if UNITY_EDITOR||DEVELOPMENT_BUILD
+#if !RCG_PROD
             get => BoolProperties[nameof(IsDebugMode)];
             set
             {
