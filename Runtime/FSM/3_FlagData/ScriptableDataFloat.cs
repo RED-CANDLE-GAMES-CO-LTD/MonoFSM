@@ -19,7 +19,7 @@ public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
     [Header("開始扣的話要乘上消耗倍率")] public const float ReducePunishReduceRatio = 2;
 
     public int ValueInt => (int)CurrentValue;
-
+    public float Value => CurrentValue;
     public override float CurrentValue
     {
         get => base.CurrentValue;
