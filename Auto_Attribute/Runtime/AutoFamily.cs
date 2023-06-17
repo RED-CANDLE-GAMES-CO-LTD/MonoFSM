@@ -45,7 +45,7 @@ public abstract class AutoFamily : Attribute, IAutoAttribute
             // Can't handle lists without using dynamic keyword. 
             // Arrays will have to be enough.
             // return false;
-            Debug.LogError("List is not allowed! use Array", go);
+            Debug.LogError("List is not allowed! use Array" + mb + "." + field.Name, go);
             return AssignList(mb, go, field);
         }
         else
