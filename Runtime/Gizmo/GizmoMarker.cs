@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 public class GizmoMarker : MonoBehaviour
 {
@@ -6,7 +7,8 @@ public class GizmoMarker : MonoBehaviour
     public enum GizmoShapeType
     {
         Solid,
-        Wire
+        Wire,
+        BoxCollider
     }
 
     public GizmoShapeType gizmoType = GizmoShapeType.Solid;
@@ -23,7 +25,39 @@ public class GizmoMarker : MonoBehaviour
 
     public bool disable = false;
 
-    // [DrawGizmo(GizmoType.NotInSelectionHierarchy)]
+    // public bool IsDrawForCollider = false;
+
+    // [DrawGizmo(GizmoType.InSelectionHierarchy)]
+    // private static void DrawGizmoMarker(Transform transform, GizmoType gizmoType)
+    // {
+    //     if (!transform.TryGetComponent<GizmoMarker>(out var gizmoMarker))
+    //         return;
+    //     Debug.Log("DrawGizmoMarker", transform);
+    //     // Draw a yellow sphere at the transform's position
+    //     Gizmos.color = gizmoMarker.color;
+    //     // transform.position = Handles.PositionHandle(transform.position, transform.rotation);
+    //     // Handles.DrawSolidDisc(transform.position, Vector3.forward, size);
+    //     // Handles.DrawSphere
+    //     // var size = new Vector2(transform.lossyScale.x * boxCollider2D.size.x,
+    //     //     transform.lossyScale.y * boxCollider2D.size.y);
+    //     var boxCollider2D = gizmoMarker.boxCollider2D;
+    //     if (gizmoMarker.gizmoType == GizmoShapeType.BoxCollider && boxCollider2D)
+    //     {
+    //         Gizmos.DrawWireCube(
+    //             transform.position + new Vector3(transform.lossyScale.x * boxCollider2D.offset.x,
+    //                 transform.lossyScale.y * boxCollider2D.offset.y), boxCollider2D.size * transform.lossyScale);
+    //         return;
+    //     }
+    //
+    //     // else
+    //     // {
+    //     var size = gizmoMarker.size;
+    //     if (gizmoMarker.gizmoType == GizmoShapeType.Solid)
+    //         Gizmos.DrawSphere(transform.position, size);
+    //     else
+    //         Gizmos.DrawWireSphere(transform.position, size);
+    // }
+
     private void OnDrawGizmos()
     {
         if (disable)
@@ -35,20 +69,28 @@ public class GizmoMarker : MonoBehaviour
         // Handles.DrawSphere
         // var size = new Vector2(transform.lossyScale.x * boxCollider2D.size.x,
         //     transform.lossyScale.y * boxCollider2D.size.y);
-        // if (boxCollider2D)
-        //     Gizmos.DrawWireCube(transform.position + new Vector3(transform.lossyScale.x * boxCollider2D.offset.x, transform.lossyScale.y * boxCollider2D.offset.y), );
+        if (gizmoType == GizmoShapeType.BoxCollider && boxCollider2D)
+        {
+            Gizmos.DrawWireCube(
+                transform.position + new Vector3(transform.lossyScale.x * boxCollider2D.offset.x,
+                    transform.lossyScale.y * boxCollider2D.offset.y), boxCollider2D.size * transform.lossyScale);
+            return;
+        }
+          
         // else
         // {
         if (gizmoType == GizmoShapeType.Solid)
             Gizmos.DrawSphere(transform.position, size);
         else
             Gizmos.DrawWireSphere(transform.position, size);
-
+    
         // }
-
+    
         //FIXME:
         // this.DrawText(transform.position, name);
     }
+
+    
     // private void OnEnable()
     // {
     //     SceneView.duringSceneGui += OnSceneGUI;
