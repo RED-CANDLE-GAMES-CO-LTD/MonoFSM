@@ -47,6 +47,8 @@ public class StatData : ScriptableObject
     }
 
     public float ValueWithBaseRatio => CalculateFinalValue();
+
+    [TextArea]
     public string note;
 
 }
