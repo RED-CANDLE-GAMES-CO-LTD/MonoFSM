@@ -34,6 +34,8 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
             field.CurrentValue = value;
         }
     }
+
+    [TextArea] public string Note;
 }
 //最基礎的GameFlag元件
 [Serializable]
