@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using Auto.Utils;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PoolNativeObjectManager<T> where T : new()
 {
@@ -297,8 +299,16 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public void ReturnAllObjects()
     {
-        for (var i = 0; i < allPools.Count; i++) allPools[i].ReturnAllObjects();
+        for (var i = 0; i < allPools.Count; i++) 
+            allPools[i].ReturnAllObjects();
     }
+    
+    public void ReturnAllObjects(Scene withScene)
+    {
+        for (var i = 0; i < allPools.Count; i++) 
+            allPools[i].ReturnAllObjects(withScene);
+    }
+
 
     private void AddAPool(PoolObject obj)
     {
@@ -371,6 +381,15 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             var StillOnUses = new List<PoolObject>();
             StillOnUses.AddRange(OnUseObjs);
+
+            for (var i = 0; i < StillOnUses.Count; i++) StillOnUses[i].ReturnToPool();
+        }
+        
+        public void ReturnAllObjects(Scene scene)
+        {
+            var StillOnUses = new List<PoolObject>();
+            StillOnUses.AddRange(OnUseObjs);
+            StillOnUses = StillOnUses.FindAll((a) => a.gameObject.scene == scene);
 
             for (var i = 0; i < StillOnUses.Count; i++) StillOnUses[i].ReturnToPool();
         }

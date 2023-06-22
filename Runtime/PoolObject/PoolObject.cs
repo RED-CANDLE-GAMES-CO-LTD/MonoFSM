@@ -304,6 +304,9 @@ public class PoolObject : MonoBehaviour//, IResetter
 
     public void BeforeObjectReturnToPool(PoolManager manager)
     {
+        if(Log)
+            Debug.Log("BeforeObjectReturnToPool:"+this.gameObject.name,this);
+        
         CheckList();
 
         for (var i = 0; i < IPoolObjectList.Count; i++)
@@ -357,7 +360,7 @@ public class PoolObject : MonoBehaviour//, IResetter
         {
             OnReturnEvent.Invoke(this);
             OnReturnEvent.RemoveAllListeners();
-        }
+        } 
     }
 
     public void ReturnToPool()
@@ -455,6 +458,8 @@ public class PoolObject : MonoBehaviour//, IResetter
             _bindingPoolManager.PoolObjectDestroyed(this);
         }
     }
+
+    public bool Log= false;
 }
 
 public class PoolObjEvent : UnityEvent<PoolObject> { }
