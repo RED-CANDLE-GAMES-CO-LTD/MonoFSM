@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 public abstract class AbstractStateAction : AbstractBehaviour
 {
     //怎麼知道誰用Enter, 誰用Update
-    protected bool IsValid //AND
+    private bool IsValid //AND
     {
         get
         {
