@@ -16,7 +16,7 @@ public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay//往上找
     {
         if(IsLogInChildren)
             Debug.Log("[DebugProvider] Is LogInChildren"+this.gameObject.name,this.gameObject);
-        SaveLog("Awake",this);
+        // SaveLog("Awake",this);
     }
 
     public bool IsLogInChildren = false;
