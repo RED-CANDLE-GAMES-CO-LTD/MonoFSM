@@ -367,9 +367,6 @@ public class FlagField<T> : FlagFieldBase
         // Debug.Log("FlagField SetCurrentValue OnChanged" + value);
         listener?.OnChange(value, false);
         listenerOnce?.OnChange(value, true);
-
-        // isDirty = true;
-
     }
 
 
