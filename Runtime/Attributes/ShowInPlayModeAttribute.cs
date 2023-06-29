@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 namespace RCGMaker.Core.Attributes
 {
     /// <summary> 用在Runtime的property上，會在playmode時顯示
-    /// <seealso cref="T:RCGMaker.Core.Attributes.Editor.RuntimeDisplayAttributeProcessor" />
+    /// <seealso cref="T:RCGMaker.Core.Attributes.Editor.ShowInPlayModeAttributeProcessor" />
     /// </summary>
     [IncludeMyAttributes]
     // [HideInPlayMode] //NOTE: 沒用，還是會call property, 用AttributeProcess處理的
@@ -13,7 +13,20 @@ namespace RCGMaker.Core.Attributes
     [Conditional("UNITY_EDITOR")]
     public class ShowInPlayModeAttribute : Attribute
     {
+        public ShowInPlayModeAttribute()
+        {
+        }
+
+        public ShowInPlayModeAttribute(bool debugModeOnly = false)
+        {
+            DebugModeOnly = debugModeOnly;
+        }
+
+        //DebugMode下才顯示，需要play才會更新
+        //[]: 切換DebugMode時，要怎麼樣才能強迫跑processor?
+        public bool DebugModeOnly = false;
     }
+  
 
     [IncludeMyAttributes]
     [Conditional("UNITY_EDITOR")]

@@ -356,15 +356,21 @@ public class FlagField<T> : FlagFieldBase
 
     }
 
+    //[]: debug mode才顯示？ conditional inspector property
+
+    [ShowInPlayMode(DebugModeOnly = true)] private bool IsShowDebugLog = false;
     //NOTE: public是為了，propertyDrawer
     protected void SetCurrentValue(T value)
     {
-        // Debug.Log("FlagField Before SetCurrentValue" + value);
+        if (IsShowDebugLog)
+            Debug.Log("[FlagField] Before Set lastValue:" + _currentValue);
         if (value.Equals(_currentValue))
             return;
         _lastValue = _currentValue;
         _currentValue = value;
-        // Debug.Log("FlagField SetCurrentValue OnChanged" + value);
+        if (IsShowDebugLog)
+            Debug.Log("[FlagField] After CurrentValue" + value);
+        
         listener?.OnChange(value, false);
         listenerOnce?.OnChange(value, true);
     }
