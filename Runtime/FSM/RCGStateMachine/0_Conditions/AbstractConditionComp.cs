@@ -83,10 +83,13 @@ public abstract class AbstractConditionComp : MonoBehaviour
     [Component(typeof(DebugConditionResultOverrider), AddComponentAt.Children)] [AutoChildren(false)]
     private DebugConditionResultOverrider debugConditionResultOverrider;
 
+#if UNITY_EDITOR
     [ShowIf("IsDebugMode")]
     [ShowInInspector]
-    public bool OverrideValue => debugConditionResultOverrider.OverrideResultValue;
+    public bool OverrideValue =>
+        debugConditionResultOverrider != null && debugConditionResultOverrider.OverrideResultValue;
 
     private static bool IsDebugMode => DebugSetting.IsDebugMode;
+#endif
 }
 
