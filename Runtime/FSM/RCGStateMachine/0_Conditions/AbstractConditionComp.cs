@@ -66,7 +66,10 @@ public abstract class AbstractConditionComp : MonoBehaviour
             if (Application.isPlaying == false)
                 return false;
 #if UNITY_EDITOR
-            if (debugConditionResultOverrider != null) return debugConditionResultOverrider.OverrideResultValue;
+
+            //Debug用，暫時強迫覆蓋值 (ex: 裝備可以在路上換)
+            if (debugConditionResultOverrider != null && IsDebugMode)
+                return debugConditionResultOverrider.OverrideResultValue;
 #endif
             
             if (FinalResultInverted)
@@ -76,7 +79,14 @@ public abstract class AbstractConditionComp : MonoBehaviour
         }
     }
 
+    
     [Component(typeof(DebugConditionResultOverrider), AddComponentAt.Children)] [AutoChildren(false)]
     private DebugConditionResultOverrider debugConditionResultOverrider;
+
+    [ShowIf("IsDebugMode")]
+    [ShowInInspector]
+    public bool OverrideValue => debugConditionResultOverrider.OverrideResultValue;
+
+    private static bool IsDebugMode => DebugSetting.IsDebugMode;
 }
 
