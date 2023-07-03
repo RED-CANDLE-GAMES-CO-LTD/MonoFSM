@@ -40,8 +40,13 @@ namespace RCGSetting
 
         public static bool IsShowDebugNumber
         {
+#if !RCG_PROD
             get => BoolProperties[nameof(IsShowDebugNumber)];
             set => SetBoolProperty(nameof(IsShowDebugNumber), value);
+#else
+             get => false;
+             set {}
+#endif
         }
         // public static DebugCheatNode debugNode;
 
