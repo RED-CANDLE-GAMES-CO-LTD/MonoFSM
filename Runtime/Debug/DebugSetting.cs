@@ -136,6 +136,7 @@ namespace RCGSetting
         private static void SetPropertyValue(string propertyName, bool value)
         {
             BoolProperties[propertyName] = value;
+            Debug.Log($"DebugSetting Set {propertyName} to {value}");
 #if UNITY_EDITOR
             EditorPrefs.SetBool(propertyName, value);
 #endif

@@ -16,6 +16,7 @@ namespace RCGMaker.Core
         [DropDownRef]
         public TState startState;
 
+        public T currentStateType; //debug用
         public IEnumerable GetAllStates()
         {
             return GetComponentsInChildren<TState>();
@@ -55,6 +56,7 @@ namespace RCGMaker.Core
         public void ChangeState(T stateType)
         {
             fsm.ChangeState(stateType);
+            currentStateType = stateType; //debug用
         }
 
         public TCustomState AddState<TCustomState>(System.Type type) where TCustomState : TState
