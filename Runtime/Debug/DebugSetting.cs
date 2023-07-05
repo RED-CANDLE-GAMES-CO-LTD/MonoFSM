@@ -40,7 +40,7 @@ namespace RCGSetting
 
         public static bool IsShowDebugNumber
         {
-#if !RCG_PROD
+#if RCG_DEV
             get => BoolProperties[nameof(IsShowDebugNumber)];
             set => SetBoolProperty(nameof(IsShowDebugNumber), value);
 #else
@@ -54,7 +54,7 @@ namespace RCGSetting
         public static bool IsDebugMode
         {
             //為什麼之前要註解掉editor if?
-#if !RCG_PROD
+#if RCG_DEV
             get => BoolProperties[nameof(IsDebugMode)];
             set
             {

@@ -45,7 +45,7 @@ public class DebugModeActivator : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
     }
-#if !RCG_PROD
+#if RCG_DEV
     private void Update()
     {
         ActivateCheck();
