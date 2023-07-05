@@ -273,7 +273,7 @@ public class PoolObject : MonoBehaviour//, IResetter
             {
                 // Debug.Log("Resetting:" + IPoolObjectList[i]);
 
-                IResetterList[i].EnterLevelResetAndStart();
+                IResetterList[i].EnterLevelReset();
             }
             catch (Exception e)
             {
@@ -293,7 +293,7 @@ public class PoolObject : MonoBehaviour//, IResetter
         {
             try
             {
-                IResetterList[i].EnterLevelResetAndStart();
+                IResetterList[i].EnterLevelReset();
             }
             catch (Exception e)
             {

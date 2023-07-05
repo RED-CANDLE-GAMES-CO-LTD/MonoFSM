@@ -312,7 +312,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     //     //倒著接?
     // }
 
-    void IResetter.EnterLevelResetAndStart()
+    void IResetter.EnterLevelReset()
     {
         // this.Log("[VariableType] Before local Reset" + localField.CurrentValue, gameObject);
         //Scene裡的物件沒有要存檔的必要，重置

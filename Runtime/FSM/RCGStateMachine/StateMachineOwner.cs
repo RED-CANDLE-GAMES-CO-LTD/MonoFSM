@@ -36,7 +36,7 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter
     //     // throw new System.NotImplementedException();
     // }
 
-    void IResetter.EnterLevelResetAndStart()
+    void IResetter.EnterLevelReset()
     {
         ResetFSM();
     }

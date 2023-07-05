@@ -25,7 +25,7 @@ public abstract class GameStateOverrider<TGameState, TFlagField, TType> : MonoBe
 
     
 
-    public void EnterLevelResetAndStart()
+    public void EnterLevelReset()
     {
         flag.CurrentValue = OverrideValue;
     }
