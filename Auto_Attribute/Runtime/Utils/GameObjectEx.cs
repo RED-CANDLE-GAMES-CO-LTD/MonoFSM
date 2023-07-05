@@ -7,6 +7,20 @@ using SceneManager = UnityEngine.SceneManagement.SceneManager;
 namespace Auto.Utils{
 	public static class GameObjectEx
 	{
+		
+		public static int GetHierarchyDepth(this GameObject gameObject)
+		{
+			int depth = 0;
+			Transform currentTransform = gameObject.transform;
+
+			while (currentTransform.parent != null)
+			{
+				currentTransform = currentTransform.parent;
+				depth++;
+			}
+
+			return depth;
+		}
 
 		/// <summary>
 		/// Same as GameObject.FindObjectsOfType<T>, but also get inactive objects
