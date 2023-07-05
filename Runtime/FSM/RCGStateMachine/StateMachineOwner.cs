@@ -10,38 +10,19 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter
         fsmContext ? fsmContext : fsmContext = GetComponentInChildren<GeneralFSMContext>();
     [Title("超連結，只有prefab可以改")] [InlineEditor] [DisallowModificationsIn(PrefabKind.NonPrefabInstance)]
     public List<Component> quickFindLinks;
-
-    public void EnterLevelResetAndStart()
-    {
-        ResetFSM();
-    }
-
-    public void ExitLevelAndDestroy()
-    {
-        // throw new System.NotImplementedException();
-    }
-
-    // void IPoolObject.PoolBeforeDestroy()
-    // {
-    //     // throw new System.NotImplementedException();
-    // }
-    //
-    // void IPoolObject.PoolOnDestroy()
-    // {
-    //     // fsmContext.ChangeState(fsmContext.startState);
-    // }
-    //
-    // void IPoolObject.PoolOnPrepared(PoolObject poolObj)
-    // {
-    //     // throw new System.NotImplementedException();
-    // }
+    
 
     void IResetter.EnterLevelReset()
     {
         ResetFSM();
     }
 
-    private void ResetFSM()
+    public void ExitLevelAndDestroy()
+    {
+        //throw new System.NotImplementedException();
+    }
+
+    public void ResetFSM()
     {
         if (fsmContext.fsm == null)
             return;
