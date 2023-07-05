@@ -285,22 +285,7 @@ public class PoolObject : MonoBehaviour//, IResetter
 
     }
 
-
-
-    private void EnterLevelResetAndStart()
-    {
-        for (var i = 0; i < IResetterList.Count; i++)
-        {
-            try
-            {
-                IResetterList[i].EnterLevelReset();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e.StackTrace, gameObject);
-            }
-        }
-    }
+    
 
     public void BeforeObjectReturnToPool(PoolManager manager)
     {
