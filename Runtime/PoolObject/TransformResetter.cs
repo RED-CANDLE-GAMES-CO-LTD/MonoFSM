@@ -24,7 +24,7 @@ public class TransformResetter : MonoBehaviour, IResetter
         return false;
     }
 
-    public void EnterLevelResetAndStart()
+    public void EnterLevelReset()
     {
         if (ParameterInitCheck())
         {
