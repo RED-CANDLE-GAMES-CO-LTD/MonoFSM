@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Auto.Utils;
@@ -508,7 +509,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             //因為開著他會跑Awake 關起來才不會跑
 
             var obj = Instantiate(_prefab, Vector3.zero, Quaternion.identity);
-            obj.OnPrepare(); //FIXME: 為什麼要關著prepare? 
+            PreparePoolObjectImplementation(obj);
+            //FIXME: 為什麼要關著prepare? 
             //這邊會跑auto
 
             obj.gameObject.SetActive(true);
@@ -522,11 +524,64 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             AllObjs.Add(obj);
 
             _prefab.gameObject.SetActive(originPrefabActive);
-
-
+            
             DisabledObjs.Add(obj);
             UpdatePoolEntry();
             //
+        }
+
+
+        private void PreparePoolObjectImplementation(PoolObject obj)
+        {
+            HandlePoolObjectAwake(obj);
+            HandlePoolObjectStart(obj);
+            obj.OnPrepare();
+        }
+        
+        private void HandlePoolObjectAwake(PoolObject level)
+        {
+            var ILevelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));
+
+            foreach (var item in ILevelAwakes)
+            {
+                if (item == null)
+                    continue;
+                try
+                {
+                    item.EnterLevelAwake();
+                }
+                catch (Exception e)
+                {
+                    if (item is MonoBehaviour)
+                        Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                    else
+                        Debug.LogError(e.StackTrace);
+                }
+            }
+        }
+
+        private void HandlePoolObjectStart(PoolObject level)
+        {
+            var ILevelStarts = new List<ILevelStart>(level.GetComponentsInChildren<ILevelStart>(true));
+
+            //RCGArgEventBinder 要倒序綁  最下面的物件先綁起來
+            ILevelStarts.Reverse();
+            foreach (var item in ILevelStarts)
+            {
+                if (item == null)
+                    continue;
+                try
+                {
+                    item.EnterLevelStart();
+                }
+                catch (Exception e)
+                {
+                    if (item is MonoBehaviour)
+                        Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                    else
+                        Debug.LogError(e.StackTrace);
+                }
+            }
         }
 
         public void UpdatePoolEntry()
