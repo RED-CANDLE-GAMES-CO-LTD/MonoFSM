@@ -54,7 +54,7 @@ public class CharacterStat //這個改名會爛掉嗎?
 
     ValueChangedListener<float> listener;
 
-    [ShowInPlayMode] [NonSerialized]
+    [PreviewInInspector] [NonSerialized]
     public List<StatModifier> statModifiers;
     //protected readonly
     public readonly ReadOnlyCollection<StatModifier> StatModifiers;
@@ -92,12 +92,16 @@ public class CharacterStat //這個改名會爛掉嗎?
     public virtual void AddModifier(StatModifier mod)
     {
         // Debug.Log("Add Stat modifier" + this);
-        if (statModifiers.Contains(mod) == false)
+        if (!statModifiers.Contains(mod))
         {
             isDirty = true;
             statModifiers.Add(mod);
             var value = Value; //modifier改變，更新一下值
-            // Debug.Log("Character Stat Add Modifier" + mod.Value + mod.Type + "result:" + v);
+            Debug.Log("Character Stat Add Modifier" + mod.Value + mod.Type + ",result:" + value);
+        }
+        else
+        {
+            Debug.Log("Character Stat Already Has Modifier" + mod.Value + mod.Type);
         }
 
     }

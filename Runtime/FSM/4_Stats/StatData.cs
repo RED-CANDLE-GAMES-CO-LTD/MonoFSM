@@ -7,23 +7,9 @@ public class StatData : ScriptableObject, IStringData
 {
 //reset game的時候，要清除
 
-
-    private void Init()
-    {
-        // Debug.Log("StatData Reset" + name);
-        stat?.Clear();
-    }
     public void Clear() //重load時清除
     {
         stat?.Clear();
-    }
-    void OnEnable()
-    {
-        Init();
-    }
-    private void OnDisable()
-    {
-        Init();
     }
     [Header("能力值")]
     // public FlagFieldStat flagStat;
