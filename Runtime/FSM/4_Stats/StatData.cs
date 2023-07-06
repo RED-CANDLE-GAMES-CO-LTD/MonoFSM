@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "StatData", menuName = "ScriptableObjects/StatData", order = 1)]
-public class StatData : ScriptableObject, StringProvider
+public class StatData : ScriptableObject, IStringData
 {
 //reset game的時候，要清除
 
