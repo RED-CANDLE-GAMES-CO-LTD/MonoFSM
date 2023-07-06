@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "StatData", menuName = "ScriptableObjects/StatData", order = 1)]
-public class StatData : ScriptableObject
+public class StatData : ScriptableObject, StringProvider
 {
 //reset game的時候，要清除
 
@@ -51,4 +51,8 @@ public class StatData : ScriptableObject
     [TextArea]
     public string note;
 
+    public string GetString()
+    {
+        return Value.ToString();
+    }
 }
