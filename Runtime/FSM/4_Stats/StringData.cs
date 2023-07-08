@@ -11,8 +11,10 @@ public class StringData : ScriptableObject
 
     [Header("使用說明：依序用\"{n}\"來表達variables的字串，n是從0開始的index")]
     public LocalizedString mainText;
+    //[]: 不是很好檢查有沒有tag錯誤或漏？每個語言都要檢查和同步...
 
-    [ShowInPlayMode]
+
+    [PreviewInInspector]
     public string Result => ReplaceVariableTag();
 
     private string ReplaceVariableTag()
