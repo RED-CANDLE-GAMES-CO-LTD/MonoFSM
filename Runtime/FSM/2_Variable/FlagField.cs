@@ -263,7 +263,7 @@ public class FlagField<T> : FlagFieldBase
     
 
     [GUIColor(0, 1, 0.5f, 1)]
-    [ShowInPlayMode]
+    [ShowInInspector]
     public virtual T CurrentValue
     {
         get => _modifier != null ? _modifier.OverrideValue : _currentValue; //有modifier的話...
