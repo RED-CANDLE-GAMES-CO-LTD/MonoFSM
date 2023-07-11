@@ -7,8 +7,23 @@ public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
     [SerializeField]
     StatData MaxStat;
 
-    public float MaxValue => MaxStat ? MaxStat.Value : 99999; 
+    public float MaxValue => MaxStat ? MaxStat.Value : 99999;
+
+    [Header("過多會傳到這裡存起來")]
     public ScriptableDataFloat ExternalRepository;
+
+    public void RestoreFromRepository()
+    {
+        if (ExternalRepository)
+        {
+            //從AmmoRepository拿到子彈
+            var toFull = MaxValue - CurrentValue;
+
+            if (ExternalRepository.CurrentValue < toFull) toFull = ExternalRepository.CurrentValue;
+            ExternalRepository.CurrentValue -= toFull;
+            ExternalRepository.CurrentValue += toFull;
+        }
+    }
     
     const float minValue = 0;
     [InlineEditor()]
