@@ -24,6 +24,11 @@ public enum ConditionType
     OR
 }
 
+public interface IVoteChild
+{
+    public MonoBehaviour VoteOwner { get; }
+}
+
 //[]: 如果想要放在Scriptable上，需要FlagInit時把資料清乾淨，如果沒有reload domain會殘留
 [Serializable]
 public class RuntimeConditionVote : IRuntimeConditionImplementation
@@ -57,15 +62,16 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
     public delegate void OnValueChangeDelegate(bool value);
     public delegate ConditionType GetConditionTypeDelegate ();
 
+
+
     public void Vote(Object m, bool vote)
     {
-        if (votes.ContainsKey(m))
-            votes[m] = vote;
-        else
-        {
-            votes.Add(m,vote);
-        }
+        if (m is IVoteChild voteChild)
+            m = voteChild.VoteOwner;
 
+        //不需樣Add?
+        votes[m] = vote;
+        Debug.Log($"Vote {m} bool:{vote}");
         CheckResult();
     }
 
@@ -85,10 +91,21 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
 
     private void CheckResult()
     {
-        bool newResult = GetDefaultValue();
+        var newResult = GetDefaultValue();
+
+        //clear null key
+        foreach (var key in votes.Keys.ToArray())
+            if (key == null)
+            {
+                votes.Remove(key);
+                Debug.LogError("null key !!????: 後面有被destroy的東西嗎？" + key);
+            }
+
 
         if (GetConditionType() == ConditionType.AND)
         {
+            if (votes.Values.Count != 0)
+                newResult = true;
             foreach (var vote in votes.Values)
             {
                 if (vote == false)
@@ -101,34 +118,34 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         {
             foreach (var vote in votes.Values)
             {
-                if (vote == true)
-                {
-                    newResult = true;
-                }
+                if (vote != true) continue;
+                newResult = true;
+                break;
             }  
         }
 
-        if (_lastResult != newResult)
+        if (_currentResult != newResult)
         {
-            _lastResult = newResult;
+            _currentResult = newResult;
             OnValueChange(newResult);
         }
 
     }
 
-    private bool _lastResult = false;
+    private bool _currentResult = false;
 
-
-    public bool VoteResult => _lastResult;
-
+    // public bool VoteResult => _currentResult;
+    public bool Result => _currentResult;
     public RuntimeConditionVote(ConditionType type, bool defaultValue,
         OnValueChangeDelegate onValueChangeDelegate = null)
     {
         _getConditionTypeDelegate = ()=>type;
         _getDefaultValueDelegate = ()=>defaultValue;
         _onValueChangeDelegate = onValueChangeDelegate;
-        _lastResult = GetDefaultValue();
-        OnValueChange(_lastResult);
+        _currentResult = GetDefaultValue();
+        OnValueChange(_currentResult);
+
+      
     }
 
     public RuntimeConditionVote(GetConditionTypeDelegate getConditionTypeDelegate,
@@ -137,10 +154,10 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
          _getConditionTypeDelegate = getConditionTypeDelegate;
          _getDefaultValueDelegate = getDefaultValueDelegate;
          _onValueChangeDelegate = onValueChangeDelegate;
-         _lastResult = GetDefaultValue();
-        OnValueChange(_lastResult);
+         _currentResult = GetDefaultValue();
+         OnValueChange(_currentResult);
     }
 
-    public bool Result => _lastResult;
+
 
 }

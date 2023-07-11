@@ -1,8 +1,9 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
-public abstract class AbstractStateAction : AbstractBehaviour
+public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild
 {
     //怎麼知道誰用Enter, 誰用Update
     private bool IsValid //AND
@@ -15,7 +16,7 @@ public abstract class AbstractStateAction : AbstractBehaviour
         }
     }
 
-    public GeneralState bindingState => this.GetComponentInParent<GeneralState>(true);
+    [AutoParent()] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true);
 
     // #if UNITY_EDITOR
     [PropertyOrder(1)]
@@ -86,4 +87,5 @@ public abstract class AbstractStateAction : AbstractBehaviour
         OnStateExitImplement();
     }
     protected virtual void OnStateExitImplement() { }
+    public MonoBehaviour VoteOwner => bindingState.Context;
 }
