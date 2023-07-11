@@ -4,9 +4,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewFloatFlag", menuName = "GameFlag/Float", order = 1)]
 public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
 {
+    [InlineEditor()]
     [SerializeField]
     StatData MaxStat;
 
+    [ShowInInspector]
     public float MaxValue => MaxStat ? MaxStat.Value : 99999;
 
     [Header("過多會傳到這裡存起來")]
@@ -21,7 +23,7 @@ public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
 
             if (ExternalRepository.CurrentValue < toFull) toFull = ExternalRepository.CurrentValue;
             ExternalRepository.CurrentValue -= toFull;
-            ExternalRepository.CurrentValue += toFull;
+            CurrentValue += toFull;
         }
     }
     
