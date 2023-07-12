@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -51,14 +52,24 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild
         if (_delay)
             UnityEngine.Debug.LogError("Delay 還沒結束又DELAY 死罪", this);
 
-        _delay = false;
+        // _delay = false;
         //TODO: conditions
         if (!IsValid) return; //not valid也要用字串？
 
         _delay = true;
         if (delayActionModifier != null)
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime));
+            try
+            {
+                await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime), DelayType.DeltaTime,
+                    PlayerLoopTiming.Update, cancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException e)
+            {
+                _delay = false;
+                // Debug.LogError("Delay Cancelled" + e, this);
+                return;
+            }
         }
 
         _delay = false;
@@ -88,4 +99,6 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild
     }
     protected virtual void OnStateExitImplement() { }
     public MonoBehaviour VoteOwner => bindingState.Context;
+
+    protected CancellationTokenSource cancellationTokenSource => bindingState.GetStateExitCancellationTokenSource();
 }

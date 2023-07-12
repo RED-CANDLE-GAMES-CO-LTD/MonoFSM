@@ -48,8 +48,8 @@ namespace RCGMaker.Core
 
         protected virtual void Start()
         {
-            var initType = startState.stateType;
-            fsm.ChangeState(initType);
+            // var initType = startState.stateType;
+            // fsm.ChangeState(initType);
         }
 
         //TODO:init?

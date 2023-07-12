@@ -2,6 +2,7 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
@@ -55,6 +56,23 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         }
     }
 
+    private CancellationTokenSource StateExitCancellationTokenSource;
+
+    public CancellationTokenSource GetStateExitCancellationTokenSource()
+    {
+        if (StateExitCancellationTokenSource == null)
+        {
+            StateExitCancellationTokenSource = new CancellationTokenSource();
+        }
+        else if (StateExitCancellationTokenSource.IsCancellationRequested)
+        {
+            StateExitCancellationTokenSource.Dispose();
+            StateExitCancellationTokenSource = new CancellationTokenSource();
+        }
+
+        return StateExitCancellationTokenSource;
+    }
+
 
     public override void OnStateEnter()
     {
@@ -93,12 +111,15 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateExit()
     {
         base.OnStateExit();
+      
         if (actions == null) return;
         foreach (var action in actions)
         {
             if (action.isActiveAndEnabled)
                 action.OnActionExit();
         }
+
+        StateExitCancellationTokenSource?.Cancel();
     }
 
     [Button("強制跳State")]
