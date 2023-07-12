@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core
 {
-    public abstract class StateMachineContext<T, TState> : MonoBehaviour
+    public abstract class StateMachineContext<T, TState> : MonoBehaviour,ILevelAwake
         where TState : AbstractState<T> //where T : ScriptableObject 
     {
         [InfoBox("出現不能改但卻是Null，找易衡討論討論")]
@@ -33,16 +33,7 @@ namespace RCGMaker.Core
         protected virtual void Awake()
         {
             
-            StateMapping<T> stateBehaviorMapping = new StateMapping<T>();
-            var states = GetComponentsInChildren<TState>();
-            // var stateDict = new Dictionary<T, TState>();
-            foreach (var state in states)
-            {
-                // stateDict.Add(state.stateType, state);
-                stateBehaviorMapping.AddStateBehaviorMapping(state.stateType, state, this);
-            }
-
-            fsm = StateMachine<T>.Initialize(this, stateBehaviorMapping);
+      
 
         }
 
@@ -69,6 +60,20 @@ namespace RCGMaker.Core
         {
             var state = gameObject.AddChildrenComponent(type, "[State] NewState");
             return state as GeneralState;
+        }
+
+        public void EnterLevelAwake()
+        {
+            StateMapping<T> stateBehaviorMapping = new StateMapping<T>();
+            var states = GetComponentsInChildren<TState>();
+            // var stateDict = new Dictionary<T, TState>();
+            foreach (var state in states)
+            {
+                // stateDict.Add(state.stateType, state);
+                stateBehaviorMapping.AddStateBehaviorMapping(state.stateType, state, this);
+            }
+
+            fsm = StateMachine<T>.Initialize(this, stateBehaviorMapping);
         }
     }
 }
