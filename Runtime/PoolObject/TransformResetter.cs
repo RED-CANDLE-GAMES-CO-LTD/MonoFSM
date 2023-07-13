@@ -1,6 +1,7 @@
 using UnityEngine;
 
 //第一次記住
+//看到dynamic rigidbody就應該要有這個
 public class TransformResetter : MonoBehaviour, IResetter
 {
     private Vector3 initPosition;
