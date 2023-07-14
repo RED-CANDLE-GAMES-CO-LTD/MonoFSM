@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using RCGSetting;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditorInternal;
@@ -19,6 +20,10 @@ public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay//往上找
         // SaveLog("Awake",this);
     }
 
+
+    private bool IsNotDebugMode => !DebugSetting.IsDebugMode && IsLogInChildren;
+
+    [InfoBox("Is Not DebugMode, Will Not Log", InfoMessageType.Warning, VisibleIf = "IsNotDebugMode")]
     public bool IsLogInChildren = false;
     public bool IsBreak;
     public bool IsBreakWhenStateChange;
