@@ -23,7 +23,7 @@ public static class ConditionHelper
         {
             if (conditions[i] == null)
                 continue;
-            if (conditions[i].isActiveAndEnabled == false)
+            if (conditions[i].gameObject.activeSelf == false) //只看自己，可能是parent有人關
                 continue;
             if (conditions[i].FinalResult == false)
             {
@@ -36,18 +36,20 @@ public static class ConditionHelper
 
 public static class AbstractConditionCompExtension
 {
-    public static bool IsValidCondition(this MonoBehaviour owner)
-    {
-        AbstractConditionComp[] conditions = owner.GetComponentsInChildren<AbstractConditionComp>();
-
-        for (int i = 0; i < conditions.Length; i++)
-        {
-            if (conditions[i].FinalResult == false)
-                return false;
-        }
-
-        return true;
-    }
+    //[]: 這麼前衛？實作放外面耶
+    // public static bool IsValidCondition(this MonoBehaviour owner)
+    // {
+    //     AbstractConditionComp[] conditions = owner.GetComponentsInChildren<AbstractConditionComp>();
+    //
+    //     return conditions.IsAllValid();
+    //     // for (int i = 0; i < conditions.Length; i++)
+    //     // {
+    //     //     if (conditions[i].FinalResult == false)
+    //     //         return false;
+    //     // }
+    //     //
+    //     // return true;
+    // }
 }
 
 
