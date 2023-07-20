@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using Mono.CSharp;
 using RCGMaker.Core.Attributes;
+using RCGSetting;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
+
 // using Newtonsoft.Json;
 
 [Serializable]
@@ -174,7 +177,7 @@ public class ValueChangedListener<T>
     }
 }
 
-[Serializable]
+// [Serializable]
 public class FlagFieldModifier<T>
 {
     public T OverrideValue;
@@ -199,7 +202,7 @@ public class FlagFieldBool : FlagField<bool>
     {
         ProductionValue = defaultValue;
         DevValue = defaultValue;
-        PlayTestValue = defaultValue;
+        // PlayTestValue = defaultValue;
     }
     public static bool operator ==(FlagFieldBool j, bool k)
     {
@@ -210,10 +213,14 @@ public class FlagFieldBool : FlagField<bool>
         return j.CurrentValue != k;
     }
 }
+
+[Serializable]
 public abstract class FlagFieldBase
 {
 
 }
+
+[Serializable]
 public class FlagField<T> : FlagFieldBase
 {
     [ShowInInspector] [ReadOnly]
@@ -233,7 +240,7 @@ public class FlagField<T> : FlagFieldBase
     [FormerlySerializedAs("DefaultValue")]
     public T ProductionValue;
 
-    public T PlayTestValue;
+    // public T PlayTestValue;
 
 
     [FormerlySerializedAs("TestValue")]
@@ -244,7 +251,7 @@ public class FlagField<T> : FlagFieldBase
     
     // [OnChangedCallAttribute("SetCurrentValue")]
     
-    protected T _currentValue;
+
 
     // public bool isDirty = false;
     // private List<FlagFieldModifier<T>> modifiers = new();
@@ -260,8 +267,10 @@ public class FlagField<T> : FlagFieldBase
         // if (modifiers.Contains(modifier)) modifiers.Remove(modifier);
         _modifier = null;
     }
-    
 
+
+    protected T _currentValue;
+    
     [GUIColor(0, 1, 0.5f, 1)]
     [ShowInInspector]
     public virtual T CurrentValue
@@ -273,6 +282,7 @@ public class FlagField<T> : FlagFieldBase
             //   Debug.Log("FlagField Set CurrentValue" + value);
     }
 
+    
     public T SaveValue => _currentValue;
 
     protected T _lastValue;
@@ -358,17 +368,20 @@ public class FlagField<T> : FlagFieldBase
 
     //[]: debug mode才顯示？ conditional inspector property
 
-    [ShowInPlayMode(DebugModeOnly = true)] private bool IsShowDebugLog = false;
+    // [ShowInPlayMode(DebugModeOnly = true)] 
+
+    // [ShowIf("@DebugSetting.IsDebugMode")] [ShowInInspector]
+    [ShowInDebugMode] private bool _isShowDebugLog = false;
     //NOTE: public是為了，propertyDrawer
     protected void SetCurrentValue(T value)
     {
-        if (IsShowDebugLog)
+        if (_isShowDebugLog)
             Debug.Log("[FlagField] Before Set lastValue:" + _currentValue);
         if (value.Equals(_currentValue))
             return;
         _lastValue = _currentValue;
         _currentValue = value;
-        if (IsShowDebugLog)
+        if (_isShowDebugLog)
             Debug.Log("[FlagField] After CurrentValue" + value);
         
         listener?.OnChange(value, false);
@@ -376,9 +389,9 @@ public class FlagField<T> : FlagFieldBase
     }
 
 
-
-    public void Init(TestMode mode)
+    public void Init(TestMode mode, Object _owner)
     {
+        owner = _owner;
         _modifier = null;
         // isDirty = false;
         _currentValue = mode switch
@@ -386,9 +399,21 @@ public class FlagField<T> : FlagFieldBase
             TestMode.EditorDevelopment => DevValue,
             TestMode.Production => ProductionValue,
             // TestMode.BetaTest => PlayTestValue,
+            
             _ => _currentValue
         };
+        Log("Init FlagField" + _currentValue + " " + mode);
+        
+
         lastMode = mode;
+    }
+
+    private Object owner;
+
+    private void Log(object msg)
+    {
+        // if (_isShowDebugLog)
+        Debug.Log(msg + " " + owner.GetInstanceID(), owner);
     }
 
     private TestMode lastMode = TestMode.EditorDevelopment;
@@ -397,12 +422,16 @@ public class FlagField<T> : FlagFieldBase
 
     public void ResetToDefault()
     {
-
+        //[]: 要先init才能ResetToDefault
+        if (owner == null)
+            Debug.LogError("PLZ FIX ME, Assign Owner for function block!!" + owner);
         // listener = null;
         // listenerOnce = null;
+
+        //[]: 有singleton就不用lastMode了吧
         if (lastMode != TestMode.Undefined)
         {
-            Init(lastMode);
+            Init(lastMode, owner);
         }
         else
             CurrentValue = ProductionValue;

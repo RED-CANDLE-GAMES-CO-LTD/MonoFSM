@@ -81,32 +81,46 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
     }
 
     // public Vector3 position;//該在這裡綁嗎?
+    private void InitField<TField, T>(FieldInfo fieldInfo, TestMode mode) where TField : FlagField<T>
+    {
+        var field = (TField)fieldInfo.GetValue(this);
+        if (field == null)
+        {
+            Debug.LogError("field is null" + fieldInfo.Name + ",flag:" + this, this);
+            return;
+        }
+
+        field.Init(mode, this);
+    }
     public virtual void FlagAwake(TestMode mode) //抓default Value或currentValue
     {
-        FieldInfo[] myField = GetType().GetFields();
+        var myField = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         // Debug.Log("Flag Convertor WriteJSON");
         for (var i = 0; i < myField.Length; i++)
         {
             if (myField[i].FieldType == typeof(FlagFieldBool))
-            {
-                var field = (myField[i].GetValue(this) as FlagFieldBool);
-                field.Init(mode);
-            }
+                InitField<FlagFieldBool, bool>(myField[i], mode);
+            // var field = (myField[i].GetValue(this) as FlagFieldBool);
+            // if (field == null)
+            // {
+            //     Debug.LogError("FlagFieldBool is null");
+            //     continue;
+            // }
+            //
+            // field.Init(mode, this);
             else if (myField[i].FieldType == typeof(FlagFieldInt))
-            {
-                var field = (myField[i].GetValue(this) as FlagFieldInt);
-                field.Init(mode);
-            }
+                InitField<FlagFieldInt, int>(myField[i], mode);
+            // var field = (myField[i].GetValue(this) as FlagFieldInt);
+            //
+            //
+            // field.Init(mode, this);
             else if (myField[i].FieldType == typeof(FlagFieldString))
-            {                    
-                var field = (myField[i].GetValue(this) as FlagFieldString);
-                field.Init(mode);
-            }
-            else if (myField[i].FieldType == typeof(FlagFieldFloat))
-            {
-                var field = (myField[i].GetValue(this) as FlagFieldFloat);
-                field.Init(mode);
-            }
+                InitField<FlagFieldString, string>(myField[i], mode);
+            // var field = (myField[i].GetValue(this) as FlagFieldString);
+            // field.Init(mode, this);
+            else if (myField[i].FieldType == typeof(FlagFieldFloat)) InitField<FlagFieldFloat, float>(myField[i], mode);
+            // var field = (myField[i].GetValue(this) as FlagFieldFloat);
+            // field.Init(mode, this);
         }
 
     }
