@@ -71,7 +71,7 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
 
         //不需樣Add?
         votes[m] = vote;
-        Debug.Log($"Vote {m} bool:{vote}");
+        // Debug.Log($"Vote {m} bool:{vote}");
         CheckResult();
     }
 

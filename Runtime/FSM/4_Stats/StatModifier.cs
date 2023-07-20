@@ -16,7 +16,7 @@ public enum StatModDurationType
     Temporary = 1
 }
 
-public interface IStatModifierOwner
+public interface IStatModifierOwner //為什麼要做這個？
 {
     public bool IsActivated { get; }
 }
