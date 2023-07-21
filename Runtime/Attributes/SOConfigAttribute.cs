@@ -23,5 +23,14 @@ namespace RCGMaker.Core.Attributes
             else
                 return $"{SubFolderPath}/{finalName}.asset";
         }
+
+        public string GetFilePath(string configName)
+        {
+            var finalName = $"{configName}";
+            if (SubFolderPath == "")
+                return $"{finalName}.asset";
+            else
+                return $"{SubFolderPath}/{finalName}.asset";
+        }
     }
 }
