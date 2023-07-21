@@ -10,7 +10,7 @@ public interface IResetter
     //3. Cmd+R  
     //4. 還有從 pool出來。
     void EnterLevelReset();
-    void ExitLevelAndDestroy();
+    void ExitLevelAndDestroy(); //目前沒有特別意義，只有換景會call，和OnDestroy差不多
 }
 
 public interface ILevelAwake
