@@ -93,5 +93,11 @@ public abstract class AbstractConditionComp : MonoBehaviour
 
     private static bool IsDebugMode => DebugSetting.IsDebugMode;
 #endif
+
+    //For Cheat Code
+    public virtual void CheatComplete()
+    {
+        Debug.LogError("This Condition Can't ForceSetValid");
+    }
 }
 
