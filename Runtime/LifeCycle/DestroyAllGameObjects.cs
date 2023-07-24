@@ -16,18 +16,18 @@ public class DestroyAllGameObjects : MonoBehaviour
     {
         DestroyingAll = true;
         Time.timeScale = 1;
-        yield return new WaitForSeconds(1f);
+        // yield return new WaitForSeconds(1f);
 
 
         //母災為啥要叫兩次才會清乾淨
-        yield return new WaitForSeconds(0.1f);
+        // yield return new WaitForSeconds(0.1f);
         yield return DestroyAll();
-        yield return new WaitForSeconds(0.1f);
+        // yield return new WaitForSeconds(0.1f);
 
         CheckList();
 
         DestroyingAll = false;
-        yield return new WaitForSeconds(0.1f);
+        // yield return new WaitForSeconds(0.1f);
 
         BackToTitle();
     }
@@ -73,14 +73,16 @@ public class DestroyAllGameObjects : MonoBehaviour
 
     public IEnumerator DestroyAll()
     {
+        var wwiseGlobal = FindObjectOfType<AkInitializer>().gameObject;
+      
         GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
 
-        Debug.Log("DestoryingEverything");
+        Debug.Log("Destroying Everything");
         var SteamAPIOb = FindSteamAPIObj();
 
         foreach (var go in allObjects)
         {
-            if (go != gameObject && go != SteamAPIOb)//把其他人都刪光光
+            if (go != gameObject && go != SteamAPIOb && go != wwiseGlobal) //把其他人都刪光光
             {
                 if (go != null)
                     go.SetActive(false);
@@ -92,7 +94,7 @@ public class DestroyAllGameObjects : MonoBehaviour
         }
 
         foreach (var go in allObjects)
-            if (go != gameObject && go != SteamAPIOb) //把其他人都刪光光
+            if (go != gameObject && go != SteamAPIOb && go != wwiseGlobal) //把其他人都刪光光
             {
                 if (go != null)
                     Destroy(go);
