@@ -26,7 +26,11 @@ using System.Collections.Generic;
 public class AutoChildrenAttribute : AutoFamily
 {
     public bool DepthOneOnly = false;//只找一層
-    public bool includeActive = true;
+
+    /// <summary>
+    /// 關著的節點也要撈出來
+    /// </summary>
+    public bool includeInactive = true;
 
     public AutoChildrenAttribute(bool logMissingAsError = false) : base(logMissingAsError)
     {
@@ -42,7 +46,7 @@ public class AutoChildrenAttribute : AutoFamily
     {
         //一定是最淺的...hmm
 
-        var result = mb.GetComponentInChildren(componentType, includeActive);
+        var result = mb.GetComponentInChildren(componentType, includeInactive);
         if (DepthOneOnly)
         {
             if (result && result.transform.parent != mb.transform)
@@ -73,7 +77,7 @@ public class AutoChildrenAttribute : AutoFamily
             return dest as object[];
         }
 
-        var results = mb.GetComponentsInChildren(componentType, includeActive);
+        var results = mb.GetComponentsInChildren(componentType, includeInactive);
         Array destinationArray = Array.CreateInstance(componentType, results.Length);
         Array.Copy(results, destinationArray, results.Length);
         return destinationArray as object[];//Array.ConvertAll(results, item => Convert.ChangeType(item, componentType));
