@@ -8,4 +8,10 @@ namespace RCGMaker.Core
     public interface IGameStateOwner : ISceneSavingCallbackReceiver
     {
     }
+
+
+    public interface IPrefabSavingCallbackReceiver
+    {
+        void OnBeforePrefabSave();
+    }
 }
