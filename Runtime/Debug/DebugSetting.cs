@@ -41,7 +41,12 @@ namespace RCGSetting
             get => BoolProperties[nameof(IsProductionMode)];
             set => SetBoolProperty(nameof(IsProductionMode), value);
 #else
+
             get => true;
+            set
+            {
+                return;
+            }
 #endif            
         }
 
