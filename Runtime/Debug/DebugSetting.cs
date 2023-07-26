@@ -32,10 +32,17 @@ namespace RCGSetting
             }
         }
 
-        public static bool IsProductionMode
+        //之後應該看這個
+        public static TestMode mode => IsProductionMode ? TestMode.Production : TestMode.EditorDevelopment;
+
+        public static bool IsProductionMode //乾淨存檔，不會有提前拿到能力
         {
+#if UNITY_EDITOR        
             get => BoolProperties[nameof(IsProductionMode)];
             set => SetBoolProperty(nameof(IsProductionMode), value);
+#else
+            get => true;
+#endif            
         }
 
         public static bool IsShowDebugNumber

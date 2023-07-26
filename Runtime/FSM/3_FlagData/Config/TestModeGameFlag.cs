@@ -11,7 +11,7 @@ public enum TestMode
     
 }
 
-//TODO: 改名 RCGBuildMode
+//[]: 之後刪掉，用DebugSetting看就好
 [CreateAssetMenu(fileName = "TestModeGameFlag", menuName = "GameFlag/TestModeGameFlag", order = 1)]
 public class TestModeGameFlag : ScriptableObjectSingleton<TestModeGameFlag>
 {
