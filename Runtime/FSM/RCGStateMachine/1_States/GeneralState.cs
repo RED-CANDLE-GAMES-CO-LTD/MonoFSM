@@ -9,6 +9,8 @@ using UnityEngine.Serialization;
 using UnityEditor;
 #endif
 using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
+
 public interface INodeModel
 {
     public Vector2 position { get; set; }
@@ -122,6 +124,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         StateExitCancellationTokenSource?.Cancel();
     }
 
+    [ShowInPlayMode]
     [Button("強制跳State")]
     void ForceEnterState()
     {

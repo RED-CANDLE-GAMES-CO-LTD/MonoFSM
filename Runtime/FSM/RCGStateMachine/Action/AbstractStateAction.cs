@@ -64,7 +64,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild
                 await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime), DelayType.DeltaTime,
                     PlayerLoopTiming.Update, cancellationTokenSource.Token);
             }
-            catch (OperationCanceledException e)
+            catch (OperationCanceledException)
             {
                 _delay = false;
                 // Debug.LogError("Delay Cancelled" + e, this);
