@@ -43,10 +43,7 @@ namespace RCGSetting
 #else
 
             get => true;
-            set
-            {
-                return;
-            }
+            set{}
 #endif            
         }
 
