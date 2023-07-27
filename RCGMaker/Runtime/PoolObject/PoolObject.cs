@@ -65,6 +65,11 @@ public class PoolObject : MonoBehaviour//, IResetter
         FxPlayer = 1,
     }
 
+    private void OnDisable()
+    {
+        this.Log("OnDisable");
+    }
+
     [Header("決定要跟fxplayer, 還是hitData(Receiver)的位置")]
     public ShootFrom InitPosType = ShootFrom.HitData;//TODO: 應該是IPoolObject... PoolOnShoot, OnSpawn
     // public bool IsShootFromHitData = true;
@@ -143,6 +148,7 @@ public class PoolObject : MonoBehaviour//, IResetter
 
 
     }
+    
     // private void OnEnable() //從poolObject拿出來要確定動畫有重置，因為有人很壞，還沒開就被call Reset and Start
     // {
     //     if (needResetAnim == false)
