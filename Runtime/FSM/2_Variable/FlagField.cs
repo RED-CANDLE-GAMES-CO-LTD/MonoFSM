@@ -224,7 +224,8 @@ public abstract class FlagFieldBase
 public class FlagField<T> : FlagFieldBase
 {
     [ShowInInspector] [ReadOnly]
-    private FlagFieldModifier<T> _modifier;
+    // private FlagFieldModifier<T> _modifier;
+    private List<FlagFieldModifier<T>> _modifiers = new();
     public FlagField()
     {
         ProductionValue = default(T);
@@ -258,15 +259,21 @@ public class FlagField<T> : FlagFieldBase
 
     public void AddModifier(FlagFieldModifier<T> modifier)
     {
-        // if (!modifiers.Contains(modifier)) modifiers.Add(modifier);
-        _modifier = modifier;
+        //先清在加
+        //投票機制是 只取第一個人的意見...，一人只有一票
+        _modifiers.RemoveAll(x => x.source == modifier.source);
+        _modifiers.Add(modifier);
+        // _modifier = modifier;
     }
 
-    public void RemoveModifier(FlagFieldModifier<T> modifier)
+    public void RemoveModifier(IStatModifierOwner modifierOwner)
     {
-        // if (modifiers.Contains(modifier)) modifiers.Remove(modifier);
-        _modifier = null;
+        _modifiers.RemoveAll(x => x.source == modifierOwner);
+        // if (_modifiers.Contains(modifier)) _modifiers.Remove(modifier);
+        // _modifier = null;
     }
+
+    // private T OverrideValue => modifiers.Count > 0 ? modifiers[0].OverrideValue : default;
 
 
     protected T _currentValue;
@@ -275,7 +282,7 @@ public class FlagField<T> : FlagFieldBase
     [ShowInInspector]
     public virtual T CurrentValue
     {
-        get => _modifier != null ? _modifier.OverrideValue : _currentValue; //有modifier的話...
+        get => _modifiers.Count > 0 ? _modifiers[0].OverrideValue : _currentValue; //有modifier的話...
         set => SetCurrentValue(value);
             // SetCurrentValue(value);
             //有事件而且值不同
@@ -392,7 +399,7 @@ public class FlagField<T> : FlagFieldBase
     public void Init(TestMode mode, Object _owner)
     {
         owner = _owner;
-        _modifier = null;
+        _modifiers.Clear();
         // isDirty = false;
         _currentValue = mode switch
         {

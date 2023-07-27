@@ -23,7 +23,7 @@ namespace RCGMaker.Core.Attributes
         }
 
         //DebugMode下才顯示，需要play才會更新
-        //[]: 切換DebugMode時，要怎麼樣才能強迫跑processor?
+        //[]: 切換DebugMode時，要怎麼樣才能強迫跑process?
         public bool DebugModeOnly = false;
     }
   

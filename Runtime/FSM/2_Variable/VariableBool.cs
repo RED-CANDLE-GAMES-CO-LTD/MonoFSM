@@ -30,7 +30,8 @@ public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICo
         set
         {
             if (scriptableData && value != Value) //值有改才送事件
-                Debug.Log("Variable Bool Changed " + ScriptableData.name);
+                // Debug.Log("Variable Bool Changed " + ScriptableData.name);
+                //[]: 灌tracker...
             // this.Track("ScriptableData Value Changed", new Dictionary<string, Value>()
             // {
             //     { "data", ScriptableData.name },
