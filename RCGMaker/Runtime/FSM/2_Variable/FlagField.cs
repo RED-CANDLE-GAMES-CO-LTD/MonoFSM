@@ -282,7 +282,7 @@ public class FlagField<T> : FlagFieldBase
     [ShowInInspector]
     public virtual T CurrentValue
     {
-        get => _modifiers.Count > 0 ? _modifiers[0].OverrideValue : _currentValue; //有modifier的話...
+        get => _modifiers.Count > 0 ? _modifiers[^1].OverrideValue : _currentValue; //有modifier的話...
         set => SetCurrentValue(value);
             // SetCurrentValue(value);
             //有事件而且值不同
