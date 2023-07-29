@@ -31,8 +31,6 @@ public class AnimatorReseter
 
             //關掉Animator，原本會清資料，重打開把當下的值當作新的default，會爛掉
             _anim.keepAnimatorStateOnDisable = true;
-            
-            
         }
     }
 

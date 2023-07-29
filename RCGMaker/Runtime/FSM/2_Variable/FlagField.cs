@@ -409,7 +409,7 @@ public class FlagField<T> : FlagFieldBase
             
             _ => _currentValue
         };
-        Log("Init FlagField" + _currentValue + " " + mode);
+        // Log("Init FlagField" + _currentValue + " " + mode);
         
 
         lastMode = mode;
