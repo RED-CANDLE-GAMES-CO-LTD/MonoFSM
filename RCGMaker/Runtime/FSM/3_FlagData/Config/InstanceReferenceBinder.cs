@@ -1,7 +1,9 @@
 using System;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
+#endif
 using UnityEngine;
 
 namespace RCGMaker.Core
@@ -12,6 +14,7 @@ namespace RCGMaker.Core
 
         private void OnValidate()
         {
+#if UNITY_EDITOR
             //check is belong to the prefab
             if (instanceReference == null)
                 return;
@@ -44,6 +47,7 @@ namespace RCGMaker.Core
             //     Debug.LogError("InstanceBinder OnValidate: " + gameObject.name + " is not belong to " +
             //                    instanceReference.prefab.name);
             // }
+            #endif
         }
 
         private void Awake()
