@@ -219,6 +219,8 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
         this.AssetInFolderValidate(GameStateAttribute.GameStateFolderPath, result);
     }
 
+    // bool 
+    
     [Button]
     private void MoveAssetToFolder()
     {
