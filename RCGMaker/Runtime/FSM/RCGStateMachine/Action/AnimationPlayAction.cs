@@ -68,7 +68,7 @@ namespace RCGMaker.Core
 #if UNITY_EDITOR
         IEnumerable<string> GetAllStateNames()
         {
-            return AnimatorHelper.GetAnimatorStateNames(animator, 0);
+            return animator.GetAnimatorStateNames(0);
         }
         
         private AnimatorController controller;

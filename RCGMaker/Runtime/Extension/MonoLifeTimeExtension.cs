@@ -15,5 +15,22 @@ namespace RCGMaker.Core
             mono.Log("SetActive" + active);
             mono.gameObject.SetActive(active);
         }
+
+        public static void SetDirty(this MonoBehaviour mono)
+        {
+#if UNITY_EDITOR
+            // mono.Log("SetDirty");
+            UnityEditor.EditorUtility.SetDirty(mono);
+#endif
+        }
+
+        //for scriptable
+        public static void SafeSetDirty(this ScriptableObject obj)
+        {
+#if UNITY_EDITOR
+            // mono.Log("SetDirty");
+            UnityEditor.EditorUtility.SetDirty(obj);
+#endif
+        }
     }
 }

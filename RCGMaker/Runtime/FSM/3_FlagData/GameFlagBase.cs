@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
+using UnityEditor;
 using UnityEngine;
 
 #if UNITY_2022_2_OR_NEWER
@@ -216,6 +217,17 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
     public void Validate(SelfValidationResult result)
     {
         this.AssetInFolderValidate(GameStateAttribute.GameStateFolderPath, result);
+    }
+
+    [Button]
+    private void MoveAssetToFolder()
+    {
+        var targetPath = "Assets/" + GameStateAttribute.GameStateFolderPath + "/" + name + ".asset";
+        Debug.Log("MoveAssetToFolder: targetPath:" + targetPath);
+        var result = AssetDatabase.MoveAsset(AssetDatabase.GetAssetPath(this),
+            targetPath);
+
+        Debug.Log("MoveAssetToFolder: result:" + result);
     }
 }
 

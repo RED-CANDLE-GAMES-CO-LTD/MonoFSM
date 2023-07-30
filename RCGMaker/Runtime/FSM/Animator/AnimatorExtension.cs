@@ -6,7 +6,7 @@ using UnityEngine;
 #if UNITY_EDITOR
 public static class AnimatorHelper
 {
-    public static IEnumerable<string> GetAnimatorStateNames(UnityEngine.Animator animator, int stateLayer)
+    public static IEnumerable<string> GetAnimatorStateNames(this Animator animator, int stateLayer)
     {
         var ac = GetAnimatorController(animator);
 
@@ -22,7 +22,7 @@ public static class AnimatorHelper
         return names;
     }
 
-    public static IEnumerable<string> GetLayerNames(Animator animator)
+    public static IEnumerable<string> GetLayerNames(this Animator animator)
     {
         var ac = GetAnimatorController(animator);
 

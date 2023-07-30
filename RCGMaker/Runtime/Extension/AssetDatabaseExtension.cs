@@ -28,7 +28,7 @@ namespace RCGMaker.Core
             //check if asset is in Resources/Config
             var assetPath = AssetDatabase.GetAssetPath(asset);
             if (!assetPath.Contains(folderName))
-                result.AddError($"ScriptableObject {asset} should be in Resources/Config folder").WithFix(() =>
+                result.AddError($"ScriptableObject {asset} should be in " + folderName).WithFix(() =>
                 {
                     //move asset to Resources/Config
                     var newPath = assetPath.Replace("Assets/", "Assets/" + folderName + "/");

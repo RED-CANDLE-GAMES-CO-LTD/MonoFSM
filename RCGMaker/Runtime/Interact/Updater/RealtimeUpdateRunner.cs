@@ -2,6 +2,7 @@ using System.Linq;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace RCGMaker.Core
 {
@@ -67,6 +68,7 @@ namespace RCGMaker.Core
         //動作遊戲可以自己maintain, 回合制應該讓外部的runner來做
         // Buff Runner Type...
 
+        public UnityEvent OnStop;
         private void Update()
         {
             _intervalTimer -= Time.deltaTime;
@@ -81,7 +83,9 @@ namespace RCGMaker.Core
             if (_timer <= 0)
             {
                 // _updatable.Stop();
-                gameObject.SetActive(false);
+                // gameObject.SetActive(false);
+                OnStop.Invoke();
+                Debug.Log("RealtimeUpdate Runner Stop");
                 foreach (var updatable in _updatables) updatable.Stop();
                 //至少先disable就不會有效果了
                 //[]: Pool return..? 應該讓buff module自己return就好
