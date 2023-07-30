@@ -224,12 +224,14 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
     [Button]
     private void MoveAssetToFolder()
     {
+#if UNITY_EDITOR
         var targetPath = "Assets/" + GameStateAttribute.GameStateFolderPath + "/" + name + ".asset";
         Debug.Log("MoveAssetToFolder: targetPath:" + targetPath);
         var result = AssetDatabase.MoveAsset(AssetDatabase.GetAssetPath(this),
             targetPath);
 
         Debug.Log("MoveAssetToFolder: result:" + result);
+        #endif
     }
 }
 
