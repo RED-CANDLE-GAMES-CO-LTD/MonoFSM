@@ -3,8 +3,11 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+
 namespace RCGMaker.Core
 {
+    //舊規，開Child
+    //掛在上面，會被上面檢查？
     public class ConditionNodeActivator : MonoBehaviour, IResetter
     {
         // // [Header("是否反向表達")] public bool IsInverted;
@@ -75,5 +78,17 @@ namespace RCGMaker.Core
         public void ExitLevelAndDestroy()
         {
         }
+
+        // public void EnableCheck()
+        // {
+        //     if (conditions.IsAllValid())
+        //     {
+        //         gameObject.SetActive(true);
+        //     }
+        //     else
+        //     {
+        //         gameObject.SetActive(false);
+        //     }
+        // }
     }
 }
