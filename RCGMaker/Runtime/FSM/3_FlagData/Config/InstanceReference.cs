@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace RCGMaker.Core
@@ -39,12 +41,14 @@ namespace RCGMaker.Core
         [Button]
         private void RenameToPrefabName()
         {
+#if UNITY_EDITOR
             //rename the asset
             var path = AssetDatabase.GetAssetPath(this);
             var newPath = Path.GetDirectoryName(path) + "/" + prefab.name + ".asset";
             AssetDatabase.RenameAsset(path, prefab.name);
             AssetDatabase.MoveAsset(path, newPath);
             AssetDatabase.SaveAssets();
+#endif
         }
     }
 }
