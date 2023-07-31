@@ -13,12 +13,20 @@ namespace RCGMaker.Core
     //新規
     //可以直接放在該節點上
     //自動檢查條件，決定是否啟動節點
-    public class ConditionActivator : MonoBehaviour, IEnableChecker
+    public class ConditionActivator : MonoBehaviour, IEnableChecker, ISelfValidator
     {
+        [Title("自動檢查條件，決定開關節點")]
+        
         [PreviewInInspector] [AutoChildren()] private AbstractConditionComp[] conditions;
         [ReadOnly] [ShowInPlayMode] private bool IsActivate => conditions.IsAllValid();
 
-        //要有蠻多時間點的，updateView就要做？
+        //[]: 要有蠻多時間點的，updateView就要做？
+        //[]: 操作後也需要，牽涉狀態改變？
+        //[]: 這個節點上不可以放任何的condition node
+
+
+        private bool HasConditionNodeOnThisNode => GetComponents<AbstractConditionComp>().Length > 0;
+
         public void EnableCheck()
         {
             if (IsActivate)
@@ -31,6 +39,12 @@ namespace RCGMaker.Core
                 Debug.Log("IAdditionalChecker pass active false", gameObject);
                 gameObject.SetActive(false);
             }
+        }
+
+        public void Validate(SelfValidationResult result)
+        {
+            if (HasConditionNodeOnThisNode)
+                result.AddError("把condition放在下面的節點，不要放在這個節點上");
         }
     }
 }
