@@ -8,6 +8,8 @@ namespace RCGMaker.Core
     {
 #if UNITY_EDITOR
 
+       
+        
         [MenuItem("CONTEXT/MonoBehaviour/Filter Logs for me")]
         public static void FindLog(MenuCommand command)
         {

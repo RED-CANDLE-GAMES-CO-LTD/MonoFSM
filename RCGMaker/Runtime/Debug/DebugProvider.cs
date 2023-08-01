@@ -39,19 +39,20 @@ public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay//往上找
         }
     }
     public List<LogEntry> logEntries = new List<LogEntry>();
-    [Button("Test")]
-    public void Test()
-    {
-       SaveLog("Test",this);
-       
-    }
+
+    // [Button("Test")]
+    // public void Test()
+    // {
+    //    SaveLog("Test",this);
+    //    
+    // }
     public void SaveLog(object message, Object context = null)
     {
-        if (IsLogInChildren)
-        {
+        // if (IsLogInChildren)
+        // {
             LogEntry logEntry = new LogEntry(message, context);
             logEntries.Add(logEntry);
-        }
+            // }
     }
 }
 
@@ -69,7 +70,7 @@ public class LogEntry
         this.message = message;
         this.context = context;
         StackTrace stackTrace = new StackTrace(true);
-        var frame = stackTrace.GetFrame(2);
+        var frame = stackTrace.GetFrame(4);
         
         this.fileName = frame.GetFileName();
         this.lineNumber = frame.GetFileLineNumber();
