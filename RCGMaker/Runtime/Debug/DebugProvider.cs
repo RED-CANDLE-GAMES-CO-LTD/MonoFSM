@@ -74,8 +74,8 @@ public class LogEntry
         
         this.fileName = frame.GetFileName();
         this.lineNumber = frame.GetFileLineNumber();
-        
-        Debug.Log("fileName:"+fileName+" lineNumber:"+lineNumber);
+
+        // Debug.Log("fileName:"+fileName+" lineNumber:"+lineNumber);
         // Application.OpenURL("jetbrains://idea/navigate/reference?project=Assets&path=Assets/3_Script/MonsterStates/AttackStateTrick/LinkMove/LinkNextMoveStateWeight.cs");
     }
 #if UNITY_EDITOR
