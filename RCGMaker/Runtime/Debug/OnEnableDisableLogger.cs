@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace RCGSetting
 {
+    //這個看不出來的一定是animation控的？不能開關就是了
     public class OnEnableDisableLogger : MonoBehaviour
     {
         private void OnEnable()
