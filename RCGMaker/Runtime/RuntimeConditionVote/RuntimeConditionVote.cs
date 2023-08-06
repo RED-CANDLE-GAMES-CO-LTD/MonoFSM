@@ -77,6 +77,8 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
 
     public void Revoke(Object m)
     {
+        if (m is IVoteChild voteChild)
+            m = voteChild.VoteOwner;
         if (votes.ContainsKey(m))
             votes.Remove(m);
         CheckResult();
@@ -136,7 +138,8 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
 
     // public bool VoteResult => _currentResult;
     public bool Result => _currentResult;
-    public RuntimeConditionVote(ConditionType type, bool defaultValue,
+
+    public RuntimeConditionVote(ConditionType type = ConditionType.OR, bool defaultValue = false,
         OnValueChangeDelegate onValueChangeDelegate = null)
     {
         _getConditionTypeDelegate = ()=>type;

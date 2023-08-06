@@ -64,7 +64,7 @@ namespace RCGSetting
         {
             //為什麼之前要註解掉editor if?
 #if RCG_DEV
-            get => BoolProperties[nameof(IsDebugMode)];
+            get => BoolProperties[nameof(IsDebugMode)]; //這很慢...
             set
             {
                 SetBoolProperty(nameof(IsDebugMode), value);

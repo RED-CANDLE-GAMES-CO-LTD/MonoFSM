@@ -52,6 +52,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
 
     public void AutoGenCheck()
     {
+        Debug.Log("AutoGenCheck" + name, this);
         if (Application.isPlaying)
             return;
 
@@ -65,9 +66,13 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
         //改成ShowInInspector Property?
         if (_ownerMono == null)
             return;
+        
+        
+        
         //find property with attribute [GameState] in owner's class
         var ownerType = _ownerMono.GetType();
         var fields = ownerType.GetFields();
+        
         //FIXME: 這個在Inspector會一直叫，有點吵
         foreach (var field in fields)
         {
@@ -77,11 +82,20 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
 
             //check value of field is not null
             var value = field.GetValue(_ownerMono) as GameFlagBase;
+
             if (value != null)
+            {
+                Debug.Log("auto value gogo " + field.Name + " " + value.name, gameObject);
                 //檢查ID有沒有對
                 if (SaveID == value.SaveID)
+                {
+                    Debug.Log("SaveID == value.SaveID: " + field.Name + " " + value.name, gameObject);
                     continue;
+                }
+            }
+                
 
+      
             // Debug.Log("Need Auto Gen: gameStateAttribute " + ",value:" + value + ",saveID:" + SaveID, gameObject);
             
             //幫他生成
@@ -99,6 +113,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
             field.SetValue(_ownerMono, gameStateData);
             if (_ownerMono is IDataOwner flagOwner) flagOwner.FlagGeneratedPostProcess(gameStateData);
             _ownerMono.SetDirty();
+            data.SafeSetDirty();
         }
     }
 

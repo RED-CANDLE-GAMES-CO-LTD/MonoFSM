@@ -40,12 +40,13 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
 }
 //最基礎的GameFlag元件
 [Serializable]
-public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializationCallbackReceiver, ISelfValidator
+public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValidator
 {
     // public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
     // protected bool inited = false;
-    [Header("Asset GUID")]
-    [ReadOnly] public string SaveID = "";
+    [Header("Asset GUID")] [DisableIf("@true")]
+    // [ReadOnly]
+    public string SaveID = "";
 
 
     public enum GameStateType
@@ -54,8 +55,8 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
         AutoUnique //一對一最單純的，自動生成，可以整包砍掉重建
     }
 
-    
-    [EnumToggleButtons] [ReadOnly] public GameStateType gameStateType = GameStateType.Manual;
+    [EnumToggleButtons] [DisableIf("@true")]
+    public GameStateType gameStateType = GameStateType.Manual;
 
     [EditorOnly]
     protected virtual void OnValidate()
@@ -67,6 +68,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
     // [Button]
     private void ValidateSaveID()
     {
+        // Debug.Log("ValidateSaveID" + name, this);
 #if UNITY_EDITOR
         if (gameStateType == GameStateType.AutoUnique)
         {
@@ -76,7 +78,11 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
         {
             var guid = this.GetGUID();
             if (SaveID != null && SaveID != guid)
+            {
                 SaveID = guid;
+                this.SafeSetDirty();
+            }
+                
         }
 #endif
     }
@@ -203,15 +209,15 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISerializa
     }
 
 
-    public void OnBeforeSerialize()
-    {
-        ValidateSaveID();
-    }
+    // public void OnBeforeSerialize()
+    // {
+    //     ValidateSaveID();
+    // }
 
-    public void OnAfterDeserialize()
-    {
-        // throw new NotImplementedException();
-    }
+    // public void OnAfterDeserialize()
+    // {
+    //     // throw new NotImplementedException();
+    // }
 
     [EditorOnly]
     public void Validate(SelfValidationResult result)

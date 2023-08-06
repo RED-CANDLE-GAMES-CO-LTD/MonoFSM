@@ -79,6 +79,7 @@ namespace RCGMaker.Core
                 {
                     gameStateSo.gameStateType = GameFlagBase.GameStateType.AutoUnique;
                     gameStateSo.SaveID = autoGenGameState.SaveID;
+                    Debug.Log("Assign SaveID for autoGen", refObj);
 
                     return gameStateSo;
                 }
