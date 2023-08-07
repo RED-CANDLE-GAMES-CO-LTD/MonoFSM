@@ -266,7 +266,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             }
         }
 
-        allPools.RemoveAll(e => e == null);
+        allPools.RemoveAllNull();
 
         //增加新的pool
         for (var i = 0; i < PoolObjectEntries.Count; i++)
@@ -420,9 +420,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         public void ScalePoolToNewMaximum()
         {
-            OnUseObjs.RemoveAll(e => e == null);
-            AllObjs.RemoveAll(e => e == null);
-            DisabledObjs.RemoveAll(e => e == null);
+            OnUseObjs.RemoveAllNull();
+            AllObjs.RemoveAllNull();
+            DisabledObjs.RemoveAllNull();
             ReturnAllObjects();
 
             if (AllObjs.Count == _bindingEntry.DefaultMaximumCount)
@@ -448,7 +448,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                     AllObjs[i] = null;
                 }
 
-                AllObjs.RemoveAll(e => e == null);
+                AllObjs.RemoveAllNull();
             }
 
 
