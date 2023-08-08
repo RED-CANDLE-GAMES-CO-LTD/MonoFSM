@@ -97,7 +97,7 @@ public class CharacterStat //這個改名會爛掉嗎?
             isDirty = true;
             statModifiers.Add(mod);
             var value = Value; //modifier改變，更新一下值
-            Debug.Log("Character Stat Add Modifier" + mod.Value + mod.Type + ",result:" + value);
+            // Debug.Log("Character Stat Add Modifier" + mod.Value + mod.Type + ",result:" + value);
         }
         else
         {
