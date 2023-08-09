@@ -58,9 +58,12 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         //TODO: getComponents?
         //GenerateBindingTable
     }
-  
+
+    [AutoParent(false)] 
+    public StateMachineOwner fsmOwner;
+
 #if UNITY_EDITOR
-    
+
 
     // private void GetBindingTable()
     // {
