@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
+
 namespace RCGSetting
 {
 #if UNITY_EDITOR
