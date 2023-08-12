@@ -16,7 +16,7 @@ public static class RCGTime
     public static float TimeScale => timeScale * Time.timeScale;
 
     public static PlayerLoopTiming UpdateTiming =>
-        PlayerLoopTiming.LastUpdate; //UniTask default會比script update還早，播放指令要用LastPostLateUpdate
+        PlayerLoopTiming.LastUpdate; //UniTask default會比script update還早，要用LastPostLateUpdate回放指令才會對
 
     public static float GlobalSimulationSpeed = 1;
 }

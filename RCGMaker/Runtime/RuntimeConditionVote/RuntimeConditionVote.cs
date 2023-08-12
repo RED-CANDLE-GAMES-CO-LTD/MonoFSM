@@ -87,7 +87,7 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
     public async UniTask AddForSeconds(MonoBehaviour m, float seconds)
     {
         Vote(m, true);
-        await UniTask.Delay(TimeSpan.FromSeconds(seconds), DelayType.DeltaTime, PlayerLoopTiming.LastUpdate);
+        await UniTask.Delay(TimeSpan.FromSeconds(seconds), DelayType.DeltaTime);
         Vote(m, false);
     }
 
