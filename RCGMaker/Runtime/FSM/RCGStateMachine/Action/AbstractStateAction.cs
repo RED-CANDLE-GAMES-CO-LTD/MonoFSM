@@ -98,7 +98,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild
         OnStateExitImplement();
     }
     protected virtual void OnStateExitImplement() { }
-    public MonoBehaviour VoteOwner => bindingState.Context;
+    public MonoBehaviour VoteOwner => bindingState.Context.fsmOwner;
 
     protected CancellationTokenSource cancellationTokenSource => bindingState.GetStateExitCancellationTokenSource();
 }
