@@ -12,9 +12,9 @@ using UnityEngine.AddressableAssets;
 namespace RCGMaker.AddressableAssets
 {
     [System.Serializable]
-    public class RCGAssetReference : MonoBehaviour
+    public class RCGAssetReference
     {
-        //FIXME: 這個還要拆出去？
+        //FIXME: 這個還要拆出去？ 會有 UnityEditor.addressableAssets  的assembly reference
 #if UNITY_EDITOR
         public Object editorAsset;
         [Button]
