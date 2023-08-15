@@ -5,6 +5,11 @@ namespace RCGMaker.Core
         void OnBeforeSceneSave();
     }
 
+    public interface IBeforeBuildProcess
+    {
+        void OnBeforeBuildProcess();
+    }
+
     public interface IGameStateOwner : ISceneSavingCallbackReceiver
     {
     }
