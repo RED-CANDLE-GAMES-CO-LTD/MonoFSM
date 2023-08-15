@@ -42,6 +42,7 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
 [Serializable]
 public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValidator
 {
+ 
     // public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
     // protected bool inited = false;
     [Header("Asset GUID")] [DisableIf("@true")]
