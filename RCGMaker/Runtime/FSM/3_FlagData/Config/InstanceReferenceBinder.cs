@@ -25,6 +25,7 @@ namespace RCGMaker.Core
             var path = prefabStage.assetPath;
 
             Debug.Log("InstanceBinder path: " + path);
+            
             if (path == AssetDatabase.GetAssetPath(instanceReference.prefab))
             {
                 Debug.Log("InstanceBinder OnValidate: " + gameObject.name + " is belong to " +
@@ -32,6 +33,8 @@ namespace RCGMaker.Core
             }
             else
             {
+                //TODO: 什麼意思？
+                //FIXME: Player inGameUI 會跑這個
                 Debug.LogError("InstanceBinder OnValidate: " + gameObject.name + " is not belong to " +
                                instanceReference.prefab.name);
             }

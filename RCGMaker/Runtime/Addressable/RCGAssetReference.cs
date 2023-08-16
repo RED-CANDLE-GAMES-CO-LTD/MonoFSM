@@ -11,6 +11,7 @@ using UnityEngine.AddressableAssets;
 
 namespace RCGMaker.AddressableAssets
 {
+    //Serialize Reference是什麼去了？
     [System.Serializable]
     public class RCGAssetReference
     {
@@ -24,6 +25,7 @@ namespace RCGMaker.AddressableAssets
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             assetReference = settings.CreateAssetReference(guid);
         }
+        //TODO: 可以寫property drawer自動生成assetReference
 #endif
 
         public AssetReference assetReference;
