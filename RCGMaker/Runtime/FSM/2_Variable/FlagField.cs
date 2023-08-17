@@ -4,6 +4,7 @@ using Mono.CSharp;
 using RCGMaker.Core.Attributes;
 using RCGSetting;
 using Sirenix.OdinInspector;
+using Sirenix.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -76,13 +77,20 @@ public class ValueChangedListener<T>
 
         //避免Dictionary變動 先把key 都拿出來
         keys.Clear();
-        keys.AddRange(onChangeActionDict.Keys);
+
+        var iterator = onChangeActionDict.GFIterator();
+        while (iterator.MoveNext())
+        {
+            keys.Add(iterator.Current.Key);
+        }
+
+        // keys.AddRange(onChangeActionDict.Keys);
 
         foreach (var key in keys)
         {
-            if (onChangeActionDict.ContainsKey(key))
+            if (onChangeActionDict.TryGetValue(key, out var value1))
             {
-                var action = onChangeActionDict[key].Item2;
+                var action = value1.Item2;
                 //  Debug.Log("FlagField Invoke" + action);
                 action.Invoke(value);
             }
@@ -104,12 +112,9 @@ public class ValueChangedListener<T>
             onChangeActionDict = new Dictionary<int, System.Tuple<object, UnityAction<T>>>();
         if (onChangeActionDict.ContainsKey(key))
         {
-
             // Debug.Log("Already AddListener" + key);
             return;
         }
-
-
         CleanNullListener();
         onChangeActionDict[key] = tuple;
     }
@@ -122,32 +127,24 @@ public class ValueChangedListener<T>
         }
         else
             toRemove.Clear();
-        foreach (var key in onChangeActionDict.Keys)
+
+        var iterator = onChangeActionDict.GFIterator();
+        while (iterator.MoveNext())
         {
-            var action = onChangeActionDict[key];
-            // Debug.Log("[FlagField] Object Target" + action);
-            // Debug.Log("[FlagField] Object Target" + action.Item1);
-
-            //  Equals(null)
-
-            // if (IsNullOrDestroyed(action.Item1))
-            // {
-            //     toRemove.Add(key);
-            //     continue;
-            // }
+            var action = iterator.Current.Value;
             if (action.Item1 == null)
             {
-                // Debug.Log("Flag == null");
-                toRemove.Add(key);
+                toRemove.Add(iterator.Current.Key);
                 continue;
             }
             else if (action.Item1.Equals(null))
             {
-                // Debug.Log("Flag Equals(null)");
-                toRemove.Add(key);
+                toRemove.Add(iterator.Current.Key);
                 continue;
             }
         }
+        
+     
         for (var i = 0; i < toRemove.Count; i++)
         {
             //Debug.Log("Remove" + toRemove[i]);
@@ -221,7 +218,7 @@ public abstract class FlagFieldBase
 }
 
 [Serializable]
-public class FlagField<T> : FlagFieldBase
+public class FlagField<T> : FlagFieldBase 
 {
     [ShowInInspector] [ReadOnly]
     // private FlagFieldModifier<T> _modifier;
@@ -382,17 +379,19 @@ public class FlagField<T> : FlagFieldBase
     //NOTE: public是為了，propertyDrawer
     protected void SetCurrentValue(T value)
     {
-        if (_isShowDebugLog)
-            Debug.Log("[FlagField] Before Set lastValue:" + _currentValue);
+        // if (DebugSetting.IsDebugMode && _isShowDebugLog)
+        //     Debug.Log("[FlagField] Before Set lastValue:" + _currentValue);
+        
         if (value.Equals(_currentValue))
             return;
         _lastValue = _currentValue;
         _currentValue = value;
-        if (_isShowDebugLog)
-            Debug.Log("[FlagField] After CurrentValue" + value);
-        
-        listener?.OnChange(value, false);
-        listenerOnce?.OnChange(value, true);
+
+        // if (DebugSetting.IsDebugMode && _isShowDebugLog)
+        //     Debug.Log("[FlagField] After CurrentValue" + value);
+
+        listener.OnChange(value, false);
+        listenerOnce.OnChange(value, true);
     }
 
 
