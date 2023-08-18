@@ -5,6 +5,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
+using Sirenix.Utilities;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -96,34 +97,56 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         var newResult = GetDefaultValue();
 
         //clear null key
-        foreach (var key in votes.Keys.ToArray())
-            if (key == null)
+
+        var iterator = votes.GFIterator();
+        while (iterator.MoveNext())
+        {
+            if (iterator.Current.Key == null)
             {
-                votes.Remove(key);
-                Debug.LogError("null key !!????: 後面有被destroy的東西嗎？" + key);
+                votes.Remove(iterator.Current.Key);
+                Debug.LogError("null key !!????: 後面有被destroy的東西嗎？" + iterator.Current.Key);
             }
+        }
 
 
         if (GetConditionType() == ConditionType.AND)
         {
-            if (votes.Values.Count != 0)
+            if (votes.Count != 0)
                 newResult = true;
-            foreach (var vote in votes.Values)
+
+            while (iterator.MoveNext())
             {
-                if (vote == false)
+                if (iterator.Current.Value == false)
                 {
                     newResult = false;
+                    break;
                 }
-            }  
+            }
+
+            // foreach (var vote in votes.Values)
+            // {
+            //     if (vote == false)
+            //     {
+            //         newResult = false;
+            //     }
+            // }  
         }
         else if (GetConditionType() == ConditionType.OR)
         {
-            foreach (var vote in votes.Values)
+            while (iterator.MoveNext())
             {
-                if (vote != true) continue;
+                if (iterator.Current.Value != true) continue;
                 newResult = true;
                 break;
-            }  
+            }
+
+
+            // foreach (var vote in votes.Values)
+            // {
+            //     if (vote != true) continue;
+            //     newResult = true;
+            //     break;
+            // }  
         }
 
         if (_currentResult != newResult)
@@ -148,7 +171,7 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         _currentResult = GetDefaultValue();
         OnValueChange(_currentResult);
 
-      
+        
     }
 
     public RuntimeConditionVote(GetConditionTypeDelegate getConditionTypeDelegate,
