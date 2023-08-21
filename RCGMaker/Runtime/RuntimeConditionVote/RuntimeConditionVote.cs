@@ -121,7 +121,7 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         {
             if (votes.Count != 0)
                 newResult = true;
-
+            iterator = votes.GFIterator();
             while (iterator.MoveNext())
             {
                 if (iterator.Current.Value == false)
@@ -141,6 +141,7 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         }
         else if (GetConditionType() == ConditionType.OR)
         {
+            iterator = votes.GFIterator();
             while (iterator.MoveNext())
             {
                 if (iterator.Current.Value != true) continue;
