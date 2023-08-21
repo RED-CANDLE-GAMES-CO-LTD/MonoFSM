@@ -92,20 +92,28 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         Vote(m, false);
     }
 
+    private List<Object> _toRemove = new();
     private void CheckResult()
     {
         var newResult = GetDefaultValue();
 
         //clear null key
 
+        _toRemove.Clear();
         var iterator = votes.GFIterator();
         while (iterator.MoveNext())
         {
             if (iterator.Current.Key == null)
             {
-                votes.Remove(iterator.Current.Key);
+                _toRemove.Add(iterator.Current.Key);
+                // votes.Remove(iterator.Current.Key);
                 Debug.LogError("null key !!????: 後面有被destroy的東西嗎？" + iterator.Current.Key);
             }
+        }
+
+        foreach (var key in _toRemove)
+        {
+            votes.Remove(key);
         }
 
 

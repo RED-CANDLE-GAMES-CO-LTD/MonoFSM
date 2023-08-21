@@ -15,11 +15,18 @@ using Object = UnityEngine.Object;
 [Serializable]
 public class FlagFieldString : FlagField<string>
 {
+    protected override bool IsCurrentValueEquals(string value)
+    {
+        return _currentValue == value;
+    }
 }
 [Serializable]
 public class FlagFieldEnum<T> : FlagField<T> where T : struct, IConvertible, IComparable
 {
-
+    protected override bool IsCurrentValueEquals(T value)
+    {
+        return _currentValue.Equals(value);
+    }
 }
 
 [Serializable]
@@ -34,6 +41,10 @@ public class FlagFieldInt : FlagField<int>
     //     return j.CurrentValue != k;
     // }
 
+    protected override bool IsCurrentValueEquals(int value)
+    {
+        return _currentValue == value;
+    }
 }
 
 
@@ -60,6 +71,10 @@ public class FlagFieldFloat : FlagField<float>
         return j.CurrentValue != k;
     }
 
+    protected override bool IsCurrentValueEquals(float value)
+    {
+        return _currentValue == value;
+    }
 }
 
 public class ValueChangedListener<T>
@@ -209,6 +224,11 @@ public class FlagFieldBool : FlagField<bool>
     {
         return j.CurrentValue != k;
     }
+
+    protected override bool IsCurrentValueEquals(bool value)
+    {
+        return _currentValue == value;
+    }
 }
 
 [Serializable]
@@ -218,7 +238,8 @@ public abstract class FlagFieldBase
 }
 
 [Serializable]
-public class FlagField<T> : FlagFieldBase 
+public class
+    FlagField<T> : FlagFieldBase // where T : IComparable, IComparable<bool>, IConvertible, IEquatable<bool>
 {
     [ShowInInspector] [ReadOnly]
     // private FlagFieldModifier<T> _modifier;
@@ -376,13 +397,19 @@ public class FlagField<T> : FlagFieldBase
 
     // [ShowIf("@DebugSetting.IsDebugMode")] [ShowInInspector]
     [ShowInDebugMode] private bool _isShowDebugLog = false;
+
+    protected virtual bool IsCurrentValueEquals(T value)
+    {
+        return _currentValue.Equals(value);
+    }
+    
     //NOTE: public是為了，propertyDrawer
     protected void SetCurrentValue(T value)
     {
         // if (DebugSetting.IsDebugMode && _isShowDebugLog)
         //     Debug.Log("[FlagField] Before Set lastValue:" + _currentValue);
-        
-        if (value.Equals(_currentValue))
+
+        if (IsCurrentValueEquals(value))
             return;
         _lastValue = _currentValue;
         _currentValue = value;
