@@ -6,7 +6,12 @@ using UnityEngine;
 /// </summary>
 public static class RCGTime
 {
-    public static float timeScale = 1f;
+    public static void SetTimeScaleUnsafe(float value)
+    {
+        timeScale = value;
+    }
+
+    private static float timeScale = 1f; 
 
     public static float deltaTime => Time.deltaTime * timeScale * GlobalSimulationSpeed;
 
@@ -19,4 +24,9 @@ public static class RCGTime
         PlayerLoopTiming.LastUpdate; //UniTask default會比script update還早，要用LastPostLateUpdate回放指令才會對
 
     public static float GlobalSimulationSpeed = 1;
+    // public static void CalculateTimeScale()
+    // {
+    //     timeScale = GlobalSimulationSpeed;
+    // }
+    
 }
