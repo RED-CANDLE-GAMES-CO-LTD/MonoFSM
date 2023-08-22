@@ -18,7 +18,9 @@ namespace RCGSetting
 
         private static readonly Dictionary<string, bool> BoolProperties = new();
 
+#if UNITY_EDITOR
         [InitializeOnEnterPlayMode]
+#endif
         private static void Init()
         {
             _isDebugMode = BoolProperties[nameof(IsDebugMode)];
