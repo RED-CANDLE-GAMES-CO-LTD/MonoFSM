@@ -18,6 +18,12 @@ namespace RCGSetting
 
         private static readonly Dictionary<string, bool> BoolProperties = new();
 
+        [InitializeOnEnterPlayMode]
+        private static void Init()
+        {
+            _isDebugMode = BoolProperties[nameof(IsDebugMode)];
+        }
+        
         static DebugSetting()
         {
             foreach (var property in typeof(DebugSetting).GetProperties())
@@ -61,14 +67,16 @@ namespace RCGSetting
         // public static DebugCheatNode debugNode;
 
         // 所有的測試view / 快捷鍵都要綁這個
+        private static bool _isDebugMode;
         public static bool IsDebugMode
         {
             //為什麼之前要註解掉editor if?
 #if RCG_DEV
             // get => false;
-            get => BoolProperties[nameof(IsDebugMode)]; //這很慢...?
+            get => _isDebugMode; // BoolProperties[nameof(IsDebugMode)]; //這很慢...?
             set
             {
+                _isDebugMode = value;
                 SetBoolProperty(nameof(IsDebugMode), value);
                 //進入debug mode就先無敵ㄅ
                 // if (value) IsPlayerInvincible = true;

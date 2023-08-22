@@ -24,7 +24,8 @@ namespace RCGMaker.Core
         /// <typeparam name="T">An Enum listing different state transitions</typeparam>
         /// <param name="component">The component whose state will be managed</param>
         /// <returns></returns>
-        public StateMachine<T> Initialize<T>(MonoBehaviour component, StateMapping<T> stateMapping = null)// where T : ScriptableObject
+        public StateMachine<T> Initialize<T>(MonoBehaviour component, StateMapping<T> stateMapping = null)
+            where T : class
         {
             var fsm = new StateMachine<T>(this, component, stateMapping);
 
@@ -40,7 +41,8 @@ namespace RCGMaker.Core
         /// <param name="component">The component whose state will be managed</param>
         /// <param name="startState">The default start state</param>
         /// <returns></returns>
-        public StateMachine<T> Initialize<T>(MonoBehaviour component, T startState, StateMapping<T> stateMapping = null) //where T : ScriptableObject
+        public StateMachine<T> Initialize<T>(MonoBehaviour component, T startState, StateMapping<T> stateMapping = null)
+            where T : class
         {
             var fsm = Initialize<T>(component, stateMapping);
 

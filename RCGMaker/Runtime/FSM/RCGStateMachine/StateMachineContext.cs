@@ -6,7 +6,7 @@ using Sirenix.OdinInspector;
 namespace RCGMaker.Core
 {
     public abstract class StateMachineContext<T, TState> : MonoBehaviour,ILevelAwake
-        where TState : AbstractState<T> //where T : ScriptableObject 
+        where TState : AbstractState<T> where T : class 
     {
         [InfoBox("出現不能改但卻是Null，找易衡討論討論")]
         // public bool ShowStartState = true;

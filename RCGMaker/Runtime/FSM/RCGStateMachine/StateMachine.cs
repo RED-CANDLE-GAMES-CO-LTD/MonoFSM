@@ -25,7 +25,7 @@ namespace RCGMaker.Core
         bool isPaused { get; }
     }
 
-    public class StateMachine<T> : IStateMachine// where T : ScriptableObject //這個弄死了
+    public class StateMachine<T> : IStateMachine where T : class //這個弄死了
     {
         public event Action<T> Changed;
         public bool isPaused
