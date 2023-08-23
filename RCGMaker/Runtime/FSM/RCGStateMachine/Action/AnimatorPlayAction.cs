@@ -138,7 +138,7 @@ namespace RCGMaker.Core
                 return;
             }
 
-            this.Log("[AnimatorPlayAction]" + gameObject.name + ":[" + stateLayer + "]:" + StateName);
+            this.Log("[AnimatorPlayAction]", gameObject.name, ":[", stateLayer, "]:", StateName);
 
             animator.keepAnimatorStateOnDisable = true;
 
