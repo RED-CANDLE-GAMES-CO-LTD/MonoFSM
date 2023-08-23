@@ -372,7 +372,7 @@ public class PoolObject : MonoBehaviour//, IResetter
             if (!onScene)
             {
                 //FIXME: 好像還有return twice問題
-                Debug.LogWarning("return object to pool twice!", gameObject);
+//                Debug.LogWarning("return object to pool twice!", gameObject);
                 return;
             }
 
@@ -397,8 +397,6 @@ public class PoolObject : MonoBehaviour//, IResetter
     public void OnPrepare() //關的時候
     {
         CheckList();
-        AutoAttributeManager.AutoReferenceAllChildren(gameObject);
-
         for (var i = 0; i < IPoolObjectList.Count; i++)
         {
             try

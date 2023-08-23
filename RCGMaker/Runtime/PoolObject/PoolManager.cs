@@ -538,9 +538,11 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             obj.OnPrepare();
         }
         
-        private void HandlePoolObjectAwake(PoolObject level)
+        private void HandlePoolObjectAwake(PoolObject obj)
         {
-            var ILevelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));
+            AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject);
+            
+            var ILevelAwakes = new List<ILevelAwake>(obj.GetComponentsInChildren<ILevelAwake>(true));
 
             foreach (var item in ILevelAwakes)
             {
