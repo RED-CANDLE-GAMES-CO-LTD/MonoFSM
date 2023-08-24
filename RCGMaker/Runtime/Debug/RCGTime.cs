@@ -24,9 +24,11 @@ public static class RCGTime
         PlayerLoopTiming.LastUpdate; //UniTask default會比script update還早，要用LastPostLateUpdate回放指令才會對
 
     public static float GlobalSimulationSpeed = 1;
-    // public static void CalculateTimeScale()
-    // {
-    //     timeScale = GlobalSimulationSpeed;
-    // }
-    
+
+    public static void ResetRCGTime()
+    {
+        timeScale = 1.0f;
+        GlobalSimulationSpeed = 1.0f;
+    }
+
 }
