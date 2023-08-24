@@ -188,7 +188,7 @@ public static class MonoLogExtension
         }
 #endif
     }
-
+    [HideInCallstack]
     private static void FinalLog(Component go, string message, DebugProvider provider, LogType type = LogType.Log)
     {
         // provider.SaveLog(message, go);
