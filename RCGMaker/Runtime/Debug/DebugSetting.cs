@@ -56,6 +56,28 @@ namespace RCGSetting
 #endif            
         }
 
+        public static bool IsShowingTileRenderer
+        {
+#if RCG_DEV
+            get => BoolProperties[nameof(IsShowingTileRenderer)];
+            set => SetBoolProperty(nameof(IsShowingTileRenderer), value);
+#else
+             get => false;
+             set {}
+#endif
+        }
+
+        public static bool IsShowingSkin
+        {
+#if RCG_DEV
+            get => BoolProperties[nameof(IsShowingSkin)];
+            set => SetBoolProperty(nameof(IsShowingSkin), value);
+#else
+             get => true;
+             set {}
+#endif
+        }
+        
         public static bool IsShowDebugNumber
         {
 #if RCG_DEV
