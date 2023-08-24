@@ -130,7 +130,7 @@ public class PoolObject : MonoBehaviour//, IResetter
 
         if (this._anims == null)
         {
-            Debug.LogError("Anims == null?",this.gameObject);
+           // Debug.LogError("Anims == null?",this.gameObject);
             return;
         }
 

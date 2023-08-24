@@ -1,3 +1,4 @@
+using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -11,12 +12,71 @@ public static class RCGTime
         timeScale = value;
     }
 
-    private static float timeScale = 1f; 
+    private static float timeScale
+    {
+        get
+        {
+            return _timeScale;
+        }
+        set
+        {
+            if (SelfTimeScale)
+            {
+                _timeScale = value;
+            }
+            else
+            {
+                Time.timeScale = _timeScale = value;
+                // Debug.Log("TimeScale:"+value);
+            }
+        }
+    }
 
-    public static float deltaTime => Time.deltaTime * timeScale * GlobalSimulationSpeed;
+    public static UniTask UnScaledDelay(float second)
+    {
+        return UniTask.Delay(TimeSpan.FromSeconds(second), SelfTimeScale ? DelayType.DeltaTime : DelayType.UnscaledDeltaTime);
+    }
+
+    private static float _timeScale = 1f;
+
+    public static bool SelfTimeScale = false;
+
+    public static bool IsIndependentUpdate => !SelfTimeScale;
+    
+    
+
+    public static float deltaTime
+    {
+        get
+        {
+            if (SelfTimeScale)
+            {
+                return Time.deltaTime * timeScale * GlobalSimulationSpeed;
+            }
+            else
+            {
+                return Time.deltaTime  * GlobalSimulationSpeed;
+            }
+        }
+    }
 
     // public static float deltaTime => 0.02f * timeScale;
-    public static float unscaledDeltaTime => Time.deltaTime; //Time.unscaledDeltaTime;
+    public static float unscaledDeltaTime  {
+        get
+        {
+            if (SelfTimeScale)
+            {
+                return  Time.deltaTime; //
+            }
+            else
+            {
+                return Time.unscaledDeltaTime;
+            }
+        }
+    }
+        
+        
+
     public static bool IsPaused => timeScale == 0f;
     public static float TimeScale => timeScale * Time.timeScale;
 
