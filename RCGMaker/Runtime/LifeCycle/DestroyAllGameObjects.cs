@@ -48,6 +48,9 @@ public class DestroyAllGameObjects : MonoBehaviour
                 if(obj.name == "SteamAPI")
                     continue;
                 
+                if(obj.name == "DestroyAll")
+                    continue;
+                
                 Debug.LogError("不該有其他東西！：" +obj.name);
             }
         }
