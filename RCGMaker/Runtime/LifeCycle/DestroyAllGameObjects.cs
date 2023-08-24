@@ -23,7 +23,6 @@ public class DestroyAllGameObjects : MonoBehaviour
         // yield return new WaitForSeconds(0.1f);
         yield return DestroyAll();
         // yield return new WaitForSeconds(0.1f);
-
         CheckList();
 
         DestroyingAll = false;
@@ -39,8 +38,17 @@ public class DestroyAllGameObjects : MonoBehaviour
         {
             for (int i = 0; i < allObjects.Length; i++)
             {
-                if (allObjects[i] != this.gameObject && allObjects[i] != this.FindSteamAPIObj())
-                    Debug.LogError("不該有其他東西！：" + allObjects[i].name);
+                var obj = allObjects[i];
+                
+                //應該要只剩下這兩個
+                
+                if(obj.name == "WwiseGlobal")
+                    continue;
+                
+                if(obj.name == "SteamAPI")
+                    continue;
+                
+                Debug.LogError("不該有其他東西！：" +obj.name);
             }
         }
         else
