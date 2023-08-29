@@ -1,18 +1,15 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class DestroyAllGameObjects : MonoBehaviour
 {
-    public static bool DestroyingAll = false;
+    public static bool DestroyingAll;
 
-    void Start()
-    {
-        StartCoroutine(StartClear());
-    }
+    private void Start() 
+        => StartCoroutine(_StartClear());
 
-    public IEnumerator StartClear()
+    private IEnumerator _StartClear()
     {
         DestroyingAll = true;
         Time.timeScale = 1;
@@ -31,7 +28,7 @@ public class DestroyAllGameObjects : MonoBehaviour
         BackToTitle();
     }
 
-    private void CheckList()
+    private static void CheckList()
     {
         var allObjects = FindObjectsOfType<GameObject>(true);
         if (allObjects.Length > 0)
@@ -48,6 +45,9 @@ public class DestroyAllGameObjects : MonoBehaviour
                 if(obj.name == "SteamAPI")
                     continue;
                 
+                if(obj.name == "GdkRunner")
+                    continue;
+                
                 if(obj.name == "DestroyAll")
                     continue;
                 
@@ -61,30 +61,16 @@ public class DestroyAllGameObjects : MonoBehaviour
     }
 
 
-    public void BackToTitle()
-    {
-        SceneManager.LoadScene("TitleScreenMenu");
-    }
+    public void BackToTitle() 
+        => SceneManager.LoadScene("TitleScreenMenu");
 
-
-    private GameObject FindSteamAPIObj()
-    {
-        return GameObject.Find("SteamAPI");
-        // for (var i = 0; i < allObjects.Length; i++)
-        // {
-        //     var go = allObjects[i];
-        //     if (go != gameObject) //把其他人都刪光光
-        //         if (go.gameObject.name == "SteamAPI")
-        //         {
-        //             Debug.Log("SteamAPIFound");
-        //             return go; // = go;
-        //         }
-        // }
-    }
+    private static GameObject FindSteamAPIObj() 
+        => GameObject.Find("SteamAPI");
 
     public IEnumerator DestroyAll()
     {
         var wwiseGlobal = FindObjectOfType<AkInitializer>().gameObject;
+        var gdkRunner = GameObject.Find("GdkRunner");
       
         GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
 
@@ -93,7 +79,10 @@ public class DestroyAllGameObjects : MonoBehaviour
 
         foreach (var go in allObjects)
         {
-            if (go != gameObject && go != SteamAPIOb && go != wwiseGlobal) //把其他人都刪光光
+            if (go != gameObject && 
+                go != SteamAPIOb && 
+                go != wwiseGlobal && 
+                go != gdkRunner) //把其他人都刪光光
             {
                 if (go != null)
                     go.SetActive(false);
@@ -105,7 +94,10 @@ public class DestroyAllGameObjects : MonoBehaviour
         }
 
         foreach (var go in allObjects)
-            if (go != gameObject && go != SteamAPIOb && go != wwiseGlobal) //把其他人都刪光光
+            if (go != gameObject && 
+                go != SteamAPIOb && 
+                go != wwiseGlobal && 
+                go != gdkRunner) //把其他人都刪光光
             {
                 if (go != null)
                     Destroy(go);
@@ -114,14 +106,6 @@ public class DestroyAllGameObjects : MonoBehaviour
             {
                 Debug.Log("SteamAPI Not Destroyed");
             }
-
-
-
-
         return null;
-
     }
-
-
-
 }
