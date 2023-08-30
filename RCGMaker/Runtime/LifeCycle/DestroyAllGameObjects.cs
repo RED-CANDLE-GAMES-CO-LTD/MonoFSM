@@ -1,9 +1,35 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using Mono.CSharp;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+
+public static class RCGLifeCycle
+{
+    public static void DontDestroyForever(GameObject gameObject)
+    {
+        GameObject.DontDestroyOnLoad(gameObject);
+        DontDestroyObjList.Add(gameObject);
+        gameObject.name += " (RCGLifeCycle)";
+    }
+
+    private static List<GameObject> DontDestroyObjList = new List<GameObject>();
+
+    public static bool CanDestroy(GameObject g)
+    {
+        if (DontDestroyObjList.Contains(g))
+        {
+            return false;
+        }
+        return true;
+    }
+}
+
 public class DestroyAllGameObjects : MonoBehaviour
 {
+    
+    
     public static bool DestroyingAll;
 
     private void Start() 
@@ -28,7 +54,7 @@ public class DestroyAllGameObjects : MonoBehaviour
         BackToTitle();
     }
 
-    private static void CheckList()
+    private void CheckList()
     {
         var allObjects = FindObjectsOfType<GameObject>(true);
         if (allObjects.Length > 0)
@@ -37,20 +63,9 @@ public class DestroyAllGameObjects : MonoBehaviour
             {
                 var obj = allObjects[i];
                 
-                //應該要只剩下這兩個
-                
-                if(obj.name == "WwiseGlobal")
+                if(this.CanDestroy(obj) == false)
                     continue;
-                
-                if(obj.name == "SteamAPI")
-                    continue;
-                
-                if(obj.name == "GdkRunner")
-                    continue;
-                
-                if(obj.name == "DestroyAll")
-                    continue;
-                
+
                 Debug.LogError("不該有其他東西！：" +obj.name);
             }
         }
@@ -69,7 +84,6 @@ public class DestroyAllGameObjects : MonoBehaviour
 
     public IEnumerator DestroyAll()
     {
-        var wwiseGlobal = FindObjectOfType<AkInitializer>().gameObject;
         var gdkRunner = GameObject.Find("GdkRunner");
       
         GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
@@ -79,13 +93,9 @@ public class DestroyAllGameObjects : MonoBehaviour
 
         foreach (var go in allObjects)
         {
-            if (go != gameObject && 
-                go != SteamAPIOb && 
-                go != wwiseGlobal && 
-                go != gdkRunner) //把其他人都刪光光
+            if (CanDestroy(go)) //把其他人都刪光光
             {
-                if (go != null)
-                    go.SetActive(false);
+                go.SetActive(false);
             }
             else
             {
@@ -94,18 +104,25 @@ public class DestroyAllGameObjects : MonoBehaviour
         }
 
         foreach (var go in allObjects)
-            if (go != gameObject && 
-                go != SteamAPIOb && 
-                go != wwiseGlobal && 
-                go != gdkRunner) //把其他人都刪光光
+            if (CanDestroy(go))
             {
-                if (go != null)
-                    Destroy(go);
+                Destroy(go);
             }
             else
             {
                 Debug.Log("SteamAPI Not Destroyed");
             }
         return null;
+    }
+
+    public bool CanDestroy(GameObject g)
+    {
+        if (g == null)
+            return false;
+        
+        if (g == this.gameObject)
+            return false;
+        
+        return RCGLifeCycle.CanDestroy(g);
     }
 }
