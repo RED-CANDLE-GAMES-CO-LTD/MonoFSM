@@ -8,6 +8,7 @@ using UnityEngine;
 
 public interface IState<in TState>
 {
+    GeneralFSMContext Context { get; }
     bool TransitionCheck(TState toState, float timeOffset);
 
     bool TransitionCheck(TState toState);
@@ -82,7 +83,7 @@ public class AbstractStateTransition : AbstractBehaviour
             if (parentState.TransitionCheck(target.stateType, timeOffset))
             {
                 //FIXME: 這個時間點會太晚嗎？
-                bindingState.Context.lastTransition = this;
+                parentState.Context.lastTransition = this;
             }
             return true;
         }
