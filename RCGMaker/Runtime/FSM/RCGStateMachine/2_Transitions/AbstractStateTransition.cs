@@ -35,6 +35,13 @@ public class AbstractStateTransition : AbstractBehaviour
         //     .Where(state => state != this.GetComponentInParent<GeneralState>());
     }
     [AutoChildren(false)] AbstractConditionComp[] conditions;
+
+    [Title("從init來會播動畫的Transition")]
+    [ShowInInspector]
+    public bool IsDefaultTransition => conditions == null || conditions.Length == 0;
+    //試圖封裝 resolving和resolved，不想要把clip和transition分開，有隱含邏輯在裡面
+
+
     // protected override void Awake()
     // {
     //     bindingState = GetComponentInParent<GeneralState>();
@@ -61,47 +68,53 @@ public class AbstractStateTransition : AbstractBehaviour
             return false;
 
         //TODO: 這個runtime拿蠻不好的, 改成通通拿IState? 合併anyState和State
-        var anyState = GetComponentInParent<IState<GeneralState>>();
-        if (anyState != null) //走any，直接過
+        // var anyState = GetComponentInParent<IState<GeneralState>>();
+        //任何東西都是iState吧？不用分了
+        if (parentState != null) //走any，直接過
         {
-            this.Log("[Transition] GoTo:", target.stateType, gameObject);
+            this.Log("[Transition] AnyState GoTo:", target.stateType, gameObject);
             if (target.stateType.isActiveAndEnabled == false)
             {
                 this.Log("[Transition] Fail ChangeState target inactive" + target.stateType, gameObject);
                 return false;
             }
-            anyState.TransitionCheck(target.stateType, timeOffset);
+
+            if (parentState.TransitionCheck(target.stateType, timeOffset))
+            {
+                //FIXME: 這個時間點會太晚嗎？
+                bindingState.Context.lastTransition = this;
+            }
             return true;
         }
 
         if (parentState == null)
-            Debug.LogError("Why no parent State" + anyState, gameObject);
+            Debug.LogError("Why no parent State" + parentState, gameObject);
 
-        if (parentState.TransitionCheck(target, timeOffset))
-        {
-            
-        }
-        
-        if (bindingState == null)
-            Debug.LogError("Why no parent State" + anyState, gameObject);
+        // if (parentState.TransitionCheck(target, timeOffset))
+        // {
+        //     
+        // }
+        //
+        // if (bindingState == null)
+        //     Debug.LogError("Why no parent State" + anyState, gameObject);
 
      
         // this.Log("[Transition] Check3:" + target.stateType, gameObject);
         //好像不該回頭做？可是要不然要怎麼辦...不能用事件接
-        
-        if (bindingState.TransitionCheck(target.stateType,timeOffset))
-        {
-            bindingState.Context.lastTransition = this;
-            this.Log("[Transition] GoTo:", target.stateType, gameObject);
-            // #if UNITY_EDITOR
-            //             UnityEditor.EditorGUIUtility.PingObject(gameObject);
-            // #endif
-            return true;
-        }
-        else
-        {
-            this.Log("[Transition] Fail:" + target.stateType, gameObject);
-        }
+
+        // if (bindingState.TransitionCheck(target.stateType,timeOffset))
+        // {
+        //     bindingState.Context.lastTransition = this;
+        //     this.Log("[Transition] GoTo:", target.stateType, gameObject);
+        //     // #if UNITY_EDITOR
+        //     //             UnityEditor.EditorGUIUtility.PingObject(gameObject);
+        //     // #endif
+        //     return true;
+        // }
+        // else
+        // {
+        //     this.Log("[Transition] Fail:" + target.stateType, gameObject);
+        // }
         return false;
     }
     public bool IsLastTransition
