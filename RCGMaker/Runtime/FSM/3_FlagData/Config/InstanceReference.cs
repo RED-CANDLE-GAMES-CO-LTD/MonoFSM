@@ -26,14 +26,21 @@ namespace RCGMaker.Core
         public GameObject instance
         {
             get => _instance;
-            set
+        }
+
+        public void UnRegister(GameObject g)
+        {
+            if (_instance == g)
+                _instance = null;
+        }
+
+        public void Register(GameObject g)
+        {
+            if (_instance == null)
+                _instance = g;
+            else
             {
-                if (_instance == null)
-                    _instance = value;
-                else
-                {
-                    Debug.LogError("InstanceReference: instance is already set");
-                }
+                Debug.LogError("InstanceReference: instance is already set");
             }
         }
 

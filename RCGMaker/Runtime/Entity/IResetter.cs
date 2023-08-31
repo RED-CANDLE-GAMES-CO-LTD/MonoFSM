@@ -23,6 +23,12 @@ public interface ILevelStart
     void EnterLevelStart();
 }
 
+
+public interface ILevelExit
+{
+    void OnLevelExit();
+}
+
 // public interface IResetPriority
 // {
 //     int GetPriority();

@@ -8,7 +8,8 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
-    public class InstanceReferenceBinder : MonoBehaviour
+    
+    public class InstanceReferenceBinder : MonoBehaviour,ILevelExit
     {
         [Required] public InstanceReference instanceReference;
 
@@ -55,7 +56,14 @@ namespace RCGMaker.Core
 
         private void Awake()
         {
-            instanceReference.instance = gameObject;
+            instanceReference.Register(this.gameObject);
+           // instanceReference.instance = gameObject;
+        }
+
+
+        public void OnLevelExit()
+        {
+            instanceReference.UnRegister(this.gameObject);
         }
     }
 }
