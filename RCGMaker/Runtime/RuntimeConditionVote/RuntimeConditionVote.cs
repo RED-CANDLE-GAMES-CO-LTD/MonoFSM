@@ -35,9 +35,29 @@ public interface IVoteChild
 public class RuntimeConditionVote : IRuntimeConditionImplementation
 {
     [ShowInPlayMode] private Object[] keys => votes.Keys.ToArray();
-    [ShowInPlayMode] private bool[] values => votes.Values.ToArray();
+    [ShowInPlayMode] private VoteRecord[] values => votes.Values.ToArray();
 
-    public Dictionary<Object, bool> votes = new();
+    public Dictionary<Object, VoteRecord> votes = new();
+    
+    [System.Serializable]
+    public struct VoteRecord
+    {
+  
+        private string _voterName;
+        private bool _vote;
+        
+        [ShowInPlayMode]
+        public string Voter => _voterName;
+        
+        [ShowInPlayMode]
+        public bool Vote => _vote;
+
+        public VoteRecord(Object voter,bool vote)
+        {
+            _voterName = voter.name;
+            _vote = vote;
+        }
+    }
 
     public ConditionType GetConditionType()
     {
@@ -71,7 +91,7 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
             m = voteChild.VoteOwner;
 
         //不需樣Add?
-        votes[m] = vote;
+        votes[m] = new VoteRecord(m,vote) ;
         // Debug.Log($"Vote {m} bool:{vote}");
         CheckResult();
     }
@@ -106,8 +126,8 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
             if (iterator.Current.Key == null)
             {
                 _toRemove.Add(iterator.Current.Key);
-                // votes.Remove(iterator.Current.Key);
-                Debug.LogError("null key !!????: 後面有被destroy的東西嗎？" + iterator.Current.Key);
+                
+                Debug.LogError("null key !!????: 後面有被destroy的東西嗎？" + iterator.Current.Value.Voter);
             }
         }
 
@@ -124,7 +144,7 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
             iterator = votes.GFIterator();
             while (iterator.MoveNext())
             {
-                if (iterator.Current.Value == false)
+                if (iterator.Current.Value.Vote == false)
                 {
                     newResult = false;
                     break;
@@ -144,7 +164,7 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
             iterator = votes.GFIterator();
             while (iterator.MoveNext())
             {
-                if (iterator.Current.Value != true) continue;
+                if (iterator.Current.Value.Vote != true) continue;
                 newResult = true;
                 break;
             }
