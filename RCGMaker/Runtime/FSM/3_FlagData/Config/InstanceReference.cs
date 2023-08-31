@@ -19,7 +19,9 @@ namespace RCGMaker.Core
         public override void FlagAwake(TestMode mode)
         {
             base.FlagAwake(mode);
-            _instance = null;
+            
+            //哭了 現在FlagAwake 比大家的Awake還晚（SaveManager非同步的關係Orz 清掉會錯）
+            //_instance = null;
         }
 
         [ShowInPlayMode]
@@ -32,12 +34,19 @@ namespace RCGMaker.Core
         {
             if (_instance == g)
                 _instance = null;
+            
+            //Debug.Log("UnRegister:"+this.name + ":"+g,g);
         }
 
         public void Register(GameObject g)
         {
             if (_instance == null)
+            {
+              //  Debug.Log("Register:"+this.name + ":"+g,g);
                 _instance = g;
+            }
+
+    
             else
             {
                 Debug.LogError("InstanceReference: instance is already set");
