@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEditor;
 #endif
 using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
+
 // using RCG.StateMachine;
 
 
@@ -46,10 +48,21 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         return states;
     }
 
-    [ShowInInspector, ReadOnly]
+
+    [PreviewInInspector]
     private GeneralState[] states;
-    [ReadOnly]
-    public AbstractStateTransition lastTransition;
+
+    [ReadOnly] private AbstractStateTransition lastTransition;
+
+    [PreviewInInspector] public AbstractStateTransition LastTransition => lastTransition;
+
+    public void SetLastTransition(AbstractStateTransition transition)
+    {
+        lastTransition = transition;
+    }
+
+    [PreviewInInspector] public GeneralState LastState => fsm?.LastState;
+    
     [ReadOnly]
     // public RCGEventBinding[] eventBindings; //TODO:這樣有比較好看懂嗎...？
     protected override void Awake()

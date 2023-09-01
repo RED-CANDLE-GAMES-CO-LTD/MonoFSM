@@ -130,7 +130,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     {
         context.ChangeState(this);
     }
-    public bool TransitionCheck(GeneralState toState, float timeOffset)
+
+    public bool TransitionCheck(GeneralState toState, float timeOffset, AbstractStateTransition fromTransition)
     {
         if (isActiveAndEnabled == false)
         {
@@ -143,7 +144,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (fsm.State == stateType) //現在是我才能
         {
             toState.EnterTimeOffset = timeOffset;
-
+            context.SetLastTransition(fromTransition);
             fsm.ChangeState(toState, CanSelfTransition);
 
             return true;

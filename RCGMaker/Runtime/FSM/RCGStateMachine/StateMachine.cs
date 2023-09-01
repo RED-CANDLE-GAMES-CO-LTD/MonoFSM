@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 using Object = System.Object;
 
@@ -464,6 +465,7 @@ namespace RCGMaker.Core
             ChangeState((T)nextState.state);
         }
 
+        
         public T LastState
         {
             get

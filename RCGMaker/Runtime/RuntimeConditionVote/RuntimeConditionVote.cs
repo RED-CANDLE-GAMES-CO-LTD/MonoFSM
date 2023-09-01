@@ -54,7 +54,9 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
 
         public VoteRecord(Object voter,bool vote)
         {
-            _voterName = voter.name;
+#if UNITY_EDITOR
+            _voterName = voter.name; //會有GC，UNITYEDITOR ONLY?
+#endif
             _vote = vote;
         }
     }

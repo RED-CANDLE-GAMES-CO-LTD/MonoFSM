@@ -10,7 +10,7 @@ using UnityEngine;
 public interface IState<in TState>
 {
     GeneralFSMContext Context { get; }
-    bool TransitionCheck(TState toState, float timeOffset);
+    bool TransitionCheck(TState toState, float timeOffset, AbstractStateTransition fromTransition = null);
 
     bool TransitionCheck(TState toState);
     // bool ForceTransition(GeneralState stateType);
@@ -59,10 +59,13 @@ public class AbstractStateTransition : AbstractBehaviour
     [PreviewInInspector]
     [AutoParent()] private IState<GeneralState> parentState;
 
-    [ShowInInspector] private bool IsSelfTransition => parentState == target.stateType;
-    private bool IsSelfTransitionNotValid => IsSelfTransition && !target.stateType.CanSelfTransition;
+    [ShowInInspector] private bool IsSelfTransition => parentState as GeneralState == target;
 
-    [InfoBox("SelfTransition不對", InfoMessageType.Error, "IsSelfTransitionNotValid")]
+    [InfoBox("SelfTransition要勾才會過", InfoMessageType.Error, "IsSelfTransitionNotValid")]
+    [ShowInInspector]
+    private bool IsSelfTransitionNotValid => target != null && IsSelfTransition && !target.CanSelfTransition;
+
+   
     public bool TransitionCheck(float timeOffset=0)
     {
 
@@ -88,10 +91,11 @@ public class AbstractStateTransition : AbstractBehaviour
                 return false;
             }
 
-            if (parentState.TransitionCheck(target.stateType, timeOffset))
+            if (parentState.TransitionCheck(target.stateType, timeOffset, this))
             {
                 //FIXME: 這個時間點會太晚嗎？
-                parentState.Context.lastTransition = this;
+                //會...
+                // parentState.Context.SetLastTransition(this);
             }
             return true;
         }
@@ -132,7 +136,7 @@ public class AbstractStateTransition : AbstractBehaviour
         {
             if (parentState == null)
                 return false;
-            return parentState.Context.lastTransition == this;
+            return parentState.Context.LastTransition == this;
         }
     }
 

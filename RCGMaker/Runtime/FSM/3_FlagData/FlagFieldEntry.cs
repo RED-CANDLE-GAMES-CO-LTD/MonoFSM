@@ -1,6 +1,7 @@
 //主要給condition用的
 
 using System;
+using Sirenix.OdinInspector;
 
 [Serializable]
 public class FlagFieldBoolEntry : FlagFieldEntry<bool>
@@ -9,6 +10,7 @@ public class FlagFieldBoolEntry : FlagFieldEntry<bool>
     // public string fieldName;
     public bool IsResultInverted = false;
 
+    [ShowInInspector]
     public bool isValid
     {
         get
@@ -47,10 +49,12 @@ public class FlagFieldBoolEntry : FlagFieldEntry<bool>
 public class FlagFieldEntry<T> //沒有flagBase的話就runtime自己建立runtime variable
 {
     // [Header("Flag Valid Entry")]
+    [InlineEditor()]
     public GameFlagBase flagBase;
     public string fieldName;
     private FlagField<T> _runtimeField; //如果需要的話才要new
 
+    [ShowInInspector]
     public T Value
     {
         get => field.CurrentValue;
