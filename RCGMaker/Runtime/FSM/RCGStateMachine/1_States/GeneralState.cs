@@ -144,6 +144,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (fsm.State == stateType) //現在是我才能
         {
             toState.EnterTimeOffset = timeOffset;
+            //每個地方都要call這個有點煩
             context.SetLastTransition(fromTransition);
             fsm.ChangeState(toState, CanSelfTransition);
 

@@ -93,7 +93,7 @@ public class AbstractStateTransition : AbstractBehaviour
 
             if (parentState.TransitionCheck(target.stateType, timeOffset, this))
             {
-                //FIXME: 這個時間點會太晚嗎？
+                //FIXME: 這個時間點會太晚嗎？ 會，這個回來就已經切到另一個state了
                 //會...
                 // parentState.Context.SetLastTransition(this);
             }
