@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -23,6 +24,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild
     [PropertyOrder(1)]
     [TabGroup("Condition", false, 1)]
     [Component(typeof(AbstractConditionComp), AddComponentAt.Children, "[Condition]")]
+    [PreviewInInspector]
     // #endif
     [AutoChildren(false, DepthOneOnly = true)] public AbstractConditionComp[] conditions;//condition 成立，才能做事
 

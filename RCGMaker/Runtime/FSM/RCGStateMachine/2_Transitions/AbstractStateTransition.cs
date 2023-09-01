@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -53,8 +54,15 @@ public class AbstractStateTransition : AbstractBehaviour
         TransitionCheck(0);
     }
 
-    [AutoParent()] private GeneralState bindingState;
+    // [AutoParent()] private GeneralState bindingState;
+
+    [PreviewInInspector]
     [AutoParent()] private IState<GeneralState> parentState;
+
+    [ShowInInspector] private bool IsSelfTransition => parentState == target.stateType;
+    private bool IsSelfTransitionNotValid => IsSelfTransition && !target.stateType.CanSelfTransition;
+
+    [InfoBox("SelfTransition不對", InfoMessageType.Error, "IsSelfTransitionNotValid")]
     public bool TransitionCheck(float timeOffset=0)
     {
 
@@ -122,9 +130,9 @@ public class AbstractStateTransition : AbstractBehaviour
     {
         get
         {
-            if (bindingState == null)
+            if (parentState == null)
                 return false;
-            return bindingState.Context.lastTransition == this;
+            return parentState.Context.lastTransition == this;
         }
     }
 

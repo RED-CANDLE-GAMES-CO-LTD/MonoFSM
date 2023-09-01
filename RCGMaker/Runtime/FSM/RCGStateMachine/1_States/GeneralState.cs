@@ -37,7 +37,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         }
     }
 
-    public bool CanSelfTransition = false;
+    public bool CanSelfTransition = false; //有必要擋嗎？
     [AutoParent] GeneralFSMContext context;
     public GeneralFSMContext Context => context;
 
