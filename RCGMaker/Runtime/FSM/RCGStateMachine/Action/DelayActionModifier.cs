@@ -7,4 +7,9 @@ using Sirenix.OdinInspector;
 public class DelayActionModifier : MonoBehaviour
 {
     public float delayTime = 1;
+
+    [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")]
+    private void AddAction()
+    {
+    }
 }
