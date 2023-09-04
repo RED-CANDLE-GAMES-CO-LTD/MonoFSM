@@ -37,6 +37,12 @@ public static class RCGTime
         return UniTask.Delay(TimeSpan.FromSeconds(second), SelfTimeScale ? DelayType.DeltaTime : DelayType.UnscaledDeltaTime);
     }
 
+    public static UniTask Delay(float second)
+    {
+        return UniTask.Delay(TimeSpan.FromSeconds(second), DelayType.DeltaTime);
+    }
+    
+
     private static float _timeScale = 1f;
 
     public static bool SelfTimeScale = false;
