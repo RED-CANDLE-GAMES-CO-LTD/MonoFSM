@@ -56,6 +56,8 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         {
 #if UNITY_EDITOR
             _voterName = voter.name; //會有GC，UNITYEDITOR ONLY?
+#else
+            _voterName = string.Empty;
 #endif
             _vote = vote;
         }

@@ -1,35 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Mono.CSharp;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
 
 public static class RCGLifeCycle
 {
     public static void DontDestroyForever(GameObject gameObject)
     {
-        GameObject.DontDestroyOnLoad(gameObject);
+        Object.DontDestroyOnLoad(gameObject);
         DontDestroyObjList.Add(gameObject);
         gameObject.name += " (RCGLifeCycle)";
     }
 
-    private static List<GameObject> DontDestroyObjList = new List<GameObject>();
+    private static readonly List<GameObject> DontDestroyObjList = new();
 
-    public static bool CanDestroy(GameObject g)
-    {
-        if (DontDestroyObjList.Contains(g))
-        {
-            return false;
-        }
-        return true;
-    }
+    public static bool CanDestroy(GameObject g) 
+        => !DontDestroyObjList.Contains(g);
 }
 
 public class DestroyAllGameObjects : MonoBehaviour
 {
-    
-    
     public static bool DestroyingAll;
 
     private void Start() 
@@ -40,11 +30,10 @@ public class DestroyAllGameObjects : MonoBehaviour
         DestroyingAll = true;
         Time.timeScale = 1;
         // yield return new WaitForSeconds(1f);
-
-
+        
         //母災為啥要叫兩次才會清乾淨
         // yield return new WaitForSeconds(0.1f);
-        yield return DestroyAll();
+        yield return _DestroyAll();
         // yield return new WaitForSeconds(0.1f);
         CheckList();
 
@@ -63,7 +52,7 @@ public class DestroyAllGameObjects : MonoBehaviour
             {
                 var obj = allObjects[i];
                 
-                if(this.CanDestroy(obj) == false)
+                if(_CanDestroy(obj) == false)
                     continue;
 
                 Debug.LogError("不該有其他東西！：" +obj.name);
@@ -75,25 +64,15 @@ public class DestroyAllGameObjects : MonoBehaviour
         }
     }
 
-
-    public void BackToTitle() 
-        => SceneManager.LoadScene("TitleScreenMenu");
-
-    private static GameObject FindSteamAPIObj() 
-        => GameObject.Find("SteamAPI");
-
-    public IEnumerator DestroyAll()
+    private IEnumerator _DestroyAll()
     {
-        var gdkRunner = GameObject.Find("GdkRunner");
-      
         GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
 
         Debug.Log("Destroying Everything");
-        var SteamAPIOb = FindSteamAPIObj();
 
         foreach (var go in allObjects)
         {
-            if (CanDestroy(go)) //把其他人都刪光光
+            if (_CanDestroy(go)) //把其他人都刪光光
             {
                 go.SetActive(false);
             }
@@ -104,7 +83,8 @@ public class DestroyAllGameObjects : MonoBehaviour
         }
 
         foreach (var go in allObjects)
-            if (CanDestroy(go))
+        {
+            if (_CanDestroy(go))
             {
                 Destroy(go);
             }
@@ -112,17 +92,23 @@ public class DestroyAllGameObjects : MonoBehaviour
             {
                 Debug.Log("SteamAPI Not Destroyed");
             }
+        }
+
         return null;
     }
 
-    public bool CanDestroy(GameObject g)
+    private bool _CanDestroy(GameObject g)
     {
         if (g == null)
             return false;
         
-        if (g == this.gameObject)
+        if (g == gameObject)
             return false;
         
         return RCGLifeCycle.CanDestroy(g);
     }
+    
+    
+    public void BackToTitle() 
+        => SceneManager.LoadScene("TitleScreenMenu");
 }
