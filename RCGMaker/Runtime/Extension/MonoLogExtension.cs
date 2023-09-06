@@ -188,6 +188,50 @@ public static class MonoLogExtension
         }
 #endif
     }
+
+    #region LogError T1~T3
+
+    [HideInCallstack]
+    [Conditional("RCG_DEV")]
+    public static void
+        LogError<T1, T2, T3>(this Component go, T1 s1, T2 s2, T3 s3) //where T : Component
+    {
+#if RCG_DEV
+        var (isLogging, provider) = IsLoggingCheck(go);
+        if (isLogging)
+        {
+            // var fullStr = string.Join(",", items);
+            var result = ZString.Concat("[", provider, go.GetInstanceID(), "]\n", s1, " ", s2, " ", s3);
+            FinalLog(go, result, provider, LogType.Error);
+        }
+#endif
+    }
+
+    #endregion
+
+    #region LogError T1~T4
+
+    [HideInCallstack]
+    [Conditional("RCG_DEV")]
+    public static void
+        LogError<T1, T2, T3, T4>(this Component go, T1 s1, T2 s2, T3 s3, T4 s4) //where T : Component
+    {
+#if RCG_DEV
+        var (isLogging, provider) = IsLoggingCheck(go);
+        if (isLogging)
+        {
+            // var fullStr = string.Join(",", items);
+            var result = ZString.Concat("[", provider, go.GetInstanceID(), "]\n", s1, " ", s2, " ", s3, " ", s4);
+            FinalLog(go, result, provider, LogType.Error);
+        }
+#endif
+    }
+
+    #endregion
+    
+    
+
+
     [HideInCallstack]
     private static void FinalLog(Component go, string message, DebugProvider provider, LogType type = LogType.Log)
     {
