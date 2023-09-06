@@ -51,14 +51,15 @@ namespace RCGMaker.Core
             return fsm;
         }
 
-        void FixedUpdate()
-        {
-            for (int i = 0; i < stateMachineList.Count; i++)
-            {
-                var fsm = stateMachineList[i];
-                if (!fsm.IsInTransition && fsm.Component.enabled) fsm.CurrentStateMap.FixedUpdate();
-            }
-        }
+        //應該沒人在用吧
+        // void FixedUpdate()
+        // {
+        //     for (int i = 0; i < stateMachineList.Count; i++)
+        //     {
+        //         var fsm = stateMachineList[i];
+        //         if (!fsm.IsInTransition && fsm.Component.enabled) fsm.CurrentStateMap.FixedUpdate();
+        //     }
+        // }
 
         void Update()
         {

@@ -216,18 +216,8 @@ namespace RCGMaker.Core
                         };
 
 
-
-                        targetState.Update = () =>
-                        {
-                            stateBehavior.ResolveProxy().OnStateUpdate();
-
-                            // if (stateBehavior.ResolveProxy().stateEvents.StateUpdateEvent != null)
-                            //     stateBehavior.ResolveProxy().stateEvents.StateUpdateEvent.Invoke();
-                        };
-                        targetState.SpriteUpdate = () =>
-                        {
-                            stateBehavior.ResolveProxy().OnSpriteUpdate();
-                        };
+                        targetState.Update = stateBehavior.ResolveProxy().OnStateUpdate;
+                        targetState.SpriteUpdate = () => stateBehavior.ResolveProxy().OnSpriteUpdate();
 
                         targetState.LateUpdate = () =>
                         {
