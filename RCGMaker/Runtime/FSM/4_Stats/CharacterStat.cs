@@ -125,24 +125,28 @@ public class CharacterStat //這個改名會爛掉嗎?
 
     public virtual bool RemoveAllModifiersFromSource(IStatModifierOwner source)
     {
-        var numRemovals = statModifiers.RemoveAll(mod => mod.Source == source);
-
-        if (numRemovals > 0)
+        //check remove from back to front of statModifiers
+        for (var i = statModifiers.Count - 1; i >= 0; i--)
         {
-            isDirty = true;
-            return true;
+            if (statModifiers[i].Source == (ScriptableObject)source)
+            {
+                statModifiers.RemoveAt(i);
+                isDirty = true;
+            }
         }
-        return false;
+
+        return isDirty;
     }
 
-    protected virtual int CompareModifierOrder(StatModifier a, StatModifier b)
-    {
-        if (a.Order < b.Order)
-            return -1;
-        else if (a.Order > b.Order)
-            return 1;
-        return 0; //if (a.Order == b.Order)
-    }
+    private Comparison<StatModifier> _modifierOrder = (a, b) => a.Order < b.Order ? -1 : a.Order > b.Order ? 1 : 0;
+    // protected virtual int CompareModifierOrder(StatModifier a, StatModifier b)
+    // {
+    //     if (a.Order < b.Order)
+    //         return -1;
+    //     else if (a.Order > b.Order)
+    //         return 1;
+    //     return 0; //if (a.Order == b.Order)
+    // }
 
     // Calculate FinalValue For PermanentModifiers Only
 
@@ -186,14 +190,14 @@ public class CharacterStat //這個改名會爛掉嗎?
     protected virtual float CalculateFinalValue()
     {
         // Debug.Log("Cal Value:" + BaseValue + "," + statModifiers.Count);
-        statModifiers.Sort(CompareModifierOrder);
+        statModifiers.Sort(_modifierOrder);
         return CalValueAfterModifier(statModifiers);
     }
 
     public virtual float CalculateFinalValueWithoutTemporary()
     {
         var modifiers = statModifiers.FindAll(x => x.DurationType != StatModDurationType.Temporary);
-        modifiers.Sort(CompareModifierOrder);
+        modifiers.Sort(_modifierOrder);
         return CalValueAfterModifier(modifiers);
     }
 }

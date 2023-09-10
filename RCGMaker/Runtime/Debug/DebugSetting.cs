@@ -130,24 +130,24 @@ namespace RCGSetting
 
         public static bool PlayerOneHitKill
         {
-// #if UNITY_EDITOR
+#if RCG_DEV
             get => BoolProperties[nameof(PlayerOneHitKill)];
             set => SetBoolProperty(nameof(PlayerOneHitKill), value);
-// #else
-//             get=>false;
-//             set{}
-// #endif
+#else
+             get=>false;
+             set{}
+#endif
         }
 
         public static bool IsPlayerInfiniteMana
         {
-// #if UNITY_EDITOR
+#if RCG_DEV
             get => BoolProperties[nameof(IsPlayerInfiniteMana)];
             set => SetBoolProperty(nameof(IsPlayerInfiniteMana), value);
-// #else
-//             get=>false;
-//             set{}
-// #endif
+#else
+             get=>false;
+             set{}
+#endif
         }
 
 

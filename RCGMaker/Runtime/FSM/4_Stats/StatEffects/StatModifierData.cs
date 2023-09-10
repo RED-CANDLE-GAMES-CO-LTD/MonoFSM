@@ -23,7 +23,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     {
         if (modifier == null)
         {
-            Debug.Log("[Apply StatModifierEntry]: " + source, source as ScriptableObject);
+            // Debug.Log("[Apply StatModifierEntry]: " + source, source as ScriptableObject);
             modifier = new StatModifier(value, modType, source)
             {
                 DurationType = DurationType

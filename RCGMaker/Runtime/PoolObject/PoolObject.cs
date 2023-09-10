@@ -199,17 +199,24 @@ public class PoolObject : MonoBehaviour//, IResetter
     {
         if (ChickResetParametterInit())
         {
-            this.transform.position = initPosition;
-            this.transform.rotation = initRotation;
-            this.transform.SetParent(initParent);
-            this.transform.localScale = initlocalScale;
+            var transform1 = transform;
+            transform1.SetParent(initParent);
+            transform1.localPosition = initPosition;
+            transform1.localRotation = initRotation;
+
+            transform1.localScale = initlocalScale;
         }
     }
 
     public void OverrideTransformSetting(Vector3 p = default(Vector3), Quaternion q = default(Quaternion), Transform t = null, Vector3 scale = default(Vector3))
     {
-        initPosition = p;
-        initRotation = q;
+        var transform1 = transform;
+        transform1.parent = t;
+        transform1.position = p;
+        transform1.rotation = q;
+
+        initPosition = transform1.localPosition;
+        initRotation = transform1.localRotation;
         initParent = t;
         initlocalScale = scale;
         isResetParametterInit = true;
@@ -231,10 +238,10 @@ public class PoolObject : MonoBehaviour//, IResetter
         if (isResetParametterInit)
             return true;
 
-        initPosition = this.transform.position;
-        initRotation = this.transform.rotation;
-        initParent = this.transform.parent;
-        initlocalScale = this.transform.localScale;
+        initPosition = transform.localPosition;
+        initRotation = transform.localRotation;
+        initParent = transform.parent;
+        initlocalScale = transform.localScale;
 
         isResetParametterInit = true;
 

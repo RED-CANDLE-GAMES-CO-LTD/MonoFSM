@@ -41,6 +41,11 @@ public static class RCGTime
     {
         return UniTask.Delay(TimeSpan.FromSeconds(second), DelayType.DeltaTime);
     }
+
+    public static UniTask DelayFrame(this MonoBehaviour mb, int frameCount)
+    {
+        return UniTask.DelayFrame(frameCount, cancellationToken: mb.GetCancellationTokenOnDestroy());
+    }
     
 
     private static float _timeScale = 1f;

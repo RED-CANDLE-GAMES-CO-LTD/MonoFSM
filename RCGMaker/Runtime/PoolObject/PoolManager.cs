@@ -150,7 +150,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     private bool _poolCreated = false;
 
     public GameObject BorrowOrInstantiate(GameObject obj, Vector3 position = default, Quaternion rotation = default,
-        Transform parent = null, BeforeActiveHandler handler = null)
+        Transform parent = null, Action<PoolObject> handler = null)
     {
         var hasRequest = obj.TryGetComponent<PoolRequest>(out PoolRequest request);
         var hasPoolObj = obj.TryGetComponent<PoolObject>(out var poolObj);
@@ -171,7 +171,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     }
 
     public T BorrowOrInstantiate<T>(T obj, Vector3 position = default, Quaternion rotation = default,
-        Transform parent = null, BeforeActiveHandler handler = null) where T : MonoBehaviour
+        Transform parent = null, Action<PoolObject> handler = null) where T : MonoBehaviour
     {
         var poolObj = obj.GetComponent<PoolObject>();
         if (poolObj != null)
@@ -186,7 +186,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     }
 
     private PoolObject Borrow(PoolObject prefab, Vector3 position, Quaternion rotation, Transform parent = null,
-        BeforeActiveHandler handler = null)
+        Action<PoolObject> handler = null)
     {
         if (IsReady == false) Debug.LogError("太早跟pool拿東西了，危險。" + prefab, prefab);
 
@@ -196,14 +196,15 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             prefab.TransformReset();
             prefab.PoolObjecResetAndStart();
 
-            prefab.transform.parent = parent;
-            prefab.transform.rotation = rotation;
-            prefab.transform.position = position;
+            var transform1 = prefab.transform;
+            transform1.parent = parent;
+            transform1.rotation = rotation;
+            transform1.position = position;
 
             prefab.gameObject.SetActive(true);
             prefab.ResetAnim();
 
-            Debug.Log("Use Scene As Pool");
+            // Debug.Log("Use Scene As Pool");
 
             return prefab;
         }
@@ -463,7 +464,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
 
         public PoolObject Borrow(Vector3 position, Quaternion rotation, Transform parent = null,
-            BeforeActiveHandler beforeHandler = null)
+            Action<PoolObject> beforeHandler = null)
         {
             if (DisabledObjs.Count == 0)
                 AddAObject();
@@ -478,6 +479,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
                 // 這會影響設定黨 樹上有結構
 
+                //FIXME: 為什麼要做這件事？？
                 obj.OverrideTransformSetting(position, rotation, parent, obj.OriginalPrefab.transform.localScale);
                 obj.TransformReset();
 
