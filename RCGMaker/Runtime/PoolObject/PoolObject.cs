@@ -211,7 +211,7 @@ public class PoolObject : MonoBehaviour//, IResetter
     public void OverrideTransformSetting(Vector3 p = default(Vector3), Quaternion q = default(Quaternion), Transform t = null, Vector3 scale = default(Vector3))
     {
         var transform1 = transform;
-        transform1.parent = t;
+        transform1.SetParent(t);
         transform1.position = p;
         transform1.rotation = q;
 
