@@ -62,7 +62,7 @@ public abstract class SingletonBehaviour<T> : MonoBehaviour where T : MonoBehavi
     public static bool IsAvailable() //不要直接叫Instance，會反而initialize
     {
         //FIXME: 不要在拿Instance的時候，initialize就好了
-        
+        // return true;
         return ApplicationIsQuiting == false && DestroyAllGameObjects.DestroyingAll == false && _isInstanceCreated ;
     }
 

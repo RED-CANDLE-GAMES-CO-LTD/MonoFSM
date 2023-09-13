@@ -16,7 +16,7 @@ public static class MonoLogExtension
     [InitializeOnEnterPlayMode]
     private static void OnEnterPlaymodeInEditor(EnterPlayModeOptions options)
     {
-        Debug.Log("Entering PlayMode");
+        // Debug.Log("Entering PlayMode");
         DebugProviderDict.Clear();
     }
 #endif

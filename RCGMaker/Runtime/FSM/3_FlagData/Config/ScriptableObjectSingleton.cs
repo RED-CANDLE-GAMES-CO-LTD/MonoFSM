@@ -11,10 +11,10 @@ public class ScriptableObjectConfig<T> : ScriptableObjectSingleton<T> where T : 
 
 //singleton SO, 有instance
 //Singleton config，要放到Resources的Config資料夾裡
-public class ScriptableObjectSingleton<T> : ScriptableObject, ISelfValidator where T : ScriptableObject
+public class ScriptableObjectSingleton<T> : ScriptableObject where T : ScriptableObject
 {
-    public void Validate(SelfValidationResult result) 
-        => this.AssetInFolderValidate("Resources/Configs", result);
+    // public void Validate(SelfValidationResult result) 
+    //     => this.AssetInFolderValidate("Resources/Configs", result);
 
     private static T s_Instance;
     private static bool s_isLoaded;
@@ -25,7 +25,9 @@ public class ScriptableObjectSingleton<T> : ScriptableObject, ISelfValidator whe
         {
             if (!s_isLoaded)
             {
+                //FIXME: 用Resource會悲劇, asset duplication問題，不可以reference污染
                 s_Instance = Resources.Load<T>(GetPath());
+                
                 s_isLoaded = true;
             }
 
@@ -33,12 +35,17 @@ public class ScriptableObjectSingleton<T> : ScriptableObject, ISelfValidator whe
         }
     }
 
+    public void ManuallyAssign()
+    {
+        s_Instance = this as T;
+        s_isLoaded = true;
+    }
     private static string GetPath() 
         => typeof(T).Name switch
         {
             "RCGCoreConfig" => "Configs/Build_RCGCoreConfig",
             "DropItemCollection" => "Configs/Drop Collection Config",
-            "GameConfig" => "Configs/GameConfig Production",
+            // "GameConfig" => "Configs/GameConfig Production",
             "MonsterGlobalConfig" => "Configs/MonsterGlobalConfig",
             "SceneTable" => "Configs/SceneTable",
             "TestModeGameFlag" => "Configs/TestModeGameFlag",
