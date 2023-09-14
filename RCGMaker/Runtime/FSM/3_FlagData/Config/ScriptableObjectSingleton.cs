@@ -22,15 +22,24 @@ public class ScriptableObjectSingleton<T> : ScriptableObject where T : Scriptabl
     public static T Instance
     {
         get
-        {
+        {   
             if (!s_isLoaded)
             {
                 //FIXME: 用Resource會悲劇, asset duplication問題，不可以reference污染
+// #if UNITY_EDITOR
+//                 if (Application.isPlaying == false) //GameConfig在playmode下要用AssetDatabase, 搬出去了
+//                     s_Instance = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(GetPath());
+//                 else //其他人還在用Resources.Load
+// #endif
                 s_Instance = Resources.Load<T>(GetPath());
-                
                 s_isLoaded = true;
             }
 
+            // if (Application.isPlaying == false && s_Instance == null)
+            // {
+            //     // Debug.LogError("ScriptableObjectSingleton: " + typeof(T).Name + " is not loaded");
+            //     s_Instance = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(GetPath());
+            // }
             return s_Instance;
         }
     }
@@ -45,7 +54,7 @@ public class ScriptableObjectSingleton<T> : ScriptableObject where T : Scriptabl
         {
             "RCGCoreConfig" => "Configs/Build_RCGCoreConfig",
             "DropItemCollection" => "Configs/Drop Collection Config",
-            // "GameConfig" => "Configs/GameConfig Production",
+            "GameConfig" => "Configs/GameConfig",
             "MonsterGlobalConfig" => "Configs/MonsterGlobalConfig",
             "SceneTable" => "Configs/SceneTable",
             "TestModeGameFlag" => "Configs/TestModeGameFlag",
