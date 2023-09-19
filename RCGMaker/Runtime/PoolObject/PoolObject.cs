@@ -364,7 +364,7 @@ public class PoolObject : MonoBehaviour//, IResetter
 
         if (_bindingPoolManager == null)
         {
-            this.Log("[PoolObject] return object to pool failed", this.name);
+            this.Log("[PoolObject] return object to pool failed", this);
             gameObject.SetActive(false);
 
             if (OnReturnEvent != null)
