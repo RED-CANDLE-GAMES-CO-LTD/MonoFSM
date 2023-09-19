@@ -1,8 +1,10 @@
 using System;
 using RCGMaker.Core.Attributes;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.Animations;
+#endif
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Serialization;
@@ -11,7 +13,7 @@ public class AddressableAnimator : MonoBehaviour
 {
     [PreviewInInspector] [SerializeField] private Animator _animator;
     public AssetReference AnimatorControllerReference;
-
+#if UNITY_EDITOR
     private void OnValidate()
     {
         //Create Addressable for AnimatorController
@@ -23,9 +25,10 @@ public class AddressableAnimator : MonoBehaviour
             AddressableAssetSettingsDefaultObject.Settings.DefaultGroup);
         AnimatorControllerReference = new AssetReference(guid); //這樣就可以嗎？
     }
+#endif
 
     private void Load() //Camera Culling到的時候才Load
     {
-        _animator.runtimeAnimatorController = AnimatorControllerReference.Asset as AnimatorController;
+        _animator.runtimeAnimatorController = AnimatorControllerReference.Asset as RuntimeAnimatorController;
     }
 }
