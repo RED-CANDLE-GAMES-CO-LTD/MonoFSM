@@ -67,7 +67,7 @@ public class DestroyAllGameObjects : MonoBehaviour
     private IEnumerator _DestroyAll()
     {
         GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
-
+        
         Debug.Log("Destroying Everything");
 
         foreach (var go in allObjects)
@@ -82,7 +82,7 @@ public class DestroyAllGameObjects : MonoBehaviour
             }
         }
 
-        foreach (var go in allObjects)
+        foreach (var go in allObjects) //是不是不該全刪，只手動刪掉該刪的就好(GameCore, application core)？只刪gamecore?
         {
             if (_CanDestroy(go))
             {
@@ -104,7 +104,8 @@ public class DestroyAllGameObjects : MonoBehaviour
         
         if (g == gameObject)
             return false;
-        
+        if (g.name == "PrimeTweenManager")
+            return false;
         return RCGLifeCycle.CanDestroy(g);
     }
     
