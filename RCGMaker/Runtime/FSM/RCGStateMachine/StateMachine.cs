@@ -221,7 +221,7 @@ namespace RCGMaker.Core
 
                         targetState.LateUpdate = () =>
                         {
-                            stateBehavior.ResolveProxy().OnStateLateUpdate();
+                            // stateBehavior.ResolveProxy().OnStateLateUpdate();
 
                             // if (stateBehavior.ResolveProxy().stateEvents.StateLateUpdateEvent != null)
                             //     stateBehavior.ResolveProxy().stateEvents.StateLateUpdateEvent.Invoke();

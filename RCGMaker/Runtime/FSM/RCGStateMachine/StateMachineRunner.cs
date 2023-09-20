@@ -89,14 +89,13 @@ namespace RCGMaker.Core
 
         void LateUpdate()
         {
-            for (int i = 0; i < stateMachineList.Count; i++)
+            foreach (var fsm in stateMachineList)
             {
-                var fsm = stateMachineList[i];
                 if (!fsm.IsInTransition && fsm.Component.enabled)
                 {
 
                     fsm.CurrentStateMap.SpriteUpdate();
-                    fsm.CurrentStateMap.LateUpdate();
+                    // fsm.CurrentStateMap.LateUpdate();
                 }
             }
         }
