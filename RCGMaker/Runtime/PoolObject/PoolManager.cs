@@ -511,6 +511,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             //因為開著他會跑Awake 關起來才不會跑
 
             var obj = Instantiate(_prefab, Vector3.zero, Quaternion.identity);
+            obj.SetBindingPool(_poolManager);
             PreparePoolObjectImplementation(obj);
             //FIXME: 為什麼要關著prepare? 
             //這邊會跑auto
@@ -522,7 +523,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             obj.gameObject.SetActive(false);
 
             obj.OriginalPrefab = _prefab;
-            obj.SetBindingPool(_poolManager);
+
             AllObjs.Add(obj);
 
             _prefab.gameObject.SetActive(originPrefabActive);
