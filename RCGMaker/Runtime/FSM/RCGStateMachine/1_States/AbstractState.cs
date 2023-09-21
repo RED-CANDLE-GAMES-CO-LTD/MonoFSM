@@ -14,15 +14,15 @@ namespace RCGMaker.Core
         [HideInInspector] [Required] public T stateType;
         public float statusTimer = 0;
         [Header("State CoolDown")] public float StateCoolDown = 0.0f;
-        public float CurrentCoolDown = 0.0f;
+        // public float CurrentCoolDown = 0.0f;
 
-        private void Update()
-        {
-            if (CurrentCoolDown > 0)
-            {
-                CurrentCoolDown -= Time.deltaTime;
-            }
-        }
+        // private void Update()
+        // {
+        //     if (CurrentCoolDown > 0)
+        //     {
+        //         CurrentCoolDown -= Time.deltaTime;
+        //     }
+        // }
 
         protected MonoBehaviour _context;
 
@@ -64,7 +64,7 @@ namespace RCGMaker.Core
 
         public virtual void OnStateExit()
         {
-            CurrentCoolDown = StateCoolDown;
+            // CurrentCoolDown = StateCoolDown;
             statusTimer = -statusTimer;
         }
 

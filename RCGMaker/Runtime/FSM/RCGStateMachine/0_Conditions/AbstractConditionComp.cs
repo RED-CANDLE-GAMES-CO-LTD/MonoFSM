@@ -17,15 +17,15 @@ public static class ConditionHelper
 {
     public static bool IsAllValid(this AbstractConditionComp[] conditions)
     {
-        if (conditions == null)
+        if (conditions == null || conditions.Length == 0)
             return true;
-        for (var i = 0; i < conditions.Length; i++)
+        foreach (var condition in conditions)
         {
-            if (conditions[i] == null)
+            if (condition == null)
                 continue;
-            if (conditions[i].gameObject.activeSelf == false) //只看自己，可能是parent有人關
+            if (condition.gameObject.activeSelf == false) //只看自己，可能是parent有人關
                 continue;
-            if (conditions[i].FinalResult == false)
+            if (condition.FinalResult == false)
             {
                 return false;
             }
