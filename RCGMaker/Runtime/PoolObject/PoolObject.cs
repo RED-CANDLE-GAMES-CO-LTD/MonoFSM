@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -254,7 +256,11 @@ public class PoolObject : MonoBehaviour//, IResetter
     {
         onScene = true;
         if (UseAutoDestroy)
-            autoDestroyTimer = AutoDestroyTime;
+        {
+            RegisterDestroy().Forget();
+            // autoDestroyTimer = AutoDestroyTime;
+        }
+            
 
         // EnterLevelResetAndStart();
     }
@@ -424,17 +430,26 @@ public class PoolObject : MonoBehaviour//, IResetter
 
     private bool onScene = false;
 
-    public void Update()
+    private async UniTaskVoid RegisterDestroy()
     {
         if (UseAutoDestroy)
         {
-            autoDestroyTimer -= Time.deltaTime;
-            if (autoDestroyTimer <= 0)
-            {
-                this.ReturnToPool();
-            }
+            await this.Delay(AutoDestroyTime);
+            ReturnToPool();
         }
     }
+
+    // public void Update()
+    // {
+    //     if (UseAutoDestroy)
+    //     {
+    //         autoDestroyTimer -= Time.deltaTime;
+    //         if (autoDestroyTimer <= 0)
+    //         {
+    //             this.ReturnToPool();
+    //         }
+    //     }
+    // }
 
     //一開始就在場景上的物件
     public bool UseSceneAsPool => this.gameObject.scene.name != null && OriginalPrefab == null;
