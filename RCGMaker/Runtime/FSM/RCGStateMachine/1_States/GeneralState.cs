@@ -92,9 +92,10 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateUpdate()
     {
         base.OnStateUpdate();
-        if (actions == null) return;
-        foreach (var action in actions)
+        // if (actions == null) return;
+        for (var index = actions.Length - 1; index >= 0; index--)
         {
+            var action = actions[index];
             if (action.isActiveAndEnabled)
                 action.OnActionUpdate();
         }

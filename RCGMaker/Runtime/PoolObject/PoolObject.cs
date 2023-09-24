@@ -361,7 +361,7 @@ public class PoolObject : MonoBehaviour//, IResetter
         if (OnReturnEvent != null)
         {
             OnReturnEvent.Invoke(this);
-            OnReturnEvent.RemoveAllListeners();
+            OnReturnEvent.RemoveAllListeners(); //FIXME: 這個會GC!
         } 
     }
 

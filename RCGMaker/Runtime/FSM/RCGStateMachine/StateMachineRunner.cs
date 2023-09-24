@@ -30,8 +30,19 @@ namespace RCGMaker.Core
             var fsm = new StateMachine<T>(this, component, stateMapping);
 
             stateMachineList.Add(fsm);
-
+         
             return fsm;
+        }
+
+        private void OnEnable()
+        {
+            StateMachineManager.Instance.Register(this);
+        }
+
+        private void OnDisable()
+        {
+            if (StateMachineManager.IsAvailable())
+                StateMachineManager.Instance.Unregister(this);
         }
 
         /// <summary>
@@ -47,7 +58,6 @@ namespace RCGMaker.Core
             var fsm = Initialize<T>(component, stateMapping);
 
             fsm.ChangeState(startState);
-
             return fsm;
         }
 
@@ -61,10 +71,9 @@ namespace RCGMaker.Core
         //     }
         // }
 
-        void Update()
+        public void UpdateFromManager()
         {
-
-            for (int i = 0; i < stateMachineList.Count; i++)
+            for (var i = stateMachineList.Count - 1; i >= 0; i--)
             {
                 var fsm = stateMachineList[i];
                 //暫停不跑
@@ -78,8 +87,6 @@ namespace RCGMaker.Core
                         // if (showCurrentState)
                         //     currentState = fsm.CurrentStateMap.state.ToString();
 #endif
-
-
                     }
                 }
 
@@ -87,7 +94,7 @@ namespace RCGMaker.Core
             }
         }
 
-        void LateUpdate()
+        public void LateUpdateFromManager()
         {
             foreach (var fsm in stateMachineList)
             {

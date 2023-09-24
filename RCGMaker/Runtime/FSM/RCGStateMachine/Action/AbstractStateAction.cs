@@ -13,7 +13,8 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild
         get
         {
             if (_delay) return false;
-
+            if (conditions.Length == 0)
+                return true;
             return conditions.IsAllValid();
         }
     }
@@ -81,7 +82,6 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild
     protected abstract void OnStateEnterImplement();
     public void OnActionUpdate()
     {
-
         if (IsValid)
             OnStateUpdateImplement();
     }

@@ -194,11 +194,13 @@ public class CharacterStat //這個改名會爛掉嗎?
         return CalValueAfterModifier(statModifiers);
     }
 
+    [PreviewInInspector] [NonSerialized] private List<StatModifier> _staticStatModifiers = new();
+
     public virtual float CalculateFinalValueWithoutTemporary()
     {
-        var modifiers = statModifiers.FindAll(x => x.DurationType != StatModDurationType.Temporary);
-        modifiers.Sort(_modifierOrder);
-        return CalValueAfterModifier(modifiers);
+        _staticStatModifiers = statModifiers.FindAll(x => x.DurationType != StatModDurationType.Temporary);
+        _staticStatModifiers.Sort(_modifierOrder);
+        return CalValueAfterModifier(_staticStatModifiers);
     }
 }
 
