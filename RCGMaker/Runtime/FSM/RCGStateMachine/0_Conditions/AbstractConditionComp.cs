@@ -65,6 +65,7 @@ public abstract class AbstractConditionComp : MonoBehaviour
     {
         get
         {
+
             if (Application.isPlaying == false)
                 return false;
 #if UNITY_EDITOR
@@ -73,11 +74,15 @@ public abstract class AbstractConditionComp : MonoBehaviour
             if (debugConditionResultOverrider != null && IsDebugMode)
                 return debugConditionResultOverrider.OverrideResultValue;
 #endif
+            //之前都沒有...
+            // if (isActiveAndEnabled == false)
+            //     return false;
+            //FIXME: 關著表示不判...
             
             if (FinalResultInverted)
                 return !isValid;
-            else
-                return isValid;
+
+            return isValid;
         }
     }
 
