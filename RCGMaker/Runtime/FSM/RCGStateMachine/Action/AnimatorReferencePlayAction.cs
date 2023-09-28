@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
-    public class AnimatorReferencePlayAction : AnimatorPlayAction
+    public class AnimatorReferencePlayAction : AnimatorPlayAction,IResetter
 
     {
         [PropertyOrder(-1)] public InstanceReference animatorReference;
@@ -13,10 +13,15 @@ namespace RCGMaker.Core
             animator = animatorReference.prefab.GetComponent<Animator>();
         }
 
-        protected override void Awake()
+        public void EnterLevelReset()
         {
-            base.Awake();
-            animator = animatorReference.instance.GetComponent<Animator>();
+            if( animatorReference.instance!=null)
+             animator = animatorReference.instance.GetComponent<Animator>();
+        }
+
+        public void ExitLevelAndDestroy()
+        {
+
         }
     }
 }
