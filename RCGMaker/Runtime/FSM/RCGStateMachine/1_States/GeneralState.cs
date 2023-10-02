@@ -212,8 +212,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     private void OnValidate()
     {
         stateType = this;
-        GetComponentsInChildren<AbstractStateTransition>(true, transitions);
-        // transitions.RemoveAllNull();
+        GetComponentsInChildren(true, transitions);
+        
     }
 
     // #if UNITY_EDITOR
