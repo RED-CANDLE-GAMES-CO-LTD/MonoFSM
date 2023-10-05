@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using RCGMaker.Core.Attributes;
@@ -254,6 +255,8 @@ public class PoolObject : MonoBehaviour//, IResetter
 
     public void OnBorrowFromPool(PoolManager manager)
     {
+       
+        
         onScene = true;
         if (UseAutoDestroy)
         {
@@ -265,12 +268,15 @@ public class PoolObject : MonoBehaviour//, IResetter
         // EnterLevelResetAndStart();
     }
 
+    //Shooter 想要變更Destory 設定
     public void OverrideDestroyTime(float time)
     {
+        RaisePoolObjectReturnEvent();
+        
         UseAutoDestroy = true;
-
         AutoDestroyTime = time;
-        autoDestroyTimer = AutoDestroyTime;
+
+        RegisterDestroy().Forget();
     }
     public void PoolObjecResetAndStart() //只有收進去pool的才需要這個
     {
@@ -328,6 +334,7 @@ public class PoolObject : MonoBehaviour//, IResetter
 
     public void OnReturnToPool(PoolManager manager)
     {
+        RaisePoolObjectReturnEvent();
         CheckList();
         // needResetAnim = true;
         this.ResetAnim();
@@ -434,10 +441,23 @@ public class PoolObject : MonoBehaviour//, IResetter
     {
         if (UseAutoDestroy)
         {
-            await this.Delay(AutoDestroyTime);
+            _poolObjectReturnTokenSource = new CancellationTokenSource();
+            await this.Delay(AutoDestroyTime,_poolObjectReturnTokenSource.Token);
             ReturnToPool();
         }
     }
+
+    private void RaisePoolObjectReturnEvent()
+    {
+        if (_poolObjectReturnTokenSource != null)
+        {
+            _poolObjectReturnTokenSource.Cancel();
+            _poolObjectReturnTokenSource.Dispose();
+            _poolObjectReturnTokenSource = null;
+        }
+    }
+
+    private CancellationTokenSource _poolObjectReturnTokenSource;
 
     // public void Update()
     // {
@@ -456,11 +476,10 @@ public class PoolObject : MonoBehaviour//, IResetter
 
     public bool UseAutoDestroy = false;
     public float AutoDestroyTime = 0;
-    private float autoDestroyTimer = 0;
-
 
     private void OnDestroy()
     {
+        RaisePoolObjectReturnEvent();
         //被別人越權刪除前 跟pool講一聲
         if (this.IsFromPool)
         {

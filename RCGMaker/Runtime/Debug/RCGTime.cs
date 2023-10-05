@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -41,6 +42,12 @@ public static class RCGTime
     {
         return UniTask.Delay(TimeSpan.FromSeconds(second), DelayType.DeltaTime,
             cancellationToken: mb.GetCancellationTokenOnDestroy());
+    }
+    
+    public static UniTask Delay(this MonoBehaviour mb, float second,CancellationToken cancelToken)
+    {
+        return UniTask.Delay(TimeSpan.FromSeconds(second), DelayType.DeltaTime,
+            cancellationToken: cancelToken);
     }
 
     public static UniTask DelayFrame(this MonoBehaviour mb, int frameCount)
