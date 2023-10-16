@@ -19,7 +19,11 @@ public abstract class SingletonBehaviour<T> : MonoBehaviour where T : MonoBehavi
         _isInstanceCreated = true;
         _instance = t;
         if (_instance && _instance.transform.parent == null)
-            DontDestroyOnLoad(_instance);
+        {
+            if (Application.isPlaying)
+                DontDestroyOnLoad(_instance);
+        }
+            
     }
 
     public static T Instance
