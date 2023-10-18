@@ -24,6 +24,7 @@ namespace RCGSetting
         private static void Init()
         {
             _isDebugMode = BoolProperties[nameof(IsDebugMode)];
+            _isSpeedUpActionEnabled = BoolProperties[nameof(IsSpeedUpActionEnabled)];
         }
         
         static DebugSetting()
@@ -92,6 +93,19 @@ namespace RCGSetting
 
         // 所有的測試view / 快捷鍵都要綁這個
         private static bool _isDebugMode;
+
+        private static bool _isSpeedUpActionEnabled;
+
+        public static bool IsSpeedUpActionEnabled
+        {
+            get => _isSpeedUpActionEnabled;
+            set
+            {
+                _isSpeedUpActionEnabled = value;
+                SetBoolProperty(nameof(IsSpeedUpActionEnabled), value);
+            }
+        }
+
         public static bool IsDebugMode
         {
             //為什麼之前要註解掉editor if?

@@ -9,9 +9,12 @@ public class GizmoMarker : MonoBehaviour
     {
         Solid,
         Wire,
-        BoxCollider
+        BoxCollider,
+        HandleDot,
+        HandleSphere
     }
 
+    // public bool useHandle = false;
     public GizmoShapeType gizmoType = GizmoShapeType.Solid;
     public Color color = Color.yellow;
     public float size = 20;
@@ -61,7 +64,7 @@ public class GizmoMarker : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (disable)
+        if (disable || gizmoType == GizmoShapeType.HandleDot || gizmoType == GizmoShapeType.HandleSphere)
             return;
         // Draw a yellow sphere at the transform's position
         Gizmos.color = color;
@@ -77,19 +80,18 @@ public class GizmoMarker : MonoBehaviour
                     transform.lossyScale.y * boxCollider2D.offset.y), boxCollider2D.size * transform.lossyScale);
             return;
         }
-          
+
         // else
         // {
         if (gizmoType == GizmoShapeType.Solid)
             Gizmos.DrawSphere(transform.position, size);
         else
             Gizmos.DrawWireSphere(transform.position, size);
-    
-        // }
-    
-        //FIXME:
-        // this.DrawText(transform.position, name);
     }
+
+    // FIXME:
+    //  this.DrawText(transform.position, name);
+    
 
     
     // private void OnEnable()
