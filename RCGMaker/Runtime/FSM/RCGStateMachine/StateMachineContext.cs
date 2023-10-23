@@ -46,7 +46,7 @@ namespace RCGMaker.Core
         //TODO:init?
         public void ChangeState(T stateType)
         {
-            fsm.ChangeState(stateType);
+            fsm.ChangeState(stateType,true);
             currentStateType = stateType; //debug用
         }
 
