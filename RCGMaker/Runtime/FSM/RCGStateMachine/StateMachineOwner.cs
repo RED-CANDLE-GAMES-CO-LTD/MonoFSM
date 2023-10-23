@@ -24,6 +24,16 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter
 
     public void ResetFSM()
     {
+        
+        if (this.isActiveAndEnabled == false)
+        {
+            //沒被打開的ＦＳＭ也不該初始化？
+            //拿掉這個左右青蛙會錯
+            //被Culling 掉的物件透過 存擋點reset會導致Condition 全錯（因為關著Condition 全false?）。
+            
+            return;
+        }
+
         if (fsmContext.fsm == null)
             return;
         // fsmContext.ChangeState(fsmContext.startState);
