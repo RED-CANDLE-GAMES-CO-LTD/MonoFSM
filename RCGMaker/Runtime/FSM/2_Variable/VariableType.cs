@@ -236,7 +236,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     // public UnityEvent ValueChangedEvent;
     [HideIf("VariableSource")] [HideIf("scriptableData")] [SerializeField]
     protected TField localField; // = new();
-    
+    //這個值會被蓋掉???
 
     public TField Field => ScriptableData ? ScriptableData.field : localField;
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 // using Mono.CSharp;
 using RCGMaker.Core.Attributes;
+using RCGSetting;
 // using RCGSetting;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
@@ -396,7 +397,9 @@ public class
     // [ShowInPlayMode(DebugModeOnly = true)] 
 
     // [ShowIf("@DebugSetting.IsDebugMode")] [ShowInInspector]
-    [ShowInDebugMode] private bool _isShowDebugLog = false;
+
+    //會被清掉...
+    [ShowInDebugMode] public bool _isShowDebugLog = false;
 
     protected virtual bool IsCurrentValueEquals(T value)
     {
@@ -406,8 +409,8 @@ public class
     //NOTE: public是為了，propertyDrawer
     protected void SetCurrentValue(T value)
     {
-        // if (DebugSetting.IsDebugMode && _isShowDebugLog)
-        //     Debug.Log("[FlagField] Before Set lastValue:" + _currentValue);
+        if (DebugSetting.IsDebugMode && _isShowDebugLog)
+            Debug.Log("[FlagField] Before Set lastValue:" + _currentValue + "set with:" + value, owner);
 
         if (IsCurrentValueEquals(value))
             return;
