@@ -2,6 +2,7 @@
 
 using System;
 using Sirenix.OdinInspector;
+using UnityEngine.WSA;
 
 [Serializable]
 public class FlagFieldBoolEntry : FlagFieldEntry<bool>
@@ -60,8 +61,7 @@ public class FlagFieldEntry<T> //沒有flagBase的話就runtime自己建立runti
         get => field.CurrentValue;
         set => field.CurrentValue = value;
     }
-
-    private FlagField<T> _field;
+    
 
     public FlagField<T> field
     {
@@ -69,9 +69,7 @@ public class FlagFieldEntry<T> //沒有flagBase的話就runtime自己建立runti
         {
             if (flagBase != null) //有用GameFlag
             {
-                if (_field == null)
-                    _field = flagBase.FindField<T>(fieldName);
-                return _field;
+                return flagBase.FindField<T>(fieldName);
             }
             //主選單的選擇解析度是靠這個
             //[]: 會沒有存檔紀錄，第二次開很可能是錯的，有同步問題

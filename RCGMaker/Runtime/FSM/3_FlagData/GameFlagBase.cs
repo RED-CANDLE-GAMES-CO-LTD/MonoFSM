@@ -10,6 +10,7 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 #if UNITY_2022_2_OR_NEWER
 // using Unity.Plastic.Newtonsoft.Json;
@@ -91,6 +92,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     // public Vector3 position;//該在這裡綁嗎?
     private void InitField<TField, T>(FieldInfo fieldInfo, TestMode mode) where TField : FlagField<T>
     {
+
         var field = (TField)fieldInfo.GetValue(this);
         if (field == null)
         {
@@ -99,6 +101,8 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
         }
 
         field.Init(mode, this);
+        
+    
     }
     public virtual void FlagAwake(TestMode mode) //抓default Value或currentValue
     {
@@ -163,6 +167,8 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
                 field?.ResetToDefault();
             }
         }
+        
+        fieldCaches.Clear();
     }
     public virtual void FlagInit() //特殊的flag要做一些initialize的話在這
     {
@@ -204,10 +210,19 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     }
     public FlagField<T> FindField<T>(string fieldName)
     {
+        if(fieldCaches.ContainsKey(fieldName))
+            return fieldCaches[fieldName] as FlagField<T>;
+        
         var t = this.GetType();
         var field = t.GetField(fieldName).GetValue(this) as FlagField<T>;
+        
+        fieldCaches.Add(fieldName,field);
+        
         return field;
     }
+
+
+    public Dictionary<string, object> fieldCaches = new Dictionary<string, object>();
 
 
     // public void OnBeforeSerialize()
