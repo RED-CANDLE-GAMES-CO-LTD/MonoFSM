@@ -30,7 +30,99 @@ public delegate void BeforeActiveHandler(PoolObject obj);
 
 public class PoolManager : SingletonBehaviour<PoolManager>
 {
-    
+    public static void HandleGameLevelAwake(MonoBehaviour level)
+    {
+        var ILevelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));
+        // ILevelAwakes.Reverse();
+        foreach (var item in ILevelAwakes)
+        {
+            if (item == null)
+                continue;
+            try
+            {
+                item.EnterLevelAwake();
+            }
+            catch (Exception e)
+            {
+                if (item is MonoBehaviour)
+                    Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                else
+                    Debug.LogError(e.StackTrace);
+            }
+        }
+    }
+
+    public static void HandleGameLevelAwakeReverse(MonoBehaviour level)
+    {
+        var ILevelAwakes = new List<ILevelAwakeReverse>(level.GetComponentsInChildren<ILevelAwakeReverse>(true));
+        ILevelAwakes.Reverse();
+        foreach (var item in ILevelAwakes)
+        {
+            if (item == null)
+                continue;
+            try
+            {
+                item.EnterLevelAwakeReverse();
+            }
+            catch (Exception e)
+            {
+                if (item is MonoBehaviour)
+                    Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                else
+                    Debug.LogError(e.StackTrace);
+            }
+        }
+    }
+
+    public static void HandleGameLevelStart(MonoBehaviour level)
+    {
+        var ILevelStarts = new List<ILevelStart>(level.GetComponentsInChildren<ILevelStart>(true));
+
+        //巢狀RCGArgEventBinder  要從下面往上組
+        // ILevelStarts.Reverse();
+
+        foreach (var item in ILevelStarts)
+        {
+            if (item == null)
+                continue;
+            try
+            {
+                item.EnterLevelStart();
+            }
+            catch (Exception e)
+            {
+                if (item is MonoBehaviour)
+                    Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                else
+                    Debug.LogError(e.StackTrace);
+            }
+        }
+    }
+
+    public static void HandleGameLevelStartReverse(MonoBehaviour level)
+    {
+        var ILevelStarts = new List<ILevelStartReverse>(level.GetComponentsInChildren<ILevelStartReverse>(true));
+
+        //巢狀RCGArgEventBinder  要從下面往上組
+        ILevelStarts.Reverse();
+
+        foreach (var item in ILevelStarts)
+        {
+            if (item == null)
+                continue;
+            try
+            {
+                item.EnterLevelStartReverse();
+            }
+            catch (Exception e)
+            {
+                if (item is MonoBehaviour)
+                    Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                else
+                    Debug.LogError(e.StackTrace);
+            }
+        }
+    }
     public bool IsReady = false;
     [Header("PrewarmData Logger")] public Transform poolbjects;
     public PoolPrewarmData prewarmDataLogger;
@@ -536,59 +628,59 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         private void PreparePoolObjectImplementation(PoolObject obj)
         {
-            HandlePoolObjectAwake(obj);
-            HandlePoolObjectStart(obj);
+            AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject);
+            HandleGameLevelAwakeReverse(obj);
+            HandleGameLevelAwake(obj);
+            HandleGameLevelStartReverse(obj);
+            HandleGameLevelStart(obj);
             obj.OnPrepare();
         }
-        
-        private void HandlePoolObjectAwake(PoolObject obj)
-        {
-            AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject);
-            
-            var ILevelAwakes = new List<ILevelAwake>(obj.GetComponentsInChildren<ILevelAwake>(true));
 
-            foreach (var item in ILevelAwakes)
-            {
-                if (item == null)
-                    continue;
-                try
-                {
-                    item.EnterLevelAwake();
-                }
-                catch (Exception e)
-                {
-                    if (item is MonoBehaviour)
-                        Debug.LogError(e.StackTrace, item as MonoBehaviour);
-                    else
-                        Debug.LogError(e.StackTrace);
-                }
-            }
-        }
-
-        private void HandlePoolObjectStart(PoolObject level)
-        {
-            var ILevelStarts = new List<ILevelStart>(level.GetComponentsInChildren<ILevelStart>(true));
-
-            //RCGArgEventBinder 要倒序綁  最下面的物件先綁起來
-            ILevelStarts.Reverse();
-            foreach (var item in ILevelStarts)
-            {
-                if (item == null)
-                    continue;
-                try
-                {
-                    item.EnterLevelStart();
-                }
-                catch (Exception e)
-                {
-                    if (item is MonoBehaviour)
-                        Debug.LogError(e.StackTrace, item as MonoBehaviour);
-                    else
-                        Debug.LogError(e.StackTrace);
-                }
-            }
-        }
-
+        // private static void HandlePoolObjectAwake(PoolObject obj)
+        // {
+        //     var ILevelAwakes = new List<ILevelAwake>(obj.GetComponentsInChildren<ILevelAwake>(true));
+        //     foreach (var item in ILevelAwakes)
+        //     {
+        //         if (item == null)
+        //             continue;
+        //         try
+        //         {
+        //             item.EnterLevelAwake();
+        //         }
+        //         catch (Exception e)
+        //         {
+        //             if (item is MonoBehaviour)
+        //                 Debug.LogError(e.StackTrace, item as MonoBehaviour);
+        //             else
+        //                 Debug.LogError(e.StackTrace);
+        //         }
+        //     }
+        // }
+        //
+        // private void HandlePoolObjectStart(PoolObject level)
+        // {
+        //     var ILevelStarts = new List<ILevelStart>(level.GetComponentsInChildren<ILevelStart>(true));
+        //
+        //     //RCGArgEventBinder 要倒序綁  最下面的物件先綁起來
+        //     ILevelStarts.Reverse();
+        //     foreach (var item in ILevelStarts)
+        //     {
+        //         if (item == null)
+        //             continue;
+        //         try
+        //         {
+        //             item.EnterLevelStart();
+        //         }
+        //         catch (Exception e)
+        //         {
+        //             if (item is MonoBehaviour)
+        //                 Debug.LogError(e.StackTrace, item as MonoBehaviour);
+        //             else
+        //                 Debug.LogError(e.StackTrace);
+        //         }
+        //     }
+        // }
+       
         public void UpdatePoolEntry()
         {
             if (_bindingEntry.prefab.gameObject.scene != null &&
