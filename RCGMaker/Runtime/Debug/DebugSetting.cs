@@ -106,6 +106,8 @@ namespace RCGSetting
             }
         }
 
+        public static bool IsDrawCustomGizmo = true;
+        
         public static bool IsDebugMode
         {
             //為什麼之前要註解掉editor if?
