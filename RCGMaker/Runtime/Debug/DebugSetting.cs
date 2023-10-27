@@ -93,6 +93,8 @@ namespace RCGSetting
 
         // 所有的測試view / 快捷鍵都要綁這個
         private static bool _isDebugMode;
+        
+        private static bool _isCullingActivated;
 
         private static bool _isSpeedUpActionEnabled;
 
@@ -104,6 +106,21 @@ namespace RCGSetting
                 _isSpeedUpActionEnabled = value;
                 SetBoolProperty(nameof(IsSpeedUpActionEnabled), value);
             }
+        }
+        
+        public static bool IsCullingActivated
+        {
+#if RCG_DEV
+            get => _isCullingActivated;
+            set
+            {
+                _isCullingActivated = value;
+                SetBoolProperty(nameof(IsCullingActivated), value);
+            }
+#else
+             get => true;
+             set {}
+#endif
         }
 
         public static bool IsDrawCustomGizmo = true;
