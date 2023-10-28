@@ -1,16 +1,31 @@
-
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace RCGMaker.Core
 {
-    public static class AssetDatabaseExtension
+    public static class AssetDatabaseUtility
     {
+        private static void CreateFolderIfNotExist(string folderPath)
+        {
+            if (!System.IO.Directory.Exists(folderPath))
+            {
+                System.IO.Directory.CreateDirectory(folderPath);
+            }
+        }
+
+        public static T CreateAsset<T>(string folderPath, string fileName) where T : ScriptableObject
+        {
+            CreateFolderIfNotExist(folderPath);
+            var asset = ScriptableObject.CreateInstance<T>();
+            AssetDatabase.CreateAsset(asset, folderPath + "/" + fileName + ".asset");
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            return asset;
+        }
+
         [EditorOnly]
         public static void SetDirty(this Object obj)
         {
@@ -57,7 +72,8 @@ namespace RCGMaker.Core
             {
                 //不是自動生的
                 var gameStateSo =
-                    CreateScriptableObject(type, GameStateAttribute.GetFullPath(refObj.gameObject, subFolderName)) as
+                    CreateScriptableObject(type,
+                            GameStateAttribute.GetFullPath(refObj.gameObject, subFolderName)) as
                         GameFlagBase;
                 if (gameStateSo == null)
                 {
@@ -70,7 +86,8 @@ namespace RCGMaker.Core
             else
             {
                 var folderRelativePath = GameStateAttribute.GetRelativePath(refObj.gameObject, subFolderName, true);
-                var fileName = GameStateAttribute.GetFileName(refObj.gameObject) + autoGenGameState.MyGuid + ".asset";
+                var fileName = GameStateAttribute.GetFileName(refObj.gameObject) + autoGenGameState.MyGuid +
+                               ".asset";
                 var gameStateSo =
                     CreateScriptableObject(type, folderRelativePath + "/" + fileName) as GameFlagBase;
 
