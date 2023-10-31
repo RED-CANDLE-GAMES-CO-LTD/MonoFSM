@@ -58,6 +58,6 @@ public class ScriptableObjectSingleton<T> : ScriptableObject where T : Scriptabl
             "MonsterGlobalConfig" => "Configs/MonsterGlobalConfig",
             "SceneTable" => "Configs/SceneTable",
             "TestModeGameFlag" => "Configs/TestModeGameFlag",
-            _ => throw new InvalidEnumArgumentException()
+            _ => "Configs/" + typeof(T).Name
         };
 }
