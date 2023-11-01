@@ -1,5 +1,6 @@
 using System;
 using Sirenix.OdinInspector;
+using UnityEditor;
 using UnityEngine;
 
 namespace RCGMaker.Core.Editor
@@ -41,6 +42,13 @@ namespace RCGMaker.Core.Editor
         
         private void OnBeforeTransformParentChanged()
         {
+            if (Application.isPlaying)
+            {
+                Debug.LogError("Editor用而已，把我拿掉才可以玩！", gameObject);
+                Debug.Break();
+                return;
+            }
+            
             oldPath = AnimatorRefactor.GetRelativePath(gameObject);
             //log oldpath
             // Debug.Log("old:"+oldPath);
@@ -48,6 +56,12 @@ namespace RCGMaker.Core.Editor
 
         private void OnTransformParentChanged()
         {
+            if (Application.isPlaying)
+            {
+                Debug.LogError("Editor用而已，把我拿掉才可以玩！", gameObject);
+                Debug.Break();
+                return;
+            }
             var newPath = AnimatorRefactor.GetRelativePath(gameObject);
             AnimatorRefactor.RefactorClips(gameObject, oldPath, newPath);
             //log newpath
@@ -58,6 +72,8 @@ namespace RCGMaker.Core.Editor
         public void OnBeforeSceneSave()
         {
             Debug.LogError("NONONONO把我拔掉啦！！！");
+            EditorUtility.DisplayDialog("NONONONO把我拔掉啦！！！", this + " RefactorNode沒有拔掉", "OK");
+            Selection.activeGameObject = gameObject;
         }
     }
     #endif
