@@ -7,12 +7,13 @@ using UnityEditor;
 #endif
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Core.QATest;
 
 // using RCG.StateMachine;
 
 
 //FIXME: 不要在這綁了應該拿掉，用RCGArgEvent做掉
-public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
+public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>, IQATestCase
 {
 #if UNITY_EDITOR
 
@@ -121,4 +122,8 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
     // }
 #endif
 
+    public void RegisterQATestCase()
+    {
+        //FIXME: 要做什麼呢
+    }
 }
