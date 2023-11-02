@@ -7,6 +7,12 @@ namespace RCGMaker.Utility
     {
         public static void FocusOnGameObject(GameObject gameObject)
         {
+            if (gameObject == null)
+            {
+                Debug.LogError("FocusOnGameObject: gameObject is null");
+                return;
+            }
+            
             var sceneView = SceneView.lastActiveSceneView;
             if (sceneView)
             {
