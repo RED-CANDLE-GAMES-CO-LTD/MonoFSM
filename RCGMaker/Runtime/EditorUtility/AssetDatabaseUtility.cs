@@ -18,11 +18,14 @@ namespace RCGMaker.Core
 
         public static T CreateAsset<T>(string folderPath, string fileName) where T : ScriptableObject
         {
+            EditorUtility.ClearProgressBar();
+            EditorUtility.DisplayProgressBar("CreateAsset", fileName, 0.5f);
             CreateFolderIfNotExist(folderPath);
             var asset = ScriptableObject.CreateInstance<T>();
             AssetDatabase.CreateAsset(asset, folderPath + "/" + fileName + ".asset");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+            EditorUtility.ClearProgressBar();
             return asset;
         }
 
