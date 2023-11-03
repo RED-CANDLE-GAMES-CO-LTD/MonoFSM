@@ -45,6 +45,17 @@ namespace RCGSetting
         //之後應該看這個
         public static TestMode mode => IsProductionMode ? TestMode.Production : TestMode.EditorDevelopment;
 
+        public static bool IsRuntimeQAEnabled
+        {
+#if RCG_DEV
+            get => BoolProperties[nameof(IsRuntimeQAEnabled)];
+            set => SetBoolProperty(nameof(IsRuntimeQAEnabled), value);
+#else
+            get => false;
+            set { }
+#endif
+        }
+
         public static bool IsProductionMode //乾淨存檔，不會有提前拿到能力
         {
 #if UNITY_EDITOR        

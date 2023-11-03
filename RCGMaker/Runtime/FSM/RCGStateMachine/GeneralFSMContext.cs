@@ -13,6 +13,7 @@ using RCGMaker.Core.QATest;
 
 
 //FIXME: 不要在這綁了應該拿掉，用RCGArgEvent做掉
+[RuntimeQA(typeof(StateMachineQATestCase))]
 public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>, IQATestCase
 {
 #if UNITY_EDITOR

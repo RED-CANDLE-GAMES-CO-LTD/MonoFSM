@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
@@ -75,7 +76,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         return StateExitCancellationTokenSource;
     }
 
-
+    public Action OnStateEnterAction;
     public override void OnStateEnter()
     {
         base.OnStateEnter();
@@ -88,6 +89,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
             if (action.isActiveAndEnabled)
                 action.OnActionEnter();
         }
+
+        OnStateEnterAction?.Invoke();
     }
     public override void OnStateUpdate()
     {
