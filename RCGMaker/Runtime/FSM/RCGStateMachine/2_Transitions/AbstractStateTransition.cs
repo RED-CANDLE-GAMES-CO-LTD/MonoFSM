@@ -24,9 +24,9 @@ public class AbstractStateTransition : AbstractBehaviour
 
     private void OnValidate()
     {
-        
-        if( this.isActiveAndEnabled&&target == null)
-            Debug.LogError("No Target! 選一個",gameObject);
+
+        if (this.isActiveAndEnabled && target == null)
+            Debug.LogError("No Target! 選一個", gameObject);
     }
 
     [ReadOnly] [ShowInInspector] public GeneralState Target => target;
@@ -65,8 +65,15 @@ public class AbstractStateTransition : AbstractBehaviour
     [ShowInInspector]
     private bool IsSelfTransitionNotValid => target != null && IsSelfTransition && !target.CanSelfTransition;
 
-   
-    public bool TransitionCheck(float timeOffset=0)
+    public bool TransitionConditionValid()
+    {
+        if (conditions != null && conditions.IsAllValid() == false)
+            return false;
+
+        return true;
+    }
+
+    public bool TransitionCheck(float timeOffset = 0)
     {
 
         // this.Log("[Transition] Check1" + target.stateType, gameObject);
@@ -111,7 +118,7 @@ public class AbstractStateTransition : AbstractBehaviour
         // if (bindingState == null)
         //     Debug.LogError("Why no parent State" + anyState, gameObject);
 
-     
+
         // this.Log("[Transition] Check3:" + target.stateType, gameObject);
         //好像不該回頭做？可是要不然要怎麼辦...不能用事件接
 
