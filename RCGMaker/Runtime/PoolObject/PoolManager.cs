@@ -30,6 +30,28 @@ public delegate void BeforeActiveHandler(PoolObject obj);
 
 public class PoolManager : SingletonBehaviour<PoolManager>
 {
+    public static void HandleGameLevelConfigSetting(MonoBehaviour level)
+    {
+        var ILevelConfigs = new List<ILevelConfig>(level.GetComponentsInChildren<ILevelConfig>(true));
+
+        foreach (var item in ILevelConfigs)
+        {
+            if (item == null)
+                continue;
+            try
+            {
+                item.SetLevelConfig();
+            }
+            catch (Exception e)
+            {
+                if (item is MonoBehaviour)
+                    Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                else
+                    Debug.LogError(e.StackTrace);
+            }
+        }
+
+    }
     public static void HandleGameLevelAwake(MonoBehaviour level)
     {
         var ILevelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));
@@ -188,8 +210,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public void PoolObjectDestroyed(PoolObject poolobj)
     {
-        if(PoolDictionary.ContainsKey(poolobj.OriginalPrefab))
-          PoolDictionary[poolobj.OriginalPrefab].PoolObjectOnDestroySignal(poolobj);
+        if (PoolDictionary.ContainsKey(poolobj.OriginalPrefab))
+            PoolDictionary[poolobj.OriginalPrefab].PoolObjectOnDestroySignal(poolobj);
     }
 
     private void AddEntry(List<PoolObjectEntry> list, PoolObject poolObject, int count)
@@ -393,13 +415,13 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public void ReturnAllObjects()
     {
-        for (var i = 0; i < allPools.Count; i++) 
+        for (var i = 0; i < allPools.Count; i++)
             allPools[i].ReturnAllObjects();
     }
-    
+
     public void ReturnAllObjects(Scene withScene)
     {
-        for (var i = 0; i < allPools.Count; i++) 
+        for (var i = 0; i < allPools.Count; i++)
             allPools[i].ReturnAllObjects(withScene);
     }
 
@@ -460,15 +482,15 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             {
                 AllObjs.Remove(p);
             }
-            
+
             if (DisabledObjs.Contains(p))
                 DisabledObjs.Remove(p);
-            
+
             if (OnUseObjs.Contains(p))
                 OnUseObjs.Remove(p);
-            
-    
-            
+
+
+
         }
 
         public void ReturnAllObjects()
@@ -478,7 +500,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
             for (var i = 0; i < StillOnUses.Count; i++) StillOnUses[i].ReturnToPool();
         }
-        
+
         public void ReturnAllObjects(Scene scene)
         {
             var StillOnUses = new List<PoolObject>();
@@ -619,7 +641,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             AllObjs.Add(obj);
 
             _prefab.gameObject.SetActive(originPrefabActive);
-            
+
             DisabledObjs.Add(obj);
             UpdatePoolEntry();
             //
@@ -680,7 +702,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         //         }
         //     }
         // }
-       
+
         public void UpdatePoolEntry()
         {
             if (_bindingEntry.prefab.gameObject.scene != null &&
@@ -713,9 +735,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
             if (OnUseObjs.Contains(obj))
             {
-                
-                
-                
+
+
+
                 obj.BeforeObjectReturnToPool(_poolManager);
                 // if (obj.UnsolvedIssueBeforeDestroy <= 0)
                 // {

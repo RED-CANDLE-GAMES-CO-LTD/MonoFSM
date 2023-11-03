@@ -18,6 +18,11 @@ public interface ILevelAwake
     void EnterLevelAwake();
 }
 
+public interface ILevelConfig
+{
+    void SetLevelConfig();
+}
+
 public interface ILevelAwakeReverse
 {
     void EnterLevelAwakeReverse();

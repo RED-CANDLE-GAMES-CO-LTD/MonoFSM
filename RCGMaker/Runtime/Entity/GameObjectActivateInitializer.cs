@@ -2,13 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InitailActivator : MonoBehaviour, ILevelAwake
+public class InitailActivator : MonoBehaviour, ILevelConfig
 {
     public bool isActive = false;
 
-    public void EnterLevelAwake()
+    public void SetLevelConfig()
     {
-        Debug.Log("Initiial Activator!!");
         this.gameObject.SetActive(isActive);
     }
+
+
 }
