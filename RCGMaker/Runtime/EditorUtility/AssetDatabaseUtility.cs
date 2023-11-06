@@ -21,6 +21,16 @@ namespace RCGMaker.Core
             EditorUtility.ClearProgressBar();
             EditorUtility.DisplayProgressBar("CreateAsset", fileName, 0.5f);
             CreateFolderIfNotExist(folderPath);
+
+
+            var data = AssetDatabase.LoadAssetAtPath<T>(folderPath + "/" + fileName + ".asset");
+            if (data != null)
+            {
+                Debug.LogWarning("data already exist");
+                EditorUtility.ClearProgressBar();
+                return data;
+            }
+            
             var asset = ScriptableObject.CreateInstance<T>();
             AssetDatabase.CreateAsset(asset, folderPath + "/" + fileName + ".asset");
             AssetDatabase.SaveAssets();
@@ -59,7 +69,7 @@ namespace RCGMaker.Core
 #endif
         }
 #if UNITY_EDITOR
-        public static string GetGUID(this Object obj)
+        public static string GetAssetGUID(this Object obj)
         {
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out var guid, out long localId);
             return guid;
