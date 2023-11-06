@@ -1,15 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core;
 using UnityEngine;
 
-public class InitailActivator : MonoBehaviour, ILevelConfig
+public class GameObjectInitialActivator : MonoBehaviour, ILevelConfig, ISceneSavingCallbackReceiver
 {
     public bool isActive = false;
 
-    public void SetLevelConfig()
+    public void SetLevelConfig() //這個不好用... interface也不能serialize, 後面撈太晚了？
     {
         this.gameObject.SetActive(isActive);
     }
 
 
+    public void OnBeforeSceneSave()
+    {
+        isActive = gameObject.activeSelf;
+    }
 }
