@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core
 {
@@ -11,6 +12,7 @@ namespace RCGMaker.Core
             // allRunners = new List<StateMachineRunner>();
         }
 
+        [ShowInInspector]
         private readonly List<StateMachineRunner> _allRunners = new();
 
         public void Register(StateMachineRunner runner)
