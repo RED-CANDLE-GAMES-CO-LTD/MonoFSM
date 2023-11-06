@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
+    //直接對InstanceReference的instance做操作
     public class AnimatorReferencePlayAction : AnimatorPlayAction,IResetter
 
     {

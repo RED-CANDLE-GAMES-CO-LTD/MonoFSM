@@ -9,6 +9,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
+    //ScriptableObject, 
     [CreateAssetMenu(menuName = "RCGMaker/InstanceReference")]
     public class InstanceReference : GameFlagBase
     {
