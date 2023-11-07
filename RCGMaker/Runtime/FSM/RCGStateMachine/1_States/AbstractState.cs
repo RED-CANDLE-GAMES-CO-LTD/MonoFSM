@@ -34,7 +34,7 @@ namespace RCGMaker.Core
         public virtual void OnCreateMapping(MonoBehaviour context)
         {
             if (_context != null)
-                Debug.LogError("State Binding Twice?");
+                Debug.LogError("State Binding Twice?",this);
 
             _context = context;
         }
