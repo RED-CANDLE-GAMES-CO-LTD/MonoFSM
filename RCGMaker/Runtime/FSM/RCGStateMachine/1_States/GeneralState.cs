@@ -86,7 +86,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (actions == null) return;
         foreach (var action in actions)
         {
-            if (action.isActiveAndEnabled)
+            if (action.gameObject.activeSelf)
                 action.OnActionEnter();
         }
 
@@ -99,7 +99,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         for (var index = actions.Length - 1; index >= 0; index--)
         {
             var action = actions[index];
-            if (action.isActiveAndEnabled)
+            if (action.gameObject.activeSelf)
                 action.OnActionUpdate();
         }
     }
@@ -110,7 +110,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (actions == null) return;
         foreach (var action in actions)
         {
-            if (action.isActiveAndEnabled)
+            if (action.gameObject.activeSelf)
                 action.OnActionSpriteUpdate();
         }
     }
@@ -121,7 +121,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (actions == null) return;
         foreach (var action in actions)
         {
-            if (action.isActiveAndEnabled)
+            if (action.gameObject.activeSelf)
                 action.OnActionExit();
         }
 
@@ -137,7 +137,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     public bool TransitionCheck(GeneralState toState, float timeOffset, AbstractStateTransition fromTransition)
     {
-        if (isActiveAndEnabled == false)
+        if (gameObject.activeSelf == false)
         {
             this.Log("TransitionCheck fail isActiveAndEnabled false");
             return false;

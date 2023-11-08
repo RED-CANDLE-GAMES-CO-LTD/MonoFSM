@@ -78,7 +78,8 @@ public class AbstractStateTransition : AbstractBehaviour
 
         // this.Log("[Transition] Check1" + target.stateType, gameObject);
         //Transition 被關了
-        if (this.gameObject.activeInHierarchy == false)
+        //if (this.isActiveAndEnabled == false) 
+        if (gameObject.activeSelf == false) //關著也想change state
         {
             // this.Log("[Transition] Check1 fail active false" + target.stateType, gameObject);
             return false;
@@ -92,7 +93,7 @@ public class AbstractStateTransition : AbstractBehaviour
         if (parentState != null) //走any，直接過
         {
             this.Log("[Transition] AnyState GoTo:", target.stateType, gameObject);
-            if (target.stateType.isActiveAndEnabled == false)
+            if (target.stateType.gameObject.activeSelf == false)
             {
                 this.Log("[Transition] Fail ChangeState target inactive" + target.stateType, gameObject);
                 return false;
