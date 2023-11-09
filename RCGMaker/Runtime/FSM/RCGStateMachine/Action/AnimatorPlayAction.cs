@@ -132,7 +132,7 @@ namespace RCGMaker.Core
 
         protected override void OnStateEnterImplement()
         {
-            // Debug.Log("Play Animation State");
+            Debug.Log("Play Animation State");
             if (animator == null || animator.runtimeAnimatorController == null)
             {
                 return;
@@ -142,20 +142,24 @@ namespace RCGMaker.Core
 
             animator.keepAnimatorStateOnDisable = true;
 
-            var startNormalizedTimeResult = startNormalizedTimeOffset;
+            // var startNormalizedTimeResult = startNormalizedTimeOffset;
 
-            if (CheckInitAndSkipAnimationToLastFrame()) startNormalizedTimeResult = 1;
+            //這個看起來是為了火焰跳transition? 
+            // if (CheckInitAndSkipAnimationToLastFrame()) startNormalizedTimeResult = 1;
+            
 
             if (animatorEnterCrossFade == 0)
             {
-                this.Log("Play Animation:", StateName, "layer:", stateLayer);
+                this.Log("[AnimatorPlayAction] Play Animation:", StateName, "layer:", stateLayer);
 
                 animator.enabled = true;
-                animator.Play(StateName, stateLayer, startNormalizedTimeResult);
+
+                animator.Play(StateName, stateLayer); //startNormalizedTimeOffset
+                
             }
             else
             {
-                animator.CrossFade(StateName, animatorEnterCrossFade, stateLayer, startNormalizedTimeResult);
+                animator.CrossFade(StateName, animatorEnterCrossFade, stateLayer); //startNormalizedTimeOffset
             }
 
             animator.Update(0);
@@ -334,6 +338,7 @@ namespace RCGMaker.Core
                 return false;
             }
 
+            //state一樣
             if (_fsmowner.FsmContext.fsm.LastState == _fsmowner.FsmContext.startState)
                 return true;
 
