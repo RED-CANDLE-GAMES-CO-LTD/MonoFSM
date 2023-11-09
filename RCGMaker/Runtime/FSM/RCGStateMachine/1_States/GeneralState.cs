@@ -17,10 +17,22 @@ public interface INodeModel
     public Vector2 position { get; set; }
 
 }
+public interface IStateEnter
+{
+   void OnStateEnter();
+}
+
+public interface IStateExit
+{
+   void OnStateExit();
+}
 
 public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>
 {
     // [HideInInspector] [Required] public new GeneralState stateType => this;
+
+    [AutoChildren(false)] private IStateEnter[] _stateEnters;
+    [AutoChildren(false)] private IStateExit[] _stateExits;
 
     [FormerlySerializedAs("enterOffsetDuration")] public float EnterTimeOffset = 0;
 
@@ -90,6 +102,11 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
                 action.OnActionEnter();
         }
 
+        foreach (var e in _stateEnters)
+        {
+            e.OnStateEnter();
+        }
+
         OnStateEnterAction?.Invoke();
     }
     public override void OnStateUpdate()
@@ -123,6 +140,11 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         {
             if (action.gameObject.activeSelf)
                 action.OnActionExit();
+        }
+        
+        foreach (var e in _stateExits)
+        {
+            e.OnStateExit();
         }
 
         StateExitCancellationTokenSource?.Cancel();
