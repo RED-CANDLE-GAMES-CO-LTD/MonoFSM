@@ -73,17 +73,26 @@ public class AbstractStateTransition : AbstractBehaviour
         return true;
     }
 
+    [AutoParent] private RCGCullingGroup _cullingGroup;
+    
     public bool TransitionCheck(float timeOffset = 0)
     {
 
         // this.Log("[Transition] Check1" + target.stateType, gameObject);
         //Transition 被關了
         //if (this.isActiveAndEnabled == false) 
+
         if (gameObject.activeSelf == false) //關著也想change state
         {
             // this.Log("[Transition] Check1 fail active false" + target.stateType, gameObject);
             return false;
         }
+
+        if (_cullingGroup.InitActivated == false) //整顆單位關著，表示config沒有想要打開
+        {
+            return false;
+        }
+        
         if (conditions != null && conditions.IsAllValid() == false)
             return false;
 
