@@ -10,7 +10,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild
     //怎麼知道誰用Enter, 誰用Update
     private bool IsValid //AND
     {
-        get
+        get 
         {
             if (_delay) return false;
             if (conditions.Length == 0)
