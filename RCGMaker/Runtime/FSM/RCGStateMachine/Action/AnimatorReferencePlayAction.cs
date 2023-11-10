@@ -4,9 +4,9 @@ using UnityEngine;
 namespace RCGMaker.Core
 {
     //直接對InstanceReference的instance做操作
-    public class AnimatorReferencePlayAction : AnimatorPlayAction,IResetter
+    public class AnimatorReferencePlayAction : AbstractAnimatorPlayAction, IResetter
     {
-        [ShowInInspector] public GameObject instance => animatorReference.instance;
+        [ShowInInspector] public GameObject instance => animatorReference?.instance;
 
         [InlineEditor]
         [PropertyOrder(-1)] public InstanceReference animatorReference;

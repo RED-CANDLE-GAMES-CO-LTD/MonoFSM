@@ -12,7 +12,7 @@ using UnityEditor.Animations;
 namespace RCGMaker.Core
 {
     //[]: 先弄成abstract不會和原專案的class衝突
-    public abstract class AnimatorPlayAction : AbstractStateAction, IAnimatorPlayAction,
+    public abstract class AbstractAnimatorPlayAction : AbstractStateAction, IAnimatorPlayAction,
         ISceneSavingCallbackReceiver
     {
         private bool IsStateNameProvider()
@@ -20,15 +20,21 @@ namespace RCGMaker.Core
             return GetComponent<AbstractStringProvider>() != null;
         }
 
+        [ReadOnly]
         [TabGroup("Animator", false, 1)] [Required]
         public Animator animator;
 
         [TabGroup("Animator")]
-        [InfoBox("Not Valid State name", InfoMessageType.Error, "IsStateNameNotInAnimator")]
+        [InfoBox("Not Valid State name", InfoMessageType.Error, nameof(IsStateNameNotInAnimator))]
         [ValueDropdown("GetAnimatorStateNames", IsUniqueList = true)]
         [HideIf("IsStateNameProvider")]
         //有provider就藏起來
         public string stateName;
+
+        [InfoBox("Not Valid State name", InfoMessageType.Error, nameof(IsStateNameNotInAnimator))]
+        [Title("遇到這個state不要播")]
+        [ValueDropdown("GetAnimatorStateNames", IsUniqueList = true)]
+        public string ignoreStateName;
 
         [Auto(false)] private AbstractStringProvider stateNameProvider; //拿旁邊的，蓋掉要怎麼做...藏起來
         private string StateName => stateNameProvider ? stateNameProvider.StringValue : stateName;
@@ -82,6 +88,7 @@ namespace RCGMaker.Core
             if (isActiveAndEnabled == false) //NOTE: 沒開的話不管
                 return false;
 
+            
             var names = GetAnimatorStateNames();
             if (names == null)
                 return true;
@@ -130,9 +137,10 @@ namespace RCGMaker.Core
 
 #endif
 
+        
         protected override void OnStateEnterImplement()
         {
-            Debug.Log("Play Animation State");
+            // Debug.Log("Play Animation State");
             if (animator == null || animator.runtimeAnimatorController == null)
             {
                 return;
@@ -146,8 +154,15 @@ namespace RCGMaker.Core
 
             //這個看起來是為了火焰跳transition? 
             // if (CheckInitAndSkipAnimationToLastFrame()) startNormalizedTimeResult = 1;
-            
 
+            //想跳過
+            if (animator.GetCurrentAnimatorStateInfo(stateLayer).IsName(ignoreStateName) ||
+                animator.GetCurrentAnimatorStateInfo(stateLayer).IsName(StateName))
+            {
+                this.Log("[AnimatorPlayAction] Skip Animation:", StateName, "layer:", stateLayer);
+                return;
+            }
+            
             if (animatorEnterCrossFade == 0)
             {
                 this.Log("[AnimatorPlayAction] Play Animation:", StateName, "layer:", stateLayer);
@@ -155,7 +170,6 @@ namespace RCGMaker.Core
                 animator.enabled = true;
 
                 animator.Play(StateName, stateLayer); //startNormalizedTimeOffset
-                
             }
             else
             {
