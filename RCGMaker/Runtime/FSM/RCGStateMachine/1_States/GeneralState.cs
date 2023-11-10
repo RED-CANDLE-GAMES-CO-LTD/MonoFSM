@@ -92,6 +92,12 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateEnter()
     {
         base.OnStateEnter();
+        
+        
+        foreach (var e in _stateEnters)
+        {
+            e.OnStateEnter();
+        }
 #if UNITY_EDITOR
         EditorApplication.RepaintHierarchyWindow();
 #endif
@@ -102,10 +108,6 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
                 action.OnActionEnter();
         }
 
-        foreach (var e in _stateEnters)
-        {
-            e.OnStateEnter();
-        }
 
         OnStateEnterAction?.Invoke();
     }
@@ -135,6 +137,11 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     {
         base.OnStateExit();
       
+        foreach (var e in _stateExits)
+        {
+            e.OnStateExit();
+        }
+        
         if (actions == null) return;
         foreach (var action in actions)
         {
@@ -142,10 +149,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
                 action.OnActionExit();
         }
         
-        foreach (var e in _stateExits)
-        {
-            e.OnStateExit();
-        }
+   
 
         StateExitCancellationTokenSource?.Cancel();
     }
