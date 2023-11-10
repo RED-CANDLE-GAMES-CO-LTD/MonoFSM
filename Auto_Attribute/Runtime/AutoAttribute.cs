@@ -20,8 +20,11 @@
 using System;
 using System.Reflection;
 using Auto.Utils;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
+// [IncludeMyAttributes]
+// [SerializeField]
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class AutoAttribute : Attribute, IAutoAttribute
 {
