@@ -13,15 +13,15 @@ internal interface IValueChangeCallback
 
 public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICondition
 {
-    protected override void Awake()
-    {
-        base.Awake();
-        scriptableData.flagValueChangeEvent.AddListener(() =>
-        {
-            //FIXME: call the register...
-            // scriptableData.CurrentValue
-        });
-    }
+    // protected override void Awake()
+    // {
+    //     base.Awake();
+    //     scriptableData.flagValueChangeEvent.AddListener(() =>
+    //     {
+    //         //FIXME: call the register...
+    //         // scriptableData.CurrentValue
+    //     });
+    // }
 
     // [FormerlySerializedAs("boolFlag")]
     [ReadOnly] [HideInInlineEditors] [Header("Deprecated=>scriptableData")]
