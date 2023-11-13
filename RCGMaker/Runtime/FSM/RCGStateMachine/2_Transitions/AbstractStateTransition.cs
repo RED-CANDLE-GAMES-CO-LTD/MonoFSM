@@ -87,7 +87,9 @@ public class AbstractStateTransition : AbstractBehaviour
             return false;
         }
 
-        if (_cullingGroup.InitActivated == false) //整顆單位關著，表示config沒有想要打開
+        //整顆單位關著，表示config沒有想要打開
+        //FIXME:只是為了擋掉關著的FSM?
+        if (_cullingGroup && _cullingGroup.HasActivated == false) 
         {
             return false;
         }

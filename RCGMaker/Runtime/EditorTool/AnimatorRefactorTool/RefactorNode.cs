@@ -73,6 +73,7 @@ namespace RCGMaker.Core.Editor
         {
             Debug.LogError("NONONONO把我拔掉啦！！！");
             EditorUtility.DisplayDialog("NONONONO把我拔掉啦！！！", this + " RefactorNode沒有拔掉", "OK");
+            DestroyImmediate(this);
             Selection.activeGameObject = gameObject;
         }
     }

@@ -11,6 +11,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
+//現在根本還沒做監聽，是用condition做polling
 [Searchable]
 public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator,
     IGameStateOwner
