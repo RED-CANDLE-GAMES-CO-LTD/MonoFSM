@@ -6,8 +6,23 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
 
+internal interface IValueChangeCallback
+{
+    void OnValueChanged(bool value);
+}
+
 public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICondition
 {
+    protected override void Awake()
+    {
+        base.Awake();
+        scriptableData.flagValueChangeEvent.AddListener(() =>
+        {
+            //FIXME: call the register...
+            // scriptableData.CurrentValue
+        });
+    }
+
     // [FormerlySerializedAs("boolFlag")]
     [ReadOnly] [HideInInlineEditors] [Header("Deprecated=>scriptableData")]
     public GameFlagBool boolFlag; // scriptableData;
@@ -33,12 +48,10 @@ public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICo
             if (scriptableData && value != Value) //值有改才送事件
             {
                 // Debug.Log("Variable Bool Changed " + ScriptableData.name);
-                //[]: 灌tracker...
-                this.Track("ScriptableData Value Changed", new Dictionary<string, Value>()
-                {
-                    { "data", ScriptableData.name },
-                    { "value", value }
-                });
+                //[]: 灌tracker...   
+                _trackValue["data"] = ScriptableData.name;
+                _trackValue["value"] = value;
+                Mixpanel.Track("ScriptableData Value Changed", _trackValue);
             }
 
             Value = value;
@@ -46,9 +59,12 @@ public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICo
         }
     }
 
+    private readonly Value _trackValue = new();
+
     public bool IsValid => Value;
 
 
+    //FIXME: 這個是錯的，要改成用scriptableData的
     public UnityEvent ValueChangedEvent => valueChangedEvent;
 
     [HideInInlineEditors] public UnityEvent valueChangedEvent;

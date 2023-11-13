@@ -78,6 +78,8 @@ public class FlagFieldFloat : FlagField<float>
     }
 }
 
+
+
 public class ValueChangedListener<T>
 {
     private Dictionary<int, System.Tuple<object, UnityAction<T>>> onChangeActionDict;
@@ -318,8 +320,19 @@ public class
     {
         CurrentValue = LastValue;
     }
-    public ValueChangedListener<T> listener =  new ();
-    public ValueChangedListener<T> listenerOnce = new();
+
+    private ValueChangedListener<T> listener = new();
+    private ValueChangedListener<T> listenerOnce = new();
+    private ValueChangedListener<object, object, T> listenerDict;
+
+    public void AddListener<TTarget, TParam>(TTarget target, TParam param, UnityAction<TTarget, TParam, T> callback)
+        where TTarget : Object where TParam : class
+    {
+        if (listenerDict == null)
+            listenerDict = new ValueChangedListener<object, object, T>();
+        listenerDict.AddListenerDict(target, param, callback as UnityAction<object, object, T>);
+    }
+    
     public void AddListener(UnityAction<T> action, MonoBehaviour owner)
     {
         if (owner == null)
@@ -422,6 +435,7 @@ public class
 
         listener.OnChange(value, false);
         listenerOnce.OnChange(value, true);
+        listenerDict?.OnValueChange(value);
     }
 
 

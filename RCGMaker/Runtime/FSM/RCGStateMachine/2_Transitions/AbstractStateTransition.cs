@@ -18,13 +18,12 @@ public interface IState<in TState>
 }
 public class AbstractStateTransition : AbstractBehaviour
 {
-    [ValueDropdown("FindStates")]
+    [ValueDropdown(nameof(FindStates))]
     [Required]
     public GeneralState target;
 
     private void OnValidate()
     {
-
         if (this.isActiveAndEnabled && target == null)
             Debug.LogError("No Target! 選一個", gameObject);
     }

@@ -10,7 +10,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 
-public static class MonoLogExtension
+public static class MonoExtensionLogger
 {
 #if UNITY_EDITOR
     [InitializeOnEnterPlayMode]

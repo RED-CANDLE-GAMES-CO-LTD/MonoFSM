@@ -50,7 +50,8 @@ namespace RCGMaker.Core
     
             else
             {
-                Debug.LogError("InstanceReference: instance is already set");
+                Debug.LogError("InstanceReference: instance is already set instance:" + _instance, _instance);
+                Debug.LogError("InstanceReference: instance is already set registering:" + g, g);
             }
         }
 
