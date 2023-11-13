@@ -20,11 +20,6 @@ public class DebugModeActivator : MonoBehaviour
     [ShowInInspector] public bool IsDebugMode => DebugSetting.IsDebugMode;
     [ShowInInspector] public bool IsSceneTestMode => DebugSetting.IsSceneTestMode;
 
-    private void OnValidate()
-    {
-        
-    }
-
     // Update is called once per frame
     private void Start()
     {
