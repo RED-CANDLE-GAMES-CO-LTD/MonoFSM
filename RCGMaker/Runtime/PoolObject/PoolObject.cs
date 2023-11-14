@@ -72,6 +72,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake //, IResetter
         this.Log("OnDisable");
     }
 
+
+    //FIXME: 不一定會有hitData呀，怪物被噴出來了
     [Header("決定要跟fxplayer, 還是hitData(Receiver)的位置")]
     public ShootFrom InitPosType = ShootFrom.HitData;//TODO: 應該是IPoolObject... PoolOnShoot, OnSpawn
     // public bool IsShootFromHitData = true;

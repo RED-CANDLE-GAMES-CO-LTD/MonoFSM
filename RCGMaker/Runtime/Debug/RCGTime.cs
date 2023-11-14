@@ -3,6 +3,36 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
+public readonly struct UniTaskWrapper : IDisposable
+{
+    public UniTaskWrapper(UniTask task, CancellationTokenSource tokenSource)
+    {
+        Task = task;
+        _tokenSource = tokenSource;
+        // DisposeLater().Forget();
+    }
+
+    // private async UniTaskVoid DisposeLater()
+    // {
+    //     await Task;
+    //     _tokenSource?.Dispose();
+    // }
+
+    public UniTask Task { get; }
+
+    private readonly CancellationTokenSource _tokenSource;
+
+    public void Cancel()
+    {
+        _tokenSource?.Cancel();
+        _tokenSource?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        _tokenSource?.Dispose();
+    }
+}
 /// <summary>
 /// link:
 /// </summary>
@@ -48,6 +78,16 @@ public static class RCGTime
     {
         return UniTask.Delay(TimeSpan.FromSeconds(second), DelayType.DeltaTime,
             cancellationToken: cancelToken);
+    }
+
+
+    public static UniTaskWrapper DelayTask(this MonoBehaviour mb, float second)
+    {
+        var tokenSource = new CancellationTokenSource();
+        var task = UniTask.Delay(TimeSpan.FromSeconds(second), DelayType.DeltaTime,
+            cancellationToken: tokenSource.Token);
+        var wrapper = new UniTaskWrapper(task, tokenSource);
+        return wrapper;
     }
 
     public static UniTask DelayFrame(this MonoBehaviour mb, int frameCount)
