@@ -50,7 +50,8 @@ public class AnimatorReseter
 public interface IPoolObjectPlayer
 {
 }
-public class PoolObject : MonoBehaviour//, IResetter
+
+public class PoolObject : MonoBehaviour, ILevelAwake //, IResetter
 {
     [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
     [Button("Find fx to assign")]
@@ -488,6 +489,33 @@ public class PoolObject : MonoBehaviour//, IResetter
     }
 
   //  public bool Log= false;
+  public void EnterLevelAwake()
+  {
+      //可能可以拔掉
+      //收斂情境：hitData不需要跟著
+      if (InitPosType == ShootFrom.HitData)
+      {
+          if (TryGetComponent<PositionConstraint>(out var constraint))
+          {
+              Destroy(constraint);
+          }
+      }
+  }
+
+  private void OnValidate()
+  {
+      if (InitPosType == ShootFrom.HitData)
+      {
+          if (TryGetComponent<PositionConstraint>(out var constraint))
+          {
+              DestroyImmediate(constraint);
+          }
+      }
+      else
+      {
+          var constraint = this.TryGetCompOrAdd<PositionConstraint>();
+      }
+  }
 }
 
 public class PoolObjEvent : UnityEvent<PoolObject> { }
