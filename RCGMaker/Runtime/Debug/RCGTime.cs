@@ -3,7 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public readonly struct UniTaskWrapper : IDisposable
+public struct UniTaskWrapper : IDisposable
 {
     public UniTaskWrapper(UniTask task, CancellationTokenSource tokenSource)
     {
@@ -21,15 +21,28 @@ public readonly struct UniTaskWrapper : IDisposable
     public UniTask Task { get; }
 
     private readonly CancellationTokenSource _tokenSource;
-
+    
     public void Cancel()
     {
-        _tokenSource?.Cancel();
-        _tokenSource?.Dispose();
+        if (_tokenSource == null) return;
+        if (_tokenSource.IsCancellationRequested) return;
+        try
+        {
+            _tokenSource?.Cancel();
+        }
+        catch (ObjectDisposedException e)
+        {
+            // Console.WriteLine(e);
+            // throw;
+        }
+
+        // _tokenSource?.Dispose();
+        
     }
 
-    public void Dispose()
+    public void Dispose() //用 using(){}, 會自動呼叫
     {
+        
         _tokenSource?.Dispose();
     }
 }
