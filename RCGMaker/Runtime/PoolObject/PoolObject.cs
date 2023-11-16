@@ -500,23 +500,24 @@ public class PoolObject : MonoBehaviour, ILevelAwake //, IResetter
           if (TryGetComponent<PositionConstraint>(out var constraint))
           {
               Destroy(constraint);
+              Debug.LogError("Destroy constraint!", this);
           }
       }
   }
 
   private void OnValidate()
   {
-      if (InitPosType == ShootFrom.HitData)
-      {
-          if (TryGetComponent<PositionConstraint>(out var constraint))
-          {
-              DestroyImmediate(constraint);
-          }
-      }
-      else
-      {
-          var constraint = this.TryGetCompOrAdd<PositionConstraint>();
-      }
+      // if (InitPosType == ShootFrom.HitData)
+      // {
+      //     if (TryGetComponent<PositionConstraint>(out var constraint))
+      //     {
+      //         DestroyImmediate(constraint);
+      //     }
+      // }
+      // else
+      // {
+      //     var constraint = this.TryGetCompOrAdd<PositionConstraint>();
+      // }
   }
 }
 
