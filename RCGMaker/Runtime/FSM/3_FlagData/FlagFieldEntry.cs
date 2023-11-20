@@ -69,6 +69,7 @@ public class FlagFieldEntry<T> //沒有flagBase的話就runtime自己建立runti
         {
             if (flagBase != null) //有用GameFlag
             {
+                //用cache會拿到editor舊的值
                 return flagBase.FindField<T>(fieldName);
             }
             //主選單的選擇解析度是靠這個
