@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
-    public interface IEnableChecker
+    public interface IUIBehavior
     {
         public void EnableCheck();
     }
@@ -13,7 +13,7 @@ namespace RCGMaker.Core
     //新規
     //可以直接放在該節點上
     //自動檢查條件，決定是否啟動節點
-    public class ConditionActivator : MonoBehaviour, IEnableChecker, ISelfValidator
+    public class ConditionActivator : MonoBehaviour, IUIBehavior, ISelfValidator
     {
         [Title("自動檢查條件，決定開關節點")]
         
