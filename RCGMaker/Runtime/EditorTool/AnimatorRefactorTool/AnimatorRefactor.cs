@@ -192,6 +192,44 @@ namespace RCGMaker.Core.Editor
          // selectingNode.name = newName;
       }
 
+      //把Animator的Default State的key貼到所有的GameObject上
+      [MenuItem("CONTEXT/Animator/Paste Default State Key to GameObjects")]
+      public static void PasteDefaultStateToGameObject(MenuCommand menuCommand)
+      {
+         var animator = menuCommand.context as Animator;
+         var animatorController = animator.runtimeAnimatorController;
+         var clips = animatorController.animationClips;
+         var clip = clips[0];
+
+
+         var curveBindings = AnimationUtility.GetCurveBindings(clip);
+         var refCurveBindings = AnimationUtility.GetObjectReferenceCurveBindings(clip);
+         foreach (var curveBinding in curveBindings)
+         {
+            var curve = AnimationUtility.GetEditorCurve(clip, curveBinding);
+
+            var target = animator.transform.Find(curveBinding.path).GetComponent(curveBinding.type);
+            Debug.Log(curveBinding.path + " " + curveBinding.propertyName + " " + curveBinding.type + curve[0].value,
+               target);
+            Undo.RecordObject(target, "Paste State");
+            var serializedObject = new SerializedObject(target);
+            serializedObject.FindProperty(curveBinding.propertyName).floatValue = curve[0].value;
+            serializedObject.ApplyModifiedProperties();
+            Undo.FlushUndoRecordObjects();
+         }
+
+         foreach (var curveBinding in refCurveBindings)
+         {
+            Debug.Log(curveBinding.path);
+            var curve = AnimationUtility.GetObjectReferenceCurve(clip, curveBinding);
+            var target = animator.transform.Find(curveBinding.path).GetComponent(curveBinding.type);
+            Undo.RecordObject(target, "Paste State");
+            var serializedObject = new SerializedObject(target);
+            serializedObject.FindProperty(curveBinding.propertyName).objectReferenceValue = curve[0].value;
+            serializedObject.ApplyModifiedProperties();
+            Undo.FlushUndoRecordObjects();
+         }
+      }
     public static void RefactorClips(GameObject gObj,string oldPath,string newPath)
       {
          var animator = gObj.GetComponentInParent<Animator>();
