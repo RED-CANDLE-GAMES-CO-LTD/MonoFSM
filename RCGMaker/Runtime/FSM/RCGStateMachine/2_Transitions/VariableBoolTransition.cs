@@ -17,6 +17,7 @@ public class VariableBoolTransition : AbstractStateTransition
         base.Awake();
 
         // _delayParam = new Tuple<float>(delay);
+        
         variableNode.ScriptableData.field.AddListener(this, new Tuple<float>(delay),
             (t, param, value) =>
             {

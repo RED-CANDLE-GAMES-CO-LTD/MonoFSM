@@ -227,9 +227,9 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
         return false;
     }
-    
 
-    [ShowInInspector] [InlineEditor] public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
+
+    public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
 
     
     
