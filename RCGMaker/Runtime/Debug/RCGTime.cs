@@ -1,10 +1,12 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using JetBrains.Annotations;
 using UnityEngine;
 
 public struct UniTaskWrapper : IDisposable
 {
+    //悲劇
     public UniTaskWrapper(UniTask task, CancellationTokenSource tokenSource)
     {
         Task = task;
@@ -56,6 +58,8 @@ public static class RCGTime
         timeScale = value;
     }
 
+    
+    
     private static float timeScale
     {
         get
@@ -76,6 +80,11 @@ public static class RCGTime
         }
     }
 
+    public static PrimeTween.Tween DelayTask<T>([NotNull] this T target, float second, Action<T> action) where T : class
+    {
+        return PrimeTween.Tween.Delay(target, second, action, IsIndependentUpdate);
+    }
+    
     public static UniTask UnscaledDelay(this MonoBehaviour mb, float second)
     {
         return UniTask.Delay(TimeSpan.FromSeconds(second), SelfTimeScale ? DelayType.DeltaTime : DelayType.UnscaledDeltaTime);
@@ -94,15 +103,15 @@ public static class RCGTime
     }
 
 
-    public static UniTaskWrapper DelayTask(this MonoBehaviour mb, float second,
-        DelayType delayType = DelayType.UnscaledDeltaTime)
-    {
-        var tokenSource = new CancellationTokenSource();
-        var task = UniTask.Delay(TimeSpan.FromSeconds(second), delayType,
-            cancellationToken: tokenSource.Token);
-        var wrapper = new UniTaskWrapper(task, tokenSource);
-        return wrapper;
-    }
+    // public static UniTaskWrapper DelayTask(this MonoBehaviour mb, float second,
+    //     DelayType delayType = DelayType.UnscaledDeltaTime)
+    // {
+    //     var tokenSource = new CancellationTokenSource();
+    //     var task = UniTask.Delay(TimeSpan.FromSeconds(second), delayType,
+    //         cancellationToken: tokenSource.Token);
+    //     var wrapper = new UniTaskWrapper(task, tokenSource);
+    //     return wrapper;
+    // }
 
     public static UniTask DelayFrame(this MonoBehaviour mb, int frameCount)
     {
