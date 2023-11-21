@@ -94,10 +94,11 @@ public static class RCGTime
     }
 
 
-    public static UniTaskWrapper DelayTask(this MonoBehaviour mb, float second)
+    public static UniTaskWrapper DelayTask(this MonoBehaviour mb, float second,
+        DelayType delayType = DelayType.UnscaledDeltaTime)
     {
         var tokenSource = new CancellationTokenSource();
-        var task = UniTask.Delay(TimeSpan.FromSeconds(second), DelayType.DeltaTime,
+        var task = UniTask.Delay(TimeSpan.FromSeconds(second), delayType,
             cancellationToken: tokenSource.Token);
         var wrapper = new UniTaskWrapper(task, tokenSource);
         return wrapper;
