@@ -39,7 +39,7 @@ namespace RCGMaker.Runtime
         {
             var currentState = _animator.GetCurrentAnimatorStateInfo(0);
             //播新的動畫，重置            
-            if (currentState.shortNameHash != _lastAnimatorStateHash)
+            if (currentState.shortNameHash != _lastAnimatorStateHash && currentState.normalizedTime < 1)
             {
                 // Debug.Log("Change State" + currentState.shortNameHash + gameObject.name, gameObject);
                 _isReceivingAnimationDone = true;
@@ -59,6 +59,7 @@ namespace RCGMaker.Runtime
             SetAnimatorEnable(false);
             _isReceivingAnimationDone = false;
             _receiver?.OnAnimationDone(shortNameHash);
+            _lastAnimatorStateHash = 0;
             // Debug.Log("Disable Animator" + gameObject.name, gameObject);
         }
 
