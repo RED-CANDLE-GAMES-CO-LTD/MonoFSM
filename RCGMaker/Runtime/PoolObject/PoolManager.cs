@@ -52,7 +52,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
 
     }
-    public static void HandleGameLevelAwake(MonoBehaviour level)
+
+    public static void HandleGameLevelAwake(GameObject level)
     {
         var ILevelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));
         // ILevelAwakes.Reverse();
@@ -74,7 +75,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
     }
 
-    public static void HandleGameLevelAwakeReverse(MonoBehaviour level)
+    public static void HandleGameLevelAwakeReverse(GameObject level)
     {
         var ILevelAwakes = new List<ILevelAwakeReverse>(level.GetComponentsInChildren<ILevelAwakeReverse>(true));
         ILevelAwakes.Reverse();
@@ -96,7 +97,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
     }
 
-    public static void HandleGameLevelStart(MonoBehaviour level)
+    public static void HandleGameLevelStart(GameObject level)
     {
         var ILevelStarts = new List<ILevelStart>(level.GetComponentsInChildren<ILevelStart>(true));
 
@@ -121,7 +122,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
     }
 
-    public static void HandleGameLevelStartReverse(MonoBehaviour level)
+    public static void HandleGameLevelStartReverse(GameObject level)
     {
         var ILevelStarts = new List<ILevelStartReverse>(level.GetComponentsInChildren<ILevelStartReverse>(true));
 
@@ -651,10 +652,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         private void PreparePoolObjectImplementation(PoolObject obj)
         {
             AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject);
-            HandleGameLevelAwakeReverse(obj);
-            HandleGameLevelAwake(obj);
-            HandleGameLevelStartReverse(obj);
-            HandleGameLevelStart(obj);
+            HandleGameLevelAwakeReverse(obj.gameObject);
+            HandleGameLevelAwake(obj.gameObject);
+            HandleGameLevelStartReverse(obj.gameObject);
+            HandleGameLevelStart(obj.gameObject);
             obj.OnPrepare();
         }
 
