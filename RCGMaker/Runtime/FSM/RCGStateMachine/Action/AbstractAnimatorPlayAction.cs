@@ -82,9 +82,10 @@ namespace RCGMaker.Core
         //     }
         // }
 
-#if UNITY_EDITOR
+
         private bool IsStateNameNotInAnimator(string name)
         {
+#if UNITY_EDITOR
             if (isActiveAndEnabled == false) //NOTE: 沒開的話不管
                 return false;
 
@@ -97,10 +98,10 @@ namespace RCGMaker.Core
                 if (_name == name)
                     return false;
             }
-
+#endif
             return true;
         }
-
+#if UNITY_EDITOR
         //拿動畫上的所有state name
         private IEnumerable<string> GetAnimatorStateNames()
         {

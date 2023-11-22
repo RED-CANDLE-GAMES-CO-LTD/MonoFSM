@@ -5,6 +5,7 @@ namespace RCGMaker.Utility
 {
     public static class SceneViewUtility
     {
+#if UNITY_EDITOR
         public static void FocusOnGameObject(GameObject gameObject)
         {
             if (gameObject == null)
@@ -35,5 +36,6 @@ namespace RCGMaker.Utility
                 gameObject.transform.position = worldPosition;
             }
         }
+#endif
     }
 }

@@ -2,7 +2,6 @@
 
 using System;
 using Sirenix.OdinInspector;
-using UnityEngine.WSA;
 
 [Serializable]
 public class FlagFieldBoolEntry : FlagFieldEntry<bool>

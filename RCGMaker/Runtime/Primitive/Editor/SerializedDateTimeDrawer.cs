@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -15,3 +16,4 @@ namespace RCGMaker.Runtime.Primitive.Editor
         }
     }
 }
+#endif

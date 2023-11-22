@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-[CanEditMultipleObjects]
+
 public class GizmoMarker : MonoBehaviour
 {
 #if UNITY_EDITOR

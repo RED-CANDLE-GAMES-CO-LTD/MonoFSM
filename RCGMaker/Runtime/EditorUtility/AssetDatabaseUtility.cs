@@ -8,6 +8,7 @@ namespace RCGMaker.Core
 {
     public static class AssetDatabaseUtility
     {
+#if UNITY_EDITOR
         private static void CreateFolderIfNotExist(string folderPath)
         {
             if (!System.IO.Directory.Exists(folderPath))
@@ -38,7 +39,7 @@ namespace RCGMaker.Core
             EditorUtility.ClearProgressBar();
             return asset;
         }
-
+#endif
         [EditorOnly]
         public static void SetDirty(this Object obj)
         {
