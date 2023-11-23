@@ -13,6 +13,11 @@ public interface IResetter
     void ExitLevelAndDestroy(); //目前沒有特別意義，只有換景會call，和OnDestroy差不多
 }
 
+public interface ILevelReset //新規用這個，現在和上面都有call, exitLevelAndDestroy是為了換場景很煩可以拔掉
+{
+    void LevelReset();
+}
+
 public interface ILevelAwake
 {
     void EnterLevelAwake();
