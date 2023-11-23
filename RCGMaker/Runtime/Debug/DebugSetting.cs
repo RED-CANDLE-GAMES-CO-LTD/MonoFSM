@@ -60,7 +60,7 @@ namespace RCGSetting
         }
 
         //之後應該看這個
-        public static TestMode mode => IsProductionMode ? TestMode.Production : TestMode.EditorDevelopment;
+        public static TestMode mode => IsProductionMode ? TestMode.Build : TestMode.EditorDevelopment;
 
         public static bool IsRuntimeQAEnabled
         {

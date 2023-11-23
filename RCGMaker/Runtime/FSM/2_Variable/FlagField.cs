@@ -447,7 +447,7 @@ public class
         _currentValue = mode switch
         {
             TestMode.EditorDevelopment => DevValue,
-            TestMode.Production => ProductionValue,
+            TestMode.Build => ProductionValue,
             // TestMode.BetaTest => PlayTestValue,
             
             _ => _currentValue
