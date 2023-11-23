@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 using RCGMaker.Core;
 
 //大部分的Static Config用這個, 可以依照testMode來選擇不同組config
-public class ScriptableObjectConfig<T> : ScriptableObjectSingleton<T> where T : ScriptableObject
+public class ScriptableObjectConfig<T> : ScriptableObject where T : ScriptableObject
 {
     [EnumToggleButtons] public TestMode forTestMode;
 }

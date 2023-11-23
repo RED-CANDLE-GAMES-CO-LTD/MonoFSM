@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using RCGMaker.Core;
 using UnityEngine;
 
+//存檔時，強迫設定這個物件的active狀態
 public class GameObjectInitialActivator : MonoBehaviour, ILevelConfig, ISceneSavingCallbackReceiver
 {
     public bool isActive = false;

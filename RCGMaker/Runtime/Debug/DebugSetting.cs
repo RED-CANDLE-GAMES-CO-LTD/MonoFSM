@@ -1,6 +1,7 @@
 // using QFSW.QC;
 
 using System.Collections.Generic;
+using RCGInternal.BuildConfig;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -14,6 +15,22 @@ namespace RCGSetting
 #endif
     public static class DebugSetting
     {
+        public static RCGBuildConfig BuildConfig
+        {
+            get
+            {
+                if (_buildConfig == null)
+                {
+                    //use dev config? editor dev
+                    _buildConfig = Resources.Load<RCGBuildConfig>("Configs/BuildVer/0_BuildConfig_Editor_Dev");
+                }
+
+                return _buildConfig;
+            }
+            set => _buildConfig = value;
+        }
+
+        public static RCGBuildConfig _buildConfig; 
         public static bool IsPlayerInvincible;
 
         private static readonly Dictionary<string, bool> BoolProperties = new();
