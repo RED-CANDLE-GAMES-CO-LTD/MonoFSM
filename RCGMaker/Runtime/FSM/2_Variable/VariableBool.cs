@@ -11,7 +11,7 @@ internal interface IValueChangeCallback
     void OnValueChanged(bool value);
 }
 
-public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICondition
+public class VariableBool : VariableType<ScriptableDataBool, FlagFieldBool, bool>, ICondition
 {
     // protected override void Awake()
     // {
@@ -25,9 +25,9 @@ public class VariableBool : VariableType<GameFlagBool, FlagFieldBool, bool>, ICo
 
     // [FormerlySerializedAs("boolFlag")]
     [ReadOnly] [HideInInlineEditors] [Header("Deprecated=>scriptableData")]
-    public GameFlagBool boolFlag; // scriptableData;
+    public ScriptableDataBool boolFlag; // scriptableData;
 
-    public override GameFlagBool ScriptableData => scriptableData == null ? boolFlag : scriptableData;
+    public override ScriptableDataBool ScriptableData => scriptableData == null ? boolFlag : scriptableData;
 
     protected override void OnValidate()
     {

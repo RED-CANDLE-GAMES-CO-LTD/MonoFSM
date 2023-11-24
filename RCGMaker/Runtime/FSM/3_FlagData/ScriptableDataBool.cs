@@ -1,13 +1,22 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
 //TODO: 用FlagFieldBool整合掉??
 //TODO: ScriptableDataBool
-[CreateAssetMenu(fileName = "NewBoolFlag", menuName = "GameFlag/Bool", order = 1)]
-[System.Serializable]
-public class GameFlagBool : AbstractScriptableData<FlagFieldBool, bool>//, IInteractableCondition
+[Serializable]
+public class DataBoolModifyEntry
+{
+    public ScriptableDataBool DataBool;
+    public bool targetValue;
+    [ReadOnly] public bool oriValue;
+}
+
+[CreateAssetMenu(fileName = "ScriptableDataBool", menuName = "ScriptableData/Bool", order = 1)]
+[Serializable]
+public class ScriptableDataBool : AbstractScriptableData<FlagFieldBool, bool> //, IInteractableCondition
 {
     // public FlagFieldBool field;
     [Button("ToggleField")]
