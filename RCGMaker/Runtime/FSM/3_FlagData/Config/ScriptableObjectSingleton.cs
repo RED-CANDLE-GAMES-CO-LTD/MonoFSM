@@ -58,6 +58,7 @@ public class ScriptableObjectSingleton<T> : ScriptableObject where T : Scriptabl
             "MonsterGlobalConfig" => "Configs/MonsterGlobalConfig",
             "SceneTable" => "Configs/SceneTable",
             "TestModeGameFlag" => "Configs/TestModeGameFlag",
+            "VRChallengeConfig"=>"Configs/VRChallengeConfig",
             _ => "Configs/" + typeof(T).Name
         };
 }
