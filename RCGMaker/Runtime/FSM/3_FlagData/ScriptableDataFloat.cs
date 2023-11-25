@@ -1,6 +1,11 @@
-﻿using Sirenix.OdinInspector;
+﻿using System;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
+[Serializable]
+public class DataFloatModifyEntry : DataModifyEntry<ScriptableDataBool, FlagFieldBool, bool>
+{
+}
 [CreateAssetMenu(fileName = "NewFloatFlag", menuName = "GameFlag/Float", order = 1)]
 public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
 {

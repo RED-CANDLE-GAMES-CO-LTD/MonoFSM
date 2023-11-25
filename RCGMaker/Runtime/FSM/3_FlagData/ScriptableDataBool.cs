@@ -7,11 +7,34 @@ using UnityEngine.Events;
 //TODO: 用FlagFieldBool整合掉??
 //TODO: ScriptableDataBool
 [Serializable]
-public class DataBoolModifyEntry
+public class DataBoolModifyEntryTest : DataModifyEntry<ScriptableDataBool, FlagFieldBool, bool>
 {
-    public ScriptableDataBool DataBool;
-    public bool targetValue;
-    [ReadOnly] public bool oriValue;
+}
+
+[Serializable]
+public abstract class DataModifyEntry<TData, TField, T> : BaseDataModifyEntry
+    where T : struct where TData : AbstractScriptableData<TField, T> where TField : FlagField<T>
+{
+    public TData Data;
+    public T targetValue;
+    [ReadOnly] public T oriValue;
+    [ShowInInspector] public string Note => Data.Note;
+
+    public void Apply()
+    {
+        oriValue = Data.CurrentValue;
+        Data.CurrentValue = targetValue;
+    }
+
+    public void Revert()
+    {
+        Data.CurrentValue = oriValue;
+    }
+}
+
+[Serializable]
+public abstract class BaseDataModifyEntry //沒什麼用... 不利於refactor
+{
 }
 
 [CreateAssetMenu(fileName = "ScriptableDataBool", menuName = "ScriptableData/Bool", order = 1)]
