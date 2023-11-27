@@ -9,6 +9,7 @@ namespace RCGMaker.Core.Attributes
         public string SubFolderPath = "";
         public string PostProcessMethodName = "";
 
+        //FIXME: 空路徑，就放在原本同一個資料夾？
         public SOConfigAttribute(string subFolderPath, string PostProcessMethodName = "")
         {
             SubFolderPath = subFolderPath;
