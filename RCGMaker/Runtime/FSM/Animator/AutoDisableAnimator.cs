@@ -15,6 +15,8 @@ namespace RCGMaker.Runtime
         private bool _isReceivingAnimationDone = false;
         private IAnimationDoneReceiver _receiver;
 
+        public string defaultStateName;
+
         public void SetDirty()
         {
             // _lastAnimatorStateHash = 0;
@@ -73,13 +75,20 @@ namespace RCGMaker.Runtime
             _isReceivingAnimationDone = false;
             _receiver?.OnAnimationDone(shortNameHash);
             // _lastAnimatorStateHash = 0;
-            // Debug.Log("Disable Animator" + gameObject.name, gameObject);
+            Debug.Log("Disable Animator" + gameObject.name, gameObject);
         }
 
         private void SetAnimatorEnable(bool enable)
         {
             _animator.enabled = enable;
             enabled = enable;
+            if (!string.IsNullOrEmpty(defaultStateName))
+            {
+                Debug.Log("Play Default State" + defaultStateName);
+                _animator.Play(defaultStateName, 0, 0);
+                _lastAnimatorStateHash = -1;
+            }
+                
         }
     }
 }
