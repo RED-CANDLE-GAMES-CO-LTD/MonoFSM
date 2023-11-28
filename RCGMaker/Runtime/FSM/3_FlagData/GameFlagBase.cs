@@ -172,7 +172,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     }
     public virtual void FlagInit() //特殊的flag要做一些initialize的話在這
     {
-
+//clear 
     }
     // private void OnDisable() {
 

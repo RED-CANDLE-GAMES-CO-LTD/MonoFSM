@@ -12,7 +12,7 @@ public enum StatModType
 
 public enum StatModDurationType
 {
-    Permanent = 0,
+    Permanent = 0, //
     Temporary = 1
 }
 

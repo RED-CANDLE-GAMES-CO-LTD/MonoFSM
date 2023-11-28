@@ -278,13 +278,18 @@ public class
     // public bool isDirty = false;
     // private List<FlagFieldModifier<T>> modifiers = new();
 
+
+    //暫時變更值，可以看出來是誰變更的
     public void AddModifier(FlagFieldModifier<T> modifier)
     {
         //先清在加
         //投票機制是 只取第一個人的意見...，一人只有一票
+
+        //FIXME: gc...
         _modifiers.RemoveAll(x => x.source == modifier.source);
         _modifiers.Add(modifier);
-        // _modifier = modifier;
+        //理論上加了modifier就要重新計算一次，
+        OnChangeInvoke(CurrentValue);
     }
 
     public void RemoveModifier(IStatModifierOwner modifierOwner)
@@ -432,7 +437,11 @@ public class
 
         // if (DebugSetting.IsDebugMode && _isShowDebugLog)
         //     Debug.Log("[FlagField] After CurrentValue" + value);
+        OnChangeInvoke(value);
+    }
 
+    private void OnChangeInvoke(T value)
+    {
         listener.OnChange(value, false);
         listenerOnce.OnChange(value, true);
         listenerDict?.OnValueChange(value);
@@ -485,6 +494,11 @@ public class
         }
         else
             CurrentValue = ProductionValue;
+    }
+
+    public void Clear()
+    {
+        //FIXME: 是不是應該要清掉listener?
     }
 
 }
