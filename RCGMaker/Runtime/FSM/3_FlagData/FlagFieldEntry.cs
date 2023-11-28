@@ -1,7 +1,10 @@
 //主要給condition用的
 
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
 [Serializable]
 public class FlagFieldBoolEntry : FlagFieldEntry<bool>
@@ -51,9 +54,37 @@ public class FlagFieldEntry<T> //沒有flagBase的話就runtime自己建立runti
     // [Header("Flag Valid Entry")]
     [InlineEditor()]
     public GameFlagBase flagBase;
+
+    [ValueDropdown(nameof(GetFields))]
     public string fieldName;
     private FlagField<T> _runtimeField; //如果需要的話才要new
 
+    private IEnumerable<string> GetFields()
+    {
+        if (flagBase != null)
+        {
+            var type = flagBase.GetType();
+            var flagFields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            // Debug.Log("flagFields Count" + flagFields.Length);
+            var fieldNames = new List<string>();
+
+            foreach (var flagField in flagFields)
+            {
+                Debug.Log(flagField.FieldType);
+                //is inherited from FlagField<T>
+                if (flagField.FieldType.IsSubclassOf(typeof(FlagField<T>)))
+                    fieldNames.Add(flagField.Name);
+            }
+
+            // Debug.Log("fieldNames count" + fieldNames.Count);
+            return fieldNames;
+        }
+        else
+        {
+            return Array.Empty<string>();
+        }
+    }
+    
     [ShowInInspector]
     public T Value
     {
