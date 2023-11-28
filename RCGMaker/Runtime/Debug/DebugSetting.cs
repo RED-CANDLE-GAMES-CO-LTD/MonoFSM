@@ -30,8 +30,12 @@ namespace RCGSetting
         // }
         //
         // public static RCGBuildConfig _buildConfig; 
-        
-        public static bool IsPlayerInvincible;
+
+        public static bool IsPlayerDebugInvincible
+        {
+            get => BoolProperties[nameof(IsPlayerDebugInvincible)];
+            set => SetBoolProperty(nameof(IsPlayerDebugInvincible), value);
+        }
 
         private static readonly Dictionary<string, bool> BoolProperties = new();
 
@@ -42,6 +46,7 @@ namespace RCGSetting
         {
             _isDebugMode = BoolProperties[nameof(IsDebugMode)];
             _isSpeedUpActionEnabled = BoolProperties[nameof(IsSpeedUpActionEnabled)];
+            
         }
         
         static DebugSetting()
@@ -233,7 +238,7 @@ namespace RCGSetting
         // [Command("test.PlayerInvincible")]
         private static void SetPlayerInvincible(bool activate)
         {
-            IsPlayerInvincible = activate;
+            IsPlayerDebugInvincible = activate;
         }
 
         // Save all properties to EditorPrefs when any one of them is set
