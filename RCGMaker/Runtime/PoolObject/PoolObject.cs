@@ -18,6 +18,7 @@ public interface IPoolObject : IResetter
 [Serializable]
 public class AnimatorReseter
 {
+    [ShowInInspector]
     int animDefaultNameHash;
     public Animator _anim;
     public AnimatorReseter(Animator anim)
@@ -28,7 +29,7 @@ public class AnimatorReseter
 
     public void Fetch()
     {
-        if (_anim != null && _anim.runtimeAnimatorController != null && _anim.isActiveAndEnabled)
+        if (_anim != null && _anim.runtimeAnimatorController != null) // && _anim.isActiveAndEnabled)
         {
             animDefaultNameHash = _anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
 
@@ -41,6 +42,7 @@ public class AnimatorReseter
     {
         if (_anim != null && _anim.runtimeAnimatorController != null && _anim.enabled && _anim.isActiveAndEnabled)
         {
+            Debug.Log("Animator Resetter: Resetting:" + _anim, _anim);
             _anim.Play(animDefaultNameHash, 0, 0);
             _anim.Update(0);
         }
