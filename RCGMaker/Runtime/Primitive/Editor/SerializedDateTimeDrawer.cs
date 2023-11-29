@@ -5,15 +5,15 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.Primitive.Editor
 {
-    public class SerializedDateTimeDrawer : OdinValueDrawer<SerializableDateTime>
-    {
-        protected override void DrawPropertyLayout(GUIContent label)
-        {
-            //draw date time string
-            GUI.enabled = false;
-            EditorGUILayout.TextField(label, ValueEntry.SmartValue.DateTimeString);
-            GUI.enabled = true;
-        }
-    }
+    // public class SerializedDateTimeDrawer : OdinValueDrawer<SerializableDateTime>
+    // {
+    //     protected override void DrawPropertyLayout(GUIContent label)
+    //     {
+    //         //draw date time string
+    //         GUI.enabled = false;
+    //         EditorGUILayout.TextField(label, ValueEntry.SmartValue.DateTimeString);
+    //         GUI.enabled = true;
+    //     }
+    // }
 }
 #endif

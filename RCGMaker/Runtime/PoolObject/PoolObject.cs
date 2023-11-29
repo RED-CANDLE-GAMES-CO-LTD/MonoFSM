@@ -8,6 +8,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 public interface IPoolObject : IResetter
 {
@@ -15,36 +16,42 @@ public interface IPoolObject : IResetter
     void PoolOnPrepared(PoolObject poolObj);
     void PoolBeforeDestroy();
 }
+
+//runtime data
 [Serializable]
-public class AnimatorReseter
+public class AnimatorResetter
 {
     [ShowInInspector]
     int animDefaultNameHash;
-    public Animator _anim;
-    public AnimatorReseter(Animator anim)
+
+
+    public Animator animator;
+
+    public AnimatorResetter(Animator anim)
     {
-        _anim = anim;
+        animator = anim;
         Fetch();
     }
 
     public void Fetch()
     {
-        if (_anim != null && _anim.runtimeAnimatorController != null) // && _anim.isActiveAndEnabled)
+        if (animator != null && animator.runtimeAnimatorController != null) // && _anim.isActiveAndEnabled)
         {
-            animDefaultNameHash = _anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
+            animDefaultNameHash = animator.GetCurrentAnimatorStateInfo(0).fullPathHash;
 
             //關掉Animator，原本會清資料，重打開把當下的值當作新的default，會爛掉
-            _anim.keepAnimatorStateOnDisable = true;
+            animator.keepAnimatorStateOnDisable = true;
         }
     }
 
     public void Reset()
     {
-        if (_anim != null && _anim.runtimeAnimatorController != null && _anim.enabled && _anim.isActiveAndEnabled)
+        if (animator != null && animator.runtimeAnimatorController != null && animator.enabled &&
+            animator.isActiveAndEnabled)
         {
-            Debug.Log("Animator Resetter: Resetting:" + _anim, _anim);
-            _anim.Play(animDefaultNameHash, 0, 0);
-            _anim.Update(0);
+            Debug.Log("Animator Resetter: Resetting:" + animator, animator);
+            animator.Play(animDefaultNameHash, 0, 0);
+            animator.Update(0);
         }
     }
 }
@@ -127,7 +134,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake //, IResetter
         InitAnimResetters();
     }
 
-    private List<AnimatorReseter> animResetters;
+    private List<AnimatorResetter> animResetters;
 
     private bool animResetterInited = false;
 
@@ -144,12 +151,12 @@ public class PoolObject : MonoBehaviour, ILevelAwake //, IResetter
 
         animResetterInited = true;
 
-        animResetters = new List<AnimatorReseter>();
+        animResetters = new List<AnimatorResetter>();
 
         if(_anims != null)
             for (var i = 0; i < this._anims.Length; i++)
             {
-                animResetters.Add(new AnimatorReseter(_anims[i]));
+                animResetters.Add(new AnimatorResetter(_anims[i]));
             }
 
 
@@ -171,7 +178,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake //, IResetter
 
         for (int i = 0; i < animResetters.Count; i++)
         {
-            this.Log(animResetters[i]._anim, "[PoolObjecResetAndStart] anim Reset", animResetters[i]._anim);
+            this.Log(animResetters[i].animator, "[PoolObjecResetAndStart] anim Reset", animResetters[i].animator);
             animResetters[i].Reset();
         }
 

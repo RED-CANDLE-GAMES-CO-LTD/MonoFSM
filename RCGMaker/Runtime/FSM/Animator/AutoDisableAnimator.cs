@@ -8,6 +8,7 @@ namespace RCGMaker.Runtime
         void OnAnimationDone(int shortNameHash);
     }
 
+    //當狀態機播完動畫，自動關掉animator，節省效能
     public class AutoDisableAnimator : MonoBehaviour
     {
         private Animator _animator;

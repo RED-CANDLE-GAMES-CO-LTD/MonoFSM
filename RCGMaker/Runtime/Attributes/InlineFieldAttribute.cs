@@ -7,13 +7,13 @@ namespace RCGMaker.Core.Attributes
     [InlineProperty]
     [HideLabel]
     [IncludeMyAttributes]
+    [Title("@$property.NiceName")]
     public class InlineFieldAttribute : Attribute //serialized class會有小箭頭要expand
     {
-        private string title;
 
         public InlineFieldAttribute(string title = null)
         {
-            this.title = title;
+
         }
         //add title to the field
     }
