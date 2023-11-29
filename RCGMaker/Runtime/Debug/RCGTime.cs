@@ -80,9 +80,10 @@ public static class RCGTime
         }
     }
 
-    public static PrimeTween.Tween DelayTask<T>([NotNull] this T target, float second, Action<T> action) where T : class
+    public static PrimeTween.Tween DelayTask<T>([NotNull] this T target, float delayTime, Action<T> action)
+        where T : class
     {
-        return PrimeTween.Tween.Delay(target, second, action, IsIndependentUpdate);
+        return PrimeTween.Tween.Delay(target, delayTime, action, IsIndependentUpdate);
     }
     
     public static UniTask UnscaledDelay(this MonoBehaviour mb, float second)

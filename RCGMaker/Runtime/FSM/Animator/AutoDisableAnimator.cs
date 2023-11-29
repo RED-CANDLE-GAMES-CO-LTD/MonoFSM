@@ -91,6 +91,7 @@ namespace RCGMaker.Runtime
                 {
                     Debug.Log("Play Default State" + defaultStateName);
                     _animator.Play(defaultStateName, 0, 0);
+                    _animator.Update(0);
                     _lastAnimatorStateHash = -1;
                 }    
             }
