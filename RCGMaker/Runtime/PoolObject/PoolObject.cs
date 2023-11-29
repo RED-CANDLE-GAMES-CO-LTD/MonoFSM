@@ -60,7 +60,7 @@ public interface IPoolObjectPlayer
 {
 }
 
-public class PoolObject : MonoBehaviour, ILevelAwake //, IResetter
+public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 {
     [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
     [Button("Find fx to assign")]
@@ -527,6 +527,12 @@ public class PoolObject : MonoBehaviour, ILevelAwake //, IResetter
       // {
       //     var constraint = this.TryGetCompOrAdd<PositionConstraint>();
       // }
+  }
+
+  public void LevelReset()
+  {
+      TransformReset();
+      ResetAnim();
   }
 }
 

@@ -414,14 +414,17 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         //    monoBehavioursInSceneWithAuto.Count(), variablesAnalized, variablesWithAuto, sw.ElapsedMilliseconds, autoVarialbesAssigned_count, autoVarialbesAssigned_count + autoVarialbesNotAssigned_count, result_color);
     }
 
-    public void ReturnAllObjects()
-    {
-        for (var i = 0; i < allPools.Count; i++)
-            allPools[i].ReturnAllObjects();
-    }
+    // public void ReturnAllObjects()
+    // {
+    //     Debug.Log("Return All PoolObj");
+    //     
+    //     for (var i = 0; i < allPools.Count; i++)
+    //         allPools[i].ReturnAllObjects();
+    // }
 
     public void ReturnAllObjects(Scene withScene)
     {
+        Debug.Log("Return All PoolObj With Scene");
         for (var i = 0; i < allPools.Count; i++)
             allPools[i].ReturnAllObjects(withScene);
     }
