@@ -170,7 +170,8 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
         
         fieldCaches.Clear();
     }
-    public virtual void FlagInit() //特殊的flag要做一些initialize的話在這
+
+    public virtual void FlagInitStart() //特殊的flag要做一些initialize的話在這
     {
 //clear 
     }
