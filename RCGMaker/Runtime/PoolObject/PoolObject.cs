@@ -17,44 +17,6 @@ public interface IPoolObject : IResetter
     void PoolBeforeDestroy();
 }
 
-//runtime data
-[Serializable]
-public class AnimatorResetter
-{
-    [ShowInInspector]
-    int animDefaultNameHash;
-
-
-    public Animator animator;
-
-    public AnimatorResetter(Animator anim)
-    {
-        animator = anim;
-        Fetch();
-    }
-
-    public void Fetch()
-    {
-        if (animator != null && animator.runtimeAnimatorController != null) // && _anim.isActiveAndEnabled)
-        {
-            animDefaultNameHash = animator.GetCurrentAnimatorStateInfo(0).fullPathHash;
-
-            //關掉Animator，原本會清資料，重打開把當下的值當作新的default，會爛掉
-            animator.keepAnimatorStateOnDisable = true;
-        }
-    }
-
-    public void Reset()
-    {
-        if (animator != null && animator.runtimeAnimatorController != null && animator.enabled &&
-            animator.isActiveAndEnabled)
-        {
-            Debug.Log("Animator Resetter: Resetting:" + animator, animator);
-            animator.Play(animDefaultNameHash, 0, 0);
-            animator.Update(0);
-        }
-    }
-}
 
 public interface IPoolObjectPlayer
 {
@@ -133,7 +95,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
         CheckList();
         InitAnimResetters();
     }
-
     private List<AnimatorResetter> animResetters;
 
     private bool animResetterInited = false;
@@ -179,7 +140,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
         for (int i = 0; i < animResetters.Count; i++)
         {
             this.Log(animResetters[i].animator, "[PoolObjecResetAndStart] anim Reset", animResetters[i].animator);
-            animResetters[i].Reset();
+            animResetters[i].ResetToDefault();
         }
 
         // needResetAnim = false;
