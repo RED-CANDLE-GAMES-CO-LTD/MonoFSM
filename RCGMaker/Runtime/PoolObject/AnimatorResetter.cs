@@ -35,14 +35,14 @@ public class AnimatorResetter
             return false;
         if (animator.runtimeAnimatorController == null)
         {
-            Debug.LogError("Animator Resetter: animator.runtimeAnimatorController == null" + animator, animator);
+            // Debug.LogError("Animator Resetter: animator.runtimeAnimatorController == null" + animator, animator);
             return false;
         }
 
 
         if (animator.runtimeAnimatorController == null)
         {
-            Debug.LogError("Animator Resetter: animator.runtimeAnimatorController == null" + animator, animator);
+            // Debug.LogError("Animator Resetter: animator.runtimeAnimatorController == null" + animator, animator);
             return false;
         }
 
@@ -52,7 +52,7 @@ public class AnimatorResetter
         //     Debug.LogError("Animator Resetter: animator.isActiveAndEnabled == false" + animator, animator);
         // }
         animator.enabled = true;
-        Debug.Log("Animator Resetter: Resetting:" + animator, animator);
+        // Debug.Log("Animator Resetter: Resetting:" + animator, animator);
         animator.Play(animDefaultNameHash, 0, 0);
         animator.Update(0);
         return true;
