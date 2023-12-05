@@ -53,8 +53,12 @@ public class AnimatorResetter
         // }
         animator.enabled = true;
         // Debug.Log("Animator Resetter: Resetting:" + animator, animator);
-        animator.Play(animDefaultNameHash, 0, 0);
-        animator.Update(0);
+        if (animator.isActiveAndEnabled)
+        {
+            animator.Play(animDefaultNameHash, 0, 0);
+            animator.Update(0);
+        }
+        
         return true;
     }
 }
