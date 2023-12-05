@@ -43,6 +43,8 @@ namespace RCGMaker.AddressableAssets
 
         public async Task<Object> LoadAsset()
         {
+            var validateKeyAsync = Addressables.LoadResourceLocationsAsync(assetReference.RuntimeKey);
+            await validateKeyAsync.Task;
             var handle = assetReference.LoadAssetAsync<Object>();
             var obj = await handle.Task;
             return obj;

@@ -23,7 +23,7 @@ public class StatData : ScriptableObject, IStringData
     [PropertyOrder(-1)]
     public virtual float Value => stat.Value;
 
-    public List<StatData> baseRatios;
+    public List<StatData> baseRatios; //為什麼要list
 
     private float CalculateFinalValue()
     {
