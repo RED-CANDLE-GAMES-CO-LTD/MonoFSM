@@ -3,15 +3,15 @@ using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core.Attributes
 {
-    // [Title("InlineField")] 可以類似用ShowInPlayModeAttributeProcessor來把InlineFieldAttribute加上
+   
     [InlineProperty]
     [HideLabel]
     [IncludeMyAttributes]
-    [Title("@$property.NiceName")]
+    //這個好屌！！
+    [Title("@$property.NiceName")] // [Title("InlineField")] 可以類似用ShowInPlayModeAttributeProcessor來把InlineFieldAttribute加上
     public class InlineFieldAttribute : Attribute //serialized class會有小箭頭要expand
     {
-
-        public InlineFieldAttribute(string title = null)
+        public InlineFieldAttribute()
         {
 
         }
