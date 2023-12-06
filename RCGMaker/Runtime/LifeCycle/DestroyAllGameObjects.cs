@@ -1,7 +1,9 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 public static class RCGLifeCycle
 {
@@ -72,13 +74,21 @@ public class DestroyAllGameObjects : MonoBehaviour
 
         foreach (var go in allObjects)
         {
-            if (_CanDestroy(go)) //把其他人都刪光光
+            try
             {
-                go.SetActive(false);
+                if (_CanDestroy(go)) //把其他人都刪光光
+                {
+                    go.SetActive(false);
+                }
+                else
+                {
+                    Debug.Log("SteamAPI Not Destroyed");
+                }
             }
-            else
+            catch (Exception e)
             {
-                Debug.Log("SteamAPI Not Destroyed");
+                Debug.LogError(go + " cant Desable?");
+                Debug.LogError(e);
             }
         }
 
