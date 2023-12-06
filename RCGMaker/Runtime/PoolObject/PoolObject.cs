@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using PrimeTween;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -233,7 +234,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
         onScene = true;
         if (UseAutoDestroy)
         {
-            RegisterDestroy().Forget();
+            //FIXME:
+            RegisterDestroy();
             // autoDestroyTimer = AutoDestroyTime;
         }
             
@@ -244,12 +246,12 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
     //Shooter 想要變更Destory 設定
     public void OverrideDestroyTime(float time)
     {
-        RaisePoolObjectReturnEvent();
+        // RaisePoolObjectReturnEvent();
         
         UseAutoDestroy = true;
         AutoDestroyTime = time;
 
-        RegisterDestroy().Forget();
+        RegisterDestroy();
     }
     public void PoolObjecResetAndStart() //只有收進去pool的才需要這個
     {
@@ -307,7 +309,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
     public void OnReturnToPool(PoolManager manager)
     {
-        RaisePoolObjectReturnEvent();
+        // RaisePoolObjectReturnEvent();
         CheckList();
         // needResetAnim = true;
         this.ResetAnim();
@@ -347,17 +349,13 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
     public void ReturnToPool()
     {
-
+        destroyTween.Stop();
         if (_bindingPoolManager == null)
         {
             this.Log("[PoolObject] return object to pool failed", this);
             gameObject.SetActive(false);
 
-            if (OnReturnEvent != null)
-            {
-                OnReturnEvent.Invoke(this);
-                OnReturnEvent.RemoveAllListeners();
-            }
+           
             // GameObject.Destroy(gameObject);
         }
         else
@@ -372,7 +370,16 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
 
             onScene = false;
+            if (OnReturnEvent != null)
+            {
+                OnReturnEvent.Invoke(this);
+                OnReturnEvent.RemoveAllListeners();
+            }
+
+            Debug.Log("[PoolObject] return object to pool" + name, this);
+            // destroyTween.Stop();
             _bindingPoolManager.ReturnToPool(this);
+            
         }
 
 
@@ -410,25 +417,32 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
     private bool onScene = false;
 
-    private async UniTaskVoid RegisterDestroy()
+    private void RegisterDestroy()
     {
         if (UseAutoDestroy)
         {
             _poolObjectReturnTokenSource = new CancellationTokenSource();
-            await this.Delay(AutoDestroyTime,_poolObjectReturnTokenSource.Token);
-            ReturnToPool();
+            destroyTween = this.DelayTask(AutoDestroyTime, (target) =>
+            {
+                target.ReturnToPool();
+                Debug.Log("AutoDestroyTime:" + target.AutoDestroyTime, target);
+            });
+            // await this.Delay(AutoDestroyTime,_poolObjectReturnTokenSource.Token);
+            // ReturnToPool();
         }
     }
 
-    private void RaisePoolObjectReturnEvent()
-    {
-        if (_poolObjectReturnTokenSource != null)
-        {
-            _poolObjectReturnTokenSource.Cancel();
-            _poolObjectReturnTokenSource.Dispose();
-            _poolObjectReturnTokenSource = null;
-        }
-    }
+    private Tween destroyTween;
+
+    // private void RaisePoolObjectReturnEvent()
+    // {
+    //     if (_poolObjectReturnTokenSource != null)
+    //     {
+    //         _poolObjectReturnTokenSource.Cancel();
+    //         _poolObjectReturnTokenSource.Dispose();
+    //         _poolObjectReturnTokenSource = null;
+    //     }
+    // }
 
     private CancellationTokenSource _poolObjectReturnTokenSource;
 
@@ -452,7 +466,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
     private void OnDestroy()
     {
-        RaisePoolObjectReturnEvent();
+        // RaisePoolObjectReturnEvent();
+        destroyTween.Stop();
         //被別人越權刪除前 跟pool講一聲
         if (this.IsFromPool)
         {
@@ -494,6 +509,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
   {
       TransformReset();
       ResetAnim();
+      destroyTween.Stop();
   }
 }
 
