@@ -101,8 +101,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
             //幫他生成
             //if null, create new instance
             // var fieldType = field.FieldType;
-
-
+            //FIXME: 非正式scene的時候，不要生成？怎麼標記這件事，看有沒有在build setting?
             var data = field.FieldType.CreateGameStateSO(_ownerMono);
             if (data == null)
                 // Debug.LogError("Fail to create GameStateSO for " + field.Name, this);

@@ -28,15 +28,20 @@ public class OnEnableHierarchyInvoker : MonoBehaviour
     [InfoBox("打開我可以讓parent(上面)的IOnEnableInvokable(FxPlayer)噴噴")]
     private void OnEnable()
     {
-        this.TryGetComp<IOnEnableInvokable>()?.OnEnableInvoke();
-        // if (IsParentInvoke)
-        transform.parent.TryGetComp<IOnEnableInvokable>()?.OnEnableInvoke();
+        //FIXME: ref 應該要先拿起來吧？
+        // this.TryGetComp<IOnEnableInvokable>()?.OnEnableInvoke();
+        // // if (IsParentInvoke)
+        // transform.parent.TryGetComp<IOnEnableInvokable>()?.OnEnableInvoke();
+        _onEnableInvokable?.OnEnableInvoke();
     }
+
+    [AutoParent] private IOnEnableInvokable _onEnableInvokable;
 
     private void OnDisable()
     {
-        this.TryGetComp<IOnEnableInvokable>()?.OnDisableInvoke();
-        // if (IsParentInvoke)
-        transform.parent.TryGetComp<IOnEnableInvokable>()?.OnDisableInvoke();
+        // this.TryGetComp<IOnEnableInvokable>()?.OnDisableInvoke();
+        // // if (IsParentInvoke)
+        // transform.parent.TryGetComp<IOnEnableInvokable>()?.OnDisableInvoke();
+        _onEnableInvokable?.OnDisableInvoke();
     }
 }

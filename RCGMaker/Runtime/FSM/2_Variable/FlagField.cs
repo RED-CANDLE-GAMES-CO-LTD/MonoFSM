@@ -201,6 +201,7 @@ public class FlagFieldModifier<T>
 [Serializable]
 public class FlagFieldBool : FlagField<bool>
 {
+    public bool IsJustBecameTrue => _lastValue == false && _currentValue == true;
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj)) return false;
