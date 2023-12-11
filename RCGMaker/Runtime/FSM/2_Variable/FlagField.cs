@@ -332,7 +332,7 @@ public class
     private ValueChangedListener<object, object, T> listenerDict;
 
     public void AddListener<TTarget, TParam>(TTarget target, TParam param, UnityAction<TTarget, TParam, T> callback)
-        where TTarget : Object where TParam : class
+        where TTarget : Object
     {
         if (listenerDict == null)
             listenerDict = new ValueChangedListener<object, object, T>();

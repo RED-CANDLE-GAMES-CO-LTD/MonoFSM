@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 #if UNITY_EDITOR
+using System.IO;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 #endif
 using UnityEngine;
@@ -192,6 +194,45 @@ namespace RCGMaker.Core.Editor
          // selectingNode.name = newName;
       }
 
+      //generate a new animator controller and assign it to the animator
+      [MenuItem("CONTEXT/Animator/Generate Variant")]
+      public static void GenerateVariant(MenuCommand command)
+      {
+         var animator = command.context as Animator;
+         if (animator == null)
+         {
+            Debug.LogError("Can't find Animator");
+            return;
+         }
+
+         var prefabPath =
+            AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(animator.gameObject));
+
+         Undo.RecordObject(animator, "Generate Variant");
+         
+         var folderPath = Path.GetDirectoryName(prefabPath);
+         var newAssetPath = Path.Combine(folderPath, animator.gameObject.name + ".controller");
+         if (animator.runtimeAnimatorController != null)
+         {
+            var originalAssetPath = AssetDatabase.GetAssetPath(animator.runtimeAnimatorController);
+            var originalAssetName = Path.GetFileName(originalAssetPath);
+            //Path.Combine(folderPath ,"/", originalAssetName); 這樣會錯QQ?
+            //https://learn.microsoft.com/zh-tw/dotnet/api/system.io.path.combine?view=net-8.0
+            newAssetPath = Path.Combine(folderPath +"/", originalAssetName);    
+            AssetDatabase.CopyAsset(originalAssetPath, newAssetPath);
+            RuntimeAnimatorController newAsset =  AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(newAssetPath);
+            animator.runtimeAnimatorController = newAsset;
+         }
+         else
+         {
+            var newAsset = AnimatorController.CreateAnimatorControllerAtPath(newAssetPath);
+            animator.runtimeAnimatorController = newAsset;
+         }
+        
+         animator.SetDirty();
+         AssetDatabase.SaveAssets();
+         // Undo.FlushUndoRecordObjects();
+      }
       //把Animator的Default State的key貼到所有的GameObject上
       [MenuItem("CONTEXT/Animator/Paste Default State Key to GameObjects")]
       public static void PasteDefaultStateToGameObject(MenuCommand menuCommand)

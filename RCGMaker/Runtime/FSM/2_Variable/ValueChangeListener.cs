@@ -24,7 +24,7 @@ public class ValueChangedListener<TTarget, TParam, TValue>
         onChangeActionDict[target] = tuple;
     }
 
-    private List<object> keys;
+    private List<object> keys = new List<object>();
 
     public void OnValueChange(TValue value)
     {
