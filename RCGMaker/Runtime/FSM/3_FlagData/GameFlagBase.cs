@@ -216,13 +216,22 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
         
         if(fieldCaches.ContainsKey(fieldName))
             return fieldCaches[fieldName] as FlagField<T>;
-        
-        var t = this.GetType();
-        var field = t.GetField(fieldName).GetValue(this) as FlagField<T>;
-        
-        fieldCaches.Add(fieldName,field);
-        
-        return field;
+
+        try
+        {
+            var t = this.GetType();
+
+            var field = t.GetField(fieldName).GetValue(this) as FlagField<T>;
+
+            fieldCaches.Add(fieldName, field);
+
+            return field;
+            //
+        }
+        catch
+        {
+            return null;
+        }
     }
 
 
