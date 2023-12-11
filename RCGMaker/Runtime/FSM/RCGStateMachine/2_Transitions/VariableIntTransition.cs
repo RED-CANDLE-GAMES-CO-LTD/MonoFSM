@@ -2,7 +2,7 @@
 using System;
 using Sirenix.OdinInspector;
     using UnityEngine;
-
+//FIXME: 還沒有測試過唷, 現在listen應該會錯
     public class VariableIntTransition:AbstractStateTransition
     {
         [Required] public VariableFloat variableNode;

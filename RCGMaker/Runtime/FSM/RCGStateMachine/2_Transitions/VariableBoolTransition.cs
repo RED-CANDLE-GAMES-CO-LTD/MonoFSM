@@ -5,7 +5,7 @@ using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 //監聽variable變化讓state轉換？
-//FIXME: 還沒有測試過唷
+//FIXME: 還沒有測試過唷, 現在listen應該會錯
 public class VariableBoolTransition : AbstractStateTransition
 {
     [Required] public VariableBool variableNode;
