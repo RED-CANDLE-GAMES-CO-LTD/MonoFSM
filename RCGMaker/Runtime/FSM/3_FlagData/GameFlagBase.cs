@@ -211,7 +211,9 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     }
     public FlagField<T> FindField<T>(string fieldName)
     {
-        if (fieldName.Trim().Length ==0)
+        if(fieldName == null)
+            return null;
+        if (fieldName.Trim().Length == 0 )
             return null;
         
         if(fieldCaches.ContainsKey(fieldName))

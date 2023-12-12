@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -20,8 +21,8 @@ public class FlagFieldBoolEntry : FlagFieldEntry<bool>
         {
             if (field == null)
                 return false;
-            
-            var result = field.CurrentValue;
+
+            var result = Value;
             if (IsResultInverted)
                 return !result;
             else
@@ -88,7 +89,8 @@ public class FlagFieldEntry<T> //沒有flagBase的話就runtime自己建立runti
         }
     }
     
-    [ShowInInspector]
+    //FIXME: 這個意思不是拿來compare用的...?
+    [PreviewInInspector]
     public T Value
     {
         get => field!=null?field.CurrentValue:default(T);
