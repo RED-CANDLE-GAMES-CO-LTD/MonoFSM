@@ -241,6 +241,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     public TField Field => ScriptableData ? ScriptableData.field : localField;
 
+    
     // Start is called before the first frame update
     [AutoChildren(false)] private AbstractVariableModifier<TType>[] modifiers;
 

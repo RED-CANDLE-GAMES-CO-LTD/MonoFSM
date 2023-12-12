@@ -9,7 +9,8 @@ public class DelayActionModifier : MonoBehaviour
     public float delayTime = 1;
 
     [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")]
-    private void AddAction()
-    {
-    }
+    AbstractStateAction[] actions;
+    // private void AddAction()
+    // {
+    // }
 }

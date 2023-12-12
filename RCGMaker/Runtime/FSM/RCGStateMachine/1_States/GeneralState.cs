@@ -54,12 +54,10 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     [AutoParent] GeneralFSMContext context;
     public GeneralFSMContext Context => context;
 
-    [InlineEditor()]
-    public List<AbstractStateTransition> transitions;
+   
     //TODO: 其實不需要用list? graphView會需要嗎？
 
-    [AutoChildren(false)] [InlineEditor()] [ShowInInspector]
-    private AbstractStateAction[] actions;
+
     public bool IsCurrentPlaying
     {
         get
@@ -154,7 +152,9 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         StateExitCancellationTokenSource?.Cancel();
     }
 
+  
     [ShowInPlayMode]
+    [GUIColor(0.3f, 0.8f, 0.8f)]
     [Button("強制跳State")]
     void ForceEnterState()
     {
@@ -198,17 +198,22 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     //     
     // }
 
+    [AutoChildren]
     [Component(typeof(AbstractStateTransition), AddComponentAt.Children, "[Transition]")]
-    private void AddTransition()
-    {
+    [InlineEditor()]
+    public AbstractStateTransition[] transitions;
+    // private void AddTransition()
+    // {
+    //
+    // }
 
-    }
-
+    //FIXME: 沒有實作
     public AbstractStateTransition AddTransition(System.Type transitionType)
     {
-        var t = this.AddChildrenComponent<AbstractStateTransition>(transitionType, "[Transition] NewTransition");
-        transitions.Add(t);
-        return t;
+        // var t = this.AddChildrenComponent<AbstractStateTransition>(transitionType, "[Transition] NewTransition");
+        // transitions.Add(t);
+        // return t;
+        return null;
     }
     // [Button("Add Animator Play")]
     // void AddAnimatorPlay()
@@ -241,7 +246,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     private void OnValidate()
     {
         stateType = this;
-        GetComponentsInChildren(true, transitions);
+        // GetComponentsInChildren(true, transitions);
         
     }
 
@@ -252,10 +257,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // public AbstractStateAction testAction;
 
     [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")]
-    private void AddActionFunc()
-    {
-
-    }
+    [AutoChildren(false)] [InlineEditor()] [ShowInInspector]
+    private AbstractStateAction[] actions;
 
     // #if UNITY_EDITOR
     //     [Component(typeof(AbstractStateAction), "[Action]")]
