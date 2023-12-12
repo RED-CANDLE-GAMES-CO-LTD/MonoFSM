@@ -10,7 +10,9 @@ namespace RCGMaker.Core.Attributes
     [IncludeMyAttributes]
     // [HideInPlayMode] //NOTE: 沒用，還是會call property, 用AttributeProcess處理的
     [ReadOnly]
-    [DisableIf("@true")]
+    // [DisableIf("@true")]
+    // [ShowDrawerChain]
+    [DisableInEditorMode]
     [Conditional("UNITY_EDITOR")]
     public class ShowInPlayModeAttribute : Attribute
     {
