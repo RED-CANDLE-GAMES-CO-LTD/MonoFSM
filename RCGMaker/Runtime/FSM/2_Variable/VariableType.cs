@@ -354,18 +354,6 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
 #endif
     }
-
-    // public void OnBeforeSerialize() //存檔的時候就會自動生，複製、instance的時候也會自動生
-    // {
-    //     // throw new System.NotImplementedException();
-    //     if (EditorUtility.IsPersistent(this)) return;
-    //     AutoGenCheck();
-    // }
-    //
-    // public void OnAfterDeserialize()
-    // {
-    //     // throw new System.NotImplementedException();
-    // }
 }
 
 public abstract class AbstractVariable : AbstractFlag
