@@ -18,6 +18,9 @@ public class FlagFieldBoolEntry : FlagFieldEntry<bool>
     {
         get
         {
+            if (field == null)
+                return false;
+            
             var result = field.CurrentValue;
             if (IsResultInverted)
                 return !result;
@@ -88,7 +91,7 @@ public class FlagFieldEntry<T> //沒有flagBase的話就runtime自己建立runti
     [ShowInInspector]
     public T Value
     {
-        get => field.CurrentValue;
+        get => field!=null?field.CurrentValue:default(T);
         set => field.CurrentValue = value;
     }
     
