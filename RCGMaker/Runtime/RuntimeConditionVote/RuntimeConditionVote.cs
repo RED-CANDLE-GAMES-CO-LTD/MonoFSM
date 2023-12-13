@@ -88,6 +88,18 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
     public delegate void OnValueChangeDelegate(bool value);
     public delegate ConditionType GetConditionTypeDelegate ();
 
+    public enum ChangeResultTiming
+    {
+        OnVote,
+        OnManualUpdate,
+    }
+
+    private ChangeResultTiming _changeChangeResultTiming = ChangeResultTiming.OnVote;
+
+    public void ManualUpdate()
+    {
+        CheckResult();
+    }
 
 
     public void Vote(Object m, bool vote)
@@ -98,7 +110,9 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         //不需樣Add?
         votes[m] = new VoteRecord(m,vote) ;
         // Debug.Log($"Vote {m} bool:{vote}");
-        CheckResult();
+        
+        if(_changeChangeResultTiming == ChangeResultTiming.OnVote)
+            CheckResult();
     }
 
     public void Revoke(Object m)
@@ -107,7 +121,9 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
             m = voteChild.VoteOwner;
         if (votes.ContainsKey(m))
             votes.Remove(m);
-        CheckResult();
+        
+        if(_changeChangeResultTiming == ChangeResultTiming.OnVote)
+            CheckResult();
     }
 
     public async UniTask AddForSeconds(MonoBehaviour m, float seconds)
@@ -197,23 +213,25 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
     public bool Result => _currentResult;
 
     public RuntimeConditionVote(ConditionType type = ConditionType.OR, bool defaultValue = false,
-        OnValueChangeDelegate onValueChangeDelegate = null)
+        OnValueChangeDelegate onValueChangeDelegate = null,ChangeResultTiming updateTiming = ChangeResultTiming.OnVote)
     {
         _getConditionTypeDelegate = ()=>type;
         _getDefaultValueDelegate = ()=>defaultValue;
         _onValueChangeDelegate = onValueChangeDelegate;
         _currentResult = GetDefaultValue();
+        _changeChangeResultTiming = updateTiming;
         OnValueChange(_currentResult);
 
         
     }
 
     public RuntimeConditionVote(GetConditionTypeDelegate getConditionTypeDelegate,
-        GetDefaultValueDelegate getDefaultValueDelegate, OnValueChangeDelegate onValueChangeDelegate = null)
+        GetDefaultValueDelegate getDefaultValueDelegate, OnValueChangeDelegate onValueChangeDelegate = null,ChangeResultTiming updateTiming = ChangeResultTiming.OnVote)
     {
          _getConditionTypeDelegate = getConditionTypeDelegate;
          _getDefaultValueDelegate = getDefaultValueDelegate;
          _onValueChangeDelegate = onValueChangeDelegate;
+         _changeChangeResultTiming = updateTiming;
          _currentResult = GetDefaultValue();
          OnValueChange(_currentResult);
     }
