@@ -195,44 +195,48 @@ namespace RCGMaker.Core.Editor
       }
 
       
-      // [MenuItem("CONTEXT/Animator/Generate Animator Override Controller")]
-      // public static void GenerateAnimatorOverrideController(MenuCommand command)
-      // {
-      //    var animator = command.context as Animator;
-      //    if (animator == null)
-      //    {
-      //       Debug.LogError("Can't find Animator");
-      //       return;
-      //    }
-      //
-      //    var prefabPath =
-      //       AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(animator.gameObject));
-      //
-      //    Undo.RecordObject(animator, "Generate Variant");
-      //    
-      //    var folderPath = Path.GetDirectoryName(prefabPath);
-      //    var newAssetPath = Path.Combine(folderPath, animator.gameObject.name + ".overrideController");
-      //    if (animator.runtimeAnimatorController != null)
-      //    {
-      //       var originalAssetPath = AssetDatabase.GetAssetPath(animator.runtimeAnimatorController);
-      //       var originalAssetName = Path.GetFileName(originalAssetPath);
-      //       //Path.Combine(folderPath ,"/", originalAssetName); 這樣會錯QQ?
-      //       //https://learn.microsoft.com/zh-tw/dotnet/api/system.io.path.combine?view=net-8.0
-      //       newAssetPath = Path.Combine(folderPath +"/", originalAssetName);    
-      //       AssetDatabase.CopyAsset(originalAssetPath, newAssetPath);
-      //       AnimatorOverrideController newAsset =  AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(newAssetPath);
-      //       animator.runtimeAnimatorController = newAsset;
-      //    }
-      //    else
-      //    {
-      //       var newAsset = AnimatorController
-      //       animator.runtimeAnimatorController = newAsset;
-      //    }
-      //   
-      //    animator.SetDirty();
-      //    AssetDatabase.SaveAssets();
-      //    // Undo.FlushUndoRecordObjects();
-      // }
+      
+      
+      [MenuItem("CONTEXT/Animator/Duplicate Animator Override Controller")]
+      public static void GenerateAnimatorOverrideController(MenuCommand command)
+      {
+         var animator = command.context as Animator;
+         if (animator == null)
+         {
+            Debug.LogError("Can't find Animator");
+            return;
+         }
+         
+         var prefabPath = "";
+         var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+         if (prefabStage)
+         {
+            prefabPath = prefabStage.assetPath;
+         }
+         else prefabPath =
+            AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(animator.gameObject));
+      
+         Undo.RecordObject(animator, "Generate Variant");
+         
+         var folderPath = Path.GetDirectoryName(prefabPath);
+         // var newAssetPath = Path.Combine(folderPath, animator.gameObject.name + ".overrideController");
+         if (animator.runtimeAnimatorController != null)
+         {
+            var originalAssetPath = AssetDatabase.GetAssetPath(animator.runtimeAnimatorController);
+            var originalAssetName = Path.GetFileName(originalAssetPath);
+            var newAssetPath = Path.Combine(folderPath, "Copied "+originalAssetName);
+            Debug.Log(newAssetPath);
+            AssetDatabase.CopyAsset(originalAssetPath, newAssetPath);
+            var newAsset =  AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(newAssetPath);
+            animator.runtimeAnimatorController = newAsset;
+            animator.SetDirty();
+            AssetDatabase.SaveAssets();
+         }
+        
+      
+         // Undo.FlushUndoRecordObjects();
+      }
+      
       
       //generate a new animator controller and assign it to the animator
       [MenuItem("CONTEXT/Animator/Create Or Copy AnimatorController")]
