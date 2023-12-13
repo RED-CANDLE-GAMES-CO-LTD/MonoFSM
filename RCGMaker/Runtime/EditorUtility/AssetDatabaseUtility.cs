@@ -1,14 +1,65 @@
+using System;
+using System.IO;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEditor.VersionControl;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core
 {
     public static class AssetDatabaseUtility
     {
 #if UNITY_EDITOR
+
+        public delegate T AssetCreateDelegate<out T>(string path) where T : UnityEngine.Object;
+        //FIXME: 全世界都用這個！
+        //把目標asset複製到prefab所在的資料夾
+        public static T CopyAssetOrCreateToPrefabFolder<T>(T oriAsset, AssetCreateDelegate<T> CustomAssetCreationMethod) where T : UnityEngine.Object
+        {
+           var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+           if (prefabStage == null)
+           {
+               Debug.LogError("Not in prefab stage");
+               return null;
+           }
+           var newPathFolder = PrefabStageUtility.GetCurrentPrefabStage().assetPath;
+           if(oriAsset == null)
+           {
+               //create new asset
+               if (CustomAssetCreationMethod != null)
+               {
+                   Debug.Log("Create new asset");
+                   var obj = CustomAssetCreationMethod.Invoke(newPathFolder);
+                   if(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(obj)))
+                       AssetDatabase.CreateAsset(obj, newPathFolder);
+                   return obj;
+               }
+               return null;
+           }
+           
+           var originalPath = AssetDatabase.GetAssetPath(oriAsset);
+           var prefabFolderPath = Path.GetDirectoryName(newPathFolder);
+           if(Path.GetDirectoryName(originalPath) == prefabFolderPath)
+           {
+                Debug.LogError("Same Folder, Move Prefab to another folder");
+                return null;
+           }
+
+           //extension of asset
+           var extension = Path.GetExtension(originalPath);
+           var newFilePath = prefabFolderPath + "/" + oriAsset.name+" Copied "+extension;
+           Debug.Log("Copy Asset to:" + newFilePath);
+           AssetDatabase.CopyAsset(originalPath, newFilePath);
+           var newAsset = AssetDatabase.LoadAssetAtPath<T>(newFilePath);
+           //生asset沒有得undo唷
+           // Undo.RegisterCreatedObjectUndo(newAsset, "Copy Asset");
+           return newAsset;
+        }
+        
         private static void CreateFolderIfNotExist(string folderPath)
         {
             if (!System.IO.Directory.Exists(folderPath))

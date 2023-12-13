@@ -248,33 +248,19 @@ namespace RCGMaker.Core.Editor
             Debug.LogError("Can't find Animator");
             return;
          }
-
-         var prefabPath =
-            AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(animator.gameObject));
-
-         Undo.RecordObject(animator, "Generate Variant");
          
-         var folderPath = Path.GetDirectoryName(prefabPath);
-         var newAssetPath = Path.Combine(folderPath, animator.gameObject.name + ".controller");
-         if (animator.runtimeAnimatorController != null)
-         {
-            var originalAssetPath = AssetDatabase.GetAssetPath(animator.runtimeAnimatorController);
-            var originalAssetName = Path.GetFileName(originalAssetPath);
-            //Path.Combine(folderPath ,"/", originalAssetName); 這樣會錯QQ?
-            //https://learn.microsoft.com/zh-tw/dotnet/api/system.io.path.combine?view=net-8.0
-            newAssetPath = Path.Combine(folderPath +"/", originalAssetName);    
-            AssetDatabase.CopyAsset(originalAssetPath, newAssetPath);
-            RuntimeAnimatorController newAsset =  AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(newAssetPath);
-            animator.runtimeAnimatorController = newAsset;
-         }
-         else
-         {
-            var newAsset = AnimatorController.CreateAnimatorControllerAtPath(newAssetPath);
-            animator.runtimeAnimatorController = newAsset;
-         }
+         int group = Undo.GetCurrentGroup();
+         Undo.RecordObject(animator, "Override Animator Controller");
+         // var folderPath = Path.GetDirectoryName(prefabPath);
+         // var newAssetPath = Path.Combine(folderPath, animator.gameObject.name + ".controller");
         
-         animator.SetDirty();
-         AssetDatabase.SaveAssets();
+         var newAsset =  AssetDatabaseUtility.CopyAssetOrCreateToPrefabFolder(animator.runtimeAnimatorController, (path) =>
+         {
+            var newAsset = AnimatorController.CreateAnimatorControllerAtPath(path);
+            return newAsset;
+         });
+         animator.runtimeAnimatorController = newAsset;
+         Undo.CollapseUndoOperations(group);
          // Undo.FlushUndoRecordObjects();
       }
       //把Animator的Default State的key貼到所有的GameObject上
