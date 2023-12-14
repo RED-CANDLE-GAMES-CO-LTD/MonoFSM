@@ -10,9 +10,9 @@ namespace RCGMaker.Core
 {
     //Provider? 類似GuidComponent, 被找的那方
     [DefaultExecutionOrder(-999)]
-    public class InstanceReferenceBinder : MonoBehaviour,ILevelExit
+    public class InstanceProvider : MonoBehaviour,ILevelExit
     {
-        [Required] public InstanceReference instanceReference;
+        [Required] public InstanceReferenceData instanceReference;
 
         private void OnValidate()
         {

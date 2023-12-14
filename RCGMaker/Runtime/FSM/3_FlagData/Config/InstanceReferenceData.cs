@@ -11,7 +11,7 @@ namespace RCGMaker.Core
 {
     //ScriptableObject, 
     [CreateAssetMenu(menuName = "RCGMaker/InstanceReference")]
-    public class InstanceReference : GameFlagBase
+    public class InstanceReferenceData : GameFlagBase
     {
         public GameObject prefab;
         private GameObject _instance;
@@ -26,10 +26,7 @@ namespace RCGMaker.Core
         }
 
         [ShowInPlayMode]
-        public GameObject instance
-        {
-            get => _instance;
-        }
+        public GameObject instance => _instance;
 
         public void UnRegister(GameObject g)
         {
