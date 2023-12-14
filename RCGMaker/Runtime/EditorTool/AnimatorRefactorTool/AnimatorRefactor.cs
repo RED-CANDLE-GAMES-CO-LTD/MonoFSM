@@ -254,7 +254,7 @@ namespace RCGMaker.Core.Editor
          // var folderPath = Path.GetDirectoryName(prefabPath);
          // var newAssetPath = Path.Combine(folderPath, animator.gameObject.name + ".controller");
         
-         var newAsset =  AssetDatabaseUtility.CopyAssetOrCreateToPrefabFolder(animator.runtimeAnimatorController, (path) =>
+         var newAsset =  AssetDatabaseUtility.CopyAssetOrCreateToPrefabFolder(animator.runtimeAnimatorController,".animator" ,(path) =>
          {
             var newAsset = AnimatorController.CreateAnimatorControllerAtPath(path);
             return newAsset;

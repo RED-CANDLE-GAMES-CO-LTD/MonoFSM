@@ -10,7 +10,6 @@ public interface ICondition
     {
         get;
     }
-
 }
 
 public static class ConditionHelper

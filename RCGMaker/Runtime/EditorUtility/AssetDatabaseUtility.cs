@@ -15,10 +15,10 @@ namespace RCGMaker.Core
     {
 #if UNITY_EDITOR
 
-        public delegate T AssetCreateDelegate<out T>(string path) where T : UnityEngine.Object;
+        public delegate T AssetCreateDelegate<out T>(string prefabPath) where T : UnityEngine.Object;
         //FIXME: 全世界都用這個！
         //把目標asset複製到prefab所在的資料夾
-        public static T CopyAssetOrCreateToPrefabFolder<T>(T oriAsset, AssetCreateDelegate<T> CustomAssetCreationMethod) where T : UnityEngine.Object
+        public static T CopyAssetOrCreateToPrefabFolder<T>(T oriAsset,string assetExtension, AssetCreateDelegate<T> customAssetCreationMethod) where T : UnityEngine.Object
         {
            var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
            if (prefabStage == null)
@@ -26,23 +26,28 @@ namespace RCGMaker.Core
                Debug.LogError("Not in prefab stage");
                return null;
            }
-           var newPathFolder = PrefabStageUtility.GetCurrentPrefabStage().assetPath;
+           var prefabPath  = PrefabStageUtility.GetCurrentPrefabStage().assetPath;
+           var prefabFolderPath = Path.GetDirectoryName(prefabPath );
+           
            if(oriAsset == null)
            {
                //create new asset
-               if (CustomAssetCreationMethod != null)
+               if (customAssetCreationMethod != null)
                {
                    Debug.Log("Create new asset");
-                   var obj = CustomAssetCreationMethod.Invoke(newPathFolder);
+                   var obj = customAssetCreationMethod.Invoke(prefabPath);
+                   var fileName = Path.GetFileName(prefabPath);
+                   //remove extension
+                   fileName = fileName.Substring(0, fileName.Length - Path.GetExtension(fileName).Length);
                    if(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(obj)))
-                       AssetDatabase.CreateAsset(obj, newPathFolder);
+                       AssetDatabase.CreateAsset(obj, prefabFolderPath +"/" + fileName + assetExtension);
                    return obj;
                }
                return null;
            }
            
            var originalPath = AssetDatabase.GetAssetPath(oriAsset);
-           var prefabFolderPath = Path.GetDirectoryName(newPathFolder);
+         
            if(Path.GetDirectoryName(originalPath) == prefabFolderPath)
            {
                 Debug.LogError("Same Folder, Move Prefab to another folder");
