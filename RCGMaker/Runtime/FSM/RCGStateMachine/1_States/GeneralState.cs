@@ -102,7 +102,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (actions == null) return;
         foreach (var action in actions)
         {
-            if (action.gameObject.activeSelf)
+            if (action.isActiveAndEnabled)
+            // if (action.gameObject.activeSelf)
                 action.OnActionEnter();
         }
 
@@ -116,7 +117,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         for (var index = actions.Length - 1; index >= 0; index--)
         {
             var action = actions[index];
-            if (action.gameObject.activeSelf)
+            if (action.isActiveAndEnabled)
+            // if (action.gameObject.activeSelf)
                 action.OnActionUpdate();
         }
     }
@@ -127,7 +129,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (actions == null) return;
         foreach (var action in actions)
         {
-            if (action.gameObject.activeSelf)
+            // if (action.gameObject.activeSelf)
+            if (action.isActiveAndEnabled)
                 action.OnActionSpriteUpdate();
         }
     }
@@ -143,7 +146,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (actions == null) return;
         foreach (var action in actions)
         {
-            if (action.gameObject.activeSelf)
+            // if (action.gameObject.activeSelf)
+            if (action.isActiveAndEnabled)
                 action.OnActionExit();
         }
         

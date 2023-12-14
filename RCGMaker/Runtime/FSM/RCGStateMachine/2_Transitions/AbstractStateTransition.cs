@@ -55,7 +55,7 @@ public class AbstractStateTransition : AbstractBehaviour
 
     // [AutoParent()] private GeneralState bindingState;
 
-    [PreviewInInspector]
+    // [PreviewInInspector]
     [AutoParent()] private IState<GeneralState> parentState;
 
     [ShowInInspector] private bool IsSelfTransition => parentState as GeneralState == target;

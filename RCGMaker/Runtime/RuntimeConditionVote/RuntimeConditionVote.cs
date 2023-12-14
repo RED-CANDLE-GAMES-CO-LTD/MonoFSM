@@ -90,13 +90,14 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
 
     public enum ChangeResultTiming
     {
-        OnVote,
-        OnManualUpdate,
+        OnVote, //一觸發就更新, 線性call
+        OnManualUpdate, //類似ECS, 應該就叫做OnUpdate
+        //LazySolve, 取用的時候才solve, 這個就不是event driven了
     }
 
     private ChangeResultTiming _changeChangeResultTiming = ChangeResultTiming.OnVote;
 
-    public void ManualUpdate()
+    public void ManualUpdate() //投票的時候還沒solve, 在update (或是真的要手動Lazy Solve)
     {
         CheckResult();
     }
@@ -113,6 +114,8 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         
         if(_changeChangeResultTiming == ChangeResultTiming.OnVote)
             CheckResult();
+        //ManualUpdate
+        //投票的時候還沒solve
     }
 
     public void Revoke(Object m)
