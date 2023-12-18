@@ -197,72 +197,7 @@ namespace RCGMaker.Core.Editor
       
       
       
-      [MenuItem("CONTEXT/Animator/Duplicate Animator Override Controller")]
-      public static void GenerateAnimatorOverrideController(MenuCommand command)
-      {
-         var animator = command.context as Animator;
-         if (animator == null)
-         {
-            Debug.LogError("Can't find Animator");
-            return;
-         }
-         
-         var prefabPath = "";
-         var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-         if (prefabStage)
-         {
-            prefabPath = prefabStage.assetPath;
-         }
-         else prefabPath =
-            AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(animator.gameObject));
-      
-         Undo.RecordObject(animator, "Generate Variant");
-         
-         var folderPath = Path.GetDirectoryName(prefabPath);
-         // var newAssetPath = Path.Combine(folderPath, animator.gameObject.name + ".overrideController");
-         if (animator.runtimeAnimatorController != null)
-         {
-            var originalAssetPath = AssetDatabase.GetAssetPath(animator.runtimeAnimatorController);
-            var originalAssetName = Path.GetFileName(originalAssetPath);
-            var newAssetPath = Path.Combine(folderPath, "Copied "+originalAssetName);
-            Debug.Log(newAssetPath);
-            AssetDatabase.CopyAsset(originalAssetPath, newAssetPath);
-            var newAsset =  AssetDatabase.LoadAssetAtPath<AnimatorOverrideController>(newAssetPath);
-            animator.runtimeAnimatorController = newAsset;
-            animator.SetDirty();
-            AssetDatabase.SaveAssets();
-         }
-        
-      
-         // Undo.FlushUndoRecordObjects();
-      }
-      
-      
-      //generate a new animator controller and assign it to the animator
-      [MenuItem("CONTEXT/Animator/Create Or Copy AnimatorController")]
-      public static void CreateOrCopyAnimatorController(MenuCommand command)
-      {
-         var animator = command.context as Animator;
-         if (animator == null)
-         {
-            Debug.LogError("Can't find Animator");
-            return;
-         }
-         
-         int group = Undo.GetCurrentGroup();
-         Undo.RecordObject(animator, "Override Animator Controller");
-         // var folderPath = Path.GetDirectoryName(prefabPath);
-         // var newAssetPath = Path.Combine(folderPath, animator.gameObject.name + ".controller");
-        
-         var newAsset =  AssetDatabaseUtility.CopyAssetOrCreateToPrefabFolder(animator.runtimeAnimatorController,".animator" ,(path) =>
-         {
-            var newAsset = AnimatorController.CreateAnimatorControllerAtPath(path);
-            return newAsset;
-         });
-         animator.runtimeAnimatorController = newAsset;
-         Undo.CollapseUndoOperations(group);
-         // Undo.FlushUndoRecordObjects();
-      }
+     
       //把Animator的Default State的key貼到所有的GameObject上
       [MenuItem("CONTEXT/Animator/Paste Default State Key to GameObjects")]
       public static void PasteDefaultStateToGameObject(MenuCommand menuCommand)

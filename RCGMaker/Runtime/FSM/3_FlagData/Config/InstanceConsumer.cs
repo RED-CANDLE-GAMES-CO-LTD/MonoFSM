@@ -10,6 +10,7 @@ using UnityEngine.Serialization;
 public class InstanceConsumer : MonoBehaviour
 {
    [InlineEditor]
+   [Required]
    [FormerlySerializedAs("instanceReferenceData")] public InstanceReferenceData InstanceReferenceDataData;
    [PreviewInInspector]
    Object _cachedReference;
