@@ -315,9 +315,20 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             transform1.parent = parent;
             transform1.rotation = rotation;
             transform1.position = position;
+            
+            
+            prefab.OnBorrowFromPool(null); //OnPoolReset
 
+            // 這會影響設定黨 樹上有結構
+
+            //FIXME: 為什麼要做這件事？？
+            prefab.OverrideTransformSetting(position, rotation, parent, prefab.transform.localScale);
+            prefab.TransformReset();
+            
             prefab.gameObject.SetActive(true);
             prefab.ResetAnim();
+            prefab.PoolObjecResetAndStart();
+    
 
             // Debug.Log("Use Scene As Pool");
 
