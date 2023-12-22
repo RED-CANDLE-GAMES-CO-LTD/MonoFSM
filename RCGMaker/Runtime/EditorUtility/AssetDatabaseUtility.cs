@@ -6,8 +6,9 @@ using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
-#endif
 using UnityEditor.VersionControl;
+#endif
+
 using UnityEngine;
 using Object = UnityEngine.Object;
 
