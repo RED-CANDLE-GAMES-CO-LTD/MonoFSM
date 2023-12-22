@@ -250,21 +250,29 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     {
         get
         {
+            var tempValue = localField.CurrentValue;
+            
             if (VariableSource != null)
             {
                 var v = VariableSource as VariableType<TScriptableData, TField, TType>;
-                return v.Value;
+                tempValue = v.Value;
             }
             else if (ScriptableData != null)
             {
-                return ScriptableData.CurrentValue;
+                // return ScriptableData.CurrentValue;
+                tempValue = ScriptableData.CurrentValue;
             }
-            else
-            {
-                // if (localField == null)
-                //     localField = new TField();
-                return localField.CurrentValue;
-            }
+
+            // else
+            // {
+            //     // if (localField == null)
+            //     //     localField = new TField();
+            //     // return localField.CurrentValue;
+            // }
+            if (modifiers != null)
+                foreach (var modifier in modifiers)
+                    tempValue = modifier.AfterGetValueModifyCheck(tempValue);
+            return tempValue;
         }
 
         set
