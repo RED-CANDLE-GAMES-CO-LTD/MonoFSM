@@ -3,8 +3,10 @@ using System.IO;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
+#endif
 using UnityEditor.VersionControl;
 using UnityEngine;
 using Object = UnityEngine.Object;
