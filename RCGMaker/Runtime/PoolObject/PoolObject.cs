@@ -26,6 +26,7 @@ public interface IPoolObjectPlayer
 public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 {
     [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
+    [ShowInPlayMode] public Component lastPlayerComponent => lastPlayer as Component;
     [Button("Find fx to assign")]
     void Find()
     {
