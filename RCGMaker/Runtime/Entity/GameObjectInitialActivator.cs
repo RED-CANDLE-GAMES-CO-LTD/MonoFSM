@@ -25,6 +25,7 @@ public class GameObjectInitialActivator : ReadOnlyActivator, ILevelConfig, IScen
 
     public void OnBeforeSceneSave()
     {
+        Debug.Log("GameObjectInitialActivator Save",this);
         gameObject.SetActive(IsActive);
     }
 
