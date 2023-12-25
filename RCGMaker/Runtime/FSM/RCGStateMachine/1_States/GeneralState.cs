@@ -195,7 +195,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         return true;
     }
 
-#if UNITY_EDITOR
+
     // [Component(typeof(AbstractStateAction))]
     // private void AddAction()
     // {
@@ -241,11 +241,13 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     //     // EditorUtility.SetDirty(this);
     //     return t;
     // }
+#if UNITY_EDITOR
     [Button("Add Delay Node")]
     public void AddDelayNode()
     {
         gameObject.AddChildrenComponent<DelayActionModifier>("[Delay Node]");
     }
+    #endif
 
     private void OnValidate()
     {
@@ -282,6 +284,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // // [MovedFrom("PlayerTestState")]
     // [SerializeReference]
     // ICommand command;
+#if UNITY_EDITOR
     [ShowIf("@GetAnimatorPlayAction()")]
     [Button("編輯動畫 Shift+E")]
     private void EditClip()
@@ -291,7 +294,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         animatorPlayAction?.EditClip();
         //哭了我還不知道AnimatorPlayAction
     }
-
+#endif
     private IAnimatorPlayAction GetAnimatorPlayAction()
     {
         if (animatorPlayAction == null)
@@ -300,5 +303,5 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     }
 
     private IAnimatorPlayAction animatorPlayAction;
-#endif
+
 }
