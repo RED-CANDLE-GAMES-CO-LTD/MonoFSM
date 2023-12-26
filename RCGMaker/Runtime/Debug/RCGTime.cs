@@ -55,28 +55,25 @@ public static class RCGTime
 {
     public static void SetTimeScaleUnsafe(float value)
     {
-        timeScale = value;
+        _timeScale = value;
+        timeScale = _timeScale * GlobalSimulationSpeed;
     }
 
-    
-    
-    private static float timeScale
+    //FIXME: 還是這個要vote才對
+    public static float timeScale
     {
-        get
-        {
-            return _timeScale;
-        }
+        get => Time.timeScale;
         set
         {
-            if (SelfTimeScale)
-            {
-                _timeScale = value;
-            }
-            else
-            {
-                Time.timeScale = _timeScale = value;
-                // Debug.Log("TimeScale:"+value);
-            }
+            // if (SelfTimeScale)
+            // {
+            //     _timeScale = value;
+            // }
+            // else
+            // {
+            Time.timeScale = value;
+            Debug.Log("TimeScale:" + value);
+            // }
         }
     }
 
@@ -122,7 +119,7 @@ public static class RCGTime
 
     private static float _timeScale = 1f;
 
-    public static bool SelfTimeScale = false;
+    public static bool SelfTimeScale = false; //這是什麼意思？
 
     public static bool IsIndependentUpdate => !SelfTimeScale;
     
@@ -134,11 +131,12 @@ public static class RCGTime
         {
             if (SelfTimeScale)
             {
-                return Time.deltaTime * timeScale * GlobalSimulationSpeed;
+                //FIXME: 寫爛了，不要再乘了？
+                return Time.deltaTime; // * timeScale;
             }
             else
             {
-                return Time.deltaTime  * GlobalSimulationSpeed;
+                return Time.deltaTime;
             }
         }
     }
@@ -151,10 +149,8 @@ public static class RCGTime
             {
                 return  Time.deltaTime; //
             }
-            else
-            {
-                return Time.unscaledDeltaTime;
-            }
+
+            return Time.unscaledDeltaTime;
         }
     }
         
@@ -166,12 +162,22 @@ public static class RCGTime
     public static PlayerLoopTiming UpdateTiming =>
         PlayerLoopTiming.LastUpdate; //UniTask default會比script update還早，要用LastPostLateUpdate回放指令才會對
 
-    public static float GlobalSimulationSpeed = 1;
+    public static float GlobalSimulationSpeed
+    {
+        get => _globalSimulationSpeed;
+        set
+        {
+            _globalSimulationSpeed = value;
+            Time.timeScale = _globalSimulationSpeed * timeScale;
+        }
+    }
+
+    public static float _globalSimulationSpeed = 1;
 
     public static void ResetRCGTime()
     {
         timeScale = 1.0f;
-        GlobalSimulationSpeed = 1.0f;
+        // GlobalSimulationSpeed = 1.0f;
     }
 
 }
