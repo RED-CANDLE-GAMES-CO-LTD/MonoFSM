@@ -426,7 +426,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
             destroyTween = this.DelayTask(AutoDestroyTime, (target) =>
             {
                 target.ReturnToPool();
-                Debug.Log("AutoDestroyTime:" + target.AutoDestroyTime, target);
+                target.Log("AutoDestroyTime:", target.AutoDestroyTime);
             });
             // await this.Delay(AutoDestroyTime,_poolObjectReturnTokenSource.Token);
             // ReturnToPool();
