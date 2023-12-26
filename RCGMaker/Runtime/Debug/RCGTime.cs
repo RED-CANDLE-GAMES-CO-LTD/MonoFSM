@@ -72,7 +72,7 @@ public static class RCGTime
             // else
             // {
             Time.timeScale = value;
-            Debug.Log("TimeScale:" + value);
+            // Debug.Log("TimeScale:" + value);
             // }
         }
     }
