@@ -38,12 +38,16 @@ namespace RCGMaker.Core
                if (customAssetCreationMethod != null)
                {
                    Debug.Log("Create new asset");
-                   var obj = customAssetCreationMethod.Invoke(prefabPath);
+                   
                    var fileName = Path.GetFileName(prefabPath);
                    //remove extension
                    fileName = fileName.Substring(0, fileName.Length - Path.GetExtension(fileName).Length);
+                   var createFilePath = prefabFolderPath + "/" + fileName + assetExtension;
+
+                   //從外部傳進來，特殊的create法
+                   var obj = customAssetCreationMethod.Invoke(createFilePath);
                    if(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(obj)))
-                       AssetDatabase.CreateAsset(obj, prefabFolderPath +"/" + fileName + assetExtension);
+                       AssetDatabase.CreateAsset(obj, createFilePath);
                    return obj;
                }
                return null;
