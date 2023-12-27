@@ -19,7 +19,7 @@ public class GameObjectInitialActivator : ReadOnlyActivator, ILevelConfig, IScen
 
     public void SetLevelConfig() //這個不好用... interface也不能serialize, 後面撈太晚了？
     {
-        gameObject.SetActive(IsActive);
+        // gameObject.SetActive(IsActive);
     }
 
 
