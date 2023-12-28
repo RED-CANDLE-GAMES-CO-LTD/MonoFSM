@@ -23,7 +23,7 @@ public interface IPoolObjectPlayer
 {
 }
 
-public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
+public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
 {
     [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
     [ShowInPlayMode] public Component lastPlayerComponent => lastPlayer as Component;
@@ -92,11 +92,12 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
     List<IResetter> IResetterList = new List<IResetter>();
 
     private bool inited = false;
-    private void Start()
+    private void Awake()
     {
         CheckList();
         InitAnimResetters();
     }
+
     private List<AnimatorResetter> animResetters;
 
     private bool animResetterInited = false;
@@ -108,7 +109,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
         if (this._anims == null)
         {
-           // Debug.LogError("Anims == null?",this.gameObject);
+            // Debug.LogError("Anims == null?",this.gameObject);
             return;
         }
 
@@ -116,7 +117,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
         animResetters = new List<AnimatorResetter>();
 
-        if(_anims != null)
+        if (_anims != null)
             for (var i = 0; i < this._anims.Length; i++)
             {
                 animResetters.Add(new AnimatorResetter(_anims[i]));
@@ -124,7 +125,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
 
     }
-    
+
     // private void OnEnable() //從poolObject拿出來要確定動畫有重置，因為有人很壞，還沒開就被call Reset and Start
     // {
     //     if (needResetAnim == false)
@@ -230,8 +231,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
     public void OnBorrowFromPool(PoolManager manager)
     {
-       
-        
+
+
         onScene = true;
         if (UseAutoDestroy)
         {
@@ -239,7 +240,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
             RegisterDestroy();
             // autoDestroyTimer = AutoDestroyTime;
         }
-            
+
 
         // EnterLevelResetAndStart();
     }
@@ -248,7 +249,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
     public void OverrideDestroyTime(float time)
     {
         // RaisePoolObjectReturnEvent();
-        
+
         UseAutoDestroy = true;
         AutoDestroyTime = time;
 
@@ -284,7 +285,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 
     }
 
-    
+
 
     public void BeforeObjectReturnToPool(PoolManager manager)
     {
@@ -345,7 +346,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
         {
             OnReturnEvent.Invoke(this);
             OnReturnEvent.RemoveAllListeners(); //FIXME: 這個會GC!
-        } 
+        }
     }
 
     public void ReturnToPool()
@@ -356,7 +357,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
             this.Log("[PoolObject] return object to pool failed", this);
             gameObject.SetActive(false);
 
-           
+
             // GameObject.Destroy(gameObject);
         }
         else
@@ -364,7 +365,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
             if (!onScene)
             {
                 //FIXME: 好像還有return twice問題
-//                Debug.LogWarning("return object to pool twice!", gameObject);
+                //                Debug.LogWarning("return object to pool twice!", gameObject);
                 return;
             }
 
@@ -380,7 +381,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
             // Debug.Log("[PoolObject] return object to pool" + name, this);
             // destroyTween.Stop();
             _bindingPoolManager.ReturnToPool(this);
-            
+
         }
 
 
@@ -476,42 +477,42 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
         }
     }
 
-  //  public bool Log= false;
-  public void EnterLevelAwake()
-  {
-      //可能可以拔掉
-      //收斂情境：hitData不需要跟著
-      if (InitPosType == ShootFrom.HitData)
-      {
-          if (TryGetComponent<PositionConstraint>(out var constraint))
-          {
-              Destroy(constraint);
-              Debug.LogError("Destroy constraint!", this);
-          }
-      }
-  }
+    //  public bool Log= false;
+    public void EnterLevelAwake()
+    {
+        //可能可以拔掉
+        //收斂情境：hitData不需要跟著
+        if (InitPosType == ShootFrom.HitData)
+        {
+            if (TryGetComponent<PositionConstraint>(out var constraint))
+            {
+                Destroy(constraint);
+                Debug.LogError("Destroy constraint!", this);
+            }
+        }
+    }
 
-  private void OnValidate()
-  {
-      // if (InitPosType == ShootFrom.HitData)
-      // {
-      //     if (TryGetComponent<PositionConstraint>(out var constraint))
-      //     {
-      //         DestroyImmediate(constraint);
-      //     }
-      // }
-      // else
-      // {
-      //     var constraint = this.TryGetCompOrAdd<PositionConstraint>();
-      // }
-  }
+    private void OnValidate()
+    {
+        // if (InitPosType == ShootFrom.HitData)
+        // {
+        //     if (TryGetComponent<PositionConstraint>(out var constraint))
+        //     {
+        //         DestroyImmediate(constraint);
+        //     }
+        // }
+        // else
+        // {
+        //     var constraint = this.TryGetCompOrAdd<PositionConstraint>();
+        // }
+    }
 
-  public void LevelReset()
-  {
-      TransformReset();
-      ResetAnim();
-      destroyTween.Stop();
-  }
+    public void LevelReset()
+    {
+        TransformReset();
+        ResetAnim();
+        destroyTween.Stop();
+    }
 }
 
 public class PoolObjEvent : UnityEvent<PoolObject> { }
