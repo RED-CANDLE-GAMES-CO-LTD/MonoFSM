@@ -25,7 +25,13 @@ public interface IPoolObjectPlayer
 
 public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
 {
+    [BoxGroup("誰噴的")]
     [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
+#if UNITY_EDITOR
+    [ShowInPlayMode] [NonSerialized] public string _lastPlayerName;
+#endif
+    [BoxGroup("誰噴的")]
+    [PropertyOrder(-1)]
     [ShowInPlayMode] public Component lastPlayerComponent => lastPlayer as Component;
     [Button("Find fx to assign")]
     void Find()
