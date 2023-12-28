@@ -314,6 +314,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
         CheckList();
         // needResetAnim = true;
         this.ResetAnim();
+        destroyTween.Stop();
         if (this.TryGetComponent<PositionConstraint>(out var constraint))
         {
             constraint.enabled = false;
@@ -422,42 +423,18 @@ public class PoolObject : MonoBehaviour, ILevelAwake , ILevelReset
     {
         if (UseAutoDestroy)
         {
-            _poolObjectReturnTokenSource = new CancellationTokenSource();
+            destroyTween.Stop();
             destroyTween = this.DelayTask(AutoDestroyTime, (target) =>
             {
                 target.ReturnToPool();
                 target.Log("AutoDestroyTime:", target.AutoDestroyTime);
             });
-            // await this.Delay(AutoDestroyTime,_poolObjectReturnTokenSource.Token);
-            // ReturnToPool();
         }
     }
 
     private Tween destroyTween;
 
-    // private void RaisePoolObjectReturnEvent()
-    // {
-    //     if (_poolObjectReturnTokenSource != null)
-    //     {
-    //         _poolObjectReturnTokenSource.Cancel();
-    //         _poolObjectReturnTokenSource.Dispose();
-    //         _poolObjectReturnTokenSource = null;
-    //     }
-    // }
-
-    private CancellationTokenSource _poolObjectReturnTokenSource;
-
-    // public void Update()
-    // {
-    //     if (UseAutoDestroy)
-    //     {
-    //         autoDestroyTimer -= Time.deltaTime;
-    //         if (autoDestroyTimer <= 0)
-    //         {
-    //             this.ReturnToPool();
-    //         }
-    //     }
-    // }
+    
 
     //一開始就在場景上的物件
     public bool UseSceneAsPool => this.gameObject.scene.name != null && OriginalPrefab == null;
