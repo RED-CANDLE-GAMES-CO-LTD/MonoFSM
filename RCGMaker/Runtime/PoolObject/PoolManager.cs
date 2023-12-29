@@ -315,8 +315,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             transform1.parent = parent;
             transform1.rotation = rotation;
             transform1.position = position;
-            
-            
+
+         
+
             prefab.OnBorrowFromPool(null); //OnPoolReset
 
             // 這會影響設定黨 樹上有結構
@@ -329,6 +330,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             prefab.ResetAnim();
             prefab.PoolObjecResetAndStart();
     
+            if (handler != null)
+            {
+                handler.Invoke(prefab);
+            }
 
             // Debug.Log("Use Scene As Pool");
 
