@@ -92,15 +92,23 @@ namespace RCGFSM.Animation
         {
             return GetComponent<AbstractStringProvider>() != null;
         }
+
+        IEnumerable<Animator> GetAnimatorsInChildren()
+        {
+            return GetComponentsInChildren<Animator>();
+        }
+        
         [TabGroup("Animator", false, 1)]
         [Required]
-        [InlineEditor]
+        // [InlineEditor]
+        [ValueDropdown(nameof(GetAnimatorsInChildren), IsUniqueList = true, NumberOfItemsBeforeEnablingSearch = 3)]
         public Animator animator;
+        
         [TabGroup("Animator")]
 #if UNITY_EDITOR
         [InfoBox("Not Valid State name", InfoMessageType.Error, nameof(IsStateNameNotInAnimator))]
 
-        [ValueDropdown("GetAnimatorStateNames", IsUniqueList = true, NumberOfItemsBeforeEnablingSearch = 3)]
+        [ValueDropdown(nameof(GetAnimatorStateNames), IsUniqueList = true, NumberOfItemsBeforeEnablingSearch = 3)]
 #endif
         [HideIf("IsStateNameProvider")] //有provider就藏起來
         public string stateName;

@@ -33,6 +33,8 @@ public class ScriptableObjectSingleton<T> : ScriptableObject where T : Scriptabl
 // #endif
                 s_Instance = Resources.Load<T>(GetPath());
                 s_isLoaded = true;
+                Debug.Log("Path:" + GetPath());
+                Debug.Log("Init" + s_Instance);
             }
 
             // if (Application.isPlaying == false && s_Instance == null)
