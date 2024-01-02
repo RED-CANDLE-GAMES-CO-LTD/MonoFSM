@@ -93,9 +93,11 @@ namespace RCGFSM.Animation
             return GetComponent<AbstractStringProvider>() != null;
         }
 
+        //FIXME: 不能直接往下找？要從IFSMOwner下面往下找之類的？
         IEnumerable<Animator> GetAnimatorsInChildren()
         {
-            return GetComponentsInChildren<Animator>();
+            var provider = GetComponentInParent<IAnimatorProvider>();
+            return provider.ChildAnimators;
         }
         
         [TabGroup("Animator", false, 1)]
@@ -103,6 +105,8 @@ namespace RCGFSM.Animation
         // [InlineEditor]
         [ValueDropdown(nameof(GetAnimatorsInChildren), IsUniqueList = true, NumberOfItemsBeforeEnablingSearch = 3)]
         public Animator animator;
+
+        [InlineEditor] [PreviewInInspector] private Animator animatorComp => animator;
         
         [TabGroup("Animator")]
 #if UNITY_EDITOR

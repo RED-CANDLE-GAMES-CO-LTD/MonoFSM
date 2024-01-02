@@ -36,4 +36,5 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter
 
 
     public Animator ChildAnimator => GetComponentInChildren<Animator>();
+    public Animator[] ChildAnimators => GetComponentsInChildren<Animator>();
 }

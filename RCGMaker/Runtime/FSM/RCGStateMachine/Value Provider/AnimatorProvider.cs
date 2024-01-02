@@ -3,6 +3,7 @@ using UnityEngine;
 public interface IAnimatorProvider
 {
     public Animator ChildAnimator { get; }
+    public Animator[] ChildAnimators { get; }
 }
 
 public class AnimatorProvider : MonoBehaviour, IAnimatorProvider
@@ -15,4 +16,6 @@ public class AnimatorProvider : MonoBehaviour, IAnimatorProvider
     }
 
     public Animator ChildAnimator => animator;
+    public Animator[] ChildAnimators => animators;
+    [AutoChildren] public Animator[] animators;
 }
