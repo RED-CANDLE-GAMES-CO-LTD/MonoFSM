@@ -113,12 +113,22 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateUpdate()
     {
         base.OnStateUpdate();
-        // if (actions == null) return;
-        for (var index = actions.Length - 1; index >= 0; index--)
+        //
+         if (actions == null) return;
+         
+         //不明原因曾經是反過來叫的。
+        // for (var index = actions.Length - 1; index >= 0; index--)
+        // {
+        //     var action = actions[index];
+        //     if (action.isActiveAndEnabled)
+        //     // if (action.gameObject.activeSelf)
+        //         action.OnActionUpdate();
+        // }
+        //
+        
+        foreach (var action in actions)
         {
-            var action = actions[index];
             if (action.isActiveAndEnabled)
-            // if (action.gameObject.activeSelf)
                 action.OnActionUpdate();
         }
     }

@@ -646,11 +646,7 @@ namespace RCGFSM.Animation
                 Debug.LogError("No _fsmowner?", this);
                 return false;
             }
-
-            // //Projectile 出生特效會被關掉 (幻象區鳳凰mini boss)
-            // if (_projectile != null)
-            //     return false;
-
+            
             //只有在init的時候才會跳過
             var context = _fsmOwner.FsmContext;
             if (context.LastState != context.startState)
@@ -660,20 +656,11 @@ namespace RCGFSM.Animation
                 return false;
             }
 
-            //Z軸換景門 / 電梯
-            if (context.LastTransition && context.LastTransition.IsChangeSceneTransition)
+            if (context.LastTransition.IsTransitionSkippable == false)
             {
-                this.Log("Not InitAndAutoSkipToLastFrame");
                 return false;
             }
 
-            
-            //Projectile 出生
-            if (context.LastTransition && context.LastTransition.IsDefaultTransition)
-            {
-                this.Log("Not InitAndAutoSkipToLastFrame");
-                return false;
-            }
 
             this.Log("InitAndAutoSkipToLastFrame", context.LastState, ",",
                 context.LastTransition);

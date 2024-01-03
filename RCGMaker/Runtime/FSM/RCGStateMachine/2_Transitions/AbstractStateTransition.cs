@@ -19,9 +19,6 @@ public interface IState<in TState>
 
 
 
-public interface IChangeSceneCondition
-{
-}
 
 public class AbstractStateTransition : AbstractBehaviour
 {
@@ -48,30 +45,7 @@ public class AbstractStateTransition : AbstractBehaviour
     [ShowInInspector]
     public bool IsDefaultTransition => conditions == null || conditions.Length == 0;
     //試圖封裝 resolving和resolved，不想要把clip和transition分開，有隱含邏輯在裡面
-
-
-
-    [Title("從其他場景過來切換的Condition")]
-    [ShowInInspector]
-    public bool IsChangeSceneTransition
-    {
-        get
-        {
-            if (conditions == null || conditions.Length == 0)
-                return false;
-
-            foreach (var c in conditions)
-            {
-                if (c is IChangeSceneCondition)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
-
+    
     // protected override void Awake()
     // {
     //     bindingState = GetComponentInParent<GeneralState>();
@@ -88,6 +62,31 @@ public class AbstractStateTransition : AbstractBehaviour
     [AutoParent()] private IState<GeneralState> parentState;
 
     [ShowInInspector] private bool IsSelfTransition => parentState as GeneralState == target;
+
+    
+    [AutoChildren(false)]
+    private ISkippableAnimationTransition[] _skippableAnimationTransitions;
+
+    [ShowInInspector] 
+    public bool IsTransitionSkippable
+    {
+        get
+        {
+            if (_skippableAnimationTransitions == null)
+            {
+                return true;
+            }
+
+            foreach (var s in _skippableAnimationTransitions)
+            {
+                if (s.CanSkip() == false)
+                    return false;
+            }
+
+            return true;
+        }
+    }
+
 
     [InfoBox("SelfTransition要勾才會過", InfoMessageType.Error, "IsSelfTransitionNotValid")]
     [ShowInInspector]
