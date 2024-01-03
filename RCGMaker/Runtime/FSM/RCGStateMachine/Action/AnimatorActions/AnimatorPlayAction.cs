@@ -660,6 +660,7 @@ namespace RCGFSM.Animation
                 return false;
             }
 
+            //Z軸換景門 / 電梯
             if (context.LastTransition && context.LastTransition.IsChangeSceneTransition)
             {
                 this.Log("Not InitAndAutoSkipToLastFrame");
