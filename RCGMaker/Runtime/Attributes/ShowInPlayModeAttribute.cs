@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core.Attributes
@@ -8,6 +9,7 @@ namespace RCGMaker.Core.Attributes
     /// <seealso cref="T:RCGMaker.Core.Attributes.Editor.ShowInPlayModeAttributeProcessor" />
     /// </summary>
     [IncludeMyAttributes]
+    [MeansImplicitUse]
     // [HideInPlayMode] //NOTE: 沒用，還是會call property, 用AttributeProcess處理的
     [ReadOnly]
     // [DisableIf("@true")]

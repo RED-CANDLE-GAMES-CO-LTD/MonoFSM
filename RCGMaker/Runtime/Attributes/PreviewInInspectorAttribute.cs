@@ -1,8 +1,10 @@
 using System;
+using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core.Attributes
 {
+    [MeansImplicitUse]
     [IncludeMyAttributes]
     [ShowInInspector]
     [DisableIf("@true")]

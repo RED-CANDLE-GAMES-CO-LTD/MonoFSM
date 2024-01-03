@@ -61,6 +61,7 @@ namespace RCGMaker.Runtime
             }
 
             //播完動畫，關掉animator
+            //FIXME: 一播完就想關掉...但有些可能是transition到別的動畫，某些動畫不能關... looping的才能關？
             if (_lastAnimatorStateHash == currentState.shortNameHash && currentState.normalizedTime >= 1)
             {
                 
