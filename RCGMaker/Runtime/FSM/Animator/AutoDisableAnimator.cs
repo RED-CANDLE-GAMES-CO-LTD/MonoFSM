@@ -1,4 +1,5 @@
 using System;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 
 namespace RCGMaker.Runtime
@@ -12,7 +13,7 @@ namespace RCGMaker.Runtime
     //當狀態機播完動畫，自動關掉animator，節省效能
     public class AutoDisableAnimator : MonoBehaviour
     {
-        private Animator _animator;
+        [PreviewInInspector] [Auto(false)] private Animator _animator;
         private int _lastAnimatorStateHash;
         private bool _isReceivingAnimationDone = false;
         private IAnimationDoneReceiver _receiver;
@@ -29,27 +30,40 @@ namespace RCGMaker.Runtime
 
         private void Awake()
         {
-            _animator = GetComponent<Animator>();
-            if (_animator)
-            {
-                _animator.updateMode = AnimatorUpdateMode.UnscaledTime;
-                _animator.keepAnimatorStateOnDisable = true;
-                _receiver = GetComponent<IAnimationDoneReceiver>(); //不一定有}
-            }
+            
         }
 
         private void OnEnable()
         {
+            //可能是動態add的...還是要手動加？default state用撈的？
+            if (_animator == null)
+                _animator = GetComponent<Animator>();
+            if (_animator)
+            {
+                Debug.Log("Enable Animator" + gameObject.name, gameObject);
+                _animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+                _animator.keepAnimatorStateOnDisable = true;
+                _receiver = GetComponent<IAnimationDoneReceiver>(); //不一定有}
+            }
             SetAnimatorEnable(true);
         }
 
 
         private void LateUpdate() //只想知道切走的那一瞬間.. 又需要reset
         {
+            if (_animator == null)
+            {
+                enabled = false;
+                return;
+            }
+                
             if (_animator.IsInTransition(0))
                 return;
             var currentState = _animator.GetCurrentAnimatorStateInfo(0);
-            
+
+            this.Log(
+                "LateUpdate" + currentState.shortNameHash + " " + currentState.normalizedTime + " " + gameObject.name,
+                gameObject);
             //播新的動畫，重置            
             if (currentState.shortNameHash != _lastAnimatorStateHash && currentState.normalizedTime < 1)
             {
@@ -83,22 +97,20 @@ namespace RCGMaker.Runtime
 
         private void SetAnimatorEnable(bool enable)
         {
+            Debug.Log("Set Animator Enable:" + enable + gameObject.name, gameObject);
             _animator.enabled = enable;
             enabled = enable;
-
-
+            
             if (enable)
             {
                 if (!string.IsNullOrEmpty(defaultStateName))
                 {
                     Debug.Log("Play Default State" + defaultStateName);
                     _animator.Play(defaultStateName, 0, 0);
-                    _animator.Update(0);
+                    // _animator.Update(0);
                     _lastAnimatorStateHash = -1;
                 }    
             }
-            
-                
         }
     }
 }

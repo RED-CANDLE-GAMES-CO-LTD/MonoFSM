@@ -204,8 +204,10 @@ namespace RCGMaker.Core.Editor
       {
          var animator = menuCommand.context as Animator;
          var animatorController = animator.runtimeAnimatorController;
-         var clips = animatorController.animationClips;
-         var clip = clips[0];
+         var cc = animatorController as AnimatorController;
+         var clip = cc.layers[0].stateMachine.defaultState.motion as AnimationClip;
+         // var clips = animatorController.animationClips;
+         // var clip = clips[0];
 
 
          var curveBindings = AnimationUtility.GetCurveBindings(clip);
