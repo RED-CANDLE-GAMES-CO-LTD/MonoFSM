@@ -16,6 +16,13 @@ public interface IState<in TState>
     // bool ForceTransition(GeneralState stateType);
     // bool TransitionCheck(GeneralState stateType);
 }
+
+
+
+public interface IChangeSceneCondition
+{
+}
+
 public class AbstractStateTransition : AbstractBehaviour
 {
     [ValueDropdown(nameof(FindStates))]
@@ -42,6 +49,28 @@ public class AbstractStateTransition : AbstractBehaviour
     public bool IsDefaultTransition => conditions == null || conditions.Length == 0;
     //試圖封裝 resolving和resolved，不想要把clip和transition分開，有隱含邏輯在裡面
 
+
+
+    [Title("從其他場景過來切換的Condition")]
+    [ShowInInspector]
+    public bool IsChangeSceneTransition
+    {
+        get
+        {
+            if (conditions == null || conditions.Length == 0)
+                return false;
+
+            foreach (var c in conditions)
+            {
+                if (c is IChangeSceneCondition)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
 
     // protected override void Awake()
     // {

@@ -660,6 +660,14 @@ namespace RCGFSM.Animation
                 return false;
             }
 
+            if (context.LastTransition && context.LastTransition.IsChangeSceneTransition)
+            {
+                this.Log("Not InitAndAutoSkipToLastFrame");
+                return false;
+            }
+
+            
+            //Projectile 出生
             if (context.LastTransition && context.LastTransition.IsDefaultTransition)
             {
                 this.Log("Not InitAndAutoSkipToLastFrame");
