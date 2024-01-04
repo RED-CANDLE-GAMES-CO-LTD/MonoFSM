@@ -80,7 +80,13 @@ public static class RCGTime
     public static PrimeTween.Tween DelayTask<T>([NotNull] this T target, float delayTime, Action<T> action)
         where T : class
     {
-        return PrimeTween.Tween.Delay(target, delayTime, action, IsIndependentUpdate);
+        return PrimeTween.Tween.Delay(target, delayTime, action, IsUnscaledTime);
+    }
+
+    public static void ExtendTween(this PrimeTween.Tween tween, float delay)
+    {
+        if (tween.isAlive)
+            PrimeTween.Tween.Delay(delay).Chain(tween); //FIXME: 不確定這個是對的嗎？
     }
     
     public static UniTask UnscaledDelay(this MonoBehaviour mb, float second)
@@ -119,10 +125,10 @@ public static class RCGTime
 
     private static float _timeScale = 1f;
 
-    public static bool SelfTimeScale = false; //這是什麼意思？
+    public static bool SelfTimeScale = false; //FIXME: 測試時要固定，改成true? 加速下tween也該加速
 
-    public static bool IsIndependentUpdate => !SelfTimeScale;
-    
+    public static bool IsUnscaledTime => !SelfTimeScale; //true
+    //uncaledDeltaTime
     
 
     public static float deltaTime
