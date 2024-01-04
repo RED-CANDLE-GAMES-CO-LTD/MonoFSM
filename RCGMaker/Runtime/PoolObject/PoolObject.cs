@@ -128,8 +128,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
             {
                 animResetters.Add(new AnimatorResetter(_anims[i]));
             }
-
-
     }
 
     // private void OnEnable() //從poolObject拿出來要確定動畫有重置，因為有人很壞，還沒開就被call Reset and Start
