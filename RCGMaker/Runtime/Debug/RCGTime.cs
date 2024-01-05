@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -80,13 +81,24 @@ public static class RCGTime
     public static PrimeTween.Tween DelayTask<T>([NotNull] this T target, float delayTime, Action<T> action)
         where T : class
     {
-        return PrimeTween.Tween.Delay(target, delayTime, action, IsUnscaledTime);
+        return PrimeTween.Tween.Delay(target, delayTime, action);
     }
 
-    public static void ExtendTween(this PrimeTween.Tween tween, float delay)
+    public static PrimeTween.Tween DelayUITask<T>([NotNull] this T target, float delayTime, Action<T> action)
+        where T : class
+    {
+        return PrimeTween.Tween.Delay(target, delayTime, action, true);
+    }
+
+    public static void ExtendDelay(this PrimeTween.Tween tween, float delay)
     {
         if (tween.isAlive)
-            PrimeTween.Tween.Delay(delay).Chain(tween); //FIXME: 不確定這個是對的嗎？
+        {
+            var elapsedTime = tween.elapsedTime - delay;
+            if (elapsedTime < 0) elapsedTime = 0;
+            tween.elapsedTime = elapsedTime;
+        }
+        // PrimeTween.Tween.Delay(delay).Chain(tween); //FIXME: 不確定這個是對的嗎？
     }
     
     public static UniTask UnscaledDelay(this MonoBehaviour mb, float second)

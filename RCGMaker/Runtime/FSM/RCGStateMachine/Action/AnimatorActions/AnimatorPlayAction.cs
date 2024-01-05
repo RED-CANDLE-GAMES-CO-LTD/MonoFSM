@@ -656,7 +656,7 @@ namespace RCGFSM.Animation
                 return false;
             }
 
-            if (context.LastTransition.IsTransitionSkippable == false)
+            if (context.LastTransition && context.LastTransition.IsTransitionSkippable == false)
             {
                 return false;
             }
