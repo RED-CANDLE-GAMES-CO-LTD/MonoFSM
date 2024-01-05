@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -29,10 +30,12 @@ namespace RCGMaker.AddressableAssets
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(editorAsset, out var guid, out long localId);
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             assetReference = settings.CreateAssetReference(guid);
+            assetReference.SetEditorSubObject(editorAsset);
         }
         //TODO: 可以寫property drawer自動生成assetReference
 #endif
 
+        [PreviewInInspector]
         public AssetReference assetReference;
 
         public Object Asset => assetReference.Asset;
