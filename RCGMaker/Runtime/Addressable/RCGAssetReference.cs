@@ -59,21 +59,27 @@ namespace RCGMaker.AddressableAssets
             var op = assetReference.OperationHandle;
             if (op.IsValid())
             {
+#if UNITY_EDITOR
                 Debug.Log("LoadAssetAsync: before old OP:" + assetReference.SubObjectName + " wait load",
                     assetReference.editorAsset);
+#endif
                 var obj = await op.Task;
+#if UNITY_EDITOR
                 Debug.Log("LoadAssetAsync: old OP:" + assetReference.SubObjectName + " is loaded" + obj,
                     assetReference.editorAsset);
+#endif
                 return obj as T;
             }
             else
             {
                 var handle = assetReference.LoadAssetAsync<T>();
                 // var obj = handle.WaitForCompletion();
+#if UNITY_EDITOR
                 if (handle.Status == AsyncOperationStatus.Failed)
                     Debug.LogError("LoadAssetAsync Failed:" + assetReference.SubObjectName, assetReference.editorAsset);
                 Debug.Log("LoadAssetAsync: new OP:" + assetReference.SubObjectName + " is loaded" + handle.Task,
                     assetReference.editorAsset);
+#endif
                 var obj = await handle.Task;
                 return obj as T;
             }
@@ -81,11 +87,13 @@ namespace RCGMaker.AddressableAssets
 
         public async Task<T> GetAssetAsync<T>() where T : Object
         {
+#if UNITY_EDITOR
             if (assetReference == null)
             {
                 Debug.LogWarning("AddressableAssetReference is null 暫時用EditorAsset:" + editorAsset, editorAsset);
                 return editorAsset as T;
             }
+#endif
 
             // if (IsAssetLoaded)
             // {
@@ -96,10 +104,13 @@ namespace RCGMaker.AddressableAssets
             //     return assetReference.Asset as T;
             // }
 
+#if UNITY_EDITOR
             Debug.Log("GetAssetAsync:" + assetReference.SubObjectName + " is not loaded", assetReference.editorAsset);
+ #endif
             var obj = await LoadAsset<T>();
-
+#if UNITY_EDITOR
             Debug.Log("GetAssetAsync:" + assetReference.SubObjectName + " is loaded" + obj, assetReference.editorAsset);
+#endif
             return obj;
         }
 
