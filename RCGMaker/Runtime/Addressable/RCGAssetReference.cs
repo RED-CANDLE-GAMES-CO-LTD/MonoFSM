@@ -28,11 +28,13 @@ namespace RCGMaker.AddressableAssets
         [Button]
         public void CreateAssetReference()
         {
+            #if UNITY_EDITOR
             Debug.LogError("CreateAssetReference:" + editorAsset, editorAsset);
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(editorAsset, out var guid, out long localId);
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             assetReference = settings.CreateAssetReference(guid);
             assetReference.SetEditorSubObject(editorAsset);
+            #endif
         }
         //TODO: 可以寫property drawer自動生成assetReference
 #endif
