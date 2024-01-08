@@ -9,6 +9,7 @@ using UnityEditor.AddressableAssets;
 #endif
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace RCGMaker.AddressableAssets
 {
@@ -27,6 +28,7 @@ namespace RCGMaker.AddressableAssets
         [Button]
         public void CreateAssetReference()
         {
+            Debug.LogError("CreateAssetReference:" + editorAsset, editorAsset);
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(editorAsset, out var guid, out long localId);
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             assetReference = settings.CreateAssetReference(guid);
@@ -35,23 +37,73 @@ namespace RCGMaker.AddressableAssets
         //TODO: 可以寫property drawer自動生成assetReference
 #endif
 
-        [PreviewInInspector]
-        public AssetReference assetReference;
+        // [PreviewInInspector]
+        [SerializeField] private AssetReference assetReference;
 
         public Object Asset => assetReference.Asset;
+        public bool IsAssetLoaded => assetReference.Asset != null;
 
+        public bool IsRuntimeKeyValid => assetReference.RuntimeKeyIsValid();
         public T GetAsset<T>() where T : Object
         {
             return assetReference.Asset as T;
         }
 
-        public async Task<Object> LoadAsset()
+        private async Task<T> LoadAsset<T>() where T : Object
         {
             var validateKeyAsync = Addressables.LoadResourceLocationsAsync(assetReference.RuntimeKey);
             await validateKeyAsync.Task;
-            var handle = assetReference.LoadAssetAsync<Object>();
-            var obj = await handle.Task;
+            Debug.Log("LoadAssetAsync: 1:" + assetReference.SubObjectName);
+            var op = assetReference.OperationHandle;
+            if (op.IsValid())
+            {
+                Debug.Log("LoadAssetAsync: before old OP:" + assetReference.SubObjectName + " wait load",
+                    assetReference.editorAsset);
+                var obj = await op.Task;
+                Debug.Log("LoadAssetAsync: old OP:" + assetReference.SubObjectName + " is loaded" + obj,
+                    assetReference.editorAsset);
+                return obj as T;
+            }
+            else
+            {
+                var handle = assetReference.LoadAssetAsync<T>();
+                // var obj = handle.WaitForCompletion();
+                if (handle.Status == AsyncOperationStatus.Failed)
+                    Debug.LogError("LoadAssetAsync Failed:" + assetReference.SubObjectName, assetReference.editorAsset);
+                Debug.Log("LoadAssetAsync: new OP:" + assetReference.SubObjectName + " is loaded" + handle.Task,
+                    assetReference.editorAsset);
+                var obj = await handle.Task;
+                return obj as T;
+            }
+        }
+
+        public async Task<T> GetAssetAsync<T>() where T : Object
+        {
+            if (assetReference == null)
+            {
+                Debug.LogWarning("AddressableAssetReference is null 暫時用EditorAsset:" + editorAsset, editorAsset);
+                return editorAsset as T;
+            }
+
+            // if (IsAssetLoaded)
+            // {
+            //     Debug.Log(
+            //         "GetAssetAsync:" + assetReference.SubObjectName + " already loaded" + assetReference.Asset as T,
+            //         assetReference.editorAsset);
+            //
+            //     return assetReference.Asset as T;
+            // }
+
+            Debug.Log("GetAssetAsync:" + assetReference.SubObjectName + " is not loaded", assetReference.editorAsset);
+            var obj = await LoadAsset<T>();
+
+            Debug.Log("GetAssetAsync:" + assetReference.SubObjectName + " is loaded" + obj, assetReference.editorAsset);
             return obj;
+        }
+
+        public void Release()
+        {
+            assetReference.ReleaseAsset();
         }
     }
 }

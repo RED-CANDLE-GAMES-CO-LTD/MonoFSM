@@ -39,7 +39,7 @@ namespace RCGMaker.Runtime
                 _animator = GetComponent<Animator>();
             if (_animator)
             {
-                Debug.Log("Enable Animator" + gameObject.name, gameObject);
+                // Debug.Log("Enable Animator" + gameObject.name, gameObject);
                 // _animator.updateMode = AnimatorUpdateMode.UnscaledTime;
                 _animator.keepAnimatorStateOnDisable = true;
                 _receiver = GetComponent<IAnimationDoneReceiver>(); //不一定有}
@@ -91,12 +91,12 @@ namespace RCGMaker.Runtime
             _isReceivingAnimationDone = false;
             _receiver?.OnAnimationDone(shortNameHash);
             // _lastAnimatorStateHash = 0;
-            Debug.Log("Disable Animator" + gameObject.name, gameObject);
+            // Debug.Log("Disable Animator" + gameObject.name, gameObject);
         }
 
         private void SetAnimatorEnable(bool enable)
         {
-            Debug.Log("Set Animator Enable:" + enable + gameObject.name, gameObject);
+            // Debug.Log("Set Animator Enable:" + enable + gameObject.name, gameObject);
             _animator.enabled = enable;
             enabled = enable;
             
@@ -104,7 +104,7 @@ namespace RCGMaker.Runtime
             {
                 if (!string.IsNullOrEmpty(defaultStateName))
                 {
-                    Debug.Log("Play Default State" + defaultStateName);
+                    // Debug.Log("Play Default State" + defaultStateName);
                     _animator.Play(defaultStateName, 0, 0);
                     // _animator.Update(0);
                     _lastAnimatorStateHash = -1;
