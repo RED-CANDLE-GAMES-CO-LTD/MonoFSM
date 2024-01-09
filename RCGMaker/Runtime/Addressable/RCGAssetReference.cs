@@ -30,12 +30,16 @@ namespace RCGMaker.AddressableAssets
         {
             // #if UNITY_EDITOR
             // Debug.LogError("CreateAssetReference:" + editorAsset, editorAsset);
-            if (assetReference.editorAsset != null)
-                return;
+            // if (assetReference.editorAsset != null)
+            //     return;
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(editorAsset, out var guid, out long localId);
             var settings = AddressableAssetSettingsDefaultObject.Settings;
-            assetReference = settings.CreateAssetReference(guid);
-            assetReference.SetEditorSubObject(editorAsset);
+            var entry = settings.FindAssetEntry(guid);
+            if (entry == null)
+            {
+                assetReference = settings.CreateAssetReference(guid);
+                assetReference.SetEditorSubObject(editorAsset);
+            }    
             // #endif
         }
         //TODO: 可以寫property drawer自動生成assetReference
