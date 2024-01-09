@@ -29,7 +29,9 @@ namespace RCGMaker.AddressableAssets
         public void CreateAssetReference()
         {
             // #if UNITY_EDITOR
-            Debug.LogError("CreateAssetReference:" + editorAsset, editorAsset);
+            // Debug.LogError("CreateAssetReference:" + editorAsset, editorAsset);
+            if (assetReference.editorAsset != null)
+                return;
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(editorAsset, out var guid, out long localId);
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             assetReference = settings.CreateAssetReference(guid);

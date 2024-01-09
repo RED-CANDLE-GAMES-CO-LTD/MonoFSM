@@ -13,7 +13,7 @@ public class ReadOnlyActivator : MonoBehaviour
 }
 
 public class GameObjectInitialActivator : ReadOnlyActivator, ILevelConfig, ISceneSavingCallbackReceiver,
-    IPrefabSavingCallbackReceiver
+    IBeforePrefabSaveCallbackReceiver
 {
     // public bool isActive = false;
 

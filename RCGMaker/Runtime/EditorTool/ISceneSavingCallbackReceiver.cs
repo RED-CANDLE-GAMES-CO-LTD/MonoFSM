@@ -19,7 +19,7 @@ namespace RCGMaker.Core
     }
 
 
-    public interface IPrefabSavingCallbackReceiver
+    public interface IBeforePrefabSaveCallbackReceiver
     {
         void OnBeforePrefabSave();
     }
