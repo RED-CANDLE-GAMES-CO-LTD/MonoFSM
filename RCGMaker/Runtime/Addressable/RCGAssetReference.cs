@@ -28,13 +28,13 @@ namespace RCGMaker.AddressableAssets
         [Button]
         public void CreateAssetReference()
         {
-            #if UNITY_EDITOR
+            // #if UNITY_EDITOR
             Debug.LogError("CreateAssetReference:" + editorAsset, editorAsset);
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(editorAsset, out var guid, out long localId);
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             assetReference = settings.CreateAssetReference(guid);
             assetReference.SetEditorSubObject(editorAsset);
-            #endif
+            // #endif
         }
         //TODO: 可以寫property drawer自動生成assetReference
 #endif
@@ -42,7 +42,7 @@ namespace RCGMaker.AddressableAssets
         // [PreviewInInspector]
         [SerializeField] private AssetReference assetReference;
 
-        public Object Asset => assetReference.Asset;
+        // public Object Asset => assetReference.Asset;
         public bool IsAssetLoaded => assetReference.Asset != null;
 
         public bool IsRuntimeKeyValid => assetReference.RuntimeKeyIsValid();
@@ -59,29 +59,16 @@ namespace RCGMaker.AddressableAssets
             var op = assetReference.OperationHandle;
             if (op.IsValid())
             {
-#if UNITY_EDITOR
-                Debug.Log("LoadAssetAsync: before old OP:" + assetReference.SubObjectName + " wait load",
-                    assetReference.editorAsset);
-#endif
                 var obj = await op.Task;
-#if UNITY_EDITOR
-                Debug.Log("LoadAssetAsync: old OP:" + assetReference.SubObjectName + " is loaded" + obj,
-                    assetReference.editorAsset);
-#endif
                 return obj as T;
             }
             else
             {
+                //一定要用Ｔ，不然會回傳null
                 var handle = assetReference.LoadAssetAsync<T>();
                 // var obj = handle.WaitForCompletion();
-#if UNITY_EDITOR
-                if (handle.Status == AsyncOperationStatus.Failed)
-                    Debug.LogError("LoadAssetAsync Failed:" + assetReference.SubObjectName, assetReference.editorAsset);
-                Debug.Log("LoadAssetAsync: new OP:" + assetReference.SubObjectName + " is loaded" + handle.Task,
-                    assetReference.editorAsset);
-#endif
                 var obj = await handle.Task;
-                return obj as T;
+                return obj;
             }
         }
 
@@ -95,22 +82,12 @@ namespace RCGMaker.AddressableAssets
             }
 #endif
 
-            // if (IsAssetLoaded)
-            // {
-            //     Debug.Log(
-            //         "GetAssetAsync:" + assetReference.SubObjectName + " already loaded" + assetReference.Asset as T,
-            //         assetReference.editorAsset);
-            //
-            //     return assetReference.Asset as T;
-            // }
-
-#if UNITY_EDITOR
-            Debug.Log("GetAssetAsync:" + assetReference.SubObjectName + " is not loaded", assetReference.editorAsset);
- #endif
+            if (IsAssetLoaded)
+            {
+                return assetReference.Asset as T;
+            }
+            
             var obj = await LoadAsset<T>();
-#if UNITY_EDITOR
-            Debug.Log("GetAssetAsync:" + assetReference.SubObjectName + " is loaded" + obj, assetReference.editorAsset);
-#endif
             return obj;
         }
 
