@@ -1,3 +1,4 @@
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -7,7 +8,7 @@ namespace RCGMaker.Core
     //直接對InstanceReference的instance做操作
     public class AnimatorReferencePlayAction : AbstractAnimatorPlayAction, IResetter
     {
-        [ShowInInspector] public GameObject instance => AnimatorReferenceData?.instance;
+        [PreviewInInspector] public GameObject instance => AnimatorReferenceData?.instance;
 
         [FormerlySerializedAs("animatorReference")]
         [InlineEditor]

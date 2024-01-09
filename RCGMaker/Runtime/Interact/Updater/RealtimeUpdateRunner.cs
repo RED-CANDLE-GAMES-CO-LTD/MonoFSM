@@ -11,7 +11,7 @@ namespace RCGMaker.Core
     {
         void MonoBindAwake();
         void UpdateEffect();
-        void Stop();
+        void OnStop();
     }
 
     public interface IUpdateRunner //算時間，算回合，時間到了更新
@@ -86,7 +86,7 @@ namespace RCGMaker.Core
                 // gameObject.SetActive(false);
                 OnStop.Invoke();
                 Debug.Log("RealtimeUpdate Runner Stop");
-                foreach (var updatable in _updatables) updatable.Stop();
+                foreach (var updatable in _updatables) updatable.OnStop();
                 //至少先disable就不會有效果了
                 //[]: Pool return..? 應該讓buff module自己return就好
                 return;
