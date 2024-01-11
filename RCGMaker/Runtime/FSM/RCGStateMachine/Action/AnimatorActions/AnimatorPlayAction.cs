@@ -518,7 +518,11 @@ namespace RCGFSM.Animation
                 Debug.LogError("animator == null",this);
             }
 #endif
-            
+            if (animator.runtimeAnimatorController == null)
+            {
+                enabled = false;
+                return;
+            }
 
             //FIXME: 完全知道動畫多久，可以預判播完的時間然後去下一個state，就可以functional?
             //包子 Corss Fade 不能一直跑 （議會小電梯） 
