@@ -48,7 +48,6 @@ namespace RCGMaker.Core.Editor
       // }
       static void HierarchyChanged()
       { 
-         // Debug.Log("HierarchyChanged");
          RefactorNode[] nodes = null;
          if (PrefabStageUtility.GetCurrentPrefabStage())
          {
