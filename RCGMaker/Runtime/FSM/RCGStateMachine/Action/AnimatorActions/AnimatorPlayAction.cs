@@ -169,6 +169,8 @@ namespace RCGFSM.Animation
                 var owner = GetComponentInParent<StateMachineOwner>();
                 if (owner)
                     animator = owner.GetComponentInChildren<Animator>();
+                if (animator == null)
+                    return;
             }
 
             if (animator.runtimeAnimatorController == null)
