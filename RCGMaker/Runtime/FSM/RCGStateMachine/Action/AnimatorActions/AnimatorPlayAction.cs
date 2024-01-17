@@ -644,12 +644,12 @@ namespace RCGFSM.Animation
 
         #region InitAndAutoSkipToLastFrame
 
-        [AutoParent(false)] private StateMachineOwner _fsmOwner;
+        [AutoParent(false)] private StateMachineOwner _fsmOwner; //monster也可以，應該抽成interface
         private bool CheckInitAndSkipAnimationToLastFrame()
         {
             if (_fsmOwner == null)
             {
-                Debug.LogError("No _fsmowner?", this);
+                // Debug.LogError("No _fsmowner?", this);
                 return false;
             }
             
