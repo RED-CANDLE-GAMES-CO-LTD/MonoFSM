@@ -102,7 +102,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     {
         CheckList();
         InitAnimResetters();
+        ChickResetParametterInit();
     }
+    
+    
 
     private List<AnimatorResetter> animResetters;
 
