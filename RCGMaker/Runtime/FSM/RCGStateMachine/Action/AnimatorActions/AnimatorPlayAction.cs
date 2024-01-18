@@ -132,6 +132,8 @@ namespace RCGFSM.Animation
                 }
             }
         }
+        
+        #if UNITY_EDITOR
 
         private Dictionary<int, string> _stateHashToName = new();
 
@@ -146,7 +148,9 @@ namespace RCGFSM.Animation
                 _stateHashToName.Add(Animator.StringToHash(name), name);
             }
         }
+        #endif
       
+        //
         [TabGroup("Animator")]
         [DisableIf("@true")]
         public int stateLayer;//FIXME: 做什麼用的?還要再講清楚? playerLayer
@@ -514,6 +518,7 @@ namespace RCGFSM.Animation
             if (animatorEnterCrossFade <= 0)
                 if (IsStatePlaying(layer) == false && stateInfo.normalizedTime > 0)
                 {
+#if UNITY_EDITOR
                     if (_stateHashToName.Count == 0)
                         BuildStateHashToName();
                     var shouldPlayStateName = _stateHashToName[StateHash];
@@ -522,6 +527,11 @@ namespace RCGFSM.Animation
                         "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
                         shouldPlayStateName +
                         ",playingStateName: " + playingStateName, gameObject);
+#else
+                        Debug.LogError("AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: "+this._fsmOwner.name, gameObject);
+#endif
+                    
+          
                 }
             
 
