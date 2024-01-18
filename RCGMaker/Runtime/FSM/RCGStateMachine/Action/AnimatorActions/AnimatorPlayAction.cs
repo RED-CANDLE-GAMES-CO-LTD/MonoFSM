@@ -131,7 +131,21 @@ namespace RCGFSM.Animation
                     return _stateNameHash;
                 }
             }
-        } 
+        }
+
+        private Dictionary<int, string> _stateHashToName = new();
+
+        private void BuildStateHashToName()
+        {
+            _stateHashToName.Clear();
+            var names = GetAnimatorStateNames();
+            if (names == null)
+                return;
+            foreach (var name in names)
+            {
+                _stateHashToName.Add(Animator.StringToHash(name), name);
+            }
+        }
       
         [TabGroup("Animator")]
         [DisableIf("@true")]
@@ -500,9 +514,14 @@ namespace RCGFSM.Animation
             if (animatorEnterCrossFade <= 0)
                 if (IsStatePlaying(layer) == false && stateInfo.normalizedTime > 0)
                 {
+                    if (_stateHashToName.Count == 0)
+                        BuildStateHashToName();
+                    var shouldPlayStateName = _stateHashToName[StateHash];
+                    var playingStateName = _stateHashToName[stateInfo.shortNameHash];
                     Debug.LogError(
-                        "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) StateHash:" + StateHash +
-                        ",playingHash:" + animator.GetCurrentAnimatorStateInfo(layer).shortNameHash, gameObject);
+                        "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
+                        shouldPlayStateName +
+                        ",playingStateName: " + playingStateName, gameObject);
                 }
             
 
