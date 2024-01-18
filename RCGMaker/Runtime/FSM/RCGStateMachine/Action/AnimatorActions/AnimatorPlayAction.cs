@@ -6,6 +6,7 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEditor.Animations;
 #endif
@@ -164,29 +165,38 @@ namespace RCGFSM.Animation
         private void OnValidate()
         {
 #if UNITY_EDITOR
-            if (animator == null)
+            try
             {
-                var owner = GetComponentInParent<StateMachineOwner>();
-                if (owner)
-                    animator = owner.GetComponentInChildren<Animator>();
                 if (animator == null)
+                {
+                    var owner = GetComponentInParent<StateMachineOwner>();
+                    if (owner)
+                        animator = owner.GetComponentInChildren<Animator>();
+                    if (animator == null)
+                        return;
+                }
+
+                if (animator.runtimeAnimatorController == null)
                     return;
+
+                var ac = animator.GetAnimatorController();
+                if (ac == null)
+                    return;
+                _stateLayerName = ac.layers[stateLayer].name;
+
+                var layer = GetDoneEventLayerIndex();
+                if (doneEventLayer == layer)
+                    return;
+
+                doneEventLayer = layer == -1 ? 0 : layer;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e,this);
             }
 
-            if (animator.runtimeAnimatorController == null)
-                return;
 
-            var ac = animator.GetAnimatorController();
-            if (ac == null)
-                return;
-            _stateLayerName = ac.layers[stateLayer].name;
-            
-            var layer = GetDoneEventLayerIndex();
-            if (doneEventLayer == layer)
-                return;
 
-            doneEventLayer = layer == -1 ? 0 : layer;
-            
 #endif
 
         }
