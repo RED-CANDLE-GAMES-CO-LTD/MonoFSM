@@ -216,6 +216,16 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
 
     // public Vector3 InitPosition => initPosition; 
     private Vector3 initPosition;
+
+    public void OverrideInitPosition(Vector3 pos)
+    {
+        initPosition = pos;
+        initRotation = transform.localRotation;
+        initParent = transform.parent;
+        initlocalScale = transform.localScale;
+        isResetParametterInit = true;
+    }
+
     private Quaternion initRotation;
     private Transform initParent;
     private Vector3 initlocalScale;
@@ -232,7 +242,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
         initRotation = transform.localRotation;
         initParent = transform.parent;
         initlocalScale = transform.localScale;
-
         isResetParametterInit = true;
 
         return false;
@@ -494,6 +503,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
         // }
     }
 
+    [Button]
     public void LevelReset()
     {
         TransformReset();
