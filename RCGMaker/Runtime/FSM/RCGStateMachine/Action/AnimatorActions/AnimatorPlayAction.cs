@@ -310,7 +310,7 @@ namespace RCGFSM.Animation
         [TabGroup("Animator")]
         [PropertyOrder(-1)]
         [ShowInInspector]
-        AnimationClip baseClip
+        private AnimationClip BaseClip
         {
             get
             {
@@ -344,7 +344,7 @@ namespace RCGFSM.Animation
         [TabGroup("Animator")]
         [PropertyOrder(-1)]
         [ShowInInspector]
-        AnimationClip overridingClip
+        private AnimationClip OverridingClip
         {
             get
             { 
@@ -472,6 +472,50 @@ namespace RCGFSM.Animation
         [ReadOnly]
         [SerializeField]
         int doneEventLayer;
+
+        [TabGroup("Animator")]
+        // [HideIf(nameof(NoDoneEventTransition))]
+        [PreviewInInspector]
+        private float ClipLength
+        {
+            get
+            {
+                var currentClip = CurrentClip;
+                if (currentClip == null)
+                    return -1;
+                return currentClip.length;
+            }
+        }
+
+        [TabGroup("Animator")]
+        // [HideIf(nameof(NoDoneEventTransition))]
+        [PreviewInInspector]
+        private bool IsClipLoop
+        {
+            get
+            {
+                var currentClip = CurrentClip;
+                if (currentClip == null)
+                    return false;
+                return currentClip.isLooping;
+            }
+        }
+
+        private AnimationClip CurrentClip
+        {
+            get
+            {
+                var overridingClip = OverridingClip;
+                if (overridingClip != null)
+                    return overridingClip;
+                var baseClip = BaseClip;
+                if (baseClip != null)
+                    return baseClip;
+                return null;
+            }
+        }
+
+
 #if UNITY_EDITOR
         int GetDoneEventLayerIndex()
         {
@@ -642,7 +686,7 @@ namespace RCGFSM.Animation
             // var clip = animator.runtimeAnimatorController.animationClips[""];
             FetchClip();
             animationWindow.Focus();
-            animationWindow.animationClip = previewClip;
+            animationWindow.animationClip = CurrentClip; // previewClip;
             animationWindow.previewing = true;
             // animationWindow.recording = true;
 
@@ -653,7 +697,7 @@ namespace RCGFSM.Animation
             // ActiveEditorTracker.sharedTracker.isLocked = true;
         }
 
-        public AnimationClip Clip => previewClip ??= FetchClip();
+        public AnimationClip Clip => CurrentClip;
         public Animator BindAnimator => animator;
 #endif
         // public void EventReceived<T>(RCGEventReceiver receiver, T arg)
