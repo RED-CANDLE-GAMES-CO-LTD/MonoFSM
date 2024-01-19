@@ -308,9 +308,6 @@ namespace RCGFSM.Animation
             AssetDatabase.SaveAssets();
             Undo.CollapseUndoOperations(groupIndex);
         }
-        #endif
-        
-        // [CustomContextMenu("Override Clip", nameof(OverrideClip))]
         [TabGroup("Animator")]
         [PropertyOrder(-1)]
         [ShowInInspector]
@@ -344,6 +341,29 @@ namespace RCGFSM.Animation
                 }
             }
         }
+
+        #endif
+        
+        // [CustomContextMenu("Override Clip", nameof(OverrideClip))]
+     
+
+        private IEnumerable<string> GetLayerNames()
+        {
+            return AnimatorHelpler.GetLayerNames(animator);
+            // var ac = GetAnimatorController(animator);
+            //
+            // if (ac == null)
+            //     return null;
+            //
+            //
+            // var names = new List<string>();
+            // foreach (var layer in ac.layers)
+            // {
+            //     names.Add(layer.name);
+            // }
+            // return names;
+        }
+        
         [CustomContextMenu("Override Clip", nameof(OverrideClip))]
         [TabGroup("Animator")]
         [PropertyOrder(-1)]
@@ -384,24 +404,10 @@ namespace RCGFSM.Animation
             }
         }
 
-        private IEnumerable<string> GetLayerNames()
-        {
-            return AnimatorHelpler.GetLayerNames(animator);
-            // var ac = GetAnimatorController(animator);
-            //
-            // if (ac == null)
-            //     return null;
-            //
-            //
-            // var names = new List<string>();
-            // foreach (var layer in ac.layers)
-            // {
-            //     names.Add(layer.name);
-            // }
-            // return names;
-        }
-
 #endif
+        
+
+   
 
         protected override void OnStateEnterImplement()
         {
@@ -477,6 +483,11 @@ namespace RCGFSM.Animation
         [SerializeField]
         int doneEventLayer;
 
+  
+   
+
+
+#if UNITY_EDITOR
         [TabGroup("Animator")]
         // [HideIf(nameof(NoDoneEventTransition))]
         [PreviewInInspector]
@@ -518,9 +529,6 @@ namespace RCGFSM.Animation
                 return null;
             }
         }
-
-
-#if UNITY_EDITOR
         int GetDoneEventLayerIndex()
         {
             var names = GetLayerNames();
