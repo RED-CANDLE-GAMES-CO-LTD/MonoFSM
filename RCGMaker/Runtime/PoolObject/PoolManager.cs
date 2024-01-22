@@ -323,17 +323,16 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             // 這會影響設定黨 樹上有結構
 
             //FIXME: 為什麼要做這件事？？
+
+            //先reset, 後面才
             prefab.OverrideTransformSetting(position, rotation, parent, prefab.transform.localScale);
             prefab.TransformReset();
             
             prefab.gameObject.SetActive(true);
             prefab.ResetAnim();
             prefab.PoolObjecResetAndStart();
-    
-            if (handler != null)
-            {
-                handler.Invoke(prefab);
-            }
+
+            handler?.Invoke(prefab); //TODO: 這個比較後面call的？
 
             // Debug.Log("Use Scene As Pool");
 
