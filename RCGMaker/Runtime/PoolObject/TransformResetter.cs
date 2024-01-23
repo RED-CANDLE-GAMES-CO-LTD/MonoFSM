@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 //第一次記住
@@ -9,6 +10,16 @@ public class TransformResetter : MonoBehaviour, IResetter
     private Transform initParent;
     private Vector3 initlocalScale;
     private bool isResetParametterInit = false;
+
+    [AutoChildren(false)] private Rigidbody2D rigidbody2D;
+
+    private void Awake()
+    {
+        if (rigidbody2D != null && rigidbody2D.mass > 1)
+        {
+            Debug.LogError("rigidbody2D.mass > 1, 怪怪mass? 檢查一下是scene還是prefab?", this);
+        }
+    }
 
     private bool ParameterInitCheck()
     {
