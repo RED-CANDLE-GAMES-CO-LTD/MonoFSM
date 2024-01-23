@@ -26,7 +26,7 @@ namespace RCGMaker.Core
 
             var path = prefabStage.assetPath;
 
-            Debug.Log("InstanceBinder path: " + path);
+            // Debug.Log("InstanceBinder path: " + path);
             
             if (path == AssetDatabase.GetAssetPath(instanceReference.prefab))
             {

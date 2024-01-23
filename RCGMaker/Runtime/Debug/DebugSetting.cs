@@ -45,7 +45,7 @@ namespace RCGSetting
         private static void Init()
         {
             _isDebugMode = BoolProperties[nameof(IsDebugMode)];
-            _isSpeedUpActionEnabled = BoolProperties[nameof(IsSpeedUpActionEnabled)];
+            // _isSpeedUpActionEnabled = BoolProperties[nameof(IsSpeedUpActionEnabled)];
             
         }
         
@@ -129,17 +129,17 @@ namespace RCGSetting
 
         private static bool _isIgnoreIgnoringCullingActivated;
 
-        private static bool _isSpeedUpActionEnabled;
+        // private static bool _isSpeedUpActionEnabled;
 
-        public static bool IsSpeedUpActionEnabled
-        {
-            get => _isSpeedUpActionEnabled;
-            set
-            {
-                _isSpeedUpActionEnabled = value;
-                SetBoolProperty(nameof(IsSpeedUpActionEnabled), value);
-            }
-        }
+        // public static bool IsSpeedUpActionEnabled
+        // {
+        //     get => _isSpeedUpActionEnabled;
+        //     set
+        //     {
+        //         _isSpeedUpActionEnabled = value;
+        //         SetBoolProperty(nameof(IsSpeedUpActionEnabled), value);
+        //     }
+        // }
 
         public static bool IsIgnoreCullingActivated
         {
