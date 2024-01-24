@@ -42,7 +42,7 @@ namespace RCGMaker.Core.Attributes
     [IncludeMyAttributes]
     [BoxGroup("設定")]
     [Conditional("UNITY_EDITOR")]
-    public class ConfigAttribute : Attribute
+    public class ConfigGroupAttribute : Attribute
     {
     }
 
