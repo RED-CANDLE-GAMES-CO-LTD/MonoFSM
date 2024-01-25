@@ -11,7 +11,13 @@ internal interface IValueChangeCallback
     void OnValueChanged(bool value);
 }
 
-public class VariableBool : VariableType<ScriptableDataBool, FlagFieldBool, bool>, ICondition
+public interface IVariableBoolProvider
+{
+    bool FlagValue { get; }
+    public ScriptableDataBool ScriptableData { get; }
+}
+
+public class VariableBool : VariableType<ScriptableDataBool, FlagFieldBool, bool>, ICondition, IVariableBoolProvider
 {
     // protected override void Awake()
     // {
