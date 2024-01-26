@@ -139,7 +139,7 @@ namespace RCGMaker.Core
             return guid;
         }
 
-        public static GameFlagBase CreateGameStateSO(this System.Type type, MonoBehaviour refObj,
+        public static GameFlagBase CreateGameStateSO(this Type type, MonoBehaviour refObj,
             string subFolderName = "")
         {
             //遊戲中不該建state
@@ -163,7 +163,7 @@ namespace RCGMaker.Core
             else
             {
                 var folderRelativePath = GameStateAttribute.GetRelativePath(refObj.gameObject, subFolderName, true);
-                var fileName = GameStateAttribute.GetFileName(refObj.gameObject) + autoGenGameState.MyGuid +
+                var fileName = GameStateAttribute.GetFileName(refObj.gameObject) + type.Name + autoGenGameState.MyGuid +
                                ".asset";
                 var gameStateSo =
                     CreateScriptableObject(type, folderRelativePath + "/" + fileName) as GameFlagBase;

@@ -48,8 +48,11 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
     [ShowInInspector] public string SaveID => SceneGUID + "_" + GetGuid();
     [ShowInInspector] public string MyGuid => GetGuid().ToString();
 
-    [ShowInInspector] private MonoBehaviour _ownerMono => GetComponent<IGameStateOwner>() as MonoBehaviour;
+    [InfoBox("No GameStateOwner", InfoMessageType.Error, nameof(IsOwnerNull))]
+    [ShowInInspector]
+    private IGameStateOwner[] Owners => GetComponents<IGameStateOwner>();
 
+    private bool IsOwnerNull => Owners == null || Owners.Length == 0;
     public void AutoGenCheck()
     {
         Debug.Log("AutoGenCheck" + name, this);
@@ -64,55 +67,58 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
             return;
         // Debug.Log("Auto Gen When Save: " + gameObject.name);
         //改成ShowInInspector Property?
-        if (_ownerMono == null)
+        if (Owners == null)
             return;
-        
-        
-        
-        //find property with attribute [GameState] in owner's class
-        var ownerType = _ownerMono.GetType();
-        var fields = ownerType.GetFields();
-        
-        //FIXME: 這個在Inspector會一直叫，有點吵
-        foreach (var field in fields)
+
+
+        foreach (var o in Owners)
         {
-            var gameStateAttribute = field.GetAttribute<GameStateAttribute>();
-
-            if (gameStateAttribute == null) continue;
-
-            //check value of field is not null
-            var value = field.GetValue(_ownerMono) as GameFlagBase;
-
-            if (value != null)
-            {
-                Debug.Log("auto value gogo " + field.Name + " " + value.name, gameObject);
-                //檢查ID有沒有對
-                if (SaveID == value.SaveID)
-                {
-                    Debug.Log("SaveID == value.SaveID: " + field.Name + " " + value.name, gameObject);
-                    continue;
-                }
-            }
-                
-
-      
-            // Debug.Log("Need Auto Gen: gameStateAttribute " + ",value:" + value + ",saveID:" + SaveID, gameObject);
-            
-            //幫他生成
-            //if null, create new instance
-            // var fieldType = field.FieldType;
-            //FIXME: 非正式scene的時候，不要生成？怎麼標記這件事，看有沒有在build setting?
-            var data = field.FieldType.CreateGameStateSO(_ownerMono);
-            if (data == null)
-                // Debug.LogError("Fail to create GameStateSO for " + field.Name, this);
+            var owner = o as MonoBehaviour;
+            if (owner == null)
                 continue;
-            
-            var gameStateData = data;
-            Debug.Log("Auto Gen When Serialize: " + field.Name + " " + gameStateData.name, gameObject);
-            field.SetValue(_ownerMono, gameStateData);
-            if (_ownerMono is IDataOwner flagOwner) flagOwner.FlagGeneratedPostProcess(gameStateData);
-            _ownerMono.SetDirty();
-            data.SafeSetDirty();
+            //find property with attribute [GameState] in owner's class
+            var fields = owner.GetType().GetFields();
+
+            foreach (var field in fields)
+            {
+                var gameStateAttribute = field.GetAttribute<GameStateAttribute>();
+
+                if (gameStateAttribute == null) continue;
+
+                //check value of field is not null
+                var value = field.GetValue(owner) as GameFlagBase;
+
+                if (value != null)
+                {
+                    // Debug.Log("auto value gogo " + field.Name + " " + value.name, gameObject);
+                    //檢查ID有沒有對
+                    if (SaveID == value.SaveID)
+                    {
+                        Debug.Log("SaveID == value.SaveID: " + field.Name + " " + value.name, gameObject);
+                        continue;
+                    }
+                }
+
+
+                // Debug.Log("Need Auto Gen: gameStateAttribute " + ",value:" + value + ",saveID:" + SaveID, gameObject);
+
+                //幫他生成
+                //if null, create new instance
+                // var fieldType = field.FieldType;
+                //FIXME: 非正式scene的時候，不要生成？怎麼標記這件事，看有沒有在build setting?
+
+                var data = field.FieldType.CreateGameStateSO(owner, gameStateAttribute.SubFolderName);
+                if (data == null)
+                    // Debug.LogError("Fail to create GameStateSO for " + field.Name, this);
+                    continue;
+                var gameStateData = data;
+                Debug.Log("Auto Gen When Serialize: " + field.Name + " " + gameStateData.name, gameObject);
+                field.SetValue(owner, gameStateData);
+                var flagOwner = owner as IDataOwner;
+                flagOwner?.FlagGeneratedPostProcess(gameStateData);
+                owner.SetDirty();
+                data.SafeSetDirty();
+            }
         }
     }
 

@@ -17,6 +17,21 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     IGameStateOwner
     where TScriptableData : AbstractScriptableData<TField, TType> where TField : FlagField<TType>, new()
 {
+    [TabGroup("再說")] public GameFlagBase mainData;
+
+    [TabGroup("再說")] [ShowIf(nameof(mainData))] [ValueDropdown(nameof(GetAllFlagField))]
+    public string fieldOfMainData;
+
+    public TField fieldOfMainDataValue => mainData.FindField<TType>(fieldOfMainData) as TField;
+
+    private IEnumerable<string> GetAllFlagField()
+    {
+        if (mainData == null) yield break;
+        var fields = mainData.GetAllFlagFieldNames<TField>();
+        foreach (var field in fields)
+            yield return field;
+    }
+    
     protected virtual void OnValidate()
     {
 #if UNITY_EDITOR
@@ -365,8 +380,15 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     }
 }
 
-public abstract class AbstractVariable : AbstractFlag
+public abstract class AbstractVariable : MonoBehaviour
 {
+#if UNITY_EDITOR
+    [Header("GameState 功能說明")] [TextArea(1, 4)]
+    public string description;
+#endif
+
+    [HideInInlineEditors] [Header("Flag Setting")]
+    public FlagTypeScriptable typeScriptable;
     protected virtual void Awake()
     {
     }

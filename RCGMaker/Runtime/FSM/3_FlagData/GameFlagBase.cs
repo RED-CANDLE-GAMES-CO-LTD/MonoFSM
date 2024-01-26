@@ -43,7 +43,13 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
 [Serializable]
 public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValidator
 {
- 
+    public IEnumerable<string> GetAllFlagFieldNames<T>()
+    {
+        //get field which inherit from FlagField
+        var fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+            .Where(f => f.FieldType.IsSubclassOf(typeof(T)));
+        return fields.Select(f => f.Name);
+    }
     // public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
     // protected bool inited = false;
     [Header("Asset GUID")] [DisableIf("@true")]
