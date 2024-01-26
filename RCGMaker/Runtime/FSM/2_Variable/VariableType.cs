@@ -17,6 +17,8 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     IGameStateOwner
     where TScriptableData : AbstractScriptableData<TField, TType> where TField : FlagField<TType>, new()
 {
+    
+    
     [TabGroup("再說")] public GameFlagBase mainData;
 
     [TabGroup("再說")] [ShowIf(nameof(mainData))] [ValueDropdown(nameof(GetAllFlagField))]
@@ -378,10 +380,16 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
 #endif
     }
+
+    public override GameFlagBase FinalData => mainData ? mainData : ScriptableData;
+    public override Type FinalDataType => typeof(TScriptableData);
 }
 
 public abstract class AbstractVariable : MonoBehaviour
 {
+    public abstract GameFlagBase FinalData { get; }
+    public abstract Type FinalDataType { get; }
+
 #if UNITY_EDITOR
     [Header("GameState 功能說明")] [TextArea(1, 4)]
     public string description;
