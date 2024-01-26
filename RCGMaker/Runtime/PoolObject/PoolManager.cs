@@ -115,7 +115,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             catch (Exception e)
             {
                 if (item is MonoBehaviour)
-                    Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                    Debug.LogError(e.Message + "\n" + e.StackTrace, item as MonoBehaviour);
                 else
                     Debug.LogError(e.StackTrace);
             }
