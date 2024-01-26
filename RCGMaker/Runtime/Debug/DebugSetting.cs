@@ -33,18 +33,17 @@ namespace RCGSetting
 
         public static bool IsPlayerDebugInvincible
         {
-            get => BoolProperties[nameof(IsPlayerDebugInvincible)];
+            get => DebugSettingDict[nameof(IsPlayerDebugInvincible)];
             set => SetBoolProperty(nameof(IsPlayerDebugInvincible), value);
         }
 
-        private static readonly Dictionary<string, bool> BoolProperties = new();
+        private static readonly Dictionary<string, bool> DebugSettingDict = new();
 
 #if UNITY_EDITOR
         [InitializeOnEnterPlayMode]
 #endif
         private static void Init()
         {
-            _isDebugMode = BoolProperties[nameof(IsDebugMode)];
             // _isSpeedUpActionEnabled = BoolProperties[nameof(IsSpeedUpActionEnabled)];
             
         }
@@ -59,7 +58,7 @@ namespace RCGSetting
 #else
                 var value = false;
 #endif
-                BoolProperties[property.Name] = value;
+                DebugSettingDict[property.Name] = value;
                 property.SetValue(null, value);
             }
         }
@@ -70,7 +69,7 @@ namespace RCGSetting
         public static bool IsRuntimeQAEnabled
         {
 #if RCG_DEV
-            get => BoolProperties[nameof(IsRuntimeQAEnabled)];
+            get => DebugSettingDict[nameof(IsRuntimeQAEnabled)];
             set => SetBoolProperty(nameof(IsRuntimeQAEnabled), value);
 #else
             get => false;
@@ -80,8 +79,8 @@ namespace RCGSetting
 
         public static bool IsProductionMode //乾淨存檔，不會有提前拿到能力
         {
-#if UNITY_EDITOR        
-            get => BoolProperties[nameof(IsProductionMode)];
+#if UNITY_EDITOR
+            get => DebugSettingDict[nameof(IsProductionMode)];
             set => SetBoolProperty(nameof(IsProductionMode), value);
 #else
 
@@ -93,7 +92,7 @@ namespace RCGSetting
         public static bool IsShowingTileRenderer
         {
 #if RCG_DEV
-            get => BoolProperties[nameof(IsShowingTileRenderer)];
+            get => DebugSettingDict[nameof(IsShowingTileRenderer)];
             set => SetBoolProperty(nameof(IsShowingTileRenderer), value);
 #else
              get => false;
@@ -104,7 +103,7 @@ namespace RCGSetting
         public static bool IsShowingSkin
         {
 #if RCG_DEV
-            get => BoolProperties[nameof(IsShowingSkin)];
+            get => DebugSettingDict[nameof(IsShowingSkin)];
             set => SetBoolProperty(nameof(IsShowingSkin), value);
 #else
              get => true;
@@ -115,7 +114,7 @@ namespace RCGSetting
         public static bool IsShowDebugNumber
         {
 #if RCG_DEV
-            get => BoolProperties[nameof(IsShowDebugNumber)];
+            get => DebugSettingDict[nameof(IsShowDebugNumber)];
             set => SetBoolProperty(nameof(IsShowDebugNumber), value);
 #else
              get => false;
@@ -123,9 +122,8 @@ namespace RCGSetting
 #endif
         }
         // public static DebugCheatNode debugNode;
-
+        
         // 所有的測試view / 快捷鍵都要綁這個
-        private static bool _isDebugMode;
 
         private static bool _isIgnoreIgnoringCullingActivated;
 
@@ -157,16 +155,14 @@ namespace RCGSetting
         }
 
         public static bool IsDrawCustomGizmo = true;
-        
         public static bool IsDebugMode
         {
             //為什麼之前要註解掉editor if?
 #if RCG_DEV
             // get => false;
-            get => _isDebugMode; // BoolProperties[nameof(IsDebugMode)]; //這很慢...?
+            get => DebugSettingDict[nameof(IsDebugMode)]; //這很慢...?
             set
             {
-                _isDebugMode = value;
                 SetBoolProperty(nameof(IsDebugMode), value);
                 //進入debug mode就先無敵ㄅ
                 // if (value) IsPlayerInvincible = true;
@@ -177,11 +173,22 @@ namespace RCGSetting
 #endif
         }
 
+        public static bool IsDisplayingAllSolvable
+        {
+#if RCG_DEV
+            get => IsDebugMode || DebugSettingDict[nameof(IsDisplayingAllSolvable)];
+            set => SetBoolProperty(nameof(IsDisplayingAllSolvable), value);
+#else
+             get => false;
+             set {}
+#endif
+        }
+
         public static bool IsSceneTestMode
         {
             //為什麼之前要註解掉editor if?
 #if UNITY_EDITOR
-            get => BoolProperties[nameof(IsSceneTestMode)];
+            get => DebugSettingDict[nameof(IsSceneTestMode)];
             set
             {
                 SetBoolProperty(nameof(IsSceneTestMode), value);
@@ -197,7 +204,7 @@ namespace RCGSetting
         public static bool PlayerOneHitKill
         {
 #if RCG_DEV
-            get => BoolProperties[nameof(PlayerOneHitKill)];
+            get => DebugSettingDict[nameof(PlayerOneHitKill)];
             set => SetBoolProperty(nameof(PlayerOneHitKill), value);
 #else
              get=>false;
@@ -208,7 +215,7 @@ namespace RCGSetting
         public static bool IsPlayerInfiniteMana
         {
 #if RCG_DEV
-            get => BoolProperties[nameof(IsPlayerInfiniteMana)];
+            get => DebugSettingDict[nameof(IsPlayerInfiniteMana)];
             set => SetBoolProperty(nameof(IsPlayerInfiniteMana), value);
 #else
              get=>false;
@@ -219,7 +226,7 @@ namespace RCGSetting
 
         public static bool SkipHackMiniGame
         {
-            get => BoolProperties[nameof(SkipHackMiniGame)];
+            get => DebugSettingDict[nameof(SkipHackMiniGame)];
             set => SetBoolProperty(nameof(SkipHackMiniGame), value);
         }
 
@@ -244,7 +251,7 @@ namespace RCGSetting
         // Save all properties to EditorPrefs when any one of them is set
         private static void SetPropertyValue(string propertyName, bool value)
         {
-            BoolProperties[propertyName] = value;
+            DebugSettingDict[propertyName] = value;
             // Debug.Log($"DebugSetting Set {propertyName} to {value}");
 #if UNITY_EDITOR
             EditorPrefs.SetBool(propertyName, value);
@@ -254,7 +261,7 @@ namespace RCGSetting
         // Use the dictionary to set the property and save to EditorPrefs
         private static void SetBoolProperty(string propertyName, bool value)
         {
-            if (!BoolProperties.ContainsKey(propertyName))
+            if (!DebugSettingDict.ContainsKey(propertyName))
             {
                 Debug.LogError($"Property {propertyName} does not exist.");
                 return;
