@@ -216,6 +216,11 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     [Component(typeof(AbstractStateTransition), AddComponentAt.Children, "[Transition]")]
     [InlineEditor()]
     public AbstractStateTransition[] transitions;
+
+    public void RefreshTransitions()
+    {
+        transitions = GetComponentsInChildren<AbstractStateTransition>();
+    }
     // private void AddTransition()
     // {
     //
@@ -224,10 +229,10 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     //FIXME: 沒有實作
     public AbstractStateTransition AddTransition(System.Type transitionType)
     {
-        // var t = this.AddChildrenComponent<AbstractStateTransition>(transitionType, "[Transition] NewTransition");
+        var t = this.AddChildrenComponent<AbstractStateTransition>("[Transition] NewTransition");
         // transitions.Add(t);
-        // return t;
-        return null;
+        return t;
+        // return null;
     }
     // [Button("Add Animator Play")]
     // void AddAnimatorPlay()
