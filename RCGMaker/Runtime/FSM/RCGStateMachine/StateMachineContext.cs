@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 using Sirenix.OdinInspector;
 
@@ -16,6 +17,7 @@ namespace RCGMaker.Core
         [DropDownRef]
         public TState startState;
 
+        [PreviewInInspector]
         public T currentStateType; //debug用
         public IEnumerable GetAllStates()
         {
