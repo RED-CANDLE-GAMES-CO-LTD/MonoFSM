@@ -211,16 +211,11 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 #if UNITY_EDITOR
     private bool IsGameStateSaveIDNotMatch() //需檢查情境：複製時，造成綁到同一個gameState ref, 檢查saveID
     {
-        if (IsAutoGen)
-        {
-            var autoComp = GetComponent<AutoGenGameState>();
-            if (autoComp != null && scriptableData != null)
-                if (autoComp.SaveID != scriptableData.SaveID)
-                    // Debug.LogError("SaveID不一致", this);
-                    return true;
-        }
-
-        return false;
+        if (!IsAutoGen) return false;
+        var autoComp = GetComponent<AutoGenGameState>();
+        if (autoComp == null || scriptableData == null) return false;
+        return autoComp.SaveID != scriptableData.GetSaveID;
+        // Debug.LogError("SaveID不一致", this);
     }
 #endif
 

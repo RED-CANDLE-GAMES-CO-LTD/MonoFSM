@@ -45,7 +45,9 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
 
     
     [ShowInInspector] private string SceneGUID => FindSceneGUID();
-    [ShowInInspector] public string SaveID => SceneGUID + "_" + GetGuid();
+
+    // [ShowInInspector] public string SaveID => SceneGUID + "_" + GetGuid();
+    [ShowInInspector] public string SaveID => GetGuid().ToString();
     [ShowInInspector] public string MyGuid => GetGuid().ToString();
 
     [InfoBox("No GameStateOwner", InfoMessageType.Error, nameof(IsOwnerNull))]
@@ -92,7 +94,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
                 {
                     // Debug.Log("auto value gogo " + field.Name + " " + value.name, gameObject);
                     //檢查ID有沒有對
-                    if (SaveID == value.SaveID)
+                    if (SaveID == value.GetSaveID)
                     {
                         Debug.Log("SaveID == value.SaveID: " + field.Name + " " + value.name, gameObject);
                         continue;

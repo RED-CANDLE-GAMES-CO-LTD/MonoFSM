@@ -163,7 +163,7 @@ namespace RCGMaker.Core
             else
             {
                 var folderRelativePath = GameStateAttribute.GetRelativePath(refObj.gameObject, subFolderName, true);
-                var fileName = GameStateAttribute.GetFileName(refObj.gameObject) + type.Name + autoGenGameState.MyGuid +
+                var fileName = GameStateAttribute.GetFileName(refObj.gameObject) + autoGenGameState.MyGuid +
                                ".asset";
                 var gameStateSo =
                     CreateScriptableObject(type, folderRelativePath + "/" + fileName) as GameFlagBase;
@@ -172,7 +172,8 @@ namespace RCGMaker.Core
                 if (gameStateSo != null)
                 {
                     gameStateSo.gameStateType = GameFlagBase.GameStateType.AutoUnique;
-                    gameStateSo.SaveID = autoGenGameState.SaveID;
+                    gameStateSo.SetSaveID(autoGenGameState.SaveID);
+                    ;
                     Debug.Log("Assign SaveID for autoGen", refObj);
 
                     return gameStateSo;

@@ -52,10 +52,17 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     }
     // public bool isAutoGenType = false; //非自動生成的不要被覆蓋掉
     // protected bool inited = false;
-    [Header("Asset GUID")] [DisableIf("@true")]
+    [Header("Asset GUID")] [DisableIf("@true")] [SerializeField]
     // [ReadOnly]
-    public string SaveID = "";
+    private string SaveID = "";
 
+    public void SetSaveID(string id)
+    {
+        SaveID = id;
+    }
+
+    [PreviewInInspector] public string FinalSaveID => SaveID + GetType().Name;
+    public string GetSaveID => SaveID;
 
     public enum GameStateType
     {
@@ -85,12 +92,10 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
         else //manual, duplicate的時候會需要重新assign
         {
             var guid = this.GetAssetGUID();
-            if (SaveID != null && SaveID != guid)
-            {
-                SaveID = guid;
-                this.SafeSetDirty();
-            }
-                
+            if (GetSaveID == guid) return;
+            SetSaveID(guid);
+            this.SafeSetDirty();
+
         }
 #endif
     }
@@ -114,10 +119,10 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     {
         var myField = GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         // Debug.Log("Flag Convertor WriteJSON");
-        for (var i = 0; i < myField.Length; i++)
+        foreach (var fieldInfo in myField)
         {
-            if (myField[i].FieldType == typeof(FlagFieldBool))
-                InitField<FlagFieldBool, bool>(myField[i], mode);
+            if (fieldInfo.FieldType == typeof(FlagFieldBool))
+                InitField<FlagFieldBool, bool>(fieldInfo, mode);
             // var field = (myField[i].GetValue(this) as FlagFieldBool);
             // if (field == null)
             // {
@@ -126,21 +131,20 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
             // }
             //
             // field.Init(mode, this);
-            else if (myField[i].FieldType == typeof(FlagFieldInt))
-                InitField<FlagFieldInt, int>(myField[i], mode);
+            else if (fieldInfo.FieldType == typeof(FlagFieldInt))
+                InitField<FlagFieldInt, int>(fieldInfo, mode);
             // var field = (myField[i].GetValue(this) as FlagFieldInt);
             //
             //
             // field.Init(mode, this);
-            else if (myField[i].FieldType == typeof(FlagFieldString))
-                InitField<FlagFieldString, string>(myField[i], mode);
+            else if (fieldInfo.FieldType == typeof(FlagFieldString))
+                InitField<FlagFieldString, string>(fieldInfo, mode);
             // var field = (myField[i].GetValue(this) as FlagFieldString);
             // field.Init(mode, this);
-            else if (myField[i].FieldType == typeof(FlagFieldFloat)) InitField<FlagFieldFloat, float>(myField[i], mode);
+            else if (fieldInfo.FieldType == typeof(FlagFieldFloat)) InitField<FlagFieldFloat, float>(fieldInfo, mode);
             // var field = (myField[i].GetValue(this) as FlagFieldFloat);
             // field.Init(mode, this);
         }
-
     }
 
     //FIXME: 濫扣
@@ -289,25 +293,22 @@ public class FlagJsonConverter : JsonConverter
 
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
     {
-        Dictionary<string, GameFlagBase> flagDict = value as Dictionary<string, GameFlagBase>;
-        JObject result = new JObject();
+        var flagDict = value as Dictionary<string, GameFlagBase>;
+        var result = new JObject();
 
         foreach (var fPair in flagDict)
         {
-
-            GameFlagBase flag = fPair.Value as GameFlagBase;
-            JObject o = new JObject();
+            var flag = fPair.Value as GameFlagBase;
+            var o = new JObject();
 
             // o.Add("flagpath", );
-            FieldInfo[] myField = flag.GetType().GetFields();
+            var myField = flag.GetType().GetFields();
             // Debug.Log("Flag Convertor WriteJSON");
-            for (var i = 0; i < myField.Length; i++)
+            foreach (var f in myField)
             {
-                if (myField[i].FieldType == typeof(FlagFieldBool))
+                if (f.FieldType == typeof(FlagFieldBool))
                 {
-                    var field = (myField[i].GetValue(flag) as FlagFieldBool);
-
-                    o.Add(myField[i].Name, JObject.FromObject(field));
+                    if (f.GetValue(flag) is FlagFieldBool field) o.Add(f.Name, JObject.FromObject(field));
                     // o.Add(myField[i].Name, );
 
                     // Debug.Log("Field" + myField[i].Name);
@@ -321,7 +322,7 @@ public class FlagJsonConverter : JsonConverter
                 // }
             }
 
-            result.Add(flag.SaveID, o);
+            result.Add(flag.FinalSaveID, o);
 
         }
         result.WriteTo(writer);
