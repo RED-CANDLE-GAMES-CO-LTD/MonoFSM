@@ -45,7 +45,8 @@ namespace RCGSetting
         private static void Init()
         {
             // _isSpeedUpActionEnabled = BoolProperties[nameof(IsSpeedUpActionEnabled)];
-            
+            if (IsDebugMode)
+                GuidManager.InitRuntime();
         }
         
         static DebugSetting()

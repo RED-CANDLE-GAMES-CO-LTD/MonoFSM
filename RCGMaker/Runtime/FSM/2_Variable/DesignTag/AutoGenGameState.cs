@@ -47,7 +47,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
     [ShowInInspector] private string SceneGUID => FindSceneGUID();
 
     // [ShowInInspector] public string SaveID => SceneGUID + "_" + GetGuid();
-    [ShowInInspector] public string SaveID => SceneGUID + GetGuid().ToString();
+    [ShowInInspector] public string SaveID => GetGuid() + "_" + SceneGUID;
     [ShowInInspector] public string MyGuid => GetGuid().ToString();
 
     [InfoBox("No GameStateOwner", InfoMessageType.Error, nameof(IsOwnerNull))]
