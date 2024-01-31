@@ -14,7 +14,7 @@ public static class MonoExtensionLogger
 {
 #if UNITY_EDITOR
     [InitializeOnEnterPlayMode]
-    private static void OnEnterPlaymodeInEditor(EnterPlayModeOptions options)
+    private static void OnEnterPlayModeInEditor(EnterPlayModeOptions options)
     {
         // Debug.Log("Entering PlayMode");
         DebugProviderDict.Clear();
@@ -24,7 +24,7 @@ public static class MonoExtensionLogger
     //static DebugProvider in parent dictionary
     private static readonly Dictionary<Component, DebugProvider[]> DebugProviderDict = new();
 
-    public static (bool, DebugProvider) IsLoggingCheck(Component comp)
+    private static (bool, DebugProvider) IsLoggingCheck(Component comp)
     {
 // #if RCG_DEV
 
@@ -74,6 +74,11 @@ public static class MonoExtensionLogger
             var result = ZString.Concat("[", provider, go.GetInstanceID(), "]\n", ZString.Join(",", s1));
             FinalLog(go, result, provider);
         }
+    }
+
+    public static string ColorTag(this string str, Color color)
+    {
+        return $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{str}</color>";
     }
 
 
