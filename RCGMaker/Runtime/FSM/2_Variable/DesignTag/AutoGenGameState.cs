@@ -57,6 +57,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
     private bool IsOwnerNull => Owners == null || Owners.Length == 0;
     public void AutoGenCheck()
     {
+        //FIXME: 一般的scene應該要ignore?沒有在build setting裡
         Debug.Log("AutoGenCheck" + name, this);
         if (Application.isPlaying)
             return;
@@ -65,7 +66,6 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
         if (EditorUtility.IsPersistent(this)) return;
 
         if (!IsGuidAssigned()) //guid 0000的時候，不要gen，先等下面gen, 只是這個OnBeforeSerialize不會遞迴嗎... call stack有點醜的感覺
-
             return;
         // Debug.Log("Auto Gen When Save: " + gameObject.name);
         //改成ShowInInspector Property?
