@@ -309,7 +309,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         if (prefab.UseSceneAsPool)
         {
             prefab.TransformReset();
-            prefab.PoolObjecResetAndStart();
+            prefab.PoolObjectResetAndStart();
 
             var transform1 = prefab.transform;
             transform1.parent = parent;
@@ -330,7 +330,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             
             prefab.gameObject.SetActive(true);
             prefab.ResetAnim();
-            prefab.PoolObjecResetAndStart();
+            prefab.PoolObjectResetAndStart();
 
             handler?.Invoke(prefab); //TODO: 這個比較後面call的？
 
@@ -622,7 +622,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 obj.gameObject.SetActive(true);
 
 
-                obj.PoolObjecResetAndStart();
+                obj.PoolObjectResetAndStart();
 
 
                 return obj;

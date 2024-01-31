@@ -100,20 +100,18 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     private bool inited = false;
     private void Awake()
     {
-        CheckList();
-        InitAnimResetters();
-        ChickResetParametterInit();
+        
     }
     
     
 
     private List<AnimatorResetter> animResetters;
 
-    private bool animResetterInited = false;
+    private bool _animResetterInited = false;
 
-    private void InitAnimResetters()
+    private void InitAnimResetters() //一次就夠了, FIXME: defensive爛扣一個進入點的話就沒有這個問題??
     {
-        if (animResetterInited)
+        if (_animResetterInited)
             return;
 
         if (this._anims == null)
@@ -122,7 +120,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
             return;
         }
 
-        animResetterInited = true;
+        _animResetterInited = true;
 
         animResetters = new List<AnimatorResetter>();
 
@@ -141,7 +139,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     // }
     public void ResetAnim()
     {
-        if (animResetterInited == false)
+        if (_animResetterInited == false)
             return;
 
         if (this.isActiveAndEnabled == false)
@@ -183,7 +181,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     //Position , Parent, Rotation
     public void TransformReset()
     {
-        if (ChickResetParametterInit())
+        if (CheckResetParameterInit()) //FIXME: 這什麼意思？ 還沒初始化過，就塞回去會錯
         {
             var transform1 = transform;
             transform1.SetParent(initParent);
@@ -191,7 +189,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
             transform1.localPosition = initPosition;
             //在levelreset的時候有call這個應該就對了，讓物理跟上transform
             // Physics2D.SyncTransforms();
-            this.Log("[PoolObjectResetAndStart] transform Reset", gameObject);
+            Debug.Log("[PoolObjectResetAndStart] transform Reset", gameObject);
             transform1.localRotation = initRotation;
 
             transform1.localScale = initlocalScale;
@@ -201,17 +199,18 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     public void OverrideTransformSetting(Vector3 p = default(Vector3), Quaternion q = default(Quaternion), Transform t = null, Vector3 scale = default(Vector3))
     {
         var transform1 = transform;
+        
         transform1.SetParent(t);
         transform1.position = p;
         transform1.rotation = q;
-
+        
         initPosition = transform1.localPosition;
         initRotation = transform1.localRotation;
+        //FIXME: 為什麼這個把initParent改掉了?
         initParent = t;
+        Debug.Log("[PoolObjectResetAndStart] transform initParent", t);
         initlocalScale = scale;
-        isResetParametterInit = true;
-
-
+        isResetParameterInit = true;
     }
 
     // public Vector3 InitPosition => initPosition; 
@@ -220,29 +219,36 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     public void OverrideInitPosition(Vector3 pos)
     {
         initPosition = pos;
-        initRotation = transform.localRotation;
-        initParent = transform.parent;
-        initlocalScale = transform.localScale;
-        isResetParametterInit = true;
+        var transform1 = transform;
+        initRotation = transform1.localRotation;
+        Debug.Log("[PoolObjectResetAndStart] transform initParent", transform1.parent);
+        initParent = transform1.parent;
+        initlocalScale = transform1.localScale;
+        isResetParameterInit = true;
     }
 
     private Quaternion initRotation;
+
+    [ShowInPlayMode]
     private Transform initParent;
     private Vector3 initlocalScale;
 
     public Vector3 ResetPos => initPosition;
 
-    private bool isResetParametterInit = false;
-    private bool ChickResetParametterInit()
+    private bool isResetParameterInit = false;
+
+    private bool CheckResetParameterInit()
     {
-        if (isResetParametterInit)
+        if (isResetParameterInit)
             return true;
 
-        initPosition = transform.localPosition;
-        initRotation = transform.localRotation;
-        initParent = transform.parent;
+        var transform1 = transform;
+        initPosition = transform1.localPosition;
+        initRotation = transform1.localRotation;
+        initParent = transform1.parent;
+        Debug.Log("[PoolObjectResetAndStart] transform initParent", transform1.parent);
         initlocalScale = transform.localScale;
-        isResetParametterInit = true;
+        isResetParameterInit = true;
 
         return false;
     }
@@ -275,7 +281,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
 
         RegisterDestroy();
     }
-    public void PoolObjecResetAndStart() //只有收進去pool的才需要這個
+
+    public void PoolObjectResetAndStart() //只有收進去pool的才需要這個
     {
         // this.Break();
         CheckList();
@@ -284,7 +291,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
         //因為關monsterCore，才發生這件悲劇
         this.ResetAnim();
 
-        this.Log("[PoolObjecResetAndStart]", this.gameObject);
+        this.Log("[PoolObjectResetAndStart]", gameObject);
 
         for (var i = 0; i < IResetterList.Count; i++)
         {
@@ -333,9 +340,9 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
         // RaisePoolObjectReturnEvent();
         CheckList();
         // needResetAnim = true;
-        this.ResetAnim();
+        ResetAnim();
         destroyTween.Stop();
-        if (this.TryGetComponent<PositionConstraint>(out var constraint))
+        if (TryGetComponent<PositionConstraint>(out var constraint))
         {
             constraint.enabled = false;
         }
@@ -458,6 +465,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
 
     //一開始就在場景上的物件
     public bool UseSceneAsPool => this.gameObject.scene.name != null && OriginalPrefab == null;
+    private Transform oriParent; //在場景上的物件，要回到原本的parent
 
     public bool UseAutoDestroy = false;
     public float AutoDestroyTime = 0;
@@ -486,6 +494,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
                 Debug.LogError("Destroy constraint!", this);
             }
         }
+
+        CheckList();
+        InitAnimResetters();
+        CheckResetParameterInit();
     }
 
     private void OnValidate()
@@ -506,6 +518,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     [Button]
     public void LevelReset()
     {
+        Debug.Log("LevelReset", this);
         TransformReset();
         ResetAnim();
         destroyTween.Stop();
