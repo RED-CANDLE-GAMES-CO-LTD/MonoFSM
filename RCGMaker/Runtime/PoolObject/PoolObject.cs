@@ -98,13 +98,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     List<IResetter> IResetterList = new List<IResetter>();
 
     private bool inited = false;
-    private void Awake()
-    {
-        CheckList();
-        InitAnimResetters();
-        ChickResetParametterInit();
-    }
-    
+ 
     
 
     private List<AnimatorResetter> animResetters;
@@ -476,6 +470,9 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     //  public bool Log= false;
     public void EnterLevelAwake()
     {
+        CheckList();
+        InitAnimResetters();
+        ChickResetParametterInit();
         //可能可以拔掉
         //收斂情境：hitData不需要跟著
         if (InitPosType == ShootFrom.HitData)
