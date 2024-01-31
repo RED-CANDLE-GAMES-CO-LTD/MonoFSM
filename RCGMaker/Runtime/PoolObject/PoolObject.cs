@@ -98,12 +98,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     List<IResetter> IResetterList = new List<IResetter>();
 
     private bool inited = false;
-    private void Awake()
-    {
-        
-    }
-    
-    
 
     private List<AnimatorResetter> animResetters;
 
