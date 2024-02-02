@@ -240,7 +240,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
         initPosition = transform1.localPosition;
         initRotation = transform1.localRotation;
         initParent = transform1.parent;
-        Debug.Log("[PoolObjectResetAndStart] transform initParent", transform1.parent);
+        // Debug.Log("[PoolObjectResetAndStart] transform initParent", transform1.parent);
         initlocalScale = transform.localScale;
         isResetParameterInit = true;
 
@@ -485,7 +485,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
             if (TryGetComponent<PositionConstraint>(out var constraint))
             {
                 Destroy(constraint);
-                Debug.LogError("Destroy constraint!", this);
+                // Debug.LogError("Destroy constraint!", this);
             }
         }
 
