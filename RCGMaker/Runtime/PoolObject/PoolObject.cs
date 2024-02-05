@@ -433,6 +433,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
             }
         }
 
+  
+
     }
     public bool isOnScene => onScene;
 
@@ -490,7 +492,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
         }
 
         CheckList();
-        InitAnimResetters();
+        //這個要開著才能初始化
+        //InitAnimResetters();
         CheckResetParameterInit();
     }
 
@@ -512,8 +515,9 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     [Button]
     public void LevelReset()
     {
-        Debug.Log("LevelReset", this);
+      //  Debug.Log("LevelReset", this);
         TransformReset();
+        InitAnimResetters();
         ResetAnim();
         destroyTween.Stop();
     }
