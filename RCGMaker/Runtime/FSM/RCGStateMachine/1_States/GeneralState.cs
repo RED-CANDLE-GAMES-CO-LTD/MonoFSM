@@ -27,6 +27,7 @@ public interface IStateExit
    void OnStateExit();
 }
 
+[Searchable]
 public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>
 {
     // [HideInInspector] [Required] public new GeneralState stateType => this;
