@@ -50,7 +50,7 @@ namespace RCGMaker.Runtime
 
         private void LateUpdate() //只想知道切走的那一瞬間.. 又需要reset
         {
-            if (_animator == null)
+            if (_animator == null || _animator.runtimeAnimatorController == null)
             {
                 enabled = false;
                 return;
