@@ -2,8 +2,16 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+public abstract class AbstractStatData : ScriptableObject
+{
+    public abstract float Value { get; }
+#if UNITY_EDITOR
+    [TextArea] public string note;
+#endif
+}
+
 [CreateAssetMenu(fileName = "StatData", menuName = "ScriptableObjects/StatData", order = 1)]
-public class StatData : ScriptableObject, IStringData
+public class StatData : AbstractStatData, IStringData
 {
 //reset game的時候，要清除
 
@@ -21,9 +29,9 @@ public class StatData : ScriptableObject, IStringData
     [ReadOnly]
     [ShowInInspector]
     [PropertyOrder(-1)]
-    public virtual float Value => stat.Value;
+    public override float Value => stat.Value;
 
-    public List<StatData> baseRatios; //為什麼要list
+    public List<AbstractStatData> baseRatios; //為什麼要list
 
     private float CalculateFinalValue()
     {
@@ -33,9 +41,6 @@ public class StatData : ScriptableObject, IStringData
     }
 
     public float ValueWithBaseRatio => CalculateFinalValue();
-
-    [TextArea]
-    public string note;
 
     public string GetString()
     {
