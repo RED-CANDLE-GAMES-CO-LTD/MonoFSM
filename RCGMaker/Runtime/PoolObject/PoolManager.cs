@@ -204,9 +204,29 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     private void ReCalculatePoolObjectEntries()
     {
         records.RemoveAll(e => e._requester == null);
+
+        //沒有人需要用了。
+        for (int i = records.Count - 1; i >= 0; i--)
+        {
+            if (records[i]._requester== null)
+            {
+                records[i]._prefab = null;
+                records[i]._count = 0;
+                records[i]._requester = null;
+                records.RemoveAt(i);
+            }
+        }
+
+        foreach (var e in PoolObjectEntries)
+        {
+            e.prefab = null;
+            e.DefaultMaximumCount = 0;
+        }
+        
         PoolObjectEntries.Clear();
 
-        for (var i = 0; i < records.Count; i++) AddEntry(PoolObjectEntries, records[i]._prefab, records[i]._count);
+        for (var i = 0; i < records.Count; i++) 
+            AddEntry(PoolObjectEntries, records[i]._prefab, records[i]._count);
     }
 
     public void PoolObjectDestroyed(PoolObject poolobj)
