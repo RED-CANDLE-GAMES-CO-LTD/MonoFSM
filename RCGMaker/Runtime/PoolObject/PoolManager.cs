@@ -540,6 +540,13 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             AllObjs.Clear();
             OnUseObjs.Clear();
             DisabledObjs.Clear();
+            
+            Debug.Log("DestroyPool:"+_prefab); 
+
+            _bindingEntry = null;
+            ObjectCount = 0;
+            _prefab = null;
+            _poolManager = null;
         }
 
         /*public void SetIsHandledPoolRequestPoolObject(PoolObject p, bool active)
