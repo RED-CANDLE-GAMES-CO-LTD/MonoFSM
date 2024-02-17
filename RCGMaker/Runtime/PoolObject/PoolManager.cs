@@ -196,6 +196,13 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             _count = count;
         }
 
+        public void Clear()
+        {
+            _requester = null;
+            _prefab = null;
+            _count = 0;
+        }
+
         public MonoBehaviour _requester;
         public PoolObject _prefab;
         public int _count = 0;
@@ -203,16 +210,34 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     private void ReCalculatePoolObjectEntries()
     {
-        records.RemoveAll(e => e._requester == null);
+      //  records.RemoveAll(e => e._requester == null);
+
+        //沒有人需要用了。
+        for (int i = records.Count - 1; i >= 0; i--)
+        {
+            if (records[i]._requester== null)
+            {
+                records[i].Clear();
+                records.RemoveAt(i);
+            }
+        }
+        
+        foreach (var e in PoolObjectEntries)
+        {
+            e.Clear();
+        }
         PoolObjectEntries.Clear();
 
-        for (var i = 0; i < records.Count; i++) AddEntry(PoolObjectEntries, records[i]._prefab, records[i]._count);
+        for (var i = 0; i < records.Count; i++) 
+            AddEntry(PoolObjectEntries, records[i]._prefab, records[i]._count);
     }
 
     public void PoolObjectDestroyed(PoolObject poolobj)
     {
         if (PoolDictionary.ContainsKey(poolobj.OriginalPrefab))
             PoolDictionary[poolobj.OriginalPrefab].PoolObjectOnDestroySignal(poolobj);
+
+       
     }
 
     private void AddEntry(List<PoolObjectEntry> list, PoolObject poolObject, int count)
@@ -240,6 +265,12 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     {
         public PoolObject prefab;
         public int DefaultMaximumCount = 1;
+
+        public void Clear()
+        {
+            prefab = null;
+            DefaultMaximumCount =0;
+        }
     }
 
     private List<PoolObjectEntry> PoolObjectEntries;
@@ -379,7 +410,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         ReCalculatePoolObjectEntries();
 
-        for (var i = 0; i < allPools.Count; i++)
+        for (var i =  allPools.Count-1; i >=0; i--)
         {
             var currentPool = allPools[i];
             //FIXME: 同一個景重load!????
@@ -390,14 +421,13 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             {
                 allPools[i].DestroyPool();
                 allPools[i] = null;
+                allPools.RemoveAt(i);
             }
             else
             {
                 allPools[i]._bindingEntry = entry;
             }
         }
-
-        allPools.RemoveAllNull();
 
         //增加新的pool
         for (var i = 0; i < PoolObjectEntries.Count; i++)
@@ -411,6 +441,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             }
         }
 
+        Debug.Log("[PoolDictionary]   PoolDictionary.Clear()");
         PoolDictionary.Clear();
 
         //重建Dictionary
@@ -540,6 +571,13 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             AllObjs.Clear();
             OnUseObjs.Clear();
             DisabledObjs.Clear();
+            
+            Debug.Log("DestroyPool:"+_prefab); 
+
+            _bindingEntry = null;
+            ObjectCount = 0;
+            _prefab = null;
+            _poolManager = null;
         }
 
         /*public void SetIsHandledPoolRequestPoolObject(PoolObject p, bool active)
