@@ -224,8 +224,6 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
         _currentResult = GetDefaultValue();
         _changeChangeResultTiming = updateTiming;
         OnValueChange(_currentResult);
-
-        
     }
 
     public RuntimeConditionVote(GetConditionTypeDelegate getConditionTypeDelegate,
