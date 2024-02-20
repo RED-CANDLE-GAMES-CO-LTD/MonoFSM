@@ -33,12 +33,12 @@ public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
     }
     
     const float minValue = 0;
-    [InlineEditor()]
-    [SerializeField] private StatData AddValuePerMinute;
-    [InlineEditor()]
-    [SerializeField] private StatData ReduceValuePerMinute;
+    // [InlineEditor()]
+    // [SerializeField] private StatData AddValuePerMinute;
+    // [InlineEditor()]
+    // [SerializeField] private StatData ReduceValuePerMinute;
 
-    [Header("開始扣的話要乘上消耗倍率")] public const float ReducePunishReduceRatio = 2;
+    // [Header("開始扣的話要乘上消耗倍率")] public const float ReducePunishReduceRatio = 2;
 
     public int ValueInt => (int)CurrentValue;
     public float Value => CurrentValue;
@@ -63,45 +63,44 @@ public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
     }
 
 
-
-    [ReadOnly]
-    [ShowInInspector]
-    public float CurrentRate
-    {
-        get
-        {
-            if (AddValuePerMinute == null || ReduceValuePerMinute == null)
-                return 0;
-            var addValue =  (AddValuePerMinute.Value - ReduceValuePerMinute.Value) /60;
-            if (addValue < 0)
-            {
-                //消耗時，懲罰倍率
-                addValue *= ReducePunishReduceRatio; //TODO: 特規，要
-            }
-
-            return addValue;
-        }
-    }
-    [ReadOnly]
-    [ShowInInspector]
-    public float EstimateTimeCountDown
-    {
-        get
-        {
-            return CurrentValue / CurrentRate;
-        }
-    }
-    public void UpdateValue() //要讓誰update，
-    {
-        var tempValue = CurrentValue;
-        tempValue += Time.deltaTime * CurrentRate;
-        if (tempValue > MaxStat.Value)
-            tempValue = MaxStat.Value;
-        if (tempValue < minValue)
-            tempValue = minValue;
-        CurrentValue = tempValue;
-        //TODO: CurrentValue會太早變成0...要float才對最後再轉型，GameFlagInt不好用
-    }
+    // [ReadOnly]
+    // [ShowInInspector]
+    // public float CurrentRate
+    // {
+    //     get
+    //     {
+    //         if (AddValuePerMinute == null || ReduceValuePerMinute == null)
+    //             return 0;
+    //         var addValue =  (AddValuePerMinute.Value - ReduceValuePerMinute.Value) /60;
+    //         if (addValue < 0)
+    //         {
+    //             //消耗時，懲罰倍率
+    //             addValue *= ReducePunishReduceRatio; //TODO: 特規，要
+    //         }
+    //
+    //         return addValue;
+    //     }
+    // }
+    // [ReadOnly]
+    // [ShowInInspector]
+    // public float EstimateTimeCountDown
+    // {
+    //     get
+    //     {
+    //         return CurrentValue / CurrentRate;
+    //     }
+    // }
+    // public void UpdateValue() //要讓誰update，
+    // {
+    //     var tempValue = CurrentValue;
+    //     tempValue += Time.deltaTime * CurrentRate;
+    //     if (tempValue > MaxStat.Value)
+    //         tempValue = MaxStat.Value;
+    //     if (tempValue < minValue)
+    //         tempValue = minValue;
+    //     CurrentValue = tempValue;
+    //     //TODO: CurrentValue會太早變成0...要float才對最後再轉型，GameFlagInt不好用
+    // }
 }
 
 //ScriptableDataFloat

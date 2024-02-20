@@ -100,6 +100,7 @@ namespace RCGMaker.AddressableAssets
         public void Release()
         {
             assetReference.ReleaseAsset();
+            Debug.Log("ReleaseAsset:" + assetReference.SubObjectName);
         }
     }
 }
