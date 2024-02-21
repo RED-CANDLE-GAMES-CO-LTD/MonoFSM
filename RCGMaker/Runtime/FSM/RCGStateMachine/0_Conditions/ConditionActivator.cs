@@ -7,7 +7,7 @@ namespace RCGMaker.Core
 {
     public interface IUIBehavior
     {
-        public void EnableCheck();
+        public void EnableCheck(); //UI Reset??
     }
 
     //新規
