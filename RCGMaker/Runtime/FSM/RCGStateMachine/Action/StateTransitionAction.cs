@@ -1,0 +1,48 @@
+using RCGMaker.Core.Attributes;
+using Sirenix.OdinInspector;
+using UnityEngine;
+
+namespace RCGFSM.Transition
+{
+    //StateEnter, Update的時候，檢查能不能去某個state
+    [RequireComponent(typeof(AbstractStateTransition))]
+
+    public class StateTransitionAction : AbstractStateAction
+    {
+        [PreviewInInspector]
+        [Auto]
+        [SerializeField]
+        AbstractStateTransition validTransition;
+
+        protected override void OnStateEnterImplement()
+        {
+            // Debug.Log("Action State 'Enter' Implement", gameObject);
+            if (validTransition == null)
+                return;
+
+            if (validTransition.TransitionCheck())
+            {
+                // Debug.Break();
+                //過去了
+                return;
+            }
+        }
+
+        protected override void OnStateUpdateImplement()
+        {
+            // if (validTransition == null)
+            //     validTransition = this.GetComponent<AbstractStateTransition>();
+
+            // Debug.Log("Action State 'Update' Implement", gameObject);
+            if (validTransition == null)
+                return;
+
+            if (validTransition.TransitionCheck())
+            {
+                // Debug.Break();
+                //過去了
+                return;
+            }
+        }
+    }
+}

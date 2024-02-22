@@ -186,6 +186,8 @@ public class AutoAttributeManager : MonoBehaviour
     public void SweepScene()
     {
         // fieldDict.Clear();
+        //get root gameobject of the scene
+        var root = SceneManager.GetActiveScene().GetRootGameObjects();
 #if DEB
         Stopwatch sw = new Stopwatch();
 
@@ -195,7 +197,7 @@ public class AutoAttributeManager : MonoBehaviour
         // if (monoBehavioursInSceneWithAuto?.Any() != true)
         // {
         //     //Fallback if, for some reason, the monobehaviours were not previously cached
-        monoBehaviours = GetAllMonobehavioursWithAuto();
+        monoBehaviours = GetAllMonoBehavioursWithAuto(root);
         // }
         // else
         // {
@@ -272,12 +274,17 @@ public class AutoAttributeManager : MonoBehaviour
 
         return autoCaches;
     }
-    private IEnumerable<MonoBehaviour> GetAllMonobehavioursWithAuto()
+
+    private static IEnumerable<MonoBehaviour> GetAllMonoBehavioursWithAuto(GameObject[] roots)
     {
         Stopwatch sw = new Stopwatch();
         // sw.Start();
-        IEnumerable<MonoBehaviour> monoBehaviours = GameObject.FindObjectsOfType<MonoBehaviour>(true)
-            .Where(mb => mb != null && mb.gameObject.scene == gameObject.scene);
+
+        //get all monobehaviours from root
+        var monoBehaviours = roots.SelectMany(root => root.GetComponentsInChildren<MonoBehaviour>(true));
+
+        // var monoBehaviours = FindObjectsOfType<MonoBehaviour>(true)
+        //     .Where(mb => mb != null && mb.gameObject != null && mb.gameObject.scene == gameObject.scene);
 
         // sw.Stop();
         // UnityEngine.Debug.Log("[Auto]: Find All Obj" + sw.ElapsedMilliseconds + ",mb Count:" + monoBehaviours.Count());

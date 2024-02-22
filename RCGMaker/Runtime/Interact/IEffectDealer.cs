@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using RCGMaker.Core;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Pool;
 
 
@@ -11,12 +13,19 @@ using UnityEngine.Pool;
 // dealerA hit receiverB cause value
 // damage = atk * damageRatio, 
 //
+// [Serializable]
+// public class EffectHitEvent : UnityEvent<IEffectHitData>
+// {
+// }
+
 public interface IEffectHitData
 {
     IEffectDealer Dealer { get; }
     IEffectReceiver Receiver { get; }
     void Override(IEffectDealer dealer, IEffectReceiver receiver);
+   
 }
+
 
 public interface IEffectType
 {
