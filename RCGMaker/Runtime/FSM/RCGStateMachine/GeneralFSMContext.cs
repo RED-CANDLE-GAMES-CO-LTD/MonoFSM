@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
@@ -23,6 +24,24 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
     // {
 
     // }
+
+    //draw when not selected
+
+
+    private void OnDrawGizmos()
+    {
+        if (!Application.isPlaying)
+            return;
+        //draw label of fsm.State.name
+        if (fsm != null && fsm.State != null)
+        {
+            var state = fsm.State;
+            var label = state.name;
+            var pos = transform.position;
+            var offset = new Vector3(0, 1, 0);
+            Handles.Label(pos + offset, label);
+        }
+    }
 
     public GeneralState AddState()
     {

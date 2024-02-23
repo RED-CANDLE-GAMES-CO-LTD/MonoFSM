@@ -15,6 +15,11 @@ namespace RCGSetting
 #endif
     public static class DebugSetting
     {
+        public static bool IsRecordFSM
+        {
+            get => DebugSettingDict[nameof(IsRecordFSM)];
+            set => SetBoolProperty(nameof(IsRecordFSM), value);
+        }
         // public static RCGBuildConfig BuildConfig
         // {
         //     get
