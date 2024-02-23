@@ -3,7 +3,7 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, ILevelReset
+public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, ILevelResetStart
 {
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
 
@@ -27,7 +27,17 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, ILevelReset
     public Animator ChildAnimator => GetComponentInChildren<Animator>();
     public Animator[] ChildAnimators => GetComponentsInChildren<Animator>();
 
-    void ILevelReset.LevelReset()
+    public void EnterLevelReset()
+    {
+        ResetFSM();
+    }
+
+    public void ExitLevelAndDestroy()
+    {
+        // throw new System.NotImplementedException();
+    }
+
+    public void LevelResetStart()
     {
         ResetFSM();
     }

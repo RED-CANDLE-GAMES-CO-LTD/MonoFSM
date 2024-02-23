@@ -23,7 +23,7 @@ public interface IPoolObjectPlayer
 {
 }
 
-public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
+public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 {
     [BoxGroup("誰噴的")]
     [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
@@ -513,7 +513,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelReset
     }
 
     [Button]
-    public void LevelReset()
+    public void LevelResetPrepareRuntimeData()
     {
       //  Debug.Log("LevelReset", this);
         TransformReset();

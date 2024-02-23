@@ -53,9 +53,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     }
 
-    public static void LevelResetChildren(GameObject gObj)
+    public static void LevelResetChildrenPrepareRuntimeData(GameObject gObj)
     {
-        var levelResets = new List<ILevelReset>();
+        var levelResets = new List<ILevelResetPrepare>();
         gObj.GetComponentsInChildren(true, levelResets);
         levelResets.Reverse();
         foreach (var item in levelResets)
@@ -64,7 +64,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 continue;
             try
             {
-                item.LevelReset();
+                item.LevelResetPrepareRuntimeData();
             }
             catch (Exception e)
             {
