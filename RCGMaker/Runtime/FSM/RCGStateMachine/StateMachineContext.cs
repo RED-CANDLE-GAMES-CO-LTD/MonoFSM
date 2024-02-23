@@ -13,11 +13,11 @@ namespace RCGMaker.Core
         // public bool ShowStartState = true;
         [Required]
         // [DisallowModificationsIn(PrefabKind.Variant | PrefabKind.PrefabInstance)]
-        [ValueDropdown("GetAllStates")]
+        [ValueDropdown(nameof(GetAllStates))]
         [DropDownRef]
         public TState startState;
 
-        [PreviewInInspector] public T currentStateType => fsm.State; //debug用
+        [PreviewInInspector] public T currentStateType => fsm?.State; //debug用
         public IEnumerable GetAllStates()
         {
             return GetComponentsInChildren<TState>();
@@ -33,8 +33,7 @@ namespace RCGMaker.Core
 
         protected virtual void Awake()
         {
-            
-      
+          
 
         }
 
@@ -65,7 +64,7 @@ namespace RCGMaker.Core
         public void EnterLevelAwake()
         {
             StateMapping<T> stateBehaviorMapping = new StateMapping<T>();
-            var states = GetComponentsInChildren<TState>();
+
             // var stateDict = new Dictionary<T, TState>();
             foreach (var state in states)
             {
@@ -73,7 +72,12 @@ namespace RCGMaker.Core
                 stateBehaviorMapping.AddStateBehaviorMapping(state.stateType, state, this);
             }
 
+            Debug.Log("StateMapping:" + stateBehaviorMapping.getAllStates.Count, this);
             fsm = StateMachine<T>.Initialize(this, stateBehaviorMapping);
+            
         }
+
+        [AutoChildren] [PreviewInInspector] protected TState[] states;
+        public TState[] States => states;
     }
 }

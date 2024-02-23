@@ -91,7 +91,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateEnter()
     {
         base.OnStateEnter();
-        
+        OnStateEnterAction?.Invoke();
         
         foreach (var e in _stateEnters)
         {
@@ -109,7 +109,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         }
 
 
-        OnStateEnterAction?.Invoke();
+       
     }
     public override void OnStateUpdate()
     {

@@ -1,3 +1,4 @@
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 
 //DElayNode?
@@ -6,7 +7,7 @@ public class DelayActionModifier : MonoBehaviour
 {
     public float delayTime = 1;
 
-    [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")]
+    [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")] [PreviewInInspector] [AutoChildren]
     AbstractStateAction[] actions;
     // private void AddAction()
     // {

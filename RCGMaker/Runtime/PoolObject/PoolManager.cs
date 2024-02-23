@@ -53,6 +53,28 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     }
 
+    public static void LevelResetChildren(GameObject gObj)
+    {
+        var levelResets = new List<ILevelReset>();
+        gObj.GetComponentsInChildren(true, levelResets);
+        levelResets.Reverse();
+        foreach (var item in levelResets)
+        {
+            if (item == null)
+                continue;
+            try
+            {
+                item.LevelReset();
+            }
+            catch (Exception e)
+            {
+                if (item is MonoBehaviour behaviour)
+                    Debug.LogError(e.Message + "\n" + e.StackTrace, behaviour);
+                else
+                    Debug.LogError(e.Message + "\n" + e.StackTrace);
+            }
+        }
+    }
     public static void HandleGameLevelAwake(GameObject level)
     {
         var ILevelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));

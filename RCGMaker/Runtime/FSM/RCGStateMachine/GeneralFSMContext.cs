@@ -49,10 +49,7 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         states = GetComponentsInChildren<GeneralState>();
         return states;
     }
-
-
-    [PreviewInInspector]
-    private GeneralState[] states;
+    
 
     [ReadOnly] private AbstractStateTransition lastTransition;
 

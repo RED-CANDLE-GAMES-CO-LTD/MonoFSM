@@ -285,7 +285,7 @@ namespace RCGMaker.Core
 
         public void ChangeState(T newState, StateTransition transition, bool forceSameState = false)
         {
-            // Debug.Log("Change to state" + newState);
+            Debug.Log("Change to state" + newState);
             if (stateLookup == null)
             {
                 throw new Exception("States have not been configured, please call initialized before trying to set state");
