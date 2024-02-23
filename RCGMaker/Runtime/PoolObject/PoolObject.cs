@@ -202,7 +202,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         initRotation = transform1.localRotation;
         //FIXME: 為什麼這個把initParent改掉了?
         initParent = t;
-        Debug.Log("[PoolObjectResetAndStart] transform initParent", t);
+        // Debug.Log("[PoolObjectResetAndStart] transform initParent", t);
         initlocalScale = scale;
         isResetParameterInit = true;
     }
@@ -215,7 +215,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         initPosition = pos;
         var transform1 = transform;
         initRotation = transform1.localRotation;
-        Debug.Log("[PoolObjectResetAndStart] transform initParent", transform1.parent);
+        // Debug.Log("[PoolObjectResetAndStart] transform initParent", transform1.parent);
         initParent = transform1.parent;
         initlocalScale = transform1.localScale;
         isResetParameterInit = true;
