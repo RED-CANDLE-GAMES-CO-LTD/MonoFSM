@@ -61,7 +61,7 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         Random.state = oriState;
     }
 
-    private Random.State randomState;
+
 
     public GeneralState AddState()
     {
@@ -82,6 +82,7 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         // EditorWindow.GetWindow(System.Type.GetType("FSMGraphEditorWindow"));
     }
 #endif
+    private Random.State randomState;
     public GeneralState[] GetAllStates()
     {
         // if (states == null)
