@@ -1,6 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -33,15 +31,37 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         if (!Application.isPlaying)
             return;
         //draw label of fsm.State.name
+        var oriState = randomState;
+        Random.state = randomState;
         if (fsm != null && fsm.State != null)
         {
             var state = fsm.State;
             var label = state.name;
             var pos = transform.position;
-            var offset = new Vector3(0, 1, 0);
-            Handles.Label(pos + offset, label);
+
+
+            //FIXME: 兩個東西可能會重疊...隨機往四個方向？
+            var offset = new Vector3(Random.Range(0, 10) + 10, Random.Range(0, -10) - 10, 0);
+            //set font size to 24
+            Handles.Label(pos + offset, label, new GUIStyle()
+            {
+                fontSize = 16,
+                normal = new GUIStyleState()
+                {
+                    textColor = Color.white
+                }
+            });
+
+            //draw a marker
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(pos, 0.5f);
+            
         }
+
+        Random.state = oriState;
     }
+
+    private Random.State randomState;
 
     public GeneralState AddState()
     {
@@ -86,6 +106,7 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
     protected override void Awake()
     {
         base.Awake();
+        randomState = Random.state;
         //TODO: getComponents?
         //GenerateBindingTable
     }
