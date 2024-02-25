@@ -1,13 +1,17 @@
+using System;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.Primitive
 {
+    [Searchable]
+    [Serializable]
     public class SerializedDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
     {
-        [SerializeField] [HideInInspector] private List<TKey> keyData = new();
+        [SerializeField] private List<TKey> keyData = new();
 
-        [SerializeField] [HideInInspector] private List<TValue> valueData = new();
+        [SerializeField] private List<TValue> valueData = new();
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {

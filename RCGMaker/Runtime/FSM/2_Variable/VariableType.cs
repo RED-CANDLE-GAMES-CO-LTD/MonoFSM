@@ -304,6 +304,29 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
                 ScriptableData.CurrentValue = tempValue;
         }
     }
+
+    private MonoBehaviour lastValueSetter;
+
+    public void SetValue(TType value, MonoBehaviour byWho = null)
+    {
+        lastValueSetter = byWho;
+        var tempValue = value;
+        //先檢查會被修改
+
+        if (modifiers != null)
+            foreach (var modifier in modifiers)
+                tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
+        // this.Log("[Variable] Set", value); 
+        Field.SetCurrentValue(tempValue, byWho);
+        // ScriptableData.CurrentValue = tempValue;if (ScriptableData == null)
+        //     localField.SetCurrentValue(tempValue, byWho);
+        // // if (localField == null)
+        // //     localField = default(TField);
+        // // localField.CurrentValue = tempValue;
+
+        // else
+        //     ScriptableData.field.SetCurrentValue(tempValue, byWho);
+    }
     
     [AutoParent()] private IGameEntity gameEntity;
 
@@ -380,7 +403,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     public override Type FinalDataType => typeof(TScriptableData);
 }
 
-public abstract class AbstractVariable : MonoBehaviour
+public abstract class AbstractVariable : MonoBehaviour, IGuidEntity
 {
     public abstract GameFlagBase FinalData { get; }
     public abstract Type FinalDataType { get; }
@@ -400,4 +423,10 @@ public abstract class AbstractVariable : MonoBehaviour
     public AbstractVariable VariableSource; //用別人的值 //FIXME: 什麼時候會用到這個？
 
     [ReadOnly] public List<AbstractVariableConsumer> consumers; //有誰有用我，binder綁一下
+
+
+    //FIXME: 這個是錯的，要改成用scriptableData的 (flagFlied的？
+    public UnityEvent ValueChangedEvent => valueChangedEvent;
+
+    [HideInInlineEditors] public UnityEvent valueChangedEvent;
 }

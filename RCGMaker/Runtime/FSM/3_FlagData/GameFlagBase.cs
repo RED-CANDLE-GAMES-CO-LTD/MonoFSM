@@ -33,6 +33,7 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
         get => field.CurrentValue;
         set
         {
+            //FIXME: 拿掉
             field.CurrentValue = value;
         }
     }

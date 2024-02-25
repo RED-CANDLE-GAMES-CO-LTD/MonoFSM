@@ -51,16 +51,20 @@ public class VariableBool : VariableType<ScriptableDataBool, FlagFieldBool, bool
         get => Value;
         set
         {
+            //FIXME: setter不該從這裡來？
             if (scriptableData && value != Value) //值有改才送事件
             {
                 // Debug.Log("Variable Bool Changed " + ScriptableData.name);
                 //[]: 灌tracker...   
                 _trackValue["data"] = ScriptableData.name;
                 _trackValue["value"] = value;
-                Mixpanel.Track("ScriptableData Value Changed", _trackValue);
+                //FIXME:如果要tracking要有集中管理處
+                // Mixpanel.Track("ScriptableData Value Changed", _trackValue);
             }
 
-            Value = value;
+            // Value = value;
+            SetValue(value);
+            //FIXME: 這個event應該是錯的
             ValueChangedEvent.Invoke();
         }
     }
@@ -70,8 +74,4 @@ public class VariableBool : VariableType<ScriptableDataBool, FlagFieldBool, bool
     public bool IsValid => Value;
 
 
-    //FIXME: 這個是錯的，要改成用scriptableData的
-    public UnityEvent ValueChangedEvent => valueChangedEvent;
-
-    [HideInInlineEditors] public UnityEvent valueChangedEvent;
 }

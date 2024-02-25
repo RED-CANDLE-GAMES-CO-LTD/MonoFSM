@@ -27,8 +27,11 @@ public interface IStateExit
    void OnStateExit();
 }
 
+public interface IGuidEntity
+{
+}
 [Searchable]
-public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>
+public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity
 {
     // [HideInInspector] [Required] public new GeneralState stateType => this;
 

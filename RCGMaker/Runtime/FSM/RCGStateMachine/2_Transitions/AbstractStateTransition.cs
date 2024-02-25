@@ -18,9 +18,7 @@ public interface IState<in TState>
 }
 
 
-
-
-public class AbstractStateTransition : AbstractBehaviour
+public class AbstractStateTransition : AbstractBehaviour, IGuidEntity
 {
     [ValueDropdown(nameof(FindStates))]
     [Required]

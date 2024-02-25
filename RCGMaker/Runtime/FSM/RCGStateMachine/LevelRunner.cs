@@ -34,7 +34,8 @@ namespace RCGMaker.Core
 
 
             //
-            PoolManager.LevelResetChildrenPrepareRuntimeData(level.gameObject);
+            PoolManager.LevelResetChildrenPrepareRuntimeData(level);
+            PoolManager.LevelResetStart(level);
             //EnterLevelReset
         }
     }

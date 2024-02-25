@@ -310,7 +310,7 @@ public class
     public virtual T CurrentValue
     {
         get => _modifiers.Count > 0 ? _modifiers[^1].OverrideValue : _currentValue; //有modifier的話...
-        set => SetCurrentValue(value);
+        set => SetCurrentValue(value); //從inspector來的就是null?不是很好可以塞一個dummy給他嗎
             // SetCurrentValue(value);
             //有事件而且值不同
             //   Debug.Log("FlagField Set CurrentValue" + value);
@@ -381,6 +381,8 @@ public class
         }
         listener.AddListenerDict(action, owner as object);
     }
+
+    //once是不是不太好？
     public void AddListenerOnce(UnityAction<T> action, MonoBehaviour owner)
     {
         if (listenerOnce == null)
@@ -424,15 +426,19 @@ public class
     {
         return _currentValue.Equals(value);
     }
-    
+
+    private MonoBehaviour _lastByWho;
+
+    public MonoBehaviour LastByWho => _lastByWho;
     //NOTE: public是為了，propertyDrawer
-    protected void SetCurrentValue(T value)
+    public void SetCurrentValue(T value, MonoBehaviour byWho = null)
     {
         if (DebugSetting.IsDebugMode && _isShowDebugLog)
             Debug.Log("[FlagField] Before Set lastValue:" + _currentValue + "set with:" + value, owner);
 
         if (IsCurrentValueEquals(value))
             return;
+        _lastByWho = byWho;
         _lastValue = _currentValue;
         _currentValue = value;
 
