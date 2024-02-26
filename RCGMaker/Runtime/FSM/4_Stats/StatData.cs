@@ -4,6 +4,7 @@ using UnityEngine;
 
 public abstract class AbstractStatData : ScriptableObject
 {
+    public abstract float ValueWithBaseRatio { get; }
     public abstract float Value { get; }
 #if UNITY_EDITOR
     [TextArea] public string note;
@@ -29,7 +30,7 @@ public class StatData : AbstractStatData, IStringData
     [ReadOnly]
     [ShowInInspector]
     [PropertyOrder(-1)]
-    public override float Value => stat.Value;
+    public override float Value => stat.Value; //設計參數
 
     public List<AbstractStatData> baseRatios; //為什麼要list
 
@@ -40,7 +41,8 @@ public class StatData : AbstractStatData, IStringData
         return finalValue;
     }
 
-    public float ValueWithBaseRatio => CalculateFinalValue();
+    //遊戲全局的修正參數...
+    public override float ValueWithBaseRatio => CalculateFinalValue();
 
     public string GetString()
     {
