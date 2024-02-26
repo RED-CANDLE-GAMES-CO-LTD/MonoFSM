@@ -72,7 +72,7 @@ namespace RCGMaker.Core
                 stateBehaviorMapping.AddStateBehaviorMapping(state.stateType, state, this);
             }
 
-            Debug.Log("StateMapping:" + stateBehaviorMapping.getAllStates.Count, this);
+            // Debug.Log("StateMapping:" + stateBehaviorMapping.getAllStates.Count, this);
             fsm = StateMachine<T>.Initialize(this, stateBehaviorMapping);
             
         }

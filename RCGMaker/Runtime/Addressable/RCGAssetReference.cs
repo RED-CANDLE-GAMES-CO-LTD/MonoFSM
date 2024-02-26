@@ -68,13 +68,20 @@ namespace RCGMaker.AddressableAssets
                 var obj = await op.Task;
                 return obj as T;
             }
-            else
+
+            try
             {
                 //一定要用Ｔ，不然會回傳null
                 var handle = assetReference.LoadAssetAsync<T>();
                 // var obj = handle.WaitForCompletion();
                 var obj = await handle.Task;
                 return obj;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("LoadAssetAsync: Fail" + e.Message);
+                Debug.LogError("LoadAssetAsync: Fail" + e.StackTrace);
+                return null;
             }
         }
 
