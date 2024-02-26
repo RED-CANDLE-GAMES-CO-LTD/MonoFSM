@@ -426,7 +426,7 @@ public abstract class AbstractVariable : MonoBehaviour, IGuidEntity
 
 
     //FIXME: 這個是錯的，要改成用scriptableData的 (flagFlied的？
-    public UnityEvent ValueChangedEvent => valueChangedEvent;
+   // public UnityEvent ValueChangedEvent => valueChangedEvent;
 
     [HideInInlineEditors] public UnityEvent valueChangedEvent;
 }

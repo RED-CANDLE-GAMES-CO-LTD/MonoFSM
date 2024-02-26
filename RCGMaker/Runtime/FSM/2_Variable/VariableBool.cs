@@ -65,7 +65,7 @@ public class VariableBool : VariableType<ScriptableDataBool, FlagFieldBool, bool
             // Value = value;
             SetValue(value);
             //FIXME: 這個event應該是錯的
-            ValueChangedEvent.Invoke();
+            //ValueChangedEvent.Invoke();
         }
     }
 
