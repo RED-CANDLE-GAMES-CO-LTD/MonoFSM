@@ -275,6 +275,7 @@ namespace RCGMaker.Core
 
         }
 
+ 
         public void ChangeState(T newState, bool forceSameState = false)
         {
             // if(engine!=null)

@@ -64,6 +64,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
         {
             try
             {
+                //FIXME: 這個delay用unitask不好，時間軸和fsm錯開了
                 await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime), DelayType.DeltaTime,
                     PlayerLoopTiming.Update, cancellationTokenSource.Token);
             }

@@ -455,6 +455,7 @@ namespace RCGFSM.Animation
                 }
 #endif
                 animator.Play(StateHash, stateLayer, startNormalizedTimeResult);
+                _onStateNameChange?.Invoke(StateName);
             }
             else
             {
@@ -465,6 +466,9 @@ namespace RCGFSM.Animation
             // animator.Update(RCGTime.deltaTime);
             // Debug.Break();
         }
+
+        Action<string> _onStateNameChange;
+        
         [TabGroup("Animator")]
         [ShowInPlayMode]
         private int _stateNameHash;

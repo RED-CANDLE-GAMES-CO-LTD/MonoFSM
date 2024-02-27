@@ -94,6 +94,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateEnter()
     {
         base.OnStateEnter();
+        Debug.Log("OnStateEnter");
         OnStateEnterAction?.Invoke();
         
         foreach (var e in _stateEnters)
@@ -285,6 +286,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     [AutoChildren(false)] [InlineEditor()] [ShowInInspector]
     private AbstractStateAction[] actions;
 
+    public AbstractStateAction[] Actions => actions;
     // #if UNITY_EDITOR
     //     [Component(typeof(AbstractStateAction), "[Action]")]
     // #endif

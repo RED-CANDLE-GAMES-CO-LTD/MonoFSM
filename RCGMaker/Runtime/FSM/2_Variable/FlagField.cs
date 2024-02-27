@@ -427,8 +427,10 @@ public class
         return _currentValue.Equals(value);
     }
 
+    
     private MonoBehaviour _lastByWho;
 
+    [ShowInInspector]
     public MonoBehaviour LastByWho => _lastByWho;
     //NOTE: public是為了，propertyDrawer
     public void SetCurrentValue(T value, MonoBehaviour byWho = null)
