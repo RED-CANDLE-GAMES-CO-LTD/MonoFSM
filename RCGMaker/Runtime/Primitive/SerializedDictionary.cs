@@ -9,6 +9,7 @@ namespace RCGMaker.Runtime.Primitive
     [Serializable]
     public class SerializedDictionary<TKey, TValue> : Dictionary<TKey, TValue>, ISerializationCallbackReceiver
     {
+        [ShowInInspector]
         [SerializeField] private List<TKey> keyData = new();
 
         [SerializeField] private List<TValue> valueData = new();

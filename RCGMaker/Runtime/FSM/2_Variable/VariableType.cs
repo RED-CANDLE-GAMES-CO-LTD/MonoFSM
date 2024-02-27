@@ -287,7 +287,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
             return tempValue;
         }
 
-        set
+        set //FIXME: 拿掉，用SetValue(
         {
             var tempValue = value;
             //先檢查會被修改
@@ -305,11 +305,11 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         }
     }
 
-    private MonoBehaviour lastValueSetter;
+    // private MonoBehaviour lastValueSetter;
 
     public void SetValue(TType value, MonoBehaviour byWho = null)
     {
-        lastValueSetter = byWho;
+        // lastValueSetter = byWho;
         var tempValue = value;
         //先檢查會被修改
 

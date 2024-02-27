@@ -13,7 +13,7 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
-            targetFlag.Value = TargetValue;
+            targetFlag.SetValue(TargetValue, this);
         }
     }
 }
