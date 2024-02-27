@@ -5,8 +5,8 @@ using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
-#if UNITY_EDITOR
 using System;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Animations;
 #endif
