@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace RCGFSM.Variable
 {
-    public class SetFlagFloatAction : AbstractStateAction
+    public class SetVariableFloatAction : AbstractStateAction
     {
         public VariableFloat targetFlag;
         public float TargetValue;

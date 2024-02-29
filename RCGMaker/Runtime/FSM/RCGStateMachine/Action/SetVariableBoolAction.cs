@@ -5,7 +5,7 @@ using UnityEngine;
 namespace RCGFSM.Variable
 {
     //set flag, pick item...和GameFlag有關的要用一個interface才可以撈出來
-    public class SetFlagBoolAction : AbstractStateAction, IRCGArgEventReceiver
+    public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver
     {
         [HideIf("Multiple")] public VariableBool targetFlag;
 
