@@ -63,23 +63,7 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         Random.state = oriState;
     }
 
-    public void Pause()
-    {
-        fsm.Pause();
-        foreach (var state in states)
-        {
-            state.Pause();
-        }
-    }
-
-    public void Resume()
-    {
-        fsm.Resume();
-        foreach (var state in states)
-        {
-            state.Resume();
-        }
-    }
+  
 
     [ShowInPlayMode] public bool IsPaused => fsm.isPaused;
 
@@ -103,6 +87,24 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         // EditorWindow.GetWindow(System.Type.GetType("FSMGraphEditorWindow"));
     }
 #endif
+
+    public void PauseFSM()
+    {
+        fsm.Pause();
+        foreach (var state in states)
+        {
+            state.Pause();
+        }
+    }
+
+    public void ResumeFSM()
+    {
+        fsm.Resume();
+        foreach (var state in states)
+        {
+            state.Resume();
+        }
+    }
     private Random.State randomState;
     public GeneralState[] GetAllStates()
     {

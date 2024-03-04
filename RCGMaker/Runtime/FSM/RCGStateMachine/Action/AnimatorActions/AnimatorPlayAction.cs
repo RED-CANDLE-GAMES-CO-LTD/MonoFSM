@@ -393,11 +393,13 @@ namespace RCGFSM.Animation
                 {
                     Debug.LogError("AnimatorPlayAction: 沒有這個state:" + StateName + ",hash:" + StateHash, gameObject);
                 }
+
+                OnClipPlay?.Invoke(CurrentClip);
 #endif
                 //如果是init state過來的，就直接跳到最後一幀
                 animator.Play(StateHash, stateLayer, runtimeStartNormalizedTimeOffset);
 
-                OnClipPlay?.Invoke(CurrentClip);
+             
                 _onStateNameChange?.Invoke(StateName);
             }
             else
@@ -497,8 +499,30 @@ namespace RCGFSM.Animation
             }
             return 0;
         }
+
+
+        public override void SetPlaybackTime(float time)
+        {
+            var normalizedTime = time / ClipLength;
+            animator.Play(StateHash, stateLayer, normalizedTime);
+            animator.Update(0);
+        }
+
+      
 #endif
- 
+        public override void Pause()
+        {
+            animator.speed = 0;
+        }
+
+        public override void Resume()
+        {
+            animator.speed = 1;
+        }
+
+        [ShowInPlayMode]
+        private float CurrentPlayingNormalizedTime =>
+            animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime;
         private bool IsStatePlaying(int layer)
         {
             return animator.GetCurrentAnimatorStateInfo(layer).shortNameHash == StateHash;
@@ -543,26 +567,7 @@ namespace RCGFSM.Animation
             return IsStatePlaying(layer);
         }
 
-        [ShowInPlayMode]
-        private float CurrentPlayingNormalizedTime =>
-            animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime;
-
-        public override void SetPlaybackTime(float time)
-        {
-            var normalizedTime = time / ClipLength;
-            animator.Play(StateHash, stateLayer, normalizedTime);
-            animator.Update(0);
-        }
-
-        public override void Pause()
-        {
-            animator.speed = 0;
-        }
-
-        public override void Resume()
-        {
-            animator.speed = 1;
-        }
+        
 
         //TODO:
         protected override void OnSpriteUpdateImplement()
