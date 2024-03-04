@@ -45,7 +45,7 @@ namespace RCGMaker.Core
 
         public void Clear()
         {
-            var iterator = _dict.GetEnumerator();
+            using var iterator = _dict.GetEnumerator();
             // var iterator = _dict.GFValueIterator();
             while (iterator.MoveNext())
             {
