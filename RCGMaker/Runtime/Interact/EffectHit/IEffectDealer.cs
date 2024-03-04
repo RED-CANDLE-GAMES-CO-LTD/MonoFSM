@@ -26,6 +26,15 @@ public interface IEffectHitData
    
 }
 
+public interface IEffectReceivedHandler
+{
+    void OnEffectReceived(IEffectHitData data);
+}
+
+public interface IEffectReceivedProcessor
+{
+    void EffectHitResult(IEffectHitData hitData);
+}
 
 public interface IEffectType
 {
@@ -44,7 +53,7 @@ public interface IEffectReceiver
 {
     void EffectHitEnter(IEffectHitData data);
     // void OnHitStay(IEffectHitData data);
-    // void OnHitExit(IEffectHitData data);
+    void OnHitExit(IEffectHitData data);
 }
 
 namespace RCGMaker.Core

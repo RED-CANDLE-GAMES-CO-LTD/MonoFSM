@@ -30,8 +30,20 @@ public interface IStateExit
 public interface IGuidEntity
 {
 }
+
+public interface ISerializableComponent
+{
+    public string Serialize();
+    public void Deserialize(string data);
+}
+
+public interface IDefaultSerializable
+{
+}
+
 [Searchable]
-public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity
+public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity,
+    IDefaultSerializable
 {
     // [HideInInspector] [Required] public new GeneralState stateType => this;
 
@@ -40,8 +52,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     [FormerlySerializedAs("enterOffsetDuration")] public float EnterTimeOffset = 0;
 
-    [HideInInspector]
-    public Vector2 _position;
+    [HideInInspector] Vector2 _position;
     public Vector2 position
     {
         get
@@ -115,6 +126,16 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
        
     }
+
+    public void SetPlaybackTime(float time)
+    {
+        statusTimer = time;
+        foreach (var action in actions)
+        {
+            action.SetPlaybackTime(time);
+        }
+    }
+    
     public override void OnStateUpdate()
     {
         base.OnStateUpdate();
@@ -220,7 +241,10 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     [AutoChildren]
     [Component(typeof(AbstractStateTransition), AddComponentAt.Children, "[Transition]")]
     [InlineEditor()]
-    public AbstractStateTransition[] transitions;
+    [PreviewInInspector]
+    AbstractStateTransition[] transitions;
+
+    public AbstractStateTransition[] Transitions => transitions;
 
     public void RefreshTransitions()
     {
@@ -282,10 +306,11 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // // #endif
     // public AbstractStateAction testAction;
 
-    [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")]
-    [AutoChildren(false)] [InlineEditor()] [ShowInInspector]
+    [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")] [AutoChildren(false)] [InlineEditor()]
+    
     private AbstractStateAction[] actions;
 
+    [ShowInInspector]
     public AbstractStateAction[] Actions => actions;
     // #if UNITY_EDITOR
     //     [Component(typeof(AbstractStateAction), "[Action]")]
@@ -325,4 +350,29 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     private IAnimatorPlayAction animatorPlayAction;
 
+    public void Pause()
+    {
+        foreach (var action in actions)
+        {
+            action.Pause();
+        }
+    }
+
+    public void Resume()
+    {
+        foreach (var action in actions)
+        {
+            action.Resume();
+        }
+    }
+
+    public string Serialize()
+    {
+        return typeof(GeneralState).ToString();
+    }
+
+    public void Deserialize(string data)
+    {
+        throw new NotImplementedException();
+    }
 }

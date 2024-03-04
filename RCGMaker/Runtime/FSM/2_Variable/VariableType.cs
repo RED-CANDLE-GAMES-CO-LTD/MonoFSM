@@ -14,7 +14,7 @@ using UnityEngine.Events;
 //現在根本還沒做監聽，是用condition做polling
 [Searchable]
 public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator,
-    IGameStateOwner
+    IGameStateOwner, IDefaultSerializable
     where TScriptableData : AbstractScriptableData<TField, TType> where TField : FlagField<TType>, new()
 {
     
@@ -387,7 +387,6 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     public void Validate(SelfValidationResult result)
     {
 #if UNITY_EDITOR
-
         if (IsAutoGen)
         {
             //不在景裏，不需要
@@ -401,6 +400,16 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     public override GameFlagBase FinalData => mainData ? mainData : ScriptableData;
     public override Type FinalDataType => typeof(TScriptableData);
+
+    public string Serialize()
+    {
+        return GetType().Name + ":" + localField.ProductionValue;
+    }
+
+    public void Deserialize(string data)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 public abstract class AbstractVariable : MonoBehaviour, IGuidEntity

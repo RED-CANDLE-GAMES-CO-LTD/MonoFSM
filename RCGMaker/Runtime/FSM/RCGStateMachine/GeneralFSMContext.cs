@@ -13,7 +13,9 @@ using RCGMaker.Core.QATest;
 
 //FIXME: 不要在這綁了應該拿掉，用RCGArgEvent做掉
 // [RuntimeQA(typeof(StateMachineQATestCase))]
-public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>, IQATarget<StateMachineQATestCase>
+[Searchable]
+public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>, IQATarget<StateMachineQATestCase>,
+    IDefaultSerializable
 {
 #if UNITY_EDITOR
 
@@ -61,6 +63,25 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         Random.state = oriState;
     }
 
+    public void Pause()
+    {
+        fsm.Pause();
+        foreach (var state in states)
+        {
+            state.Pause();
+        }
+    }
+
+    public void Resume()
+    {
+        fsm.Resume();
+        foreach (var state in states)
+        {
+            state.Resume();
+        }
+    }
+
+    [ShowInPlayMode] public bool IsPaused => fsm.isPaused;
 
 
     public GeneralState AddState()

@@ -76,6 +76,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
     }
 
+
+    //最新規，九日沒在用？
     public static void LevelResetStart(GameObject gObj)
     {
         var levelResets = new List<ILevelResetStart>();
@@ -85,17 +87,17 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             if (item == null)
                 continue;
-            try
-            {
+            // try
+            // {
                 item.LevelResetStart();
-            }
-            catch (Exception e)
-            {
-                if (item is MonoBehaviour behaviour)
-                    Debug.LogError(e.Message + "\n" + e.StackTrace, behaviour);
-                else
-                    Debug.LogError(e.Message + "\n" + e.StackTrace);
-            }
+                // }
+                // catch (Exception e)
+                // {
+                //     if (item is MonoBehaviour behaviour)
+                //         Debug.LogError(e.Message + "\n" + e.StackTrace, behaviour);
+                //     else
+                //         Debug.LogError(e.Message + "\n" + e.StackTrace);
+                // }
         }
     }
     public static void HandleGameLevelAwake(GameObject level)

@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ public interface IState<in TState>
 }
 
 
-public class AbstractStateTransition : AbstractBehaviour, IGuidEntity
+public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable
 {
     [ValueDropdown(nameof(FindStates))]
     [Required]

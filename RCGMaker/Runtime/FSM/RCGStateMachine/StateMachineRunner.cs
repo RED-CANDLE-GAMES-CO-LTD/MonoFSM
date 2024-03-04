@@ -77,17 +77,15 @@ namespace RCGMaker.Core
             {
                 var fsm = stateMachineList[i];
                 //暫停不跑
-                if (fsm.isPaused == false)
+                if (fsm.isPaused) continue;
+                if (!fsm.IsInTransition && fsm.Component.enabled)
                 {
-                    if (!fsm.IsInTransition && fsm.Component.enabled)
-                    {
-                        fsm.CurrentStateMap.Update();
+                    fsm.CurrentStateMap.Update();
 
 #if UNITY_EDITOR
-                        // if (showCurrentState)
-                        //     currentState = fsm.CurrentStateMap.state.ToString();
+                    // if (showCurrentState)
+                    //     currentState = fsm.CurrentStateMap.state.ToString();
 #endif
-                    }
                 }
 
 
@@ -98,9 +96,9 @@ namespace RCGMaker.Core
         {
             foreach (var fsm in stateMachineList)
             {
+                if (fsm.isPaused) continue;
                 if (!fsm.IsInTransition && fsm.Component.enabled)
                 {
-
                     fsm.CurrentStateMap.SpriteUpdate();
                     // fsm.CurrentStateMap.LateUpdate();
                 }

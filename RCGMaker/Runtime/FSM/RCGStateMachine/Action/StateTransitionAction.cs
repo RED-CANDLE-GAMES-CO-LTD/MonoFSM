@@ -4,9 +4,11 @@ using UnityEngine;
 
 namespace RCGFSM.Transition
 {
+    //UpdateTransitionCheckAction?
+    //讓transition下面有condition不就結束了？ 單層condition
+    
     //StateEnter, Update的時候，檢查能不能去某個state
     [RequireComponent(typeof(AbstractStateTransition))]
-
     public class StateTransitionAction : AbstractStateAction
     {
         [PreviewInInspector]

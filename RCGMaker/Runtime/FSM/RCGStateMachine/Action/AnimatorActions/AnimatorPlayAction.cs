@@ -6,80 +6,18 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Animations;
 #endif
 
-
 namespace RCGFSM.Animation
 {
-    #if UNITY_EDITOR
-    internal static class AnimatorPlayActionContextMenu
-    {
-        [MenuItem("CONTEXT/AnimatorPlayAction/Override Clip")]
-        static void OverrideClip(MenuCommand command)
-        {
-            var animatorPlayAction = command.context as AnimatorPlayAction;
-            if (animatorPlayAction == null)
-                return;
-            var runtimeAnimatorController = animatorPlayAction.animator.runtimeAnimatorController;
-            if (runtimeAnimatorController == null)
-            {
-                Debug.LogError("runtimeAnimatorController == null");
-                return;
-            }
-            // var animatorController = runtimeAnimatorController as AnimatorController;
-            
-            // if(animatorController == null)
-            //     return;
-            
-            AnimatorOverrideController animatorOverrideController = runtimeAnimatorController as AnimatorOverrideController;
-            
-            if (animatorOverrideController == null)
-            {
-                Debug.LogError("animatorOverrideController == null");
-                return;
-            }
-            
-            var originAnimatorController = animatorOverrideController.runtimeAnimatorController as AnimatorController;
-            if(originAnimatorController == null)
-            {
-                Debug.LogError("originAnimatorController == null");
-                return;
-            }
-          
-      
-            Undo.SetCurrentGroupName("Override Clip");
-            var groupIndex = Undo.GetCurrentGroup();
-            Undo.RecordObject(animatorOverrideController, "Override Clip");
-            Undo.RecordObject(animatorPlayAction, "Override Clip");
-            
-            var mappingState = originAnimatorController.layers[animatorPlayAction.stateLayer].stateMachine.states.First(s => s.state.name == animatorPlayAction.StateName);
-            var baseClip = mappingState.state.motion as AnimationClip;
-            var originalClip = animatorOverrideController[baseClip];
-            
-            var newClip = AssetDatabaseUtility.CopyAssetOrCreateToPrefabFolder(originalClip,".clip" ,(path) =>
-            {
-                var clip = new AnimationClip();
-                // AssetDatabase.CreateAsset(clip, path);
-                return clip;
-            });
-            //copy asset to new clip
-            //override clip
-        
-            animatorOverrideController[originalClip] = newClip;
-            animatorOverrideController.SetDirty();
-        
-            // PrefabUtility.RecordPrefabInstancePropertyModifications(animatorPlayAction);
-            AssetDatabase.SaveAssets();
-            Undo.CollapseUndoOperations(groupIndex);
-        }
-    }
-    #endif
     //小心從init routing來，會直接播結束的frame，要從transition上知道這件事
+    [Searchable]
     public class AnimatorPlayAction : AbstractStateAction, IRCGArgEventReceiver, IAnimatorPlayAction,
-        ISceneSavingCallbackReceiver, ISelfValidator
+        ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent
     {
         protected override void Awake()
         {
@@ -175,6 +113,9 @@ namespace RCGFSM.Animation
         [TabGroup("Animator")]
         [Range(0, 1)]
         public float startNormalizedTimeOffset = 0;
+
+        [TabGroup("Animator")] [Title("StateEnter 空降Normalized Time")] [ShowInPlayMode]
+        float runtimeStartNormalizedTimeOffset = 0;
 
         [TabGroup("Animator")]
         public float animatorEnterCrossFade = 0;
@@ -437,11 +378,10 @@ namespace RCGFSM.Animation
 
             this.Log("[AnimatorPlayAction]", gameObject, ":[", stateLayer, "]:", StateName);
 
-       
 
-            var startNormalizedTimeResult = startNormalizedTimeOffset;
-
-            if (CheckInitAndSkipAnimationToLastFrame()) startNormalizedTimeResult = 1;
+            runtimeStartNormalizedTimeOffset = startNormalizedTimeOffset;
+            //FIXME: init skip to last frame是不是不好...該拆兩個狀態就拆兩個狀態吧？
+            if (CheckInitAndSkipAnimationToLastFrame()) runtimeStartNormalizedTimeOffset = 1;
 
             if (animatorEnterCrossFade == 0)
             {
@@ -454,12 +394,15 @@ namespace RCGFSM.Animation
                     Debug.LogError("AnimatorPlayAction: 沒有這個state:" + StateName + ",hash:" + StateHash, gameObject);
                 }
 #endif
-                animator.Play(StateHash, stateLayer, startNormalizedTimeResult);
+                //如果是init state過來的，就直接跳到最後一幀
+                animator.Play(StateHash, stateLayer, runtimeStartNormalizedTimeOffset);
+
+                OnClipPlay?.Invoke(CurrentClip);
                 _onStateNameChange?.Invoke(StateName);
             }
             else
             {
-                animator.CrossFade(StateHash, animatorEnterCrossFade, stateLayer, startNormalizedTimeResult);
+                animator.CrossFade(StateHash, animatorEnterCrossFade, stateLayer, runtimeStartNormalizedTimeOffset);
             }
 
             animator.Update(0);
@@ -467,6 +410,7 @@ namespace RCGFSM.Animation
             // Debug.Break();
         }
 
+        public Action<AnimationClip> OnClipPlay;
         Action<string> _onStateNameChange;
         
         [TabGroup("Animator")]
@@ -599,6 +543,26 @@ namespace RCGFSM.Animation
             return IsStatePlaying(layer);
         }
 
+        [ShowInPlayMode]
+        private float CurrentPlayingNormalizedTime =>
+            animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime;
+
+        public override void SetPlaybackTime(float time)
+        {
+            var normalizedTime = time / ClipLength;
+            animator.Play(StateHash, stateLayer, normalizedTime);
+            animator.Update(0);
+        }
+
+        public override void Pause()
+        {
+            animator.speed = 0;
+        }
+
+        public override void Resume()
+        {
+            animator.speed = 1;
+        }
 
         //TODO:
         protected override void OnSpriteUpdateImplement()
@@ -622,18 +586,27 @@ namespace RCGFSM.Animation
             }
 
             //FIXME: 完全知道動畫多久，可以預判播完的時間然後去下一個state，就可以functional?
-            //包子 Corss Fade 不能一直跑 （議會小電梯） 
-            if (animator.isActiveAndEnabled && this.animatorEnterCrossFade <= 0)
+            //包子 Cross Fade 不能一直跑 （議會小電梯） 
+            if (animator.isActiveAndEnabled && animatorEnterCrossFade <= 0)
                 animator.Play(StateHash, stateLayer);
 
-            if (IsPlayingCurrentClip() && animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime >= 1)
+            var info = animator.GetCurrentAnimatorStateInfo(doneEventLayer);
+            // UnityEngine.Debug.Log("Current Animator State length:" + info.length + ",normalizedTime:" +
+            //                       info.normalizedTime + "," +
+            //                       info.shortNameHash);
+            if (IsPlayingCurrentClip() && CurrentPlayingNormalizedTime >= 1)
             {
+             
                 //TODO: AnimationDone
                 //Done;
                 // GetComponentInParent<GeneralState>().TransitionCheck();
                 if (doneEventTransition)
                 {
-                    // Debug.Log("AnimatorPlayAction > 1" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime + "state:", gameObject);
+                    Debug.Log(
+                        "AnimatorPlayAction > 1:" + CurrentPlayingNormalizedTime + "state:" +
+                        StateName,
+                        gameObject);
+                    // Debug.Break();
                     AnimationDone();
                 }
                 // if (TryGetComponent<EventReceiveTransition>(out var transition))
@@ -786,6 +759,17 @@ namespace RCGFSM.Animation
 
         [TabGroup("擴充模組")] [AutoChildren] [Component(addAt = AddComponentAt.Same)] [PreviewInInspector]
         private AnimatorPlayActionModule[] _animatorPlayActionModule;
+
+        public string Serialize()
+        {
+            //get field which is not default value?
+            return GetType().Name + " " + animator.name + " " + stateName;
+        }
+
+        public void Deserialize(string data)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

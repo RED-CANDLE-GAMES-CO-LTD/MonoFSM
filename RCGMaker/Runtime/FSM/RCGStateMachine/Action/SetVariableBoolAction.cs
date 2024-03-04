@@ -5,8 +5,9 @@ using UnityEngine;
 namespace RCGFSM.Variable
 {
     //set flag, pick item...和GameFlag有關的要用一個interface才可以撈出來
-    public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver
+    public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver, ISerializableComponent
     {
+        //FIXME: 用selection dropdown來篩選
         [HideIf("Multiple")] public VariableBool targetFlag;
 
         [ShowIf("Multiple")] public List<VariableBool> targetFlags;
@@ -49,6 +50,15 @@ namespace RCGFSM.Variable
 
                 targetFlag.SetValue(TargetValue, this);
             }
+        }
+
+        public string Serialize()
+        {
+            return typeof(SetVariableBoolAction).ToString() + "|" + targetFlag.name + "|" + TargetValue;
+        }
+
+        public void Deserialize(string data)
+        {
         }
     }
 

@@ -6,11 +6,7 @@ using UnityEngine.Events;
 
 namespace RCGMaker.Core
 {
-    public interface ISerializableComponent
-    {
-        public string Serialize();
-        public void Deserialize(string data);
-    }
+
     public abstract class AbstractState<T> : MonoBehaviour
     {
         [HideInInspector] [Required] public T stateType;

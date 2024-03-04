@@ -1,9 +1,14 @@
 using System.Collections.Generic;
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, ILevelResetStart
+public class HideFromSerializationAttribute : PropertyAttribute
+{
+}
+
+public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable
 {
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
 
@@ -27,18 +32,27 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
     public Animator ChildAnimator => GetComponentInChildren<Animator>();
     public Animator[] ChildAnimators => GetComponentsInChildren<Animator>();
 
-    public void EnterLevelReset()
+    public void EnterLevelReset() //舊的九日code, enter levelReset
     {
-        ResetFSM();
+        // ResetFSM(); //應該要選一邊？之後砍掉這裏？還是這邊不call，九日還是跑下面的？
     }
 
-    public void ExitLevelAndDestroy()
+    public void ExitLevelAndDestroy() //舊的九日code, enter levelReset
     {
         // throw new System.NotImplementedException();
     }
 
-    public void LevelResetStart()
+    void ILevelResetStart.LevelResetStart()
     {
-        ResetFSM();
+        ResetFSM(); //最新規, levelReset之後
     }
+
+    [Button]
+    void ExportSerializedData()
+    {
+        // var result = FsmScriptSerializer.SerializeFSM(this);
+        // Debug.Log(result);
+    }
+    
+    
 }

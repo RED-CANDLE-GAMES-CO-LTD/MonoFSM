@@ -1,11 +1,12 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity
+public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable
 {
     //怎麼知道誰用Enter, 誰用Update
     private bool IsValid //AND
@@ -22,13 +23,15 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [AutoParent()] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true);
 
     // #if UNITY_EDITOR
+    [HideFromSerialization]
     [PropertyOrder(1)]
     [TabGroup("Condition", false, 1)]
     [Component(typeof(AbstractConditionComp), AddComponentAt.Children, "[Condition]")]
     [PreviewInInspector]
     // #endif
     [AutoChildren(false, DepthOneOnly = true)] public AbstractConditionComp[] conditions;//condition 成立，才能做事
-
+//FIXME: public應該拿掉
+    
     // private bool conditionFeteched = false;
 
     // private void CheckFetchCondition()
@@ -104,4 +107,16 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     public MonoBehaviour VoteOwner => bindingState.Context.fsmOwner;
 
     protected CancellationTokenSource cancellationTokenSource => bindingState.GetStateExitCancellationTokenSource();
+
+    public virtual void SetPlaybackTime(float time)
+    {
+    }
+
+    public virtual void Pause()
+    {
+    }
+
+    public virtual void Resume()
+    {
+    }
 }

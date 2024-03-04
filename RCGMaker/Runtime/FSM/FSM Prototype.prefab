@@ -491,7 +491,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8231131841494468402}
   - component: {fileID: 8231131841494468403}
-  - component: {fileID: 8231131841494468404}
   m_Layer: 0
   m_Name: '[State] Idle'
   m_TagString: Untagged
@@ -533,26 +532,6 @@ MonoBehaviour:
   _position: {x: 0, y: 0}
   CanSelfTransition: 0
   transitions: []
---- !u!114 &8231131841494468404
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8231131841494468401}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a019087ac59a24dc1bd8aff64729c641, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  conditions: []
-  animator: {fileID: 5482396152828949419}
-  stateName: Idle
-  stateLayer: 0
-  startNormalizedTimeOffset: 0
-  animatorEnterCrossFade: 0
-  doneEventLayerName: 
-  doneEventLayer: 0
 --- !u!1 &8231131841708531578
 GameObject:
   m_ObjectHideFlags: 0
