@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
@@ -38,7 +39,19 @@ namespace RCGMaker.Core
             if (_dict.ContainsKey(key) == false)
                 return false;
             var item = _dict[key];
-            RemoveImplement(item);
+
+            try
+            {
+                if (item != null)
+                    RemoveImplement(item);
+            }
+            catch (Exception e)
+            {
+                //RemoveImplement implementation failed.
+                Debug.LogError(e);
+            }
+            
+
             var result = _dict.Remove(key);
             return result;
         }
