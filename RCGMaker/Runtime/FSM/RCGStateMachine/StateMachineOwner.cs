@@ -51,7 +51,8 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
 
     void ILevelResetStart.LevelResetStart()
     {
-        ResetFSM(); //最新規, levelReset之後
+        //不能有兩個進入點喔
+       // ResetFSM(); //最新規, levelReset之後
     }
 
     [Button]
