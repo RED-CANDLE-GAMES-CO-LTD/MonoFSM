@@ -41,12 +41,12 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
 
     public void EnterLevelReset() //舊的九日code, enter levelReset
     {
-        // ResetFSM(); //應該要選一邊？之後砍掉這裏？還是這邊不call，九日還是跑下面的？
+         ResetFSM(); //應該要選一邊？之後砍掉這裏？還是這邊不call，九日還是跑下面的？
     }
 
     public void ExitLevelAndDestroy() //舊的九日code, enter levelReset
     {
-        // throw new System.NotImplementedException();
+       
     }
 
     void ILevelResetStart.LevelResetStart()
@@ -57,8 +57,7 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
     [Button]
     void ExportSerializedData()
     {
-        // var result = FsmScriptSerializer.SerializeFSM(this);
-        // Debug.Log(result);
+
     }
     
     

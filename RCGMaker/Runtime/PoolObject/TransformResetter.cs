@@ -26,9 +26,10 @@ public class TransformResetter : MonoBehaviour, IResetter
         if (isResetParametterInit)
             return true;
 
-        initPosition = transform.position;
-        initRotation = transform.rotation;
+
         initParent = transform.parent;
+        initPosition = transform.localPosition;
+        initRotation = transform.localRotation;
         initlocalScale = transform.localScale;
 
         isResetParametterInit = true;
@@ -40,10 +41,11 @@ public class TransformResetter : MonoBehaviour, IResetter
     {
         if (ParameterInitCheck())
         {
-            transform.position = initPosition;
-            transform.rotation = initRotation;
             transform.SetParent(initParent);
+            transform.localPosition = initPosition;
+            transform.localRotation = initRotation;
             transform.localScale = initlocalScale;
+            
         }
     }
 
