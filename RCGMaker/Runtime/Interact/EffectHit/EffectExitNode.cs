@@ -1,3 +1,5 @@
+using System.Linq;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -5,8 +7,10 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 {
     public class EffectExitNode : MonoBehaviour, IEffectReceivedHandler
     {
-        IEffectReceivedProcessor[] _effectReceivedProcessor;
+        [PreviewInInspector] [AutoChildren] IRCGArgEventReceiver[] _effectReceivedProcessor;
 
+        [PreviewInInspector]
+        private Component[] processorComps => _effectReceivedProcessor.Select(x => x as Component).ToArray();
         //有哪幾種event在外部定義
         // public RCGEventType EventType;
 
@@ -14,7 +18,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         {
             foreach (var processor in _effectReceivedProcessor)
             {
-                processor.EffectHitResult(data);
+                processor.EventReceived(data);
             }
         }
     }

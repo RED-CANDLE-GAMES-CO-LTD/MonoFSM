@@ -13,7 +13,6 @@ namespace RCGFSM.Transition
     {
         [PreviewInInspector]
         [Auto]
-        [SerializeField]
         AbstractStateTransition validTransition;
 
         protected override void OnStateEnterImplement()

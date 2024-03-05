@@ -9,7 +9,7 @@ using UnityEditor;
 
 namespace RCGMaker.Core
 {
-    public class RCGFSMAnyState : MonoBehaviour, IState<GeneralState>
+    public class RCGFSMAnyState : MonoBehaviour, IState<GeneralState>, IDefaultSerializable
     {
         [AutoParent] private GeneralFSMContext context;
 
@@ -37,7 +37,7 @@ namespace RCGMaker.Core
         // }
 
 
-        public List<AbstractStateTransition> transitions;
+        [AutoChildren] AbstractStateTransition[] transitions;
 
 #if UNITY_EDITOR
         // [Button("Add Event Transition")]

@@ -2,8 +2,17 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+public enum Operator
+{
+    Equals, //==
+    NotEqual, // !=
+    GreaterThan, // >
+    LessThan, // <
+    IsEven
+}
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
+   
     public class VariableFloatValueCondition : AbstractConditionComp
     {
         private void OnValidate()

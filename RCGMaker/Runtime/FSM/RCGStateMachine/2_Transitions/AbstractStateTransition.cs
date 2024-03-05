@@ -21,15 +21,26 @@ public interface IState<in TState>
 
 public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable
 {
+    [Button("依照Behaviour改名字")]
+    void RenameByBehaviour()
+    {
+        gameObject.name = GetNameByBehaviour();
+    }
+
+    protected virtual string GetNameByBehaviour()
+    {
+        return "[Transition]" + target.stateType.name;
+    }
+    
     [ValueDropdown(nameof(FindStates))]
     [Required]
     public GeneralState target;
 
-    private void OnValidate()
-    {
-        if (this.isActiveAndEnabled && target == null)
-            Debug.LogError("No Target! 選一個", gameObject);
-    }
+    // private void OnValidate()
+    // {
+    //     if (this.isActiveAndEnabled && target == null)
+    //         Debug.LogError("No Target! 選一個", gameObject);
+    // }
 
     [ReadOnly] [ShowInInspector] public GeneralState Target => target;
     IEnumerable<GeneralState> FindStates()

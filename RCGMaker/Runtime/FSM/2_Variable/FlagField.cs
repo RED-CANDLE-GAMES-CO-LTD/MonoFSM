@@ -329,15 +329,15 @@ public class
 
     private ValueChangedListener<T> listener = new();
     private ValueChangedListener<T> listenerOnce = new();
-    private ValueChangedListener<object, object, T> listenerDict;
+    // private ValueChangedListener<object, object, T> listenerDict;
 
-    public void AddListener<TTarget, TParam>(TTarget target, TParam param, UnityAction<TTarget, TParam, T> callback)
-        where TTarget : Object
-    {
-        if (listenerDict == null)
-            listenerDict = new ValueChangedListener<object, object, T>();
-        listenerDict.AddListenerDict(target, param, callback as UnityAction<object, object, T>);
-    }
+    // public void AddListener<TTarget, TParam>(TTarget target, TParam param, UnityAction<TTarget, TParam, T> callback)
+    //     where TTarget : Object
+    // {
+    //     if (listenerDict == null)
+    //         listenerDict = new ValueChangedListener<object, object, T>();
+    //     listenerDict.AddListenerDict(target, param, callback as UnityAction<object, object, T>);
+    // }
     
     public void AddListener(UnityAction<T> action, MonoBehaviour owner)
     {
@@ -453,7 +453,7 @@ public class
     {
         listener.OnChange(value, false);
         listenerOnce.OnChange(value, true);
-        listenerDict?.OnValueChange(value);
+        // listenerDict?.OnValueChange(value);
     }
 
 

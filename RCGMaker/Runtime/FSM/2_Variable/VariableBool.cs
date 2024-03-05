@@ -19,32 +19,10 @@ public interface IVariableBoolProvider
 
 public class VariableBool : VariableType<ScriptableDataBool, FlagFieldBool, bool>, ICondition, IVariableBoolProvider
 {
-    // protected override void Awake()
-    // {
-    //     base.Awake();
-    //     scriptableData.flagValueChangeEvent.AddListener(() =>
-    //     {
-    //         //FIXME: call the register...
-    //         // scriptableData.CurrentValue
-    //     });
-    // }
-
-    // [FormerlySerializedAs("boolFlag")]
-    // [ReadOnly] [HideInInlineEditors] [Header("Deprecated=>scriptableData")]
     public ScriptableDataBool boolFlag =>scriptableData; // scriptableData;
 
     public override ScriptableDataBool ScriptableData => scriptableData == null ? boolFlag : scriptableData;
-
-    // protected override void OnValidate()
-    // {
-    //     base.OnValidate();
-    //     if (scriptableData == null && boolFlag != null)
-    //         scriptableData = boolFlag;
-    //     //資料夾裡面的放在 0 0 0
-    // }
-
-    // [FormerlySerializedAs("tempFlag")]
-    // public FlagFieldBool localField;// localField;
+    
     [ShowInPlayMode]
     public bool FlagValue
     {

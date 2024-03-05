@@ -8,12 +8,19 @@ public class HideFromSerializationAttribute : PropertyAttribute
 {
 }
 
+//如果有不能直接toString的結構，要客製化的serializable，就用這個...還是都用JSON會對？
+public class CustomSerializableAttribute : PropertyAttribute
+{
+}
+
 public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable
 {
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
 
     public GeneralFSMContext FsmContext =>
         fsmContext ? fsmContext : fsmContext = GetComponentInChildren<GeneralFSMContext>();
+
+    [HideFromSerialization]
     [Title("超連結，只有prefab可以改")] [InlineEditor] [DisallowModificationsIn(PrefabKind.NonPrefabInstance)]
     public List<Component> quickFindLinks;
 

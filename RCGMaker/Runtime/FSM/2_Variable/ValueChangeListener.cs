@@ -47,8 +47,8 @@ public class ValueChangedListener<TTarget, TParam, TValue>
             if (onChangeActionDict.TryGetValue(key, out var value1))
             {
                 var action = value1.Item3;
-                //  Debug.Log("FlagField Invoke" + action);
-                action.Invoke(value1.Item1, value1.Item2, value);
+                Debug.Log("FlagField Invoke:" + action);
+                action?.Invoke(value1.Item1, value1.Item2, value);
             }
             else
             {

@@ -523,6 +523,8 @@ namespace RCGFSM.Animation
         [ShowInPlayMode]
         private float CurrentPlayingNormalizedTime =>
             animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime;
+
+        public bool IsDone => CurrentPlayingNormalizedTime >= 1;
         private bool IsStatePlaying(int layer)
         {
             return animator.GetCurrentAnimatorStateInfo(layer).shortNameHash == StateHash;
@@ -547,7 +549,12 @@ namespace RCGFSM.Animation
                         BuildStateHashToName();
                     var shouldPlayStateName = _stateHashToName[StateHash];
                     var playingStateName = _stateHashToName[stateInfo.shortNameHash];
-                    Debug.LogError(
+                    if (ClipLength == -1)
+                    {
+                        Debug.LogError("Null Clip of State: ClipLength == -1", this);
+                    }
+                    else
+                        Debug.LogError(
                         "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
                         shouldPlayStateName +
                         ",playingStateName: " + playingStateName, gameObject);
@@ -621,11 +628,15 @@ namespace RCGFSM.Animation
                 // }
             }
         }
+
+        public Action OnAnimationDone;
         void AnimationDone()
         {
             doneEventTransition.TransitionCheck();
+            OnAnimationDone?.Invoke();
             // doneEventTransition.EventReceived("AnimationDone");
         }
+        
 
         bool NoDoneEventTransition()
         {

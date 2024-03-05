@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
 using RCGSetting;
@@ -56,6 +57,13 @@ public static class AbstractConditionCompExtension
 //FIXME: 關掉condition節點算什麼？
 public abstract class AbstractConditionComp : MonoBehaviour
 {
+    // public Action OnConditionChanged; //要用這個？還是用polling就好了
+    //直接用interface往上叫好像不錯？
+    private bool _isConditionChanged = false;
+
+    //用類似statData 檢查dirty來決定要不要重新檢查condition
+    public bool IsDirty => _isConditionChanged;
+    
     public bool FinalResultInverted = false;
     protected abstract bool isValid { get; }
 

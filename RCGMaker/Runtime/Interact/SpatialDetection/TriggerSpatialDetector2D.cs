@@ -1,16 +1,27 @@
 using System;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 
 namespace RCGMaker.Core.Detection
 {
     public class TriggerSpatialDetector2D : SpatialDetector
     {
-        private void OnCollisionEnter2D(Collision2D other)
+        [PreviewInInspector] [Auto] Collider2D _collider;
+
+        private void OnTriggerEnter2D(Collider2D other)
         {
+            OnSpatialEnter(other.gameObject);
         }
 
-        private void OnCollisionExit2D(Collision2D other)
+        private void OnTriggerExit2D(Collider2D other)
         {
+            OnSpatialExit(other.gameObject);
+        }
+
+
+        protected override void SetLayerOverride()
+        {
+            _collider.includeLayers = hittingLayer;
         }
     }
 }

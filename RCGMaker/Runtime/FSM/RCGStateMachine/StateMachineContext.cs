@@ -22,14 +22,16 @@ namespace RCGMaker.Core
         {
             return GetComponentsInChildren<TState>();
         }
-        
+
+        // [HideFromSerialization]
+        [NonSerialized]
         public StateMachine<T> fsm;
 
-        private void OnValidate()
-        {
-            if(startState == null)
-                Debug.LogError("為什麼沒有StartState?",gameObject);
-        }
+        // private void OnValidate()
+        // {
+        //     if(startState == null)
+        //         Debug.LogError("為什麼沒有StartState?",gameObject);
+        // }
 
         protected virtual void Awake()
         {
