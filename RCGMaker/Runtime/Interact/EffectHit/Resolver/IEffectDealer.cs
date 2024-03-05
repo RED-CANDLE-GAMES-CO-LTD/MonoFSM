@@ -46,13 +46,12 @@ public interface IEffectDealer
     // void OnHitEnter(IEffectHitData data);
     // void OnHitStay(IEffectHitData data);
     // void OnHitExit(IEffectHitData data);
-    IEffectType getEffectType { get; }
+    // IEffectType getEffectType { get; }
     bool CanHitReceiver(IEffectReceiver receiver);
 }
 
 public interface IEffectReceiver
 {
-    IEffectType getEffectType { get; }
     void EffectHitEnter(IEffectHitData data);
     // void OnHitStay(IEffectHitData data);
     void OnHitExit(IEffectHitData data);

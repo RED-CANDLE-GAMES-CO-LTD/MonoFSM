@@ -21,7 +21,7 @@ namespace RCGMaker.Core.Detection
 
         protected override void SetLayerOverride()
         {
-            _collider.includeLayers = hittingLayer;
+            _collider.includeLayers = HittingLayer;
         }
     }
 }

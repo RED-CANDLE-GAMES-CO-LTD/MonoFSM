@@ -2,22 +2,27 @@ using System;
 using RCGMaker.Runtime.Interact.EffectHit;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace RCGMaker.Core.Detection
 {
-    //自己要在Detector的layer, 看能打什麼
+    
     public abstract class SpatialDetector : MonoBehaviour, IDefaultSerializable
     {
         [ShowInInspector] [AutoChildren] private GeneralEffectDealer[] dealers;
 
-        [CustomSerializable] [ShowInInspector] [OnValueChanged(nameof(SetLayerOverride))]
-        public LayerMask hittingLayer; //這個悲劇了...有些property的string是錯的
+        //GameObject必定要在Detector的layer
+        [FormerlySerializedAs("hittingLayer")]
+        [CustomSerializable]
+        [ShowInInspector]
+        [OnValueChanged(nameof(SetLayerOverride))]
+        public LayerMask HittingLayer;
 
         [Button]
         void SerializeTest()
         {
             //太廢了吧...
-            var result = JsonUtility.ToJson(hittingLayer);
+            var result = JsonUtility.ToJson(HittingLayer);
             Debug.Log(result);
         }
 
@@ -26,7 +31,7 @@ namespace RCGMaker.Core.Detection
         protected void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
         {
             //理論上不該打到別的東西，layer就擋掉了才對
-            if (!other.TryGetComponent<GeneralEffectCollider>(out var effectCollider))
+            if (!other.TryGetComponent<SpatialDetectable>(out var effectCollider))
             {
                 Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer);
                 return;
@@ -47,7 +52,7 @@ namespace RCGMaker.Core.Detection
 
         protected void OnSpatialExit(GameObject other)
         {
-            if (!other.TryGetComponent<GeneralEffectCollider>(out var effectCollider))
+            if (!other.TryGetComponent<SpatialDetectable>(out var effectCollider))
             {
                 Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer);
                 return;

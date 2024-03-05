@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.Interact.EffectHit
 {
-    public class GeneralEffectDealer : EffectResolver, IDefaultSerializable, IEffectDealer
+    public class GeneralEffectDealer : EffectResolver, IEffectDealer
     {
         public bool CanHitReceiver(IEffectReceiver receiver)
         {
-            return receiver.getEffectType == getEffectType;
+            return ((GeneralEffectReceiver)receiver).EffectType == EffectType;
         }
 
 

@@ -6,6 +6,12 @@ using UnityEngine;
 #if UNITY_EDITOR
 public static class AnimatorHelper
 {
+    /// <summary>
+    /// Editor Code to get all the state names of the animator
+    /// </summary>
+    /// <param name="animator"></param>
+    /// <param name="stateLayer"></param>
+    /// <returns></returns>
     public static IEnumerable<string> GetAnimatorStateNames(this Animator animator, int stateLayer)
     {
         var ac = GetAnimatorController(animator);

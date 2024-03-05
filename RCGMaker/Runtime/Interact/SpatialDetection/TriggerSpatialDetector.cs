@@ -23,7 +23,7 @@ namespace RCGMaker.Core.Detection
         protected override void SetLayerOverride()
         {
             //FIXME:
-            _collider.includeLayers = hittingLayer;
+            _collider.includeLayers = HittingLayer;
         }
     }
 }

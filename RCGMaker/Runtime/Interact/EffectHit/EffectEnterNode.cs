@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.Interact.EffectHit
 {
-    public class EffectEnterNode : MonoBehaviour, IEffectReceivedHandler
+    public class EffectEnterNode : MonoBehaviour, IEffectReceivedHandler, IDefaultSerializable
     {
         [PreviewInInspector] [AutoChildren] IRCGArgEventReceiver[] _effectReceivedProcessor;
 
