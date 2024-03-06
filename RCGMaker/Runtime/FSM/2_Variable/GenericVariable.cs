@@ -13,26 +13,13 @@ using UnityEngine.Events;
 
 //現在根本還沒做監聽，是用condition做polling
 [Searchable]
-public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator,
+public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator,
     IGameStateOwner, IDefaultSerializable
     where TScriptableData : AbstractScriptableData<TField, TType> where TField : FlagField<TType>, new()
 {
+    //想要直接選一個field就拿他的值，應該抽出去做成一個新東西不要放在GenericVariable裡面
+    //VariableFloat應該獨立寫？這樣就一定可以有一個最好的abstract class
     
-    
-    [TabGroup("再說")] public GameFlagBase mainData;
-
-    [TabGroup("再說")] [ShowIf(nameof(mainData))] [ValueDropdown(nameof(GetAllFlagField))]
-    public string fieldOfMainData;
-
-    public TField fieldOfMainDataValue => mainData.FindField<TType>(fieldOfMainData) as TField;
-
-    private IEnumerable<string> GetAllFlagField()
-    {
-        if (mainData == null) yield break;
-        var fields = mainData.GetAllFlagFieldNames<TField>();
-        foreach (var field in fields)
-            yield return field;
-    }
     
     protected virtual void OnValidate()
     {
@@ -109,7 +96,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         //[]:已經在Auto那邊用OnBeforeSerialize全部做掉了
     }
 
-    [BoxGroup("GameState")]
+    [TabGroup("GameState")]
     [LabelText("自動生成")]
     [ShowInInspector]
     private bool IsAutoGen //TODO: IsAutoGen?
@@ -151,7 +138,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 #endif
 
     //TODO: 可以直接弄到drawer上？
-    [BoxGroup("GameState")]
+    [TabGroup("GameState")]
     [HideInInlineEditors]
     [EnableIf("IsSuggestingDesignTag")]
     [HideIf("IsAutoGen")] //[]: 已經裝了的話要藏嗎？ 還是應該要透明
@@ -161,7 +148,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         this.TryGetCompOrAdd<AutoGenGameState>();
     }
 
-    [BoxGroup("GameState")]
+    [TabGroup("GameState")]
     [HideIf("IsCheckingPrefabKind")] //[]: 已經裝了的話要藏嗎？
     [EnableIf("IsSuggestingDesignTag")]
     [Button("[Prefab設計]Add GameState Require Tag")]
@@ -185,22 +172,22 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     //FIXME: 這個可以cache嗎...
 #endif
 
-    // [ShowDrawerChain]
-    [BoxGroup("GameState")]
+    [TabGroup("Data")] [InlineField] [HideIf("VariableSource")] [HideIf("scriptableData")] [SerializeField]
+    protected TField localField; // = new();
 
+    //這個值會被蓋掉???
+
+    [TabGroup("Data")] public TField Field => ScriptableData ? ScriptableData.field : localField;
     //給非Auto的人看的，要綁，Auto自己就會生，就結束了
+    
     [InfoBox("需要綁GameState!", InfoMessageType.Error, "IsGameStateRequiredButMissing")]
-    // [HideIf("VariableSource")]
-
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
     // [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
+    [TabGroup("Data")]
     [Header("存檔")]
     [GameState]
     [InlineEditor()]
-    [EnableIf("PrefabKindMatchTagCheck")]
-    // [DisableIf("IsAutoGen")]
-    //FIXME: IsSceneAutoGen, PrefabMustGen?
-    //TODO: 這個可以自動拿掉然後修起來嗎？
+    [EnableIf(nameof(PrefabKindMatchTagCheck))]
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, "IsGameStateSaveIDNotMatch")]
     [InfoBox("GameState的類型不對", InfoMessageType.Error, "IsGameStateTypeNotMatch")]
     // [ValidateInput("AutoGenCheck", "自動生成檢查失敗")]
@@ -243,20 +230,13 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
 
     public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
 
+  
     
-    
-    // [HideInInspector]
-    // public UnityEvent ValueChangedEvent;
-    [HideIf("VariableSource")] [HideIf("scriptableData")] [SerializeField]
-    protected TField localField; // = new();
-    //這個值會被蓋掉???
-
-    public TField Field => ScriptableData ? ScriptableData.field : localField;
-
-    
-    // Start is called before the first frame update
     [AutoChildren(false)] private AbstractVariableModifier<TType>[] modifiers;
+//會有external modifier...
 
+    [TabGroup("Data"), PreviewInInspector] public virtual TType FinalValue => Value;
+    
     [ShowInPlayMode]
     public TType Value
     {
@@ -266,7 +246,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
             
             if (VariableSource != null)
             {
-                var v = VariableSource as VariableType<TScriptableData, TField, TType>;
+                var v = VariableSource as GenericVariable<TScriptableData, TField, TType>;
                 tempValue = v.Value;
             }
             else if (ScriptableData != null)
@@ -382,6 +362,7 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
         return -1;
     }
 
+    //FIXME 不該用這個？
     [HideInInlineEditors] public UnityEvent<TType> OnValueChanged = new();
 
     public void Validate(SelfValidationResult result)
@@ -399,6 +380,20 @@ public class VariableType<TScriptableData, TField, TType> : AbstractVariable, IR
     }
 
     public override GameFlagBase FinalData => mainData ? mainData : ScriptableData;
+    [TabGroup("再說")] public GameFlagBase mainData;
+
+    [TabGroup("再說")] [ShowIf(nameof(mainData))] [ValueDropdown(nameof(GetAllFlagField))]
+    public string fieldOfMainData;
+
+    public TField fieldOfMainDataValue => mainData.FindField<TType>(fieldOfMainData) as TField;
+
+    private IEnumerable<string> GetAllFlagField()
+    {
+        if (mainData == null) yield break;
+        var fields = mainData.GetAllFlagFieldNames<TField>();
+        foreach (var field in fields)
+            yield return field;
+    }
     public override Type FinalDataType => typeof(TScriptableData);
 
     public string Serialize()
@@ -437,5 +432,5 @@ public abstract class AbstractVariable : MonoBehaviour, IGuidEntity
     //FIXME: 這個是錯的，要改成用scriptableData的 (flagFlied的？
    // public UnityEvent ValueChangedEvent => valueChangedEvent;
 
-    [HideInInlineEditors] public UnityEvent valueChangedEvent;
+   // [HideInInlineEditors] public UnityEvent valueChangedEvent;
 }

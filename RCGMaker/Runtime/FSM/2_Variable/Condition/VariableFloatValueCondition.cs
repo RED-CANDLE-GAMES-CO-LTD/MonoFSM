@@ -2,7 +2,7 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public enum Operator
+public enum Operator //FIXME: equality operator
 {
     Equals, //==
     NotEqual, // !=

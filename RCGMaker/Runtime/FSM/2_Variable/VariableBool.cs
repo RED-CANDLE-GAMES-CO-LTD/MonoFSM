@@ -17,7 +17,7 @@ public interface IVariableBoolProvider
     public ScriptableDataBool ScriptableData { get; }
 }
 
-public class VariableBool : VariableType<ScriptableDataBool, FlagFieldBool, bool>, ICondition, IVariableBoolProvider
+public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition, IVariableBoolProvider
 {
     public ScriptableDataBool boolFlag =>scriptableData; // scriptableData;
 

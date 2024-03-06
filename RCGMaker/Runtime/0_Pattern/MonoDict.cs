@@ -9,17 +9,29 @@ namespace RCGMaker.Core
     
     public abstract class MonoDict<T, U> : MonoBehaviour, IResetter
     {
+        //現在是一個runtime dict...有點爛
+        public U this[T key]
+        {
+            get => _dict.GetValueOrDefault(key);
+            set => _dict[key] = value;
+        }
         // [ShowInInspector] protected IEnumerable<U> values => _dict.Values;
         // [ShowInInspector] private List<U> items = new();
         protected readonly Dictionary<T, U> _dict = new();
         protected readonly List<T> _tempRemoveList = new();
         public bool Contains(T key)
         {
+            if (key == null)
+                return false;
             return _dict.ContainsKey(key);
         }
 
         public virtual void Add(T key, U value)
         {
+            if (Contains(key))
+                return;
+            if (key == null)
+                return;
             _dict.Add(key, value);
             enabled = true;
         }

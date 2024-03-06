@@ -48,6 +48,7 @@ public interface IEffectDealer
     // void OnHitExit(IEffectHitData data);
     // IEffectType getEffectType { get; }
     bool CanHitReceiver(IEffectReceiver receiver);
+    float FinalValue { get; }
 }
 
 public interface IEffectReceiver
