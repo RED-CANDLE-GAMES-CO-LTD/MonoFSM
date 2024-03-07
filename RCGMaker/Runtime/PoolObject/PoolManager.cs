@@ -170,12 +170,12 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public static void HandleGameLevelStart(GameObject level)
     {
-        var ILevelStarts = new List<ILevelStart>(level.GetComponentsInChildren<ILevelStart>(true));
+        var levelStarts = new List<ILevelStart>(level.GetComponentsInChildren<ILevelStart>(true));
 
         //巢狀RCGArgEventBinder  要從下面往上組
         // ILevelStarts.Reverse();
 
-        foreach (var item in ILevelStarts)
+        foreach (var item in levelStarts)
         {
             if (item == null)
                 continue;
