@@ -18,7 +18,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         [PreviewInInspector] [AutoChildren] VariableStatModifier[] LocalStatModifiers; //原本就放在下面..這是不是反而不會有太多用處
 
         ValueChangedListener<float> listener;
-        [PreviewInInspector] List<VariableStatModifier> statModifiers;
+        [PreviewInInspector] List<VariableStatModifier> statModifiers = new List<VariableStatModifier>();
 
         protected override void Awake()
         {

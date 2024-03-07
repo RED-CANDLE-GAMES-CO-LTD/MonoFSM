@@ -43,8 +43,12 @@ public interface IDefaultSerializable
 
 [Searchable]
 public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity,
-    IDefaultSerializable
+    IDefaultSerializable, IDrawInHierarchy, IDrawDetail
 {
+    public Color BackgroundColor => HierarchyColor.CurrentStateColor;
+    public bool IsFullRect => false;
+
+    public bool IsDraw => Application.isPlaying && context && context.currentStateType == stateType;
     // [HideInInspector] [Required] public new GeneralState stateType => this;
 
     [AutoChildren(false)] private IStateEnter[] _stateEnters;
@@ -105,7 +109,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateEnter()
     {
         base.OnStateEnter();
-        Debug.Log("OnStateEnter");
+        // Debug.Log("OnStateEnter");
         OnStateEnterAction?.Invoke();
         
         foreach (var e in _stateEnters)
@@ -366,13 +370,5 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         }
     }
 
-    public string Serialize()
-    {
-        return typeof(GeneralState).ToString();
-    }
-
-    public void Deserialize(string data)
-    {
-        throw new NotImplementedException();
-    }
+   
 }

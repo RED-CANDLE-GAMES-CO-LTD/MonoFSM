@@ -114,13 +114,37 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             }
             catch (Exception e)
             {
-                if (item is MonoBehaviour)
-                    Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                if (item is MonoBehaviour behaviour)
+                    Debug.LogError(e.StackTrace, behaviour);
                 else
                     Debug.LogError(e.StackTrace);
             }
         }
     }
+
+    public static void HandleEnterLevelReset(GameObject level)
+    {
+        var ILevelResets = new List<IResetter>(level.GetComponentsInChildren<IResetter>(true));
+        // ILevelAwakes.Reverse();
+        foreach (var item in ILevelResets)
+        {
+            if (item == null)
+                continue;
+            try
+            {
+                item.EnterLevelReset();
+            }
+            catch (Exception e)
+            {
+                if (item is MonoBehaviour behaviour)
+                    Debug.LogError(e.StackTrace, behaviour);
+                else
+                    Debug.LogError(e.StackTrace);
+            }
+        }
+    }
+    
+    
 
     public static void HandleGameLevelAwakeReverse(GameObject level)
     {
@@ -488,7 +512,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             }
         }
 
-        Debug.Log("[PoolDictionary]   PoolDictionary.Clear()");
+        // Debug.Log("[PoolDictionary]   PoolDictionary.Clear()");
         PoolDictionary.Clear();
 
         //重建Dictionary

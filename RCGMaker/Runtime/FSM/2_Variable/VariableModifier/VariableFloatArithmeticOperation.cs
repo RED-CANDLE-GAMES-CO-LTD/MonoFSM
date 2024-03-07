@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
+    //這個應該直接用abstract class?
     public class VariableFloatArithmeticOperation : MonoBehaviour, IVariableFloatOperation
     {
         [SerializeField] ArithmeticOperator Operator;

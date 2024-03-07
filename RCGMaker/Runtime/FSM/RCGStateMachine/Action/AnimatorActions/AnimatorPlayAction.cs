@@ -36,6 +36,8 @@ namespace RCGFSM.Animation
         IEnumerable<Animator> GetAnimatorsInChildren()
         {
             var provider = GetComponentInParent<IAnimatorProvider>();
+            if (provider == null)
+                return null;
             return provider.ChildAnimators;
         }
         
@@ -547,6 +549,11 @@ namespace RCGFSM.Animation
 #if UNITY_EDITOR
                     if (_stateHashToName.Count == 0)
                         BuildStateHashToName();
+                    if (_stateHashToName.ContainsKey(StateHash) == false)
+                    {
+                        Debug.LogError("AnimatorPlayAction: 沒有這個state:" + StateName + ",hash:" + StateHash, gameObject);
+                        return false;
+                    }
                     var shouldPlayStateName = _stateHashToName[StateHash];
                     var playingStateName = _stateHashToName[stateInfo.shortNameHash];
                     if (ClipLength == -1)

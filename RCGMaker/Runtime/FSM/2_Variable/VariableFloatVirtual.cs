@@ -1,9 +1,17 @@
+using System;
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
+    [InlineProperty]
+    [Serializable]
+    public class FloatValueSource : InterfaceMonoRef<StateMachineOwner, IFloatValue>, IFloatValue
+    {
+        public float FinalValue => ((IFloatValue)ValueSource).FinalValue;
+    }
     public interface IFloatValue
     {
         float FinalValue { get; }

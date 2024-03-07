@@ -183,7 +183,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
             transform1.localPosition = initPosition;
             //在levelreset的時候有call這個應該就對了，讓物理跟上transform
             // Physics2D.SyncTransforms();
-            Debug.Log("[PoolObjectResetAndStart] transform Reset", gameObject);
+            // Debug.Log("[PoolObjectResetAndStart] transform Reset", gameObject);
             transform1.localRotation = initRotation;
 
             transform1.localScale = initlocalScale;

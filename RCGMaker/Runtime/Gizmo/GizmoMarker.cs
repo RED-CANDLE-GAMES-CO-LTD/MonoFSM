@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-public class GizmoMarker : MonoBehaviour
+public class GizmoMarker : MonoBehaviour, IDrawInHierarchy
 {
 #if UNITY_EDITOR
     public enum GizmoShapeType
@@ -103,4 +103,6 @@ public class GizmoMarker : MonoBehaviour
     //     transform.position = Handles.PositionHandle(transform.position, transform.rotation);
     // }
 #endif
+    public Color BackgroundColor => new(color.r, color.g, color.b, 0.2f);
+    public bool IsDraw => true;
 }
