@@ -70,6 +70,7 @@ public abstract class SingletonBehaviour<T> : MonoBehaviour where T : MonoBehavi
         return ApplicationIsQuiting == false && DestroyAllGameObjects.DestroyingAll == false && _isInstanceCreated ;
     }
 
+    public static bool IsGameStopped => !IsAvailable();
 
     public static bool destroyed = false;
 
