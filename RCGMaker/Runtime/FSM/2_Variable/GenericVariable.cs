@@ -61,9 +61,10 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
         return true;
     }
-#if UNITY_EDITOR
+
     private bool PrefabKindMatchTagCheck()
     {
+#if UNITY_EDITOR
         if (myPrefabKind == PrefabKind.NonPrefabInstance) //場景上的非prefab給過
             return true;
         
@@ -72,9 +73,10 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
         if (tag == null) return false; //[]: 該給過嗎？ 不該，要不然prefab會很吵
         if ((tag.prefabKind & myPrefabKind) != 0) return true;
+#endif
         return false; //不是那個環境就不用顯示了
     }
-#endif
+
     private bool IsCheckingPrefabKind => GetComponent<GameStateRequireAtPrefabKind>() != null;
 
     // [BoxGroup("GameState")]
@@ -187,9 +189,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     [Header("存檔")]
     [GameState]
     [InlineEditor()]
-#if UNITY_EDITOR
     [EnableIf(nameof(PrefabKindMatchTagCheck))]
-#endif
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, "IsGameStateSaveIDNotMatch")]
     [InfoBox("GameState的類型不對", InfoMessageType.Error, "IsGameStateTypeNotMatch")]
     // [ValidateInput("AutoGenCheck", "自動生成檢查失敗")]
