@@ -355,7 +355,7 @@ namespace RCGFSM.Animation
         protected override void OnStateEnterImplement()
         {
             // Debug.Log("Play Animation State");
-
+            HasAnimationPlaySuccess = false;
             if (animator == null)
             {
                 Debug.LogError("animator is null" + _fsmOwner.name, this);
@@ -531,6 +531,8 @@ namespace RCGFSM.Animation
         {
             return animator.GetCurrentAnimatorStateInfo(layer).shortNameHash == StateHash;
         }
+
+        private bool HasAnimationPlaySuccess = false;
         public bool IsPlayingCurrentClip()
         {
             var layer = doneEventLayer;
@@ -560,13 +562,18 @@ namespace RCGFSM.Animation
                     {
                         Debug.LogError("Null Clip of State: ClipLength == -1", this);
                     }
-                    else
+
+                    else if (HasAnimationPlaySuccess)
+                    {
                         Debug.LogError(
-                        "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
-                        shouldPlayStateName +
-                        ",playingStateName: " + playingStateName, gameObject);
+                            "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
+                            shouldPlayStateName +
+                            ", playing: " + playingStateName + ", time:" + stateInfo.normalizedTime, gameObject);
+                        Debug.Break();
+                    }
+                        
 #else
-                        Debug.LogError("AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: "+this._fsmOwner.name, gameObject);
+                        // Debug.LogError("AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: "+this._fsmOwner.name, gameObject);
 #endif
                     
           
@@ -578,7 +585,12 @@ namespace RCGFSM.Animation
                 return false;
             }
 
-            return IsStatePlaying(layer);
+            var result = IsStatePlaying(layer);
+
+            //這裡有小髒髒狀態
+            if (result)
+                HasAnimationPlaySuccess = true;
+            return result;
         }
 
         
@@ -605,11 +617,25 @@ namespace RCGFSM.Animation
             }
 
             //FIXME: 完全知道動畫多久，可以預判播完的時間然後去下一個state，就可以functional?
-            //包子 Cross Fade 不能一直跑 （議會小電梯） 
+            //包子 Cross Fade 不能一直跑 （議會小電梯）    
             if (animator.isActiveAndEnabled && animatorEnterCrossFade <= 0)
                 animator.Play(StateHash, stateLayer);
+            else
+            {
+                return;
+            }
+            
+            
 
             var info = animator.GetCurrentAnimatorStateInfo(doneEventLayer);
+
+            // if (!IsPlayingCurrentClip())
+            // {
+            //     animator.Play(StateHash, stateLayer, runtimeStartNormalizedTimeOffset);
+            //     animator.Update(0);
+            // }
+
+            //FIXME: 要animator.Update(0)?
             // UnityEngine.Debug.Log("Current Animator State length:" + info.length + ",normalizedTime:" +
             //                       info.normalizedTime + "," +
             //                       info.shortNameHash);

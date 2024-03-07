@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -50,6 +51,10 @@ namespace RCGMaker.Core
         //     public UnityEvent<Collision> StateCollisionEnterEvent;
         // }
 
+        private void OnEnable()
+        {
+            statusTimer = 0;
+        }
         // public StateEvents stateEvents;
 
         public virtual void OnStateEnter()
