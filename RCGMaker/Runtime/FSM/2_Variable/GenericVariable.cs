@@ -187,7 +187,9 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     [Header("存檔")]
     [GameState]
     [InlineEditor()]
+#if UNITY_EDITOR
     [EnableIf(nameof(PrefabKindMatchTagCheck))]
+#endif
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, "IsGameStateSaveIDNotMatch")]
     [InfoBox("GameState的類型不對", InfoMessageType.Error, "IsGameStateTypeNotMatch")]
     // [ValidateInput("AutoGenCheck", "自動生成檢查失敗")]
