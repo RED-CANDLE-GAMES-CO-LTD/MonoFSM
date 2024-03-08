@@ -71,7 +71,8 @@ public static class MonoExtensionLogger
 
         if (isLogging)
         {
-            var result = ZString.Concat("[", provider, go.GetInstanceID(), "]\n", ZString.Join(",", s1));
+            var result = ZString.Concat("[", provider, provider.GetInstanceID(), ",", go.GetInstanceID(), "]\n",
+                ZString.Join(",", s1));
             FinalLog(go, result, provider);
         }
     }
