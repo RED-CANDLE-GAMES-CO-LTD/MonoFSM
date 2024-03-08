@@ -47,7 +47,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 {
     public Color BackgroundColor => HierarchyColor.CurrentStateColor;
     public bool IsFullRect => false;
-
+    public string DrawCustomIcon => "";
+    
     public bool IsDraw => Application.isPlaying && context && context.currentStateType == stateType;
     // [HideInInspector] [Required] public new GeneralState stateType => this;
 

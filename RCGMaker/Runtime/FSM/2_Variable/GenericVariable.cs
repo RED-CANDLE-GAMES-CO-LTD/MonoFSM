@@ -66,7 +66,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     {
 #if UNITY_EDITOR
         if (myPrefabKind == PrefabKind.NonPrefabInstance) //場景上的非prefab給過
-            return true;
+            return false;
         
         
         var tag = GetComponent<GameStateRequireAtPrefabKind>();
@@ -349,7 +349,12 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     {
         // this.Log("[VariableType] Before local Reset" + localField.CurrentValue, gameObject);
         //Scene裡的物件沒有要存檔的必要，重置
-        localField.Init(TestModeGameFlag.Instance.mode, this);
+        if (TestModeGameFlag.Instance)
+            localField.Init(TestModeGameFlag.Instance.mode, this);
+        else
+        {
+            localField.Init(TestMode.EditorDevelopment, this);
+        }
         localField.ResetToDefault();
         // this.Log("[VariableType] After local Reset" + localField.CurrentValue, gameObject);
     }

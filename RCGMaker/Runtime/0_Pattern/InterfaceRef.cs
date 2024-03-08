@@ -22,6 +22,8 @@ namespace RCGMaker.Core
         [HideLabel]
         protected MonoBehaviour ValueSource;
 
+        public string Name => ValueSource.name.Replace("[Variable]", "");
+
         IEnumerable<MonoBehaviour> GetComps()
         {
             if (owner == null)
@@ -32,7 +34,7 @@ namespace RCGMaker.Core
         }
 
         //避免serialization, 讓drawer看到的時候暫時拿到
-        [ShowInInspector] [HideIf("@true")] [AutoParent]
+        [HideIf("@true")] [ShowInInspector] [AutoParent]
         TParent owner;
         // public T Source => ValueSource;
     }

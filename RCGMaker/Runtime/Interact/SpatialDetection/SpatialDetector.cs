@@ -33,7 +33,7 @@ namespace RCGMaker.Core.Detection
             //理論上不該打到別的東西，layer就擋掉了才對
             if (!other.TryGetComponent<SpatialDetectable>(out var effectCollider))
             {
-                Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer);
+                Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer, this);
                 return;
             }
 

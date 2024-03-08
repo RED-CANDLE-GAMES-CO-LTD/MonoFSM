@@ -126,10 +126,7 @@ MonoBehaviour:
   statusTimer: 0
   StateCoolDown: 0
   EnterTimeOffset: 0
-  _position: {x: 0, y: 0}
   CanSelfTransition: 0
-  transitions:
-  - {fileID: 2081340274066303340}
 --- !u!1 &5886484347124044577
 GameObject:
   m_ObjectHideFlags: 0
@@ -176,7 +173,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   conditions: []
-  validTransition: {fileID: 2081340274066303340}
 --- !u!114 &2081340274066303340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -294,7 +290,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07dd058d9affb4c11aadc348494e7081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  transitions: []
 --- !u!1 &7069783657977477261
 GameObject:
   m_ObjectHideFlags: 0
@@ -529,9 +524,7 @@ MonoBehaviour:
   statusTimer: 0
   StateCoolDown: 0
   EnterTimeOffset: 0
-  _position: {x: 0, y: 0}
   CanSelfTransition: 0
-  transitions: []
 --- !u!1 &8231131841708531578
 GameObject:
   m_ObjectHideFlags: 0
@@ -639,7 +632,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mask: 2
-  IsShowThis: 0
+  IsShowThis: 1
   IsShowChildren: 1
 --- !u!1 &8231131842213500516
 GameObject:

@@ -34,6 +34,7 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
     
     [ValueDropdown(nameof(FindStates))]
     [Required]
+    [Header("Go To")]
     public GeneralState target;
 
     // private void OnValidate()

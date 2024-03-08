@@ -6,16 +6,7 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
-    [InlineProperty]
-    [Serializable]
-    public class FloatValueSource : InterfaceMonoRef<StateMachineOwner, IFloatValue>, IFloatValue
-    {
-        public float FinalValue => ((IFloatValue)ValueSource).FinalValue;
-    }
-    public interface IFloatValue
-    {
-        float FinalValue { get; }
-    }
+    
 
     //FIXME: 玩惹九日有用到...
     public class VariableFloatVirtual : VariableFloat //這個是不是沒有屁用, 還是純屬拿來rebind?

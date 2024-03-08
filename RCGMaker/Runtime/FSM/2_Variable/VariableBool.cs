@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using mixpanel;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.FSM._2_Variable;
 // using mixpanel;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -17,7 +18,8 @@ public interface IVariableBoolProvider
     public ScriptableDataBool ScriptableData { get; }
 }
 
-public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition, IVariableBoolProvider
+public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition, IVariableBoolProvider,
+    IBoolValue
 {
     public ScriptableDataBool boolFlag =>scriptableData; // scriptableData;
 

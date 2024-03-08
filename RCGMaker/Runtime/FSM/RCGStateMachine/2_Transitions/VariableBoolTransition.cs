@@ -15,8 +15,11 @@ public class VariableBoolTransition : AbstractStateTransition
         return "[Transition] =>" + Target.name + " when " + variableNode.name + " is " + TargetValue;
     }
 
-    [Required] public VariableBool variableNode;
+    [Header("When")] [PropertyOrder(-1)] [Required]
+    public VariableBool variableNode;
 
+
+    [Header("Equals To")] [PropertyOrder(-1)] 
     public bool TargetValue;
     // public float delay;
     // private Tuple<float> _delayParam;
