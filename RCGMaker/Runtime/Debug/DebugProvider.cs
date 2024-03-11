@@ -11,7 +11,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
-public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay//往上找
+public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay, IOverrideHierarchyIcon //往上找
 {
     public void Awake()
     {
@@ -54,6 +54,9 @@ public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay//往上找
             logEntries.Add(logEntry);
             // }
     }
+
+    public string IconName => "console.infoicon@2x";
+    public bool IsDrawingIcon => IsLogInChildren;
 }
 
 [Serializable]

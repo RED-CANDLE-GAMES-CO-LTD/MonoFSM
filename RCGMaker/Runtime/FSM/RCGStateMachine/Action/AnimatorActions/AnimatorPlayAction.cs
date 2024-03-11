@@ -409,6 +409,7 @@ namespace RCGFSM.Animation
                 animator.CrossFade(StateHash, animatorEnterCrossFade, stateLayer, runtimeStartNormalizedTimeOffset);
             }
 
+            //FIXME: 不要update 0就不會造成這個onenable了？
             animator.Update(0);
             // animator.Update(RCGTime.deltaTime);
             // Debug.Break();
