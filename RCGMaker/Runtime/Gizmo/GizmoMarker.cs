@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-public class GizmoMarker : MonoBehaviour, IDrawInHierarchy
+public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround
 {
 #if UNITY_EDITOR
     public enum GizmoShapeType
@@ -113,6 +113,7 @@ public class GizmoMarker : MonoBehaviour, IDrawInHierarchy
 #endif
         }
     }
-    public bool IsDraw => true;
+
+    public bool IsDrawBackground => true;
 
 }

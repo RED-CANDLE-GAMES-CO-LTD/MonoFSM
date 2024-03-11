@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RCGMaker.Runtime.FSM._2_Variable;
+using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ namespace RCGMaker.Core
     /// <typeparam name="TParent"></typeparam>
     /// <typeparam name="TInterface"></typeparam>
     [Serializable]
-    public abstract class InterfaceMonoRef<TParent, TInterface>
+    public abstract class InterfaceMonoRef<TParent, TInterface> : IName
         where TParent : MonoBehaviour
     {
         [SerializeField]
@@ -22,7 +23,7 @@ namespace RCGMaker.Core
         [HideLabel]
         protected MonoBehaviour ValueSource;
 
-        public string Name => ValueSource.name.Replace("[Variable]", "");
+        public string Name => ValueSource.name.Replace("[Variable]", "").TrimStart(' ');
 
         IEnumerable<MonoBehaviour> GetComps()
         {

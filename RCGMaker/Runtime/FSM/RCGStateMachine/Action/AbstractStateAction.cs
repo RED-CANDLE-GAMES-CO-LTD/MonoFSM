@@ -23,7 +23,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [AutoParent()] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true);
 
     // #if UNITY_EDITOR
-    [HideFromSerialization]
+    [HideFromFSMExport]
     [PropertyOrder(1)]
     [TabGroup("Condition", false, 1)]
     [Component(typeof(AbstractConditionComp), AddComponentAt.Children, "[Condition]")]

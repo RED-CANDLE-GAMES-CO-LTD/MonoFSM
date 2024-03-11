@@ -10,9 +10,11 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public GeneralEffectType EffectType;
         // public IEffectType getEffectType => EffectType;
 
+        [Component]
         [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
         protected EffectEnterNode _enterNode;
 
+        [Component]
         [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
         protected EffectExitNode _exitNode;
     }

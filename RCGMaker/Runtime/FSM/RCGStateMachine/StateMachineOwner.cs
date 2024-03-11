@@ -4,7 +4,7 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class HideFromSerializationAttribute : PropertyAttribute
+public class HideFromFSMExportAttribute : PropertyAttribute
 {
 }
 
@@ -16,11 +16,11 @@ public class CustomSerializableAttribute : PropertyAttribute
 public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable
 {
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
-
+    [PreviewInInspector] [AutoChildren] private GeneralFSMContext[] fsmContexts;
     public GeneralFSMContext FsmContext =>
         fsmContext ? fsmContext : fsmContext = GetComponentInChildren<GeneralFSMContext>();
 
-    [HideFromSerialization]
+    [HideFromFSMExport]
     [Title("超連結，只有prefab可以改")] [InlineEditor] [DisallowModificationsIn(PrefabKind.NonPrefabInstance)]
     public List<Component> quickFindLinks;
 

@@ -112,7 +112,8 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
     }
 
     [AutoParent] private RCGCullingGroup _cullingGroup;
-    
+
+    //FIXME: 不該空降call, 只能在系統特定時間點
     public bool TransitionCheck(float timeOffset = 0)
     {
 

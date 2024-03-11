@@ -4,7 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
 
-public class RCGVariableFolder : MonoBehaviour
+public abstract class AbstractFolder : MonoBehaviour, IOverrideHierarchyIcon
+{
+    public string IconName => "Folder Icon";
+    public bool IsDrawingIcon => true;
+}
+
+public class RCGVariableFolder : AbstractFolder
 {
     [ReadOnly] [Component(typeof(AbstractVariable), AddComponentAt.Children, "[Variable]")]
     public AbstractVariable flag;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
@@ -414,7 +415,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     }
 }
 
-public abstract class AbstractVariable : MonoBehaviour, IGuidEntity
+public abstract class AbstractVariable : MonoBehaviour, IGuidEntity, IName
 {
     public abstract GameFlagBase FinalData { get; }
     public abstract Type FinalDataType { get; }
@@ -440,4 +441,5 @@ public abstract class AbstractVariable : MonoBehaviour, IGuidEntity
    // public UnityEvent ValueChangedEvent => valueChangedEvent;
 
    // [HideInInlineEditors] public UnityEvent valueChangedEvent;
+   public string Name => gameObject.name;
 }

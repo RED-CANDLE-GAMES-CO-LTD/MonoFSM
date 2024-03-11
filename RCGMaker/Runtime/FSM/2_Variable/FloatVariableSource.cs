@@ -1,5 +1,6 @@
 using System;
 using RCGMaker.Core;
+using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
 using Sirenix.OdinInspector;
 
 namespace RCGMaker.Runtime.FSM._2_Variable

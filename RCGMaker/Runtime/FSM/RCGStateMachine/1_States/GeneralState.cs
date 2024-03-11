@@ -43,13 +43,13 @@ public interface IDefaultSerializable
 
 [Searchable]
 public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity,
-    IDefaultSerializable, IDrawInHierarchy, IDrawDetail
+    IDefaultSerializable, IDrawHierarchyBackGround, IDrawDetail
 {
-    public Color BackgroundColor => HierarchyColor.CurrentStateColor;
+    public Color BackgroundColor => HierarchyResource.CurrentStateColor;
     public bool IsFullRect => false;
     public string DrawCustomIcon => "";
-    
-    public bool IsDraw => Application.isPlaying && context && context.currentStateType == stateType;
+
+    public bool IsDrawBackground => Application.isPlaying && context && context.currentStateType == stateType;
     // [HideInInspector] [Required] public new GeneralState stateType => this;
 
     [AutoChildren(false)] private IStateEnter[] _stateEnters;
