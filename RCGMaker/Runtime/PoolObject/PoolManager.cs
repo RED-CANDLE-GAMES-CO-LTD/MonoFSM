@@ -863,9 +863,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
             if (OnUseObjs.Contains(obj))
             {
-
-
-
                 obj.BeforeObjectReturnToPool(_poolManager);
                 // if (obj.UnsolvedIssueBeforeDestroy <= 0)
                 // {
@@ -873,21 +870,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 DisabledObjs.Insert(0, obj);
                 obj.transform.SetParent(_poolManager.poolbjects);
                 obj.OnReturnToPool(_poolManager);
-                // }
-                // else //FIXME:應該沒需要了
-                // {
-                //     obj.busy = true;
-                //     // PromiseManager.Instance.MakePromise().AddCondition(() => obj.UnsolvedIssueBeforeDestroy <= 0).OnComlete(() =>
-                //     // {
-                //     OnUseObjs.Remove(obj);
-                //     DisabledObjs.Add(obj);
-                //     obj.transform.SetParent(_poolManager.poolbjects);
-                //     obj.OnReturnToPool(_poolManager);
-                //     obj.busy = false;
-                //     // }).SetOnce();
-                // }
-
-
                 obj.gameObject.SetActive(false);
             }
             else if (DisabledObjs.Contains(obj))
