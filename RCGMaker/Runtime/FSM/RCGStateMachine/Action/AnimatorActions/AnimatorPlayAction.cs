@@ -565,6 +565,12 @@ namespace RCGFSM.Animation
 
                     else if (HasAnimationPlaySuccess)
                     {
+#if UNITY_EDITOR
+                        EditorUtility.DisplayDialog("AnimatorPlayAction",
+                            "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
+                            shouldPlayStateName +
+                            ", playing: " + playingStateName + ", time:" + stateInfo.normalizedTime, "OK");
+#endif
                         Debug.LogError(
                             "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
                             shouldPlayStateName +

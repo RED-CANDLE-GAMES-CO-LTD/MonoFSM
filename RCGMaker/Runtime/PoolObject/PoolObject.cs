@@ -309,11 +309,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
     public void BeforeObjectReturnToPool(PoolManager manager)
     {
-        // if(Log)
-        //     Debug.Log("BeforeObjectReturnToPool:"+this.gameObject.name,this);
-        //
         CheckList();
-
+        ResetAnim();
         for (var i = 0; i < IPoolObjectList.Count; i++)
         {
             try
@@ -334,7 +331,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         // RaisePoolObjectReturnEvent();
         CheckList();
         // needResetAnim = true;
-        ResetAnim();
+        
         destroyTween.Stop();
         if (TryGetComponent<PositionConstraint>(out var constraint))
         {
