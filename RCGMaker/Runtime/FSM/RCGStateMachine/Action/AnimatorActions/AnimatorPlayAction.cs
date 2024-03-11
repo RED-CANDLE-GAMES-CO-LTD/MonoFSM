@@ -627,11 +627,7 @@ namespace RCGFSM.Animation
             //包子 Cross Fade 不能一直跑 （議會小電梯）    
             if (animator.isActiveAndEnabled && animatorEnterCrossFade <= 0)
                 animator.Play(StateHash, stateLayer);
-            else
-            {
-                return;
-            }
-            
+ 
             
 
             var info = animator.GetCurrentAnimatorStateInfo(doneEventLayer);
