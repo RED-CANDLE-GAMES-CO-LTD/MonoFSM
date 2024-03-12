@@ -20,6 +20,8 @@ public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay, IOverrideHier
         // SaveLog("Awake",this);
     }
 
+    [AutoChildren] StateMachineOwner _stateMachineOwner;
+    public GeneralState currentState => _stateMachineOwner?.FsmContext?.currentStateType;
 
     private bool IsNotDebugMode => !DebugSetting.IsDebugMode && IsLogInChildren;
 

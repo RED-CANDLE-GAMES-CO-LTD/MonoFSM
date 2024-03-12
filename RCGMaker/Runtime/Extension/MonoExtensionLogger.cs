@@ -63,6 +63,19 @@ public static class MonoExtensionLogger
         // return (isLogging, provider);
     }
 
+    public static void LogContext(this Component go, string s1)
+    {
+        var (isLogging, provider) = IsLoggingCheck(go);
+
+
+        if (isLogging)
+        {
+            var result = ZString.Concat("[", provider, provider.GetInstanceID(), ",", go.GetInstanceID(), "]\n",
+                ZString.Join(",", s1));
+            FinalLog(go, result, provider);
+        }
+    }
+    
     [HideInCallstack]
     [Conditional("RCG_DEV")]
     public static void Log(this Component go, string s1)
@@ -245,6 +258,12 @@ public static class MonoExtensionLogger
         switch (type)
         {
             case LogType.Log:
+                if (provider.currentState)
+                {
+                    message = ZString.Concat("state:", provider.currentState, ",frame:",
+                        provider.currentState.FrameCount,
+                        message);
+                }
                 Debug.Log(message, go);
                 break;
             case LogType.Error:

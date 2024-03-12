@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
@@ -12,6 +13,8 @@ namespace RCGMaker.Core
     {
         [HideInInspector] [Required] public T stateType;
         public float statusTimer = 0;
+        [PreviewInInspector] int frameCount = 0;
+        public int FrameCount => frameCount;
         [Header("State CoolDown")] public float StateCoolDown = 0.0f;
         // public float CurrentCoolDown = 0.0f;
 
@@ -61,6 +64,7 @@ namespace RCGMaker.Core
         {
             //        Debug.Log("OnStateEnter" + name, gameObject);
             statusTimer = 0;
+            frameCount = 0;
         }
 
 
@@ -83,6 +87,7 @@ namespace RCGMaker.Core
         public virtual void OnStateUpdate()
         {
             statusTimer += Time.deltaTime;
+            frameCount++;
         }
 
 
