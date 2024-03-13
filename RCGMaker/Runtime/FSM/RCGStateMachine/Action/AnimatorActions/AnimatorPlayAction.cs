@@ -533,7 +533,22 @@ namespace RCGFSM.Animation
             return animator.GetCurrentAnimatorStateInfo(layer).shortNameHash == StateHash;
         }
 
-        private bool HasAnimationPlaySuccess = false;
+        private void OnEnable() //State雖然過來了，但是關著就沒有進ActionStateEnter
+        {
+            HasAnimationPlaySuccess = false;
+        }
+
+        private bool HasAnimationPlaySuccess
+        {
+            get => _hasAnimationPlaySuccess;
+            set
+            {
+                _hasAnimationPlaySuccess = value;
+                this.Log("HasAnimationPlaySuccess:", value);
+            }
+        }
+
+        private bool _hasAnimationPlaySuccess;
         public bool IsPlayingCurrentClip()
         {
             var layer = doneEventLayer;
@@ -547,7 +562,7 @@ namespace RCGFSM.Animation
             
             //Cross fade 這邊一定會叫
             if (animatorEnterCrossFade <= 0)
-                if (IsStatePlaying(layer) == false && stateInfo.normalizedTime > 0)
+                if (IsStatePlaying(layer) == false && stateInfo.normalizedTime > 0) //正在播別的state
                 {
 #if UNITY_EDITOR
                     if (_stateHashToName.Count == 0)
@@ -577,6 +592,7 @@ namespace RCGFSM.Animation
                             shouldPlayStateName +
                             ", playing: " + playingStateName + ", time:" + stateInfo.normalizedTime, gameObject);
                         Debug.Break();
+                        
                     }
                         
 #else
@@ -595,7 +611,7 @@ namespace RCGFSM.Animation
             var result = IsStatePlaying(layer);
 
             //這裡有小髒髒狀態
-            if (result)
+            if (result && HasAnimationPlaySuccess == false) //有沒有播到這個play action要的state過
                 HasAnimationPlaySuccess = true;
             return result;
         }

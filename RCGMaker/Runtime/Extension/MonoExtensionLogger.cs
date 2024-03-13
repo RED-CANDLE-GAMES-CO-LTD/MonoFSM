@@ -261,7 +261,7 @@ public static class MonoExtensionLogger
                 if (provider.currentState)
                 {
                     message = ZString.Concat("state:", provider.currentState, ",frame:",
-                        provider.currentState.FrameCount,
+                        provider.currentState.CurrentFrameCount,
                         message);
                 }
                 Debug.Log(message, go);

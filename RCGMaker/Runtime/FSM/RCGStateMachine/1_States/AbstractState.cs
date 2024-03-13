@@ -13,8 +13,8 @@ namespace RCGMaker.Core
     {
         [HideInInspector] [Required] public T stateType;
         public float statusTimer = 0;
-        [PreviewInInspector] int frameCount = 0;
-        public int FrameCount => frameCount;
+        [PreviewInInspector] private int _currentFrameCount = 0;
+        public int CurrentFrameCount => _currentFrameCount;
         [Header("State CoolDown")] public float StateCoolDown = 0.0f;
         // public float CurrentCoolDown = 0.0f;
 
@@ -64,7 +64,7 @@ namespace RCGMaker.Core
         {
             //        Debug.Log("OnStateEnter" + name, gameObject);
             statusTimer = 0;
-            frameCount = 0;
+            _currentFrameCount = 0;
         }
 
 
@@ -87,7 +87,7 @@ namespace RCGMaker.Core
         public virtual void OnStateUpdate()
         {
             statusTimer += Time.deltaTime;
-            frameCount++;
+            _currentFrameCount++;
         }
 
 
