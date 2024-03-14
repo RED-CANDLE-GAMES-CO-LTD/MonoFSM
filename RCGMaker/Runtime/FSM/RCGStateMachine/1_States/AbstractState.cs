@@ -41,24 +41,10 @@ namespace RCGMaker.Core
             _context = context;
         }
 
-        // [System.Serializable]
-        // public class StateEvents
-        // {
-        //     public UnityEvent StateEnterEvent;
-        //     public UnityEvent StateExitEvent;
-        //     public UnityEvent StateFinallyEvent;
-        //     public UnityEvent StateUpdateEvent;
-        //     public UnityEvent StateLateUpdateEvent;
-        //     public UnityEvent StateSpriteUpdateEvent;
-        //     public UnityEvent StateFixedUpdateEvent;
-        //     public UnityEvent<Collision> StateCollisionEnterEvent;
-        // }
-
         private void OnEnable()
         {
             statusTimer = 0;
         }
-        // public StateEvents stateEvents;
 
         public virtual void OnStateEnter()
         {
@@ -124,7 +110,7 @@ namespace RCGMaker.Core
 
     public class StateMapping<T>
     {
-        private List<MappingEntry> mappingList = new List<MappingEntry>();
+        private List<MappingEntry> mappingList = new();
         private Dictionary<T, AbstractState<T>> mapping = new();
         public List<MappingEntry> getAllStates => mappingList;
 
@@ -132,11 +118,12 @@ namespace RCGMaker.Core
         {
             return mapping.ContainsKey(state);
         }
-
+        
         public struct MappingEntry
         {
             public T state;
-            public MonoBehaviour context;
+
+            // public MonoBehaviour context;
             public AbstractState<T> stateBehavior;
         }
 
@@ -146,7 +133,7 @@ namespace RCGMaker.Core
 
             MappingEntry entry = new MappingEntry();
             entry.state = state;
-            entry.context = context;
+            // entry.context = context;
             entry.stateBehavior = stateBehavior;
 
             mappingList.Add(entry);
@@ -162,8 +149,6 @@ namespace RCGMaker.Core
             else
                 return null;
         }
-
-
     }
 
 

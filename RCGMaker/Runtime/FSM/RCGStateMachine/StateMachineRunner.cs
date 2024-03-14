@@ -15,9 +15,7 @@ namespace RCGMaker.Core
         public bool showCurrentState = false;
         public object currentState => stateMachineList[0].CurrentStateMap.state;
         private List<IStateMachine> stateMachineList = new List<IStateMachine>();
-
-
-
+        
         /// <summary>
         /// Creates a stateMachine token object which is used to managed to the state of a monobehaviour. 
         /// </summary>
@@ -43,6 +41,17 @@ namespace RCGMaker.Core
         {
             if (StateMachineManager.IsAvailable())
                 StateMachineManager.Instance.Unregister(this);
+            
+        }
+
+        private void OnDestroy()
+        {
+            foreach (var stateMachine in stateMachineList)
+            {
+                // stateMachine.CurrentStateMap
+                //FIXME: 要清掉pure class memory leak?
+                stateMachine.ClearReferences();
+            }
         }
 
         /// <summary>
@@ -153,6 +162,21 @@ namespace RCGMaker.Core
         public StateMapping(object state)
         {
             this.state = state;
+        }
+
+        public void ClearReferences()
+        {
+            state = null;
+            EnterCall = null;
+            EnterRoutine = null;
+            ExitCall = null;
+            ExitRoutine = null;
+            Finally = null;
+            Update = null;
+            SpriteUpdate = null;
+            LateUpdate = null;
+            FixedUpdate = null;
+            OnCollisionEnter = null;
         }
 
     }

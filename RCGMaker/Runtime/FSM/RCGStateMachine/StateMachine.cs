@@ -24,6 +24,7 @@ namespace RCGMaker.Core
         StateMapping CurrentStateMap { get; }
         bool IsInTransition { get; }
         bool isPaused { get; }
+        void ClearReferences();
     }
 
     public class StateMachine<T> : IStateMachine where T : class //這個弄死了
@@ -33,6 +34,24 @@ namespace RCGMaker.Core
         {
             get { return _isPaused; }
         }
+
+        public void ClearReferences()
+        {
+            //這個最重要, state裡面有事件，要清掉
+            var states = stateLookup.Values;
+            foreach (var state in states)
+            {
+                state.ClearReferences();
+            }
+
+            component = null;
+            engine = null;
+            lastState = null;
+            currentState = null;
+            destinationState = null;
+            // Changed = null;
+        }
+
         bool _isPaused = false;
         public void Pause()
         {
@@ -389,7 +408,7 @@ namespace RCGMaker.Core
 
         private IEnumerator ChangeToNewStateRoutine(StateMapping newState, StateTransition transition)
         {
-            destinationState = newState; //Chache this so that we can overwrite it and hijack a transition
+            destinationState = newState; //Cache this so that we can overwrite it and hijack a transition
 
             if (currentState != null)
             {
