@@ -50,9 +50,9 @@ public interface ILevelStartReverse
 }
 
 
-public interface ILevelExit
+public interface ILevelDestroy
 {
-    void OnLevelExit();
+    void OnLevelDestroy();
 }
 
 // public interface IResetPriority
