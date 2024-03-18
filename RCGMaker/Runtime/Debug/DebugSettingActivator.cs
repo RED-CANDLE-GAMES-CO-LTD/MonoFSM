@@ -24,9 +24,17 @@ namespace RCGSetting
 
         private PropertyInfo GetActivatePropertyInfo()
         {
-            return typeof(DebugSetting).GetProperty(activatePropertyName,
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
+            if (_cachedInfo == null)
+            {
+                _cachedInfo=  typeof(DebugSetting).GetProperty(activatePropertyName,
+                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            }
+
+            return _cachedInfo;
         }
+
+        private PropertyInfo _cachedInfo = null;
 
         private void ActivateCheck()
         {

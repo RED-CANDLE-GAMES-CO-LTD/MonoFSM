@@ -61,8 +61,7 @@ namespace RCGMaker.Runtime
             var currentState = _animator.GetCurrentAnimatorStateInfo(0);
 
             this.Log(
-                "LateUpdate" + currentState.shortNameHash + " " + currentState.normalizedTime + " " + gameObject.name,
-                gameObject);
+                "LateUpdate" , currentState.shortNameHash , " " , currentState.normalizedTime , " " , gameObject);
             //播新的動畫，重置            
             if (currentState.shortNameHash != _lastAnimatorStateHash && currentState.normalizedTime < 1)
             {
@@ -70,7 +69,7 @@ namespace RCGMaker.Runtime
                 _isReceivingAnimationDone = true;
                 _lastAnimatorStateHash = currentState.shortNameHash;
 
-                this.Log("Receiving Done Enable" + currentState.shortNameHash);
+                this.Log("Receiving Done Enable" , currentState.shortNameHash);
             }
 
             //播完動畫，關掉animator
@@ -79,7 +78,7 @@ namespace RCGMaker.Runtime
             {
                 
                 if (!_isReceivingAnimationDone) return;
-                this.Log("Done" + currentState.shortNameHash);
+                this.Log("Done" , currentState.shortNameHash);
                 OnAnimationDone(currentState.shortNameHash);
             }
             //onselect是event system的update觸發，animator State還沒change
