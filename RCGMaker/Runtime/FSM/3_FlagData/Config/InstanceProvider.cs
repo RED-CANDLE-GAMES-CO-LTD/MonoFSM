@@ -10,7 +10,7 @@ namespace RCGMaker.Core
 {
     //Provider? 類似GuidComponent, 被找的那方
     [DefaultExecutionOrder(-999)]
-    public class InstanceProvider : MonoBehaviour,ILevelExit
+    public class InstanceProvider : MonoBehaviour, ILevelDestroy
     {
         [Required] public InstanceReferenceData instanceReference;
 
@@ -62,7 +62,7 @@ namespace RCGMaker.Core
             instanceReference.Register(this.gameObject);
         }
 
-        public void OnLevelExit()
+        public void OnLevelDestroy()
         {
             instanceReference.UnRegister(this.gameObject);
         }
