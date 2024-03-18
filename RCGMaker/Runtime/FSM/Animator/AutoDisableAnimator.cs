@@ -61,7 +61,7 @@ namespace RCGMaker.Runtime
             var currentState = _animator.GetCurrentAnimatorStateInfo(0);
 
             this.Log(
-                "LateUpdate" , currentState.shortNameHash , " " , currentState.normalizedTime , " " , gameObject.name);
+                "LateUpdate" , currentState.shortNameHash , " " , currentState.normalizedTime , " " , gameObject);
             //播新的動畫，重置            
             if (currentState.shortNameHash != _lastAnimatorStateHash && currentState.normalizedTime < 1)
             {
