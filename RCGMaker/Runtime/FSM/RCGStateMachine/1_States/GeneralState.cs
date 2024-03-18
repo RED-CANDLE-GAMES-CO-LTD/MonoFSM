@@ -107,6 +107,12 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     }
 
     public Action OnStateEnterAction;
+
+    private void OnDestroy()
+    {
+        OnStateEnterAction = null;
+    }
+
     public override void OnStateEnter()
     {
         base.OnStateEnter();

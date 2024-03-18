@@ -688,7 +688,11 @@ namespace RCGFSM.Animation
             OnAnimationDone?.Invoke();
             // doneEventTransition.EventReceived("AnimationDone");
         }
-        
+
+        private void OnDestroy()
+        {
+            OnAnimationDone = null;
+        }
 
         bool NoDoneEventTransition()
         {
