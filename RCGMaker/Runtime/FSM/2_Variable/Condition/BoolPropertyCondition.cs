@@ -8,27 +8,28 @@ using UnityEngine.Serialization;
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
     //選到一個bool property
-    public class BoolPropertyCondition : AbstractFieldConditionComp<bool>
+    public class BoolPropertyCondition : AbstractFieldConditionComp<bool, MonoBehaviour>
     {
         protected override bool isValid =>
             (bool)sourceObject.GetType().GetProperty(propertyName).GetValue(sourceObject) == TargetValue;
     }
 
-    public abstract class AbstractFieldConditionComp<T> : AbstractConditionComp
+    public abstract class AbstractFieldConditionComp<TField, TSource> : AbstractConditionComp
     {
-        [FormerlySerializedAs("target")] public GameFlagBase sourceObject;
+        [FormerlySerializedAs("target")] public TSource sourceObject;
 
         private IEnumerable<string> GetBoolPropertyNames()
         {
-            return sourceObject.GetType().GetProperties().Where(p => p.PropertyType == typeof(T)).Select(p => p.Name);
+            return sourceObject.GetType().GetProperties().Where(p => p.PropertyType == typeof(TField))
+                .Select(p => p.Name);
         }
 
         [ValueDropdown(nameof(GetBoolPropertyNames))]
         public string propertyName;
 
-        [FormerlySerializedAs("targetValue")] public T TargetValue;
+        [FormerlySerializedAs("targetValue")] public TField TargetValue;
 
-        public T SourceValue => (T)GetPropertyInfo().GetValue(sourceObject);
+        public TField SourceValue => (TField)GetPropertyInfo().GetValue(sourceObject);
 
         private PropertyInfo _propertyInfo;
 
