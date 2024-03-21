@@ -5,7 +5,7 @@ using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
-
+[Searchable]
 public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable
 {
     //怎麼知道誰用Enter, 誰用Update

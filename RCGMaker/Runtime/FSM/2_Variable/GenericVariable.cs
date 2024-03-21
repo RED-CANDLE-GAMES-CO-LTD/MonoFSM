@@ -67,7 +67,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     {
 #if UNITY_EDITOR
         if (myPrefabKind == PrefabKind.NonPrefabInstance) //場景上的非prefab給過
-            return false;
+            return true;
         
         
         var tag = GetComponent<GameStateRequireAtPrefabKind>();

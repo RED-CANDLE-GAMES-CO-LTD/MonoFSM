@@ -5,6 +5,7 @@ using UnityEngine;
 namespace RCGFSM.Variable
 {
     //set flag, pick item...和GameFlag有關的要用一個interface才可以撈出來
+    
     public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver
     {
         //FIXME: 用selection dropdown來篩選
