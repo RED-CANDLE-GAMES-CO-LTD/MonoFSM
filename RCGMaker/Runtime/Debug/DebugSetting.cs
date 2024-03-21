@@ -15,6 +15,12 @@ namespace RCGSetting
 #endif
     public static class DebugSetting
     {
+        public static bool Is2DFXEnabledInEditor
+        {
+            get => DebugSettingDict[nameof(Is2DFXEnabledInEditor)];
+            set => SetBoolProperty(nameof(Is2DFXEnabledInEditor), value);
+        }
+        
         public static bool IsRecordFSM
         {
             get => DebugSettingDict[nameof(IsRecordFSM)];
