@@ -98,15 +98,16 @@ namespace RCGMaker.Runtime
             // Debug.Log("Set Animator Enable:" + enable + gameObject.name, gameObject);
             _animator.enabled = enable;
             enabled = enable;
-            
+        
             if (enable)
             {
+                _lastAnimatorStateHash = -1;
                 if (!string.IsNullOrEmpty(defaultStateName))
                 {
                     // Debug.Log("Play Default State" + defaultStateName);
                     _animator.Play(defaultStateName, 0, 0);
                     // _animator.Update(0);
-                    _lastAnimatorStateHash = -1;
+    
                 }    
             }
         }
