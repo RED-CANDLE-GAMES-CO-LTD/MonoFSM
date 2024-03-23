@@ -9,6 +9,7 @@ namespace RCGFSM.Variable
     public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver
     {
         //FIXME: 用selection dropdown來篩選
+        [Required]
         [HideIf("Multiple")] public VariableBool targetFlag;
 
         [ShowIf("Multiple")] public List<VariableBool> targetFlags;
