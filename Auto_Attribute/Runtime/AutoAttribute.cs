@@ -23,8 +23,8 @@ using Auto.Utils;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-// [IncludeMyAttributes]
-// [SerializeField]
+[IncludeMyAttributes]
+[SerializeField]
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class AutoAttribute : Attribute, IAutoAttribute
 {
@@ -33,7 +33,7 @@ public class AutoAttribute : Attribute, IAutoAttribute
 
     private bool logMissingAsError = true;
 
-    private Component targetComponent;
+    // private Component targetComponent;
 
     public AutoAttribute(bool logMissingAsError = true)
     {

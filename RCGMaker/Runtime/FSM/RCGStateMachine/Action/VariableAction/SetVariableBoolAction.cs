@@ -9,6 +9,7 @@ namespace RCGFSM.Variable
     public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver
     {
         //FIXME: 用selection dropdown來篩選
+        [InlineEditor]
         [Required]
         [HideIf("Multiple")] public VariableBool targetFlag;
 
@@ -21,11 +22,14 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
+            
             SetValue();
+            this.Break();
         }
 
         public void EventReceived<T>(T arg)
         {
+            this.Log("EventReceived setVariableBoolAction");
             SetValue();
         }
 

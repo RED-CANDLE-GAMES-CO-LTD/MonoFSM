@@ -20,10 +20,10 @@ public abstract class AutoFamily : Attribute, IAutoAttribute
 {
     private const string MonoBehaviourNameColor = "green";
     private static ReflectionHelperMethods Rhm = new ReflectionHelperMethods();
-
     private bool logErrorIfMissing = true;
 
-    private Component targetComponent;
+    public Type LimitedType; //想要撈interface
+    // private Component targetComponent;
 
     public AutoFamily(bool getMadIfMissing = true)
     {
@@ -56,11 +56,12 @@ public abstract class AutoFamily : Attribute, IAutoAttribute
         }
     }
 
-    protected abstract object GetTheSingleComponent(MonoBehaviour mb, Type componentType);
-    protected abstract string GetMethodName();
+    public abstract object GetTheSingleComponent(MonoBehaviour mb, Type componentType);
+
+    // protected abstract string GetMethodName();
     protected abstract object[] GetComponents(MonoBehaviour mb, GameObject go, Type componentType);
 
-    private object[] GetComponentsToReference(MonoBehaviour mb, GameObject go, Type componentType)
+    public object[] GetComponentsToReference(MonoBehaviour mb, GameObject go, Type componentType)
     {
 
         Type listElementType = AutoUtils.GetElementType(componentType);

@@ -99,8 +99,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
     private bool inited = false;
 
-    private List<AnimatorResetter> animResetters;
+    [PreviewInInspector] private List<AnimatorResetter> animResetters = new();
 
+
+    [PreviewInInspector]
     private bool _animResetterInited = false;
 
     private void InitAnimResetters() //一次就夠了, FIXME: defensive爛扣一個進入點的話就沒有這個問題??
@@ -115,9 +117,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         }
 
         _animResetterInited = true;
-
-        animResetters = new List<AnimatorResetter>();
-
         if (_anims != null)
             for (var i = 0; i < this._anims.Length; i++)
             {
@@ -430,6 +429,11 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
             }
         }
 
+        // this.Log("[PoolObject] OnPrepare", _anims.Length, animResetters.Count, this);
+        // if (_anims.Length != animResetters.Count)
+        // {
+        //     Debug.LogError("Animator count not match", this);
+        // }
   
 
     }
@@ -517,6 +521,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         InitAnimResetters();
         ResetAnim();
         destroyTween.Stop();
+        // this.Break();
+       
     }
 }
 

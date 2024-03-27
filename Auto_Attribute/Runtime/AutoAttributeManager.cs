@@ -110,6 +110,7 @@ public class AutoAttributeManager : MonoBehaviour
     {
         successfulAssigments = 0;
         failedAssignments = 0;
+        //先把所有的
         var comps = targetGo.GetComponents<MonoBehaviour>(true);
         foreach (var mb in comps)
         {
@@ -122,9 +123,10 @@ public class AutoAttributeManager : MonoBehaviour
     // void setValue(MonoBehaviour mb, object val){
 
     // }
-    public static void AutoReference(MonoBehaviour targetMb, out int successfullyAssigments, out int failedAssignments)
+    private static void AutoReference(MonoBehaviour targetMb, out int successfullyAssignments,
+        out int failedAssignments)
     {
-        successfullyAssigments = 0;
+        successfullyAssignments = 0;
         failedAssignments = 0;
         if (targetMb == null) return;
         // var fieldCount = 0;
@@ -138,6 +140,12 @@ public class AutoAttributeManager : MonoBehaviour
             if (!attributeDict.ContainsKey(field))
                 attributeDict[field] = field.GetCustomAttributes(typeof(IAutoAttribute), true);
 
+            //FIXME: 還是讓全世界都serialize就好了？
+            // if (field.IsPublic || Attribute.IsDefined(field, typeof(SerializeField)))
+            // {
+            //     continue; //skip serialized fields
+            // }
+            
             var attributes = attributeDict[field];
             //TODO: 這個也可以cache with dict
             // var attributes = 
@@ -146,7 +154,7 @@ public class AutoAttributeManager : MonoBehaviour
                 var result = autoAttribute.Execute(targetMb, field);
                 if (result)
                 {
-                    successfullyAssigments++;
+                    successfullyAssignments++;
                 }
                 else
                 {

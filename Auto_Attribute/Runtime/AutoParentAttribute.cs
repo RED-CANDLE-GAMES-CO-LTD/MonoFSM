@@ -29,19 +29,19 @@ public class AutoParentAttribute : AutoFamily
 
     protected override object[] GetComponents(MonoBehaviour mb, GameObject go, Type componentType)
     {
-        return mb.GetComponentsInParent(componentType, true) as object[];
+        return mb.GetComponentsInParent(LimitedType ?? componentType, true) as object[];
     }
 
-    protected override string GetMethodName()
-    {
-        // return "GetComponentsInParent";
-        return "GetComponentsInParent";
-    }
+    // protected override string GetMethodName()
+    // {
+    //     // return "GetComponentsInParent";
+    //     return "GetComponentsInParent";
+    // }
 
-    protected override object GetTheSingleComponent(MonoBehaviour mb, Type componentType)
+    public override object GetTheSingleComponent(MonoBehaviour mb, Type componentType)
     {
         // Debug.Log("[AutoParent] GetTheSingleComponent" + mb.gameObject + mb.name, mb.gameObject);
-        return mb.GetComponentInParent(componentType, true);
+        return mb.GetComponentInParent(LimitedType ?? componentType, true);
     }
 
 }

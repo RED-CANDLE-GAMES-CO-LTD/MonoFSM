@@ -25,7 +25,7 @@ using System.Collections.Generic;
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class AutoChildrenAttribute : AutoFamily
 {
-    public bool runtimeIgnore = false; //FIXME: 之後如果想要做全Serialized的
+    // public bool runtimeIgnore = false; //FIXME: 之後如果想要做全Serialized的
     public bool DepthOneOnly = false;//只找一層
 
     /// <summary>
@@ -38,16 +38,16 @@ public class AutoChildrenAttribute : AutoFamily
 
     }
 
-    protected override string GetMethodName()
-    {
-        return "GetComponentsInChildren";
-    }
+    // protected override string GetMethodName()
+    // {
+    //     return "GetComponentsInChildren";
+    // }
 
-    protected override object GetTheSingleComponent(MonoBehaviour mb, Type componentType)
+    public override object GetTheSingleComponent(MonoBehaviour mb, Type componentType)
     {
         //一定是最淺的...hmm
 
-        var result = mb.GetComponentInChildren(componentType, includeInactive);
+        var result = mb.GetComponentInChildren(LimitedType ?? componentType, includeInactive);
         if (DepthOneOnly)
         {
             if (result == null)
@@ -78,12 +78,14 @@ public class AutoChildrenAttribute : AutoFamily
             // var list = new List<Component>();
             var all = new List<object>();
 
-            var comps = mb.GetComponents(componentType);
+            var comps = mb.GetComponents(LimitedType ?? componentType);
+            
+            
             all.AddRange(comps);
             
             foreach (Transform t in mb.transform)
             {
-                var result = t.GetComponents(componentType);
+                var result = t.GetComponents(LimitedType ?? componentType);
                 all.AddRange(result);
             }
             Array dest = Array.CreateInstance(componentType, all.Count);
@@ -91,7 +93,16 @@ public class AutoChildrenAttribute : AutoFamily
             return dest as object[];
         }
 
-        var results = mb.GetComponentsInChildren(componentType, includeInactive);
+        // if (TargetType != null)
+        // {
+        //     Debug.Log("TargetType is not null" + TargetType, mb);
+        // }
+        // else
+        // {
+        //     Debug.Log("TargetType is null" + TargetType, mb);
+        // }
+
+        var results = mb.GetComponentsInChildren(LimitedType ?? componentType, includeInactive);
         Array destinationArray = Array.CreateInstance(componentType, results.Length);
         Array.Copy(results, destinationArray, results.Length);
         return destinationArray as object[];//Array.ConvertAll(results, item => Convert.ChangeType(item, componentType));
