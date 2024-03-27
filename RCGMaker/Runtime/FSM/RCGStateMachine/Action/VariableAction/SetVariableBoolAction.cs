@@ -22,9 +22,7 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
-            
             SetValue();
-            this.Break();
         }
 
         public void EventReceived<T>(T arg)
