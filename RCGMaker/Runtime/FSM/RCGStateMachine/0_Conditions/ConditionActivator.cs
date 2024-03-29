@@ -13,7 +13,7 @@ namespace RCGMaker.Core
     //新規
     //可以直接放在該節點上
     //自動檢查條件，決定是否啟動節點
-    public class ConditionActivator : MonoBehaviour, IUIBehavior, ISelfValidator
+    public class ConditionActivator : MonoBehaviour, IUIBehavior, ISelfValidator, IResetter
     {
         [Title("自動檢查條件，決定開關節點")]
         
@@ -45,6 +45,15 @@ namespace RCGMaker.Core
         {
             if (HasConditionNodeOnThisNode)
                 result.AddError("把condition放在下面的節點，不要放在這個節點上");
+        }
+
+        public void EnterLevelReset() //不喜歡用這個名字
+        {
+            EnableCheck();
+        }
+
+        public void ExitLevelAndDestroy()
+        {
         }
     }
 }
