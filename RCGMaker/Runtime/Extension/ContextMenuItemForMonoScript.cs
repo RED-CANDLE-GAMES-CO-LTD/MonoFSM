@@ -7,7 +7,47 @@ namespace RCGMaker.Core
     public static class ContextMenuItemForMonoScript
     {
 #if UNITY_EDITOR
+        private const string RevertPrefabTransformMenuName =
+            "CONTEXT/RectTransform/Remove Override For RectTransform in Children";
 
+        [MenuItem(RevertPrefabTransformMenuName)]
+        public static void RemoveOverrideForRectTransforms(MenuCommand command)
+        {
+            var rectTransform = command.context as RectTransform;
+            if (rectTransform == null)
+            {
+                Debug.LogError("Can't find RectTransform");
+                return;
+            }
+
+            var rects = rectTransform.GetComponentsInChildren<RectTransform>(true);
+            Debug.Log("Remove override for RectTransform in children: " + rects.Length, rectTransform);
+            foreach (var rect in rects)
+            {
+                RemoveRectTransformOverride(rect);
+            }
+        }
+
+        private static void RemoveRectTransformOverride(RectTransform rectTransform)
+        {
+            //check prefab override for RectTransform
+            //FIXME:應該只拿一層ㄅ
+
+            var serObj = new SerializedObject(rectTransform);
+            var prop = serObj.GetIterator();
+            while (prop.NextVisible(true))
+            {
+                PrefabUtility.RevertPropertyOverride(prop, InteractionMode.UserAction);
+            }
+        }
+
+        [MenuItem(RevertPrefabTransformMenuName, validate = true)]
+        private static bool RevertPrefabTransformValidate(MenuCommand command)
+        {
+            var obj = command.context;
+            return PrefabUtility.IsPartOfPrefabInstance(obj);
+        }
+        
        
         
         [MenuItem("CONTEXT/MonoBehaviour/Filter Logs for me")]

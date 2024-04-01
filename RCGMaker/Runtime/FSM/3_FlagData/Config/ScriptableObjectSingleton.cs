@@ -2,6 +2,7 @@ using System.ComponentModel;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
 
 //大部分的Static Config用這個, 可以依照testMode來選擇不同組config
 public class ScriptableObjectConfig<T> : ScriptableObject where T : ScriptableObject
@@ -11,6 +12,9 @@ public class ScriptableObjectConfig<T> : ScriptableObject where T : ScriptableOb
 
 //singleton SO, 有instance
 //Singleton config，要放到Resources的Config資料夾裡
+
+//FIXME: 應該用另一個collection裝起來，然後事先prepare singleton, 不要用下面的路徑做法
+
 public class ScriptableObjectSingleton<T> : ScriptableObject where T : ScriptableObject
 {
     // public void Validate(SelfValidationResult result) 
@@ -18,7 +22,7 @@ public class ScriptableObjectSingleton<T> : ScriptableObject where T : Scriptabl
 
     private static T s_Instance;
     private static bool s_isLoaded;
-    
+    [PreviewInInspector] private T preview => Instance;
     public static T Instance
     {
         get
@@ -51,11 +55,13 @@ public class ScriptableObjectSingleton<T> : ScriptableObject where T : Scriptabl
         s_Instance = this as T;
         s_isLoaded = true;
     }
+    
     private static string GetPath() 
         => typeof(T).Name switch
         {
+            //FIXME: 不該用路徑做
             "RCGCoreConfig" => "Configs/Build_RCGCoreConfig",
-            "DropItemCollection" => "Configs/Drop Collection Config",
+            "DropItemCollection" => "Configs/Drop Table Collection Config", //這個很雷改路徑就會爛掉喔
             "GameConfig" => "Configs/GameConfig",
             "MonsterGlobalConfig" => "Configs/MonsterGlobalConfig",
             "SceneTable" => "Configs/SceneTable",
