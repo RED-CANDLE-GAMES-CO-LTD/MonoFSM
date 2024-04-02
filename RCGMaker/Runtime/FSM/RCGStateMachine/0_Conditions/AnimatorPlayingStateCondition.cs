@@ -23,7 +23,9 @@ namespace RCGMaker.Core
         private Animator _animator => animatorProvider?.GetAnimator();
         public Animator target;
 
+#if UNITY_EDITOR
         [ValueDropdown(nameof(GetAnimatorStateNames), IsUniqueList = true, NumberOfItemsBeforeEnablingSearch = 3)]
+#endif
         public string stateName;
 
         public int layerIndex = 0;
