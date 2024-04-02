@@ -17,7 +17,7 @@ namespace RCGFSM.Animation
     //小心從init routing來，會直接播結束的frame，要從transition上知道這件事
     [Searchable]
     public class AnimatorPlayAction : AbstractStateAction, IRCGArgEventReceiver, IAnimatorPlayAction,
-        ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent
+        ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent,ILevelAwake
     {
         protected override void Awake()
         {
@@ -841,6 +841,11 @@ namespace RCGFSM.Animation
         public void Deserialize(string data)
         {
             throw new NotImplementedException();
+        }
+
+        public void EnterLevelAwake()
+        {
+            animator.keepAnimatorStateOnDisable = true;
         }
     }
 }
