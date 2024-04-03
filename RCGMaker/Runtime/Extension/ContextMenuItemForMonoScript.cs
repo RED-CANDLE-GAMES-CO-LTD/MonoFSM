@@ -24,7 +24,15 @@ namespace RCGMaker.Core
             Debug.Log("Remove override for RectTransform in children: " + rects.Length, rectTransform);
             foreach (var rect in rects)
             {
-                RemoveRectTransformOverride(rect);
+                try
+                {
+                    RemoveRectTransformOverride(rect);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError(e + e.StackTrace, rect);
+                }
+                
             }
         }
 
@@ -33,6 +41,14 @@ namespace RCGMaker.Core
             //check prefab override for RectTransform
             //FIXME:應該只拿一層ㄅ
 
+            //check if it is a prefab instance
+            if (!PrefabUtility.IsPartOfPrefabInstance(rectTransform))
+            {
+                // Debug.LogWarning("Not a prefab instance", rectTransform);
+                return;
+            }
+            
+            
             var serObj = new SerializedObject(rectTransform);
             var prop = serObj.GetIterator();
             while (prop.NextVisible(true))

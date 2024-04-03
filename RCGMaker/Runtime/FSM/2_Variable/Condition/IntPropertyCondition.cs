@@ -11,19 +11,14 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         {
             get
             {
-                switch (Op)
+                return Op switch
                 {
-                    case Operator.Equals:
-                        return SourceValue == TargetValue;
-                    case Operator.NotEqual:
-                        return SourceValue != TargetValue;
-                    case Operator.GreaterThan:
-                        return SourceValue > TargetValue;
-                    case Operator.LessThan:
-                        return SourceValue < TargetValue;
-                }
-
-                return false;
+                    Operator.Equals => SourceValue == TargetValue,
+                    Operator.NotEqual => SourceValue != TargetValue,
+                    Operator.GreaterThan => SourceValue > TargetValue,
+                    Operator.LessThan => SourceValue < TargetValue,
+                    _ => false
+                };
             }
         }
     }

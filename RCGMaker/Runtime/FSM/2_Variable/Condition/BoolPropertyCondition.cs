@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -11,7 +12,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     public class BoolPropertyCondition : AbstractFieldConditionComp<bool, MonoBehaviour>
     {
         protected override bool isValid =>
-            (bool)sourceObject.GetType().GetProperty(propertyName).GetValue(sourceObject) == TargetValue;
+            SourceValue == TargetValue;
     }
 
     public abstract class AbstractFieldConditionComp<TField, TSource> : AbstractConditionComp
@@ -29,15 +30,26 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 
         [FormerlySerializedAs("targetValue")] public TField TargetValue;
 
-        public TField SourceValue => (TField)GetPropertyInfo().GetValue(sourceObject);
+        public TField SourceValue => GetPropertyInfo().Invoke(sourceObject);
 
-        private PropertyInfo _propertyInfo;
 
-        private PropertyInfo GetPropertyInfo()
+        private Func<TSource, TField> _getMyProperty;
+
+        private Func<TSource, TField> GetPropertyInfo()
         {
-            if (_propertyInfo == null)
-                _propertyInfo = sourceObject.GetType().GetProperty(propertyName);
-            return _propertyInfo;
+            if (_getMyProperty != null) return _getMyProperty;
+
+            var propertyInfo = sourceObject.GetType().GetProperty(propertyName);
+            if (propertyInfo == null)
+            {
+                Debug.LogError($"Property {propertyName} not found in {sourceObject.GetType()}");
+                return null;
+            }
+
+            _getMyProperty = (Func<TSource, TField>)Delegate.CreateDelegate(typeof(Func<TSource, TField>),
+                propertyInfo.GetGetMethod());
+
+            return _getMyProperty;
         }
         // protected abstract bool isValid { get; }
         // protected override bool isValid =>
