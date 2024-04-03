@@ -485,31 +485,30 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             var currentPool = allPools[i];
             //FIXME: 同一個景重load!????
-            var entry = isInRequest(currentPool._prefab);
-
-            //移除沒用到的pool
-            if (entry == null)
-            {
+            // var entry = isInRequest(currentPool._prefab);
+            //
+            // //移除沒用到的pool
+            // if (entry == null)
+            // {
+                //無腦清空
                 allPools[i].DestroyPool();
                 allPools[i] = null;
                 allPools.RemoveAt(i);
-            }
-            else
-            {
-                allPools[i]._bindingEntry = entry;
-            }
+            // }
+            // else
+            // {
+            //     allPools[i]._bindingEntry = entry;
+            // }
         }
+        allPools.Clear();
 
         //增加新的pool
         for (var i = 0; i < PoolObjectEntries.Count; i++)
         {
-            var entry = PoolObjectEntries[i];
-            if (!PoolDictionary.ContainsKey(entry.prefab))
-            {
-                var pool = new ObjectPool(PoolObjectEntries[i], this);
-                allPools.Add(pool);
-                pool.Init();
-            }
+           // var entry = PoolObjectEntries[i];
+            var pool = new ObjectPool(PoolObjectEntries[i], this);
+            allPools.Add(pool);
+            pool.Init();
         }
 
         // Debug.Log("[PoolDictionary]   PoolDictionary.Clear()");
