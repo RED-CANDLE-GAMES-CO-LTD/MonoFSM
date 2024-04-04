@@ -238,7 +238,7 @@ public class FlagFieldBool : FlagField<bool>
 [Serializable]
 public abstract class FlagFieldBase
 {
-
+    public abstract void ResetToDefault();
 }
 
 [Serializable]
@@ -488,7 +488,7 @@ public class
     //FIXME: local field...不會有一般的init途徑，怎麼辦？
 
 
-    public void ResetToDefault()
+    public override void ResetToDefault()
     {
         //[]: 要先init才能ResetToDefault
         if (owner == null)
