@@ -32,6 +32,8 @@ public class StatData : AbstractStatData, IStringData
     [PropertyOrder(-1)]
     public override float Value => stat.Value; //設計參數
 
+    public int ValueInt => (int)Value;
+
     public List<AbstractStatData> baseRatios; //為什麼要list
 
     private float CalculateFinalValue()
@@ -41,7 +43,7 @@ public class StatData : AbstractStatData, IStringData
         return finalValue;
     }
 
-    //遊戲全局的修正參數...
+    //加上遊戲全局的修正參數...
     public override float ValueWithBaseRatio => CalculateFinalValue();
 
     public string GetString()

@@ -23,20 +23,25 @@ namespace RCGMaker.Core
         [HideLabel]
         protected MonoBehaviour ValueSource;
 
+
+        // private ScriptableObject ValueSourceSO;
+        
         public string Name => ValueSource.name.Replace("[Variable]", "").TrimStart(' ');
 
         IEnumerable<MonoBehaviour> GetComps()
         {
-            if (owner == null)
+            if (_owner == null)
                 return null;
-            var comps = owner.GetComponentsInChildren<TInterface>(true);
+            var comps = _owner.GetComponentsInChildren<TInterface>(true);
             return comps.Select(c => c as MonoBehaviour);
             // return comps.Select(c => (MonoBehaviour)c);
         }
 
         //避免serialization, 讓drawer看到的時候暫時拿到
         [HideIf("@true")] [ShowInInspector] [AutoParent]
-        TParent owner;
+        private TParent _owner;
         // public T Source => ValueSource;
     }
+    
+    
 }

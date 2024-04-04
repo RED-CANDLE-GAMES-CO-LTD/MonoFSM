@@ -12,6 +12,14 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         public float FinalValue => ((IFloatValue)ValueSource).FinalValue;
     }
 
+
+    [InlineProperty]
+    [Serializable]
+    public class FloatValueRef : InterfaceMonoRef<AbstractConditionComp, IFloatValue>, IFloatValue
+    {
+        public float FinalValue => ((IFloatValue)ValueSource).FinalValue;
+    }
+
     public interface IFloatValue
     {
         float FinalValue { get; }

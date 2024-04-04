@@ -1,0 +1,57 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using RCGMaker.Runtime.FSM._2_Variable;
+using Sirenix.OdinInspector;
+using UnityEngine;
+
+namespace RCGMaker.Core
+{
+    public class ValueInstance<TField> : MonoBehaviour
+    {
+        public UnityEngine.Object sourceObject;
+
+        private IEnumerable<string> GetBoolPropertyNames()
+        {
+            return sourceObject.GetType().GetProperties().Where(p => p.PropertyType == typeof(TField))
+                .Select(p => p.Name);
+        }
+
+        [ValueDropdown(nameof(GetBoolPropertyNames))]
+        public string propertyName;
+
+        public TField SourceValue => GetPropertyInfo().Invoke(sourceObject);
+
+        private Func<UnityEngine.Object, TField> _getMyProperty;
+
+        private Func<UnityEngine.Object, TField> GetPropertyInfo()
+        {
+            if (_getMyProperty != null) return _getMyProperty;
+
+            var propertyInfo = sourceObject.GetType()
+                .GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
+
+            // Debug.Log($"Property {propertyName} found in {sourceObject.GetType()}", sourceObject);
+
+            if (propertyInfo == null)
+            {
+                Debug.LogError($"Property {propertyName} not found in {sourceObject.GetType()}", sourceObject);
+                return null;
+            }
+
+
+            var getMethod = propertyInfo.GetGetMethod();
+            if (getMethod == null)
+            {
+                Debug.LogError($"Property {propertyName} does not have a getter in {sourceObject.GetType()}",
+                    sourceObject);
+                return null;
+            }
+
+            _getMyProperty = (source) => (TField)getMethod.Invoke(source, null);
+
+            return _getMyProperty;
+        }
+    }
+}

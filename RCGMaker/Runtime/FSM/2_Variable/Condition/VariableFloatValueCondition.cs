@@ -8,7 +8,6 @@ public enum Operator //FIXME: equality operator
     NotEqual, // !=
     GreaterThan, // >
     LessThan, // <
-    IsEven
 }
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
