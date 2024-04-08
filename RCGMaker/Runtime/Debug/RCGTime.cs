@@ -81,7 +81,7 @@ public static class RCGTime
     public static PrimeTween.Tween DelayTask<T>([NotNull] this T target, float delayTime, Action<T> action)
         where T : class
     {
-        return PrimeTween.Tween.Delay(target, delayTime, action);
+        return PrimeTween.Tween.Delay(target, delayTime, action, warnIfTargetDestroyed: false);
     }
 
     public static PrimeTween.Tween DelayUITask<T>([NotNull] this T target, float delayTime, Action<T> action)
