@@ -30,6 +30,7 @@ public abstract class SingletonBehaviour<T> : MonoBehaviour where T : MonoBehavi
     {
         get
         {
+            
             if (Application.isPlaying == false)
             {
                 Debug.LogError("Don't use Singleton in edit mode!!");
