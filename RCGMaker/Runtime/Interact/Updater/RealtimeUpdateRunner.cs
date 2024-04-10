@@ -20,6 +20,7 @@ namespace RCGMaker.Core
         void MonoBindAwake();
     }
 
+    //FIXME: 這個是裝在哪裡？ BuffContainer? 如果 _updatables被清掉/關掉 應該不要執行？ 
     //動作遊戲用，照著時間decay
     public class RealtimeUpdateRunner : MonoBehaviour, IUpdateRunner
     {
