@@ -110,18 +110,18 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         if (_animResetterInited)
             return;
 
-        if (this._anims == null)
+        if (_anims == null)
         {
             // Debug.LogError("Anims == null?",this.gameObject);
             return;
         }
 
         _animResetterInited = true;
-        if (_anims != null)
-            for (var i = 0; i < this._anims.Length; i++)
-            {
-                animResetters.Add(new AnimatorResetter(_anims[i]));
-            }
+
+        foreach (var animator in _anims)
+        {
+            animResetters.Add(new AnimatorResetter(animator));
+        }
     }
 
     // private void OnEnable() //從poolObject拿出來要確定動畫有重置，因為有人很壞，還沒開就被call Reset and Start
@@ -135,13 +135,13 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         if (_animResetterInited == false)
             return;
 
-        if (this.isActiveAndEnabled == false)
+        if (isActiveAndEnabled == false)
             return;
 
-        for (int i = 0; i < animResetters.Count; i++)
+        foreach (var animatorResetter in animResetters)
         {
-            this.Log(animResetters[i].animator, "[PoolObjecResetAndStart] anim Reset", animResetters[i].animator);
-            animResetters[i].ResetToDefault();
+            this.Log(animatorResetter.animator, "[PoolObjectResetAndStart] anim Reset", animatorResetter.animator);
+            animatorResetter.ResetToDefault();
         }
 
         // needResetAnim = false;
