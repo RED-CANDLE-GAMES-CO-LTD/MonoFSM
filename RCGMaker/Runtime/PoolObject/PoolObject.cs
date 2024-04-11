@@ -278,13 +278,11 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     public void PoolObjectResetAndStart() //只有收進去pool的才需要這個
     {
         // this.Break();
-
-        this.LevelResetPrepareRuntimeData();
         CheckList();
 
         //FIXME: animator可能還關著喔
         //因為關monsterCore，才發生這件悲劇
-       // this.ResetAnim();
+        this.ResetAnim();
 
         this.Log("[PoolObjectResetAndStart]", gameObject);
 
