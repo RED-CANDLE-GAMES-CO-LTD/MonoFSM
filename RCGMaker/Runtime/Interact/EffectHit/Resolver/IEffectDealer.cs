@@ -26,9 +26,14 @@ public interface IEffectHitData
    
 }
 
-public interface IEffectReceivedHandler
+public interface IEffectReceivedHandler //FIXME:和下面整和吧
 {
     void OnEffectReceived(IEffectHitData data);
+}
+
+public interface IEffectHitHandler
+{
+    public void EffectHitEnter(IEffectHitData data);
 }
 
 public interface IEffectReceivedProcessor

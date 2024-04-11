@@ -18,7 +18,7 @@ public interface IState<in TState>
     // bool TransitionCheck(GeneralState stateType);
 }
 
-
+[Searchable]
 public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable
 {
     [Button("依照Behaviour改名字")]
@@ -50,6 +50,8 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
         // return GetComponentInParent<GeneralFSMContext>().GetAllStates()
         //     .Where(state => state != this.GetComponentInParent<GeneralState>());
     }
+
+    [PreviewInInspector]
     [AutoChildren(false)] AbstractConditionComp[] conditions;
 
     [Title("從init來會播動畫的Transition")]
@@ -103,12 +105,16 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
     [ShowInInspector]
     private bool IsSelfTransitionNotValid => target != null && IsSelfTransition && !target.CanSelfTransition;
 
-    public bool TransitionConditionValid()
+    [PreviewInInspector]
+    public bool TransitionConditionValid
     {
-        if (conditions != null && conditions.IsAllValid() == false)
-            return false;
+        get
+        {
+            if (conditions != null && conditions.IsAllValid() == false)
+                return false;
 
-        return true;
+            return true;
+        }
     }
 
     [AutoParent] private RCGCullingGroup _cullingGroup;

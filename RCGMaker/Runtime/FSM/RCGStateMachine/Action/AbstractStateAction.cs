@@ -6,7 +6,8 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 [Searchable]
-public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable
+public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable,
+    IRCGArgEventReceiver
 {
     //怎麼知道誰用Enter, 誰用Update
     private bool IsValid //AND
@@ -118,5 +119,10 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
 
     public virtual void Resume()
     {
+    }
+
+    public virtual void EventReceived<T>(T arg)
+    {
+        OnStateEnterImplement();
     }
 }

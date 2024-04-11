@@ -8,6 +8,7 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
+            this.Log("Arithmetic: ", Arithmetic, " Value: ", Value);
             switch (Arithmetic)
             {
                 case ArithmeticOperator.Add:
