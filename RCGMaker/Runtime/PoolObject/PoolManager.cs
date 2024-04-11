@@ -778,6 +778,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         private void PreparePoolObjectImplementation(PoolObject obj)
         {
             AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject);
+            obj.LevelResetPrepareRuntimeData();
             HandleGameLevelAwakeReverse(obj.gameObject);
             HandleGameLevelAwake(obj.gameObject);
             HandleGameLevelStartReverse(obj.gameObject);
