@@ -318,8 +318,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // public AbstractStateAction testAction;
 
     [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")] [AutoChildren(false)] [InlineEditor()]
-    
-    private AbstractStateAction[] actions;
+    private AbstractStateAction[] actions; //FIXME: 應該要只撈一層，現在不撈有點可怕有人放很深XDD
 
     [ShowInInspector]
     public AbstractStateAction[] Actions => actions;

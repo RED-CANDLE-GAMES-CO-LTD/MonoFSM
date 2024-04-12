@@ -132,17 +132,18 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     // }
     public void ResetAnim()
     {
-        if (_animResetterInited == false)
-            return;
-
-        if (isActiveAndEnabled == false)
-            return;
-
-        foreach (var animatorResetter in animResetters)
-        {
-            this.Log(animatorResetter.animator, "[PoolObjectResetAndStart] anim Reset", animatorResetter.animator);
-            animatorResetter.ResetToDefault();
-        }
+        // if (_animResetterInited == false)
+        //     return;
+        //
+        // if (isActiveAndEnabled == false)
+        //     return;
+        //
+        // foreach (var animatorResetter in animResetters)
+        // {
+        //     this.Log(animatorResetter.animator, "[PoolObjectResetAndStart] anim Reset", animatorResetter.animator);
+        //     animatorResetter.ResetToDefault();
+        //     // this.Break();
+        // }
 
         // needResetAnim = false;
     }
