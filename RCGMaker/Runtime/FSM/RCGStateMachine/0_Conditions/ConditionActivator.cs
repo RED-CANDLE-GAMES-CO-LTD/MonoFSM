@@ -5,6 +5,8 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
+    //FIXME: 用AbstractConditionActivateTarget
+    
     public interface IUIBehavior
     {
         public void EnableCheck(); //UI Reset??
