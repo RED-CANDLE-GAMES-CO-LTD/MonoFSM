@@ -145,7 +145,7 @@ public class AutoAttributeManager : MonoBehaviour
             // {
             //     continue; //skip serialized fields
             // }
-            
+             
             var attributes = attributeDict[field];
             //TODO: 這個也可以cache with dict
             // var attributes = 
