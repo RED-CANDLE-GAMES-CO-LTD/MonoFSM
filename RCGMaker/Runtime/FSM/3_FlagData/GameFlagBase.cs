@@ -50,6 +50,11 @@ public interface INativeDataProvider
 public interface INativeData
 {
 }
+
+public interface INativeDataConsumer
+{
+    void UpdateNativeData(INativeData data);
+}
 //最基礎的GameFlag元件
 [Serializable]
 public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValidator, INativeData
