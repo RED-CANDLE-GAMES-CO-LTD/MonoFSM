@@ -57,6 +57,17 @@ public static class AbstractConditionCompExtension
 //FIXME: 關掉condition節點算什麼？
 public abstract class AbstractConditionComp : MonoBehaviour
 {
+    protected virtual bool IsShowRenameButton => false;
+
+    protected virtual string nameDescription => GetType().Name;
+
+    [Button]
+    [ShowIf("IsShowRenameButton")]
+    private void RenameOfGameObject()
+    {
+        gameObject.name = "[Condition] " + nameDescription;
+    }
+    
     // public Action OnConditionChanged; //要用這個？還是用polling就好了
     //直接用interface往上叫好像不錯？
     private bool _isConditionChanged = false;

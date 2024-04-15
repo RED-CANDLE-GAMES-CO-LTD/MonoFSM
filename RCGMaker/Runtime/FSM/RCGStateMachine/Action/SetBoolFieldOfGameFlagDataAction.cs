@@ -9,7 +9,14 @@ namespace RCGFSM.Variable
     {
         public AbstractVariable targetVariable;
         public bool TargetValue = true;
+        public SetBoolType targetType;
 
+        public enum SetBoolType
+        {
+            True,
+            False,
+            Toggle
+        }
         private FieldInfo targetField;
 
         [ValueDropdown(nameof(GetAllFieldNames))]
@@ -48,7 +55,14 @@ namespace RCGFSM.Variable
                 return;
             }
 
-            flag.CurrentValue = TargetValue;
+            if (targetType == SetBoolType.Toggle)
+                flag.CurrentValue = !flag.CurrentValue;
+            else
+            {
+                //FIXME: refactor: use switch
+                flag.CurrentValue = TargetValue;
+            }
+                
         }
     }
 }
