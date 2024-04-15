@@ -40,9 +40,19 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
 
     [TextArea] public string Note;
 }
+
+public interface INativeDataProvider
+{
+    public INativeData GetNativeData();
+    public Type GetNativeDataType();
+}
+
+public interface INativeData
+{
+}
 //最基礎的GameFlag元件
 [Serializable]
-public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValidator
+public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValidator, INativeData
 {
     public IEnumerable<string> GetAllFlagFieldNames<T>()
     {
