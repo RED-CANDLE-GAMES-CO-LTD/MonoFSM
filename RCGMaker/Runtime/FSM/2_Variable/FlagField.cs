@@ -48,6 +48,14 @@ public class FlagFieldInt : FlagField<int>
     }
 }
 
+[Serializable]
+public class FlagFieldLong : FlagField<long>
+{
+    protected override bool IsCurrentValueEquals(long value)
+    {
+        return _currentValue == value;
+    }
+}
 
 
 [Serializable]

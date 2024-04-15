@@ -347,6 +347,9 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
                 case FlagFieldFloat field:
                     o.AddField(fieldGetter.Key, field.SaveValue);
                     break;
+                case FlagFieldLong field:
+                    o.AddField(fieldGetter.Key, field.SaveValue);
+                    break;
             }
         }
     }
