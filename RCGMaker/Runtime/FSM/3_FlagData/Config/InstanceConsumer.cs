@@ -18,7 +18,7 @@ public class InstanceConsumer : MonoBehaviour
    {
       if (_cachedReference == null)
       {
-         _cachedReference = InstanceReferenceDataData.instance.GetComponent<T>();
+         _cachedReference = InstanceReferenceDataData.RunTimeInstance.GetComponent<T>();
       }
 
       return (T) _cachedReference;

@@ -311,11 +311,11 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     {
         CheckList();
         ResetAnim();
-        for (var i = 0; i < IPoolObjectList.Count; i++)
+        foreach (var t in IPoolObjectList)
         {
             try
             {
-                IPoolObjectList[i].PoolBeforeDestroy();
+                t.PoolBeforeDestroy();
             }
             catch (Exception e)
             {

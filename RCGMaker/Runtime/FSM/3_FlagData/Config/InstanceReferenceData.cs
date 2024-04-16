@@ -14,7 +14,7 @@ namespace RCGMaker.Core
     public class InstanceReferenceData : GameFlagBase
     {
         public GameObject prefab;
-        private GameObject _instance;
+        private GameObject _runTimeInstance;
 
         //flag awake?
         public override void FlagAwake(TestMode mode)
@@ -25,29 +25,29 @@ namespace RCGMaker.Core
             //_instance = null;
         }
 
-        [ShowInPlayMode]
-        public GameObject instance => _instance;
+        [ShowInPlayMode] public GameObject RunTimeInstance => _runTimeInstance;
 
         public void UnRegister(GameObject g)
         {
-            if (_instance == g)
-                _instance = null;
+            if (_runTimeInstance == g)
+                _runTimeInstance = null;
             
             //Debug.Log("UnRegister:"+this.name + ":"+g,g);
         }
 
         public void Register(GameObject g)
         {
-            if (_instance == null)
+            if (_runTimeInstance == null)
             {
               //  Debug.Log("Register:"+this.name + ":"+g,g);
-                _instance = g;
+              _runTimeInstance = g;
             }
 
     
             else
             {
-                Debug.LogError("InstanceReference: instance is already set instance:" + _instance, _instance);
+                Debug.LogError("InstanceReference: instance is already set instance:" + _runTimeInstance,
+                    _runTimeInstance);
                 Debug.LogError("InstanceReference: instance is already set registering:" + g, g);
             }
         }

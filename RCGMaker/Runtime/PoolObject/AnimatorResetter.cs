@@ -49,9 +49,10 @@ public class AnimatorResetter
         
         if (animator.isActiveAndEnabled)
         {
-            // animator.Play(animDefaultNameHash, 0, 0);
+            //HUD靠這個把動畫切回去
+            animator.Play(animDefaultNameHash, 0, 0);
             //
-            // animator.Update(0);
+            animator.Update(0);
         }
         
         return true;

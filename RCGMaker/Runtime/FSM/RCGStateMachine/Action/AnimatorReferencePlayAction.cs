@@ -8,7 +8,7 @@ namespace RCGMaker.Core
     //直接對InstanceReference的instance做操作
     public class AnimatorReferencePlayAction : AbstractAnimatorPlayAction, IResetter
     {
-        [PreviewInInspector] public GameObject instance => AnimatorReferenceData?.instance;
+        [ShowInPlayMode] public GameObject instance => AnimatorReferenceData?.RunTimeInstance;
 
         [FormerlySerializedAs("animatorReference")]
         [InlineEditor]
@@ -21,8 +21,8 @@ namespace RCGMaker.Core
 
         public void EnterLevelReset()
         {
-            if( AnimatorReferenceData.instance!=null)
-             animator = AnimatorReferenceData.instance.GetComponent<Animator>();
+            if (AnimatorReferenceData.RunTimeInstance != null)
+                animator = AnimatorReferenceData.RunTimeInstance.GetComponent<Animator>();
         }
 
         public void ExitLevelAndDestroy()
