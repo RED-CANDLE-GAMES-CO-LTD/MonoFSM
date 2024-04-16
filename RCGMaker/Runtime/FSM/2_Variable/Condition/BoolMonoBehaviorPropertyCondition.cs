@@ -8,8 +8,8 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
-    //選到一個bool property
-    public class BoolPropertyCondition : AbstractFieldConditionComp<bool, MonoBehaviour>
+    //選到一個任何MonoBehavior的bool property
+    public class BoolMonoBehaviorPropertyCondition : AbstractFieldConditionComp<bool, MonoBehaviour>
     {
         protected override bool isValid =>
             SourceValue == TargetValue;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using I2.Loc;
 using UnityEngine;
 
 namespace RCGMaker.Core
@@ -10,11 +11,14 @@ namespace RCGMaker.Core
         public class ConditionString
         {
             public AbstractConditionComp condition;
-            public string Value;
+            [SerializeField] private string Value;
+            [SerializeField] private LocalizedString LocalizedValue;
+            public string FinalValue => string.IsNullOrEmpty(LocalizedValue.mTerm) ? Value : LocalizedValue;
         }
 
         public string DefaultString;
-
+        private LocalizedString DefaultLocalizedValue;
+        
         public List<ConditionString> conditionStrings = new();
 
         public override string StringValue
@@ -23,8 +27,8 @@ namespace RCGMaker.Core
             {
                 foreach (var conditionString in conditionStrings)
                     if (conditionString.condition.FinalResult)
-                        return conditionString.Value;
-                return DefaultString;
+                        return conditionString.FinalValue;
+                return string.IsNullOrEmpty(DefaultLocalizedValue.mTerm) ? DefaultString : DefaultLocalizedValue;
             }
         }
     }

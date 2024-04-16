@@ -10,6 +10,7 @@ namespace RCGMaker.Core
         Animator GetAnimator();
     }
 
+    //從provider拿到animator
     public class AnimatorPlayingStateCondition : AbstractConditionComp
     {
         //拿動畫上的所有state name
