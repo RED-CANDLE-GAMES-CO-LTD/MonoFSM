@@ -12,7 +12,7 @@ public abstract class AbstractStatData : ScriptableObject
 }
 
 [CreateAssetMenu(fileName = "StatData", menuName = "ScriptableObjects/StatData", order = 1)]
-public class StatData : AbstractStatData, IStringData
+public class StatData : AbstractStatData, IStringData,INativeData
 {
 //reset game的時候，要清除
 
