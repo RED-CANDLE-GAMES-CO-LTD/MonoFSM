@@ -12,7 +12,7 @@ public abstract class AbstractStatData : ScriptableObject
 }
 
 [CreateAssetMenu(fileName = "StatData", menuName = "ScriptableObjects/StatData", order = 1)]
-public class StatData : AbstractStatData, IStringData,INativeData
+public class StatData : AbstractStatData, IStringData,  INativeData
 {
 //reset game的時候，要清除
 
@@ -50,4 +50,7 @@ public class StatData : AbstractStatData, IStringData,INativeData
     {
         return Value.ToString();
     }
+
+    //藥抖等級
+    public int GetModifierCount => Stat.StatModifiers.Count + 1;
 }
