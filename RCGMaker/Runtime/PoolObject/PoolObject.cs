@@ -19,6 +19,10 @@ public interface IPoolObject : IResetter
 }
 
 
+public interface IPoolBorrowOnEnable
+{
+    void OnBorrowFromPoolOnEnable();
+}
 public interface IPoolObjectPlayer
 {
 }
@@ -91,12 +95,11 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
     public void SetBindingPool(PoolManager manager)
     {
-
         _bindingPoolManager = manager;
     }
     List<IPoolObject> IPoolObjectList = new List<IPoolObject>();
     List<IResetter> IResetterList = new List<IResetter>();
-
+    [AutoChildren] private IPoolBorrowOnEnable[] IPoolBorrowedList;
     private bool inited = false;
 
     [PreviewInInspector] private List<AnimatorResetter> animResetters = new();
@@ -280,10 +283,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     {
         // this.Break();
         CheckList();
-
-        //FIXME: animator可能還關著喔
-        //因為關monsterCore，才發生這件悲劇
-        this.ResetAnim();
+        ResetAnim();
 
         this.Log("[PoolObjectResetAndStart]", gameObject);
 
@@ -292,7 +292,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
             try
             {
                 // Debug.Log("Resetting:" + IPoolObjectList[i]);
-
+                //FIXME: 不喜歡這個
                 IResetterList[i].EnterLevelReset();
             }
             catch (Exception e)
@@ -301,6 +301,11 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
                 Debug.LogError(e.Message, gameObject);
                 Debug.LogError(e.StackTrace, gameObject);
             }
+        }
+
+        foreach (var iBorrowOnEnable in IPoolBorrowedList)
+        {
+            iBorrowOnEnable.OnBorrowFromPoolOnEnable();
         }
 
     }
