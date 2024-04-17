@@ -666,7 +666,7 @@ namespace RCGFSM.Animation
                 // GetComponentInParent<GeneralState>().TransitionCheck();
                 if (doneEventTransition)
                 {
-                    Debug.Log(
+                    this.Log(
                         "AnimatorPlayAction > 1:" + CurrentPlayingNormalizedTime + "state:" +
                         StateName,
                         gameObject);

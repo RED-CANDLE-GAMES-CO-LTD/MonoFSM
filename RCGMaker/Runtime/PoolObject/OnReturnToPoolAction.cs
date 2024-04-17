@@ -1,3 +1,4 @@
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -26,6 +27,7 @@ namespace RCGMaker.Runtime.PoolObject
             OnReturnToPool.Invoke();
         }
 
+        [PreviewInInspector] [AutoChildren] private AbstractStateAction[] StateActions;
 
         public UnityEvent OnReturnToPool = new();
     }
