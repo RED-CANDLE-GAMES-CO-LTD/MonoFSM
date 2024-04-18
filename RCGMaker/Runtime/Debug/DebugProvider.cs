@@ -58,7 +58,7 @@ public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay, IOverrideHier
     }
 
     public string IconName => "console.infoicon@2x";
-    public bool IsDrawingIcon => IsLogInChildren;
+    public bool IsDrawingIcon => IsLogInChildren && DebugSetting.IsDebugMode;
 }
 
 [Serializable]

@@ -375,12 +375,11 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     public void ReturnToPool()
     {
         destroyTween.Stop();
+        this.Log("[PoolObject] return 0", name);
         if (_bindingPoolManager == null)
         {
             this.Log("[PoolObject] return object to pool failed", this);
             gameObject.SetActive(false);
-
-
             // GameObject.Destroy(gameObject);
         }
         else
@@ -392,8 +391,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
                 return;
             }
 
-
-
             onScene = false;
             if (OnReturnEvent != null)
             {
@@ -401,13 +398,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
                 OnReturnEvent.RemoveAllListeners();
             }
 
-            // Debug.Log("[PoolObject] return object to pool" + name, this);
+            this.Log("[PoolObject] return object to pool", name);
             // destroyTween.Stop();
             _bindingPoolManager.ReturnToPool(this);
-
         }
-
-
     }
 
 
