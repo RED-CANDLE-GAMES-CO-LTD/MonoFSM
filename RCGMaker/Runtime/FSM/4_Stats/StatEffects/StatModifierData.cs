@@ -1,11 +1,34 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 [System.Serializable]
 public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 {
+    [PreviewInInspector]
+    private float PreviewValue
+    {
+        get
+        {
+            var value = TargetStat.Value;
+            if (modType == StatModType.Flat)
+            {
+                return value + this.value;
+            }
+            else if (modType == StatModType.PercentAdd)
+            {
+                return value * (1 + this.value);
+            }
+            else if (modType == StatModType.PercentMult)
+            {
+                return value * this.value;
+            }
+
+            return value;
+        }
+    }
     public float value = 1f;
     public StatModType modType = StatModType.Flat;
 

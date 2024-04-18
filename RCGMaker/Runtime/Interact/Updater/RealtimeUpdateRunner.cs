@@ -30,12 +30,16 @@ namespace RCGMaker.Core
         //多久造成效果
         //ex: 1s，0.5f造成一次傷害
         [Header("多久發動一次效果")] public float UpdateInterval = 0.1f;
+        public StatData UpdateIntervalStatData;
+
+        private float UpdateIntervalValue => UpdateIntervalStatData ? UpdateIntervalStatData.Value : UpdateInterval;
         private float _intervalTimer;
 
         // private float LastForSecondsValue => LastForSeconds ? LastForSeconds.Value : lastForSecondsValue;
-        private float LastForSecondsValue => lastForSecondsValue;
+        private float LastForSecondsValue =>
+            LastForSecondsStatData ? LastForSecondsStatData.Value : lastForSecondsValue;
         [Header("持續多久")] public float lastForSecondsValue = 0.5f;
-
+        public StatData LastForSecondsStatData;
         [PreviewInInspector]
         private float _timer;
 
@@ -56,7 +60,7 @@ namespace RCGMaker.Core
         private void OnEnable()
         {
             _timer = LastForSecondsValue;
-            _intervalTimer = UpdateInterval;
+            _intervalTimer = UpdateIntervalValue;
            
         }
 
@@ -75,7 +79,7 @@ namespace RCGMaker.Core
             _intervalTimer -= Time.deltaTime;
             if (_intervalTimer <= 0)
             {
-                _intervalTimer += UpdateInterval;
+                _intervalTimer += UpdateIntervalValue;
                 // foreach (var updatable in _updatables) updatable.UpdateEffect();
                 foreach (var updatable in _updatables) updatable.UpdateEffect();
             }

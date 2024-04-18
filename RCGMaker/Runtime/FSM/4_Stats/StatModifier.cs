@@ -1,4 +1,5 @@
 
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -23,6 +24,8 @@ public interface IStatModifierOwner //為什麼要做這個？
 [System.Serializable]
 public class StatModifier
 {
+
+    
     public float Value;
     public StatModType Type;
 

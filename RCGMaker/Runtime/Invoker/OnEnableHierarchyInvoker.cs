@@ -1,3 +1,4 @@
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 using Sirenix.OdinInspector;
 
@@ -21,6 +22,7 @@ public interface IDataOwner
 
 public class OnEnableHierarchyInvoker : MonoBehaviour
 {
+    //FIXME: 和AbilityActivateChecker搭配還有動畫時會錯...收到pool沒有關掉的那種感覺
     // public bool IsParentInvoke = true;
     [InfoBox("打開我可以讓parent(上面)的IOnEnableInvokable(FxPlayer)噴噴")]
     private void OnEnable()
@@ -32,6 +34,7 @@ public class OnEnableHierarchyInvoker : MonoBehaviour
         _onEnableInvokable?.OnEnableInvoke();
     }
 
+    [PreviewInInspector]
     [AutoParent] private IOnEnableInvokable _onEnableInvokable;
 
     private void OnDisable()
