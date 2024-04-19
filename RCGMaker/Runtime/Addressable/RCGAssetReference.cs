@@ -40,7 +40,12 @@ namespace RCGMaker.AddressableAssets
             {
                 assetReference = settings.CreateAssetReference(guid);
                 assetReference.SetEditorSubObject(editorAsset);
-            }    
+                Debug.Log("CreateAssetReference:" + editorAsset, editorAsset);
+            }
+            else
+            {
+                Debug.Log("CreateAssetReference: Already Exist" + editorAsset, editorAsset);
+            }
             // #endif
         }
         //TODO: 可以寫property drawer自動生成assetReference
