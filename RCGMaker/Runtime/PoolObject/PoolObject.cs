@@ -15,7 +15,7 @@ public interface IPoolObject : IResetter
 {
     void PoolOnDestroy();
     void PoolOnPrepared(PoolObject poolObj);
-    void PoolBeforeDestroy();
+    void PoolBeforeReturnToPool();
 }
 
 
@@ -320,7 +320,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         {
             try
             {
-                t.PoolBeforeDestroy();
+                t.PoolBeforeReturnToPool();
             }
             catch (Exception e)
             {

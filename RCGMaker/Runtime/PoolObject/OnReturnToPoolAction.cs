@@ -22,7 +22,7 @@ namespace RCGMaker.Runtime.PoolObject
         {
         }
 
-        public void PoolBeforeDestroy()
+        public void PoolBeforeReturnToPool()
         {
             OnReturnToPool.Invoke();
         }

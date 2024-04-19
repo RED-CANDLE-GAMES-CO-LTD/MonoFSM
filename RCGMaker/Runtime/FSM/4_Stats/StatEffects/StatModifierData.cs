@@ -7,26 +7,33 @@ using UnityEngine;
 [System.Serializable]
 public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 {
+    [PropertyOrder(-1)]
     [PreviewInInspector]
     private float PreviewValue
     {
         get
         {
-            var value = TargetStat.Value;
+            if (TargetStat == null)
+            {
+                return -1;
+            }
+
+            //Preview用的所以只看BaseValue
+            var baseValue = TargetStat.BaseValue;
             if (modType == StatModType.Flat)
             {
-                return value + this.value;
+                return baseValue + value;
             }
             else if (modType == StatModType.PercentAdd)
             {
-                return value * (1 + this.value);
+                return baseValue * (1 + value);
             }
             else if (modType == StatModType.PercentMult)
             {
-                return value * this.value;
+                return baseValue * value;
             }
 
-            return value;
+            return baseValue;
         }
     }
     public float value = 1f;
@@ -40,7 +47,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     [NonSerialized]
     protected StatModifier modifier;
     [TextArea] public string note;
-    public CharacterStat TargetStat => statData.Stat;
+    public CharacterStat TargetStat => statData ? statData.Stat : null;
 
     public void Apply(IStatModifierOwner source)
     {
