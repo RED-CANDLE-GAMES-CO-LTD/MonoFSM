@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 
 namespace RCGSetting
 {
-    public class DebugSettingActivator : MonoBehaviour
+    public class DebugSettingActivator : MonoBehaviour, IResetter
     {
         public GameObject ChildNode;
 
@@ -55,5 +55,14 @@ namespace RCGSetting
             ActivateCheck();
         }
 #endif
+        public void EnterLevelReset()
+        {
+            ChildNode.SetActive(false);
+        }
+
+        public void ExitLevelAndDestroy()
+        {
+            ChildNode.SetActive(false);
+        }
     }
 }
