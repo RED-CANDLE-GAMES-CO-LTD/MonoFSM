@@ -7,7 +7,7 @@ namespace RCGMaker.Core.Editor
 {
     #if UNITY_EDITOR
     [ExecuteInEditMode]
-    public sealed class RefactorNode : MonoBehaviour, ISceneSavingCallbackReceiver
+    public sealed class RefactorNode : MonoBehaviour, ISceneSavingCallbackReceiver, IBeforePrefabSaveCallbackReceiver
     {
         //TODO: 難道要把所有Variant的prefab都重構一次？
         [InfoBox("這個腳本是用來重構Animator的路徑，小心，如果有其他prefab也共享這個節點，可能造成其他的動畫爛掉，記得做完後要移掉唷唷！")]
@@ -70,6 +70,14 @@ namespace RCGMaker.Core.Editor
         }
 
         public void OnBeforeSceneSave()
+        {
+            Debug.LogError("NONONONO把我拔掉啦！！！");
+            EditorUtility.DisplayDialog("NONONONO把我拔掉啦！！！", this + " RefactorNode沒有拔掉", "OK");
+            DestroyImmediate(this);
+            Selection.activeGameObject = gameObject;
+        }
+
+        public void OnBeforePrefabSave()
         {
             Debug.LogError("NONONONO把我拔掉啦！！！");
             EditorUtility.DisplayDialog("NONONONO把我拔掉啦！！！", this + " RefactorNode沒有拔掉", "OK");
