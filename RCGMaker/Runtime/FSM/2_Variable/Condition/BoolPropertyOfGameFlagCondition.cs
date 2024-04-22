@@ -7,5 +7,8 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     {
         protected override bool isValid =>
             (bool)sourceObject.GetType().GetProperty(propertyName).GetValue(sourceObject) == TargetValue;
+
+        protected override string nameDescription =>
+            $"[Condition] Flag:{sourceObject.name} {propertyName} == {TargetValue}";
     }
 }
