@@ -410,7 +410,9 @@ namespace RCGFSM.Animation
             }
 
             //FIXME: 不要update 0就不會造成這個onenable了？
-            animator.Update(0);
+            //是什麼情境一定要OnEnable?
+            // animator.Update(0);
+            
             // animator.Update(RCGTime.deltaTime);
             // Debug.Break();
         }
@@ -845,7 +847,9 @@ namespace RCGFSM.Animation
 
         public void EnterLevelAwake()
         {
+            //想要留著動畫的狀態，這個是不是也來不及？
             animator.keepAnimatorStateOnDisable = true;
+            
         }
     }
 }
