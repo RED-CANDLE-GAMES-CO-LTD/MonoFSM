@@ -29,6 +29,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         [ValueDropdown(nameof(GetBoolPropertyNames))]
         public string propertyName;
 
+        [Header("小心 bool default 是false")]
         [FormerlySerializedAs("targetValue")] public TField TargetValue;
 
         public TField SourceValue => GetPropertyInfo().Invoke(sourceObject);
