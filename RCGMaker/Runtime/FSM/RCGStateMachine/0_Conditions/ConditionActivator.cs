@@ -12,6 +12,12 @@ namespace RCGMaker.Core
         public void EnableCheck(); //UI Reset??
     }
 
+    public interface IUIInteractable
+    {
+        public void OnBecomeInteractable();
+        public void OnBecomeNotInteractable();
+    }
+
     //新規
     //可以直接放在該節點上
     //自動檢查條件，決定是否啟動節點

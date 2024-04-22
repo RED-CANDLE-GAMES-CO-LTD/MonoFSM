@@ -161,7 +161,7 @@ namespace RCGSetting
                 SetBoolProperty(nameof(IsIgnoreCullingActivated), value);
             }
 #else
-             get => true;
+             get => false;
              set {}
 #endif
         }
