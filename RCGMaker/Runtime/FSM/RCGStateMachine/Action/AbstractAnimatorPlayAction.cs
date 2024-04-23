@@ -149,7 +149,7 @@ namespace RCGMaker.Core
 
             this.Log("[AnimatorPlayAction]", gameObject.name, ":[", stateLayer, "]:", StateName);
 
-            animator.keepAnimatorStateOnDisable = true;
+            // animator.keepAnimatorStateOnDisable = true;
 
             // var startNormalizedTimeResult = startNormalizedTimeOffset;
 
