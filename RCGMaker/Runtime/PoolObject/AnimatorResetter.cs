@@ -34,7 +34,7 @@ public class AnimatorResetter
         }
     }
 
-    public bool ResetToDefault()
+    public bool ResetToDefault() //永遠不可以註解掉！！
     {
         if (animator == null)
             return false;
@@ -46,7 +46,6 @@ public class AnimatorResetter
         }
         
         animator.enabled = true;
-        
         if (animator.isActiveAndEnabled)
         {
             //HUD靠這個把動畫切回去
