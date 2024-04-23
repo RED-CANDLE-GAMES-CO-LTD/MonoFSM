@@ -14,7 +14,7 @@ namespace RCGMaker.Runtime.PoolObject
         {
         }
 
-        public void PoolOnDestroy()
+        public void PoolOnReturnToPool()
         {
         }
 

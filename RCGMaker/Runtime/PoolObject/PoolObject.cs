@@ -13,9 +13,9 @@ using UnityEngine.Serialization;
 
 public interface IPoolObject : IResetter
 {
-    void PoolOnDestroy();
+    void PoolOnReturnToPool();
     void PoolOnPrepared(PoolObject poolObj);
-    void PoolBeforeReturnToPool();
+    void PoolBeforeReturnToPool(); //gameObject還沒關，可以set動畫之類的
 }
 
 
@@ -314,6 +314,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
     public void BeforeObjectReturnToPool(PoolManager manager)
     {
+        destroyTween.Stop();
         CheckList();
         ResetAnim();
         foreach (var t in IPoolObjectList)
@@ -333,6 +334,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
     public void OnReturnToPool(PoolManager manager)
     {
+        Debug.Log("[PoolObject] return to pool", this);
         // RaisePoolObjectReturnEvent();
         CheckList();
         // needResetAnim = true;
@@ -354,7 +356,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
                 }
                 else
                 {
-                    IPoolObjectList[i].PoolOnDestroy();
+                    IPoolObjectList[i].PoolOnReturnToPool();
                 }
 
 
@@ -522,7 +524,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         ResetAnim();
         destroyTween.Stop();
         // this.Break();
-       
     }
 }
 
