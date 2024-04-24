@@ -172,7 +172,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         inited = true;
     }
 
-
+    
 
 
     //Position , Parent, Rotation
@@ -180,16 +180,23 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     {
         if (CheckResetParameterInit()) //FIXME: 這什麼意思？ 還沒初始化過，就塞回去會錯
         {
-            var transform1 = transform;
-            transform1.SetParent(initParent);
-            //rigidbody2d的位置還沒跟上？
-            transform1.localPosition = initPosition;
-            //在levelreset的時候有call這個應該就對了，讓物理跟上transform
-            // Physics2D.SyncTransforms();
-            // Debug.Log("[PoolObjectResetAndStart] transform Reset", gameObject);
-            transform1.localRotation = initRotation;
+            if (_transformResetOverrider != null)
+            {
+                _transformResetOverrider.ResetTransform();
+            }
+            else
+            {
+                var transform1 = transform;
+                transform1.SetParent(initParent);
+                //rigidbody2d的位置還沒跟上？
+                transform1.localPosition = initPosition;
+                //在levelreset的時候有call這個應該就對了，讓物理跟上transform
+                // Physics2D.SyncTransforms();
+                // Debug.Log("[PoolObjectResetAndStart] transform Reset", gameObject);
+                transform1.localRotation = initRotation;
 
-            transform1.localScale = initlocalScale;
+                transform1.localScale = initlocalScale;
+            }
         }
     }
 
@@ -525,6 +532,16 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         destroyTween.Stop();
         // this.Break();
     }
+
+    [Auto()]
+    private TransformResetOverrider _transformResetOverrider;
+
+
+}
+
+public interface TransformResetOverrider
+{
+    public void ResetTransform();
 }
 
 public class PoolObjEvent : UnityEvent<PoolObject> { }
