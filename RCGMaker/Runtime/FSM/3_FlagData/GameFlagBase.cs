@@ -324,7 +324,8 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     [EditorOnly]
     public void Validate(SelfValidationResult result)
     {
-        this.AssetInFolderValidate(GameStateAttribute.GameStateFolderPath, result);
+        this.AssetInFolderValidate(new string[] { GameStateAttribute.GameStateFolderPath, "17_PlayerPrefFlag" },
+            result);
     }
 
     // bool 

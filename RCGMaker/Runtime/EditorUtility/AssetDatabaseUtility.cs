@@ -113,23 +113,31 @@ namespace RCGMaker.Core
 
         //"Resources/Configs"
         [EditorOnly]
-        public static void AssetInFolderValidate(this ScriptableObject asset, string folderName,
+        public static void AssetInFolderValidate(this ScriptableObject asset, string[] folderNames,
             SelfValidationResult result)
         {
 #if UNITY_EDITOR
             //check if asset is in Resources/Config
             var assetPath = AssetDatabase.GetAssetPath(asset);
-            if (!assetPath.Contains(folderName))
-                result.AddError($"ScriptableObject {asset} should be in " + folderName).WithFix(() =>
+            var inValidFolder = false;
+            foreach (var folderName in folderNames)
+            {
+                if (assetPath.Contains(folderName))
                 {
-                    //move asset to Resources/Config
-                    var newPath = assetPath.Replace("Assets/", "Assets/" + folderName + "/");
-                    Debug.Log("Move SO To:" + newPath);
-                    var moveResult = AssetDatabase.MoveAsset(assetPath, newPath);
-                    if (moveResult != "")
-                        Debug.LogError("Move Result:" + moveResult);
-                    // AssetDatabase.Refresh();
-                });
+                    return; //valid
+                }
+            }
+
+            result.AddError($"ScriptableObject {asset} should be in " + folderNames[0]).WithFix(() =>
+            {
+                //move asset to Resources/Config
+                var newPath = assetPath.Replace("Assets/", "Assets/" + folderNames[0] + "/");
+                Debug.Log("Move SO To:" + newPath);
+                var moveResult = AssetDatabase.MoveAsset(assetPath, newPath);
+                if (moveResult != "")
+                    Debug.LogError("Move Result:" + moveResult);
+                // AssetDatabase.Refresh();
+            });
 #endif
         }
 #if UNITY_EDITOR
