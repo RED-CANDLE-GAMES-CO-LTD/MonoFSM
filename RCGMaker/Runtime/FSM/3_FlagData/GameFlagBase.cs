@@ -104,6 +104,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     [EditorOnly]
     protected virtual void OnValidate()
     {
+        
         ValidateSaveID();
     }
 
@@ -328,6 +329,38 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     [EditorOnly]
     public void Validate(SelfValidationResult result)
     {
+        //往上找看看有沒有GameFlagCollection
+        var path = AssetDatabase.GetAssetPath(this);
+        // Debug.Log("Validate:" + path);
+        var rootPath = path.Split('/')[0];
+        //find GameFlagCollection in parent
+
+        var allProjectFlags = AssetDatabase.FindAssets("t:GameFlagCollection", new[] { rootPath });
+        // Debug.Log("RootPath:" + rootPath + " allProjectFlags:" + allProjectFlags.Length);
+        foreach (var flag in allProjectFlags)
+        {
+            var flagPath = AssetDatabase.GUIDToAssetPath(flag);
+            // Debug.Log("Flag:" + flagPath);
+            //check if the path is in the parent folder of the flag
+            var folderPath = System.IO.Path.GetDirectoryName(flagPath);
+            if (path.Contains(folderPath))
+            {
+                // Debug.Log("folderPath:" + folderPath + " Path:" + path);
+
+                var flagCollection = AssetDatabase.LoadAssetAtPath<GameFlagCollection>(flagPath);
+                if (flagCollection.Flags.Contains(this))
+                    return;
+                else
+                {
+                    result.AddError("Not in FlagCollection:" + flagCollection.name).WithFix(() =>
+                    {
+                        flagCollection.Flags.Add(this);
+                        EditorUtility.SetDirty(flagCollection);
+                    });
+                }
+            }
+        }
+        
         //FIXME: 沒有完全解決，放多個路徑和共用同個型別要限制資料夾還是蠻頭大的
         this.AssetInFolderValidate(new string[] { GameStateAttribute.GameStateFolderPath, "17_PlayerPrefFlag" },
             result);
