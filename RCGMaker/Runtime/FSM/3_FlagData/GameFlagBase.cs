@@ -329,6 +329,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     [EditorOnly]
     public void Validate(SelfValidationResult result)
     {
+#if UNITY_EDITOR
         //往上找看看有沒有GameFlagCollection
         var path = AssetDatabase.GetAssetPath(this);
         // Debug.Log("Validate:" + path);
@@ -364,6 +365,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
         //FIXME: 沒有完全解決，放多個路徑和共用同個型別要限制資料夾還是蠻頭大的
         this.AssetInFolderValidate(new string[] { GameStateAttribute.GameStateFolderPath, "17_PlayerPrefFlag" },
             result);
+#endif
     }
 
     // bool 
