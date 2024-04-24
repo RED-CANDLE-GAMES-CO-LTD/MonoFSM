@@ -264,6 +264,7 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
     // }
     public void Validate(SelfValidationResult result)
     {
+#if UNITY_EDITOR
         //check if flags in the list are equal to the flags in the folder
         var myPath = AssetDatabase.GetAssetPath(this);
         // FindAllFlags();
@@ -284,5 +285,6 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
                 });
             }
         }
+#endif
     }
 }

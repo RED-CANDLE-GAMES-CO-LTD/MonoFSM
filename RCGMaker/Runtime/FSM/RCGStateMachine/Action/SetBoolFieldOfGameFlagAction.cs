@@ -3,11 +3,11 @@ using System.Reflection;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGFSM.Variable
+namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action
 {
-    public class SetBoolFieldOfVariableAction : AbstractStateAction
+    public class SetBoolFieldOfGameFlagAction : AbstractStateAction
     {
-        public AbstractVariable targetVariable;
+        public GameFlagBase targetVariable;
         public bool TargetValue = true;
         public SetBoolType targetType;
 
@@ -17,6 +17,7 @@ namespace RCGFSM.Variable
             False,
             Toggle
         }
+
         private FieldInfo targetField;
 
         [ValueDropdown(nameof(GetAllFieldNames))]
@@ -25,7 +26,7 @@ namespace RCGFSM.Variable
         private IEnumerable<string> GetAllFieldNames()
         {
             if (targetVariable == null) yield break;
-            foreach (var field in targetVariable.FinalDataType.GetFields())
+            foreach (var field in targetVariable.GetType().GetFields())
             {
                 if (field.FieldType != typeof(FlagFieldBool)) continue;
                 yield return field.Name;
@@ -34,13 +35,14 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
-            if (targetVariable.FinalData == null)
+            if (targetVariable == null)
             {
                 Debug.LogWarning(
                     $"SetBoolFieldOfGameFlagDataAction: targetVariable.FinalData:{targetVariable.name} is null", this);
                 return;
             }
-            targetField = targetVariable.FinalDataType.GetField(targetFieldName,
+
+            targetField = targetVariable.GetType().GetField(targetFieldName,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (targetField == null)
             {
@@ -48,7 +50,7 @@ namespace RCGFSM.Variable
                 return;
             }
 
-            var flag = targetField.GetValue(targetVariable.FinalData) as FlagFieldBool;
+            var flag = targetField.GetValue(targetVariable) as FlagFieldBool;
             if (flag == null)
             {
                 Debug.LogError($"SetBoolFieldOfGameFlagDataAction: {targetFieldName} is not FlagFieldBool");
@@ -62,7 +64,6 @@ namespace RCGFSM.Variable
                 //FIXME: refactor: use switch
                 flag.CurrentValue = TargetValue;
             }
-                
         }
     }
 }
