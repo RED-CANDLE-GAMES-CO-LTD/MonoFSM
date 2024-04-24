@@ -533,7 +533,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         // this.Break();
     }
 
-    [Auto()]
+    [Auto(false)]
     private TransformResetOverrider _transformResetOverrider;
 
 
