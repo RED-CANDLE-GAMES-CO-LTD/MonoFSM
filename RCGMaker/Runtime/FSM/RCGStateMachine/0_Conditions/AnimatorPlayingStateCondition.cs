@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace RCGMaker.Core
 {
     public interface IAnimatorGetter
     {
-        Animator GetAnimator();
+        Animator GetAnimator { get; }
     }
 
     //從provider拿到animator
@@ -17,12 +18,15 @@ namespace RCGMaker.Core
 #if UNITY_EDITOR
         public IEnumerable<string> GetAnimatorStateNames()
         {
-            return AnimatorHelpler.GetAnimatorStateNames(target, layerIndex);
+            return AnimatorHelpler.GetAnimatorStateNames(PreviewTarget, layerIndex);
         }
 #endif
         [PreviewInInspector] [AutoParent] private IAnimatorGetter animatorProvider;
-        private Animator _animator => animatorProvider?.GetAnimator();
-        public Animator target;
+
+        [ShowInPlayMode] private Animator _animator => animatorProvider?.GetAnimator;
+
+        [HideInPlayMode] [FormerlySerializedAs("target")]
+        public Animator PreviewTarget;
 
 #if UNITY_EDITOR
         [ValueDropdown(nameof(GetAnimatorStateNames), IsUniqueList = true, NumberOfItemsBeforeEnablingSearch = 3)]
@@ -30,6 +34,15 @@ namespace RCGMaker.Core
         public string stateName;
 
         public int layerIndex = 0;
-        protected override bool isValid => _animator.GetCurrentAnimatorStateInfo(layerIndex).IsName(stateName);
+
+        protected override bool isValid
+        {
+            get
+            {
+                if (_animator == null)
+                    return false;
+                return _animator.GetCurrentAnimatorStateInfo(layerIndex).IsName(stateName);
+            }
+        }
     }
 }
