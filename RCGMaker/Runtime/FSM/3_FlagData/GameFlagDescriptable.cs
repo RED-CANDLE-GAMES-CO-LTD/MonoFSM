@@ -173,6 +173,10 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
         }
 
         image.color = Color.clear;
+        //還沒load好...
+        //還是要用什麼方式先load好？
+        //clear沒有用XDD因為動畫key到就暴雷了...要empty sprite才行
+        
         //不用清掉前一個 才不會閃白 讀取其實很快。
         //image.sprite = null;
         if (rcgAssetRef.IsAssetLoaded)
