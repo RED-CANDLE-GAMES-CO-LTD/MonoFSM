@@ -39,12 +39,12 @@ namespace RCGMaker.Core
         {
             if (IsActivate)
             {
-                Debug.Log("IAdditionalChecker pass active true", gameObject);
+                // Debug.Log("IAdditionalChecker pass active true", gameObject);
                 gameObject.SetActive(true);
             }
             else
             {
-                Debug.Log("IAdditionalChecker pass active false", gameObject);
+                // Debug.Log("IAdditionalChecker pass active false", gameObject);
                 gameObject.SetActive(false);
             }
         }

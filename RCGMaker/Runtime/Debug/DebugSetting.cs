@@ -242,6 +242,8 @@ namespace RCGSetting
             set => SetBoolProperty(nameof(SkipHackMiniGame), value);
         }
 
+    
+
 
         public static void ToggleDebugMode()
         {
