@@ -126,7 +126,7 @@ namespace RCGSetting
         public static bool IsShowDebugNumber
         {
 #if RCG_DEV
-            get => DebugSettingDict[nameof(IsShowDebugNumber)];
+            get => DebugSettingDict[nameof(IsShowDebugNumber)] || IsDebugMode;
             set => SetBoolProperty(nameof(IsShowDebugNumber), value);
 #else
              get => false;
