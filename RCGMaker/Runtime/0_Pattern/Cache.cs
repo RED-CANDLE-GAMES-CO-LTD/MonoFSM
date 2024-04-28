@@ -95,6 +95,7 @@ namespace RCGMaker.Core
 
         public void RemoveAll(K key)
         {
+            if (key == null) return;
             if (cache.ContainsKey(key)) cache.Remove(key);
         }
     }
