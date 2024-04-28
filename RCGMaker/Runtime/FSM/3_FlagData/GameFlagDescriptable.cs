@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using I2.Loc;
 using mixpanel;
 using RCGMaker.AddressableAssets;
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
@@ -172,7 +173,9 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
             return;
         }
 
+        //FIXME: 可能會被animation key
         image.color = Color.clear;
+        image.sprite = UIAssetConfig.i.EmptySprite;
         //還沒load好...
         //還是要用什麼方式先load好？
         //clear沒有用XDD因為動畫key到就暴雷了...要empty sprite才行
