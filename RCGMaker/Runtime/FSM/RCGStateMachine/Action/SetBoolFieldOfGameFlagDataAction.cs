@@ -34,6 +34,11 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
+            if (targetVariable == null)
+            {
+                Debug.LogError("SetBoolFieldOfGameFlagDataAction: targetVariable is null", this);
+                return;
+            }
             if (targetVariable.FinalData == null)
             {
                 Debug.LogWarning(
