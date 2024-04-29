@@ -176,6 +176,7 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
 
                     if (flagDict.TryGetValue(flag.FinalSaveID, out var value))
                     {
+                        Debug.LogError(value.name + " saveID conflict with " + flag.name, value);
                         Debug.LogError(value.name + " saveID conflict with " + flag.name, flag);
                     }
                     else

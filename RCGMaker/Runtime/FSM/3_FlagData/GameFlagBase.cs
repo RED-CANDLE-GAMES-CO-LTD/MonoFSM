@@ -355,7 +355,8 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
                 {
                     result.AddError("Not in FlagCollection:" + flagCollection.name).WithFix(() =>
                     {
-                        flagCollection.Flags.Add(this);
+                        if (!flagCollection.Flags.Contains(this))
+                            flagCollection.Flags.Add(this);
                         EditorUtility.SetDirty(flagCollection);
                     });
                 }

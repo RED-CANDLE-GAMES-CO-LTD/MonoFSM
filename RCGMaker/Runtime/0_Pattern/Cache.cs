@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core
 {
@@ -95,7 +96,8 @@ namespace RCGMaker.Core
 
         public void RemoveAll(K key)
         {
-            if (key == null) return;
+            // if (key == null) return;
+            
             if (cache.ContainsKey(key)) cache.Remove(key);
         }
     }

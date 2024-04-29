@@ -457,6 +457,9 @@ public class
         //     Debug.Log("[FlagField] After CurrentValue" + value);
         OnChangeInvoke(value);
     }
+    //need UI update...
+    // public bool InvokeSetEventValueNotChanged
+    
 
     private void OnChangeInvoke(T value)
     {
