@@ -335,7 +335,7 @@ public class
         CurrentValue = LastValue;
     }
 
-    private ValueChangedListener<T> listener = new();
+    private ValueChangedListener<T> listener = new(); //好像可以把監聽對象丟出來看？
     private ValueChangedListener<T> listenerOnce = new();
     // private ValueChangedListener<object, object, T> listenerDict;
 
@@ -435,16 +435,17 @@ public class
         return _currentValue.Equals(value);
     }
 
-    
-    private MonoBehaviour _lastByWho;
 
-    [ShowInInspector]
-    public MonoBehaviour LastByWho => _lastByWho;
+    private Object _lastByWho;
+
+    [ShowInInspector] public Object LastByWho => _lastByWho;
     //NOTE: public是為了，propertyDrawer
-    public void SetCurrentValue(T value, MonoBehaviour byWho = null)
+    public void SetCurrentValue(T value, Object byWho = null)
     {
+#if UNITY_EDITOR
         if (DebugSetting.IsDebugMode && _isShowDebugLog)
             Debug.Log("[FlagField] Before Set lastValue:" + _currentValue + "set with:" + value, owner);
+#endif
 
         if (IsCurrentValueEquals(value))
             return;
