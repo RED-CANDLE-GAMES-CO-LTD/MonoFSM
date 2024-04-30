@@ -264,12 +264,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
 
         onScene = true;
-        if (UseAutoDestroy)
-        {
-            //FIXME:
-            RegisterDestroy();
-            // autoDestroyTimer = AutoDestroyTime;
-        }
+       
 
 
         // EnterLevelResetAndStart();
@@ -289,6 +284,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     public void PoolObjectResetAndStart() //只有收進去pool的才需要這個
     {
         // this.Break();
+        if (UseAutoDestroy)
+        {
+            RegisterDestroy(); //打開了才註冊ㄋ
+        }
         CheckList();
         ResetAnim();
 
