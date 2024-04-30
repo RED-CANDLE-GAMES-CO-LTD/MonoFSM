@@ -79,6 +79,8 @@ namespace RCGMaker.AddressableAssets
             try
             {
                 //一定要用Ｔ，不然會回傳null
+                if (!assetReference.RuntimeKeyIsValid())
+                    return null;
                 var handle = assetReference.LoadAssetAsync<T>();
                 // var obj = handle.WaitForCompletion();
                 var obj = await handle.Task;
