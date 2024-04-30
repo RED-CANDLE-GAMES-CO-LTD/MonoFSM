@@ -18,6 +18,11 @@ namespace RCGMaker.Core
     {
         private readonly Dictionary<K, List<V>> cache = new();
 
+        public void Clear()
+        {
+            cache.Clear();
+        }
+
         public void CacheStateSelfCheck()
         {
             try
