@@ -12,13 +12,13 @@ namespace RCGMaker.Core
     {
         public UnityEngine.Object sourceObject;
 
-        private IEnumerable<string> GetBoolPropertyNames()
+        private IEnumerable<string> GetPropertyNames()
         {
             return sourceObject.GetType().GetProperties().Where(p => p.PropertyType == typeof(TField))
                 .Select(p => p.Name);
         }
 
-        [ValueDropdown(nameof(GetBoolPropertyNames))]
+        [ValueDropdown(nameof(GetPropertyNames))]
         public string propertyName;
 
         public TField SourceValue => GetPropertyInfo().Invoke(sourceObject);
