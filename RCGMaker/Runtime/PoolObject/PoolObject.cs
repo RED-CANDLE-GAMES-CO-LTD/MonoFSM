@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using LibTessDotNet;
 using PrimeTween;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
@@ -200,18 +201,19 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         }
     }
 
-    public void OverrideTransformSetting(Vector3 p = default(Vector3), Quaternion q = default(Quaternion), Transform t = null, Vector3 scale = default(Vector3))
+    public void OverrideTransformSetting(Vector3 p = default, Quaternion rotation = default,
+        Transform parentTransform = null, Vector3 scale = default)
     {
         var transform1 = transform;
-        
-        transform1.SetParent(t);
+
+        transform1.SetParent(parentTransform);
         transform1.position = p;
-        transform1.rotation = q;
-        
+        transform1.rotation = rotation;
+        // Debug.Log("[PoolObjectResetAndStart] transform" + transform1.rotation, transform1.parent);
         initPosition = transform1.localPosition;
         initRotation = transform1.localRotation;
         //FIXME: 為什麼這個把initParent改掉了?
-        initParent = t;
+        initParent = parentTransform;
         // Debug.Log("[PoolObjectResetAndStart] transform initParent", t);
         initlocalScale = scale;
         isResetParameterInit = true;
@@ -231,7 +233,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         isResetParameterInit = true;
     }
 
+    [PreviewInInspector]
     private Quaternion initRotation;
+
+    [PreviewInInspector] private Vector3 InitEulerRotation => initRotation.eulerAngles;
 
     [ShowInPlayMode]
     private Transform initParent;

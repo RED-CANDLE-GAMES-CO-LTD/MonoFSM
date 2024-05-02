@@ -369,7 +369,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     public GameObject BorrowOrInstantiate(GameObject obj, Vector3 position = default, Quaternion rotation = default,
         Transform parent = null, Action<PoolObject> handler = null)
     {
-        var hasRequest = obj.TryGetComponent<PoolRequest>(out PoolRequest request);
+        var hasRequest = obj.TryGetComponent(out PoolRequest request);
         var hasPoolObj = obj.TryGetComponent<PoolObject>(out var poolObj);
 
         if (hasRequest)
