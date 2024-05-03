@@ -24,15 +24,15 @@ namespace RCGMaker.Core
             if (prefabStage == null)
                 return;
 
-            var path = prefabStage.assetPath;
+            // var path = prefabStage.assetPath;
 
             // Debug.Log("InstanceBinder path: " + path);
-            
-            if (path == AssetDatabase.GetAssetPath(instanceReference.prefab))
-            {
-                Debug.Log("InstanceBinder OnValidate: " + gameObject.name + " is belong to " +
-                          instanceReference.prefab.name, instanceReference.prefab);
-            }
+
+            // if (path == AssetDatabase.GetAssetPath(instanceReference.prefab))
+            // {
+            //     Debug.Log("InstanceBinder OnValidate: " + gameObject.name + " is belong to " +
+            //               instanceReference.prefab.name, instanceReference.prefab);
+            // }
             // else
             // {
             //     //TODO: 什麼意思？

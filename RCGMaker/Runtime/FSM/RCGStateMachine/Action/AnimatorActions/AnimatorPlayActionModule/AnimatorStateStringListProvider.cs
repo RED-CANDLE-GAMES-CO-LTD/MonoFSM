@@ -14,8 +14,13 @@ public class AnimatorStateStringListProvider : AbstractStringProvider
     private List<int> hashList;
     [Required]
     public VariableInt currentIndex;
-    public override string StringValue => list[currentIndex.Value];
-    public int StateHashValue => hashList[currentIndex.Value];
+
+    public override string StringValue =>
+        currentIndex.Value < 0 || currentIndex.Value >= list.Count ? "" : list[currentIndex.Value];
+
+    public int StateHashValue => currentIndex.Value < 0 || currentIndex.Value >= hashList.Count
+        ? 0
+        : hashList[currentIndex.Value];
 
     private void Awake()
     {

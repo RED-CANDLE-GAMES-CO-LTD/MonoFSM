@@ -13,7 +13,11 @@ namespace RCGMaker.Core
     [CreateAssetMenu(menuName = "RCGMaker/InstanceReference")]
     public class InstanceReferenceData : GameFlagBase
     {
-        public GameObject prefab;
+        //FIXME: 蠻糟的有reference污染，會讓scene指到這個再指到prefab
+
+        // public GameObject prefab;
+        //兩者要都是動態資料
+        
         private GameObject _runTimeInstance;
 
         //flag awake?
@@ -53,17 +57,17 @@ namespace RCGMaker.Core
         }
 
 
-        [Button]
-        private void RenameToPrefabName()
-        {
-#if UNITY_EDITOR
-            //rename the asset
-            var path = AssetDatabase.GetAssetPath(this);
-            var newPath = Path.GetDirectoryName(path) + "/" + prefab.name + ".asset";
-            AssetDatabase.RenameAsset(path, prefab.name);
-            AssetDatabase.MoveAsset(path, newPath);
-            AssetDatabase.SaveAssets();
-#endif
-        }
+//         [Button]
+//         private void RenameToPrefabName()
+//         {
+// #if UNITY_EDITOR
+//             //rename the asset
+//             var path = AssetDatabase.GetAssetPath(this);
+//             var newPath = Path.GetDirectoryName(path) + "/" + prefab.name + ".asset";
+//             AssetDatabase.RenameAsset(path, prefab.name);
+//             AssetDatabase.MoveAsset(path, newPath);
+//             AssetDatabase.SaveAssets();
+// #endif
+//         }
     }
 }

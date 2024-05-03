@@ -205,6 +205,7 @@ public class FlagFieldModifier<T>
 {
     public T OverrideValue;
     public IStatModifierOwner source;
+    [PreviewInInspector] public Object sourceObj => source as Object;
 }
 [Serializable]
 public class FlagFieldBool : FlagField<bool>
