@@ -312,7 +312,7 @@ public class
     // private T OverrideValue => modifiers.Count > 0 ? modifiers[0].OverrideValue : default;
 
 
-    protected T _currentValue;
+    [PreviewInInspector] protected T _currentValue; //真正拿來存的值
     
     [GUIColor(0, 1, 0.5f, 1)]
     [ShowInInspector]
