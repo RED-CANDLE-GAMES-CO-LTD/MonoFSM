@@ -49,7 +49,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public bool IsFullRect => false;
     public string DrawCustomIcon => "";
 
-    public bool IsDrawBackground => Application.isPlaying && context && context.currentStateType == stateType;
+    public bool IsDrawGUIHierarchyBackground =>
+        Application.isPlaying && context && context.currentStateType == stateType;
     // [HideInInspector] [Required] public new GeneralState stateType => this;
 
     [AutoChildren(false)] private IStateEnter[] _stateEnters;

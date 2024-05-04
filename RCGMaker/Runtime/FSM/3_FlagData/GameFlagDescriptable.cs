@@ -88,7 +88,7 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
     public virtual bool IsSelectableConditionValid => true;
     public FlagFieldBool viewed; //玩家有沒有看過
 
-    public bool IsViewed => viewed.CurrentValue;
+    public bool IsViewed => viewed.CurrentValue && acquired.CurrentValue;
     public bool IsNew => IsAcquired && !IsViewed;
 
     public bool SetViewed(Object byWho = null) //應該要用這個，然後把viewed改成private
