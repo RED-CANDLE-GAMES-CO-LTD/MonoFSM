@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using I2.Loc;
 using mixpanel;
 using RCGMaker.AddressableAssets;
@@ -9,12 +6,8 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.AddressableAssets;
-using UnityEditor.AddressableAssets.Settings;
 #endif
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
@@ -96,6 +89,15 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
     public FlagFieldBool viewed; //玩家有沒有看過
 
     public bool IsViewed => viewed.CurrentValue;
+    public bool IsNew => IsAcquired && !IsViewed;
+
+    public bool SetViewed(Object byWho = null) //應該要用這個，然後把viewed改成private
+    {
+        if (!acquired.CurrentValue)
+            return false;
+        viewed.SetCurrentValue(true, byWho);
+        return true;
+    }
     //
     public bool IsImportantObject = false;
     
@@ -114,7 +116,6 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
     string description;
     string summary;
     public LocalizedString descriptionStr;
-
     public LocalizedString typeStr;
     public LocalizedString summaryStr;
     public virtual string ItemType => typeStr;
