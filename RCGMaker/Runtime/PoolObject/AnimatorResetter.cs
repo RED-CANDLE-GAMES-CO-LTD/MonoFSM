@@ -22,7 +22,7 @@ public class AnimatorResetter
     {
         if (animator != null && animator.runtimeAnimatorController != null) // && _anim.isActiveAndEnabled)
         {
-            animDefaultNameHash = animator.GetCurrentAnimatorStateInfo(0).fullPathHash;
+            // animDefaultNameHash = animator.GetCurrentAnimatorStateInfo(0).fullPathHash;
 
             //關掉Animator，原本會清資料，重打開把當下的值當作新的default，會爛掉
             //animator.keepAnimatorStateOnDisable = true; //default state會是原本的 State，和 value沒有關係

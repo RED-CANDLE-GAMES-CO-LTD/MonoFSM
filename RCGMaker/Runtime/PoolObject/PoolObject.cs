@@ -421,8 +421,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     [ShowInInspector]
     public Animator[] animators => _anims;
     int animDefaultNameHash;
-    public void OnPrepare() //關的時候
+
+    public void OnPrepare() //還關著的時候
     {
+        InitAnimResetters();
         CheckList();
         for (var i = 0; i < IPoolObjectList.Count; i++)
         {
@@ -526,8 +528,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     {
       //  Debug.Log("LevelReset", this);
         TransformReset();
-        InitAnimResetters();
-        ResetAnim();
+
+        // ResetAnim();
         destroyTween.Stop();
         // this.Break();
     }
