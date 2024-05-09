@@ -474,19 +474,15 @@ public class
     {
         owner = _owner;
         _modifiers.Clear();
-        // isDirty = false;
-        _currentValue = mode switch
+        CurrentValue = mode switch
         {
             TestMode.EditorDevelopment => DevValue,
             TestMode.Build => ProductionValue,
-            // TestMode.BetaTest => PlayTestValue,
-            
             _ => _currentValue
         };
-        // Log("Init FlagField" + _currentValue + " " + mode);
         
-
         lastMode = mode;
+        
     }
 
     private Object owner;
@@ -512,10 +508,13 @@ public class
         //[]: 有singleton就不用lastMode了吧
         if (lastMode != TestMode.Undefined)
         {
+            Debug.Log("FlagField: ResetToDefault" + lastMode);
             Init(lastMode, owner);
+            Debug.Log("FlagField: CurrentValue" + CurrentValue);
         }
         else
             CurrentValue = ProductionValue;
+        
     }
 
     public void Clear()
