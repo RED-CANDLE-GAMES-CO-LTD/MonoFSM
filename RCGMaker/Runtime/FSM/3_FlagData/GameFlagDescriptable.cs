@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 using I2.Loc;
 using mixpanel;
 using RCGMaker.AddressableAssets;
@@ -10,6 +13,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 
 [System.Serializable]
@@ -60,6 +64,40 @@ public interface IDescriptable
 [Searchable]
 public class GameFlagDescriptable : GameFlagBase, IDescriptable
 {
+    public Dictionary<string, Func<GameFlagDescriptable, object>> propertyCache = new();
+
+    public Func<GameFlagDescriptable, object> GetPropertyCache(
+        string propertyName)
+    {
+        if (propertyCache.TryGetValue(propertyName, out var info))
+            return info;
+
+
+        var propertyInfo = GetType()
+            .GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
+
+        // Debug.Log($"Property {propertyName} found in {sourceObject.GetType()}", sourceObject);
+
+        if (propertyInfo == null)
+        {
+            Debug.LogError($"Property {propertyName} not found in {GetType()}");
+            return null;
+        }
+
+
+        var getMethod = propertyInfo.GetGetMethod();
+        if (getMethod == null)
+        {
+            Debug.LogError($"Property {propertyName} does not have a getter in {GetType()}"
+            );
+            return null;
+        }
+
+        Func<GameFlagDescriptable, object>
+            _getMyProperty = (source) => getMethod.Invoke(source, null);
+        propertyCache[propertyName] = _getMyProperty;
+        return _getMyProperty;
+    }
     // List<GameDataModifier> modifiers = new List<GameDataModifier>();
     // public bool IsShowInfoOnlyAquired = true;
 

@@ -37,7 +37,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 
         private Func<TSource, TField> _getMyProperty;
 
-        private Func<TSource, TField> GetPropertyInfo()
+        protected Func<TSource, TField> GetPropertyInfo()
         {
             if (_getMyProperty != null) return _getMyProperty;
 
