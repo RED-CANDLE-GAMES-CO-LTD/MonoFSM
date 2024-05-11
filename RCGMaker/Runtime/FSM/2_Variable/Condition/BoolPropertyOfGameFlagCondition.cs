@@ -21,6 +21,6 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         // }
 
         protected override string nameDescription =>
-            $"[Condition] Flag:{sourceObject.name} {propertyName} == {TargetValue}";
+            $"{sourceObject.name} {propertyName} is {TargetValue}";
     }
 }

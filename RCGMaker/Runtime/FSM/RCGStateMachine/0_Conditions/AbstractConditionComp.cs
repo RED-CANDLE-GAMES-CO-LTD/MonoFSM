@@ -57,9 +57,9 @@ public static class AbstractConditionCompExtension
 //FIXME: 關掉condition節點算什麼？
 public abstract class AbstractConditionComp : MonoBehaviour
 {
-    protected virtual bool IsShowRenameButton => false;
+    protected virtual bool IsShowRenameButton => nameDescription != "";
 
-    protected virtual string nameDescription => GetType().Name;
+    protected virtual string nameDescription => "";
 
     [Button]
     [ShowIf("IsShowRenameButton")]
