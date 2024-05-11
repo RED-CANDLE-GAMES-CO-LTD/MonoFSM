@@ -175,7 +175,7 @@ public static class RCGTime
         
 
     public static bool IsPaused => timeScale == 0f;
-    public static float TimeScale => timeScale * Time.timeScale;
+    public static float TimeScale => timeScale;
 
     public static PlayerLoopTiming UpdateTiming =>
         PlayerLoopTiming.LastUpdate; //UniTask default會比script update還早，要用LastPostLateUpdate回放指令才會對
