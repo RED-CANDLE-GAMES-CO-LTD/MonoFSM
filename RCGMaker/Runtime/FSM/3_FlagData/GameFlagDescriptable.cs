@@ -80,7 +80,9 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
 
         if (propertyInfo == null)
         {
-            Debug.LogError($"Property {propertyName} not found in {GetType()}");
+            propertyCache[propertyName] = null;
+            //FIXME: 可能因為unknownData所以有可能會找不到 有點危險？
+            // Debug.LogError($"Property {propertyName} not found in {GetType()}");
             return null;
         }
 
