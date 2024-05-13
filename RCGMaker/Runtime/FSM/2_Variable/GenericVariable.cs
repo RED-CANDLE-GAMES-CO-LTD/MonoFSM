@@ -246,6 +246,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     {
         get
         {
+            
             var tempValue = localField.CurrentValue;
             
             if (VariableSource != null)
@@ -281,11 +282,16 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                     tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
             // this.Log("[Variable] Set", value); 
             if (ScriptableData == null)
+            {
+                if (localField.CurrentValue.Equals(tempValue)) return;
                 // if (localField == null)
                 //     localField = default(TField);
                 localField.CurrentValue = tempValue;
+            }
+            
             else
             {
+                if (ScriptableData.CurrentValue.Equals(tempValue)) return;
                 _trackValue.OnRecycle();
                 _trackValue["Data"] = FinalData ? FinalData.name : "null";
                 _trackValue["value"] = tempValue switch
@@ -295,7 +301,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                     float valueFloat => valueFloat,
                     _ => _trackValue["value"]
                 };
-
+                Debug.Log("Set Value" + tempValue);
                 this.Track("Variable Changed", _trackValue);
                 ScriptableData.CurrentValue = tempValue;
             }
