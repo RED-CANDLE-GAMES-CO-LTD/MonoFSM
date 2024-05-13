@@ -11,7 +11,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
-public class DebugProvider : MonoBehaviour, IHierarchyItemDisplay, IOverrideHierarchyIcon //往上找
+public class DebugProvider : MonoBehaviour, IOverrideHierarchyIcon //往上找
 {
     public void Awake()
     {
