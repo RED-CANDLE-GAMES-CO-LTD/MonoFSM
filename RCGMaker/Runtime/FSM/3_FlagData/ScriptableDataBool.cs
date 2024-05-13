@@ -83,6 +83,7 @@ public class ScriptableDataBool : AbstractScriptableData<FlagFieldBool, bool> //
         set
         {
             // _currentValue = value;
+            
             field.CurrentValue = value;
             if (flagValueChangeEvent != null)
                 flagValueChangeEvent.Invoke();

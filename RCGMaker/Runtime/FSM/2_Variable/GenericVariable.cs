@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using mixpanel;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
@@ -284,7 +285,21 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                 //     localField = default(TField);
                 localField.CurrentValue = tempValue;
             else
+            {
+                _trackValue.OnRecycle();
+                _trackValue["Data"] = FinalData ? FinalData.name : "null";
+                _trackValue["value"] = tempValue switch
+                {
+                    bool valueBool => valueBool,
+                    int valueInt => valueInt,
+                    float valueFloat => valueFloat,
+                    _ => _trackValue["value"]
+                };
+
+                this.Track("Variable Changed", _trackValue);
                 ScriptableData.CurrentValue = tempValue;
+            }
+                
         }
     }
 
@@ -301,16 +316,22 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
         // this.Log("[Variable] Set", value); 
         Field.SetCurrentValue(tempValue, byWho);
-        // ScriptableData.CurrentValue = tempValue;if (ScriptableData == null)
-        //     localField.SetCurrentValue(tempValue, byWho);
-        // // if (localField == null)
-        // //     localField = default(TField);
-        // // localField.CurrentValue = tempValue;
 
-        // else
-        //     ScriptableData.field.SetCurrentValue(tempValue, byWho);
+        _trackValue.OnRecycle();
+        _trackValue["Data"] = FinalData ? FinalData.name : "null";
+        _trackValue["byWho"] = byWho ? byWho.name : "null";
+        _trackValue["value"] = tempValue switch
+        {
+            bool valueBool => valueBool,
+            int valueInt => valueInt,
+            float valueFloat => valueFloat,
+            _ => _trackValue["value"]
+        };
+
+        this.Track("Variable Changed", _trackValue);
     }
-    
+
+    private readonly Value _trackValue = new();
     [AutoParent()] private IGameEntity gameEntity;
 
     [ShowInPlayMode]

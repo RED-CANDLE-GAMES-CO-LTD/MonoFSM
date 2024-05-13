@@ -36,10 +36,10 @@ public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, b
             {
                 // Debug.Log("Variable Bool Changed " + ScriptableData.name);
                 //[]: 灌tracker...   
-                _trackValue["data"] = ScriptableData.name;
-                _trackValue["value"] = value;
+                // _trackValue["data"] = ScriptableData.name;
+                // _trackValue["value"] = value;
                 //FIXME:如果要tracking要有集中管理處
-                // Mixpanel.Track("ScriptableData Value Changed", _trackValue);
+                // this.Track("Variable Bool Changed", _trackValue);
             }
 
             // Value = value;
