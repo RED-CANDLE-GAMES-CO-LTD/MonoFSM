@@ -19,8 +19,14 @@ public interface IPoolBorrowOnEnable
 {
     void OnBorrowFromPoolOnEnable();
 }
+
+public interface IFXPlayerOwner
+{
+    bool IsActive { get; }
+}
 public interface IPoolObjectPlayer
 {
+    IFXPlayerOwner Owner { get; }
 }
 
 public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
