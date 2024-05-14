@@ -32,12 +32,12 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         [Header("小心 bool default 是false")]
         [FormerlySerializedAs("targetValue")] public TField TargetValue;
 
-        public TField SourceValue => GetPropertyInfo().Invoke(sourceObject);
+        public TField SourceValue => GetPropertyInfo().Invoke(); //喔喔不需要吃參數了 已經確定是sourceObject的特定property
 
 
-        private Func<TSource, TField> _getMyProperty;
+        private Func<TField> _getMyProperty;
 
-        protected Func<TSource, TField> GetPropertyInfo()
+        protected Func<TField> GetPropertyInfo()
         {
             if (_getMyProperty != null) return _getMyProperty;
 
@@ -52,19 +52,26 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
                 return null;
             }
 
+            _getMyProperty = (Func<TField>)Delegate.CreateDelegate(typeof(Func<TField>), sourceObject,
+                propertyInfo.GetGetMethod());
 
-            var getMethod = propertyInfo.GetGetMethod();
-            if (getMethod == null)
-            {
-                Debug.LogError($"Property {propertyName} does not have a getter in {sourceObject.GetType()}",
-                    sourceObject);
-                return null;
-            }
+            // var getMethod = propertyInfo.GetGetMethod();
+            // if (getMethod == null)
+            // {
+            //     Debug.LogError($"Property {propertyName} does not have a getter in {sourceObject.GetType()}",
+            //         sourceObject);
+            //     return null;
+            // }
+            //
+            // _getMyProperty =
+            //     (Func<TSource, TField>)Delegate.CreateDelegate(typeof(Func<TSource, TField>), sourceObject, getMethod);
 
-            _getMyProperty = (source) => (TField)getMethod.Invoke(source, null);
+            // _getMyProperty = (source) => (TField)getMethod.Invoke(source, null);
 
             return _getMyProperty;
         }
+        
+        
         // protected abstract bool isValid { get; }
         // protected override bool isValid =>
         //     (bool)target.GetType().GetProperty(propertyName).GetValue(target) == targetValue;

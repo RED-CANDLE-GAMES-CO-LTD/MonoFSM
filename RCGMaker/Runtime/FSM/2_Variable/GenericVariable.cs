@@ -320,12 +320,18 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         if (modifiers != null)
             foreach (var modifier in modifiers)
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
+
+        if (tempValue.Equals(Value)) return;
         // this.Log("[Variable] Set", value); 
         Field.SetCurrentValue(tempValue, byWho);
 
         _trackValue.OnRecycle();
         _trackValue["Data"] = FinalData ? FinalData.name : "null";
         _trackValue["byWho"] = byWho ? byWho.name : "null";
+        // if (tempValue is bool)
+        // {
+        //     this.SummaryTrack("Bool Changed", _trackValue);
+        // }
         _trackValue["value"] = tempValue switch
         {
             bool valueBool => valueBool,
@@ -333,7 +339,8 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
             float valueFloat => valueFloat,
             _ => _trackValue["value"]
         };
-
+        Debug.Log("Set Value byWho" + tempValue, byWho);
+     
         this.Track("Variable Changed", _trackValue);
     }
 

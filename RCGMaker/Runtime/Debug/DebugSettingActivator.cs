@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Sirenix.OdinInspector;
@@ -22,30 +23,46 @@ namespace RCGSetting
         [ValueDropdown(nameof(GetAllDebugSettingNames))]
         public string activatePropertyName;
 
-        private PropertyInfo GetActivatePropertyInfo()
+        private Func<bool> GetActivatePropertyInfo()
         {
-
-            if (_cachedInfo == null)
+            if (_getActivateProperty == null)
             {
-                _cachedInfo=  typeof(DebugSetting).GetProperty(activatePropertyName,
+                var propertyInfo = typeof(DebugSetting).GetProperty(activatePropertyName,
                     BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                if (propertyInfo == null)
+                {
+                    Debug.LogError($"DebugSettingActivator: {activatePropertyName} not found");
+                    return null;
+                }
+
+                _getActivateProperty =
+                    (Func<bool>)Delegate.CreateDelegate(typeof(Func<bool>), propertyInfo.GetGetMethod());
             }
 
-            return _cachedInfo;
+            return _getActivateProperty;
+            // if (_cachedInfo == null)
+            // {
+            //     _cachedInfo=  typeof(DebugSetting).GetProperty(activatePropertyName,
+            //         BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            // }
+            //
+            // return _cachedInfo;
         }
 
+        private Func<bool> _getActivateProperty;
         private PropertyInfo _cachedInfo = null;
 
         private void ActivateCheck()
         {
-            var fieldInfo = GetActivatePropertyInfo();
-            if (fieldInfo == null)
+            var getActivateValue = GetActivatePropertyInfo();
+            if (getActivateValue == null)
             {
                 Debug.LogError($"DebugSettingActivator: {activatePropertyName} not found");
                 return;
             }
 
-            var value = (bool)fieldInfo.GetValue(null);
+
+            var value = getActivateValue();
             if (value != ChildNode.activeSelf)
                 ChildNode.SetActive(value);
         }
