@@ -124,7 +124,7 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
 
     public virtual bool IsSelectableConditionValid => true;
     public FlagFieldBool viewed; //玩家有沒有看過
-
+    public FlagFieldBool promptViewed; //玩家有沒有看過
     public bool IsViewed => viewed.CurrentValue && acquired.CurrentValue;
     public bool IsNew => IsAcquired && !IsViewed;
 
