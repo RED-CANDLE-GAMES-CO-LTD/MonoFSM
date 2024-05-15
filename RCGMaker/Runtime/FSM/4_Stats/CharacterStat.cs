@@ -101,6 +101,9 @@ public class CharacterStat //這個改名會爛掉嗎?
         }
         else
         {
+            // statModifiers.Remove(mod);
+            isDirty = true;
+            var value = Value; //modifier改變時，更新一下值
             Debug.Log("Character Stat Already Has Modifier" + mod.Value + mod.Type);
         }
 

@@ -59,7 +59,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     {
         if (modifier == null)
         {
-            // Debug.Log("[Apply StatModifierEntry]: " + source, source as ScriptableObject);
+            // Debug.Log("[Apply StatModifierEntry]: new " + source, source as ScriptableObject);
             modifier = new StatModifier(value * AdditionalMultiplier, modType, source)
             {
                 DurationType = DurationType
@@ -67,7 +67,8 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
         }
         else
         {
-            modifier.Value = value;
+            // Debug.Log("[Apply StatModifierEntry]: exist " + this, source as ScriptableObject);
+            modifier.Value = value * AdditionalMultiplier;
             modifier.Type = modType;
             modifier.Source = source as ScriptableObject;
             modifier.DurationType = DurationType;
