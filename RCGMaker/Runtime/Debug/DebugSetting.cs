@@ -166,6 +166,11 @@ namespace RCGSetting
 #endif
         }
 
+        public static bool IsShowAllFields
+        {
+            get => DebugSettingDict[nameof(IsShowAllFields)];
+            set => SetBoolProperty(nameof(IsShowAllFields), value);
+        }
         public static bool IsDrawCustomGizmo = true;
         public static bool IsDebugMode
         {

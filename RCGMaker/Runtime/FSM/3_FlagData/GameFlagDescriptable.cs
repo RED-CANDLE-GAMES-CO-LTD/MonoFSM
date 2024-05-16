@@ -64,6 +64,7 @@ public interface IDescriptable
 [Searchable]
 public class GameFlagDescriptable : GameFlagBase, IDescriptable
 {
+    
     public Dictionary<string, Func<GameFlagDescriptable, object>> propertyCache = new();
 
     public Func<GameFlagDescriptable, object> GetPropertyCache(
@@ -123,6 +124,9 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
     }
 
     public virtual bool IsSelectableConditionValid => true;
+
+    [Header("當有從按鈕上的bindInstance來顯示過這個物件的資訊，就當作看過了把通知移除")]
+    public bool IsUpdateDescriptionAsViewed = true;
     public FlagFieldBool viewed; //玩家有沒有看過
     public FlagFieldBool promptViewed; //玩家有沒有看過
     public bool IsViewed => viewed.CurrentValue && acquired.CurrentValue;
