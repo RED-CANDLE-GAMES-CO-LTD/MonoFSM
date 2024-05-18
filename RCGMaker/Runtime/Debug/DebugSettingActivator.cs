@@ -11,6 +11,11 @@ namespace RCGSetting
     {
         public GameObject ChildNode;
 
+        private void Start()
+        {
+            ChildNode.SetActive(false);
+        }
+
         private IEnumerable<string> GetAllDebugSettingNames()
         {
             foreach (var property in typeof(DebugSetting).GetProperties())
