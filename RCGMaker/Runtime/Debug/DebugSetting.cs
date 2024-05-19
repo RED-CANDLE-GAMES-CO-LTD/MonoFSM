@@ -91,7 +91,7 @@ namespace RCGSetting
 
         public static bool IsProductionMode //乾淨存檔，不會有提前拿到能力
         {
-#if UNITY_EDITOR
+#if RCG_DEV
             get => DebugSettingDict[nameof(IsProductionMode)];
             set => SetBoolProperty(nameof(IsProductionMode), value);
 #else
