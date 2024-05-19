@@ -508,9 +508,9 @@ public class
         //[]: 有singleton就不用lastMode了吧
         if (lastMode != TestMode.Undefined)
         {
-            Debug.Log("FlagField: ResetToDefault" + lastMode);
+            // Debug.Log("FlagField: ResetToDefault" + lastMode);
             Init(lastMode, owner);
-            Debug.Log("FlagField: CurrentValue" + CurrentValue);
+            // Debug.Log("FlagField: CurrentValue" + CurrentValue);
         }
         else
             CurrentValue = ProductionValue;
