@@ -292,6 +292,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
             else
             {
                 if (ScriptableData.CurrentValue.Equals(tempValue)) return;
+                if (FinalData == null) return;
                 _trackValue.OnRecycle();
                 _trackValue["Data"] = FinalData ? FinalData.name : "null";
                 _trackValue["value"] = tempValue switch
@@ -325,6 +326,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         // this.Log("[Variable] Set", value); 
         Field.SetCurrentValue(tempValue, byWho);
 
+        if (FinalData == null) return;
         _trackValue.OnRecycle();
         _trackValue["Data"] = FinalData ? FinalData.name : "null";
         _trackValue["byWho"] = byWho ? byWho.name : "null";
