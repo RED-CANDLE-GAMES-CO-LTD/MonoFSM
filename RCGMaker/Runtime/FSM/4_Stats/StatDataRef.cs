@@ -15,7 +15,7 @@ public class StatDataRef : AbstractStatData
     public StatData FallBackStatData;
     private AbstractStatData CurrentStatData => BindingStatData ? BindingStatData : FallBackStatData;
     public override float ValueWithBaseRatio => CurrentStatData.ValueWithBaseRatio * scale;
-    public override float Value => CurrentStatData.Value * scale;
+    public override float Value => CurrentStatData.ValueWithBaseRatio * scale;
 
     //如何維持原本的reference但改實作？
     //一開始接的就是抽象介面？

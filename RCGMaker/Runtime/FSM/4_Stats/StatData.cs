@@ -27,10 +27,16 @@ public class StatData : AbstractStatData, IStringData,  INativeData
     private CharacterStat stat;
 
     public CharacterStat Stat => stat;
+
     [ReadOnly]
     [ShowInInspector]
     [PropertyOrder(-1)]
-    public override float Value => stat.Value; //設計參數
+    public override float Value => ValueWithBaseRatio;
+
+    [ReadOnly]
+    [ShowInInspector]
+    [PropertyOrder(-1)]
+    private float DesignValue => stat.Value; //設計參數
 
     public int ValueInt => (int)Value;
 
@@ -38,7 +44,7 @@ public class StatData : AbstractStatData, IStringData,  INativeData
 
     private float CalculateFinalValue()
     {
-        var finalValue = Value;
+        var finalValue = DesignValue;
         foreach (var ratio in baseRatios) finalValue *= ratio.Value;
         return finalValue;
     }
