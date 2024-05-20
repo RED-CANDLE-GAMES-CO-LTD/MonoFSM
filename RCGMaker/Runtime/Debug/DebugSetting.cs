@@ -73,6 +73,11 @@ namespace RCGSetting
                 DebugSettingDict[property.Name] = value;
                 property.SetValue(null, value);
             }
+
+#if !UNITY_EDITOR
+            IsProductionMode = true;
+#endif
+          
         }
 
         //之後應該看這個
