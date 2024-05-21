@@ -50,6 +50,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     {
         HitData = 0,
         FxPlayer = 1,
+        HitDataReceiverCenter = 2
     }
 
     private void OnDisable()
