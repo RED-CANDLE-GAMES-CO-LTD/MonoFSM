@@ -107,9 +107,10 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     public void SetSaveID(string id)
     {
         SaveID = id;
+        _finalSaveID = SaveID + GetType().Name;
     }
 
-    private string _finalSaveID;
+    private string _finalSaveID; //這個cache有點討厭？
 
     [PreviewInInspector]
     public string FinalSaveID
@@ -136,10 +137,10 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     [EditorOnly]
     protected virtual void OnValidate()
     {
-        
         ValidateSaveID();
     }
 
+    [Button]
     [EditorOnly]
     // [Button]
     private void ValidateSaveID()
@@ -153,8 +154,11 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
         else //manual, duplicate的時候會需要重新assign
         {
             var guid = this.GetAssetGUID();
-            if (GetSaveID == guid) return;
+
+            // if (GetSaveID == guid) return;
+            _finalSaveID = "";
             SetSaveID(guid);
+            
             this.SafeSetDirty();
 
         }
@@ -164,17 +168,12 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     // public Vector3 position;//該在這裡綁嗎?
     private void InitField<TField, T>(FlagFieldBase field, TestMode mode) where TField : FlagField<T>
     {
-
-       
         if (field == null)
         {
             Debug.LogError("field is null" + field + ",flag:" + this, this);
             return;
         }
-
         ((TField)field).Init(mode, this);
-        
-    
     }
     public virtual void FlagAwake(TestMode mode) //抓default Value或currentValue
     {
