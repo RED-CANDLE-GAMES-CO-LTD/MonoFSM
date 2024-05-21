@@ -139,3 +139,8 @@ public class FlagFieldEntryInt : FlagFieldEntry<int>
 public class FlagFieldEntryString : FlagFieldEntry<string>
 {
 }
+
+[Serializable]
+public class FlagFieldEntryFloat : FlagFieldEntry<float>
+{
+}

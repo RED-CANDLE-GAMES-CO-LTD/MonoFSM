@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [Serializable]
 public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
@@ -23,23 +24,29 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
             var baseValue = TargetStat.BaseValue;
             if (modType == StatModType.Flat)
             {
-                return baseValue + value;
+                return baseValue + Value;
             }
-            else if (modType == StatModType.PercentAdd)
+
+            if (modType == StatModType.PercentAdd)
             {
-                return baseValue * (1 + value);
+                return baseValue * (1 + Value);
             }
-            else if (modType == StatModType.PercentMult)
+
+            if (modType == StatModType.PercentMult)
             {
-                return baseValue * value;
+                return baseValue * Value;
             }
 
             return baseValue;
         }
     }
 
-    public float value = 1f;
+    private float Value => ValueSource ? ValueSource.Value : value; //可以吃ScriptableDataFloat的value
 
+    [HideIf("ValueSource")] [Title("數值(簡易")]
+    public float value;
+
+    [Title("外部數值來源")] public ScriptableDataFloat ValueSource;
     public StatModType modType = StatModType.Flat;
 
     [InlineEditor()] public StatData statData;
@@ -60,7 +67,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
         if (modifier == null)
         {
             // Debug.Log("[Apply StatModifierEntry]: new " + source, source as ScriptableObject);
-            modifier = new StatModifier(value * AdditionalMultiplier, modType, source)
+            modifier = new StatModifier(Value * AdditionalMultiplier, modType, source)
             {
                 DurationType = DurationType
             };
@@ -68,7 +75,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
         else
         {
             // Debug.Log("[Apply StatModifierEntry]: exist " + this, source as ScriptableObject);
-            modifier.Value = value * AdditionalMultiplier;
+            modifier.Value = Value * AdditionalMultiplier;
             modifier.Type = modType;
             modifier.Source = source as ScriptableObject;
             modifier.DurationType = DurationType;

@@ -41,6 +41,38 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
     [TextArea] public string Note;
 }
 
+public static class NativeDataHelper
+{
+    public static object GetProperty<T>(this INativeData data, string propertyName)
+    {
+        var t = data.GetType();
+        var property = t.GetProperty(propertyName);
+        if (property == null)
+        {
+            Debug.LogError("No property found:" + propertyName, data as Object);
+            return null;
+        }
+
+        var value = property.GetValue(data);
+        return value;
+    }
+
+    //get field
+    public static object GetField<T>(this INativeData data, string fieldName)
+    {
+        var t = data.GetType();
+        var field = t.GetField(fieldName);
+        if (field == null)
+        {
+            Debug.LogError("No field found:" + fieldName, data as Object);
+            return null;
+        }
+
+        var value = field.GetValue(data);
+        return value;
+    }
+}
+
 public interface INativeDataProvider
 {
     public INativeData GetNativeData();
