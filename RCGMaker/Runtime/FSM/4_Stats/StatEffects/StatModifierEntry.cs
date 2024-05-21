@@ -43,7 +43,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 
     private float Value => ValueSource ? ValueSource.Value : value; //可以吃ScriptableDataFloat的value
 
-    [HideIf("ValueSource")] [Title("數值(簡易")]
+    [HideIf("@ValueSource != null")] [Title("數值(簡易")]
     public float value;
 
     [Title("外部數值來源")] public ScriptableDataFloat ValueSource;
@@ -71,14 +71,24 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
             {
                 DurationType = DurationType
             };
+            //如果有ValueSource，就監聽他來更新
+            if (ValueSource != null)
+            {
+                Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
+                ValueSource.field.AddListener(OnValueChange, source as ScriptableObject);
+            }
         }
         else
         {
+            
             // Debug.Log("[Apply StatModifierEntry]: exist " + this, source as ScriptableObject);
             modifier.Value = Value * AdditionalMultiplier;
             modifier.Type = modType;
             modifier.Source = source as ScriptableObject;
             modifier.DurationType = DurationType;
+
+          
+                
         }
 
         // Debug.Log("[Apply StatModifierEntry]: " + this, source as ScriptableObject);
@@ -86,10 +96,27 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
         TargetStat.AddModifier(modifier);
     }
 
-    public void Remove()
+    private void OnValueChange(float arg0)
+    {
+        if (modifier != null)
+        {
+            modifier.Value = Value * AdditionalMultiplier;
+            TargetStat.AddModifier(modifier);
+            Debug.Log("[StatModifierEntry] ValueSource OnValueChange" + arg0);
+        }
+    }
+
+    //自己監聽？
+    public void Remove(IStatModifierOwner source)
     {
         // statData.flagStat.RemoveModifier(modifier);
         TargetStat.RemoveModifier(modifier);
+
+        if (ValueSource != null)
+        {
+            Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
+            ValueSource.field.RemoveListener(OnValueChange, source as ScriptableObject);
+        }
     }
 }
 //

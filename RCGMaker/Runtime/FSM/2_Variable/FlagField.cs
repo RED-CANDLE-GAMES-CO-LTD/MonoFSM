@@ -183,7 +183,7 @@ public class ValueChangedListener<T>
     //     if (obj is UnityEngine.Object) return (obj as UnityEngine.Object) == null;
     //     return false;
     // }
-    public bool RemoveListenerDict(UnityAction<T> action, MonoBehaviour target)
+    public bool RemoveListenerDict(UnityAction<T> action, Object target)
     {
         if (onChangeActionDict == null)
         {
@@ -347,8 +347,8 @@ public class
     //         listenerDict = new ValueChangedListener<object, object, T>();
     //     listenerDict.AddListenerDict(target, param, callback as UnityAction<object, object, T>);
     // }
-    
-    public void AddListener(UnityAction<T> action, MonoBehaviour owner)
+
+    public void AddListener(UnityAction<T> action, Object owner)
     {
         if (owner == null)
         {
@@ -370,37 +370,30 @@ public class
         // Debug.Log("FlagField Add Listener",owner);
         listener.AddListenerDict(action, owner);
     }
-    public void AddListener(UnityAction<T> action, ScriptableObject owner)
-    {
-        if (owner == null)
-        {
-            // var mono = action.Target as MonoBehaviour;
-            // if (mono == null)
-            // {
-            Debug.LogError("PLZ FIX ME, Assign Owner for function block!!" + action.Target);
-            return;
-            // }
-            // owner = mono;
-        }
-
-
-        if (listener == null)
-        {
-            listener = new ValueChangedListener<T>();
-        }
-        listener.AddListenerDict(action, owner as object);
-    }
+    // public void AddListener(UnityAction<T> action, ScriptableObject owner)
+    // {
+    //     if (owner == null)
+    //     {
+    //         // var mono = action.Target as MonoBehaviour;
+    //         // if (mono == null)
+    //         // {
+    //         Debug.LogError("PLZ FIX ME, Assign Owner for function block!!" + action.Target);
+    //         return;
+    //         // }
+    //         // owner = mono;
+    //     }
+    //
+    //
+    //     if (listener == null)
+    //     {
+    //         listener = new ValueChangedListener<T>();
+    //     }
+    //     listener.AddListenerDict(action, owner as object);
+    // }
 
     //once是不是不太好？
-    public void AddListenerOnce(UnityAction<T> action, MonoBehaviour owner)
-    {
-        if (listenerOnce == null)
-        {
-            listenerOnce = new ValueChangedListener<T>();
-        }
-        listenerOnce.AddListenerDict(action, owner);
-    }
-    public void AddListenerOnce(UnityAction<T> action, ScriptableObject owner)
+
+    public void AddListenerOnce(UnityAction<T> action, Object owner)
     {
         if (listenerOnce == null)
         {
@@ -408,7 +401,8 @@ public class
         }
         listenerOnce.AddListenerDict(action, owner as object);
     }
-    public void RemoveListener(UnityAction<T> action, MonoBehaviour owner)
+
+    public void RemoveListener(UnityAction<T> action, Object owner)
     {
         var result = false;
         if (listener != null)
