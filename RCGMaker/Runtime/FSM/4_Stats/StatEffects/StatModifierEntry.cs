@@ -74,7 +74,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
             //如果有ValueSource，就監聽他來更新
             if (ValueSource != null)
             {
-                Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
+                // Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
                 ValueSource.field.AddListener(OnValueChange, source as ScriptableObject);
             }
         }
@@ -102,7 +102,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
         {
             modifier.Value = Value * AdditionalMultiplier;
             TargetStat.AddModifier(modifier);
-            Debug.Log("[StatModifierEntry] ValueSource OnValueChange" + arg0);
+            // Debug.Log("[StatModifierEntry] ValueSource OnValueChange" + arg0);
         }
     }
 
@@ -114,7 +114,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 
         if (ValueSource != null)
         {
-            Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
+            // Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
             ValueSource.field.RemoveListener(OnValueChange, source as ScriptableObject);
         }
     }
