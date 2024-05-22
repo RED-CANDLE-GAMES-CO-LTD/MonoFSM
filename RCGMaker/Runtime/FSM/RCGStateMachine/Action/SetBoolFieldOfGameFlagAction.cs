@@ -7,6 +7,7 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action
 {
     public class SetBoolFieldOfGameFlagAction : AbstractStateAction
     {
+        [InlineEditor]
         public GameFlagBase targetVariable;
         public bool TargetValue = true;
         public SetBoolType targetType;
