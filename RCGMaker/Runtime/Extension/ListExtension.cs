@@ -29,10 +29,10 @@ public static class ListExtensions
         return current;
     }
 
-    public static int NextIndex<T>(this List<T> array, ref int current)
+    public static int NextIndex<T>(this List<T> list, ref int current)
     {
         current++;
-        if (current >= array.Count) current = 0;
+        if (current >= list.Count) current = 0;
         return current;
     }
 
