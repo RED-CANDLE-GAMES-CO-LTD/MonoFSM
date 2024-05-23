@@ -12,4 +12,13 @@ namespace RCGMaker.Core.Attributes
     {
         //給private autoparent, auto children用的, 還是要直接processor下去？有些真的不需要preview就不加了
     }
+
+    [IncludeMyAttributes]
+    [Required]
+    [ShowInInspector]
+    [DisableIf("@true")]
+    public class RequiredInParentAttribute : Attribute
+    {
+        //給private autoparent, auto children用的, 還是要直接processor下去？有些真的不需要preview就不加了
+    }
 }
