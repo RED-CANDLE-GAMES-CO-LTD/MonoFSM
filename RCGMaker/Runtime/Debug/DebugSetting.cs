@@ -60,6 +60,7 @@ namespace RCGSetting
                 GuidManager.InitRuntime();
         }
         
+        
         static DebugSetting()
         {
             foreach (var property in typeof(DebugSetting).GetProperties())
@@ -94,6 +95,16 @@ namespace RCGSetting
 #endif
         }
 
+        public static bool IsLogSound
+        {
+#if RCG_DEV
+            get => DebugSettingDict[nameof(IsLogSound)];
+            set => SetBoolProperty(nameof(IsLogSound), value);
+#else
+get => false;
+            set { }
+#endif
+        }
         public static bool IsProductionMode //乾淨存檔，不會有提前拿到能力
         {
 #if RCG_DEV
