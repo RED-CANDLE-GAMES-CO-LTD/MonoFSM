@@ -155,7 +155,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
         {
             var guid = this.GetAssetGUID();
 
-            // if (GetSaveID == guid) return;
+            if (GetSaveID == guid) return;
             _finalSaveID = "";
             SetSaveID(guid);
             
