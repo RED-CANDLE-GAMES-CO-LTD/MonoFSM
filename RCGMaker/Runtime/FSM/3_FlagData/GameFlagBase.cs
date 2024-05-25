@@ -284,6 +284,12 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     public virtual void FlagEquipCheck()
     {
     }
+
+    public virtual bool IsEquipping()
+    {
+        return false;
+    }
+    
     // private void OnDisable() {
 
     // }
