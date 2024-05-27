@@ -546,7 +546,21 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         for (var i = 0; i < allPools.Count; i++)
             allPools[i].ReturnAllObjects(withScene);
     }
+    public delegate bool PoolPredicate(PoolObject p);
 
+    public void ReturnAllObjects(Scene withScene,PoolPredicate poolPredicate)
+    {
+        var StillOnUses = new List<PoolObject>();
+
+        for (var i = 0; i < allPools.Count; i++)
+        {
+            if (poolPredicate(allPools[i]._prefab))
+            {
+                allPools[i].ReturnAllObjects(withScene);
+            }
+        }
+        
+    }
 
     private void AddAPool(PoolObject obj)
     {
@@ -631,6 +645,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
             for (var i = 0; i < StillOnUses.Count; i++) StillOnUses[i].ReturnToPool();
         }
+
+       
+
 
         public void DestroyPool()
         {
