@@ -446,6 +446,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         if (!PoolDictionary.ContainsKey(prefab))
         {
+            Debug.LogError("PoolManager: " + prefab.name + " is not in the pool dictionary");
             AddAPool(prefab);
             PoolDictionary[prefab].UpdatePoolEntry();
         }
@@ -727,7 +728,11 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             Action<PoolObject> beforeHandler = null)
         {
             if (DisabledObjs.Count == 0)
+            {
+                Debug.LogError("[Pool Manager]" + _prefab.gameObject.name + " Pool Bankrupt");
                 AddAObject();
+            }
+                
 
             if (DisabledObjs.Count > 0)
             {
@@ -856,7 +861,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 _bindingEntry.prefab.gameObject.scene.name != default &&
                 _bindingEntry.prefab.gameObject.scene.name != null)
             {
-                Debug.Log("Update PrewarmData Failed :" + _bindingEntry.prefab.gameObject.name);
+                Debug.Log("Update Pre warm Data Failed :" + _bindingEntry.prefab.gameObject.name);
 
                 return;
             }

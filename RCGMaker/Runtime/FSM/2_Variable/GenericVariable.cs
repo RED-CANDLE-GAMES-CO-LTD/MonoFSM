@@ -302,7 +302,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                     float valueFloat => valueFloat,
                     _ => _trackValue["value"]
                 };
-                Debug.Log("Set Value" + tempValue);
+                // Debug.Log("Set Value" + tempValue);
                 this.Track("Variable Changed", _trackValue);
                 ScriptableData.CurrentValue = tempValue;
             }
@@ -341,7 +341,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
             float valueFloat => valueFloat,
             _ => _trackValue["value"]
         };
-        Debug.Log("Set Value byWho" + tempValue, byWho);
+        this.Log("Set Value byWho", tempValue, "byWho", byWho);
      
         this.Track("Variable Changed", _trackValue);
     }

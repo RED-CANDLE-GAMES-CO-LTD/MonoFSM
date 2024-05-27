@@ -67,7 +67,7 @@ namespace RCGMaker.AddressableAssets
         {
             var validateKeyAsync = Addressables.LoadResourceLocationsAsync(assetReference.RuntimeKey);
             await validateKeyAsync.Task;
-            Debug.Log("[RCGAsset] LoadAssetAsync: " + assetReference.SubObjectName);
+            // Debug.Log("[RCGAsset] LoadAssetAsync: " + assetReference.SubObjectName);
             // Debug.Log("LoadAssetAsync: 1:" + assetReference.SubObjectName);
             var op = assetReference.OperationHandle;
             if (op.IsValid())
