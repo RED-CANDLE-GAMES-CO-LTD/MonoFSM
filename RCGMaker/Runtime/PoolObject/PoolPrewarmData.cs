@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
-
+[Searchable]
 [CreateAssetMenu(fileName = "New PoolPrewarmData", menuName = "Boa/PoolManager/Create PoolPrewarmData", order = 3)]
 public class PoolPrewarmData : ScriptableObject
 {

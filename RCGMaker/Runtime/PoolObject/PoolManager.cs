@@ -520,14 +520,14 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         for (var i = 0; i < allPools.Count; i++) PoolDictionary.Add(allPools[i]._prefab, allPools[i]);
 
 
-        var sw = new System.Diagnostics.Stopwatch();
-
-        sw.Start();
+        // var sw = new System.Diagnostics.Stopwatch();
+        //
+        // sw.Start();
 
         for (var i = 0; i < allPools.Count; i++) allPools[i].ScalePoolToNewMaximum();
 
-        sw.Stop();
-        Debug.Log("[PoolManager] Prepare ElapsedMilliseconds:" + sw.ElapsedMilliseconds);
+        // sw.Stop();
+        // Debug.Log("[PoolManager] Prepare ElapsedMilliseconds:" + sw.ElapsedMilliseconds);
         // UnityEngine.Debug.LogFormat("[Auto] Assigned <color={5}><b>{4}/{2}</b></color> [Auto*] variables in <color=#cc3300><b>{3} Milliseconds </b></color> - Analized {0} MonoBehaviours and {1} variables",
         //    monoBehavioursInSceneWithAuto.Count(), variablesAnalized, variablesWithAuto, sw.ElapsedMilliseconds, autoVarialbesAssigned_count, autoVarialbesAssigned_count + autoVarialbesNotAssigned_count, result_color);
     }
