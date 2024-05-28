@@ -116,7 +116,7 @@ namespace RCGMaker.AddressableAssets
         public void Release()
         {
             assetReference.ReleaseAsset();
-            Debug.Log("[RCGAsset] ReleaseAsset:" + assetReference.SubObjectName);
+            // Debug.Log("[RCGAsset] ReleaseAsset:" + assetReference.SubObjectName);
         }
     }
 }
