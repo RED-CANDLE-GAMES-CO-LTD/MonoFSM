@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Auto.Utils;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
 
 public class PoolNativeObjectManager<T> where T : new()
 {
@@ -729,7 +731,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             if (DisabledObjs.Count == 0)
             {
-                Debug.LogError("[Pool Manager]" + _prefab.gameObject.name + " Pool Bankrupt");
+                Debug.LogError("[Pool Manager]" + _prefab.gameObject.name + " Pool Bankrupt", _prefab);
                 AddAObject();
             }
                 
@@ -794,6 +796,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             _prefab.gameObject.SetActive(originPrefabActive);
 
             DisabledObjs.Add(obj);
+            
             UpdatePoolEntry();
             //
         }
@@ -855,13 +858,14 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         //     }
         // }
 
+        [Conditional("UNITY_EDITOR")]
         public void UpdatePoolEntry()
         {
             if (_bindingEntry.prefab.gameObject.scene != null &&
                 _bindingEntry.prefab.gameObject.scene.name != default &&
                 _bindingEntry.prefab.gameObject.scene.name != null)
             {
-                Debug.Log("Update Pre warm Data Failed :" + _bindingEntry.prefab.gameObject.name);
+                Debug.LogError("Update Pre warm Data Failed :" + _bindingEntry.prefab.gameObject.name);
 
                 return;
             }
@@ -870,13 +874,26 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             if (_bindingEntry.prefab.IsGlobalPool)
             {
                 if (_poolManager.globalPrewarmDataLogger != null)
+                {
                     _poolManager.globalPrewarmDataLogger.UpdatePoolObjectEntry(_bindingEntry.prefab, AllObjs.Count);
+                    Debug.LogError("Update Global Pool Entry" + AllObjs.Count, _bindingEntry.prefab);
+                    return;
+                }
+                   
+                
             }
             else
             {
                 if (_poolManager.prewarmDataLogger != null)
+                {
                     _poolManager.prewarmDataLogger.UpdatePoolObjectEntry(_bindingEntry.prefab, AllObjs.Count);
+                    Debug.LogError("Update Scene Pool Entry" + AllObjs.Count, _bindingEntry.prefab);
+                    return;
+                }
             }
+
+            Debug.LogError("Update Pre warm Data Failed :" + _bindingEntry.prefab.gameObject.name,
+                _bindingEntry.prefab.gameObject);
         }
 
 
