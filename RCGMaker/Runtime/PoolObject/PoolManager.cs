@@ -732,7 +732,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             if (DisabledObjs.Count == 0)
             {
                 Debug.LogError("[Pool Manager]" + _prefab.gameObject.name + " Pool Bankrupt", _prefab);
-                AddAObject();
+                AddAObject(true);
             }
                 
 
@@ -768,7 +768,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             }
         }
 
-        public void AddAObject()
+        public void AddAObject(bool updatePrewarm = false)
         {
             if (_poolManager == null)
                 Debug.LogError("What?");
@@ -796,8 +796,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             _prefab.gameObject.SetActive(originPrefabActive);
 
             DisabledObjs.Add(obj);
-            
-            UpdatePoolEntry();
+
+            if (updatePrewarm)
+                UpdatePoolEntry();
             //
         }
 
@@ -869,8 +870,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
                 return;
             }
-
-
+            
             if (_bindingEntry.prefab.IsGlobalPool)
             {
                 if (_poolManager.globalPrewarmDataLogger != null)
