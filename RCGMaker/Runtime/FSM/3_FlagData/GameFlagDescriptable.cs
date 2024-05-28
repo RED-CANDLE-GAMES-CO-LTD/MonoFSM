@@ -64,6 +64,16 @@ public interface IDescriptable
 [Searchable]
 public class GameFlagDescriptable : GameFlagBase, IDescriptable
 {
+    public async void PreloadSprite()
+    {
+        if (SpriteRef == null) return;
+        await SpriteRef.GetAssetAsync<Sprite>();
+    }
+
+    public void ReleaseSprite()
+    {
+        SpriteRef?.Release();
+    }
     
     public Dictionary<string, Func<GameFlagDescriptable, object>> propertyCache = new();
 
