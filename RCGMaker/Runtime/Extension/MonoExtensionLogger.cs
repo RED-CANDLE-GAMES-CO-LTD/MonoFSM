@@ -24,7 +24,7 @@ public static class MonoExtensionLogger
     //static DebugProvider in parent dictionary
     private static readonly Dictionary<Component, DebugProvider[]> DebugProviderDict = new();
 
-    private static (bool, DebugProvider) IsLoggingCheck(Component comp)
+    public static (bool, DebugProvider) IsLoggingCheck(Component comp)
     {
 // #if RCG_DEV
 
