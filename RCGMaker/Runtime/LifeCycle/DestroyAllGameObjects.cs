@@ -42,9 +42,9 @@ public class DestroyAllGameObjects : MonoBehaviour
     private IEnumerator _StartClear()
     {
         DestroyingAll = true;
+        PrimeTween.Tween.StopAll();
         Time.timeScale = 1;
         // yield return new WaitForSeconds(1f);
-        PrimeTween.Tween.StopAll();
         //母災為啥要叫兩次才會清乾淨
         // yield return new WaitForSeconds(0.1f);
         yield return _DestroyAll();
