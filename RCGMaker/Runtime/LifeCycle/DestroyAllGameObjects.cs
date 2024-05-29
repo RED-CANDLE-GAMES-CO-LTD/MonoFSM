@@ -9,9 +9,21 @@ public static class RCGLifeCycle
 {
     public static void DontDestroyForever(GameObject gameObject)
     {
-        Object.DontDestroyOnLoad(gameObject);
-        DontDestroyObjList.Add(gameObject);
-        gameObject.name += " (RCGLifeCycle)";
+        if (gameObject == null)
+        {
+            Debug.LogWarning("DontDestroyForever: gameObject is null");
+            return;
+        }
+
+
+        if (DontDestroyObjList.Contains(gameObject) == false)
+        {
+            DontDestroyObjList.Add(gameObject);
+            Object.DontDestroyOnLoad(gameObject);
+            gameObject.name += " (RCGLifeCycle)";
+        }
+            
+        
     }
 
     private static readonly List<GameObject> DontDestroyObjList = new();
