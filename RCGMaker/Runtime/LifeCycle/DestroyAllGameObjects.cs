@@ -30,6 +30,7 @@ public class DestroyAllGameObjects : MonoBehaviour
     private IEnumerator _StartClear()
     {
         DestroyingAll = true;
+        PrimeTween.Tween.StopAll();
         Time.timeScale = 1;
         // yield return new WaitForSeconds(1f);
         
