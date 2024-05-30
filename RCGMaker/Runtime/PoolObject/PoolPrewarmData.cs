@@ -11,26 +11,30 @@ public class PoolPrewarmData : ScriptableObject
 
     public void UpdatePoolObjectEntry(PoolObject poolObject, int count)
     {
-        //FIXME: prewarm太煩了
 #if UNITY_EDITOR
-        for (int i = 0; i < objectEntries.Count; i++)
+        foreach (var entry in objectEntries)
         {
-            if (objectEntries[i].prefab == poolObject)
+            if (entry.prefab == poolObject)
             {
-                if (count > objectEntries[i].DefaultMaximumCount)
+                if (count > entry.DefaultMaximumCount)
                 {
-                    objectEntries[i].DefaultMaximumCount = count;
+                    Debug.LogError("Update max count for " + poolObject.name + " from " + entry.DefaultMaximumCount +
+                                   " to " + count, this);
+                    entry.DefaultMaximumCount = count;
                 }
+
+                UnityEditor.EditorUtility.SetDirty(this);
                 return;
             }
         }
 
-
-        PoolManager.PoolObjectEntry newEntry = new PoolManager.PoolObjectEntry();
-        newEntry.prefab = poolObject;
-        newEntry.DefaultMaximumCount = count;
+        var newEntry = new PoolManager.PoolObjectEntry
+        {
+            prefab = poolObject,
+            DefaultMaximumCount = count
+        };
         objectEntries.Add(newEntry);
-
+        Debug.LogError("Add new entry for " + poolObject.name);
         UnityEditor.EditorUtility.SetDirty(this);
 #endif
     }
