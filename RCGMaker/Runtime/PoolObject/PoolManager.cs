@@ -254,9 +254,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         if (data == null)
             return;
 
-        for (var i = 0; i < data.objectEntries.Count; i++)
-            records.Add(new PoolObjectRequestRecords(requester, data.objectEntries[i].prefab,
-                data.objectEntries[i].DefaultMaximumCount));
+        foreach (var entry in data.objectEntries)
+            records.Add(new PoolObjectRequestRecords(requester, entry.prefab,
+                entry.DefaultMaximumCount));
     }
 
 

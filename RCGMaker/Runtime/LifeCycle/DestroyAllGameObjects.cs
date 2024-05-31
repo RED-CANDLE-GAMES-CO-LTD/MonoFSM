@@ -22,10 +22,7 @@ public static class RCGLifeCycle
             Object.DontDestroyOnLoad(gameObject);
             gameObject.name += " (RCGLifeCycle)";
         }
-            
-        
     }
-
     private static readonly List<GameObject> DontDestroyObjList = new();
 
     public static bool CanDestroy(GameObject g) 

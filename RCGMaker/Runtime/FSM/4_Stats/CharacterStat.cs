@@ -81,14 +81,25 @@ public class CharacterStat //這個改名會爛掉嗎?
             // }
             // owner = mono;
         }
-
-
         if (listener == null)
         {
             listener = new ValueChangedListener<float>();
         }
         listener.AddListenerDict(action, owner);
     }
+
+    //remove
+    public void RemoveListener(UnityAction<float> action, MonoBehaviour owner)
+    {
+        if (listener == null)
+        {
+            Debug.LogError("No Listener to Remove");
+            return;
+        }
+
+        listener.RemoveListenerDict(action, owner);
+    }
+    
     public virtual void AddModifier(StatModifier mod)
     {
         // Debug.Log("Add Stat modifier" + this);
