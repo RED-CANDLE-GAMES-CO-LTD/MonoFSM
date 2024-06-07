@@ -132,6 +132,7 @@ public class CharacterStat //這個改名會爛掉嗎?
     }
     public void Clear()
     {
+        
         statModifiers.Clear();
         _value = BaseValue;
         isDirty = true;

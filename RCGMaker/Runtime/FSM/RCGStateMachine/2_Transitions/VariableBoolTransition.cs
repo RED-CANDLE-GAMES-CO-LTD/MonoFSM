@@ -27,13 +27,22 @@ public class VariableBoolTransition : AbstractStateTransition
     protected override void Awake()
     {
         base.Awake();
+        // variableNode.Field.AddListener(value =>
+        // {
+        //     if (value == TargetValue)
+        //         TransitionCheck();
+        // }, this);
+        variableNode.Field.AddListener(OnValueChange, this);
+    }
 
-        // _delayParam = new Tuple<float>(delay);
+    private void OnValueChange(bool value)
+    {
+        if (value == TargetValue)
+            TransitionCheck();
+    }
 
-        variableNode.Field.AddListener(value =>
-        {
-            if (value == TargetValue)
-                TransitionCheck();
-        }, this);
+    private void OnDestroy()
+    {
+        variableNode.Field.RemoveListener(OnValueChange, this);
     }
 }
