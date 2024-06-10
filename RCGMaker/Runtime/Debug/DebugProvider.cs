@@ -88,6 +88,7 @@ public class LogEntry
     public void GotoFile()
 
     {
+        //?fileName=LinkNextMoveStateWeight.cs&line=1
         // 1, not 0, to skip the current method
         InternalEditorUtility.OpenFileAtLineExternal(fileName, lineNumber);
     }
