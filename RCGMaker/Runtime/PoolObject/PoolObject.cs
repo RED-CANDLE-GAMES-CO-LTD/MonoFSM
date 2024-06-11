@@ -343,6 +343,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         }
     }
 
+    
     // private bool needResetAnim = false;
 
     public void OnReturnToPool(PoolManager manager)
@@ -493,6 +494,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         {
             _bindingPoolManager.PoolObjectDestroyed(this);
         }
+
+        OnReturnEvent.RemoveAllListeners();
     }
 
     //  public bool Log= false;
