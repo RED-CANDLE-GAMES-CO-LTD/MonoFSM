@@ -343,7 +343,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         }
     }
 
-    
     // private bool needResetAnim = false;
 
     public void OnReturnToPool(PoolManager manager)
@@ -495,7 +494,17 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
             _bindingPoolManager.PoolObjectDestroyed(this);
         }
 
-        OnReturnEvent.RemoveAllListeners();
+        OnReturnEvent?.RemoveAllListeners();
+        OnReturnEvent = null;
+        if (IPoolObjectList != null) {
+            IPoolObjectList.Clear();
+            IPoolObjectList = null;
+        }
+
+        if (IResetterList != null) {
+            IResetterList.Clear();
+            IResetterList = null;
+        }
     }
 
     //  public bool Log= false;
