@@ -92,9 +92,9 @@ public class ValueChangedListener<T>
 {
     public void Clear()
     {
-        onChangeActionDict.Clear();
-        keys.Clear();
-        toRemove.Clear();
+        onChangeActionDict?.Clear();
+        keys?.Clear();
+        toRemove?.Clear();
     }
     private Dictionary<int, System.Tuple<object, UnityAction<T>>> onChangeActionDict;
 
