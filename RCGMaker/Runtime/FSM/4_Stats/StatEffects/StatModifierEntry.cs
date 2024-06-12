@@ -46,6 +46,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     [HideIf("@ValueSource != null")] [Title("數值(簡易")]
     public float value;
 
+    [InlineEditor]
     [Title("外部數值來源")] public ScriptableDataFloat ValueSource;
     public StatModType modType = StatModType.Flat;
 
