@@ -60,6 +60,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 
     // [ShowInInspector]
     [NonSerialized] protected StatModifier modifier;
+    
     [TextArea] public string note;
     public CharacterStat TargetStat => statData ? statData.Stat : null;
 
@@ -118,6 +119,17 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
             // Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
             ValueSource.field.RemoveListener(OnValueChange, source as ScriptableObject);
         }
+    }
+
+    public void Clear()
+    {
+        if (ValueSource != null)
+        {
+            if (modifier.Source != null)
+                ValueSource.field.RemoveListener(OnValueChange, modifier.Source);
+        }
+
+        modifier = null;
     }
 }
 //

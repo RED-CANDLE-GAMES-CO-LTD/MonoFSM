@@ -90,6 +90,12 @@ public class FlagFieldFloat : FlagField<float>
 
 public class ValueChangedListener<T>
 {
+    public void Clear()
+    {
+        onChangeActionDict.Clear();
+        keys.Clear();
+        toRemove.Clear();
+    }
     private Dictionary<int, System.Tuple<object, UnityAction<T>>> onChangeActionDict;
 
     private List<int> keys = new List<int>();
@@ -469,7 +475,8 @@ public class
     {
         owner = _owner;
         _modifiers.Clear();
-        CurrentValue = mode switch
+
+        _currentValue = mode switch
         {
             TestMode.EditorDevelopment => DevValue,
             TestMode.Build => ProductionValue,
@@ -477,7 +484,8 @@ public class
         };
         
         lastMode = mode;
-        
+        listener.Clear();
+        listenerOnce.Clear();
     }
 
     private Object owner;
@@ -512,10 +520,11 @@ public class
         
     }
 
-    public void Clear()
-    {
-        //FIXME: 是不是應該要清掉listener?
-    }
+    //Field init的時候，就會清了才對
+    // public void Clear()
+    // {
+    //     //FIXME: 是不是應該要清掉listener?
+    // }
 
 }
 

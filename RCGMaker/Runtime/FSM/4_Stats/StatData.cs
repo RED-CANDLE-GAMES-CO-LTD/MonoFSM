@@ -18,7 +18,7 @@ public class StatData : AbstractStatData, IStringData,  INativeData
 
     public void Clear() //重load時清除
     {
-        stat?.Clear();
+        stat.Clear();
         Debug.Log("Clear StatData: " + name, this);
     }
     [Header("能力值")]
