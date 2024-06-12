@@ -123,6 +123,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 
     public void Clear()
     {
+        if (modifier == null) return;
         if (ValueSource != null)
         {
             if (modifier.Source != null)
