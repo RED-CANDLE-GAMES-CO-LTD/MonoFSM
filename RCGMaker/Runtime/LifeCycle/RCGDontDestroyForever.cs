@@ -7,6 +7,7 @@ namespace RCGMaker.Runtime.LifeCycle
     {
         private void Awake()
         {
+            //重複的時候要把另一個殺掉？
             RCGLifeCycle.DontDestroyForever(gameObject);
         }
     }
