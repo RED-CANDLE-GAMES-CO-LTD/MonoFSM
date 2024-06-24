@@ -11,7 +11,7 @@ public abstract class SingletonBehaviour<T> : MonoBehaviour where T : MonoBehavi
 {
     private static object s_Lock = new();
     private static T _instance = null;
-
+    public static T InstanceRaw => _instance;
     private static bool _isInstanceCreated = false;
 
     protected void InSceneAwake(T t)
