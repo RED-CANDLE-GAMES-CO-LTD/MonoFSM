@@ -22,6 +22,16 @@ public static class RCGLifeCycle
             Object.DontDestroyOnLoad(gameObject);
             gameObject.name += " (RCGLifeCycle)";
         }
+
+        foreach (var gObject in gameObject.GetComponentsInChildren<Transform>())
+        {
+            if (DontDestroyObjList.Contains(gObject.gameObject) == false)
+            {
+                DontDestroyObjList.Add(gObject.gameObject);
+                // Object.DontDestroyOnLoad(gObject.gameObject);
+                // gObject.gameObject.name += " (RCGLifeCycle)";
+            }
+        }
     }
     private static readonly List<GameObject> DontDestroyObjList = new();
 
