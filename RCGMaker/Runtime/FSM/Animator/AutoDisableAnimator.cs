@@ -28,10 +28,6 @@ namespace RCGMaker.Runtime
             SetAnimatorEnable(true);
         }
 
-        private void Awake()
-        {
-        }
-
         private void OnEnable()
         {
             //可能是動態add的...還是要手動加？default state用撈的？

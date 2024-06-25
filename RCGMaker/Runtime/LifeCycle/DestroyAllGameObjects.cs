@@ -23,7 +23,7 @@ public static class RCGLifeCycle
             gameObject.name += " (RCGLifeCycle)";
         }
 
-        foreach (var gObject in gameObject.GetComponentsInChildren<Transform>())
+        foreach (var gObject in gameObject.GetComponentsInChildren<Transform>(true))
         {
             if (DontDestroyObjList.Contains(gObject.gameObject) == false)
             {
@@ -116,10 +116,6 @@ public class DestroyAllGameObjects : MonoBehaviour
             if (_CanDestroy(go))
             {
                 Destroy(go);
-            }
-            else
-            {
-                Debug.Log("SteamAPI Not Destroyed");
             }
         }
 
