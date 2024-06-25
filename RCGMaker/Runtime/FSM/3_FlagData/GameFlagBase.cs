@@ -447,6 +447,34 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
             }
         }
     }
+    
+    //Dictionary type.
+    public void FlagToJSON(Dictionary<string, object> o)
+    {
+        //FIXME: remove fields that are not serializable
+        foreach (var fieldGetter in fieldCaches)
+        {
+            var fieldBase = fieldGetter.Value;
+            switch (fieldBase)
+            {
+                case FlagFieldBool field:
+                    o.Add(fieldGetter.Key, field.SaveValue);
+                    break;
+                case FlagFieldInt field:
+                    o.Add(fieldGetter.Key, field.SaveValue);
+                    break;
+                case FlagFieldString field:
+                    o.Add(fieldGetter.Key, field.SaveValue);
+                    break;
+                case FlagFieldFloat field:
+                    o.Add(fieldGetter.Key, field.SaveValue);
+                    break;
+                case FlagFieldLong field:
+                    o.Add(fieldGetter.Key, field.SaveValue);
+                    break;
+            }
+        }
+    }
 }
 
 // public class FlagJsonConverter : JsonConverter
