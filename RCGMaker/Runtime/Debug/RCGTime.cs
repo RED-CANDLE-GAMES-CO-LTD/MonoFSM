@@ -190,7 +190,7 @@ public static class RCGTime
         }
     }
 
-    public static float _globalSimulationSpeed = 1;
+    private static float _globalSimulationSpeed = 1;
 
     public static void ResetRCGTime()
     {
