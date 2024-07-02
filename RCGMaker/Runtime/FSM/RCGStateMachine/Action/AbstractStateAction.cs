@@ -32,7 +32,12 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     // #endif
     [AutoChildren(false, DepthOneOnly = true)] public AbstractConditionComp[] conditions;//condition 成立，才能做事
 //FIXME: public應該拿掉
-    
+
+    [Button]
+    private void Rename()
+    {
+        gameObject.name = "[Action]" + GetType().Name.Split("Action")[0];
+    }
     // private bool conditionFeteched = false;
 
     // private void CheckFetchCondition()
