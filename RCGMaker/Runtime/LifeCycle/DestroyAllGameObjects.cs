@@ -101,7 +101,7 @@ public class DestroyAllGameObjects : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("SteamAPI Not Destroyed");
+                    // Debug.Log("SteamAPI Not Destroyed");
                 }
             }
             catch (Exception e)

@@ -27,6 +27,10 @@ namespace RCGMaker.Core
 
         private void Update()
         {
+            //好噁，回主選單要清乾淨？不想要update一直檢查
+            if (!IsAvailable())
+                _allRunners.RemoveAll(runner => runner == null);
+            //scene loaded?
             for (var index = _allRunners.Count - 1; index >= 0; index--)
             {
                 var runner = _allRunners[index];
