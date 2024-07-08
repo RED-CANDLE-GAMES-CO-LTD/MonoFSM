@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core
 {
-    public class StateMachineManager : SingletonBehaviour<StateMachineManager>
+    public class StateMachineManager : SingletonBehaviour<StateMachineManager>, IBackToMenuDestroy
     {
         private void Awake()
         {
@@ -47,6 +47,11 @@ namespace RCGMaker.Core
                 // if (runner.isActiveAndEnabled)
                 runner.LateUpdateFromManager();
             }
+        }
+
+        public void BackToTitle()
+        {
+            _allRunners.Clear();
         }
     }
 }

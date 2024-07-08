@@ -5,6 +5,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
+public interface IBackToMenuDestroy
+{
+    public void BackToTitle();
+}
 public static class RCGLifeCycle
 {
     public static void DontDestroyForever(GameObject gameObject)
@@ -101,6 +105,11 @@ public class DestroyAllGameObjects : MonoBehaviour
                 }
                 else
                 {
+                    var destroyItems = go.GetComponents<IBackToMenuDestroy>();
+                    foreach (var destroyItem in destroyItems)
+                    {
+                        destroyItem.BackToTitle();
+                    }
                     // Debug.Log("SteamAPI Not Destroyed");
                 }
             }
