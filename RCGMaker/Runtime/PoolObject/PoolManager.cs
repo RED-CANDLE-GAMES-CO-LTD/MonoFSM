@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Auto.Utils;
+using Cysharp.Threading.Tasks;
+using RCGMaker.AddressableAssets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
@@ -283,7 +285,11 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     private void ReCalculatePoolObjectEntries()
     {
-      //  records.RemoveAll(e => e._requester == null);
+        foreach (var loadedAsset in this.allLoadedRCGRefereces)
+        {
+            loadedAsset.Release();
+        }
+        allLoadedRCGRefereces.Clear();
 
         //沒有人需要用了。
         for (int i = records.Count - 1; i >= 0; i--)
@@ -388,6 +394,35 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             return Instantiate(obj, position, rotation, parent);
         }
     }
+    
+    public async UniTask<GameObject>  BorrowOrInstantiateRcgAssetReference(RCGAssetReference obj, Vector3 position = default, Quaternion rotation = default,
+        Transform parent = null, Action<PoolObject> handler = null)
+    {
+        var keys = PoolDictionary.Keys;
+
+        foreach (var key in keys)
+        {
+            if (key.name == obj.AssetName)
+            {
+                return BorrowOrInstantiate(key.gameObject, position, rotation, parent, handler);
+            }
+        }
+        
+        Debug.LogError("Please Prewarm this:"+obj.AssetName);
+
+        if (allLoadedRCGRefereces.Contains(obj) == false)
+        {
+            allLoadedRCGRefereces.Add(obj);
+        }
+
+        var _poolObject = await obj.GetAssetAsync<GameObject>();
+        
+        return BorrowOrInstantiate(_poolObject, position, rotation, parent, handler);
+        
+        return null;
+    }
+
+    public List<RCGAssetReference> allLoadedRCGRefereces = new List<RCGAssetReference>();
 
     public T BorrowOrInstantiate<T>(T obj, Vector3 position = default, Quaternion rotation = default,
         Transform parent = null, Action<PoolObject> handler = null) where T : MonoBehaviour
