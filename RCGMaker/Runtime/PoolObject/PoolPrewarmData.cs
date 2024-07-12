@@ -2,13 +2,46 @@ using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 [Searchable]
 [CreateAssetMenu(fileName = "New PoolPrewarmData", menuName = "Boa/PoolManager/Create PoolPrewarmData", order = 3)]
 public class PoolPrewarmData : ScriptableObject
 {
     public List<PoolManager.PoolObjectEntry> objectEntries = new List<PoolManager.PoolObjectEntry>();
+    public List<PoolManager.AddressableEntry> addressableRecords = new ();
 
+    public GameObject TryFindPrefab(AssetReference targetReference)
+    {
+        addressableRecords.RemoveAll((a) => a._assetReference == null || a._prefab == null);
+        
+        foreach (var a in addressableRecords)
+        {
+            if (a._assetReference == targetReference)
+            {
+                return a._prefab;
+            }
+        }
+        return null;
+    }
+
+    public void RegisterEntry(GameObject g,AssetReference asset)
+    {
+        #if UNITY_EDITOR
+        addressableRecords.RemoveAll((a) => a._assetReference == null || a._prefab == null);
+        
+        foreach (var r in addressableRecords)
+        {
+            if (r._assetReference == asset)
+                return;
+        }
+
+        addressableRecords.Add(new PoolManager.AddressableEntry(asset,g));
+        UnityEditor.EditorUtility.SetDirty(this);
+        #endif
+    }
+
+    
     public void UpdatePoolObjectEntry(PoolObject poolObject, int count)
     {
 #if UNITY_EDITOR
@@ -44,5 +77,6 @@ public class PoolPrewarmData : ScriptableObject
         poolManager.RegisterPoolPrewarmData(owner, this);
 
     }
+
 
 }

@@ -6,6 +6,7 @@ using Auto.Utils;
 using Cysharp.Threading.Tasks;
 using RCGMaker.AddressableAssets;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
 
@@ -338,7 +339,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public List<PoolObjectRequestRecords> records = new();
 
-
     [System.Serializable]
     public class PoolObjectEntry
     {
@@ -348,10 +348,23 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         public void Clear()
         {
             prefab = null;
-            DefaultMaximumCount =0;
+            DefaultMaximumCount = 0;
         }
     }
 
+    [System.Serializable]
+    public class AddressableEntry
+    {
+        public AssetReference _assetReference;
+        public GameObject _prefab;
+
+        public AddressableEntry(AssetReference assetReference, GameObject prefab)
+        {
+            _prefab = prefab;
+            _assetReference = assetReference;
+        }
+    }
+    
     private List<PoolObjectEntry> PoolObjectEntries;
 
     [Header("Run Time Data")] public Dictionary<PoolObject, ObjectPool> PoolDictionary;
@@ -398,15 +411,26 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     public async UniTask<GameObject>  BorrowOrInstantiateRcgAssetReference(RCGAssetReference obj, Vector3 position = default, Quaternion rotation = default,
         Transform parent = null, Action<PoolObject> handler = null)
     {
-        var keys = PoolDictionary.Keys;
+        // var keys = PoolDictionary.Keys;
+        //
+        // foreach (var key in keys)
+        // {
+        //     if (key.name == obj.AssetName)
+        //     {
+        //         return BorrowOrInstantiate(key.gameObject, position, rotation, parent, handler);
+        //     }
+        // }
 
-        foreach (var key in keys)
+        GameObject poolObject = null;
+        if (this.prewarmDataLogger != null)
         {
-            if (key.name == obj.AssetName)
-            {
-                return BorrowOrInstantiate(key.gameObject, position, rotation, parent, handler);
-            }
+            poolObject = this.prewarmDataLogger.TryFindPrefab(obj.AssetReference);
+            
+            if(poolObject!=null)
+               return BorrowOrInstantiate(poolObject, position, rotation, parent, handler);
         }
+
+     
         
         Debug.LogError("Please Prewarm this:"+obj.AssetName);
 
@@ -415,9 +439,12 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             allLoadedRCGRefereces.Add(obj);
         }
 
-        var _poolObject = await obj.GetAssetAsync<GameObject>();
+        poolObject = await obj.GetAssetAsync<GameObject>();
         
-        return BorrowOrInstantiate(_poolObject, position, rotation, parent, handler);
+        if( this.prewarmDataLogger!=null)
+            this.prewarmDataLogger.RegisterEntry(poolObject,obj.AssetReference);
+        
+        return BorrowOrInstantiate(poolObject, position, rotation, parent, handler);
         
         return null;
     }
@@ -894,6 +921,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         //     }
         // }
 
+    
         [Conditional("UNITY_EDITOR")]
         public void UpdatePoolEntry()
         {

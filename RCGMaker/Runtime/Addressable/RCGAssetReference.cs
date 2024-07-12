@@ -54,6 +54,8 @@ namespace RCGMaker.AddressableAssets
         // [PreviewInInspector]
         [SerializeField] private AssetReference assetReference;
 
+        public AssetReference AssetReference => assetReference;
+
         public string AssetName => assetReference.SubObjectName;
 
         // public Object Asset => assetReference.Asset;
