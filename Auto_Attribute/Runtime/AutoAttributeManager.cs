@@ -36,8 +36,17 @@ using UnityEditor;
 #endif
 public class FieldCache
 {
-    public static Dictionary<Type, IEnumerable<FieldInfo>> fieldDict = new Dictionary<Type, IEnumerable<FieldInfo>>();
-    public static Dictionary<FieldInfo, object[]> attributeDict = new Dictionary<FieldInfo, object[]>();
+    public static Dictionary<Type, IEnumerable<FieldInfo>> fieldDict = new();
+    public static Dictionary<FieldInfo, object[]> attributeDict = new();
+    public static Dictionary<Tuple<Type, string>, FieldInfo> fieldDictByName = new();
+
+    public static bool IsAutoAttribute(FieldInfo field)
+    {
+        if (!attributeDict.ContainsKey(field))
+            attributeDict[field] = field.GetCustomAttributes(typeof(IAutoAttribute), true);
+        var attributes = attributeDict[field];
+        return attributes is { Length: > 0 };
+    }
     static FieldCache()
     {
 
@@ -46,30 +55,54 @@ public class FieldCache
     {
         fieldDict.Clear();
         attributeDict.Clear();
+        fieldDictByName.Clear();
     }
 }
 
+
 [Serializable]
+[Searchable]
 public class MonoValueCache
 {
     public List<FieldValueCache> fieldCaches = new();
 
-    public void CopyFieldsToCache(MonoBehaviour targetMb)
+    public int CopyFieldsToCache(MonoBehaviour targetMb)
     {
+        var count = 0;
         var fields = FieldCache.fieldDict[targetMb.GetType()];
         foreach (var field in fields)
         {
+            var v = field.GetValue(targetMb);
+            if (v == null) continue;
+
+            //不是 IAutoFamily
+            if (FieldCache.IsAutoAttribute(field) == false)
+            {
+                continue;
+            }
+
+            // if (field.IsPublic || Attribute.IsDefined(field, typeof(SerializeField)))
+            // {
+            //     continue;
+            // }
+
+          
             var cache = new FieldValueCache();
-            cache.CopyFieldToCache(targetMb, field);
-            fieldCaches.Add(cache);
+            if (cache.CopyFieldToCache(targetMb, field, v))
+            {
+                count++;
+                fieldCaches.Add(cache);
+            }
         }
+
+        return count;
     }
 
-    public void CopyCacheToFields(MonoBehaviour targetMb)
+    public void CopyCacheToFields()
     {
         foreach (var cache in fieldCaches)
         {
-            cache.CopyCacheToField(targetMb);
+            cache.CopyCacheToField();
         }
     }
 }
@@ -83,13 +116,13 @@ public class FieldValueCache
     [SerializeField] private Component[] valueArray;
     [SerializeField] private Component value;
 
-    public void CopyFieldToCache(MonoBehaviour targetMb, FieldInfo field)
+    public bool CopyFieldToCache(MonoBehaviour targetMb, FieldInfo field, object v)
     {
         this.targetMb = targetMb;
         // this.field = field;
-        var v = field.GetValue(targetMb);
+
+      
         fieldName = field.Name;
-        if (v == null) return;
         if (v.GetType().IsArray)
         {
             var array = v as object[];
@@ -99,59 +132,162 @@ public class FieldValueCache
         {
             value = component;
         }
+        else if (field.FieldType.IsInterface)
+        {
+            var interfaceValue = (Component)v;
+            if (interfaceValue != null)
+            {
+                value = interfaceValue;
+            }
+            else
+            {
+                Debug.LogError("Value is not a Component for the interface type: " + field.FieldType);
+                return false;
+            }
+        }
+        else
+        {
+            Debug.LogError("Value is not a Component: " + field.FieldType);
+            return false;
+        }
+
+        return true;
     }
 
-    public void CopyCacheToField(MonoBehaviour targetMb)
+
+    public void CopyCacheToField()
     {
-        var field = targetMb.GetType().GetField(fieldName);
-        if (valueArray != null)
+        var field = FieldCache.fieldDictByName[new Tuple<Type, string>(targetMb.GetType(), fieldName)];
+        if (field == null)
         {
-            var elementType = field.FieldType.GetElementType();
-            var array = Array.CreateInstance(elementType, valueArray.Length);
-            array = Array.ConvertAll(valueArray, x => x as object);
-            field.SetValue(targetMb, array);
+            Debug.LogError("Field not found:" + fieldName);
+            return;
         }
-        else if (value != null)
+
+        if (value != null)
         {
             field.SetValue(targetMb, value);
+        }
+        else if (valueArray != null)
+        {
+            var elementType = field.FieldType.GetElementType();
+            if (elementType == null)
+            {
+                Debug.LogError("ElementType is null:" + field.FieldType, targetMb);
+                return;
+            }
+            var array = Array.CreateInstance(elementType, valueArray.Length);
+            for (var i = 0; i < valueArray.Length; i++)
+            {
+                array.SetValue(valueArray[i], i);
+            }
+            field.SetValue(targetMb, array);
+        }
+    }
+}
+
+[Serializable]
+public class MonoReferenceCache
+{
+    public List<MonoValueCache> monoValueCaches = new();
+    public GameObject RootObj;
+    public MonoBehaviour[] CachedMonoBehaviours;
+
+    [PropertyOrder(-1)]
+    [Button]
+    public void StoreReferenceCache() //Editor time
+    {
+        monoValueCaches.Clear();
+        if (RootObj != null)
+        {
+            CachedMonoBehaviours = RootObj.GetComponentsInChildren<MonoBehaviour>(true);
+            AutoAttributeManager.AutoReferenceAll(CachedMonoBehaviours);
+        }
+        else
+        {
+            CachedMonoBehaviours = AutoAttributeManager.GetAllMonoBehavioursOfCurrentScene().ToArray();
+            AutoAttributeManager.AutoReferenceAll(CachedMonoBehaviours);
+        }
+
+        foreach (var mono in CachedMonoBehaviours)
+        {
+            var cache = new MonoValueCache();
+            var fetchCount = cache.CopyFieldsToCache(mono);
+            if (fetchCount > 0)
+                monoValueCaches.Add(cache);
+        }
+    }
+
+    [PropertyOrder(-1)]
+    [Button]
+    public void RestoreReferenceCacheToMonos() //Runtime
+    {
+        Debug.Log("GetAllMonoBehavioursWithAuto start:" + FieldCache.fieldDictByName.Count);
+        AutoAttributeManager.BuildFieldCache(CachedMonoBehaviours); //建立field cache, 可以copy時再做？
+        Debug.Log("GetAllMonoBehavioursWithAuto end:" + FieldCache.fieldDictByName.Count);
+        for (var i = 0; i < monoValueCaches.Count(); i++)
+        {
+            monoValueCaches[i].CopyCacheToFields();
         }
     }
 }
 
 
-
 [Auto.Utils.ScriptTiming(-20000)]
+
 public class AutoAttributeManager : MonoBehaviour
 {
-    public List<MonoValueCache> monoValueCaches = new();
-
-    [Button]
-    public void CopyMonosToCache()
+    public static IEnumerable<MonoBehaviour> GetAllMonoBehavioursOfCurrentScene()
     {
-        monoValueCaches.Clear();
-        var monos = GetAllMonoBehavioursWithAuto();
+        var roots = SceneManager.GetActiveScene().GetRootGameObjects();
+        var monos = roots.SelectMany(go => go.GetComponentsInChildren<MonoBehaviour>(true));
+        //只找有
+        monos = monos.Where(mb => GetFieldsWithAutoAndBuildCache(mb)?.Count() > 0);
+        return monos;
+    }
+
+    public static void BuildFieldCache(MonoBehaviour[] monos)
+    {
         foreach (var mono in monos)
         {
-            var cache = new MonoValueCache();
-            cache.CopyFieldsToCache(mono);
-            monoValueCaches.Add(cache);
+            GetFieldsWithAutoAndBuildCache(mono);
         }
     }
 
-    public void CopyCacheToMonos()
-    {
-        var monos = GetAllMonoBehavioursWithAuto();
-        for (var i = 0; i < monos.Count(); i++)
-        {
-            monoValueCaches[i].CopyCacheToFields(monos.ElementAt(i));
-        }
-    }
-    // public bool IsFindAllBehavior = true;
-    private List<MonoBehaviour> monoBehavioursInSceneWithAuto = new List<MonoBehaviour>();
-
+    // [PropertyOrder(-1)]
+    // [Button]
+    // public void StoreReferenceCache() //Editor time
+    // {
+    //     SweepScene();
+    //     monoValueCaches.Clear();
+    //     var monos = GetAllMonoBehavioursWithAuto();
+    //     foreach (var mono in monos)
+    //     {
+    //         var cache = new MonoValueCache();
+    //         var fetchCount = cache.CopyFieldsToCache(mono);
+    //         if (fetchCount > 0)
+    //             monoValueCaches.Add(cache);
+    //     }
+    // }
+    //
+    // [PropertyOrder(-1)]
+    // [Button]
+    // public void RestoreReferenceCacheToMonos() //Runtime
+    // {
+    //     Debug.Log("GetAllMonoBehavioursWithAuto start:" + FieldCache.fieldDictByName.Count);
+    //     var monos = AutoAttributeManager.GetAllMonoBehavioursOfCurrentScene(); //建立dict
+    //     Debug.Log("GetAllMonoBehavioursWithAuto end:" + FieldCache.fieldDictByName.Count);
+    //     for (var i = 0; i < monoValueCaches.Count(); i++)
+    //     {
+    //         monoValueCaches[i].CopyCacheToFields();
+    //     }
+    // }
+    // // public bool IsFindAllBehavior = true;
+    // private List<MonoBehaviour> monoBehavioursInSceneWithAuto = new List<MonoBehaviour>();
+    public MonoReferenceCache monoReferenceCache = new();
     private void Awake()
     {
-        SweepScene();
+        monoReferenceCache.RestoreReferenceCacheToMonos();
     }
 
     //async版本的auto
@@ -226,7 +362,7 @@ public class AutoAttributeManager : MonoBehaviour
         // var fieldCount = 0;
         // var propCount = 0;
         //Fields
-        IEnumerable<FieldInfo> fields = GetFieldsWithAuto(targetMb);
+        var fields = GetFieldsWithAutoAndBuildCache(targetMb);
         var attributeDict = FieldCache.attributeDict;
 
         foreach (var field in fields)
@@ -284,6 +420,27 @@ public class AutoAttributeManager : MonoBehaviour
     {
         FieldCache.Clear();
     }
+
+    public static void AutoReferenceAll(IEnumerable<MonoBehaviour> monos)
+    {
+        var sw = new Stopwatch();
+        sw.Start();
+        var autoVariablesAssignedCount = 0;
+        var autoVariablesNotAssignedCount = 0;
+        var monoBehaviours = monos as MonoBehaviour[] ?? monos.ToArray();
+        foreach (var mono in monoBehaviours)
+        {
+            AutoReference(mono, out var succ, out var fail);
+            autoVariablesAssignedCount += succ;
+            autoVariablesNotAssignedCount += fail;
+        }
+
+        sw.Stop();
+        var result_color = autoVariablesNotAssignedCount > 0 ? "red" : "green";
+        Debug.LogFormat(
+            $"[Auto] Assigned <color={result_color}><b>{autoVariablesAssignedCount}/..</b></color> [Auto*] variables in <color=#cc3300><b>{sw.ElapsedMilliseconds} Milliseconds </b></color> - Analized {monoBehaviours.Count()} MonoBehaviours and .. variables");
+    }
+    
     [Button("Bind")]
     public void SweepScene()
     {
@@ -396,24 +553,27 @@ public class AutoAttributeManager : MonoBehaviour
         // monoBehaviours = monoBehaviours.Where(mb => GetFieldsWithAuto(mb).Count() + GetPropertiesWithAuto(mb).Count() > 0);
 
         //FIXME: 會有null嗎？
-        monoBehaviours = monoBehaviours.Where(mb => GetFieldsWithAuto(mb)?.Count() > 0);
-        // UnityEngine.Debug.Log("[Auto]: Mono with Fields with auto time:" + sw.ElapsedMilliseconds + ",mb Count:" + monoBehaviours.Count());
-        // sw.Stop();
+        monoBehaviours = monoBehaviours.Where(mb => GetFieldsWithAutoAndBuildCache(mb)?.Count() > 0);
 
+        sw.Stop();
+        Debug.Log("[Auto]: Mono with Fields with auto time:" + sw.ElapsedMilliseconds + ",mb Count:" +
+                  monoBehaviours.Count());
         return monoBehaviours;
     }
 
 
-    private static IEnumerable<FieldInfo> GetFieldsWithAuto(MonoBehaviour mb)
+    public static IEnumerable<FieldInfo> GetFieldsWithAutoAndBuildCache(MonoBehaviour mb)
     {
         if (mb == null)
             return default;
         var t = mb.GetType();
         var fieldDict = FieldCache.fieldDict;
-        if (fieldDict.ContainsKey(t))
+
+        //一個type只需要做一次
+        if (fieldDict.TryGetValue(t, out var auto))
         {
             // Debug.Log("Cached Field");
-            return fieldDict[t];
+            return auto;
         }
 
         // ReflectionHelperMethods rhm = new ReflectionHelperMethods();
@@ -434,8 +594,16 @@ public class AutoAttributeManager : MonoBehaviour
                         Attribute.IsDefined(prop, typeof(AutoParentAttribute))
         )
         );
-        fieldDict.TryAdd(t, fields.ToList());
-        return fields;
+        var fieldsWithAuto = fields as FieldInfo[] ?? fields.ToArray();
+        fieldDict.TryAdd(t, fieldsWithAuto.ToList());
+        var fieldDictByName = FieldCache.fieldDictByName;
+        foreach (var field in fieldsWithAuto)
+        {
+            fieldDictByName.TryAdd(new Tuple<Type, string>(t, field.Name), field);
+            Debug.Log("Add Field Tuple:" + t + field.Name);
+        }
+
+        return fieldsWithAuto;
     }
 
 

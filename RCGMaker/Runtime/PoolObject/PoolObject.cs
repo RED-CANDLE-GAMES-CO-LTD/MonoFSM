@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using PrimeTween;
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -29,8 +30,10 @@ public interface IPoolObjectPlayer
     IFXPlayerOwner Owner { get; }
 }
 
-public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
+public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare, IBeforePrefabSaveCallbackReceiver
 {
+    public MonoReferenceCache _monoReferenceCache; //要是prefab asset才需要
+    
     [BoxGroup("誰噴的")]
     [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
 #if UNITY_EDITOR
@@ -102,6 +105,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     }
     List<IPoolObject> IPoolObjectList = new List<IPoolObject>();
     List<IResetter> IResetterList = new List<IResetter>();
+
+    [PreviewInInspector]
     [AutoChildren] private IPoolBorrowOnEnable[] IPoolBorrowedList;
     private bool inited = false;
 
@@ -557,6 +562,12 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     private TransformResetOverrider _transformResetOverrider;
 
 
+    public void OnBeforePrefabSave()
+    {
+        //會有nested? 有可能...? 不該？
+        _monoReferenceCache.RootObj = gameObject;
+        _monoReferenceCache.StoreReferenceCache();
+    }
 }
 
 public interface TransformResetOverrider
