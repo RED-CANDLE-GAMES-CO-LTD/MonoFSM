@@ -49,9 +49,103 @@ public class FieldCache
     }
 }
 
+[Serializable]
+public class MonoValueCache
+{
+    public List<FieldValueCache> fieldCaches = new();
+
+    public void CopyFieldsToCache(MonoBehaviour targetMb)
+    {
+        var fields = FieldCache.fieldDict[targetMb.GetType()];
+        foreach (var field in fields)
+        {
+            var cache = new FieldValueCache();
+            cache.CopyFieldToCache(targetMb, field);
+            fieldCaches.Add(cache);
+        }
+    }
+
+    public void CopyCacheToFields(MonoBehaviour targetMb)
+    {
+        foreach (var cache in fieldCaches)
+        {
+            cache.CopyCacheToField(targetMb);
+        }
+    }
+}
+
+[Serializable]
+public class FieldValueCache
+{
+    // public FieldInfo field;
+    public string fieldName;
+    [SerializeField] private MonoBehaviour targetMb;
+    [SerializeField] private Component[] valueArray;
+    [SerializeField] private Component value;
+
+    public void CopyFieldToCache(MonoBehaviour targetMb, FieldInfo field)
+    {
+        this.targetMb = targetMb;
+        // this.field = field;
+        var v = field.GetValue(targetMb);
+        fieldName = field.Name;
+        if (v == null) return;
+        if (v.GetType().IsArray)
+        {
+            var array = v as object[];
+            valueArray = Array.ConvertAll(array, x => x as Component);
+        }
+        else if (v is Component component)
+        {
+            value = component;
+        }
+    }
+
+    public void CopyCacheToField(MonoBehaviour targetMb)
+    {
+        var field = targetMb.GetType().GetField(fieldName);
+        if (valueArray != null)
+        {
+            var elementType = field.FieldType.GetElementType();
+            var array = Array.CreateInstance(elementType, valueArray.Length);
+            array = Array.ConvertAll(valueArray, x => x as object);
+            field.SetValue(targetMb, array);
+        }
+        else if (value != null)
+        {
+            field.SetValue(targetMb, value);
+        }
+    }
+}
+
+
+
 [Auto.Utils.ScriptTiming(-20000)]
 public class AutoAttributeManager : MonoBehaviour
 {
+    public List<MonoValueCache> monoValueCaches = new();
+
+    [Button]
+    public void CopyMonosToCache()
+    {
+        monoValueCaches.Clear();
+        var monos = GetAllMonoBehavioursWithAuto();
+        foreach (var mono in monos)
+        {
+            var cache = new MonoValueCache();
+            cache.CopyFieldsToCache(mono);
+            monoValueCaches.Add(cache);
+        }
+    }
+
+    public void CopyCacheToMonos()
+    {
+        var monos = GetAllMonoBehavioursWithAuto();
+        for (var i = 0; i < monos.Count(); i++)
+        {
+            monoValueCaches[i].CopyCacheToFields(monos.ElementAt(i));
+        }
+    }
     // public bool IsFindAllBehavior = true;
     private List<MonoBehaviour> monoBehavioursInSceneWithAuto = new List<MonoBehaviour>();
 
@@ -283,7 +377,7 @@ public class AutoAttributeManager : MonoBehaviour
         return autoCaches;
     }
 
-    private IEnumerable<MonoBehaviour> GetAllMonoBehavioursWithAuto() //(GameObject[] roots)
+    public IEnumerable<MonoBehaviour> GetAllMonoBehavioursWithAuto() //(GameObject[] roots)
     {
         Stopwatch sw = new Stopwatch();
         // sw.Start();
