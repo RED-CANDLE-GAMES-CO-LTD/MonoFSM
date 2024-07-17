@@ -295,7 +295,8 @@ public class AutoAttributeManager : MonoBehaviour
     public MonoReferenceCache monoReferenceCache = new();
     private void Awake()
     {
-        monoReferenceCache.RestoreReferenceCacheToMonos();
+        // monoReferenceCache.RestoreReferenceCacheToMonos();
+        SweepScene();
     }
 
     //async版本的auto
