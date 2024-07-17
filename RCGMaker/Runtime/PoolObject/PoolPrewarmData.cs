@@ -9,11 +9,13 @@ using UnityEngine.AddressableAssets;
 [CreateAssetMenu(fileName = "New PoolPrewarmData", menuName = "Boa/PoolManager/Create PoolPrewarmData", order = 3)]
 public class PoolPrewarmData : ScriptableObject
 {
+#if UNITY_EDITOR
     [Button]
     private void OpenAndSavePreWarmPrefabs()
     {
         PoolObjectUtility.AutoBindForAllPrefabs(this);
     }
+#endif
     public List<PoolManager.PoolObjectEntry> objectEntries = new List<PoolManager.PoolObjectEntry>();
     public List<PoolManager.AddressableEntry> addressableRecords = new ();
 

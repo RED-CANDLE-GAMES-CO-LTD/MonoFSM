@@ -1,6 +1,7 @@
 using RCGMaker.Core;
+#if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.SceneManagement;
+#endif
 using UnityEngine;
 
 namespace RCGMaker.Runtime.PoolObject
@@ -9,15 +10,21 @@ namespace RCGMaker.Runtime.PoolObject
     {
         public static void OnPrefabSaving(GameObject prefab)
         {
+#if UNITY_EDITOR
             Debug.Log("OnPrefabSaving");
             var savingObjs = prefab.GetComponentsInChildren<IBeforePrefabSaveCallbackReceiver>(true);
-            foreach (var savingObj in savingObjs) savingObj.OnBeforePrefabSave();
+            foreach (var savingObj in savingObjs)
+            {
+                savingObj.OnBeforePrefabSave();
+                EditorUtility.SetDirty(savingObj as MonoBehaviour);
+            }
             AutoAttributeManager.AutoReferenceAllChildren(prefab);
             // var rootGameObjects = prefab.GetComponentsInChildren<ISceneSavingCallbackReceiver>(true);
             // foreach (var savingObj in rootGameObjects)
             // {
             //     savingObj.OnBeforeSceneSave();
             // }
+#endif
         }
 
         public static void AutoBindForAllPrefabs(PoolPrewarmData prewarmData)
