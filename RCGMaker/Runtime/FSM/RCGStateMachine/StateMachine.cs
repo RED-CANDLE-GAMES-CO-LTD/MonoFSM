@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using RCGMaker.Core.Attributes;
@@ -68,7 +69,8 @@ namespace RCGMaker.Core
         private StateMapping currentState;
         private StateMapping destinationState;
 
-        private Dictionary<object, StateMapping> stateLookup;
+        public Dictionary<object, StateMapping> stateLookup;
+        
 
         private readonly string[] ignoredNames = new[] { "add", "remove", "get", "set" };
 
@@ -94,102 +96,20 @@ namespace RCGMaker.Core
         public StateMachine(StateMachineRunner engine, MonoBehaviour context, StateMapping<T> stateMapping = null)
         {
             this.engine = engine;
-            this.component = context;
+            component = context;
             _stateMapping = stateMapping;
-            var values = stateMapping.getAllStates.ConvertAll((entry) =>
-            {
-                return entry.state;
-            });
+            var values = stateMapping.getAllStates.ConvertAll((entry) => entry.state);
 
             //Define States
             // var values = Enum.GetValues(typeof(T));
             // if (values.Length < 1) { throw new ArgumentException("Enum provided to Initialize must have at least 1 visible definition"); }
 
             stateLookup = new Dictionary<object, StateMapping>();
-            for (int i = 0; i < values.Count; i++)
+            foreach (var value in values)
             {
-                var mapping = new StateMapping(values[i]);
+                var mapping = new StateMapping(value);
                 stateLookup.Add(mapping.state, mapping);
             }
-
-            //Reflect methods
-            // var methods = context.GetType().GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public |
-            //                           BindingFlags.NonPublic);
-
-            // //Bind methods to states
-            // var separator = "_".ToCharArray();
-            // for (int i = 0; i < methods.Length; i++)
-            // {
-            //     if (methods[i].GetCustomAttributes(typeof(CompilerGeneratedAttribute), true).Length != 0)
-            //     {
-            //         continue;
-            //     }
-
-            //     var names = methods[i].Name.Split(separator);
-
-            //     //Ignore functions without an underscore
-            //     if (names.Length <= 1)
-            //     {
-            //         continue;
-            //     }
-
-            //     Enum key;
-            //     try
-            //     {
-            //         key = (Enum)Enum.Parse(typeof(T), names[0]);
-            //     }
-            //     catch (ArgumentException)
-            //     {
-            //         //Not an method as listed in the state enum
-            //         continue;
-            //     }
-
-            //     var targetState = stateLookup[key];
-
-
-            //     switch (names[1])
-            //     {
-            //         case "Enter":
-            //             if (methods[i].ReturnType == typeof(IEnumerator))
-            //             {
-            //                 targetState.hasEnterRoutine = true;
-            //                 targetState.EnterRoutine = CreateDelegate<Func<IEnumerator>>(methods[i], context);
-            //             }
-            //             else
-            //             {
-            //                 targetState.hasEnterRoutine = false;
-            //                 targetState.EnterCall = CreateDelegate<Action>(methods[i], context);
-            //             }
-            //             break;
-            //         case "Exit":
-            //             if (methods[i].ReturnType == typeof(IEnumerator))
-            //             {
-            //                 targetState.hasExitRoutine = true;
-            //                 targetState.ExitRoutine = CreateDelegate<Func<IEnumerator>>(methods[i], context);
-            //             }
-            //             else
-            //             {
-            //                 targetState.hasExitRoutine = false;
-            //                 targetState.ExitCall = CreateDelegate<Action>(methods[i], context);
-            //             }
-            //             break;
-            //         case "Finally":
-            //             targetState.Finally = CreateDelegate<Action>(methods[i], context);
-            //             break;
-            //         case "Update":
-            //             targetState.Update = CreateDelegate<Action>(methods[i], context);
-            //             break;
-            //         case "LateUpdate":
-            //             targetState.LateUpdate = CreateDelegate<Action>(methods[i], context);
-            //             break;
-            //         case "FixedUpdate":
-            //             targetState.FixedUpdate = CreateDelegate<Action>(methods[i], context);
-            //             break;
-            //         case "OnCollisionEnter":
-            //             targetState.OnCollisionEnter = CreateDelegate<Action<Collision>>(methods[i], context);
-            //             break;
-            //     }
-            // }
 
             if (stateMapping != null)
             {
@@ -313,10 +233,16 @@ namespace RCGMaker.Core
 
             if (!stateLookup.ContainsKey(newState))
             {
+                Debug.LogError(
+                    "No state with the name " + newState.ToString() +
+                    " can be found. Please make sure you are called the correct type the statemachine was initialized with",
+                    newState as MonoBehaviour);
                 throw new Exception("No state with the name " + newState.ToString() + " can be found. Please make sure you are called the correct type the statemachine was initialized with");
+                
             }
 
             var nextState = stateLookup[newState];
+          
 
             if (currentState == nextState)
             {
@@ -529,13 +455,13 @@ namespace RCGMaker.Core
         /// <param name="component">The component with defined state methods</param>
         /// <param name="startState">The default starting state</param>
         /// <returns>A valid stateMachine instance to manage MonoBehaviour state transitions</returns>
-        public static StateMachine<T> Initialize(MonoBehaviour component, T startState, StateMapping<T> stateMapping = null)
-        {
-            var engine = component.GetComponent<StateMachineRunner>();
-            if (engine == null) engine = component.gameObject.AddComponent<StateMachineRunner>();
-
-            return engine.Initialize<T>(component, startState, stateMapping);
-        }
+        // public static StateMachine<T> Initialize(MonoBehaviour component, T startState, StateMapping<T> stateMapping = null)
+        // {
+        //     var engine = component.GetComponent<StateMachineRunner>();
+        //     if (engine == null) engine = component.gameObject.AddComponent<StateMachineRunner>();
+        //
+        //     return engine.Initialize<T>(component, startState, stateMapping);
+        // }
 
     }
 

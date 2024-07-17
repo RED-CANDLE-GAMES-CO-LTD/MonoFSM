@@ -11,7 +11,7 @@ namespace RCGMaker.Core
 
     public abstract class AbstractState<T> : MonoBehaviour
     {
-        [HideInInspector] [Required] public T stateType;
+        [PreviewInInspector] [Required] public T stateType;
         public float statusTimer = 0;
         [PreviewInInspector] private int _currentFrameCount = 0;
         public int CurrentFrameCount => _currentFrameCount;
@@ -110,8 +110,9 @@ namespace RCGMaker.Core
 
     public class StateMapping<T>
     {
-        private List<MappingEntry> mappingList = new();
+      
         private Dictionary<T, AbstractState<T>> mapping = new();
+        private List<MappingEntry> mappingList = new();
         public List<MappingEntry> getAllStates => mappingList;
 
         public bool HasState(T state)

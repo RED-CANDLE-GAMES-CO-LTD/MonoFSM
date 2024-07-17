@@ -63,9 +63,8 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         Random.state = oriState;
     }
 
-  
 
-    [ShowInPlayMode] public bool IsPaused => fsm.isPaused;
+    [ShowInPlayMode] public bool IsPaused => fsm != null ? fsm.isPaused : false;
 
 
     public GeneralState AddState()

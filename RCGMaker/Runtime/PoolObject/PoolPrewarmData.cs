@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Runtime.PoolObject;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -8,6 +9,11 @@ using UnityEngine.AddressableAssets;
 [CreateAssetMenu(fileName = "New PoolPrewarmData", menuName = "Boa/PoolManager/Create PoolPrewarmData", order = 3)]
 public class PoolPrewarmData : ScriptableObject
 {
+    [Button]
+    private void OpenAndSavePreWarmPrefabs()
+    {
+        PoolObjectUtility.AutoBindForAllPrefabs(this);
+    }
     public List<PoolManager.PoolObjectEntry> objectEntries = new List<PoolManager.PoolObjectEntry>();
     public List<PoolManager.AddressableEntry> addressableRecords = new ();
 
@@ -77,6 +83,5 @@ public class PoolPrewarmData : ScriptableObject
         poolManager.RegisterPoolPrewarmData(owner, this);
 
     }
-
 
 }
