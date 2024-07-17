@@ -173,7 +173,9 @@ public class FieldValueCache
             var elementType = field.FieldType.GetElementType();
             if (elementType == null)
             {
-                Debug.LogError("ElementType is null:" + field.FieldType, targetMb);
+                Debug.LogError(
+                    "ElementType is null:" + field.Name + field.FieldType + ",MonoType:" + targetMb.GetType(),
+                    targetMb);
                 return;
             }
             var array = Array.CreateInstance(elementType, valueArray.Length);
@@ -189,9 +191,14 @@ public class FieldValueCache
 [Serializable]
 public class MonoReferenceCache
 {
+    [HideInInspector]
     public List<MonoValueCache> monoValueCaches = new();
     public GameObject RootObj;
+
+    [HideInInspector]
     public MonoBehaviour[] CachedMonoBehaviours;
+
+    [ShowInInspector] public int CachedMonoBehavioursCount => CachedMonoBehaviours?.Length ?? -1;
 
     [PropertyOrder(-1)]
     [Button]
@@ -240,6 +247,7 @@ public class AutoAttributeManager : MonoBehaviour
     public static IEnumerable<MonoBehaviour> GetAllMonoBehavioursOfCurrentScene()
     {
         var roots = SceneManager.GetActiveScene().GetRootGameObjects();
+        Debug.Log("Roots:" + roots.Length);
         var monos = roots.SelectMany(go => go.GetComponentsInChildren<MonoBehaviour>(true));
         //只找有
         monos = monos.Where(mb => GetFieldsWithAutoAndBuildCache(mb)?.Count() > 0);
