@@ -17,7 +17,7 @@ public class PoolPrewarmData : ScriptableObject
         
         foreach (var a in addressableRecords)
         {
-            if (a._assetReference == targetReference)
+            if (a._assetReference.AssetGUID == targetReference.AssetGUID)
             {
                 return a._prefab;
             }
@@ -32,7 +32,7 @@ public class PoolPrewarmData : ScriptableObject
         
         foreach (var r in addressableRecords)
         {
-            if (r._assetReference == asset)
+            if (r._assetReference.AssetGUID == asset.AssetGUID)
                 return;
         }
 
