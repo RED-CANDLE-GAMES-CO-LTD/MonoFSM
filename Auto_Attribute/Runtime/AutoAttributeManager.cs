@@ -609,7 +609,7 @@ public class AutoAttributeManager : MonoBehaviour
         foreach (var field in fieldsWithAuto)
         {
             fieldDictByName.TryAdd(new Tuple<Type, string>(t, field.Name), field);
-            Debug.Log("Add Field Tuple:" + t + field.Name);
+            // Debug.Log("Add Field Tuple:" + t + field.Name);
         }
 
         return fieldsWithAuto;

@@ -54,6 +54,7 @@ public struct UniTaskWrapper : IDisposable
 /// </summary>
 public static class RCGTime
 {
+    
     public static void SetTimeScaleUnsafe(float value)
     {
         _timeScale = value;
@@ -133,12 +134,20 @@ public static class RCGTime
     {
         return UniTask.DelayFrame(frameCount, cancellationToken: mb.GetCancellationTokenOnDestroy());
     }
-    
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void RuntimeInit()
+    {
+        _globalSimulationSpeed = 1;
+        _timeScale = 1;
+        SelfTimeScale = false;
+    }
     private static float _timeScale = 1f;
 
-    public static bool SelfTimeScale = false; //FIXME: 測試時要固定，改成true? 加速下tween也該加速
+    private static bool SelfTimeScale = false; //FIXME: 測試時要固定，改成true? 加速下tween也該加速
 
+    
+    
     public static bool IsUnscaledTime => !SelfTimeScale; //true
     //uncaledDeltaTime
     
