@@ -110,8 +110,13 @@ public class MonoValueCache
 [Serializable]
 public class FieldValueCache
 {
+    public string targetName;
+
+    public string typeName;
     // public FieldInfo field;
     public string fieldName;
+    
+    
     [SerializeField] private MonoBehaviour targetMb;
     [SerializeField] private Component[] valueArray;
     [SerializeField] private Component value;
@@ -121,7 +126,8 @@ public class FieldValueCache
         this.targetMb = targetMb;
         // this.field = field;
 
-      
+        targetName = targetMb.name;
+        typeName = targetMb.GetType().Name;
         fieldName = field.Name;
         if (v.GetType().IsArray)
         {
@@ -157,7 +163,21 @@ public class FieldValueCache
 
     public void CopyCacheToField()
     {
-        var field = FieldCache.fieldDictByName[new Tuple<Type, string>(targetMb.GetType(), fieldName)];
+        if (targetMb == null)
+        {
+            Debug.LogError("Target is null fieldName:" + fieldName);
+            return;
+        }
+
+        var targetMbType = targetMb.GetType();
+        var tuple = new Tuple<Type, string>(targetMbType, fieldName);
+        if (!FieldCache.fieldDictByName.ContainsKey(tuple))
+        {
+            Debug.LogError("Field not found in FieldCache:" + fieldName);
+            return;
+        }
+
+        var field = FieldCache.fieldDictByName[tuple];
         if (field == null)
         {
             Debug.LogError("Field not found:" + fieldName);
@@ -295,8 +315,8 @@ public class AutoAttributeManager : MonoBehaviour
     public MonoReferenceCache monoReferenceCache = new();
     private void Awake()
     {
-        monoReferenceCache.RestoreReferenceCacheToMonos();
         Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
+        monoReferenceCache.RestoreReferenceCacheToMonos();
         // SweepScene();
     }
 
