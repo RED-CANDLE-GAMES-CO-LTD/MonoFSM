@@ -165,7 +165,8 @@ public class FieldValueCache
     {
         if (targetMb == null)
         {
-            Debug.LogError("Target is null fieldName:" + fieldName);
+            Debug.LogError(
+                "Target is null fieldName:" + fieldName + ",monoName:" + targetName + ",typeName:" + typeName);
             return;
         }
 
