@@ -296,6 +296,7 @@ public class AutoAttributeManager : MonoBehaviour
     private void Awake()
     {
         monoReferenceCache.RestoreReferenceCacheToMonos();
+        Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
         // SweepScene();
     }
 
