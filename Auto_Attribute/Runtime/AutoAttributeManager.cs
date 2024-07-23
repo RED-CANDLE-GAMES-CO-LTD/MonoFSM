@@ -80,13 +80,7 @@ public class MonoValueCache
             {
                 continue;
             }
-
-            // if (field.IsPublic || Attribute.IsDefined(field, typeof(SerializeField)))
-            // {
-            //     continue;
-            // }
-
-          
+            
             var cache = new FieldValueCache();
             if (cache.CopyFieldToCache(targetMb, field, v))
             {
@@ -189,11 +183,12 @@ public class FieldValueCache
         {
             field.SetValue(targetMb, value);
         }
-        else if (valueArray != null)
+        else if (valueArray != null && field.FieldType.IsArray)
         {
             var elementType = field.FieldType.GetElementType();
             if (elementType == null)
             {
+                //有可能value是null然後valueArray也不是
                 Debug.LogError(
                     "ElementType is null:" + field.Name + field.FieldType + ",MonoType:" + targetMb.GetType(),
                     targetMb);
