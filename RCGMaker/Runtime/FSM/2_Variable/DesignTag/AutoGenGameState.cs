@@ -58,7 +58,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
     public void AutoGenCheck()
     {
         //FIXME: 一般的scene應該要ignore?沒有在build setting裡
-        Debug.Log("AutoGenCheck" + name, this);
+        // Debug.Log("AutoGenCheck" + name, this);
         if (Application.isPlaying)
             return;
 
@@ -96,7 +96,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
                     //檢查ID有沒有對
                     if (SaveID == value.GetSaveID)
                     {
-                        Debug.Log("SaveID == value.SaveID: " + field.Name + " " + value.name, gameObject);
+                        // Debug.Log("SaveID == value.SaveID: " + field.Name + " " + value.name, gameObject);
                         continue;
                     }
                 }
