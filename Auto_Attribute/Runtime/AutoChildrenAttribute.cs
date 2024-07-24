@@ -22,7 +22,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Field)]
 public class AutoChildrenAttribute : AutoFamily
 {
     // public bool runtimeIgnore = false; //FIXME: 之後如果想要做全Serialized的

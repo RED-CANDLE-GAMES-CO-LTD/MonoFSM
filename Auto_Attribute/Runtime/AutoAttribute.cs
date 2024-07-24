@@ -24,8 +24,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 [IncludeMyAttributes]
-[SerializeField]
-[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Field)]
 public class AutoAttribute : Attribute, IAutoAttribute
 {
 
