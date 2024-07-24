@@ -168,7 +168,9 @@ public class FieldValueCache
         var tuple = new Tuple<Type, string>(targetMbType, fieldName);
         if (!FieldCache.fieldDictByName.ContainsKey(tuple))
         {
-            Debug.LogError("Field not found in FieldCache:" + fieldName);
+            Debug.LogError("(editor only?) Field not found in FieldCache  :" + fieldName + ",monoName:" + targetName +
+                           ",typeName:" +
+                           typeName);
             return;
         }
 
