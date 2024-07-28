@@ -416,28 +416,20 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     public async UniTask<GameObject>  BorrowOrInstantiateRcgAssetReference(RCGAssetReference obj, Vector3 position = default, Quaternion rotation = default,
         Transform parent = null, Action<PoolObject> handler = null)
     {
-        // var keys = PoolDictionary.Keys;
-        //
-        // foreach (var key in keys)
-        // {
-        //     if (key.name == obj.AssetName)
-        //     {
-        //         return BorrowOrInstantiate(key.gameObject, position, rotation, parent, handler);
-        //     }
-        // }
-
         GameObject poolObject = null;
-        if (this.prewarmDataLogger != null)
+        if (prewarmDataLogger != null)
         {
-            poolObject = this.prewarmDataLogger.TryFindPrefab(obj.AssetReference);
+            poolObject = prewarmDataLogger.TryFindPrefab(obj.AssetReference);
             
             if(poolObject!=null)
                return BorrowOrInstantiate(poolObject, position, rotation, parent, handler);
         }
 
-     
-        
-        Debug.LogError("Please Prewarm this:"+obj.AssetName);
+
+#if UNITY_EDITOR
+        Debug.LogError("Please Prewarm this:" + obj.editorAsset, obj.editorAsset);
+#endif
+        Debug.LogError("Please Prewarm this:" + obj.AssetReference.AssetGUID);
 
         if (allLoadedRCGRefereces.Contains(obj) == false)
         {

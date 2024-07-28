@@ -22,9 +22,11 @@ public class PoolPrewarmData : ScriptableObject
     public GameObject TryFindPrefab(AssetReference targetReference)
     {
         addressableRecords.RemoveAll((a) => a._assetReference == null || a._prefab == null);
-        
+        Debug.Log("[TryFindPrefab] targetReference.AssetGUID" + targetReference.AssetGUID);
+        //FIXME:怎麼會寫array...
         foreach (var a in addressableRecords)
         {
+            Debug.Log("[TryFindPrefab] a._assetReference" + a._assetReference.AssetGUID);
             if (a._assetReference.AssetGUID == targetReference.AssetGUID)
             {
                 return a._prefab;
@@ -35,8 +37,8 @@ public class PoolPrewarmData : ScriptableObject
 
     public void RegisterEntry(GameObject g,AssetReference asset)
     {
-        #if UNITY_EDITOR
-        addressableRecords.RemoveAll((a) => a._assetReference == null || a._prefab == null);
+#if UNITY_EDITOR
+        // addressableRecords.RemoveAll((a) => a._assetReference == null || a._prefab == null);
         
         foreach (var r in addressableRecords)
         {
@@ -44,9 +46,10 @@ public class PoolPrewarmData : ScriptableObject
                 return;
         }
 
+        Debug.Log("PoolPrewarm Addressable Register" + asset.editorAsset, this);
         addressableRecords.Add(new PoolManager.AddressableEntry(asset,g));
         UnityEditor.EditorUtility.SetDirty(this);
-        #endif
+#endif
     }
 
     
