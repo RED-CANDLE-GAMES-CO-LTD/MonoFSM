@@ -247,9 +247,9 @@ public class MonoReferenceCache
     [Button]
     public void RestoreReferenceCacheToMonos() //Runtime
     {
-        Debug.Log("GetAllMonoBehavioursWithAuto start:" + FieldCache.fieldDictByName.Count);
+        // Debug.Log("GetAllMonoBehavioursWithAuto start:" + FieldCache.fieldDictByName.Count);
         AutoAttributeManager.BuildFieldCache(CachedMonoBehaviours); //建立field cache, 可以copy時再做？
-        Debug.Log("GetAllMonoBehavioursWithAuto end:" + FieldCache.fieldDictByName.Count);
+        // Debug.Log("GetAllMonoBehavioursWithAuto end:" + FieldCache.fieldDictByName.Count);
         for (var i = 0; i < monoValueCaches.Count(); i++)
         {
             monoValueCaches[i].CopyCacheToFields();

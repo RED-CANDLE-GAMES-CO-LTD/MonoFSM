@@ -7,6 +7,7 @@ using Cysharp.Threading.Tasks;
 using RCGMaker.AddressableAssets;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
 
@@ -115,7 +116,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 continue;
             try
             {
+                Profiler.BeginSample(item.ToString());
                 item.EnterLevelAwake();
+                Profiler.EndSample();
             }
             catch (Exception e)
             {
@@ -161,7 +164,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 continue;
             try
             {
+                Profiler.BeginSample(item.ToString());
                 item.EnterLevelAwakeReverse();
+                Profiler.EndSample();
             }
             catch (Exception e)
             {
