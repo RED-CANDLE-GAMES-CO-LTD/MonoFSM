@@ -98,6 +98,7 @@ public class MonoValueCache
         {
             cache.CopyCacheToField();
         }
+        
     }
 }
 
@@ -199,7 +200,26 @@ public class FieldValueCache
             var array = Array.CreateInstance(elementType, valueArray.Length);
             for (var i = 0; i < valueArray.Length; i++)
             {
-                array.SetValue(valueArray[i], i);
+                if (valueArray[i] == null)
+                {
+                    Debug.LogError("ValueArray[i] is null: elementType:" + elementType + ",fieldName:" + fieldName +
+                                   ",monoName:" + targetName + ",typeName:" + typeName);
+                    continue;
+                }
+
+                try
+                {
+                    array.SetValue(valueArray[i], i);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("CopyCacheToFields Error:" + e + e.StackTrace + "ValueArray[i]" + valueArray[i] +
+                                   ",elementType:"
+                                   + elementType + ",fieldName:" + fieldName +
+                                   ",monoName:" + targetName + ",typeName:" + typeName);
+                }
+
+             
             }
             field.SetValue(targetMb, array);
         }
