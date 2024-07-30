@@ -329,7 +329,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     {
         for (var i = 0; i < list.Count; i++)
             if (list[i].prefab == poolObject)
-            {
+            { 
                 list[i].DefaultMaximumCount += count;
                 return;
             }
@@ -385,12 +385,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         poolbjects.parent = transform;
         poolbjects.localPosition = Vector3.zero;
         poolbjects.gameObject.SetActive(false);
-
-        CreatePools();
     }
 
     //
-    private bool _poolCreated = false;
+    //private bool _poolCreated = false;
 
     public GameObject BorrowOrInstantiate(GameObject obj, Vector3 position = default, Quaternion rotation = default,
         Transform parent = null, Action<PoolObject> handler = null)
@@ -521,75 +519,56 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     }
 
 
-    public void CreatePools()
-    {
-        //FIXME: 不懂？？
-        if (_poolCreated)
-            return;
-
-        for (var i = 0; i < PoolObjectEntries.Count; i++)
-        {
-            var pool = new ObjectPool(PoolObjectEntries[i], this);
-            allPools.Add(pool);
-            PoolDictionary.Add(PoolObjectEntries[i].prefab, pool);
-        }
-
-        for (var i = 0; i < allPools.Count; i++) allPools[i].Init();
-
-        _poolCreated = true;
-    }
 
     //FIXME: 不該全清
     public void ReCalculatePools()
     {
         Profiler.BeginSample("ReCalculatePools");
-        if (!_poolCreated)
-            return;
-
+        
+        //把null game level 清掉了
         ReCalculatePoolObjectEntries();
 
         for (var i =  allPools.Count-1; i >=0; i--)
         {
             var currentPool = allPools[i];
             //FIXME: 同一個景重load!????
-            // var entry = isInRequest(currentPool._prefab);
-            //
-            // //移除沒用到的pool
-            // if (entry == null)
-            // {
-                //無腦清空
+             var entry = isInRequest(currentPool._prefab);
+            
+             //移除沒用到的pool
+             if (entry == null)
+             { 
+                 PoolDictionary.Remove(currentPool._prefab);
                 allPools[i].DestroyPool();
                 allPools[i] = null;
                 allPools.RemoveAt(i);
-            // }
-            // else
-            // {
-            //     allPools[i]._bindingEntry = entry;
-            // }
+             }
+             //綁定新的Entry
+            else
+             {
+                 allPools[i]._bindingEntry = entry;
+             }
         }
-        allPools.Clear();
+        
+        for (var i = 0; i < allPools.Count; i++) 
+            allPools[i].ScalePoolToNewMaximum();
 
-        //增加新的pool
+        
+        //增加新的沒看過的Entry
         for (var i = 0; i < PoolObjectEntries.Count; i++)
         {
-           // var entry = PoolObjectEntries[i];
-            var pool = new ObjectPool(PoolObjectEntries[i], this);
-            allPools.Add(pool);
-            pool.Init();
+            if (PoolDictionary.ContainsKey(PoolObjectEntries[i].prefab) == false)
+            {
+                var pool = new ObjectPool(PoolObjectEntries[i], this);
+                allPools.Add(pool);
+                pool.Init();
+                PoolDictionary.Add(PoolObjectEntries[i].prefab,pool);
+            }
         }
 
-        // Debug.Log("[PoolDictionary]   PoolDictionary.Clear()");
-        PoolDictionary.Clear();
 
-        //重建Dictionary
-        for (var i = 0; i < allPools.Count; i++) PoolDictionary.Add(allPools[i]._prefab, allPools[i]);
-
-
-        // var sw = new System.Diagnostics.Stopwatch();
-        //
-        // sw.Start();
-
-        for (var i = 0; i < allPools.Count; i++) allPools[i].ScalePoolToNewMaximum();
+        
+        
+ 
 
         // sw.Stop();
         // Debug.Log("[PoolManager] Prepare ElapsedMilliseconds:" + sw.ElapsedMilliseconds);
@@ -647,7 +626,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public PoolObjectEntry isInRequest(PoolObject prefab)
     {
-        for (var i = 0; i < PoolObjectEntries.Count; i++)
+        for (var i = PoolObjectEntries.Count-1; i >=0 ; i--)
             if (PoolObjectEntries[i].prefab == prefab)
                 return PoolObjectEntries[i];
 
@@ -754,11 +733,18 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
             if (AllObjs.Count == _bindingEntry.DefaultMaximumCount)
             {
+#if RCG_DEV
+                Debug.Log(_bindingEntry.prefab+":AllObjs.Count == _bindingEntry.DefaultMaximumCount:"+_bindingEntry.DefaultMaximumCount);
+#endif
+                
                 return;
             }
             else if (AllObjs.Count < _bindingEntry.DefaultMaximumCount)
             {
                 var offset = _bindingEntry.DefaultMaximumCount - AllObjs.Count;
+#if RCG_DEV
+                Debug.Log(_bindingEntry.prefab+":AllObjs.Count < _bindingEntry.DefaultMaximumCount:"+_bindingEntry.DefaultMaximumCount);
+#endif
                 // SetIsHandledPoolRequestPoolObject(_prefab, true);
 
                 for (var i = 0; i < offset; i++) AddAObject();
@@ -768,7 +754,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             else if (AllObjs.Count > _bindingEntry.DefaultMaximumCount)
             {
                 var offset = AllObjs.Count - _bindingEntry.DefaultMaximumCount;
-
+#if RCG_DEV
+                Debug.Log(_bindingEntry.prefab+":AllObjs.Count > _bindingEntry.DefaultMaximumCount:"+_bindingEntry.DefaultMaximumCount);
+#endif
                 for (var i = 0; i < offset; i++)
                 {
                     Destroy(AllObjs[i].gameObject);
@@ -996,7 +984,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             AllObjs = new List<PoolObject>();
             DisabledObjs = new List<PoolObject>();
             OnUseObjs = new List<PoolObject>();
-
+            
+#if RCG_DEV
+            Debug.Log(this._bindingEntry.prefab+":AllObjs.Count Create New Pool:"+_bindingEntry.DefaultMaximumCount);
+#endif
             // SetIsHandledPoolRequestPoolObject(_prefab, true);
             for (var i = 0; i < ObjectCount; i++)
                 //關掉原型??
