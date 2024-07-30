@@ -26,6 +26,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Sirenix.OdinInspector;
+using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
 #if UNITY_EDITOR
@@ -268,12 +269,17 @@ public class MonoReferenceCache
     public void RestoreReferenceCacheToMonos() //Runtime
     {
         // Debug.Log("GetAllMonoBehavioursWithAuto start:" + FieldCache.fieldDictByName.Count);
+        Profiler.BeginSample("Build Field Cache");
         AutoAttributeManager.BuildFieldCache(CachedMonoBehaviours); //建立field cache, 可以copy時再做？
+        Profiler.EndSample();
         // Debug.Log("GetAllMonoBehavioursWithAuto end:" + FieldCache.fieldDictByName.Count);
+        Profiler.BeginSample("CopyCacheToFields");
         for (var i = 0; i < monoValueCaches.Count(); i++)
         {
             monoValueCaches[i].CopyCacheToFields();
         }
+
+        Profiler.EndSample();
     }
 }
 
@@ -333,7 +339,7 @@ public class AutoAttributeManager : MonoBehaviour
     public MonoReferenceCache monoReferenceCache = new();
     private void Awake()
     {
-        Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
+        // Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
         monoReferenceCache.RestoreReferenceCacheToMonos();
         // SweepScene();
     }

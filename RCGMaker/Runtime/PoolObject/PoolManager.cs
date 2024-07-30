@@ -523,6 +523,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public void CreatePools()
     {
+        //FIXME: 不懂？？
         if (_poolCreated)
             return;
 
@@ -538,8 +539,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         _poolCreated = true;
     }
 
+    //FIXME: 不該全清
     public void ReCalculatePools()
     {
+        Profiler.BeginSample("ReCalculatePools");
         if (!_poolCreated)
             return;
 
@@ -592,6 +595,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         // Debug.Log("[PoolManager] Prepare ElapsedMilliseconds:" + sw.ElapsedMilliseconds);
         // UnityEngine.Debug.LogFormat("[Auto] Assigned <color={5}><b>{4}/{2}</b></color> [Auto*] variables in <color=#cc3300><b>{3} Milliseconds </b></color> - Analized {0} MonoBehaviours and {1} variables",
         //    monoBehavioursInSceneWithAuto.Count(), variablesAnalized, variablesWithAuto, sw.ElapsedMilliseconds, autoVarialbesAssigned_count, autoVarialbesAssigned_count + autoVarialbesNotAssigned_count, result_color);
+        Profiler.EndSample();
     }
 
     // public void ReturnAllObjects()
