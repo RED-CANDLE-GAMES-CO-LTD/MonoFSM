@@ -106,6 +106,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare, IBefor
     List<IPoolObject> IPoolObjectList = new List<IPoolObject>();
     List<IResetter> IResetterList = new List<IResetter>();
 
+    [AutoChildren] private IPoolObject[] _iPoolObjectRefs;
+    [AutoChildren] private IResetter[] _iResetterRefs;
+    
+
     [PreviewInInspector]
     [AutoChildren] private IPoolBorrowOnEnable[] IPoolBorrowedList;
     private bool inited = false;
@@ -170,10 +174,12 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare, IBefor
         if (IResetterList == null)
             IResetterList = new();
 
-        GetComponentsInChildren<IPoolObject>(true, IPoolObjectList);
+        IPoolObjectList.AddRange(_iPoolObjectRefs);
+        // GetComponentsInChildren<IPoolObject>(true, IPoolObjectList);
         IPoolObjectList.Reverse();
         // IPoolObjectList.SortByPriority();
-        GetComponentsInChildren<IResetter>(true, IResetterList);
+        IResetterList.AddRange(_iResetterRefs);
+        // GetComponentsInChildren<IResetter>(true, IResetterList);
         IResetterList.Reverse();
         // IResetterList.SortByPriority();
 
