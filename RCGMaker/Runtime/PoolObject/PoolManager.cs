@@ -518,9 +518,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         PoolDictionary[prefab.OriginalPrefab].ReturnToPool(prefab);
     }
 
-
-
-    //FIXME: 不該全清
+    //FIXME: 有可能保留AG_S2的pool, 或是在特定scene不做清除之類的動作
     public void ReCalculatePools()
     {
         Profiler.BeginSample("ReCalculatePools");
@@ -528,31 +526,36 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         //把null game level 清掉了
         ReCalculatePoolObjectEntries();
 
+        Profiler.BeginSample("DestroyNonUsedPool");
         for (var i =  allPools.Count-1; i >=0; i--)
         {
             var currentPool = allPools[i];
             //FIXME: 同一個景重load!????
              var entry = isInRequest(currentPool._prefab);
-            
+
              //移除沒用到的pool
              if (entry == null)
-             { 
+             {
                  PoolDictionary.Remove(currentPool._prefab);
-                allPools[i].DestroyPool();
-                allPools[i] = null;
-                allPools.RemoveAt(i);
+                 allPools[i].DestroyPool();
+                 allPools[i] = null;
+                 allPools.RemoveAt(i);
              }
              //綁定新的Entry
-            else
+             else
              {
                  allPools[i]._bindingEntry = entry;
              }
         }
-        
+
+        Profiler.EndSample();
+
+        Profiler.BeginSample("ScalePoolToNewMaximum");
         for (var i = 0; i < allPools.Count; i++) 
             allPools[i].ScalePoolToNewMaximum();
+        Profiler.EndSample();
 
-        
+        Profiler.BeginSample("Add New Entry");
         //增加新的沒看過的Entry
         for (var i = 0; i < PoolObjectEntries.Count; i++)
         {
@@ -564,6 +567,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 PoolDictionary.Add(PoolObjectEntries[i].prefab,pool);
             }
         }
+
+        Profiler.EndSample();
 
 
         
@@ -734,28 +739,23 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             if (AllObjs.Count == _bindingEntry.DefaultMaximumCount)
             {
 #if RCG_DEV
-                Debug.Log(_bindingEntry.prefab+":AllObjs.Count == _bindingEntry.DefaultMaximumCount:"+_bindingEntry.DefaultMaximumCount);
+                // Debug.Log(_bindingEntry.prefab+":AllObjs.Count == _bindingEntry.DefaultMaximumCount:"+_bindingEntry.DefaultMaximumCount);
 #endif
-                
                 return;
             }
             else if (AllObjs.Count < _bindingEntry.DefaultMaximumCount)
             {
                 var offset = _bindingEntry.DefaultMaximumCount - AllObjs.Count;
 #if RCG_DEV
-                Debug.Log(_bindingEntry.prefab+":AllObjs.Count < _bindingEntry.DefaultMaximumCount:"+_bindingEntry.DefaultMaximumCount);
+                // Debug.Log(_bindingEntry.prefab+":AllObjs.Count < _bindingEntry.DefaultMaximumCount:"+_bindingEntry.DefaultMaximumCount);
 #endif
-                // SetIsHandledPoolRequestPoolObject(_prefab, true);
-
                 for (var i = 0; i < offset; i++) AddAObject();
-
-                // SetIsHandledPoolRequestPoolObject(_prefab, false);
             }
             else if (AllObjs.Count > _bindingEntry.DefaultMaximumCount)
             {
                 var offset = AllObjs.Count - _bindingEntry.DefaultMaximumCount;
 #if RCG_DEV
-                Debug.Log(_bindingEntry.prefab+":AllObjs.Count > _bindingEntry.DefaultMaximumCount:"+_bindingEntry.DefaultMaximumCount);
+                // Debug.Log(_bindingEntry.prefab+":AllObjs.Count > _bindingEntry.DefaultMaximumCount:"+_bindingEntry.DefaultMaximumCount);
 #endif
                 for (var i = 0; i < offset; i++)
                 {

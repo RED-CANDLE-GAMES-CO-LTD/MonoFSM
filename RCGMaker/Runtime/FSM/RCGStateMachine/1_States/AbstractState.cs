@@ -132,10 +132,12 @@ namespace RCGMaker.Core
         {
             stateBehavior.OnCreateMapping(context);
 
-            MappingEntry entry = new MappingEntry();
-            entry.state = state;
-            // entry.context = context;
-            entry.stateBehavior = stateBehavior;
+            var entry = new MappingEntry
+            {
+                state = state,
+                // entry.context = context;
+                stateBehavior = stateBehavior
+            };
 
             mappingList.Add(entry);
             mapping.Add(state, stateBehavior);

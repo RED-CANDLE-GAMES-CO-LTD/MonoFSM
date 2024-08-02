@@ -6,7 +6,7 @@ using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core
 {
-    public abstract class StateMachineContext<T, TState> : MonoBehaviour,ILevelAwake
+    public abstract class StateMachineContext<T, TState> : MonoBehaviour, ILevelAwake, ISceneSavingCallbackReceiver
         where TState : AbstractState<T> where T : class 
     {
         [InfoBox("出現不能改但卻是Null，找易衡討論討論")]
@@ -65,7 +65,7 @@ namespace RCGMaker.Core
 
         public void EnterLevelAwake()
         {
-            StateMapping<T> stateBehaviorMapping = new StateMapping<T>();
+            var stateBehaviorMapping = new StateMapping<T>();
 
             // var stateDict = new Dictionary<T, TState>();
             foreach (var state in states)
@@ -81,5 +81,13 @@ namespace RCGMaker.Core
 
         [AutoChildren] [PreviewInInspector] protected TState[] states;
         public TState[] States => states;
+
+        public void OnBeforeSceneSave()
+        {
+            gameObject.AddComponent<StateMachineRunner>();
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(gameObject);
+#endif
+        }
     }
 }

@@ -442,6 +442,7 @@ namespace RCGMaker.Core
         public static StateMachine<T> Initialize(MonoBehaviour component, StateMapping<T> stateMapping = null)
         {
             var engine = component.GetComponent<StateMachineRunner>();
+            //FIXME: 理想不要runtime add component
             if (engine == null) engine = component.gameObject.AddComponent<StateMachineRunner>();
 
             var machine = engine.Initialize<T>(component, stateMapping);
