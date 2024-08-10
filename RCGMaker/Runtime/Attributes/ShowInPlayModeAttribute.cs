@@ -33,11 +33,7 @@ namespace RCGMaker.Core.Attributes
     }
   
 
-    [IncludeMyAttributes]
-    [Conditional("UNITY_EDITOR")]
-    public class EditorOnlyAttribute : Attribute
-    {
-    }
+  
 
     [IncludeMyAttributes]
     [BoxGroup("設定")]

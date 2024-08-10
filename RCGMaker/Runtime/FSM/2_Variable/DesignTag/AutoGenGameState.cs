@@ -28,8 +28,8 @@ public interface IGameStateOwner
 {
 }
 
-[RequireComponent(typeof(GameStateRequireAtPrefabKind))]
-public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
+// [RequireComponent(typeof(GameStateRequireAtPrefabKind))]
+public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver, IEditorOnly
 {
 #if UNITY_EDITOR
     private string FindSceneGUID()

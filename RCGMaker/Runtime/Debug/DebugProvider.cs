@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using RCGMaker.Core.Attributes;
 using RCGSetting;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
@@ -11,7 +12,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
-public class DebugProvider : MonoBehaviour, IOverrideHierarchyIcon //往上找
+public class DebugProvider : MonoBehaviour, IOverrideHierarchyIcon, IEditorOnly //往上找
 {
     public void Awake()
     {

@@ -1,13 +1,14 @@
 ﻿#if UNITY_EDITOR
 using UnityEditor;
 #endif
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 
 
 #if UNITY_EDITOR
 [CanEditMultipleObjects]
 #endif
-public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround
+public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround, IEditorOnly
 {
 #if UNITY_EDITOR
     public enum GizmoShapeType

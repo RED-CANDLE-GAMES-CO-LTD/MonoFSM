@@ -1,9 +1,10 @@
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Core
 {
-    public class GameStateRequireAtPrefabKind : MonoBehaviour
+    public class GameStateRequireAtPrefabKind : MonoBehaviour, IEditorOnly
     {
         [DisallowModificationsIn(PrefabKind.InstanceInScene)]
         public PrefabKind prefabKind = PrefabKind.InstanceInScene; //default以scene危單位在存
