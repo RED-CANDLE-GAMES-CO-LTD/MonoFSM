@@ -1,13 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using RCGSetting;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 //下面的節點，在特定測試模式下才會打開
-public class DebugModeActivator : MonoBehaviour
+public class DebugModeActivator : MonoBehaviour, IEditorOnly
 {
+#if RCG_DEV
     public Transform childNode;
 
     public enum DebugActivateWhen
@@ -40,7 +42,7 @@ public class DebugModeActivator : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
     }
-#if RCG_DEV
+
     private void Update()
     {
         ActivateCheck();

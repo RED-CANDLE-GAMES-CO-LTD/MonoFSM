@@ -241,8 +241,9 @@ public class MonoReferenceCache
 
     [PropertyOrder(-1)]
     [Button]
-    public void StoreReferenceCache() //Editor time
+    public void StoreReferenceCache(GameObject rootObj = null) //Editor time
     {
+        RootObj = rootObj;
         monoValueCaches.Clear();
         if (RootObj != null)
         {
