@@ -12,7 +12,12 @@ using UnityEngine.Profiling;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
 
-public class PoolNativeObjectManager<T> where T : new()
+public interface INativePool
+{
+    public void Clear();
+}
+
+public class PoolNativeObjectManager<T> where T : INativePool, new()
 {
     public PoolNativeObjectManager(int prepareCount)
     {
@@ -30,6 +35,14 @@ public class PoolNativeObjectManager<T> where T : new()
         // Debug.Log("Borrow " + _objList.Count + ",index:" + _index);
         if (_index >= _objList.Count) _index = 0;
         return _objList[_index++];
+    }
+
+    public void Clear()
+    {
+        foreach (var _obj in _objList)
+        {
+            _obj.Clear();
+        }
     }
 }
 
