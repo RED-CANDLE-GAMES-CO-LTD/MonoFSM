@@ -11,7 +11,7 @@ public class PoolPrewarmData : ScriptableObject
 {
 #if UNITY_EDITOR
     [Button]
-    private void OpenAndSavePreWarmPrefabs()
+    public void OpenAndSavePreWarmPrefabs()
     {
         PoolObjectUtility.GenCacheForAllPrefabs(this);
     }
