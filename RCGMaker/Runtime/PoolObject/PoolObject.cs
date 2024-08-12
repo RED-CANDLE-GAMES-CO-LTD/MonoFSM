@@ -30,9 +30,9 @@ public interface IPoolObjectPlayer
     IFXPlayerOwner Owner { get; }
 }
 
-public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare, IBeforePrefabSaveCallbackReceiver
+public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 {
-    public MonoReferenceCache _monoReferenceCache; //要是prefab asset才需要
+    // public MonoReferenceCache _monoReferenceCache; //要是prefab asset才需要
     
     [BoxGroup("誰噴的")]
     [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
@@ -568,12 +568,12 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare, IBefor
     private TransformResetOverrider _transformResetOverrider;
 
 
-    public void OnBeforePrefabSave()
-    {
-        //會有nested? 有可能...? 不該？
-        _monoReferenceCache.RootObj = gameObject;
-        _monoReferenceCache.StoreReferenceCache();
-    }
+    // public void OnBeforePrefabSave()
+    // {
+    //     //會有nested? 有可能...? 不該？
+    //     _monoReferenceCache.RootObj = gameObject;
+    //     _monoReferenceCache.StoreReferenceCache();
+    // }
 }
 
 public interface TransformResetOverrider

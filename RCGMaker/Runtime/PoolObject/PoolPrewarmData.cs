@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using RCGMaker.Runtime.PoolObject;
+using RCGMaker.Runtime;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -13,7 +13,7 @@ public class PoolPrewarmData : ScriptableObject
     [Button]
     private void OpenAndSavePreWarmPrefabs()
     {
-        PoolObjectUtility.AutoBindForAllPrefabs(this);
+        PoolObjectUtility.GenCacheForAllPrefabs(this);
     }
 #endif
     public List<PoolManager.PoolObjectEntry> objectEntries = new List<PoolManager.PoolObjectEntry>();

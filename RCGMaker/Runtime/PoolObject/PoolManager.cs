@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Auto.Utils;
 using Cysharp.Threading.Tasks;
 using RCGMaker.AddressableAssets;
+using RCGMaker.Runtime;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Profiling;
@@ -569,26 +570,13 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
 
         Profiler.EndSample();
-
-
         
-        
- 
-
         // sw.Stop();
         // Debug.Log("[PoolManager] Prepare ElapsedMilliseconds:" + sw.ElapsedMilliseconds);
         // UnityEngine.Debug.LogFormat("[Auto] Assigned <color={5}><b>{4}/{2}</b></color> [Auto*] variables in <color=#cc3300><b>{3} Milliseconds </b></color> - Analized {0} MonoBehaviours and {1} variables",
         //    monoBehavioursInSceneWithAuto.Count(), variablesAnalized, variablesWithAuto, sw.ElapsedMilliseconds, autoVarialbesAssigned_count, autoVarialbesAssigned_count + autoVarialbesNotAssigned_count, result_color);
         Profiler.EndSample();
     }
-
-    // public void ReturnAllObjects()
-    // {
-    //     Debug.Log("Return All PoolObj");
-    //     
-    //     for (var i = 0; i < allPools.Count; i++)
-    //         allPools[i].ReturnAllObjects();
-    // }
 
     public void ReturnAllObjects(Scene withScene)
     {
@@ -856,7 +844,14 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         private void PreparePoolObjectImplementation(PoolObject obj)
         {
-            AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject);
+            if (obj.TryGetComponent<PrefabSerializeCache>(out var cache))
+            {
+                cache.RestoreReferenceCache();
+            }
+            else
+            {
+                AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject); //
+            }
             LevelResetChildrenPrepareRuntimeData(obj.gameObject);
             HandleGameLevelAwakeReverse(obj.gameObject);
             HandleGameLevelAwake(obj.gameObject);
@@ -864,51 +859,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             HandleGameLevelStart(obj.gameObject);
             obj.OnPrepare();
         }
-
-        // private static void HandlePoolObjectAwake(PoolObject obj)
-        // {
-        //     var ILevelAwakes = new List<ILevelAwake>(obj.GetComponentsInChildren<ILevelAwake>(true));
-        //     foreach (var item in ILevelAwakes)
-        //     {
-        //         if (item == null)
-        //             continue;
-        //         try
-        //         {
-        //             item.EnterLevelAwake();
-        //         }
-        //         catch (Exception e)
-        //         {
-        //             if (item is MonoBehaviour)
-        //                 Debug.LogError(e.StackTrace, item as MonoBehaviour);
-        //             else
-        //                 Debug.LogError(e.StackTrace);
-        //         }
-        //     }
-        // }
-        //
-        // private void HandlePoolObjectStart(PoolObject level)
-        // {
-        //     var ILevelStarts = new List<ILevelStart>(level.GetComponentsInChildren<ILevelStart>(true));
-        //
-        //     //RCGArgEventBinder 要倒序綁  最下面的物件先綁起來
-        //     ILevelStarts.Reverse();
-        //     foreach (var item in ILevelStarts)
-        //     {
-        //         if (item == null)
-        //             continue;
-        //         try
-        //         {
-        //             item.EnterLevelStart();
-        //         }
-        //         catch (Exception e)
-        //         {
-        //             if (item is MonoBehaviour)
-        //                 Debug.LogError(e.StackTrace, item as MonoBehaviour);
-        //             else
-        //                 Debug.LogError(e.StackTrace);
-        //         }
-        //     }
-        // }
 
     
         [Conditional("UNITY_EDITOR")]

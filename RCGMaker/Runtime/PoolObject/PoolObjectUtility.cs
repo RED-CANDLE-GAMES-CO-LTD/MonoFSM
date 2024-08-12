@@ -4,7 +4,7 @@ using UnityEditor;
 #endif
 using UnityEngine;
 
-namespace RCGMaker.Runtime.PoolObject
+namespace RCGMaker.Runtime
 {
     public static class PoolObjectUtility
     {
@@ -27,7 +27,7 @@ namespace RCGMaker.Runtime.PoolObject
 #endif
         }
 
-        public static void AutoBindForAllPrefabs(PoolPrewarmData prewarmData)
+        public static void GenCacheForAllPrefabs(PoolPrewarmData prewarmData)
         {
 #if UNITY_EDITOR
             //open all prefabs in prefab stage and save

@@ -2,7 +2,7 @@ using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace RCGMaker.Runtime.PoolObject
+namespace RCGMaker.Runtime
 {
     public class OnReturnToPoolAction : MonoBehaviour, IPoolObject
     {
