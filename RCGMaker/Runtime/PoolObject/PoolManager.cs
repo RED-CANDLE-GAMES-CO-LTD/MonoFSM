@@ -807,7 +807,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
                 obj.gameObject.SetActive(true);
 
-
+                //這裡才是真的onBorrow
                 obj.PoolObjectResetAndStart();
 
 

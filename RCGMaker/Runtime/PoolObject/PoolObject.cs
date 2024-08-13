@@ -279,12 +279,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
     public void OnBorrowFromPool(PoolManager manager)
     {
-
-
         onScene = true;
-       
-
-
+        
         // EnterLevelResetAndStart();
     }
 
