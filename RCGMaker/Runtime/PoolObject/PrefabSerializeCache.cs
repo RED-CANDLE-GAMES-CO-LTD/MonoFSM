@@ -4,6 +4,10 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime
 {
+    public interface IPrefabSerializeCacheOwner
+    {
+        GameObject gameObject { get; }
+    }
     //從SceneSaveManager來重新處理prefab?
     public class PrefabSerializeCache : MonoBehaviour, IEditorOnly, IBeforePrefabSaveCallbackReceiver
     {
@@ -11,13 +15,14 @@ namespace RCGMaker.Runtime
 
         public void OnBeforePrefabSave()
         {
-            var poolObject = GetComponentInParent<PoolObject>();
-            if (poolObject == null)
+            var owner = GetComponentInParent<IPrefabSerializeCacheOwner>();
+            if (owner == null)
             {
                 Debug.LogError("PrefabSerializeCache must be a child of PoolObject");
                 return;
             }
-            _monoReferenceCache.StoreReferenceCache(poolObject.gameObject);
+
+            _monoReferenceCache.StoreReferenceCache(owner.gameObject);
             //prewarm的PoolObject要用這個
         }
 

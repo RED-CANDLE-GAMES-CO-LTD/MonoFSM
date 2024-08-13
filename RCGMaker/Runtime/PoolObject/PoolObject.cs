@@ -358,6 +358,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
     public void OnReturnToPool(PoolManager manager)
     {
+        lastPlayer = null;
         // Debug.Log("[PoolObject] return to pool", this);
         // RaisePoolObjectReturnEvent();
         CheckList();
