@@ -9,7 +9,7 @@ using UnityEngine;
 //下面的節點，在特定測試模式下才會打開
 public class DebugModeActivator : MonoBehaviour
 {
-// #if RCG_DEV
+#if UNITY_EDITOR
     public Transform childNode;
 
     public enum DebugActivateWhen
@@ -47,5 +47,5 @@ public class DebugModeActivator : MonoBehaviour
     {
         ActivateCheck();
     }
-// #endif
+#endif
 }
