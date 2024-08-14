@@ -31,7 +31,7 @@ public interface IGameStateOwner
 // [RequireComponent(typeof(GameStateRequireAtPrefabKind))]
 public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
 {
-// #if UNITY_EDITOR
+#if UNITY_EDITOR
     private string FindSceneGUID()
     {
         var scene = gameObject.scene;
@@ -54,7 +54,6 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
     private IGameStateOwner[] Owners => GetComponents<IGameStateOwner>();
 
     private bool IsOwnerNull => Owners == null || Owners.Length == 0;
-#if UNITY_EDITOR   
     public void AutoGenCheck()
     {
         //FIXME: 一般的scene應該要ignore?沒有在build setting裡
