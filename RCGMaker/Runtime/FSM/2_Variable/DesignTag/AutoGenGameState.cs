@@ -29,9 +29,9 @@ public interface IGameStateOwner
 }
 
 // [RequireComponent(typeof(GameStateRequireAtPrefabKind))]
-public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver, IEditorOnly
+public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
 {
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
     private string FindSceneGUID()
     {
         var scene = gameObject.scene;
@@ -42,7 +42,6 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver, IEd
 
         return guid;
     }
-
     
     [ShowInInspector] private string SceneGUID => FindSceneGUID();
 
@@ -55,6 +54,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver, IEd
     private IGameStateOwner[] Owners => GetComponents<IGameStateOwner>();
 
     private bool IsOwnerNull => Owners == null || Owners.Length == 0;
+#if UNITY_EDITOR   
     public void AutoGenCheck()
     {
         //FIXME: 一般的scene應該要ignore?沒有在build setting裡
@@ -123,6 +123,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver, IEd
             }
         }
     }
+#endif
 
     // public override void OnBeforeSerialize()
     // {
@@ -143,8 +144,8 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver, IEd
     //     base.OnAfterDeserialize();
     // }
     //TODO: 找到旁邊class裡的[GameState], 幫他gen掉 
-    
-#endif
+
+// #endif
     public void OnBeforeSceneSave()
     {
 #if UNITY_EDITOR   
