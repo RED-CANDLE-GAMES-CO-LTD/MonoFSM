@@ -135,6 +135,7 @@ public class CharacterStat //這個改名會爛掉嗎?
         statModifiers.Clear();
         _value = BaseValue;
         isDirty = true;
+        listener = null;
     }
 
     public virtual bool RemoveAllModifiersFromSource(IStatModifierOwner source)

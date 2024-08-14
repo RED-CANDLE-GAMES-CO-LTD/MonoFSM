@@ -55,6 +55,10 @@ public interface ILevelDestroy
     void OnLevelDestroy();
 }
 
+public interface IGameDestroy
+{
+    void OnGameDestroy();
+}
 // public interface IResetPriority
 // {
 //     int GetPriority();

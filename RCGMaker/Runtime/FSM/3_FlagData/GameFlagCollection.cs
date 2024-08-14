@@ -16,7 +16,7 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
 {
 #if UNITY_EDITOR 
     [Button("Clear")]
-    public void Clear()
+    public void Clear() //這個不太對
     {
         Flags.Clear();
         EditorUtility.SetDirty(this);

@@ -1,5 +1,7 @@
+using System;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Runtime
@@ -11,7 +13,19 @@ namespace RCGMaker.Runtime
     //從SceneSaveManager來重新處理prefab?
     public class PrefabSerializeCache : MonoBehaviour, IEditorOnly, IBeforePrefabSaveCallbackReceiver
     {
+        [Title("singleton類的prefab, poolObject應該不可以用")]
+        public bool RestoreAtAwake = false;
+
         [SerializeField] private MonoReferenceCache _monoReferenceCache;
+      
+
+        private void Awake()
+        {
+            if (RestoreAtAwake)
+            {
+                RestoreReferenceCache();
+            }
+        }
 
         public void OnBeforePrefabSave()
         {
