@@ -9,7 +9,7 @@ using UnityEngine;
 //下面的節點，在特定測試模式下才會打開
 public class DebugModeActivator : MonoBehaviour
 {
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
     public Transform childNode;
 
     public enum DebugActivateWhen
@@ -30,6 +30,12 @@ public class DebugModeActivator : MonoBehaviour
 
     private void ActivateCheck()
     {
+#if !UNITY_EDITOR //production關掉？
+        childNode.gameObject.SetActive(false);
+        enabled = false;
+#endif
+
+        //可以砍掉？   
         switch (ActivateWhen)
         {
             case DebugActivateWhen.DebugMode:
@@ -42,10 +48,9 @@ public class DebugModeActivator : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
     }
-
     private void Update()
     {
         ActivateCheck();
     }
-#endif
+
 }
