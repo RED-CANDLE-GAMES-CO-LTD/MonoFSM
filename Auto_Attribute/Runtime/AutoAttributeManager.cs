@@ -201,15 +201,14 @@ public class FieldValueCache
             var array = Array.CreateInstance(elementType, valueArray.Length);
             for (var i = 0; i < valueArray.Length; i++)
             {
-                if (valueArray[i] == null)
-                {
-                    Debug.LogError("ValueArray[i] is null: elementType:" + elementType + ",fieldName:" + fieldName +
-                                   ",monoName:" + targetName + ",typeName:" + typeName);
-                    continue;
-                }
-
                 try
                 {
+                    if (valueArray[i] == null)
+                    {
+                        Debug.LogError("ValueArray[i] is null: elementType:" + elementType + ",fieldName:" + fieldName +
+                                       ",monoName:" + targetName + ",typeName:" + typeName);
+                        continue;
+                    }
                     array.SetValue(valueArray[i], i);
                 }
                 catch (Exception e)
