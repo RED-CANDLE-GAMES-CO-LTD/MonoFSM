@@ -233,6 +233,10 @@ public class MonoReferenceCache
     public List<MonoValueCache> monoValueCaches = new();
     public GameObject RootObj;
 
+    public void ClearRefs()
+    {
+        monoValueCaches.Clear();
+    }
     [HideInInspector]
     public MonoBehaviour[] CachedMonoBehaviours;
 
@@ -342,6 +346,11 @@ public class AutoAttributeManager : MonoBehaviour
         // Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
         monoReferenceCache.RestoreReferenceCacheToMonos();
         // SweepScene();
+    }
+
+    private void OnDestroy()
+    {
+        monoReferenceCache.ClearRefs();
     }
 
     //async版本的auto

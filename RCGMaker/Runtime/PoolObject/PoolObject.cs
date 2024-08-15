@@ -67,8 +67,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     public ShootFrom InitPosType = ShootFrom.HitData;//TODO: 應該是IPoolObject... PoolOnShoot, OnSpawn
     // public bool IsShootFromHitData = true;
     // public List<EffectPositionConstrain> posContraints;
-    [HideInInspector]
-    public bool busy = false;
+    // [HideInInspector]
+    // public bool busy = false;
 
     // public int UnsolvedIssueBeforeDestroy
     // {

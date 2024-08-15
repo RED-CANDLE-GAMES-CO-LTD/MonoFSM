@@ -914,9 +914,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         public void ReturnToPool(PoolObject obj)
         {
-            if (obj.busy)
-                return;
-
+            // if (obj.busy)
+            // return;
             if (OnUseObjs.Contains(obj))
             {
                 obj.BeforeObjectReturnToPool(_poolManager);
