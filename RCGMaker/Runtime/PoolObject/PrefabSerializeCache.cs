@@ -44,6 +44,14 @@ namespace RCGMaker.Runtime
 
         public void RestoreReferenceCache()
         {
+            if (_monoReferenceCache.RootObj == null)
+            {
+                //FIXME: singleton會為賺嗎？
+                var owner = GetComponentInParent<IPrefabSerializeCacheOwner>();
+                Debug.LogError("RootObject is null");
+                AutoAttributeManager.AutoReferenceAllChildren(owner.gameObject);
+                return;
+            }
             _monoReferenceCache.RestoreReferenceCacheToMonos();
         }
     }

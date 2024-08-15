@@ -18,6 +18,7 @@ public class AutoReferencerOnInstantiation : MonoBehaviour
 
         if (alsoReferenceChildren)
         {
+            //應該和serialize cache合併？
             AutoAttributeManager.AutoReferenceAllChildren(this.gameObject);
             // RecursivelyReferenceChildren(gameObject);
             // foreach (Transform child in this.transform)
