@@ -50,9 +50,14 @@ public interface ILevelStartReverse
 }
 
 
-public interface ILevelDestroy
+public interface ILevelDestroy 
 {
     void OnLevelDestroy();
+}
+
+public interface IClearReference //PoolObject return 會清這個
+{
+    void ClearReference();
 }
 
 public interface IGameDestroy

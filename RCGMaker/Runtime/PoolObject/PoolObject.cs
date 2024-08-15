@@ -103,12 +103,13 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     {
         _bindingPoolManager = manager;
     }
-    List<IPoolObject> IPoolObjectList = new List<IPoolObject>();
-    List<IResetter> IResetterList = new List<IResetter>();
 
+    private List<IPoolObject> IPoolObjectList = new();
+    private List<IResetter> IResetterList = new();
+
+    [AutoChildren] private IClearReference[] _iClearReferenceRefs;
     [AutoChildren] private IPoolObject[] _iPoolObjectRefs;
     [AutoChildren] private IResetter[] _iResetterRefs;
-    
 
     [PreviewInInspector]
     [AutoChildren] private IPoolBorrowOnEnable[] IPoolBorrowedList;
@@ -367,6 +368,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
             constraint.enabled = false;
         }
 
+        foreach (var iClearReference in _iClearReferenceRefs)
+        {
+            iClearReference.ClearReference();
+        }
 
         for (var i = 0; i < IPoolObjectList.Count; i++)
         {
