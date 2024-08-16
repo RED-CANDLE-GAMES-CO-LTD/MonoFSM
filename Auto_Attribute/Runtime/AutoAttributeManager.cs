@@ -389,15 +389,17 @@ public class AutoAttributeManager : MonoBehaviour
         var fields =
             t.GetFields(BindingFlags.Instance | BindingFlags.Public)
             .Where(prop => prop.FieldType.IsPrimitive == false)
-            .Where(prop => Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
+            .Where(prop => Attribute.IsDefined(prop, typeof(PreventAutoCacheAttribute)) == false &&
+                           (Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
                             Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
-                            Attribute.IsDefined(prop, typeof(AutoParentAttribute)))
+                            Attribute.IsDefined(prop, typeof(AutoParentAttribute))))
             .Concat(
             ReflectionHelperMethods.GetNonPublicFieldsInBaseClasses(t)
         // .Where(prop => prop.FieldType.IsPrimitive == false)
-        .Where(prop => Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
+        .Where(prop => Attribute.IsDefined(prop, typeof(PreventAutoCacheAttribute)) == false &&
+                       (Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
                         Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
-                        Attribute.IsDefined(prop, typeof(AutoParentAttribute))
+                        Attribute.IsDefined(prop, typeof(AutoParentAttribute)))
         )
         );
         var fieldsWithAuto = fields as FieldInfo[] ?? fields.ToArray();
@@ -413,24 +415,24 @@ public class AutoAttributeManager : MonoBehaviour
     }
 
 
-    private static IEnumerable<PropertyInfo> GetPropertiesWithAuto(MonoBehaviour mb)
-    {
-        ReflectionHelperMethods rhm = new ReflectionHelperMethods();
-
-        return mb.GetType()
-            .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-            .Where(prop => prop.PropertyType.IsPrimitive == false)
-            .Where(prop => Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
-                    Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
-                    Attribute.IsDefined(prop, typeof(AutoParentAttribute))
-            )
-            .Concat(
-                rhm.GetNonPublicPropertiesInBaseClasses(mb.GetType())
-                .Where(prop => prop.PropertyType.IsPrimitive == false)
-                .Where(prop => Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
-                        Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
-                        Attribute.IsDefined(prop, typeof(AutoParentAttribute))
-                )
-            );
-    }
+    // private static IEnumerable<PropertyInfo> GetPropertiesWithAuto(MonoBehaviour mb)
+    // {
+    //     ReflectionHelperMethods rhm = new ReflectionHelperMethods();
+    //
+    //     return mb.GetType()
+    //         .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+    //         .Where(prop => prop.PropertyType.IsPrimitive == false)
+    //         .Where(prop => Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
+    //                 Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
+    //                 Attribute.IsDefined(prop, typeof(AutoParentAttribute))
+    //         )
+    //         .Concat(
+    //             rhm.GetNonPublicPropertiesInBaseClasses(mb.GetType())
+    //             .Where(prop => prop.PropertyType.IsPrimitive == false)
+    //             .Where(prop => Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
+    //                     Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
+    //                     Attribute.IsDefined(prop, typeof(AutoParentAttribute))
+    //             )
+    //         );
+    // }
 }
