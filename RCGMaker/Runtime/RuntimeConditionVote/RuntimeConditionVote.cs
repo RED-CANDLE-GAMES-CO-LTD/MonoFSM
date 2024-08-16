@@ -150,8 +150,8 @@ public class RuntimeConditionVote : IRuntimeConditionImplementation
             if (iterator.Current.Key == null)
             {
                 _toRemove.Add(iterator.Current.Key);
-                
-                Debug.LogError("null key !!????: 後面有被destroy的東西嗎？" + iterator.Current.Value.Voter);
+
+                // Debug.LogError("null key !!????: 後面有被destroy的東西嗎？" + iterator.Current.Value.Voter);
             }
         }
 

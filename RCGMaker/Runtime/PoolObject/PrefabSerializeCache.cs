@@ -1,4 +1,5 @@
 using System;
+using Auto_Attribute.Runtime;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
