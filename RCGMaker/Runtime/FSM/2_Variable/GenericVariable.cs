@@ -293,6 +293,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
             {
                 if (ScriptableData.CurrentValue.Equals(tempValue)) return;
                 if (FinalData == null) return;
+#if MIXPANEL
                 _trackValue.OnRecycle();
                 _trackValue["Data"] = FinalData ? FinalData.name : "null";
                 _trackValue["value"] = tempValue switch
@@ -302,8 +303,10 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                     float valueFloat => valueFloat,
                     _ => _trackValue["value"]
                 };
-                // Debug.Log("Set Value" + tempValue);
                 this.Track("Variable Changed", _trackValue);
+#endif
+                // Debug.Log("Set Value" + tempValue);
+                
                 ScriptableData.CurrentValue = tempValue;
             }
                 
@@ -327,13 +330,10 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         Field.SetCurrentValue(tempValue, byWho);
 
         if (FinalData == null) return;
+#if MIXPANEL
         _trackValue.OnRecycle();
         _trackValue["Data"] = FinalData ? FinalData.name : "null";
         _trackValue["byWho"] = byWho ? byWho.name : "null";
-        // if (tempValue is bool)
-        // {
-        //     this.SummaryTrack("Bool Changed", _trackValue);
-        // }
         _trackValue["value"] = tempValue switch
         {
             bool valueBool => valueBool,
@@ -344,9 +344,11 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         this.Log("Set Value byWho", tempValue, "byWho", byWho);
      
         this.Track("Variable Changed", _trackValue);
+#endif
     }
-
+#if MIXPANEL
     private readonly Value _trackValue = new();
+#endif
     [AutoParent()] private IGameEntity gameEntity;
 
     [ShowInPlayMode]

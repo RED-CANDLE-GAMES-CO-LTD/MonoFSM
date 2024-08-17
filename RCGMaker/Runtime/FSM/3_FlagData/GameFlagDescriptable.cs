@@ -355,12 +355,15 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
         // };
         unlocked.CurrentValue = true;
         acquired.CurrentValue = true;
+#if MIXPANEL
         _trackValue.OnRecycle();
         _trackValue.Add("name", name);
         _trackValue.Add("itemName", titleStr.ToString());
         _trackValue.Add("type", GetType().Name);
         this.Track("GameFlagDescriptable Acquired", _trackValue);
+#endif
     }
-
+#if MIXPANEL
     private readonly Value _trackValue = new();
+#endif
 }

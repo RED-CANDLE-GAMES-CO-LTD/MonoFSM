@@ -212,6 +212,7 @@ namespace Auto_Attribute.Runtime
         public void ClearRefs()
         {
             monoValueCaches.Clear();
+            CachedMonoBehaviours = null;
         }
 
         [HideInInspector] public MonoBehaviour[] CachedMonoBehaviours;

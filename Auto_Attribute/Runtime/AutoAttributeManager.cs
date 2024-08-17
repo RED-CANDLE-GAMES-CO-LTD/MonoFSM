@@ -88,6 +88,8 @@ public class AutoAttributeManager : MonoBehaviour
     {
         // Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
         monoReferenceCache.RestoreReferenceCacheToMonos();
+        monoReferenceCache.ClearRefs();
+     
         // SweepScene();
     }
 
