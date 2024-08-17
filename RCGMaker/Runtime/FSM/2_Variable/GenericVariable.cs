@@ -12,6 +12,7 @@ using UnityEditor;
 
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Profiling;
 
 //現在根本還沒做監聽，是用condition做polling
 [Searchable]
@@ -246,7 +247,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     {
         get
         {
-            
+            Profiler.BeginSample("Variable GetValue");
             var tempValue = localField.CurrentValue;
             
             if (VariableSource != null)
@@ -256,19 +257,15 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
             }
             else if (ScriptableData != null)
             {
-                // return ScriptableData.CurrentValue;
                 tempValue = ScriptableData.CurrentValue;
             }
 
-            // else
-            // {
-            //     // if (localField == null)
-            //     //     localField = new TField();
-            //     // return localField.CurrentValue;
-            // }
+            Profiler.EndSample();
+            Profiler.BeginSample("AfterGetValueModifyCheck");
             if (modifiers != null)
                 foreach (var modifier in modifiers)
                     tempValue = modifier.AfterGetValueModifyCheck(tempValue);
+            Profiler.EndSample();
             return tempValue;
         }
 

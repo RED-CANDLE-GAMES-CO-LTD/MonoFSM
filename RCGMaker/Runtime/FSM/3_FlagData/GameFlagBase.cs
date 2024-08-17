@@ -31,11 +31,9 @@ public class AbstractScriptableData<TField, TType> : GameFlagBase where TField :
     public virtual TType CurrentValue
     {
         get => field.CurrentValue;
-        set
-        {
+        set =>
             //FIXME: 拿掉
             field.CurrentValue = value;
-        }
     }
 
     [TextArea] public string Note;

@@ -8,6 +8,7 @@ using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Profiling;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
@@ -442,16 +443,21 @@ public class
 
     [ShowInInspector] public Object LastByWho => _lastByWho;
     //NOTE: public是為了，propertyDrawer
-    public void SetCurrentValue(T value, Object byWho = null)
+    public void SetCurrentValue(T value, Object byWho = null) //FIXME: 可能會memory leak
     {
-#if UNITY_EDITOR
-        if (DebugSetting.IsDebugMode && _isShowDebugLog)
-            Debug.Log("[FlagField] Before Set lastValue:" + _currentValue + "set with:" + value, owner);
-#endif
+// #if UNITY_EDITOR
+//         if (DebugSetting.IsDebugMode && _isShowDebugLog)
+//             Debug.Log("[FlagField] Before Set lastValue:" + _currentValue + "set with:" + value, owner);
+// #endif
 
+        Profiler.BeginSample("IsCurrentValueEquals");
         if (IsCurrentValueEquals(value))
             return;
+        Profiler.EndSample();
+#if UNITY_EDITOR
+        //想要看誰改的，build不要看會memory leak
         _lastByWho = byWho;
+#endif
         _lastValue = _currentValue;
         _currentValue = value;
 
