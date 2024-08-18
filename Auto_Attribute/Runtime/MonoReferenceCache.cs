@@ -216,6 +216,10 @@ namespace Auto_Attribute.Runtime
     [Serializable]
     public class MonoReferenceCache
     {
+#if UNITY_EDITOR
+        [ShowInInspector] private string lastUpdateTimeStr => lastUpdateTime.ToString("yyyy-MM-dd HH:mm:ss");
+        public DateTime lastUpdateTime;
+#endif
         [HideInInspector] public List<MonoValueCache> monoValueCaches = new();
         public GameObject RootObj;
 
@@ -257,6 +261,9 @@ namespace Auto_Attribute.Runtime
                 if (fetchCount > 0)
                     monoValueCaches.Add(cache);
             }
+#if UNITY_EDITOR
+            lastUpdateTime = DateTime.Now;
+#endif
         }
 
         [PropertyOrder(-1)]
