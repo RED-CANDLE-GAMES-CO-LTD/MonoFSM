@@ -6,8 +6,18 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Profiling;
 
+public interface IEditorOnly
+{
+}
+
+public interface IEditorOnlyGameObject
+{
+    public GameObject gameObject { get; }
+}
 namespace Auto_Attribute.Runtime
 {
+    
+   
     public class FieldCache
     {
         public static Dictionary<Type, IEnumerable<FieldInfo>> fieldDict = new();
@@ -238,6 +248,10 @@ namespace Auto_Attribute.Runtime
 
             foreach (var mono in CachedMonoBehaviours)
             {
+                if (mono is IEditorOnly)
+                {
+                    continue;
+                }
                 var cache = new MonoValueCache();
                 var fetchCount = cache.CopyFieldsToCache(mono);
                 if (fetchCount > 0)
