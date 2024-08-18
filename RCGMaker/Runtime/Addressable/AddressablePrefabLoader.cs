@@ -15,6 +15,8 @@ namespace RCGMaker.AddressableAssets
 
         private async void LoadAsset()
         {
+            if (!assetReference.RuntimeKeyIsValid())
+                return;
             var handle = assetReference.LoadAssetAsync<GameObject>();
             await handle.Task;
             var prefab = handle.Result;
