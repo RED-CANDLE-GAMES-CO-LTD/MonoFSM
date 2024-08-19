@@ -10,9 +10,10 @@ public interface IEditorOnly
 {
 }
 
-public interface IEditorOnlyGameObject
+public interface IEditorOnlyStrip
 {
     public GameObject gameObject { get; }
+    public void OnBuildStrip();
 }
 namespace Auto_Attribute.Runtime
 {
