@@ -101,15 +101,19 @@ namespace RCGMaker.AddressableAssets
         public async Task<T> GetAssetAsync<T>() where T : Object
         {
 #if UNITY_EDITOR
-            if (assetReference == null)
+            if (Application.isPlaying == false)
             {
-                Debug.LogWarning("AddressableAssetReference is null 暫時用EditorAsset:" + editorAsset, editorAsset);
-                return editorAsset as T;
+                if (assetReference == null)
+                {
+                    Debug.LogWarning("AddressableAssetReference is null 暫時用EditorAsset:" + editorAsset, editorAsset);
+                    return editorAsset as T;
+                }    
             }
 #endif
 
             if (IsAssetLoaded)
             {
+                // Debug.Log("GetAssetAsync: IsAssetLoaded:" + assetReference.SubObjectName);
                 return assetReference.Asset as T;
             }
             
@@ -119,7 +123,8 @@ namespace RCGMaker.AddressableAssets
 
         public void Release()
         {
-            assetReference.ReleaseAsset();
+            if (assetReference.IsValid())
+                assetReference.ReleaseAsset();
             // Debug.Log("[RCGAsset] ReleaseAsset:" + assetReference.SubObjectName);
         }
     }
