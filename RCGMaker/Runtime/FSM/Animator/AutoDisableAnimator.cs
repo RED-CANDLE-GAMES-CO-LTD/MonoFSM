@@ -36,7 +36,7 @@ namespace RCGMaker.Runtime
             if (_animator)
             {
                 // Debug.Log("Enable Animator" + gameObject.name, gameObject);
-                // _animator.updateMode = AnimatorUpdateMode.UnscaledTime;
+                _animator.updateMode = AnimatorUpdateMode.UnscaledTime;
                 _animator.keepAnimatorStateOnDisable = true;
                 _receiver = GetComponent<IAnimationDoneReceiver>(); //不一定有}
             }

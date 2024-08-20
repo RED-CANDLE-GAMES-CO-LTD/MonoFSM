@@ -21,8 +21,7 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
         Flags.Clear();
         EditorUtility.SetDirty(this);
     }
-
-    #if UNITY_EDITOR
+    
     [Button]
     void UpgradeForAllGameFlagDescriptable()
     {
@@ -66,7 +65,6 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
 
         
     }
-    #endif
 
     [Button]
     private void FixAddressableSprite()
