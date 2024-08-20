@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Auto.Utils;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -10,20 +11,18 @@ public interface IEditorOnly
 {
 }
 
-public interface IEditorOnlyStrip
+public interface IEditorOnlyStrip //auto也要清掉/不要gen, 再strip時去把auto cache
 {
     public GameObject gameObject { get; }
     public void OnBuildStrip();
 }
 namespace Auto_Attribute.Runtime
 {
-    
-   
-    public class FieldCache
+    public static class FieldCache
     {
         public static Dictionary<Type, IEnumerable<FieldInfo>> fieldDict = new();
         public static Dictionary<FieldInfo, object[]> attributeDict = new();
-        public static Dictionary<Tuple<Type, string>, FieldInfo> fieldDictByName = new();
+        public static Dictionary<(Type, string), FieldInfo> fieldDictByName = new();
 
         public static bool IsAutoAttribute(FieldInfo field)
         {
@@ -50,10 +49,17 @@ namespace Auto_Attribute.Runtime
     [Searchable]
     public class MonoValueCache
     {
+        [HideInInspector]
         public List<FieldValueCache> fieldCaches = new();
 
-        public int CopyFieldsToCache(MonoBehaviour targetMb)
+        [ShowInInspector] public MonoBehaviour TargetMb;
+        public string TargetMbName;
+
+        public int SaveFieldsToCache(MonoBehaviour targetMb)
         {
+            TargetMb = targetMb;
+            TargetMbName = targetMb.name;
+            Debug.Log("SaveFieldsToCache:" + targetMb.name, TargetMb);
             var count = 0;
             var fields = FieldCache.fieldDict[targetMb.GetType()];
             foreach (var field in fields)
@@ -68,21 +74,19 @@ namespace Auto_Attribute.Runtime
                 }
 
                 var cache = new FieldValueCache();
-                if (cache.CopyFieldToCache(targetMb, field, v))
-                {
-                    count++;
-                    fieldCaches.Add(cache);
-                }
+                if (!cache.SaveFieldToCache(targetMb, field, v)) continue;
+                count++;
+                fieldCaches.Add(cache);
             }
 
             return count;
         }
 
-        public void CopyCacheToFields()
+        public void RestoreCacheToFields()
         {
             foreach (var cache in fieldCaches)
             {
-                cache.CopyCacheToField();
+                cache.RestoreCacheToField(TargetMb);
             }
         }
     }
@@ -98,13 +102,13 @@ namespace Auto_Attribute.Runtime
         public string fieldName;
 
 
-        [SerializeField] private MonoBehaviour targetMb;
+        // [SerializeField] private MonoBehaviour targetMb;
         [SerializeField] private Component[] valueArray;
         [SerializeField] private Component value;
 
-        public bool CopyFieldToCache(MonoBehaviour targetMb, FieldInfo field, object v)
+        public bool SaveFieldToCache(MonoBehaviour targetMb, FieldInfo field, object v)
         {
-            this.targetMb = targetMb;
+            // this.targetMb = targetMb;
             // this.field = field;
 
             targetName = targetMb.name;
@@ -141,18 +145,12 @@ namespace Auto_Attribute.Runtime
             return true;
         }
 
+//灌回去
 
-        public void CopyCacheToField()
+        public void RestoreCacheToField(MonoBehaviour targetMb)
         {
-            if (targetMb == null)
-            {
-                Debug.LogError(
-                    "Target is null fieldName:" + fieldName + ",monoName:" + targetName + ",typeName:" + typeName);
-                return;
-            }
-
             var targetMbType = targetMb.GetType();
-            var tuple = new Tuple<Type, string>(targetMbType, fieldName);
+            var tuple = (targetMbType, fieldName);
             if (!FieldCache.fieldDictByName.ContainsKey(tuple))
             {
                 Debug.LogError("(editor only?) Field not found in FieldCache  :" + fieldName + ",monoName:" +
@@ -192,7 +190,7 @@ namespace Auto_Attribute.Runtime
                     {
                         if (valueArray[i] == null)
                         {
-                            Debug.LogError("ValueArray[i] is null: elementType:" + elementType + ",fieldName:" +
+                            Debug.LogError("ValueArray[i] element is null: elementType:" + elementType + ",fieldName:" +
                                            fieldName +
                                            ",monoName:" + targetName + ",typeName:" + typeName);
                             continue;
@@ -218,10 +216,23 @@ namespace Auto_Attribute.Runtime
     public class MonoReferenceCache
     {
 #if UNITY_EDITOR
-        [ShowInInspector] private string lastUpdateTimeStr => lastUpdateTime.ToString("yyyy-MM-dd HH:mm:ss");
-        public DateTime lastUpdateTime;
+        [ShowInInspector] private string lastUpdateTimeStr => lastUpdateTime.DateTimeString;
+        public SerializableDateTime lastUpdateTime;
 #endif
         [HideInInspector] public List<MonoValueCache> monoValueCaches = new();
+
+        [Button]
+        private void CheckNullCache()
+        {
+            foreach (var cache in monoValueCaches)
+            {
+                if (cache.TargetMb == null)
+                    Debug.LogError("TargetMb is null:" + cache.TargetMbName);
+            }
+
+            Debug.Log("CheckNullCache Done" + monoValueCaches.Count);
+        }
+        
         public GameObject RootObj;
 
         public void ClearRefs()
@@ -233,10 +244,11 @@ namespace Auto_Attribute.Runtime
         [HideInInspector] public MonoBehaviour[] CachedMonoBehaviours;
 
         [ShowInInspector] public int CachedMonoBehavioursCount => CachedMonoBehaviours?.Length ?? -1;
-
+        [ShowInInspector] public int MonoValueCachesCount => monoValueCaches?.Count ?? -1;
+        
         [PropertyOrder(-1)]
         [Button]
-        public void StoreReferenceCache(GameObject rootObj = null) //Editor time
+        public void SaveReferenceCache(GameObject rootObj = null) //Editor time
         {
             RootObj = rootObj;
             monoValueCaches.Clear();
@@ -251,25 +263,42 @@ namespace Auto_Attribute.Runtime
                 AutoAttributeManager.AutoReferenceAll(CachedMonoBehaviours);
             }
 
+            var validMonoBehaviours = new List<MonoBehaviour>();
+            
             foreach (var mono in CachedMonoBehaviours)
             {
+                //不一定都沒有...只有被刪掉的要拿掉
+                // var parentHasStrip = mono.GetComponentInParent<IEditorOnlyStrip>();
+                // if (parentHasStrip != null)
+                // {
+                //     Debug.LogError("Parent has IEditorOnlyStrip, skip:" + mono.name);
+                //     continue;
+                // }
+                    
                 if (mono is IEditorOnly)
                 {
                     continue;
                 }
+                
                 var cache = new MonoValueCache();
-                var fetchCount = cache.CopyFieldsToCache(mono);
+                var fetchCount = cache.SaveFieldsToCache(mono);
                 if (fetchCount > 0)
+                {
                     monoValueCaches.Add(cache);
+                    validMonoBehaviours.Add(mono);
+                }
+                    
             }
+
+            CachedMonoBehaviours = validMonoBehaviours.ToArray();
 #if UNITY_EDITOR
-            lastUpdateTime = DateTime.Now;
+            lastUpdateTime = new SerializableDateTime(DateTime.Now);
 #endif
         }
 
         [PropertyOrder(-1)]
         [Button]
-        public void RestoreReferenceCacheToMonos() //Runtime
+        public void RestoreReferenceCacheToMonoFields() //Runtime
         {
             // Debug.Log("GetAllMonoBehavioursWithAuto start:" + FieldCache.fieldDictByName.Count);
             Profiler.BeginSample("Build Field Cache");
@@ -279,7 +308,13 @@ namespace Auto_Attribute.Runtime
             Profiler.BeginSample("CopyCacheToFields");
             for (var i = 0; i < monoValueCaches.Count(); i++)
             {
-                monoValueCaches[i].CopyCacheToFields();
+                if (monoValueCaches[i].TargetMb == null)
+                {
+                    Debug.LogError("TargetMb is null:" + i + monoValueCaches[i].TargetMbName);
+                    continue;
+                }
+
+                monoValueCaches[i].RestoreCacheToFields();
             }
 
             Profiler.EndSample();

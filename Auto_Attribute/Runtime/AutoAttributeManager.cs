@@ -87,7 +87,7 @@ public class AutoAttributeManager : MonoBehaviour
     private void Awake()
     {
         // Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
-        monoReferenceCache.RestoreReferenceCacheToMonos();
+        monoReferenceCache.RestoreReferenceCacheToMonoFields();
         monoReferenceCache.ClearRefs();
      
         // SweepScene();
@@ -409,7 +409,7 @@ public class AutoAttributeManager : MonoBehaviour
         var fieldDictByName = FieldCache.fieldDictByName;
         foreach (var field in fieldsWithAuto)
         {
-            fieldDictByName.TryAdd(new Tuple<Type, string>(t, field.Name), field);
+            fieldDictByName.TryAdd((t, field.Name), field);
             // Debug.Log("Add Field Tuple:" + t + field.Name);
         }
 

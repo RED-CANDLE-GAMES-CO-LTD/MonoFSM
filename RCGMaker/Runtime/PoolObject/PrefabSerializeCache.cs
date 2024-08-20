@@ -37,7 +37,7 @@ namespace RCGMaker.Runtime
                 return;
             }
 
-            _monoReferenceCache.StoreReferenceCache(owner.gameObject);
+            _monoReferenceCache.SaveReferenceCache(owner.gameObject);
             //prewarm的PoolObject要用這個
         }
 
@@ -53,7 +53,8 @@ namespace RCGMaker.Runtime
                 AutoAttributeManager.AutoReferenceAllChildren(owner.gameObject);
                 return;
             }
-            _monoReferenceCache.RestoreReferenceCacheToMonos();
+
+            _monoReferenceCache.RestoreReferenceCacheToMonoFields();
         }
     }
 }
