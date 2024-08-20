@@ -128,11 +128,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             if (item == null)
                 continue;
+            Profiler.BeginSample(item.ToString());
             try
             {
-                Profiler.BeginSample(item.ToString());
                 item.EnterLevelAwake();
-                Profiler.EndSample();
             }
             catch (Exception e)
             {
@@ -141,6 +140,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 else
                     Debug.LogError(e.StackTrace);
             }
+            Profiler.EndSample();
         }
     }
 
@@ -176,11 +176,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             if (item == null)
                 continue;
+            Profiler.BeginSample(item.ToString());
             try
             {
-                Profiler.BeginSample(item.ToString());
                 item.EnterLevelAwakeReverse();
-                Profiler.EndSample();
             }
             catch (Exception e)
             {
@@ -189,6 +188,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 else
                     Debug.LogError(e.StackTrace);
             }
+            Profiler.EndSample();
         }
     }
 

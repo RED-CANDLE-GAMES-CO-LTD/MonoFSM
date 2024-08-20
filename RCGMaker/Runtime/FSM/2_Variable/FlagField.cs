@@ -451,8 +451,11 @@ public class
 // #endif
 
         Profiler.BeginSample("IsCurrentValueEquals");
-        if (IsCurrentValueEquals(value))
+        if (IsCurrentValueEquals(value)) 
+        {
+            Profiler.EndSample();            
             return;
+        }
         Profiler.EndSample();
 #if UNITY_EDITOR
         //想要看誰改的，build不要看會memory leak
