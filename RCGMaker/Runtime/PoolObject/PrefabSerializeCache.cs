@@ -12,6 +12,7 @@ namespace RCGMaker.Runtime
         GameObject gameObject { get; }
     }
     //從SceneSaveManager來重新處理prefab?
+    [DefaultExecutionOrder(-20000)]
     public class PrefabSerializeCache : MonoBehaviour, IEditorOnly, IBeforePrefabSaveCallbackReceiver
     {
         [Title("singleton類的prefab, poolObject應該不可以用")]

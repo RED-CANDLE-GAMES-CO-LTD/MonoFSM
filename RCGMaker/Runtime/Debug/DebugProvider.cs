@@ -16,8 +16,10 @@ public class DebugProvider : MonoBehaviour, IOverrideHierarchyIcon, IEditorOnly 
 {
     public void Awake()
     {
+#if UNITY_EDITOR
         if(IsLogInChildren)
             Debug.Log("[DebugProvider] Is LogInChildren"+this.gameObject.name,this.gameObject);
+#endif
         // SaveLog("Awake",this);
     }
 
@@ -26,8 +28,15 @@ public class DebugProvider : MonoBehaviour, IOverrideHierarchyIcon, IEditorOnly 
 
     private bool IsNotDebugMode => !DebugSetting.IsDebugMode && IsLogInChildren;
 
+#if UNITY_EDITOR
     [InfoBox("Is Not DebugMode, Will Not Log", InfoMessageType.Warning, VisibleIf = "IsNotDebugMode")]
     public bool IsLogInChildren = false;
+#else
+    [NonSerialized]
+     public bool IsLogInChildren = false;
+#endif
+    
+    
     public bool IsBreak;
     public bool IsBreakWhenStateChange;
     public bool CanDrawInHierarchy

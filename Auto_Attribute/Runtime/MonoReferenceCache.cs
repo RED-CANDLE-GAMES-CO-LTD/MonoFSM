@@ -190,7 +190,8 @@ namespace Auto_Attribute.Runtime
                     {
                         if (valueArray[i] == null)
                         {
-                            Debug.LogError("ValueArray[i] element is null: elementType:" + elementType + ",fieldName:" +
+                            Debug.LogError($"ValueArray[{i}] element is null: elementType:" + elementType +
+                                           ",fieldName:" +
                                            fieldName +
                                            ",monoName:" + targetName + ",typeName:" + typeName);
                             continue;

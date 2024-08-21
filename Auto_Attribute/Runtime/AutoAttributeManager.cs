@@ -201,27 +201,7 @@ public class AutoAttributeManager : MonoBehaviour
             }
         }
 
-        //Properties
-        // IEnumerable<PropertyInfo> properties = GetPropertiesWithAuto(targetMb);
-
-        // foreach (var prop in properties)
-        // {
-        //     foreach (IAutoAttribute autofind in prop.GetCustomAttributes(typeof(IAutoAttribute), true))
-        //     {
-        //         bool result = autofind.Execute(targetMb, prop.PropertyType, (mb, val) => prop.SetValue(mb, val));
-        //         propCount++;
-        //         if (result)
-        //         {
-        //             successfullyAssigments++;
-        //         }
-        //         else
-        //         {
-        //             failedAssignments++;
-        //         }
-        //     }
-        // }
-
-        // UnityEngine.Debug.Log("[Auto Ref] fieldCount:" + fieldCount + "propCount:" + propCount);
+      
     }
     [Button("Clear Cache")]
     void Clear()
