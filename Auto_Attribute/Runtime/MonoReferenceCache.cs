@@ -59,7 +59,7 @@ namespace Auto_Attribute.Runtime
         {
             TargetMb = targetMb;
             TargetMbName = targetMb.name;
-            Debug.Log("SaveFieldsToCache:" + targetMb.name, TargetMb);
+            // Debug.Log("SaveFieldsToCache:" + targetMb.name, TargetMb);
             var count = 0;
             var fields = FieldCache.fieldDict[targetMb.GetType()];
             foreach (var field in fields)
