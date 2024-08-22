@@ -404,7 +404,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     public void ReturnToPool()
     {
         destroyTween.Stop();
-        this.Log("[PoolObject] return 0", name);
+        this.Log("[PoolObject] return 0", gameObject);
         if (_bindingPoolManager == null)
         {
             this.Log("[PoolObject] return object to pool failed", this);
@@ -427,7 +427,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
                 OnReturnEvent.RemoveAllListeners();
             }
 
-            this.Log("[PoolObject] return object to pool", name);
+            this.Log("[PoolObject] return object to pool", gameObject);
             // destroyTween.Stop();
             _bindingPoolManager.ReturnToPool(this);
         }
