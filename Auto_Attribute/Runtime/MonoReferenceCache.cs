@@ -11,10 +11,10 @@ public interface IEditorOnly
 {
 }
 
-public interface IEditorOnlyStrip //auto也要清掉/不要gen, 再strip時去把auto cache
+public interface IBeforeBuild //auto也要清掉/不要gen, 再strip時去把auto cache
 {
     public GameObject gameObject { get; }
-    public void OnBuildStrip();
+    public void OnBeforeBuild();
 }
 namespace Auto_Attribute.Runtime
 {
