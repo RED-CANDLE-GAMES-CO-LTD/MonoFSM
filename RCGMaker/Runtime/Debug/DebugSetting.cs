@@ -188,6 +188,14 @@ get => false;
             set => SetBoolProperty(nameof(IsShowAllFields), value);
         }
         public static bool IsDrawCustomGizmo = true;
+        private static Dictionary<string, bool> debugModuleDict = new();
+
+        public static bool DebugModuleEnabled(System.Type type)
+        {
+            if (debugModuleDict == null)
+                return false;
+            return debugModuleDict.ContainsKey(type.Name);
+        }
         public static bool IsDebugMode
         {
             //為什麼之前要註解掉editor if?
