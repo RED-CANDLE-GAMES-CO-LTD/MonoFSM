@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace RCGMaker.Core
 {
     public interface IProxyUpdate
     {
+        GameObject gameObject { get; }
         void UpdateProxy();
     }
 
     public interface IProxyLateUpdate
     {
+        GameObject gameObject { get; }
         void LateUpdateProxy();
     }
 
@@ -39,16 +42,13 @@ namespace RCGMaker.Core
             lateUpdateList.Remove(updateTarget);
         }
 
-
-        private void Awake()
-        {
-        }
-
         private void Update()
         {
             foreach (var updateTarget in updateList)
             {
+                Profiler.BeginSample("updateTarget", updateTarget.gameObject);
                 updateTarget.UpdateProxy();
+                Profiler.EndSample();
             }
         }
 
@@ -56,7 +56,9 @@ namespace RCGMaker.Core
         {
             foreach (var lateUpdateTarget in lateUpdateList)
             {
+                Profiler.BeginSample("lateUpdateTarget", lateUpdateTarget.gameObject);
                 lateUpdateTarget.LateUpdateProxy();
+                Profiler.EndSample();
             }
         }
 

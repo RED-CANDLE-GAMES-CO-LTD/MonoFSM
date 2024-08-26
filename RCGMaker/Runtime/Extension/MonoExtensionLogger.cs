@@ -95,6 +95,11 @@ public static class MonoExtensionLogger
         return $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{str}</color>";
     }
 
+    public static string ColorTag<T>(this T strObj, Color color)
+    {
+        return $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{strObj}</color>";
+    }
+
     
     [Conditional("RCG_DEV")]
     public static void Log<T1, T2>(this Component go, T1 s1, T2 s2)
