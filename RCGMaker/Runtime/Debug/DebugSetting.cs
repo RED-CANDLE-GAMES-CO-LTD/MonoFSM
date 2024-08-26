@@ -1,6 +1,7 @@
 // using QFSW.QC;
 
 using System.Collections.Generic;
+using QFSW.QC;
 using RCGInternal.BuildConfig;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -188,14 +189,26 @@ get => false;
             set => SetBoolProperty(nameof(IsShowAllFields), value);
         }
         public static bool IsDrawCustomGizmo = true;
-        private static Dictionary<string, bool> debugModuleDict = new();
 
         public static bool DebugModuleEnabled(System.Type type)
         {
-            if (debugModuleDict == null)
-                return false;
-            return debugModuleDict.ContainsKey(type.Name);
+            return DebugSettingDict.ContainsKey(type.Name);
         }
+
+        [Command("module.toggleDebug")]
+        public static void ToggleDebugModule(string moduleName)
+        {
+            DebugSettingDict.TryAdd(moduleName, false);
+            SetBoolProperty(moduleName, !DebugSettingDict[moduleName]);
+        }
+
+        [Command("module.isEnabled")]
+        private static void IsModuleEnabled(string moduleName)
+        {
+            var result = IsBoolPropertyEnabled(moduleName);
+            QuantumConsole.Instance.LogToConsole($"{moduleName} is " + (result ? "enabled" : "disabled"));
+        }
+        
         public static bool IsDebugMode
         {
             //為什麼之前要註解掉editor if?
@@ -304,13 +317,14 @@ get => false;
         // Use the dictionary to set the property and save to EditorPrefs
         private static void SetBoolProperty(string propertyName, bool value)
         {
-            if (!DebugSettingDict.ContainsKey(propertyName))
-            {
-                Debug.LogError($"Property {propertyName} does not exist.");
-                return;
-            }
-
             SetPropertyValue(propertyName, value);
+        }
+
+        private static bool IsBoolPropertyEnabled(string propertyName)
+        {
+            if (DebugSettingDict.ContainsKey(propertyName))
+                return DebugSettingDict[propertyName];
+            return false;
         }
     }
 }
