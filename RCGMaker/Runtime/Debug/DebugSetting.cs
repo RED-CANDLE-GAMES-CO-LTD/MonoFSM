@@ -50,6 +50,7 @@ namespace RCGSetting
         }
 
         private static readonly Dictionary<string, bool> DebugSettingDict = new();
+        public static IEnumerable<string> DebugModuleNames => DebugSettingDict.Keys;
 
 #if UNITY_EDITOR
         [InitializeOnEnterPlayMode]
@@ -196,14 +197,16 @@ get => false;
         }
 
         [Command("module.toggleDebug")]
-        public static void ToggleDebugModule(string moduleName)
+        public static void ToggleDebugModule([DebugModule] string moduleName)
         {
             DebugSettingDict.TryAdd(moduleName, false);
             SetBoolProperty(moduleName, !DebugSettingDict[moduleName]);
+            QuantumConsole.Instance.LogToConsole($"{moduleName} is " +
+                                                 (DebugSettingDict[moduleName] ? "enabled" : "disabled"));
         }
 
         [Command("module.isEnabled")]
-        private static void IsModuleEnabled(string moduleName)
+        private static void IsModuleEnabled([DebugModule] string moduleName)
         {
             var result = IsBoolPropertyEnabled(moduleName);
             QuantumConsole.Instance.LogToConsole($"{moduleName} is " + (result ? "enabled" : "disabled"));
