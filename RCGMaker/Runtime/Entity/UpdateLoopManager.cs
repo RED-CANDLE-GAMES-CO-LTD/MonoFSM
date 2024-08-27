@@ -20,89 +20,30 @@ namespace RCGMaker.Core
         GameObject gameObject { get; }
     }
 
-    // public class UpdateList<T> where T : ICustomUpdate
-    // {
-    //     public UpdateList(delegate updateFunc)
-    //     {
-    //         
-    //     }
-    //     private HashSet<T> _updateSet = new();
-    //     private List<T> updateList = new();
-    //     private List<T> toUnregisterUpdateList = new();
-    //
-    //     public void RegisterUpdate(T updateTarget)
-    //     {
-    //         updateList.Add(updateTarget);
-    //     }
-    //
-    //     public void UnregisterUpdate(T updateTarget)
-    //     {
-    //         toUnregisterUpdateList.Add(updateTarget);
-    //     }
-    //
-    //     public void Update()
-    //     {
-    //         foreach (var updateTarget in updateList)
-    //         {
-    //             _updateSet.Add(updateTarget);
-    //         }
-    //
-    //         foreach (var updateTarget in toUnregisterUpdateList)
-    //         {
-    //             _updateSet.Remove(updateTarget);
-    //         }
-    //
-    //         toUnregisterUpdateList.Clear();
-    //         updateList.Clear();
-    //         foreach (var updateTarget in _updateSet)
-    //         {
-    //             Profiler.BeginSample("updateTarget", updateTarget.gameObject);
-    //             updateTarget.UpdateProxy();
-    //             Profiler.EndSample();
-    //         }
-    //     }
-    // }
-
-    public class UpdateLoopManager : SingletonBehaviour<UpdateLoopManager>, IClearReference
+    public class UpdateList<T> where T : ICustomUpdate
     {
-        private HashSet<IProxyUpdate> _updateSet = new();
-        private List<IProxyUpdate> updateList = new();
-        private List<IProxyUpdate> toUnregisterUpdateList = new();
-        
-        private HashSet<IProxyLateUpdate> _lateUpdateSet = new();
-        private List<IProxyLateUpdate> lateUpdateList = new();
-        private List<IProxyLateUpdate> toUnregisterLateUpdateList = new();
+        private Action<T> _updateAction;
 
-        
-        public void RegisterUpdate(IProxyUpdate updateTarget)
+        public UpdateList(Action<T> updateAction)
         {
-            updateList.Add(updateTarget);
-            // toUnregisterUpdateList.Add(updateTarget);
-            // updateList.Add(updateTarget);
+            _updateAction = updateAction;
         }
 
+        private HashSet<T> _updateSet = new();
+        private List<T> updateList = new();
+        private List<T> toUnregisterUpdateList = new();
 
-        public void UnregisterUpdate(IProxyUpdate updateTarget)
+        public void Register(T updateTarget)
         {
-            
-            // updateList.Remove(updateTarget);
+            updateList.Add(updateTarget);
+        }
+
+        public void Unregister(T updateTarget)
+        {
             toUnregisterUpdateList.Add(updateTarget);
         }
 
-        public void RegisterLateUpdate(IProxyLateUpdate updateTarget)
-        {
-            // toUnregisterLateUpdateList.Add(updateTarget);
-            lateUpdateList.Add(updateTarget);
-        }
-
-
-        public void UnregisterLateUpdate(IProxyLateUpdate updateTarget)
-        {
-            // lateUpdateList.Remove(updateTarget);
-            toUnregisterLateUpdateList.Add(updateTarget);
-        }
-
-        private void Update()
+        public void UpdateManual()
         {
             foreach (var updateTarget in updateList)
             {
@@ -116,36 +57,108 @@ namespace RCGMaker.Core
 
             toUnregisterUpdateList.Clear();
             updateList.Clear();
-
             foreach (var updateTarget in _updateSet)
             {
                 Profiler.BeginSample("updateTarget", updateTarget.gameObject);
-                updateTarget.UpdateProxy();
+                _updateAction(updateTarget);
                 Profiler.EndSample();
             }
+        }
+    }
+
+    public class UpdateLoopManager : SingletonBehaviour<UpdateLoopManager>, IClearReference
+    {
+        public readonly UpdateList<IProxyUpdate> UpdateList = new((t) => t.UpdateProxy());
+        public readonly UpdateList<IProxyLateUpdate> LateUpdateList = new((t) => t.LateUpdateProxy());
+
+        // private HashSet<IProxyUpdate> _updateSet = new();
+        // private List<IProxyUpdate> updateList = new();
+        // private List<IProxyUpdate> toUnregisterUpdateList = new();
+        //
+        // private HashSet<IProxyLateUpdate> _lateUpdateSet = new();
+        // private List<IProxyLateUpdate> lateUpdateList = new();
+        // private List<IProxyLateUpdate> toUnregisterLateUpdateList = new();
+
+        [Obsolete]
+        public void RegisterUpdate(IProxyUpdate updateTarget)
+        {
+            // _updateList.Add(updateTarget);
+            UpdateList.Register(updateTarget);
+            // toUnregisterUpdateList.Add(updateTarget);
+            // updateList.Add(updateTarget);
+        }
+
+        [Obsolete]
+        public void UnregisterUpdate(IProxyUpdate updateTarget)
+        {
+            
+            // updateList.Remove(updateTarget);
+            // toUnregisterUpdateList.Add(updateTarget);
+            UpdateList.Unregister(updateTarget);
+        }
+
+        [Obsolete]
+        public void RegisterLateUpdate(IProxyLateUpdate updateTarget)
+        {
+            // toUnregisterLateUpdateList.Add(updateTarget);
+            // _lateUpdateList.Add(updateTarget);
+            LateUpdateList.Register(updateTarget);
+        }
+
+        [Obsolete]
+        public void UnregisterLateUpdate(IProxyLateUpdate updateTarget)
+        {
+            // lateUpdateList.Remove(updateTarget);
+            // toUnregisterLateUpdateList.Add(updateTarget);
+            LateUpdateList.Unregister(updateTarget);
+        }
+
+        private void Update()
+        {
+            UpdateList.UpdateManual();
+            // foreach (var updateTarget in _updateList)
+            // {
+            //     _updateSet.Add(updateTarget);
+            // }
+            //
+            // foreach (var updateTarget in toUnregisterUpdateList)
+            // {
+            //     _updateSet.Remove(updateTarget);
+            // }
+            //
+            // toUnregisterUpdateList.Clear();
+            // _updateList.Clear();
+            //
+            // foreach (var updateTarget in _updateSet)
+            // {
+            //     Profiler.BeginSample("updateTarget", updateTarget.gameObject);
+            //     updateTarget.UpdateProxy();
+            //     Profiler.EndSample();
+            // }
         }
 
         private void LateUpdate()
         {
-            foreach (var lateUpdateTarget in lateUpdateList)
-            {
-                _lateUpdateSet.Add(lateUpdateTarget);
-            }
-
-            foreach (var lateUpdateTarget in toUnregisterLateUpdateList)
-            {
-                _lateUpdateSet.Remove(lateUpdateTarget);
-            }
-
-            lateUpdateList.Clear();
-            toUnregisterLateUpdateList.Clear();
-
-            foreach (var lateUpdateTarget in _lateUpdateSet)
-            {
-                Profiler.BeginSample("lateUpdateTarget", lateUpdateTarget.gameObject);
-                lateUpdateTarget.LateUpdateProxy();
-                Profiler.EndSample();
-            }
+            LateUpdateList.UpdateManual();
+            // foreach (var lateUpdateTarget in _lateUpdateList)
+            // {
+            //     _lateUpdateSet.Add(lateUpdateTarget);
+            // }
+            //
+            // foreach (var lateUpdateTarget in toUnregisterLateUpdateList)
+            // {
+            //     _lateUpdateSet.Remove(lateUpdateTarget);
+            // }
+            //
+            // _lateUpdateList.Clear();
+            // toUnregisterLateUpdateList.Clear();
+            //
+            // foreach (var lateUpdateTarget in _lateUpdateSet)
+            // {
+            //     Profiler.BeginSample("lateUpdateTarget", lateUpdateTarget.gameObject);
+            //     lateUpdateTarget.LateUpdateProxy();
+            //     Profiler.EndSample();
+            // }
         }
 
         public void ClearReference()
