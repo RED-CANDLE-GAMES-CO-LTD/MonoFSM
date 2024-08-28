@@ -30,8 +30,8 @@ namespace RCGMaker.Core
         }
 
         private HashSet<T> _updateSet = new();
-        private List<T> updateList = new();
-        private List<T> toUnregisterUpdateList = new();
+        private HashSet<T> updateList = new();
+        private HashSet<T> toUnregisterUpdateList = new();
 
         public void Register(T updateTarget)
         {
