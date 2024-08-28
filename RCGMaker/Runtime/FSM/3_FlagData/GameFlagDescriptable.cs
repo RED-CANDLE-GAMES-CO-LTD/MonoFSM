@@ -189,7 +189,7 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
     //
     // [DisableIf("@true")]
     // [SerializeField] private AssetReferenceSprite smallSpriteRefSprite;
-
+    [Header("一開遊戲就會讀進來的")] public Sprite staticSprite;
     [InlineField] [SerializeField] public RCGAssetReference spriteRef;
 
     [InlineField] [SerializeField] public RCGAssetReference smallSpriteRef;
@@ -250,7 +250,7 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
         }
     }
 
-    public virtual Sprite Image => spriteRef.GetAsset<Sprite>();
+    public virtual Sprite Image => staticSprite ? staticSprite : spriteRef.GetAsset<Sprite>();
     public virtual Sprite SmallIcon => IconSpriteRef.GetAsset<Sprite>();
     public virtual RCGAssetReference SpriteRef => spriteRef;
 
