@@ -89,8 +89,9 @@ public class AutoAttributeManager : MonoBehaviour
         // Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
         monoReferenceCache.RestoreReferenceCacheToMonoFields();
         monoReferenceCache.ClearRefs();
-     
-        // SweepScene();
+#if UNITY_EDITOR
+        SweepScene();
+#endif
     }
 
     private void OnDestroy()
