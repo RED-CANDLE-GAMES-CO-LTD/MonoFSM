@@ -656,7 +656,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         public int ObjectCount;
 
         public List<PoolObject> AllObjs;
-        public List<PoolObject> OnUseObjs;
+        public HashSet<PoolObject> OnUseObjs;
         public List<PoolObject> DisabledObjs;
 
         public PoolObject _prefab;
@@ -702,9 +702,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         public void DestroyPool()
         {
-            for (var i = 0; i < AllObjs.Count; i++)
-                if (AllObjs[i] && AllObjs[i].gameObject)
-                    Destroy(AllObjs[i].gameObject);
+            foreach (var obj in AllObjs)
+                if (obj && obj.gameObject)
+                    Destroy(obj.gameObject);
                 else
                     Debug.LogWarning("[Warning]" + _prefab.gameObject.name + " is destroyed????");
 
@@ -732,7 +732,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         public void ScalePoolToNewMaximum()
         {
-            OnUseObjs.RemoveAllNull();
+            // OnUseObjs.RemoveAllNull();
             AllObjs.RemoveAllNull();
             DisabledObjs.RemoveAllNull();
             ReturnAllObjects();
@@ -929,12 +929,12 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             }
             else if (DisabledObjs.Contains(obj))
             {
-                Debug.LogWarning(obj.name + " already returned", obj.gameObject);
+                // Debug.LogWarning(obj.name + " already returned", obj.gameObject);
             }
             else
             {
-                Debug.LogWarning(obj.name + "is not recorded in pool manager... , should remove by someone else.",
-                    obj.gameObject);
+                // Debug.LogWarning(obj.name + "is not recorded in pool manager... , should remove by someone else.",
+                //     obj.gameObject);
                 //Debug.LogError("WTF?");
             }
         }
@@ -945,7 +945,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
             AllObjs = new List<PoolObject>();
             DisabledObjs = new List<PoolObject>();
-            OnUseObjs = new List<PoolObject>();
+            OnUseObjs = new HashSet<PoolObject>();
             
 #if RCG_DEV
             Debug.Log(this._bindingEntry.prefab+":AllObjs.Count Create New Pool:"+_bindingEntry.DefaultMaximumCount);

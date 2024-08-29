@@ -77,7 +77,7 @@ public static class MonoExtensionLogger
     }
     
     [HideInCallstack]
-    [Conditional("RCG_DEV")]
+    [Conditional("UNITY_EDITOR")]
     public static void Log(this Component go, string s1)
     {
         var (isLogging, provider) = IsLoggingCheck(go);
@@ -100,8 +100,8 @@ public static class MonoExtensionLogger
         return $"<color=#{ColorUtility.ToHtmlStringRGBA(color)}>{strObj}</color>";
     }
 
-    
-    [Conditional("RCG_DEV")]
+
+    [Conditional("UNITY_EDITOR")]
     public static void Log<T1, T2>(this Component go, T1 s1, T2 s2)
     {
 #if RCG_DEV
@@ -117,7 +117,7 @@ public static class MonoExtensionLogger
     }
 
     [HideInCallstack]
-    [Conditional("RCG_DEV")]
+    [Conditional("UNITY_EDITOR")]
     public static void Log<T1, T2, T3>(this Component go, T1 s1, T2 s2, T3 s3)
     {
 #if RCG_DEV
@@ -133,7 +133,7 @@ public static class MonoExtensionLogger
 
 
     [HideInCallstack]
-    [Conditional("RCG_DEV")]
+    [Conditional("UNITY_EDITOR")]
     public static void Log<T1, T2, T3, T4>(this Component go, T1 s1, T2 s2, T3 s3, T4 s4)
     {
 #if RCG_DEV
@@ -151,7 +151,7 @@ public static class MonoExtensionLogger
     }
 
     [HideInCallstack]
-    [Conditional("RCG_DEV")]
+    [Conditional("UNITY_EDITOR")]
     public static void Log<T1, T2, T3, T4, T5>(this Component go, T1 s1, T2 s2, T3 s3, T4 s4, T5 s5)
     {
 #if RCG_DEV
@@ -165,7 +165,7 @@ public static class MonoExtensionLogger
     }
 
     [HideInCallstack]
-    [Conditional("RCG_DEV")]
+    [Conditional("UNITY_EDITOR")]
     public static void Log<T1, T2, T3, T4, T5, T6>(this Component go, T1 s1, T2 s2, T3 s3, T4 s4, T5 s5, T6 s6)
     {
 #if RCG_DEV
@@ -180,7 +180,7 @@ public static class MonoExtensionLogger
 
 
     [HideInCallstack]
-    [Conditional("RCG_DEV")]
+    [Conditional("UNITY_EDITOR")]
     public static void
         LogError<T1>(this Component go, T1 s1) //where T : Component
     {
@@ -197,11 +197,11 @@ public static class MonoExtensionLogger
     }
 
     [HideInCallstack]
-    [Conditional("RCG_DEV")]
+    [Conditional("UNITY_EDITOR")]
     public static void
         LogError<T1, T2>(this Component go, T1 s1, T2 s2) //where T : Component
     {
-#if RCG_DEV
+#if UNITY_EDITOR
         var (isLogging, provider) = IsLoggingCheck(go);
         if (isLogging)
         {

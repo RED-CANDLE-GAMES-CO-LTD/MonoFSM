@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using PrimeTween;
-using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -169,11 +168,11 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         if (inited)
             return;
 
-        if (IPoolObjectList == null)
-            IPoolObjectList = new();
-
-        if (IResetterList == null)
-            IResetterList = new();
+        // if (IPoolObjectList == null)
+        //     IPoolObjectList = new();
+        //
+        // if (IResetterList == null)
+        //     IResetterList = new();
 
         IPoolObjectList.AddRange(_iPoolObjectRefs);
         // GetComponentsInChildren<IPoolObject>(true, IPoolObjectList);
@@ -193,25 +192,23 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     //Position , Parent, Rotation
     public void TransformReset()
     {
-        if (CheckResetParameterInit()) //FIXME: 這什麼意思？ 還沒初始化過，就塞回去會錯
+        if (!CheckResetParameterInit()) return; //FIXME: 這什麼意思？ 還沒初始化過，就塞回去會錯
+        if (_transformResetOverrider != null)
         {
-            if (_transformResetOverrider != null)
-            {
-                _transformResetOverrider.ResetTransform();
-            }
-            else
-            {
-                var transform1 = transform;
-                transform1.SetParent(initParent);
-                //rigidbody2d的位置還沒跟上？
-                transform1.localPosition = initPosition;
-                //在levelreset的時候有call這個應該就對了，讓物理跟上transform
-                // Physics2D.SyncTransforms();
-                // Debug.Log("[PoolObjectResetAndStart] transform Reset", gameObject);
-                transform1.localRotation = initRotation;
+            _transformResetOverrider.ResetTransform();
+        }
+        else
+        {
+            var transform1 = transform;
+            transform1.SetParent(initParent);
+            //rigidbody2d的位置還沒跟上？
+            transform1.localPosition = initPosition;
+            //在levelreset的時候有call這個應該就對了，讓物理跟上transform
+            // Physics2D.SyncTransforms();
+            // Debug.Log("[PoolObjectResetAndStart] transform Reset", gameObject);
+            transform1.localRotation = initRotation;
 
-                transform1.localScale = initlocalScale;
-            }
+            transform1.localScale = initlocalScale;
         }
     }
 
@@ -447,11 +444,11 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     {
         InitAnimResetters();
         CheckList();
-        for (var i = 0; i < IPoolObjectList.Count; i++)
+        foreach (var poolObj in IPoolObjectList)
         {
             try
             {
-                IPoolObjectList[i].PoolOnPrepared(this);
+                poolObj.PoolOnPrepared(this);
             }
             catch (Exception e)
             {
