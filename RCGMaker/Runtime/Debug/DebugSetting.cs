@@ -71,8 +71,11 @@ namespace RCGSetting
 #if UNITY_EDITOR
                 var value = EditorPrefs.GetBool(property.Name, false);
 #else
+                
                 var value = false;
 #endif
+                if (PlayerPrefs.HasKey(property.Name))
+                    value = PlayerPrefs.GetInt(property.Name, 0) == 1;
                 DebugSettingDict[property.Name] = value;
                 property.SetValue(null, value);
             }
@@ -196,6 +199,11 @@ get => false;
             return DebugSettingDict.ContainsKey(type.Name);
         }
 
+        public static bool DebugModuleEnabled(string moduleName)
+        {
+            return DebugSettingDict.ContainsKey(moduleName) && DebugSettingDict[moduleName];
+        }
+
         [Command("module.toggleDebug")]
         public static void ToggleDebugModule([DebugModule] string moduleName)
         {
@@ -280,16 +288,12 @@ get => false;
 #endif
         }
 
-
         public static bool SkipHackMiniGame
         {
             get => DebugSettingDict[nameof(SkipHackMiniGame)];
             set => SetBoolProperty(nameof(SkipHackMiniGame), value);
         }
-
-    
-
-
+        
         public static void ToggleDebugMode()
         {
             IsDebugMode = !IsDebugMode;
@@ -313,12 +317,13 @@ get => false;
             DebugSettingDict[propertyName] = value;
             // Debug.Log($"DebugSetting Set {propertyName} to {value}");
 #if UNITY_EDITOR
+            PlayerPrefs.SetInt(propertyName, value ? 1 : 0);
             EditorPrefs.SetBool(propertyName, value);
 #endif
         }
 
         // Use the dictionary to set the property and save to EditorPrefs
-        private static void SetBoolProperty(string propertyName, bool value)
+        public static void SetBoolProperty(string propertyName, bool value)
         {
             SetPropertyValue(propertyName, value);
         }
