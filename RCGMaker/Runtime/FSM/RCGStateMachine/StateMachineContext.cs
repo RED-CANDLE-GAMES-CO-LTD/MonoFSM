@@ -84,7 +84,17 @@ namespace RCGMaker.Core
 
         public void OnBeforeSceneSave()
         {
-            gameObject.AddComponent<StateMachineRunner>();
+            var badMonos = gameObject.GetComponents<StateMachineRunner>();
+            if (badMonos.Length > 1)
+            {
+                Debug.LogError("有多個StateMachineRunner", gameObject);
+                foreach (var badMono in badMonos)
+                {
+                    DestroyImmediate(badMono);
+                }
+            }
+
+            gameObject.TryGetCompOrAdd<StateMachineRunner>();
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(gameObject);
 #endif
