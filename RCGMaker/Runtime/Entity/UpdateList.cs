@@ -36,14 +36,26 @@ namespace RCGMaker.Core
         private HashSet<T> toUnregisterUpdateList = new();
         [PreviewInInspector] private List<T> _updateList => _updateSet.ToList();
 
+        //FIXME: 可能同frame Register/Unregister
         public void Register(T updateTarget)
         {
             updateList.Add(updateTarget);
+            if (toUnregisterUpdateList.Contains(updateTarget))
+            {
+                Debug.LogError("Register same frame", updateTarget.gameObject);
+                toUnregisterUpdateList.Remove(updateTarget);
+            }
         }
 
         public void Unregister(T updateTarget)
         {
+            Debug.Log("Unregister", updateTarget.gameObject);
             toUnregisterUpdateList.Add(updateTarget);
+            if (updateList.Contains(updateTarget))
+            {
+                Debug.LogError("Unregister same frame", updateTarget.gameObject);
+                updateList.Remove(updateTarget);
+            }
         }
 
         public void ClearNull()
@@ -60,15 +72,19 @@ namespace RCGMaker.Core
 
         public void UpdateManual()
         {
+            foreach (var updateTarget in toUnregisterUpdateList)
+            {
+                _updateSet.Remove(updateTarget);
+            }
+
+//FIXME: 順序很重要，先進先出...如果
+            //同frame開關？
             foreach (var updateTarget in updateList)
             {
                 _updateSet.Add(updateTarget);
             }
 
-            foreach (var updateTarget in toUnregisterUpdateList)
-            {
-                _updateSet.Remove(updateTarget);
-            }
+ 
 
             toUnregisterUpdateList.Clear();
             updateList.Clear();
