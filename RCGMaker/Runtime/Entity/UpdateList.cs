@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -32,6 +34,7 @@ namespace RCGMaker.Core
         private HashSet<T> _updateSet = new();
         private HashSet<T> updateList = new();
         private HashSet<T> toUnregisterUpdateList = new();
+        [PreviewInInspector] private List<T> _updateList => _updateSet.ToList();
 
         public void Register(T updateTarget)
         {
