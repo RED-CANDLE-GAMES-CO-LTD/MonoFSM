@@ -42,18 +42,18 @@ namespace RCGMaker.Core
             updateList.Add(updateTarget);
             if (toUnregisterUpdateList.Contains(updateTarget))
             {
-                Debug.LogError("Register same frame", updateTarget.gameObject);
+                // Debug.LogError("Register same frame", updateTarget.gameObject);
                 toUnregisterUpdateList.Remove(updateTarget);
             }
         }
 
         public void Unregister(T updateTarget)
         {
-            Debug.Log("Unregister", updateTarget.gameObject);
+            // Debug.Log("Unregister", updateTarget.gameObject);
             toUnregisterUpdateList.Add(updateTarget);
             if (updateList.Contains(updateTarget))
             {
-                Debug.LogError("Unregister same frame", updateTarget.gameObject);
+                // Debug.LogError("Unregister same frame", updateTarget.gameObject);
                 updateList.Remove(updateTarget);
             }
         }
