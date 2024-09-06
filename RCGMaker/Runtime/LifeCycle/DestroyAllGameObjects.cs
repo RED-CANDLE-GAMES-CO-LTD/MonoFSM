@@ -36,6 +36,7 @@ public static class RCGLifeCycle
                 // gObject.gameObject.name += " (RCGLifeCycle)";
             }
         }
+        
     }
     private static readonly List<GameObject> DontDestroyObjList = new();
 
