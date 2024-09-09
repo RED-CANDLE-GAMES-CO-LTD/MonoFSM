@@ -226,12 +226,7 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
             return;
         }
 
-        //FIXME: 可能會被animation key
-        image.color = Color.clear;
-        image.sprite = UIAssetConfig.i.EmptySprite;
-        //還沒load好...
-        //還是要用什麼方式先load好？
-        //clear沒有用XDD因為動畫key到就暴雷了...要empty sprite才行
+     
         
         //不用清掉前一個 才不會閃白 讀取其實很快。
         //image.sprite = null;
@@ -242,6 +237,12 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
         }
         else 
         {
+            //FIXME: 可能會被animation key
+            image.color = Color.clear;
+            image.sprite = UIAssetConfig.i.EmptySprite;
+            //還沒load好...
+            //還是要用什麼方式先load好？
+            //clear沒有用XDD因為動畫key到就暴雷了...要empty sprite才行
             Debug.Log("AssignToUIImage:" + rcgAssetRef, this);
             Debug.Log("AssignToUIImage:" + image, image);
             var loadedSprite = await rcgAssetRef.GetAssetAsync<Sprite>();
