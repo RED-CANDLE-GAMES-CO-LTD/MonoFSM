@@ -150,7 +150,7 @@ public static class RCGTime
     
     public static bool IsUnscaledTime => !SelfTimeScale; //true
     //uncaledDeltaTime
-    
+    public static float cachedTime;
 
     public static float deltaTime
     {
