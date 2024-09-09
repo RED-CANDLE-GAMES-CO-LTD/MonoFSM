@@ -150,7 +150,7 @@ public static class RCGTime
     
     public static bool IsUnscaledTime => !SelfTimeScale; //true
     //uncaledDeltaTime
-    public static float cachedTime;
+    public static float cachedTime; //FIXME: 要有人來更新，TimePauseManager不在RCGMakerCore裡喔
 
     public static float deltaTime
     {
