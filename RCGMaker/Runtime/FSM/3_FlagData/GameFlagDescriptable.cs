@@ -72,6 +72,7 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
 
     public void ReleaseSprite()
     {
+        // Debug.Log("ReleaseSprite", this);
         SpriteRef?.Release();
     }
     
@@ -225,22 +226,21 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
             }
             return;
         }
-
-     
         
         //不用清掉前一個 才不會閃白 讀取其實很快。
         //image.sprite = null;
         if (rcgAssetRef.IsAssetLoaded)
         {
-            image.color = loadedColor == default ? Color.white : loadedColor;
+            
             var newSprite = rcgAssetRef.GetAsset<Sprite>();
             if (image.sprite == newSprite)
             {
-                Debug.Log("AssignToUIImage loaded same" + rcgAssetRef, this);
+                // Debug.Log("AssignToUIImage loaded same" + rcgAssetRef, this);
                 return;
             }
 
-            Debug.Log("AssignToUIImage already loaded:" + rcgAssetRef, this);
+            image.color = loadedColor == default ? Color.white : loadedColor;
+            // Debug.Log("AssignToUIImage already loaded:" + rcgAssetRef, this);
             image.sprite = newSprite;
         }
         else 
@@ -251,8 +251,8 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
             //還沒load好...
             //還是要用什麼方式先load好？
             //clear沒有用XDD因為動畫key到就暴雷了...要empty sprite才行
-            Debug.Log("AssignToUIImage:" + rcgAssetRef, this);
-            Debug.Log("AssignToUIImage:" + image, image);
+            // Debug.Log("AssignToUIImage:" + rcgAssetRef, this);
+            // Debug.Log("AssignToUIImage:" + image, image);
             var loadedSprite = await rcgAssetRef.GetAssetAsync<Sprite>();
             image.color = loadedColor == default ? Color.white : loadedColor;
             image.sprite = loadedSprite;
