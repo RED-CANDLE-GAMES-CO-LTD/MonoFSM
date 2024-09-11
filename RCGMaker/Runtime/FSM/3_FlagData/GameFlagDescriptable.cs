@@ -233,7 +233,15 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
         if (rcgAssetRef.IsAssetLoaded)
         {
             image.color = loadedColor == default ? Color.white : loadedColor;
-            image.sprite = rcgAssetRef.GetAsset<Sprite>();
+            var newSprite = rcgAssetRef.GetAsset<Sprite>();
+            if (image.sprite == newSprite)
+            {
+                Debug.Log("AssignToUIImage loaded same" + rcgAssetRef, this);
+                return;
+            }
+
+            Debug.Log("AssignToUIImage already loaded:" + rcgAssetRef, this);
+            image.sprite = newSprite;
         }
         else 
         {
