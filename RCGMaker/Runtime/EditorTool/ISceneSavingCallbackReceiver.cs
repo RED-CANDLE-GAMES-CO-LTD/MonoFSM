@@ -1,5 +1,10 @@
 namespace RCGMaker.Core
 {
+    public interface IOnBuildSceneSavingCallbackReceiver
+    {
+        void OnBeforeBuildSceneSave();
+    }
+    
     public interface ISceneSavingCallbackReceiver
     {
         void OnBeforeSceneSave();
