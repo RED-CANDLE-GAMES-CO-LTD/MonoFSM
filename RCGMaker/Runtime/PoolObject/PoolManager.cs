@@ -832,6 +832,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             //因為開著他會跑Awake 關起來才不會跑
 
             var obj = Instantiate(_prefab, Vector3.zero, Quaternion.identity);
+            DontDestroyOnLoad(obj);
             obj.SetBindingPool(_poolManager);
             PreparePoolObjectImplementation(obj);
             //FIXME: 為什麼要關著prepare? 
@@ -840,7 +841,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             obj.gameObject.SetActive(true);
             //打開 開始跑Awake
 
-            obj.transform.SetParent(_poolManager.poolbjects);
+            // obj.transform.SetParent(_poolManager.poolbjects);
+            
             obj.gameObject.SetActive(false);
 
             obj.OriginalPrefab = _prefab;
@@ -925,7 +927,11 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 // {
                 OnUseObjs.Remove(obj);
                 DisabledObjs.Insert(0, obj);
-                obj.transform.SetParent(_poolManager.poolbjects);
+
+                //FIXME: 
+                if (obj.transform.parent != null) //有被借到某個特定node才
+                    obj.transform.SetParent(_poolManager.poolbjects);
+                
                 obj.OnReturnToPool(_poolManager);
                 obj.gameObject.SetActive(false);
             }
