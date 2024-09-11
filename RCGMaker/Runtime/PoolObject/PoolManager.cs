@@ -783,7 +783,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             if (DisabledObjs.Count == 0)
             {
-                Debug.LogError("[Pool Manager]" + _prefab.gameObject.name + " Pool Bankrupt", _prefab);
+                Debug.LogError(
+                    "[Pool Manager]" + _prefab.gameObject.name + " Pool Bankrupt" + "OnUsed:" + OnUseObjs.Count,
+                    _prefab);
                 AddAObject(true);
             }
                 
