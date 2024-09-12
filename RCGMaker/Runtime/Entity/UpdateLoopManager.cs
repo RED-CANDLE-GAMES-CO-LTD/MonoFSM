@@ -30,11 +30,14 @@ namespace RCGMaker.Core
             UpdateList.ClearNull();
             LateUpdateList.ClearNull();
         }
+        
 
         public void OnGameDestroy()
         {
-            UpdateList.ClearRef();
-            LateUpdateList.ClearRef();
+            UpdateList.ClearNull();
+            LateUpdateList.ClearNull();
+            // UpdateList.ClearRef();
+            // LateUpdateList.ClearRef();
         }
     }
 }

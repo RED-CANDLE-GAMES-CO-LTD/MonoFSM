@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -65,7 +66,7 @@ public class DestroyAllGameObjects : MonoBehaviour
 
         DestroyingAll = false;
         // yield return new WaitForSeconds(0.1f);
-
+        UpdateLoopManager.Instance.OnGameDestroy();
         BackToTitle();
     }
 
@@ -94,7 +95,6 @@ public class DestroyAllGameObjects : MonoBehaviour
     {
         GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
         
-        Debug.Log("Destroying Everything");
 
         foreach (var go in allObjects)
         {
@@ -111,6 +111,13 @@ public class DestroyAllGameObjects : MonoBehaviour
                     {
                         destroyItem.BackToTitle();
                     }
+
+                    // if (go.activeSelf)
+                    // {
+                    //     go.SetActive(false);
+                    //     go.SetActive(true);
+                    // }
+                    
                     // Debug.Log("SteamAPI Not Destroyed");
                 }
             }

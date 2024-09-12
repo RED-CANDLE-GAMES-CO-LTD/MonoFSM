@@ -4,6 +4,7 @@ using System.Linq;
 using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Profiling;
+using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core
 {
@@ -60,14 +61,17 @@ namespace RCGMaker.Core
 
         public void ClearNull()
         {
-            _updateSet.RemoveWhere((t) => t == null);
+            //destroyed check, null check is not enough, 
+
+            _updateSet.RemoveWhere((t) => t.IsUnityNull());
+            Debug.Break();
         }
 
         public void ClearRef()
         {
-            _updateSet.Clear();
-            updateList.Clear();
-            toUnregisterUpdateList.Clear();
+            // _updateSet.Clear();
+            // updateList.Clear();
+            // toUnregisterUpdateList.Clear();
         }
 
         public void UpdateManual()
