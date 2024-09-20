@@ -1,8 +1,7 @@
 // using QFSW.QC;
 
 using System.Collections.Generic;
-using QFSW.QC;
-using RCGInternal.BuildConfig;
+// using QFSW.QC;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -204,21 +203,21 @@ get => false;
             return DebugSettingDict.ContainsKey(moduleName) && DebugSettingDict[moduleName];
         }
 
-        [Command("module.toggleDebug")]
-        public static void ToggleDebugModule([DebugModule] string moduleName)
-        {
-            DebugSettingDict.TryAdd(moduleName, false);
-            SetBoolProperty(moduleName, !DebugSettingDict[moduleName]);
-            QuantumConsole.Instance.LogToConsole($"{moduleName} is " +
-                                                 (DebugSettingDict[moduleName] ? "enabled" : "disabled"));
-        }
-
-        [Command("module.isEnabled")]
-        private static void IsModuleEnabled([DebugModule] string moduleName)
-        {
-            var result = IsBoolPropertyEnabled(moduleName);
-            QuantumConsole.Instance.LogToConsole($"{moduleName} is " + (result ? "enabled" : "disabled"));
-        }
+        // [Command("module.toggleDebug")]
+        // public static void ToggleDebugModule([DebugModule] string moduleName)
+        // {
+        //     DebugSettingDict.TryAdd(moduleName, false);
+        //     SetBoolProperty(moduleName, !DebugSettingDict[moduleName]);
+        //     QuantumConsole.Instance.LogToConsole($"{moduleName} is " +
+        //                                          (DebugSettingDict[moduleName] ? "enabled" : "disabled"));
+        // }
+        //
+        // [Command("module.isEnabled")]
+        // private static void IsModuleEnabled([DebugModule] string moduleName)
+        // {
+        //     var result = IsBoolPropertyEnabled(moduleName);
+        //     QuantumConsole.Instance.LogToConsole($"{moduleName} is " + (result ? "enabled" : "disabled"));
+        // }
         
         public static bool IsDebugMode
         {
