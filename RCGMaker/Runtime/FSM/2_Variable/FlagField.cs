@@ -463,7 +463,7 @@ public class
 #endif
         _lastValue = _currentValue;
         _currentValue = value;
-
+        Log("SetCurrentValue" + value);
         // if (DebugSetting.IsDebugMode && _isShowDebugLog)
         //     Debug.Log("[FlagField] After CurrentValue" + value);
         OnChangeInvoke(value);
@@ -495,14 +495,15 @@ public class
         lastMode = mode;
         listener.Clear();
         listenerOnce.Clear();
+        
     }
 
     private Object owner;
 
     private void Log(object msg)
     {
-        // if (_isShowDebugLog)
-        Debug.Log(msg + " " + owner.GetInstanceID(), owner);
+        if (_isShowDebugLog)
+            Debug.Log(msg + " " + owner.GetInstanceID(), owner);
     }
 
     private TestMode lastMode = TestMode.EditorDevelopment;
@@ -511,29 +512,24 @@ public class
 
     public override void ResetToDefault()
     {
+        Debug.Log("FlagField: ResetToDefault" + owner, owner);
         //[]: 要先init才能ResetToDefault
         if (owner == null)
             Debug.LogError("PLZ FIX ME, Assign Owner for function block!!" + owner);
-        // listener = null;
-        // listenerOnce = null;
+
 
         //[]: 有singleton就不用lastMode了吧
-        if (lastMode != TestMode.Undefined)
-        {
-            // Debug.Log("FlagField: ResetToDefault" + lastMode);
-            Init(lastMode, owner);
-            // Debug.Log("FlagField: CurrentValue" + CurrentValue);
-        }
-        else
-            CurrentValue = ProductionValue;
+        // if (lastMode != TestMode.Undefined)
+        // {
+        //     // Debug.Log("FlagField: ResetToDefault" + lastMode);
+        //     Init(lastMode, owner);
+        //     
+        //     // Debug.Log("FlagField: CurrentValue" + CurrentValue);
+        // }
+        // else
+        CurrentValue = ProductionValue;
         
     }
-
-    //Field init的時候，就會清了才對
-    // public void Clear()
-    // {
-    //     //FIXME: 是不是應該要清掉listener?
-    // }
 
 }
 

@@ -240,38 +240,10 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
         // FetchFields();
         foreach (var fieldDelegate in fieldCaches)
         {
+            Debug.Log("Reset:" + fieldDelegate.Value, this);
             var fieldBase = fieldDelegate.Value;
             fieldBase.ResetToDefault();
         }
-        
-        // Debug.Log("Reset data:" + name);
-        // FieldInfo[] myField = GetType().GetFields();
-        // var myFields = GetType()
-        //     .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-        // // Debug.Log("Flag Convertor WriteJSON");
-        // foreach (var fieldInfo in myFields)
-        // {
-        //     if (fieldInfo.FieldType == typeof(FlagFieldBool))
-        //     {
-        //         var field = fieldInfo.GetValue(this) as FlagFieldBool;
-        //         field?.ResetToDefault();
-        //     }
-        //     else if (fieldInfo.FieldType == typeof(FlagFieldInt))
-        //     {
-        //         var field = fieldInfo.GetValue(this) as FlagFieldInt;
-        //         field?.ResetToDefault();
-        //     }
-        //     else if (fieldInfo.FieldType == typeof(FlagFieldString))
-        //     {
-        //         var field = fieldInfo.GetValue(this) as FlagFieldString;
-        //         field?.ResetToDefault();
-        //     }
-        //     else if (fieldInfo.FieldType == typeof(FlagFieldFloat))
-        //     {
-        //         var field = fieldInfo.GetValue(this) as FlagFieldFloat;
-        //         field?.ResetToDefault();
-        //     }
-        // }
     }
 
     public virtual void FlagInitStart() //特殊的flag要做一些initialize的話在這
