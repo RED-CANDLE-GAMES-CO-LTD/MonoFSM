@@ -503,7 +503,13 @@ public class
     private void Log(object msg)
     {
         if (_isShowDebugLog)
-            Debug.Log(msg + " " + owner.GetInstanceID(), owner);
+        {
+            if (owner)
+                Debug.Log(msg + " " + owner.GetInstanceID(), owner);
+            else
+                Debug.Log(msg);
+        }
+           
     }
 
     private TestMode lastMode = TestMode.EditorDevelopment;
