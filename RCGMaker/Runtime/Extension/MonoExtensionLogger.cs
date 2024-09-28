@@ -34,12 +34,37 @@ public static class MonoExtensionLogger
         // var providerName = "";
 
         //FIXME: 陣列有gc...
+        var hasProvider = DebugProviderDict.TryGetValue(comp, out var providers);
 
-        if (!DebugProviderDict.TryGetValue(comp, out var providers))
+
+        //空的
+        if (!hasProvider)
+        {
+     
+            providers = comp.GetComponentsInParent<DebugProvider>(true);
+            DebugProviderDict.Add(comp, providers);
+        }
+
+        var refetchNeeded = false;
+
+        //FIXME:這個有memory leak, debug mode會錯唷
+        foreach (var item in providers)
+        {
+            if (item == null)
+            {
+                Debug.LogError("DebugProvider is null", comp);
+                DebugProviderDict.Remove(comp);
+                refetchNeeded = true;
+                break;
+            }
+        }
+
+        if (refetchNeeded)
         {
             providers = comp.GetComponentsInParent<DebugProvider>(true);
             DebugProviderDict.Add(comp, providers);
         }
+        
 
         foreach (var item in providers)
             if (item.IsLogInChildren)
@@ -49,18 +74,6 @@ public static class MonoExtensionLogger
             }
 
         return (false, null);
-        // // var providers = go.GetComponentsInParent<DebugProvider>();
-        // DebugProvider provider;
-        // foreach (var item in providers)
-        //     if (item.IsLogInChildren)
-        //     {
-        //         provider = item;
-        //         isLogging = true;
-        //         break;
-        //     }
-        //
-        //
-        // return (isLogging, provider);
     }
 
     public static void LogContext(this Component go, string s1)
