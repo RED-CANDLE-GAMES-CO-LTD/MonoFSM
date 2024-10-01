@@ -711,8 +711,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             AllObjs.Clear();
             OnUseObjs.Clear();
             DisabledObjs.Clear();
-            
-            Debug.Log("DestroyPool:"+_prefab); 
+
+            // Debug.Log("DestroyPool:"+_prefab); 
 
             _bindingEntry = null;
             ObjectCount = 0;
