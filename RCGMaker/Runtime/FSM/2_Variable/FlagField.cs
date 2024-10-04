@@ -463,7 +463,7 @@ public class
 #endif
         _lastValue = _currentValue;
         _currentValue = value;
-        Log("SetCurrentValue" + value);
+        // Log("SetCurrentValue" + value);
         // if (DebugSetting.IsDebugMode && _isShowDebugLog)
         //     Debug.Log("[FlagField] After CurrentValue" + value);
         OnChangeInvoke(value);

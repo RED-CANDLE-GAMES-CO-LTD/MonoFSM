@@ -18,7 +18,9 @@ using UnityEngine.Profiling;
 [Searchable]
 public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator,
     IGameStateOwner, IDefaultSerializable
-    where TScriptableData : AbstractScriptableData<TField, TType> where TField : FlagField<TType>, new()
+    where TScriptableData : AbstractScriptableData<TField, TType>
+    where TField : FlagField<TType>, new()
+    where TType : struct, IEquatable<TType>
 {
     //想要直接選一個field就拿他的值，應該抽出去做成一個新東西不要放在GenericVariable裡面
     //VariableFloat應該獨立寫？這樣就一定可以有一個最好的abstract class
