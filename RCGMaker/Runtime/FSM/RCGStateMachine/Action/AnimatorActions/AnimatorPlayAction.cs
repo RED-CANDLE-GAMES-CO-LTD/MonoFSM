@@ -348,9 +348,9 @@ namespace RCGFSM.Animation
         }
 
 #endif
-        
 
-   
+//如果animator沒開，就不要強迫開啟
+        public bool IsDontPlayWhenAnimatorDisabled = false;
 
         protected override void OnStateEnterImplement()
         {
@@ -372,8 +372,9 @@ namespace RCGFSM.Animation
 
             //FIXME: 這個感覺有點危險
             // animator.keepAnimatorStateOnDisable = true;
-            animator.enabled = true;
-
+            if (IsDontPlayWhenAnimatorDisabled == false)
+                animator.enabled = true;
+            
             if (animator.isActiveAndEnabled == false)
             {
                 // Debug.LogError("animator.isActiveAndEnabled == false "+this._fsmOwner.name,this);
