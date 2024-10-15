@@ -325,7 +325,9 @@ public class AutoAttributeManager : MonoBehaviour
 
     public IEnumerable<MonoBehaviour> GetAllMonoBehavioursWithAuto() //(GameObject[] roots)
     {
+#if UNITY_EDITOR
         Stopwatch sw = new Stopwatch();
+#endif
         // sw.Start();
 
         //get all monobehaviours from root
@@ -344,9 +346,11 @@ public class AutoAttributeManager : MonoBehaviour
         //FIXME: 會有null嗎？
         monoBehaviours = monoBehaviours.Where(mb => GetFieldsWithAutoAndBuildCache(mb)?.Count() > 0);
 
+#if UNITY_EDITOR
         sw.Stop();
         Debug.Log("[Auto]: Mono with Fields with auto time:" + sw.ElapsedMilliseconds + ",mb Count:" +
                   monoBehaviours.Count());
+#endif
         return monoBehaviours;
     }
 

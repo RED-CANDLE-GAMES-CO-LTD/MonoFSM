@@ -595,7 +595,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public void ReturnAllObjects(Scene withScene)
     {
-        Debug.Log("Return All PoolObj With Scene");
+        // Debug.Log("Return All PoolObj With Scene");
         for (var i = 0; i < allPools.Count; i++)
             allPools[i].ReturnAllObjects(withScene);
     }
