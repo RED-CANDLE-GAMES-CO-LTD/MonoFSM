@@ -9,12 +9,12 @@ namespace RCGSetting
     {
         private void OnEnable()
         {
-            Debug.Log("OnEnable", this);
+            // Debug.Log("OnEnable", this);
         }
 
         private void OnDisable()
         {
-            Debug.Log("OnDisable", this);
+            // Debug.Log("OnDisable", this);
         }
     }
 }

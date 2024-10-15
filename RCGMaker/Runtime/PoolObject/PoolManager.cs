@@ -519,7 +519,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
         if (!PoolDictionary.ContainsKey(prefab))
         {
+#if RCG_DEV
             Debug.LogError("PoolManager: " + prefab.name + " is not in the pool dictionary");
+#endif
             AddAPool(prefab);
             PoolDictionary[prefab].UpdatePoolEntry();
         }
