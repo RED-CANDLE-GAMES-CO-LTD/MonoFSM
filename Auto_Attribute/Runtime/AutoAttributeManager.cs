@@ -1,21 +1,21 @@
 ﻿/* Author: Oran Bar
- * Summary: 
- * 
+ * Summary:
+ *
  * This class executes the code to automatically set the references of the variables with the Auto attribute.
  * The code is executed at the beginning of the scene, 500 milliseconds before other Awake calls. (This is done using the ScriptTiming attribute, and can be changed manually)
  * Afterwards, all Auto variables will be assigned, and, in case of errors, [Auto] will log on the console with more info.
- 
- * AutoAttributeManager will sneak into your scene upon saving it. 
- * Don't be afraid of this little script. Apart from setting a few [Auto] variables, It's harmless. 
+
+ * AutoAttributeManager will sneak into your scene upon saving it.
+ * Don't be afraid of this little script. Apart from setting a few [Auto] variables, It's harmless.
  * Let him live happly in your scene. You'll learn to like him.
- * 
+ *
  * If the #define DEB on top of this script is uncommented, Auto will log data about its performance in the console.
- * 
+ *
  * Copyrights to Oran Bar™
  */
 
 
-#define DEB
+// #define DEB
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

@@ -956,7 +956,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             OnUseObjs = new HashSet<PoolObject>();
             
 #if RCG_DEV
-            Debug.Log(this._bindingEntry.prefab+":AllObjs.Count Create New Pool:"+_bindingEntry.DefaultMaximumCount);
+            Debug.Log(
+                "[PoolManager] Create New Pool: " + _bindingEntry.prefab + ":AllObjs.Count " +
+                _bindingEntry.DefaultMaximumCount);
 #endif
             // SetIsHandledPoolRequestPoolObject(_prefab, true);
             for (var i = 0; i < ObjectCount; i++)
