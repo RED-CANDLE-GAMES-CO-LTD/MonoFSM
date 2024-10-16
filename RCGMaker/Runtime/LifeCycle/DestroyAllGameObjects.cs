@@ -67,6 +67,8 @@ public class DestroyAllGameObjects : MonoBehaviour
         DestroyingAll = false;
         // yield return new WaitForSeconds(0.1f);
         UpdateLoopManager.Instance.OnGameDestroy();
+        Resources.UnloadUnusedAssets();
+        GC.Collect();
         BackToTitle();
     }
 
