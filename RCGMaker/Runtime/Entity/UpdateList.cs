@@ -87,16 +87,14 @@ namespace RCGMaker.Core
             {
                 _updateSet.Add(updateTarget);
             }
-
- 
-
+            
             toUnregisterUpdateList.Clear();
             updateList.Clear();
             foreach (var updateTarget in _updateSet)
             {
-                Profiler.BeginSample("updateTarget", updateTarget.gameObject);
+                // Profiler.BeginSample("updateTarget", updateTarget.gameObject);
                 _updateAction(updateTarget);
-                Profiler.EndSample();
+                // Profiler.EndSample();
             }
         }
     }
