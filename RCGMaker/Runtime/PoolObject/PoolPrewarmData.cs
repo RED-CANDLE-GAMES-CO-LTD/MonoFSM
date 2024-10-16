@@ -22,11 +22,11 @@ public class PoolPrewarmData : ScriptableObject
     public GameObject TryFindPrefab(AssetReference targetReference)
     {
         addressableRecords.RemoveAll((a) => a._assetReference == null || a._prefab == null);
-        Debug.Log("[TryFindPrefab] targetReference.AssetGUID" + targetReference.AssetGUID);
+        // Debug.Log("[TryFindPrefab] targetReference.AssetGUID" + targetReference.AssetGUID);
         //FIXME:怎麼會寫array...
         foreach (var a in addressableRecords)
         {
-            Debug.Log("[TryFindPrefab] a._assetReference" + a._assetReference.AssetGUID);
+            // Debug.Log("[TryFindPrefab] a._assetReference" + a._assetReference.AssetGUID);
             if (a._assetReference.AssetGUID == targetReference.AssetGUID)
             {
                 return a._prefab;
