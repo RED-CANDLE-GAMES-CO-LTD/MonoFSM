@@ -119,6 +119,8 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
             // Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
             ValueSource.field.RemoveListener(OnValueChange, source as ScriptableObject);
         }
+
+        modifier = null;
     }
 
     public void Clear()
