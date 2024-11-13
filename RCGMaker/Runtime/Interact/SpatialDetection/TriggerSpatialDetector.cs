@@ -10,8 +10,10 @@ namespace RCGMaker.Core.Detection
 
 
         [AutoChildren] GeneralEffectDealer[] _effectDealers;
+        
         private void OnTriggerEnter(Collider other)
         {
+            Debug.Log("OnTriggerEnter");
             OnSpatialEnter(other.gameObject);
         }
 

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.Interact.EffectHit;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -6,7 +8,7 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Core.Detection
 {
-    
+    [DisallowMultipleComponent]
     public abstract class SpatialDetector : MonoBehaviour, IDefaultSerializable
     {
         [ShowInInspector] [AutoChildren] private GeneralEffectDealer[] dealers;
@@ -18,16 +20,19 @@ namespace RCGMaker.Core.Detection
         [OnValueChanged(nameof(SetLayerOverride))]
         public LayerMask HittingLayer;
 
-        [Button]
-        void SerializeTest()
-        {
-            //太廢了吧...
-            var result = JsonUtility.ToJson(HittingLayer);
-            Debug.Log(result);
-        }
+        //FIXME: 這個要做什麼？
+        // [Button]
+        // void SerializeTest()
+        // {
+        //     //太廢了吧...
+        //     var result = JsonUtility.ToJson(HittingLayer);
+        //     Debug.Log(result);
+        // }
 
         protected abstract void SetLayerOverride();
 
+        [PreviewInInspector]
+        List<SpatialDetectable> _detectedObjects = new List<SpatialDetectable>();
         protected void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
         {
             //理論上不該打到別的東西，layer就擋掉了才對
@@ -36,7 +41,7 @@ namespace RCGMaker.Core.Detection
                 Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer, this);
                 return;
             }
-
+            _detectedObjects.Add(effectCollider);
             //FIXME: 用update撈起來等等再判？
             foreach (var dealer in dealers)
             {
@@ -57,7 +62,7 @@ namespace RCGMaker.Core.Detection
                 Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer);
                 return;
             }
-
+            _detectedObjects.Remove(effectCollider);
             foreach (var dealer in dealers)
             {
                 foreach (var receiver in effectCollider.EffectReceivers)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
@@ -13,8 +14,24 @@ public class CustomSerializableAttribute : PropertyAttribute
 {
 }
 
-public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable
+public static class StateMachineExtension
 {
+    public static T[] GetComponentsInBinder<T>(this MonoBehaviour monoBehaviour) 
+    {
+        var binder = monoBehaviour.GetComponentInParent<IBinder>() as MonoBehaviour;
+        if (binder != null) return binder.GetComponentsInChildren<T>();
+        Debug.LogError("IBinder not found", monoBehaviour);
+        return Array.Empty<T>();
+    }
+}
+
+public interface IBinder
+{
+    
+}
+public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable,IBinder
+{
+
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext[] fsmContexts;
     public GeneralFSMContext FsmContext =>

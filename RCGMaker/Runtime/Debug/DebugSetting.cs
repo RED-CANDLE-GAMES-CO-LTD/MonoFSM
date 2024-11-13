@@ -1,6 +1,7 @@
 // using QFSW.QC;
 
 using System.Collections.Generic;
+using UnityEditor.SettingsManagement;
 // using QFSW.QC;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -13,8 +14,12 @@ namespace RCGSetting
 #if UNITY_EDITOR
     [InitializeOnLoad]
 #endif
+    
+  
+    
     public static class DebugSetting
     {
+        
         public static bool Is2DFXEnabledInEditor
         {
             get => DebugSettingDict[nameof(Is2DFXEnabledInEditor)];
@@ -66,6 +71,7 @@ namespace RCGSetting
         {
             foreach (var property in typeof(DebugSetting).GetProperties())
             {
+                
                 if (property.PropertyType != typeof(bool)) continue;
 #if UNITY_EDITOR
                 var value = EditorPrefs.GetBool(property.Name, false);
@@ -76,7 +82,8 @@ namespace RCGSetting
                 if (PlayerPrefs.HasKey(property.Name))
                     value = PlayerPrefs.GetInt(property.Name, 0) == 1;
                 DebugSettingDict[property.Name] = value;
-                property.SetValue(null, value);
+                if(property.SetMethod != null)
+                    property.SetValue(null, value);
             }
 
 #if !UNITY_EDITOR
@@ -221,20 +228,22 @@ get => false;
         
         public static bool IsDebugMode
         {
-            //為什麼之前要註解掉editor if?
-#if RCG_DEV
-            // get => false;
-            get => DebugSettingDict[nameof(IsDebugMode)]; //這很慢...?
-            set
-            {
-                SetBoolProperty(nameof(IsDebugMode), value);
-                //進入debug mode就先無敵ㄅ
-                // if (value) IsPlayerInvincible = true;
-            }
-#else
-             get => false;
-             set {}
-#endif
+            get => RCGDebugSetting.IsDebugMode;
+//             //為什麼之前要註解掉editor if?
+//             
+// #if RCG_DEV
+//             // get => false;
+//             get => DebugSettingDict[nameof(IsDebugMode)]; //這很慢...?
+//             set
+//             {
+//                 SetBoolProperty(nameof(IsDebugMode), value);
+//                 //進入debug mode就先無敵ㄅ
+//                 // if (value) IsPlayerInvincible = true;
+//             }
+// #else
+//              get => false;
+//              set {}
+// #endif
         }
 
         public static bool IsDisplayingAllSolvable
@@ -291,11 +300,6 @@ get => false;
         {
             get => DebugSettingDict[nameof(SkipHackMiniGame)];
             set => SetBoolProperty(nameof(SkipHackMiniGame), value);
-        }
-        
-        public static void ToggleDebugMode()
-        {
-            IsDebugMode = !IsDebugMode;
         }
 
         // [Command("test.PlayerOneHitKill")]

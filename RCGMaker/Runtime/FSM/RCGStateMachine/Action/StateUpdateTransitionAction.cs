@@ -9,7 +9,7 @@ namespace RCGFSM.Transition
     
     //StateEnter, Update的時候，檢查能不能去某個state
     [RequireComponent(typeof(AbstractStateTransition))]
-    public class StateTransitionAction : AbstractStateAction
+    public class StateUpdateTransitionAction : AbstractStateAction
     {
         [PreviewInInspector]
         [Auto]

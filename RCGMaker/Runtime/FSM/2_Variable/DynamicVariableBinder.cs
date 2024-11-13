@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
-    public class DynamicVariableBinder : AbstractFolder, ILevelResetPrepare
+    public class DynamicVariableBinder : AbstractFolder, ILevelResetPrepare,IBinder
     {
         // VariableFloat[] variableFloats;
         // VariableFloatVirtual[] variableFloatVirtuals;

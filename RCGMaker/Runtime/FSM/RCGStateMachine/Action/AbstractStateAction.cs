@@ -36,8 +36,11 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [Button]
     private void Rename()
     {
-        gameObject.name = "[Action]" + GetType().Name.Split("Action")[0];
+        gameObject.name = "[Action]" + GetType().Name.Split("Action")[0] + renamePostfix;
     }
+
+    protected virtual string renamePostfix => "";
+
     // private bool conditionFeteched = false;
 
     // private void CheckFetchCondition()

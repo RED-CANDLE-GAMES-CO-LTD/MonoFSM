@@ -1,9 +1,19 @@
+using Sirenix.OdinInspector;
+
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
     public class VariableBoolValueCondition : AbstractConditionComp
     {
+        VariableBool[] GetBoolVariables()
+        {
+           return this.GetComponentsInBinder<VariableBool>();
+        }
+        //FIXME: 好像可以再簡化喔
+        
+        [DropDownRef]
+        [ValueDropdown(nameof(GetBoolVariables))]
         public VariableBool variableBool;
-        public bool targetValue;
+        public bool targetValue = true;
         protected override bool isValid => variableBool.Value == targetValue;
     }
 }

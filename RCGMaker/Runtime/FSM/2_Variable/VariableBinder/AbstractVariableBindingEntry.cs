@@ -9,15 +9,24 @@ namespace RCGMaker.Runtime.FSM._2_Variable.VariableBinder
         string Name { get; }
     }
 
-    public abstract class VariableBindingEntry<T> : AbstractVariableBindingEntry where T : IName
+    public abstract class VariableBindingEntry<T> : AbstractVariableBindingEntry where T : IName, IRebindable
     {
         //What is the term that two variables which one is dependent to another
-        [FormerlySerializedAs("bindingSource")]
-        [FormerlySerializedAs("variableSource")]
-        [FormerlySerializedAs("boolSource1")]
+        // [FormerlySerializedAs("bindingSource")]
+        // [FormerlySerializedAs("variableSource")]
+        // [FormerlySerializedAs("boolSource1")]
+        
+        T[] GetAllVariables()
+        {
+            return this.GetComponentsInBinder<T>();
+        }
+        
+        [ValueDropdown(nameof(GetAllVariables))]
         public T WatchSource;
 
-        [FormerlySerializedAs("boolSource2")] public T dependentVariable;
+        // [FormerlySerializedAs("boolSource2")] 
+        [ValueDropdown("GetAllVariables")]
+        public T dependentVariable;
 
         [Button]
         void Rename()

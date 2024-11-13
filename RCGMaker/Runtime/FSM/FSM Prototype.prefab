@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7358434620020687680}
   - component: {fileID: 2305455435474683030}
   m_Layer: 0
-  m_Name: --[Rebind]
+  m_Name: '--[Rebind]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -55,7 +55,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1351746891394705008}
   m_Layer: 0
-  m_Name: --[States]
+  m_Name: '--[States]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -435,16 +435,33 @@ MonoBehaviour:
   rightBoundsOwner: {fileID: 0}
   topBoundsOwner: {fileID: 0}
   bottomBoundsOwner: {fileID: 0}
+  _editorSavedRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+  _editorSavedMaximumZ: 0
   IgnoreParentGroup: 0
   AutoResetWhenActive: 0
   moveType: 0
+  allAnimators:
+  - {fileID: 5482396152828949419}
   cullingPointsStrategy: 6
   referenceTransforms:
   - {fileID: 5125117540123015058}
+  collider2Ds: []
+  renderers: []
+  particles: []
+  ChildrenActivators:
+  - {fileID: 6435480381148351565}
   TriggerSize: {x: 50, y: 50}
   TriggerOffset: {x: 0, y: 0}
   CullingGroupRunTimeResult: 0
   GroupingReason: 
+  CullingBoundsProvidersComponents: []
+  CullingPaddingProvidersComponents: []
+  ForceZEqualToZero: 0
 --- !u!114 &3957306638625595869
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -566,7 +583,7 @@ GameObject:
   - component: {fileID: 796052943462742708}
   - component: {fileID: 6195960706908060896}
   m_Layer: 0
-  m_Name: --[Variables]
+  m_Name: '--[Variables]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -748,7 +765,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &5482396152828949419
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -762,6 +779,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1

@@ -9,7 +9,18 @@ namespace RCGFSM.Variable
     public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver
     {
         //FIXME: 用selection dropdown來篩選
-        [InlineEditor]
+        protected override string renamePostfix => targetFlag ? targetFlag.name+" to "+TargetValue : "null";
+
+        IList<VariableBool> GetVariables()
+        {
+            var context =GetComponentInParent<StateMachineOwner>(true);
+            var vars = context.GetComponentsInChildren<VariableBool>(true);
+            return vars;
+        }
+        
+        [DropDownRef]
+        [ValueDropdown(nameof(GetVariables))]
+        // [InlineEditor]
         [Required]
         [HideIf("Multiple")] public VariableBool targetFlag;
 

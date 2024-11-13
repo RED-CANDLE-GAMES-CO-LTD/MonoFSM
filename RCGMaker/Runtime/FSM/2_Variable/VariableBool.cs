@@ -18,9 +18,16 @@ public interface IVariableBoolProvider
     public ScriptableDataBool ScriptableData { get; }
 }
 
-public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition, IVariableBoolProvider,
-    IBoolValue
+public interface IRebindable
 {
+    void SetBindingSource(IRebindable rebindable);
+    void SetBindingTarget(IRebindable rebindable);
+}
+
+public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition, IVariableBoolProvider,
+    IBoolValue,IRebindable
+{
+    
     public ScriptableDataBool boolFlag =>scriptableData; // scriptableData;
 
     public override ScriptableDataBool ScriptableData => scriptableData == null ? boolFlag : scriptableData;
@@ -54,4 +61,14 @@ public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, b
     public bool IsValid => Value;
 
 
+    [ShowInPlayMode] private Component source; //單一來源
+    [ShowInPlayMode] private List<Component> overridingTargets = new(); //多個來源
+    public void SetBindingTarget(IRebindable rebindable)
+    {
+        overridingTargets.Add(rebindable as Component);
+    }
+    public void SetBindingSource(IRebindable rebindable)
+    {
+        this.source = rebindable as Component;
+    }
 }

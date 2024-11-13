@@ -252,7 +252,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     [AutoChildren]
     [Component(typeof(AbstractStateTransition), AddComponentAt.Children, "[Transition]")]
-    [InlineEditor()]
+    // [InlineEditor()]
     [PreviewInInspector]
     AbstractStateTransition[] transitions;
 
@@ -318,7 +318,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // // #endif
     // public AbstractStateAction testAction;
 
-    [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")] [AutoChildren(false)] [InlineEditor()]
+    [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")] [AutoChildren(false)] //[InlineEditor()]
     private AbstractStateAction[] actions; //FIXME: 應該要只撈一層，現在不撈有點可怕有人放很深XDD
 
     [ShowInInspector]
