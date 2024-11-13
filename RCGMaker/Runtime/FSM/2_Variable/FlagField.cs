@@ -88,7 +88,7 @@ public class FlagFieldFloat : FlagField<float>
 }
 
 
-
+[Serializable]
 public class ValueChangedListener<T>
 {
     public void Clear()
@@ -99,6 +99,7 @@ public class ValueChangedListener<T>
     }
     private Dictionary<int, System.Tuple<object, UnityAction<T>>> onChangeActionDict;
 
+    [PreviewInInspector]
     private List<int> keys = new List<int>();
     public void OnChange(T value, bool clearAll)
     {
@@ -343,7 +344,9 @@ public class
         CurrentValue = LastValue;
     }
 
+    [ShowInInspector]
     private ValueChangedListener<T> listener = new(); //好像可以把監聽對象丟出來看？
+    [ShowInInspector]
     private ValueChangedListener<T> listenerOnce = new();
     // private ValueChangedListener<object, object, T> listenerDict;
 
@@ -367,14 +370,17 @@ public class
             // }
             // owner = mono;
         }
-
-
+        
         if (listener == null)
         {
             listener = new ValueChangedListener<T>();
         }
 
-        // Debug.Log("FlagField Add Listener",owner);
+        if (owner is Component comp)
+        {
+            comp.Log("FlagField Add Listener",comp);    
+        }
+        
         listener.AddListenerDict(action, owner);
     }
     // public void AddListener(UnityAction<T> action, ScriptableObject owner)
@@ -496,6 +502,8 @@ public class
         listener.Clear();
         listenerOnce.Clear();
         
+        if(_owner is Component comp)
+            comp.Log("FlagField Init",comp);
     }
 
     private Object owner;

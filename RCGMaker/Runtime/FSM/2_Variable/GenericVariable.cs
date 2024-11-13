@@ -323,9 +323,10 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         if (modifiers != null)
             foreach (var modifier in modifiers)
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
-
+        Debug.Log("[Variable] Set" + value+"tempValue:"+tempValue+", Value:"+Value, byWho);
         if (tempValue.Equals(Value)) return;
-        // this.Log("[Variable] Set", value); 
+        byWho.Log("[Variable] Set",value);
+   
         Field.SetCurrentValue(tempValue, byWho);
 
         if (FinalData == null) return;
@@ -394,7 +395,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
             localField.Init(TestMode.EditorDevelopment, this);
         }
         localField.ResetToDefault();
-        // this.Log("[VariableType] After local Reset" + localField.CurrentValue, gameObject);
+        this.Log("[VariableType] After local Reset" , localField.CurrentValue, gameObject);
     }
 
     public void ExitLevelAndDestroy()

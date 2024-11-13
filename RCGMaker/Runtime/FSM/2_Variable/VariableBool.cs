@@ -69,6 +69,7 @@ public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, b
     }
     public void SetBindingSource(IRebindable rebindable)
     {
-        this.source = rebindable as Component;
+        source = rebindable as Component;
+        Debug.Log("SetBindingSource"+source,source);
     }
 }

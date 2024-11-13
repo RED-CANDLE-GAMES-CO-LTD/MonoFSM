@@ -27,16 +27,19 @@ namespace RCGMaker.Core
                 obj.transform.SetParent(level.transform);
             }
 
+            
+            //只做一次awake, start
             PoolManager.HandleGameLevelAwakeReverse(level);
             PoolManager.HandleGameLevelAwake(level);
             PoolManager.HandleGameLevelStartReverse(level);
             PoolManager.HandleGameLevelStart(level);
+            
 
-
-            //
+            //每次重置都要做的, LevelReset, LevelResetAfter?
             PoolManager.LevelResetChildrenPrepareRuntimeData(level);
             //大便！
             PoolManager.HandleEnterLevelReset(level);
+            //FIXME: 再重整一下
             PoolManager.LevelResetStart(level);
             //EnterLevelReset
         }

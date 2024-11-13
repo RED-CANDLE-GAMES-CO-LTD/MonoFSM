@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
-    public class DynamicVariableBinder : AbstractFolder, ILevelResetPrepare,IBinder
+    public class DynamicVariableBinder : AbstractFolder, ILevelResetStart,IBinder
     {
         // VariableFloat[] variableFloats;
         // VariableFloatVirtual[] variableFloatVirtuals;
@@ -36,10 +36,18 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         //     }
         // }
 
-        public void LevelResetPrepareRuntimeData()
+        // public void LevelResetPrepareRuntimeData() //太早了，被清掉了？
+        // {
+        //     // Bind();
+        //     // bind();
+        //     foreach (var entry in entries)
+        //     {
+        //         entry.Bind();
+        //     }
+        // }
+
+        public void LevelResetStart()
         {
-            // Bind();
-            // bind();
             foreach (var entry in entries)
             {
                 entry.Bind();

@@ -1,3 +1,4 @@
+using RCGMaker.Core;
 using UnityEditor;
 using UnityEditor.SettingsManagement;
 using UnityEngine;
@@ -18,7 +19,14 @@ namespace RCGSetting
                 "Enable Debug Mode", 
                 "打開debug mode")]
             public static DebugSetting<bool> IsDebugMode = new("rcg.isDebugMode", false);
-          
+
+            [InitializeOnLoadMethod]
+            static void Init()
+            {
+                //rcgdev
+                //這樣會很貴嗎XDD
+                ScriptingDefineUtility.Add("RCG_DEV", EditorUserBuildSettings.selectedBuildTargetGroup, true);
+            }
             // Shared team settings
             // [UserSetting("Auto-add BlackBox component", "To new Prefabs", 
             //     "Automatically adds a BlackBox component to all newly created Prefabs.")]

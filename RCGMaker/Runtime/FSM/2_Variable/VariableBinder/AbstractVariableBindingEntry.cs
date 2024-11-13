@@ -21,10 +21,12 @@ namespace RCGMaker.Runtime.FSM._2_Variable.VariableBinder
             return this.GetComponentsInBinder<T>();
         }
         
+        [DropDownRef]
         [ValueDropdown(nameof(GetAllVariables))]
         public T WatchSource;
 
-        // [FormerlySerializedAs("boolSource2")] 
+        // [FormerlySerializedAs("boolSource2")]
+        [DropDownRef]
         [ValueDropdown("GetAllVariables")]
         public T dependentVariable;
 
