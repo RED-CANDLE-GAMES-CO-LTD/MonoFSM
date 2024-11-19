@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 // using Mono.CSharp;
 using RCGMaker.Core.Attributes;
 using RCGSetting;
@@ -97,9 +98,10 @@ public class ValueChangedListener<T>
         keys?.Clear();
         toRemove?.Clear();
     }
-    private Dictionary<int, System.Tuple<object, UnityAction<T>>> onChangeActionDict;
-
+    private Dictionary<int, Tuple<Object, UnityAction<T>>> onChangeActionDict;
     [PreviewInInspector]
+    List<Object> ownersInDict=> onChangeActionDict?.Values.Select(x => x.Item1).ToList();
+    // [PreviewInInspector]
     private List<int> keys = new List<int>();
     public void OnChange(T value, bool clearAll)
     {
@@ -137,13 +139,13 @@ public class ValueChangedListener<T>
         if (clearAll)
             onChangeActionDict.Clear();
     }
-    public void AddListenerDict(UnityAction<T> action, object target)
+    public void AddListenerDict(UnityAction<T> action, Object target)
     {
         var tuple = Tuple.Create(target, action);
         var key = tuple.GetHashCode();
 
         if (onChangeActionDict == null)
-            onChangeActionDict = new Dictionary<int, System.Tuple<object, UnityAction<T>>>();
+            onChangeActionDict = new Dictionary<int, Tuple<Object, UnityAction<T>>>();
         if (onChangeActionDict.ContainsKey(key))
         {
             // Debug.Log("Already AddListener" + key);
@@ -412,7 +414,7 @@ public class
         {
             listenerOnce = new ValueChangedListener<T>();
         }
-        listenerOnce.AddListenerDict(action, owner as object);
+        listenerOnce.AddListenerDict(action, owner);
     }
 
     public void RemoveListener(UnityAction<T> action, Object owner)

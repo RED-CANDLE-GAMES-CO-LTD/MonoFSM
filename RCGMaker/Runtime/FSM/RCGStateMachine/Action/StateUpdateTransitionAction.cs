@@ -6,7 +6,7 @@ namespace RCGFSM.Transition
 {
     //UpdateTransitionCheckAction?
     //讓transition下面有condition不就結束了？ 單層condition
-    
+    //FIXME: 被動的？不用action而是監聽的transition?
     //StateEnter, Update的時候，檢查能不能去某個state
     [RequireComponent(typeof(AbstractStateTransition))]
     public class StateUpdateTransitionAction : AbstractStateAction

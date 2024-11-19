@@ -16,7 +16,7 @@ namespace RCGSetting
         {
             public static Settings settings = new Settings("com.rcg.debug", "RCGDebugSetting");
             [UserSetting("User-specific preferences", 
-                "Enable Debug Mode", 
+                "Enable Debug Mode (Ctrl/Cmd + Shift + D)", 
                 "打開debug mode")]
             public static DebugSetting<bool> IsDebugMode = new("rcg.isDebugMode", false);
 

@@ -6,6 +6,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+//fixme: 介面看不太懂，要重新設計一下...
 [Serializable]
 public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 {
