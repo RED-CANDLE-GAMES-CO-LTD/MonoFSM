@@ -17,12 +17,13 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     {
         private void OnValidate()
         {
-            name = "[Condition] FloatValueCondition " + op.ToString();
+            name = "[Condition] " + variableFloat.name + " " + op + " " + targetValue;
         }
 
-        [InlineEditor] [Required] public VariableFloat variableFloat;
-        public float targetValue;
+        [DropDownRef]
+         [Required] public VariableFloat variableFloat;
         public Operator op;
+        public float targetValue;
 
         protected override bool isValid
         {

@@ -20,6 +20,7 @@ namespace RCGMaker.Core
         void MonoBindAwake();
     }
 
+    //接variable就好了？
     //FIXME: 這個是裝在哪裡？ BuffContainer? 如果 _updatables被清掉/關掉 應該不要執行？ 
     //動作遊戲用，照著時間decay
     public class RealtimeUpdateRunner : MonoBehaviour, IUpdateRunner
@@ -42,6 +43,8 @@ namespace RCGMaker.Core
         public StatData LastForSecondsStatData;
         [PreviewInInspector]
         private float _timer;
+        
+        public VariableFloat _timerVariableFloat;
 
         [PreviewInInspector] [AutoChildren()] private IUpdatable[] _updatables;
 
@@ -90,7 +93,7 @@ namespace RCGMaker.Core
                 // _updatable.Stop();
                 // gameObject.SetActive(false);
                 OnStop.Invoke();
-                Debug.Log("RealtimeUpdate Runner Stop");
+                // Debug.Log("RealtimeUpdate Runner Stop");
                 foreach (var updatable in _updatables) updatable.OnStop();
                 //至少先disable就不會有效果了
                 //[]: Pool return..? 應該讓buff module自己return就好

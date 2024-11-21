@@ -23,6 +23,13 @@ public static class StateMachineExtension
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<T>();
     }
+    public static Component[] GetComponentsInBinder(this MonoBehaviour monoBehaviour, Type type) 
+    {
+        var binder = monoBehaviour.GetComponentInParent<IBinder>() as MonoBehaviour;
+        if (binder != null) return binder.GetComponentsInChildren(type);
+        Debug.LogError("IBinder not found", monoBehaviour);
+        return Array.Empty<Component>();
+    }
 }
 
 public interface IBinder

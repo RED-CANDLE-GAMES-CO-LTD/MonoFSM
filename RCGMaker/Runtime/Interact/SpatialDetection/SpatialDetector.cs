@@ -32,7 +32,7 @@ namespace RCGMaker.Core.Detection
         protected abstract void SetLayerOverride();
 
         [PreviewInInspector]
-        List<SpatialDetectable> _detectedObjects = new List<SpatialDetectable>();
+        protected List<SpatialDetectable> _detectedObjects = new List<SpatialDetectable>();
         protected void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
         {
             //理論上不該打到別的東西，layer就擋掉了才對
@@ -50,7 +50,7 @@ namespace RCGMaker.Core.Detection
                     if (!dealer.CanHitReceiver(receiver)) continue;
                     var hitData = receiver.GenerateEffectHitData(dealer, receiver);
                     dealer.OnHitEnter(hitData);
-                    receiver.EffectHitEnter(hitData);
+                    receiver.OnEffectHitEnter(hitData);
                 }
             }
         }
@@ -70,7 +70,7 @@ namespace RCGMaker.Core.Detection
                     if (!dealer.CanHitReceiver(receiver)) continue;
                     var hitData = receiver.GenerateEffectHitData(dealer, receiver);
                     dealer.OnHitExit(hitData);
-                    receiver.OnHitExit(hitData);
+                    receiver.OnEffectHitExit(hitData);
                 }
             }
         }

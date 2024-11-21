@@ -25,9 +25,6 @@ namespace RCGFSM.Animation
             base.Awake();
             _stateNameHash = Animator.StringToHash(StateName);
         }
-
-      
-
         bool IsStateNameProvider()
         {
             return GetComponent<AbstractStringProvider>() != null;

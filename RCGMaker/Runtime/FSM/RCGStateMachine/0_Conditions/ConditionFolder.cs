@@ -5,7 +5,7 @@ namespace RCGMaker.Core
     //把好幾個condition包起來, 只撈一層
     public class ConditionFolder : AbstractConditionComp
     {
-        [Component(typeof(AbstractConditionComp))] [ShowInInspector] [AutoChildren(DepthOneOnly = true)]
+        [Component] [ShowInInspector] [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionComp[] _conditions;
 
         protected override bool isValid

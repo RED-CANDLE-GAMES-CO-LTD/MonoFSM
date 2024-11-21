@@ -27,7 +27,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [HideFromFSMExport]
     [PropertyOrder(1)]
     [TabGroup("Condition", false, 1)]
-    [Component(typeof(AbstractConditionComp), AddComponentAt.Children, "[Condition]")]
+    [Component( AddComponentAt.Children, "[Condition]")]
     [PreviewInInspector]
     // #endif
     [AutoChildren(false, DepthOneOnly = true)] public AbstractConditionComp[] conditions;//condition 成立，才能做事

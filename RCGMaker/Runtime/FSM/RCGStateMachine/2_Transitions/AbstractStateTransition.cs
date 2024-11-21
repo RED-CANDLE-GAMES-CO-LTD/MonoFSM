@@ -31,7 +31,14 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
     {
         return "[Transition]" + target.stateType.name;
     }
-    
+
+    bool TransitionValidationResult()
+    {
+        if (target == parentState as GeneralState)
+            return true;
+        return false;
+    }
+    [InfoBox("Target is self", InfoMessageType.Error, nameof(TransitionValidationResult))]
     [ValueDropdown(nameof(FindStates))]
     [Required]
     [Header("Go To")]
@@ -71,7 +78,7 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
 
     // [AutoParent()] private GeneralState bindingState;
 
-    // [PreviewInInspector]
+    [PreviewInInspector]
     [AutoParent()] private IState<GeneralState> parentState;
     public IState<GeneralState> ParentState => parentState;
     [ShowInInspector] private bool IsSelfTransition => parentState as GeneralState == target;

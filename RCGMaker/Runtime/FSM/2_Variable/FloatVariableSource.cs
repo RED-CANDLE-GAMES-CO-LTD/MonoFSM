@@ -13,6 +13,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     }
 
 
+    //FIXME: 為什麼要從condition下面拿？
     [InlineProperty]
     [Serializable]
     public class FloatValueRef : InterfaceMonoRef<AbstractConditionComp, IFloatValue>, IFloatValue
@@ -34,6 +35,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     [Serializable]
     public class BoolValueSource : InterfaceMonoRef<StateMachineOwner, IBoolValue>, IBoolValue
     {
+        //從StateMachineOwner下面找到所有的IBoolValue
         public bool IsValid => ((IBoolValue)ValueSource).IsValid;
     }
 }

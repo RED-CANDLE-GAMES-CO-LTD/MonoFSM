@@ -59,13 +59,17 @@ public abstract class AbstractConditionComp : MonoBehaviour
 {
     protected virtual bool IsShowRenameButton => nameDescription != "";
 
-    protected virtual string nameDescription => "";
+    protected virtual string nameDescription => this.GetType().Name;
 
     [Button]
     [ShowIf("IsShowRenameButton")]
     private void RenameOfGameObject()
     {
-        gameObject.name = "[Condition] " + nameDescription;
+        
+        var text = "[Condition] " + nameDescription;
+        if(FinalResultInverted)
+            text += " is Inverted";
+        gameObject.name = text;
     }
     
     // public Action OnConditionChanged; //要用這個？還是用polling就好了
@@ -89,8 +93,8 @@ public abstract class AbstractConditionComp : MonoBehaviour
 #if UNITY_EDITOR
 
             //Debug用，暫時強迫覆蓋值 (ex: 裝備可以在路上換)
-            if (debugConditionResultOverrider != null && IsDebugMode)
-                return debugConditionResultOverrider.OverrideResultValue;
+            if (_debugConditionResultOverrider != null && IsDebugMode)
+                return _debugConditionResultOverrider.OverrideResultValue;
 #endif
             //之前都沒有...
             // if (isActiveAndEnabled == false)
@@ -105,14 +109,20 @@ public abstract class AbstractConditionComp : MonoBehaviour
     }
 
     
-    [Component(typeof(DebugConditionResultOverrider), AddComponentAt.Children)] [AutoChildren(false)]
-    private DebugConditionResultOverrider debugConditionResultOverrider;
+    
 
 #if UNITY_EDITOR
     [ShowIf("IsDebugMode")]
+    [PropertyOrder(1)]
+    [TabGroup("Debug")]
+    [Component] [AutoChildren(false)]
+    private DebugConditionResultOverrider _debugConditionResultOverrider;
+    
+    [ShowIf("IsDebugMode")]
     [ShowInInspector]
+    [TabGroup("Debug")]
     public bool OverrideValue =>
-        debugConditionResultOverrider != null && debugConditionResultOverrider.OverrideResultValue;
+        _debugConditionResultOverrider != null && _debugConditionResultOverrider.OverrideResultValue;
 
     private static bool IsDebugMode => DebugSetting.IsDebugMode;
 #endif

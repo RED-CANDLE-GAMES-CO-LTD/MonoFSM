@@ -9,6 +9,7 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
+    //FIXME: 好富雜QQ
     public sealed class VariableStat : VariableFloat
     {
         private float BaseValue => Value;
@@ -52,7 +53,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
         private float CalValueAfterModifier(IReadOnlyList<VariableStatModifier> statModifiers)
         {
-            if (this.statModifiers == null)
+            if (statModifiers == null)
                 return BaseValue;
             var finalValue = BaseValue;
             float sumPercentAdd = 0;
@@ -161,7 +162,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             //check remove from back to front of statModifiers
             for (var i = statModifiers.Count - 1; i >= 0; i--)
             {
-                if (statModifiers[i].Source == (ScriptableObject)source)
+                if (statModifiers[i].Source == source)
                 {
                     statModifiers.RemoveAt(i);
                     isDirty = true;

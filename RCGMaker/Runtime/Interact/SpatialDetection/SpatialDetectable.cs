@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RCGMaker.Core.Detection;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -12,6 +13,10 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         [Component]
         [AutoChildren] GeneralEffectReceiver[] _effectReceivers;
         [ShowInInspector] public GeneralEffectReceiver[] EffectReceivers => _effectReceivers;
-
+[AutoParent] private Collider _collider;
+        public Collider MyCollider => _collider;
+        
+        //DebugOnly
+        private List<SpatialDetector> _detectors;
     }
 }

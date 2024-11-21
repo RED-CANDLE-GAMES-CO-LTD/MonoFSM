@@ -19,15 +19,20 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public IEffectType getEffectType => EffectType;
 
         //FIXME: rename to OnHitEnter
-        public void EffectHitEnter(IEffectHitData data) //這裡是code定義
+        public void OnEffectHitEnter(IEffectHitData data) //這裡是code定義
         {
+            Debug.Log("OnEffectHitEnter", this);
+            _currentHitData = data;
             _enterNode?.OnEffectReceived(data);
         }
+        [PreviewInInspector]
+        IEffectHitData _currentHitData;
 
-        public void OnHitExit(IEffectHitData data)
+        public void OnEffectHitExit(IEffectHitData data)
         {
             Debug.Log("OnHitExit", this);
             _exitNode?.OnEffectReceived(data);
+            _currentHitData = null;
         }
 
         //EffectExit也要呢

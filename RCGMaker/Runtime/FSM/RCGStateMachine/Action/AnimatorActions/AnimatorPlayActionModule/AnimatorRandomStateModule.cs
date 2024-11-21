@@ -12,12 +12,12 @@ namespace RCGFSM.AnimatorControl
 
         private void OnValidate()
         {
-            AssignFromPosition();
+            RandomAssignStateFromPosition();
         }
 
         [InfoBox("Assign state name from position hash code")]
         [Button]
-        private void AssignFromPosition()
+        private void RandomAssignStateFromPosition()
         {
 #if UNITY_EDITOR
             var names = animatorPlayAction.GetAnimatorStateNames();
@@ -35,7 +35,7 @@ namespace RCGFSM.AnimatorControl
 
         public void OnBeforeSceneSave()
         {
-            AssignFromPosition();
+            RandomAssignStateFromPosition();
         }
 
     }

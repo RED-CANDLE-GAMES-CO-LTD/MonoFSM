@@ -29,8 +29,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 3336918741496563562}
+  m_Children: []
   m_Father: {fileID: 873855735939457434}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3416425071146600925
@@ -139,64 +138,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showCurrentState: 0
---- !u!1 &3638264936722190330
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3336918741496563562}
-  - component: {fileID: 4082528371998490396}
-  m_Layer: 0
-  m_Name: '[Bool] isDone'
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3336918741496563562
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3638264936722190330}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 199713319535136511}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4082528371998490396
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3638264936722190330}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0c0febcd3eb0a243b407df35c92898b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  description: 
-  typeScriptable: {fileID: 0}
-  VariableSource: {fileID: 0}
-  consumers: []
-  localField:
-    ProductionValue: 0
-    DevValue: 0
-    _isShowDebugLog: 0
-  scriptableData: {fileID: 0}
-  OnValueChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  mainData: {fileID: 0}
-  fieldOfMainData: 
 --- !u!1 &3801494400675193616
 GameObject:
   m_ObjectHideFlags: 0

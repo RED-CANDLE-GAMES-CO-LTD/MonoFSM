@@ -251,7 +251,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // }
 
     [AutoChildren]
-    [Component(typeof(AbstractStateTransition), AddComponentAt.Children, "[Transition]")]
+    [Component( AddComponentAt.Children, "[Transition]")]
     // [InlineEditor()]
     [PreviewInInspector]
     AbstractStateTransition[] transitions;
@@ -298,7 +298,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     //     return t;
     // }
 #if UNITY_EDITOR
-    [Button("Add Delay Node")]
+    // [Button("Add Delay Node")]
+    //FIXME: 很危險，可能因為切state delay還沒結束結果沒有觸發
     public void AddDelayNode()
     {
         gameObject.AddChildrenComponent<DelayActionModifier>("[Delay Node]");
@@ -317,11 +318,12 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // [Component(typeof(AbstractStateAction), "[Action]")]
     // // #endif
     // public AbstractStateAction testAction;
+    
+    //NOTE: 只撈一層
+    [Component(AddComponentAt.Children, "[Action]")] [AutoChildren(DepthOneOnly = true)] //[InlineEditor()]
+    private AbstractStateAction[] actions;
 
-    [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")] [AutoChildren(false)] //[InlineEditor()]
-    private AbstractStateAction[] actions; //FIXME: 應該要只撈一層，現在不撈有點可怕有人放很深XDD
-
-    [ShowInInspector]
+    // [ShowInInspector]
     public AbstractStateAction[] Actions => actions;
     // #if UNITY_EDITOR
     //     [Component(typeof(AbstractStateAction), "[Action]")]

@@ -52,15 +52,17 @@ public interface IEffectDealer
     // void OnHitStay(IEffectHitData data);
     // void OnHitExit(IEffectHitData data);
     // IEffectType getEffectType { get; }
+    Transform transform { get; }
     bool CanHitReceiver(IEffectReceiver receiver);
     float FinalValue { get; }
 }
 
 public interface IEffectReceiver
 {
-    void EffectHitEnter(IEffectHitData data);
+    Transform transform { get; }
+    void OnEffectHitEnter(IEffectHitData data);
     // void OnHitStay(IEffectHitData data);
-    void OnHitExit(IEffectHitData data);
+    void OnEffectHitExit(IEffectHitData data);
 }
 
 namespace RCGMaker.Core

@@ -10,8 +10,9 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         }
         //FIXME: 好像可以再簡化喔
         
+        [Required]
         [DropDownRef]
-        [ValueDropdown(nameof(GetBoolVariables))]
+        // [ValueDropdown(nameof(GetBoolVariables))]
         public VariableBool variableBool;
         public bool targetValue = true;
         protected override bool isValid => variableBool.Value == targetValue;

@@ -2,12 +2,12 @@ using RCGMaker.Core.Attributes;
 using UnityEngine;
 
 //DElayNode?
-//TODO: 什麼時候需要這個？
+//FIXME: 很危險，可能因為切state delay還沒結束結果沒有觸發
 public class DelayActionModifier : MonoBehaviour
 {
     public float delayTime = 1;
 
-    [Component(typeof(AbstractStateAction), AddComponentAt.Children, "[Action]")] [PreviewInInspector] [AutoChildren]
+    [Component( AddComponentAt.Children, "[Action]")] [PreviewInInspector] [AutoChildren]
     AbstractStateAction[] actions;
     // private void AddAction()
     // {

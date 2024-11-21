@@ -14,11 +14,11 @@ namespace RCGMaker.Core
     /// <typeparam name="TParent"></typeparam>
     /// <typeparam name="TInterface"></typeparam>
     [Serializable]
-    public abstract class InterfaceMonoRef<TParent, TInterface> : IName
+    public abstract class InterfaceMonoRef<TParent, TInterface> : IName //從parent下面找到所有的TInterface
         where TParent : MonoBehaviour
     {
         [SerializeField]
-        [DropDownRef]
+        [DropDownRef] //fixme 好像不行耶..還是要在這裡做
         [ValueDropdown(nameof(GetComps), NumberOfItemsBeforeEnablingSearch = 3)]
         [HideLabel]
         protected MonoBehaviour ValueSource;

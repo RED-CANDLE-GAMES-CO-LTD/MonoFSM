@@ -463,8 +463,8 @@ public abstract class AbstractVariable : MonoBehaviour, IGuidEntity, IName
     public string description;
 #endif
 
-    [HideInInlineEditors] [Header("Flag Setting")]
-    public FlagTypeScriptable typeScriptable;
+    // [HideInInlineEditors] [Header("Flag Setting")]
+    // public FlagTypeScriptable typeScriptable;
     protected virtual void Awake()
     {
     }

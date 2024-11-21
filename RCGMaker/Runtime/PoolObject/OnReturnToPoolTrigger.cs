@@ -4,7 +4,8 @@ using UnityEngine.Events;
 
 namespace RCGMaker.Runtime
 {
-    public class OnReturnToPoolAction : MonoBehaviour, IPoolObject
+    //FIXME: 什麼時候會用到？
+    public class OnReturnToPoolTrigger : MonoBehaviour, IPoolObject
     {
         public void EnterLevelReset()
         {

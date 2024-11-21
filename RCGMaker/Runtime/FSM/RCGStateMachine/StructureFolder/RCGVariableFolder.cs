@@ -12,7 +12,7 @@ public abstract class AbstractFolder : MonoBehaviour, IOverrideHierarchyIcon
 
 public class RCGVariableFolder : AbstractFolder
 {
-    [ReadOnly] [Component(typeof(AbstractVariable), AddComponentAt.Children, "[Variable]")]
+    [ReadOnly] [Component( AddComponentAt.Children, "[Variable]")]
     public AbstractVariable flag;
 
     // [Component(typeof(AbstractFlag), "[Variable]")]
