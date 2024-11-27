@@ -48,7 +48,9 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public Color BackgroundColor => HierarchyResource.CurrentStateColor;
     public bool IsFullRect => false;
     public string DrawCustomIcon => "";
-
+    public float StateDuration;
+    [DropDownRef]
+     public GeneralState NextState;
     public bool IsDrawGUIHierarchyBackground =>
         Application.isPlaying && context && context.currentStateType == stateType;
     // [HideInInspector] [Required] public new GeneralState stateType => this;
@@ -379,5 +381,14 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         }
     }
 
-   
+
+    public void SimulationUpdate(float passedDuration)
+    {
+        statusTimer += passedDuration;
+        //FIXME: animator 播到
+        foreach (var action in actions)
+        {
+            action.SimulationUpdate(passedDuration);
+        }
+    }
 }

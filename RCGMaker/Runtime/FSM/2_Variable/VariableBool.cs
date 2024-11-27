@@ -35,11 +35,11 @@ public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, b
     [ShowInPlayMode]
     public bool FlagValue
     {
-        get => Value;
+        get => CurrentValue;
         set
         {
             //FIXME: setter不該從這裡來？
-            if (scriptableData && value != Value) //值有改才送事件
+            if (scriptableData && value != CurrentValue) //值有改才送事件
             {
                 // Debug.Log("Variable Bool Changed " + ScriptableData.name);
                 //[]: 灌tracker...   
@@ -58,7 +58,7 @@ public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, b
 
     private readonly Value _trackValue = new();
 
-    public bool IsValid => Value;
+    public bool IsValid => CurrentValue;
 
 
     [ShowInPlayMode] private Component source; //單一來源

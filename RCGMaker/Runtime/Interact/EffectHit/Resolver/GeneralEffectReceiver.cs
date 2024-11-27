@@ -21,7 +21,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         //FIXME: rename to OnHitEnter
         public void OnEffectHitEnter(IEffectHitData data) //這裡是code定義
         {
-            Debug.Log("OnEffectHitEnter", this);
+            this.Log("OnEffectHitEnter");
             _currentHitData = data;
             _enterNode?.OnEffectReceived(data);
         }
@@ -30,7 +30,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         public void OnEffectHitExit(IEffectHitData data)
         {
-            Debug.Log("OnHitExit", this);
+            this.Log("OnHitExit");
             _exitNode?.OnEffectReceived(data);
             _currentHitData = null;
         }

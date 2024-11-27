@@ -25,7 +25,7 @@ using Sirenix.OdinInspector;
 
         private void Update() //FIXME: 先暴力polling判斷
         {
-            if(Mathf.Approximately(variableNode.Value,EqualValue))
+            if(Mathf.Approximately(variableNode.CurrentValue,EqualValue))
                 TransitionCheck(delay);
         }
     }

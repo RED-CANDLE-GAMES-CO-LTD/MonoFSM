@@ -24,7 +24,10 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 {
     //想要直接選一個field就拿他的值，應該抽出去做成一個新東西不要放在GenericVariable裡面
     //VariableFloat應該獨立寫？這樣就一定可以有一個最好的abstract class
-    
+    public override void CommitValue()
+    {
+        Field.CommitValue();
+    }
     
     protected virtual void OnValidate()
     {
@@ -242,10 +245,11 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     [AutoChildren(false)] private AbstractVariableModifier<TType>[] modifiers;
 //會有external modifier...
 
-    [TabGroup("Data"), PreviewInInspector] public virtual TType FinalValue => Value;
+    [TabGroup("Data"), PreviewInInspector] public virtual TType FinalValue => CurrentValue;
+    [TabGroup("Data"), PreviewInInspector] public virtual TType LastValue => Field.LastValue; //FIXME: 這裡沒有過到modifier
     
     [ShowInPlayMode]
-    public TType Value
+    public TType CurrentValue //FIXME: 
     {
         get
         {
@@ -255,7 +259,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
             if (VariableSource != null)
             {
                 var v = VariableSource as GenericVariable<TScriptableData, TField, TType>;
-                tempValue = v.Value;
+                tempValue = v.CurrentValue;
             }
             else if (ScriptableData != null)
             {
@@ -264,10 +268,12 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
             Profiler.EndSample();
             Profiler.BeginSample("AfterGetValueModifyCheck");
+            //FIXME: 這個是不是有點貴？有需要在這層做嗎？應該在set時就做掉了？不需要ㄅ
             if (modifiers != null)
                 foreach (var modifier in modifiers)
                     tempValue = modifier.AfterGetValueModifyCheck(tempValue);
             Profiler.EndSample();
+            // this.Log("[Variable] Get", tempValue);
             return tempValue;
         }
 
@@ -314,6 +320,8 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
     // private MonoBehaviour lastValueSetter;
 
+    
+    
     public void SetValue(TType value, MonoBehaviour byWho = null)
     {
         // lastValueSetter = byWho;
@@ -323,8 +331,8 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         if (modifiers != null)
             foreach (var modifier in modifiers)
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
-        Debug.Log("[Variable] Set" + value+"tempValue:"+tempValue+", Value:"+Value, byWho);
-        if (tempValue.Equals(Value)) return;
+        Debug.Log("[Variable] Set" + value+"tempValue:"+tempValue+", Value:"+CurrentValue, byWho);
+        if (tempValue.Equals(CurrentValue)) return;
         byWho.Log("[Variable] Set",value);
    
         Field.SetCurrentValue(tempValue, byWho);
@@ -455,6 +463,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
 public abstract class AbstractVariable : MonoBehaviour, IGuidEntity, IName
 {
+    public abstract void CommitValue();
     public abstract GameFlagBase FinalData { get; }
     public abstract Type FinalDataType { get; }
 

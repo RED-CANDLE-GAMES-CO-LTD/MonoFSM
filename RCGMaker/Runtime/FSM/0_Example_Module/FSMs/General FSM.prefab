@@ -325,6 +325,8 @@ MonoBehaviour:
   stateType: {fileID: 4920970186908325163}
   statusTimer: 0
   StateCoolDown: 0
+  StateDuration: 0
+  NextState: {fileID: 0}
   EnterTimeOffset: 0
   CanSelfTransition: 0
 --- !u!1 &5003566578831232648
@@ -375,6 +377,8 @@ MonoBehaviour:
   stateType: {fileID: 4377014297404095105}
   statusTimer: 0
   StateCoolDown: 0
+  StateDuration: 0
+  NextState: {fileID: 0}
   EnterTimeOffset: 0
   CanSelfTransition: 0
 --- !u!1 &5103236229753245273

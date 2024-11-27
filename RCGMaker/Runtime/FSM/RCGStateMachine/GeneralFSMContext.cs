@@ -19,14 +19,6 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
 {
 #if UNITY_EDITOR
 
-    // [Button("Open Graph")]
-    // void OpenGraph()
-    // {
-
-    // }
-
-    //draw when not selected
-
 
     private void OnDrawGizmos()
     {
@@ -86,10 +78,39 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
         // EditorWindow.GetWindow(System.Type.GetType("FSMGraphEditorWindow"));
     }
 #endif
+    
 
+    //FIXME: 被culling掉的東西一打開要functional 空降狀態
+    public void SimulationUpdate()
+    {
+        // StateMachineTimeStamp += deltaTime;
+        var passedDuration = Time.time - fsm.LastActiveTime;
+        while (passedDuration > 0)
+        {
+            
+            var currentStateDurationLeft = fsm.State.StateDuration - fsm.State.statusTimer;
+            
+            if(passedDuration > currentStateDurationLeft)
+            {
+                if(fsm.State.NextState == null)
+                {
+                    //沒有下一個state，結束
+                    break;
+                }
+                passedDuration -= currentStateDurationLeft; //扣掉這個state所還要花的時間
+                fsm.ChangeState(fsm.State.NextState);
+            }
+            else
+            {
+                fsm.State.SimulationUpdate(passedDuration);
+                break;
+            }
+        }
+    }
     public void PauseFSM()
     {
         fsm.Pause();
+        
         foreach (var state in states)
         {
             state.Pause();

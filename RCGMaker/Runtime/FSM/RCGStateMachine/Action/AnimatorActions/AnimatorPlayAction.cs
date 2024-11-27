@@ -30,6 +30,12 @@ namespace RCGFSM.Animation
             return GetComponent<AbstractStringProvider>() != null;
         }
 
+        public override void SimulationUpdate(float passedDuration)
+        {
+            animator.playbackTime = passedDuration;
+            
+        }
+
         //FIXME: 不能直接往下找？要從IFSMOwner下面往下找之類的？
         IEnumerable<Animator> GetAnimatorsInChildren()
         {
@@ -547,7 +553,7 @@ namespace RCGFSM.Animation
             set
             {
                 _hasAnimationPlaySuccess = value;
-                this.Log("HasAnimationPlaySuccess:", value);
+                // this.Log("HasAnimationPlaySuccess:", value);
             }
         }
 

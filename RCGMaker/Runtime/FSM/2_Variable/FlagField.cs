@@ -345,6 +345,11 @@ public class
     {
         CurrentValue = LastValue;
     }
+    
+    public void CommitValue() //state update之後，要commit
+    {
+        _lastValue = CurrentValue;
+    }
 
     [ShowInInspector]
     private ValueChangedListener<T> listener = new(); //好像可以把監聽對象丟出來看？
@@ -499,7 +504,7 @@ public class
             TestMode.Build => ProductionValue,
             _ => _currentValue
         };
-        
+        _lastValue = _currentValue;
         lastMode = mode;
         listener.Clear();
         listenerOnce.Clear();

@@ -20,10 +20,21 @@ public class RCGVariableFolder : AbstractFolder
     // {
     //     //按完就沒我的事了??
     // }
+    
+    public void CommitVariableValues()
+    {
+        // var variables = GetComponentsInChildren<AbstractVariable>(true);
+        foreach (var variable in variables)
+        {
+            variable.CommitValue();
+        }
+    }
+    
+    [AutoChildren] AbstractVariable[] variables;
 
     private void OnValidate()
     {
-        var variables = GetComponentsInChildren<AbstractVariable>(true);
+        variables = GetComponentsInChildren<AbstractVariable>(true);
         foreach (var variable in variables) variable.transform.localPosition = Vector3.zero;
     }
 #if UNITY_EDITOR

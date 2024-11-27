@@ -81,7 +81,8 @@ namespace RCGMaker.Core
 
         [AutoChildren] [PreviewInInspector] protected TState[] states;
         public TState[] States => states;
-
+       
+        
         public void OnBeforeSceneSave()
         {
             var badMonos = gameObject.GetComponents<StateMachineRunner>();

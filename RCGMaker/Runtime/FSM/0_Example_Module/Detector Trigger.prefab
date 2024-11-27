@@ -335,7 +335,7 @@ GameObject:
   - component: {fileID: 3492560789353915584}
   - component: {fileID: 6897908958605213675}
   m_Layer: 0
-  m_Name: Trigger Collider
+  m_Name: Detector Trigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

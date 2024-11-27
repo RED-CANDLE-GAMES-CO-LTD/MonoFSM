@@ -15,7 +15,8 @@ public class VariableBoolTransition : AbstractStateTransition
         return "[Transition] =>" + Target.name + " when " + variableNode.name + " is " + TargetValue;
     }
 
-    [Header("When")] [PropertyOrder(-1)] [Required]
+    [Header("When")] [PropertyOrder(-1)]
+    [DropDownRef]
     public VariableBool variableNode;
 
 

@@ -8,6 +8,8 @@ public enum Operator //FIXME: equality operator
     NotEqual, // !=
     GreaterThan, // >
     LessThan, // <
+    GreaterThanOrEqual, // >=
+    LessThanOrEqual // <=
     
 }
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
@@ -15,13 +17,9 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
    
     public class VariableFloatValueCondition : AbstractConditionComp
     {
-        private void OnValidate()
-        {
-            name = "[Condition] " + variableFloat.name + " " + op + " " + targetValue;
-        }
+        protected override string nameDescription => name = "[Condition] " + variableFloat.name + " " + op + " " + targetValue;
 
-        [DropDownRef]
-         [Required] public VariableFloat variableFloat;
+        [DropDownRef] public VariableFloat variableFloat;
         public Operator op;
         public float targetValue;
 
@@ -38,13 +36,17 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
                 switch (op)
                 {
                     case Operator.Equals:
-                        return variableFloat.Value == targetValue;
+                        return variableFloat.CurrentValue == targetValue;
                     case Operator.NotEqual:
-                        return variableFloat.Value != targetValue;
+                        return variableFloat.CurrentValue != targetValue;
                     case Operator.GreaterThan:
-                        return variableFloat.Value > targetValue;
+                        return variableFloat.CurrentValue > targetValue;
                     case Operator.LessThan:
-                        return variableFloat.Value < targetValue;
+                        return variableFloat.CurrentValue < targetValue;
+                    case Operator.GreaterThanOrEqual:
+                        return variableFloat.CurrentValue >= targetValue;
+                    case Operator.LessThanOrEqual:
+                        return variableFloat.CurrentValue <= targetValue;
                 }
 
                 return false;

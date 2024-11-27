@@ -15,7 +15,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
         [SerializeField] VariableFloat OperandVariable;
 
-        private float OperandValue => OperandVariable == null ? anotherValue : OperandVariable.Value;
+        private float OperandValue => OperandVariable == null ? anotherValue : OperandVariable.CurrentValue;
 
         public float ApplyOperation(float value)
         {

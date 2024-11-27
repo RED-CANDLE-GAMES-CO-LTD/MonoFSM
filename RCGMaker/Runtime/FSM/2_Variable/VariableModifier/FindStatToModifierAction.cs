@@ -22,7 +22,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             _foundStatOwner = GetComponentInParent<VariableStatOwner>();
             if (_foundStatOwner == null)
             {
-                Debug.LogError("No VariableStatOwner found in parent of " + gameObject.name);
+                Debug.LogError("No VariableStatOwner found in parent of " + gameObject.name,this);
                 return;
             }
             var variableStats = _foundStatOwner.VariableStats;

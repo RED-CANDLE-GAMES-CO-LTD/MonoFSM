@@ -1,8 +1,8 @@
 using System;
 using Sirenix.OdinInspector;
 
-[IncludeMyAttributes]
-[Required]
+// [IncludeMyAttributes]
+// [Required]
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class DropDownRefAttribute : Attribute
 {

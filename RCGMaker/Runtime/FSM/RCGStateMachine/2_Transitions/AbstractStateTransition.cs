@@ -155,7 +155,7 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
         //任何東西都是iState吧？不用分了
         if (parentState != null) //走any，直接過
         {
-            this.Log("[Transition] AnyState GoTo:", target.stateType, gameObject);
+            this.Log("[Transition] GoTo:", target.stateType, gameObject);
             if (target.stateType.gameObject.activeSelf == false)
             {
                 this.Log("[Transition] Fail ChangeState target inactive" + target.stateType, gameObject);

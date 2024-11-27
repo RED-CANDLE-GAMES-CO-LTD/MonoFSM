@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Profiling;
 using Object = System.Object;
@@ -87,6 +88,7 @@ namespace RCGMaker.Core
             for (var i = stateMachineList.Count - 1; i >= 0; i--)
             {
                 var fsm = stateMachineList[i];
+                fsm.SetLastActiveTime(Time.time);
                 //暫停不跑
                 if (fsm.isPaused) continue;
                 if (!fsm.IsInTransition && fsm.Component.enabled)
@@ -116,7 +118,13 @@ namespace RCGMaker.Core
                     // fsm.CurrentStateMap.LateUpdate();
                 }
             }
+            
+            //late update 之後才能更新
+            owner.VariableFolder.CommitVariableValues();
         }
+        
+        [PreviewInInspector]
+        [AutoParent] StateMachineOwner owner;
 
         //void OnCollisionEnter(Collision collision)
         //{

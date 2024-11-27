@@ -37,7 +37,7 @@ public class VariableFloatBoundModifier : MonoBehaviour, IVariableFloatSetOperat
     //這會不會很麻煩每次都要設定？
 
     [SerializeField] VariableFloat MaxVar; //好像應該用繼承的
-    [ShowInInspector] private float MaxValue => MaxVar != null ? MaxVar.Value : max;
+    [ShowInInspector] private float MaxValue => MaxVar != null ? MaxVar.CurrentValue : max;
 
 
     public UnityEvent OnMin;

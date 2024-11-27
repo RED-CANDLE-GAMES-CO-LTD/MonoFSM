@@ -15,7 +15,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
         public VariableFloat variableFloat;
 
-        public override float FinalValue => variableFloat ? variableFloat.Value : 0; //用接過來的變數
+        public override float FinalValue => variableFloat ? variableFloat.CurrentValue : 0; //用接過來的變數
 
         // [PreviewInInspector] [Auto] private AbstractVariableModifier<float> modifier;
 

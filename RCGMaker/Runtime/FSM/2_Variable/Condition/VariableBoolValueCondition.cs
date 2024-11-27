@@ -15,6 +15,6 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         // [ValueDropdown(nameof(GetBoolVariables))]
         public VariableBool variableBool;
         public bool targetValue = true;
-        protected override bool isValid => variableBool.Value == targetValue;
+        protected override bool isValid => variableBool.CurrentValue == targetValue;
     }
 }

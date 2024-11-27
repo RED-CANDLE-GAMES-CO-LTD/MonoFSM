@@ -133,4 +133,9 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     {
         OnStateEnterImplement();
     }
+
+    public virtual void SimulationUpdate(float passedDuration)
+    {
+        
+    }
 }

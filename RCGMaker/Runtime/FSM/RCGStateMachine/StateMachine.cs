@@ -26,16 +26,19 @@ namespace RCGMaker.Core
         bool IsInTransition { get; }
         bool isPaused { get; }
         void ClearReferences();
+        void SetLastActiveTime(float time);
+        float LastActiveTime { get; }
     }
 
     public class StateMachine<T> : IStateMachine where T : class //這個弄死了
     {
         public event Action<T> Changed;
-        public bool isPaused
+        public bool isPaused => _isPaused;
+        public float LastActiveTime { get; private set; }
+        public void SetLastActiveTime(float time)
         {
-            get { return _isPaused; }
+            LastActiveTime = time;
         }
-
         public void ClearReferences()
         {
             //這個最重要, state裡面有事件，要清掉
@@ -192,6 +195,7 @@ namespace RCGMaker.Core
                             //     stateBehavior.ResolveProxy().stateEvents.StateCollisionEnterEvent.Invoke(c);
 
                         };
+                       
 
                     }
 

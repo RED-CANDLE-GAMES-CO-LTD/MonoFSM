@@ -148,6 +148,8 @@ MonoBehaviour:
   stateType: {fileID: 1927410326933375534}
   statusTimer: 0
   StateCoolDown: 0
+  StateDuration: 0
+  NextState: {fileID: 0}
   EnterTimeOffset: 0
   CanSelfTransition: 0
 --- !u!1 &7046282247528300502

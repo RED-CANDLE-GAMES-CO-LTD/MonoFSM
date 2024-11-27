@@ -12,7 +12,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     //FIXME: 好富雜QQ
     public sealed class VariableStat : VariableFloat
     {
-        private float BaseValue => Value;
+        private float BaseValue => CurrentValue;
         private bool isDirty = true;
         private float lastBaseValue;
         private float _value;
@@ -129,7 +129,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             {
                 isDirty = true;
                 statModifiers.Add(mod);
-                var value = Value; //modifier改變，更新一下值
+                var value = CurrentValue; //modifier改變，更新一下值
                 // Debug.Log("Character Stat Add Modifier" + mod.Value + mod.Type + ",result:" + value);
             }
             else
@@ -143,7 +143,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             if (statModifiers.Remove(mod))
             {
                 isDirty = true;
-                var value = Value; //modifier改變，更新一下值
+                var value = CurrentValue; //modifier改變，更新一下值
                 return true;
             }
 

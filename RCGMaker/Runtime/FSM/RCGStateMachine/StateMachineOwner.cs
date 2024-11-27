@@ -62,21 +62,26 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
 
     public Animator ChildAnimator => GetComponentInChildren<Animator>();
     public Animator[] ChildAnimators => GetComponentsInChildren<Animator>();
-
+    //1. 關卡重置
     public void EnterLevelReset() //舊的九日code, enter levelReset
     {
-         ResetFSM(); //應該要選一邊？之後砍掉這裏？還是這邊不call，九日還是跑下面的？
+        //太早了
+        // ResetFSM(); //應該要選一邊？之後砍掉這裏？還是這邊不call，九日還是跑下面的？
     }
 
     public void ExitLevelAndDestroy() //舊的九日code, enter levelReset
     {
        
     }
+    
+   
+    //2. 關卡重置後開始
 
     void ILevelResetStart.LevelResetStart()
     {
         //不能有兩個進入點喔
-       // ResetFSM(); //最新規, levelReset之後
+       ResetFSM(); //最新規, levelReset之後, 
+       
     }
 
     [Button]
@@ -85,5 +90,9 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
 
     }
     
+    [PreviewInInspector]
+    [AutoChildren]
+    RCGVariableFolder variableFolder;
+    public RCGVariableFolder VariableFolder => variableFolder;
     
 }

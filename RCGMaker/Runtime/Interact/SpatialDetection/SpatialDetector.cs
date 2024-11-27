@@ -42,6 +42,7 @@ namespace RCGMaker.Core.Detection
                 return;
             }
             _detectedObjects.Add(effectCollider);
+            Debug.Log("OnSpatialEnter dealers:"+dealers.Length+" receivers:"+effectCollider.EffectReceivers.Length, this);
             //FIXME: 用update撈起來等等再判？
             foreach (var dealer in dealers)
             {

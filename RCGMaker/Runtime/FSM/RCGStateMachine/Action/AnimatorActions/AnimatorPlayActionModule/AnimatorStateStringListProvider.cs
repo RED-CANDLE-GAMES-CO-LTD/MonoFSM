@@ -16,11 +16,11 @@ public class AnimatorStateStringListProvider : AbstractStringProvider
     public VariableInt currentIndex;
 
     public override string StringValue =>
-        currentIndex.Value < 0 || currentIndex.Value >= list.Count ? "" : list[currentIndex.Value];
+        currentIndex.CurrentValue < 0 || currentIndex.CurrentValue >= list.Count ? "" : list[currentIndex.CurrentValue];
 
-    public int StateHashValue => currentIndex.Value < 0 || currentIndex.Value >= hashList.Count
+    public int StateHashValue => currentIndex.CurrentValue < 0 || currentIndex.CurrentValue >= hashList.Count
         ? 0
-        : hashList[currentIndex.Value];
+        : hashList[currentIndex.CurrentValue];
 
     private void Awake()
     {
@@ -33,7 +33,7 @@ public class AnimatorStateStringListProvider : AbstractStringProvider
 
     int stateLayer => 0;
 
-    public bool HasCurrentAnimation => currentIndex.Value >= 0 && currentIndex.Value < list.Count;
+    public bool HasCurrentAnimation => currentIndex.CurrentValue >= 0 && currentIndex.CurrentValue < list.Count;
 
     //FIXME: 底下內容duplicate code
 #if UNITY_EDITOR

@@ -12,16 +12,16 @@ namespace RCGFSM.Variable
             switch (Arithmetic)
             {
                 case ArithmeticOperator.Add:
-                    target.SetValue(target.Value + Value, this);
+                    target.SetValue(target.CurrentValue + Value, this);
                     break;
                 case ArithmeticOperator.Sub:
-                    target.SetValue(target.Value - Value, this);
+                    target.SetValue(target.CurrentValue - Value, this);
                     break;
                 case ArithmeticOperator.Mul:
-                    target.SetValue(target.Value * Value, this);
+                    target.SetValue(target.CurrentValue * Value, this);
                     break;
                 case ArithmeticOperator.Div:
-                    target.SetValue(target.Value / Value, this);
+                    target.SetValue(target.CurrentValue / Value, this);
                     break;
             }
         }

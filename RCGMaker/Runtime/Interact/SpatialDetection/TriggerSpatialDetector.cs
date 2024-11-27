@@ -16,7 +16,7 @@ namespace RCGMaker.Core.Detection
         
         private void OnTriggerEnter(Collider other)
         {
-            Debug.Log("OnTriggerEnter");
+            this.Log("OnTriggerEnter",this);
             // ReliableOnTriggerExit.NotifyTriggerEnter(other, gameObject, OnTriggerExit);
             OnSpatialEnter(other.gameObject);
         }
@@ -24,12 +24,12 @@ namespace RCGMaker.Core.Detection
         List<SpatialDetectable> toRemove = new List<SpatialDetectable>();
         private void OnDisable()
         {
-            Debug.Log("OnDisable of detector",this);
+            // Debug.Log("OnDisable of detector",this);
             //copy _detectedObjects to toRemove
             toRemove.AddRange(_detectedObjects);
             foreach (var detectable in toRemove)
             {
-                Debug.Log("OnDisable of detectable",detectable);
+                // Debug.Log("OnDisable of detectable",detectable);
                 OnTriggerExit(detectable.MyCollider);
             }
             toRemove.Clear();
