@@ -29,6 +29,7 @@ public interface IPoolObjectPlayer
     IFXPlayerOwner Owner { get; }
 }
 
+[DisallowMultipleComponent]
 public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 {
     // public MonoReferenceCache _monoReferenceCache; //要是prefab asset才需要
@@ -305,21 +306,23 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
         this.Log("[PoolObjectResetAndStart]", gameObject);
 
-        for (var i = 0; i < IResetterList.Count; i++)
-        {
-            try
-            {
-                // Debug.Log("Resetting:" + IPoolObjectList[i]);
-                //FIXME: 不喜歡這個
-                IResetterList[i].EnterLevelReset();
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("gameObject:" + gameObject + " reset failed");
-                Debug.LogError(e.Message, gameObject);
-                Debug.LogError(e.StackTrace, gameObject);
-            }
-        }
+        // for (var i = 0; i < IResetterList.Count; i++)
+        // {
+        //     try
+        //     {
+        //         // Debug.Log("Resetting:" + IPoolObjectList[i]);
+        //         //FIXME: 不喜歡這個
+        //         IResetterList[i].EnterLevelReset();
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         Debug.LogError("gameObject:" + gameObject + " reset failed");
+        //         Debug.LogError(e.Message, gameObject);
+        //         Debug.LogError(e.StackTrace, gameObject);
+        //     }
+        // }
+        //FIXME: 效能
+        PoolManager.Instance.ResetFromRoot(gameObject);
 
         foreach (var iBorrowOnEnable in IPoolBorrowedList)
         {

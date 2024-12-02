@@ -21,6 +21,10 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         public float FinalValue => ((IFloatValue)ValueSource).FinalValue;
     }
 
+    public interface IIntValue
+    {
+        int FinalValue { get; }
+    }
     public interface IFloatValue
     {
         float FinalValue { get; }

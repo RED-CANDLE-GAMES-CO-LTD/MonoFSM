@@ -11,7 +11,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         public void OnEffectReceived(IEffectHitData data)
         {
-            Debug.Log(" EffectEnterNode OnEffectReceived", this);
+            // Debug.Log(" EffectEnterNode OnEffectReceived", this);
             foreach (var processor in _effectReceivedProcessor)
             {
                 processor.EventReceived(data);

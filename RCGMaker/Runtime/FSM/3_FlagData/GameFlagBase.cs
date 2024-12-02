@@ -371,7 +371,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
         }
         
         //FIXME: 沒有完全解決，放多個路徑和共用同個型別要限制資料夾還是蠻頭大的
-        this.AssetInFolderValidate(new string[] { GameStateAttribute.GameStateFolderPath, "17_PlayerPrefFlag" },
+        this.AssetInFolderValidate(new string[] { StaticDataAttribute.GameStateFolderPath, "17_PlayerPrefFlag" },
             result);
 #endif
     }
@@ -382,7 +382,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
     private void MoveAssetToFolder()
     {
 #if UNITY_EDITOR
-        var targetPath = "Assets/" + GameStateAttribute.GameStateFolderPath + "/" + name + ".asset";
+        var targetPath = "Assets/" + StaticDataAttribute.GameStateFolderPath + "/" + name + ".asset";
         Debug.Log("MoveAssetToFolder: targetPath:" + targetPath);
         var result = AssetDatabase.MoveAsset(AssetDatabase.GetAssetPath(this),
             targetPath);

@@ -29,7 +29,7 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
 
     protected virtual string GetNameByBehaviour()
     {
-        return "[Transition]" + target.stateType.name;
+        return "[Transition] =>" + target.stateType.name.Replace("[State]", "");
     }
 
     bool TransitionValidationResult()

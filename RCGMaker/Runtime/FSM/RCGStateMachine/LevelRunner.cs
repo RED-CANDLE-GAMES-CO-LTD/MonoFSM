@@ -5,24 +5,30 @@ using UnityEngine.SceneManagement;
 namespace RCGMaker.Core
 {
     [DefaultExecutionOrder(10000)]
-    public class LevelRunner : SingletonBehaviour<LevelRunner>
+    public class LevelRunner : MonoBehaviour
     {
         //FIXME: 
         [MenuItem("RCG/ResetLevel %R")]
         public static void TestResetLevel()
         {
-            Debug.Log("ResetLevel CMD+Shift+R");
-            Instance.ResetLevel();
+
+            if (Application.isPlaying)
+            {
+                Debug.Log("ResetLevel CMD+Shift+R");
+                FindObjectOfType<LevelRunner>().ResetLevel();
+            }
+            else
+            {
+                #if UNITY_EDITOR
+                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+                #endif
+            }
+                
         }
         
         public void ResetLevel()
         {
-            //每次重置都要做的, LevelReset, LevelResetAfter?
-            PoolManager.LevelResetChildrenPrepareRuntimeData(level);
-            //大便！
-            PoolManager.HandleEnterLevelReset(level);
-            //FIXME: 再重整一下
-            PoolManager.LevelResetStart(level);
+            PoolManager.Instance.ResetFromRoot(level);
         }
         
         // [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -36,6 +42,7 @@ namespace RCGMaker.Core
         private GameObject level;
         void Start()
         {
+            Application.targetFrameRate = 60;
             // Debug.Log("OnSceneLoaded" + arg0.name);
             var arg0 = gameObject.scene;
             // var level = new GameObject("Level");
@@ -46,6 +53,8 @@ namespace RCGMaker.Core
             {
                 obj.transform.SetParent(level.transform);
             }
+            
+            //FIXME: 這個導致不好debug...
 
             
             //只做一次awake, start
@@ -53,14 +62,10 @@ namespace RCGMaker.Core
             PoolManager.HandleGameLevelAwake(level);
             PoolManager.HandleGameLevelStartReverse(level);
             PoolManager.HandleGameLevelStart(level);
-            
 
+            Debug.Log("LevelRunner Start");
             //每次重置都要做的, LevelReset, LevelResetAfter?
-            PoolManager.LevelResetChildrenPrepareRuntimeData(level);
-            //大便！
-            PoolManager.HandleEnterLevelReset(level);
-            //FIXME: 再重整一下
-            PoolManager.LevelResetStart(level);
+            PoolManager.Instance.ResetFromRoot(level);
             //EnterLevelReset
         }
     }

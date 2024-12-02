@@ -72,6 +72,17 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
 
     }
+    
+    public void ResetFromRoot(GameObject root)
+    {
+        //每次重置都要做的, LevelReset, LevelResetAfter?
+        LevelResetChildrenPrepareRuntimeData(root);
+        //大便！
+        HandleEnterLevelReset(root);
+        //FIXME: 再重整一下
+        LevelResetStart(root);
+    }
+
 
     public static void LevelResetChildrenPrepareRuntimeData(GameObject gObj)
     {
@@ -460,11 +471,20 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public List<RCGAssetReference> allLoadedRCGRefereces = new List<RCGAssetReference>();
 
+    public T BorrowOrInstantiate<T>(T obj, Transform parent)  where T : MonoBehaviour
+    {
+        return BorrowOrInstantiate(obj, Vector3.zero, Quaternion.identity, parent);
+    }
     public T BorrowOrInstantiate<T>(T obj, Vector3 position = default, Quaternion rotation = default,
         Transform parent = null, Action<PoolObject> handler = null) where T : MonoBehaviour
     {
-        var poolObj = obj.GetComponent<PoolObject>();
-        if (poolObj != null)
+        if (obj == null)
+        {
+            Debug.LogError("BorrowOrInstantiate: obj is null");
+            return null;
+        }
+        
+        if (obj.TryGetComponent<PoolObject>(out var poolObj))
         {
             return Borrow(poolObj, position, rotation, parent, handler).GetComponent<T>();
         }
@@ -478,6 +498,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     private PoolObject Borrow(PoolObject prefab, Vector3 position, Quaternion rotation, Transform parent = null,
         Action<PoolObject> handler = null)
     {
+        //FIXME: 這很糟
         if (IsReady == false) Debug.LogError("太早跟pool拿東西了，危險。" + prefab, prefab);
 
 

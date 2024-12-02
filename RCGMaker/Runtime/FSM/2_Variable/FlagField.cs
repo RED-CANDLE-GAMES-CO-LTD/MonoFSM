@@ -540,6 +540,7 @@ public class
 
 
         //[]: 有singleton就不用lastMode了吧
+        //FIXME: 這個整個都住解掉了？
         // if (lastMode != TestMode.Undefined)
         // {
         //     // Debug.Log("FlagField: ResetToDefault" + lastMode);

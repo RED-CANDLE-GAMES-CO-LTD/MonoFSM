@@ -6,6 +6,8 @@ using mixpanel;
 using RCGMaker.AddressableAssets;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.FSM._2_Variable;
+using RCGMaker.Runtime.Item_BuildSystem;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -42,6 +44,20 @@ public interface IToggleable
     bool UnEquipCheck();
     bool EquipCheck(bool force = false);
 }
+public interface IMonoDescriptableCollection:IValueOfKey<MonoDescriptableTag>
+{
+    public IList<IMonoDescriptable> MonoDescriptableList { get; }
+    // public MonoDescriptableTag Tag { get; }
+}
+public interface IMonoDescriptable:IValueOfKey<MonoDescriptableTag>
+{
+    public IDescriptable Descriptable { get; }
+    public MonoDescriptableTag Tag { get; }
+    // public IFloatValue GetFloatValue(VariableTypeTag tag);
+    // public VariableBool GetBoolValue(VariableTypeTag tag);
+    // public VariableString GetStringValue(VariableTypeTag tag);
+    // public VariableInt GetIntValue(VariableTypeTag tag);
+}
 public interface IDescriptable
 {
     string Title { get; }
@@ -54,12 +70,14 @@ public interface IDescriptable
     string ItemType { get; }
     void LoadAndSetIconForImage(Image image, Color loadedColor = default);
     void LoadAndSetSpriteForImage(Image image, Color loadedColor = default);
+    Func<IDescriptable, object> GetPropertyCache(string knownFieldName);
 }
 
-// public class GameDataModifier{
-//     
-// }
-//TODO: IDescriptable??
+public interface IItem:IDescriptable
+{
+     public int SlotStackCount { get; }
+}
+//Static資料，描述一個/種 東西的性質
 [CreateAssetMenu(fileName = "Descriptable", menuName = "ScriptableObjects/Descriptable", order = 1)]
 [Searchable]
 public class GameFlagDescriptable : GameFlagBase, IDescriptable
@@ -76,9 +94,9 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
         SpriteRef?.Release();
     }
     
-    public Dictionary<string, Func<GameFlagDescriptable, object>> propertyCache = new();
+    public Dictionary<string, Func<IDescriptable, object>> propertyCache = new();
 
-    public Func<GameFlagDescriptable, object> GetPropertyCache(
+    public Func<IDescriptable, object> GetPropertyCache(
         string propertyName)
     {
         if (propertyCache.TryGetValue(propertyName, out var info))
@@ -106,7 +124,7 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
             return null;
         }
 
-        Func<GameFlagDescriptable, object>
+        Func<IDescriptable, object>
             _getMyProperty = (source) => getMethod.Invoke(source, null);
         propertyCache[propertyName] = _getMyProperty;
         return _getMyProperty;

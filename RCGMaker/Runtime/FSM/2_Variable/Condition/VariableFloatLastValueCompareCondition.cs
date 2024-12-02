@@ -10,7 +10,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         [DropDownRef] public VariableFloat variableFloat;
         public Operator op;
 
-        protected override string nameDescription => name = "[Condition] " + variableFloat.name + " LastValue " + op +" CurrentValue";
+        protected override string nameDescription => variableFloat ? name = "[Condition] " + variableFloat.name + " LastValue " + op +" CurrentValue": "[Condition] VariableFloatLastValueCompareCondition";
 
         protected override bool isValid
         {

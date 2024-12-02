@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
@@ -7,17 +8,21 @@ using UnityEngine;
 namespace RCGMaker.Core
 {
     
-    public abstract class MonoDict<T, U> : MonoBehaviour, IResetter
+    public abstract class MonoDict<T, TU> : MonoBehaviour, IResetter where TU:IValueOfKey<T>
     {
+        [PreviewInInspector]
+        [AutoChildren] TU[] collections;
+
+
         //現在是一個runtime dict...有點爛
-        public U this[T key]
+        public TU this[T key]
         {
             get => _dict.GetValueOrDefault(key);
             set => _dict[key] = value;
         }
         // [ShowInInspector] protected IEnumerable<U> values => _dict.Values;
         // [ShowInInspector] private List<U> items = new();
-        protected readonly Dictionary<T, U> _dict = new();
+        protected readonly Dictionary<T, TU> _dict = new();
         protected readonly List<T> _tempRemoveList = new();
         public bool Contains(T key)
         {
@@ -26,7 +31,7 @@ namespace RCGMaker.Core
             return _dict.ContainsKey(key);
         }
 
-        public virtual void Add(T key, U value)
+        public virtual void Add(T key, TU value)
         {
             if (Contains(key))
                 return;
@@ -36,7 +41,7 @@ namespace RCGMaker.Core
             enabled = true;
         }
 
-        public U Get(T key)
+        public TU Get(T key)
         {
             if (Contains(key))
                 return _dict[key];
@@ -87,18 +92,28 @@ namespace RCGMaker.Core
             _dict.Clear();
         }
 
-        protected abstract void RemoveImplement(U item);
+        protected abstract void RemoveImplement(TU item); //FIXME:為什麼需要這個？
 
         [ShowInInspector] public List<T> GetKeys => new(_dict.Keys);
 
         public void EnterLevelReset()
         {
             Clear();
+            foreach (var item in collections)
+            {
+                Add(item.Key, item);
+                Debug.Log($"Add key:{item.Key} item:{item}",this);
+            }
             enabled = false;
         }
 
         public void ExitLevelAndDestroy()
         {
         }
+    }
+
+    public interface IValueOfKey<out T>
+    {
+        T Key { get; }
     }
 }

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 199713319535136511}
   - component: {fileID: 3416425071146600925}
   m_Layer: 0
-  m_Name: '-[Variables]'
+  m_Name: Variables
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,7 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d801bf8312e64aceb0942c2b6044bc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  flag: {fileID: 0}
 --- !u!1 &567332959712725146
 GameObject:
   m_ObjectHideFlags: 0
@@ -88,7 +87,7 @@ GameObject:
   - component: {fileID: 2515565139588792572}
   - component: {fileID: 1071399646294290836}
   m_Layer: 0
-  m_Name: '-[States] '
+  m_Name: States
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -181,6 +180,8 @@ GameObject:
   - component: {fileID: 5304227081144621557}
   - component: {fileID: 1771431505930983433}
   - component: {fileID: 2743387876306523999}
+  - component: {fileID: 3443555521515398386}
+  - component: {fileID: 2859008457434227153}
   m_Layer: 0
   m_Name: General FSM
   m_TagString: Untagged
@@ -245,6 +246,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   quickFindLinks: []
+--- !u!114 &3443555521515398386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4082089536309548135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bf7bf97a6cac4c51abbcbf3da26769a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IsLogInChildren: 1
+  IsBreak: 0
+  IsBreakWhenStateChange: 0
+  logEntries: []
+--- !u!114 &2859008457434227153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4082089536309548135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 820e8c21347c142ff8a0eb972b926007, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  favorites:
+  - comp: {fileID: 0}
+    note: 
 --- !u!1 &4619145615866190664
 GameObject:
   m_ObjectHideFlags: 0

@@ -711,7 +711,8 @@ namespace RCGFSM.Animation
         [HideIf(nameof(NoDoneEventTransition))]
         [TabGroup("Animator")]
         [PreviewInInspector]
-        [Auto(false)] AbstractStateTransition doneEventTransition;
+        [Component]
+        [AutoChildren] AbstractStateTransition doneEventTransition;
 
         private IRCGArgEventReceiver _ircgArgEventReceiverImplementation;
 
@@ -723,7 +724,7 @@ namespace RCGFSM.Animation
         void CreateEventReceiver()
         {
             // doneEventTransition = gameObject.AddChildrenComponent<AbstractStateTransition>("[Transition] Anim Done");
-            doneEventTransition = this.TryGetCompOrAdd<AbstractStateTransition>();
+            doneEventTransition = this.AddChildrenComponent<AbstractStateTransition>("[Transition] Anim Done");
             // doneEventTransition = gameObject.AddComponent<AbstractStateTransition>();
         }
 
@@ -806,8 +807,8 @@ namespace RCGFSM.Animation
             var context = _fsmOwner.FsmContext;
             if (context.LastState != context.startState)
             {
-                this.Log("Not InitAndAutoSkipToLastFrame", context.LastState, ",",
-                    context.startState);
+                // this.Log("Not InitAndAutoSkipToLastFrame", context.LastState, ",",
+                //     context.startState);
                 return false;
             }
 

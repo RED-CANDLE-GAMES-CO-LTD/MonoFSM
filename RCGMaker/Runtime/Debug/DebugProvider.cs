@@ -5,15 +5,30 @@ using System.Diagnostics;
 using RCGMaker.Core.Attributes;
 using RCGSetting;
 using Sirenix.OdinInspector;
+using UnityEditor;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 #endif
 using UnityEngine;
+using vHierarchy.RCGExtension;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
-public class DebugProvider : MonoBehaviour, IOverrideHierarchyIcon, IEditorOnly //往上找
+public class DebugProvider : MonoBehaviour, IEditorOnly,IOverrideHierarchyIcon //往上找
 {
+    
+    #if UNITY_EDITOR
+    [MenuItem("RCGMaker/Debug/Toggle DebugProvider %#_L")]
+    public static void ToggleDebugProvider()
+    {
+        var debugProvider = Selection.activeGameObject.TryGetCompOrAdd<DebugProvider>();
+        if (debugProvider)
+        {
+            debugProvider.IsLogInChildren = !debugProvider.IsLogInChildren;
+        }
+        EditorApplication.RepaintHierarchyWindow();
+    }
+    #endif
     public void Awake()
     {
 #if UNITY_EDITOR

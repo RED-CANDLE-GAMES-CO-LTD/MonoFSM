@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.Interact.EffectHit;
 using RCGMaker.Runtime.Interact.SpatialDetection;
 using UnityEngine;
@@ -10,9 +11,6 @@ namespace RCGMaker.Core.Detection
     public class TriggerSpatialDetector : SpatialDetector
     {
         [Auto] private Collider _collider;
-
-
-        [AutoChildren] GeneralEffectDealer[] _effectDealers;
         
         private void OnTriggerEnter(Collider other)
         {

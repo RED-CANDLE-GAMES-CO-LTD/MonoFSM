@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.FSM._2_Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -16,17 +17,53 @@ public class CustomSerializableAttribute : PropertyAttribute
 
 public static class StateMachineExtension
 {
+    public static T FindVariableOfBinder<T>(this MonoBehaviour monoBehaviour, VariableTag type) where T : class
+    {
+        return monoBehaviour.GetComponentInParent<StateMachineOwner>().VariableFolder.GetVariable(type) as T;
+        // return GetComponentOfSibling<StateMachineOwner, RCGVariableFolder>(monoBehaviour).GetVariable(type);
+    }
+    public static T GetComponentOfSibling<TParent, T>(this MonoBehaviour monoBehaviour) 
+    {
+        var binder = monoBehaviour.GetComponentInParent<TParent>() as MonoBehaviour;
+        if (binder != null) return binder.GetComponentInChildren<T>(true);
+        Debug.LogError("IBinder not found", monoBehaviour);
+        return default;
+    }
+    
+    public static IList<T> GetComponentsOfSibling<TParent, T>(this MonoBehaviour monoBehaviour) 
+    {
+        var binder = monoBehaviour.GetComponentInParent<TParent>() as MonoBehaviour;
+        if (binder != null) return binder.GetComponentsInChildren<T>(true);
+        Debug.LogError("IBinder not found", monoBehaviour);
+        return Array.Empty<T>();
+    }
+    public static IList<Component> GetComponentsOfSibling<TParent>(this MonoBehaviour monoBehaviour,Type type) 
+    {
+        var binder = monoBehaviour.GetComponentInParent<TParent>() as MonoBehaviour;
+        if (binder != null) return binder.GetComponentsInChildren(type,true);
+        Debug.LogError("IBinder not found", monoBehaviour);
+        return Array.Empty<Component>();
+    }
+    
+    public static T GetComponentInBinder<T>(this MonoBehaviour monoBehaviour) 
+    {
+        var binder = monoBehaviour.GetComponentInParent<IBinder>(true) as MonoBehaviour;
+        if (binder != null) return binder.GetComponentInChildren<T>(true);
+        Debug.LogError("IBinder not found", monoBehaviour);
+        return default;
+    }
+    
     public static T[] GetComponentsInBinder<T>(this MonoBehaviour monoBehaviour) 
     {
-        var binder = monoBehaviour.GetComponentInParent<IBinder>() as MonoBehaviour;
-        if (binder != null) return binder.GetComponentsInChildren<T>();
+        var binder = monoBehaviour.GetComponentInParent<IBinder>(true) as MonoBehaviour;
+        if (binder != null) return binder.GetComponentsInChildren<T>(true);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<T>();
     }
     public static Component[] GetComponentsInBinder(this MonoBehaviour monoBehaviour, Type type) 
     {
-        var binder = monoBehaviour.GetComponentInParent<IBinder>() as MonoBehaviour;
-        if (binder != null) return binder.GetComponentsInChildren(type);
+        var binder = monoBehaviour.GetComponentInParent<IBinder>(true) as MonoBehaviour;
+        if (binder != null) return binder.GetComponentsInChildren(type,true);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<Component>();
     }
@@ -39,6 +76,7 @@ public interface IBinder
 public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable,IBinder
 {
 
+    
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext[] fsmContexts;
     public GeneralFSMContext FsmContext =>

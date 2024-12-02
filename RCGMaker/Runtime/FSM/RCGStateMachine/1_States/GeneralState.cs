@@ -11,6 +11,7 @@ using UnityEditor;
 #endif
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using vHierarchy.RCGExtension;
 
 public interface INodeModel
 {
@@ -230,6 +231,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
             toState.EnterTimeOffset = timeOffset;
             //每個地方都要call這個有點煩
             context.SetLastTransition(fromTransition);
+            
             fsm.ChangeState(toState, CanSelfTransition);
 
             return true;

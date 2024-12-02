@@ -21,8 +21,10 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
         }
     }
 
+    [PreviewInInspector]
     [AutoParent()] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true);
 
+    [HideInInlineEditors]
     // #if UNITY_EDITOR
     [HideFromFSMExport]
     [PropertyOrder(1)]
@@ -33,10 +35,11 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [AutoChildren(false, DepthOneOnly = true)] public AbstractConditionComp[] conditions;//condition 成立，才能做事
 //FIXME: public應該拿掉
 
+[HideInInlineEditors]
     [Button]
     private void Rename()
     {
-        gameObject.name = "[Action]" + GetType().Name.Split("Action")[0] + renamePostfix;
+        gameObject.name = "[Action] " + GetType().Name.Split("Action")[0] + renamePostfix;
     }
 
     protected virtual string renamePostfix => "";
@@ -131,7 +134,14 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
 
     public virtual void EventReceived<T>(T arg)
     {
-        OnStateEnterImplement();
+        if (this is IRCGArgEventReceiver<T> receiver)
+        {
+            Debug.Log("AbstractStateAction.EventReceived"+receiver, this);
+            Debug.Log("AbstractStateAction.EventReceived arg"+arg, this);
+            receiver.EventReceived(arg);
+        }
+        else
+            OnStateEnterImplement();
     }
 
     public virtual void SimulationUpdate(float passedDuration)

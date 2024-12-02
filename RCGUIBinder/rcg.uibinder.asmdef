@@ -1,0 +1,23 @@
+{
+    "name": "RCGUIBinder",
+    "rootNamespace": "",
+    "references": [
+        "GUID:0a57e0bc8f6cb4e7d8b89973bc84e5da",
+        "GUID:f2f860dd0c0594e9d880d20baa7b20c3",
+        "GUID:c2f440c9fef6c8c40ac5c50eea18c599",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:9e24947de15b9834991c9d8411ea37cf",
+        "GUID:54086bae1d3354103a8d7a0ca0950ca9",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:84651a3751eca9349aac36a66bba901b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

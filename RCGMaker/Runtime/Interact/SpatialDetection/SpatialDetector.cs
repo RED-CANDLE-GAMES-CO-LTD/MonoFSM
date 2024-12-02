@@ -11,7 +11,7 @@ namespace RCGMaker.Core.Detection
     [DisallowMultipleComponent]
     public abstract class SpatialDetector : MonoBehaviour, IDefaultSerializable
     {
-        [ShowInInspector] [AutoChildren] private GeneralEffectDealer[] dealers;
+        [PreviewInInspector] [AutoChildren] private GeneralEffectDealer[] dealers;
 
         //GameObject必定要在Detector的layer
         [FormerlySerializedAs("hittingLayer")]
@@ -35,14 +35,14 @@ namespace RCGMaker.Core.Detection
         protected List<SpatialDetectable> _detectedObjects = new List<SpatialDetectable>();
         protected void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
         {
-            //理論上不該打到別的東西，layer就擋掉了才對
+            //理論上不該打到別的東西，layer就擋掉了才對 (有分layer的話)
             if (!other.TryGetComponent<SpatialDetectable>(out var effectCollider))
             {
-                Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer, this);
+                // Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer, other);
                 return;
             }
             _detectedObjects.Add(effectCollider);
-            Debug.Log("OnSpatialEnter dealers:"+dealers.Length+" receivers:"+effectCollider.EffectReceivers.Length, this);
+            // Debug.Log("OnSpatialEnter dealers:"+dealers.Length+" receivers:"+effectCollider.EffectReceivers.Length, this);
             //FIXME: 用update撈起來等等再判？
             foreach (var dealer in dealers)
             {
@@ -60,7 +60,7 @@ namespace RCGMaker.Core.Detection
         {
             if (!other.TryGetComponent<SpatialDetectable>(out var effectCollider))
             {
-                Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer);
+                // Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer);
                 return;
             }
             _detectedObjects.Remove(effectCollider);

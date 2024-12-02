@@ -45,6 +45,7 @@ namespace RCGSetting
                 
                 RCGDebugSetting.IsDebugMode.SetValue(!RCGDebugSetting.IsDebugMode.value);
                 Debug.Log("ToggleDebugMode: "+RCGDebugSetting.IsDebugMode.value);
+                EditorApplication.RepaintHierarchyWindow();
             }
 
             [SettingsProvider]

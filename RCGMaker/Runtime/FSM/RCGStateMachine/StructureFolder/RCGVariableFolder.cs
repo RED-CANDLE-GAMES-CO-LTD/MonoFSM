@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.FSM._2_Variable;
 using UnityEngine;
 using Sirenix.OdinInspector;
 
-public abstract class AbstractFolder : MonoBehaviour, IOverrideHierarchyIcon
+public abstract class AbstractFolder : MonoBehaviour
 {
     public string IconName => "Folder Icon";
     public bool IsDrawingIcon => true;
@@ -12,14 +14,22 @@ public abstract class AbstractFolder : MonoBehaviour, IOverrideHierarchyIcon
 
 public class RCGVariableFolder : AbstractFolder
 {
-    [ReadOnly] [Component( AddComponentAt.Children, "[Variable]")]
-    public AbstractVariable flag;
+    // [ReadOnly] [Component( AddComponentAt.Children, "[Variable]")]
+    // public AbstractVariable flag;
 
     // [Component(typeof(AbstractFlag), "[Variable]")]
     // void AddComponent()
     // {
     //     //按完就沒我的事了??
     // }
+    private void Awake()
+    {
+        varDict = GetVariableDict();
+    }
+    public AbstractVariable GetVariable(VariableTag type)
+    {
+        return varDict.GetValueOrDefault(type);
+    }
     
     public void CommitVariableValues()
     {
@@ -29,14 +39,29 @@ public class RCGVariableFolder : AbstractFolder
             variable.CommitValue();
         }
     }
-    
-    [AutoChildren] AbstractVariable[] variables;
 
-    private void OnValidate()
+    private Dictionary<VariableTag, AbstractVariable> varDict = new();
+    Dictionary<VariableTag, AbstractVariable> GetVariableDict()
     {
-        variables = GetComponentsInChildren<AbstractVariable>(true);
-        foreach (var variable in variables) variable.transform.localPosition = Vector3.zero;
+        var dict = new Dictionary<VariableTag, AbstractVariable>();
+        foreach (var variable in variables)
+        {
+            if(variable.varTag == null) continue;
+                dict[variable.varTag] = variable;
+        }
+        return dict;
     }
+
+  
+
+    // [PreviewInInspector]
+    [Component] [AutoChildren] private AbstractVariable[] variables = Array.Empty<AbstractVariable>();
+
+    // private void OnValidate()
+    // {
+    //     variables = GetComponentsInChildren<AbstractVariable>(true);
+    //     foreach (var variable in variables) variable.transform.localPosition = Vector3.zero;
+    // }
 #if UNITY_EDITOR
 
 

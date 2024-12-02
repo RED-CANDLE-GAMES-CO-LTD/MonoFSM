@@ -10,16 +10,16 @@ namespace RCGMaker.Core.Attributes
     [IncludeMyAttributes]
     [InlineEditor()]
     [EditorOnly]
-    public class GameStateAttribute : Attribute
+    public class StaticDataAttribute : Attribute //好像不算state耶...StaticData?
     {
         public static string GameStateFolderPath = "10_Flags"; //TODO: 弄成一個config
 
-        public GameStateAttribute()
+        public StaticDataAttribute()
         {
         }
 
         //FlagFolderPath + SubFolderName + sceneName+Position + flagName
-        public GameStateAttribute(string subFolderName)
+        public StaticDataAttribute(string subFolderName)
         {
             this.SubFolderName = subFolderName;
             // this.FlagName = flagName;

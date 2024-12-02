@@ -12,6 +12,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         [PropertyOrder(-1)]
         public FloatValueSource ValueSource;
 
+        [PreviewInInspector]
+        [AutoParent] IBinder _binder;
         
         public bool CanHitReceiver(IEffectReceiver receiver)
         {

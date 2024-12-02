@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using mixpanel;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.FSM._2_Variable;
 using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
@@ -13,11 +14,12 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Profiling;
+using UnityEngine.Serialization;
 
 //現在根本還沒做監聽，是用condition做polling
 [Searchable]
 public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator,
-    IGameStateOwner, IDefaultSerializable
+    IGameStateOwner, IDefaultSerializable,ILevelResetPrepare
     where TScriptableData : AbstractScriptableData<TField, TType>
     where TField : FlagField<TType>, new()
     where TType : IEquatable<TType>
@@ -195,7 +197,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     // [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
     [TabGroup("Data")]
     [Header("存檔")]
-    [GameState]
+    [StaticData]
     [InlineEditor()]
     [EnableIf(nameof(PrefabKindMatchTagCheck))]
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, "IsGameStateSaveIDNotMatch")]
@@ -391,6 +393,10 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     //     base.Awake();
     //     
     // }
+    
+    //為了讀檔後才能設定？reset又要重置參數...
+    
+    
 
     void IResetter.EnterLevelReset()
     {
@@ -449,6 +455,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
             yield return field;
     }
     public override Type FinalDataType => typeof(TScriptableData);
+    public override object objectValue => CurrentValue;
 
     public string Serialize()
     {
@@ -459,13 +466,22 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     {
         throw new NotImplementedException();
     }
+
+    public void LevelResetPrepareRuntimeData()
+    {
+        localField.Init(TestMode.EditorDevelopment, this);
+    }
+    
 }
 
 public abstract class AbstractVariable : MonoBehaviour, IGuidEntity, IName
 {
+    [PropertyOrder(-1)]
+    [SOConfig("VariableType")] public VariableTag varTag;
     public abstract void CommitValue();
-    public abstract GameFlagBase FinalData { get; }
+    public abstract GameFlagBase FinalData { get; } //這是啥？
     public abstract Type FinalDataType { get; }
+    public abstract object objectValue { get; }
 
 #if UNITY_EDITOR
     [Header("GameState 功能說明")] [TextArea(1, 4)]

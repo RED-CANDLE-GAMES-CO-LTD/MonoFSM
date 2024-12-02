@@ -3,11 +3,12 @@ using UnityEditor;
 #endif
 using RCGMaker.Core.Attributes;
 using UnityEngine;
+using vHierarchy.RCGExtension;
 
 
-#if UNITY_EDITOR
-[CanEditMultipleObjects]
-#endif
+// #if UNITY_EDITOR
+// [Multipl]
+// #endif
 public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround, IEditorOnly
 {
 #if UNITY_EDITOR

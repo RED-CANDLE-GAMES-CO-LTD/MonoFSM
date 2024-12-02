@@ -13,20 +13,25 @@ namespace RCGFSM.Variable
 
     public class VariableFloatArithmeticAction : AbstractStateAction, IRCGArgEventReceiver<IEffectHitData>
     {
-        // [SerializeField] private Component testIFloatValue;
+        //兩種情境，一種是從dealer來，一種是固定值觸發
         
         [DropDownRef]
         [SerializeField] private VariableFloat targetFlag;
         [SerializeField] private ArithmeticOperator Arithmetic;
         public float Value;
-
+        public bool IsConstantValue;
+        
         public void EventReceived(IEffectHitData arg) //FIXME: runtime value source? 狀態接著？
         {
-            var value = arg.Dealer.FinalValue;
-            UpdateValue(value);
+            if(IsConstantValue)
+                DoOperation(Value);
+            else
+            {
+                DoOperation(arg.Dealer.FinalValue);
+            }
         }
 
-        private void UpdateValue(float value)
+        private void DoOperation(float value)
         {
             switch (Arithmetic)
             {
@@ -52,7 +57,7 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
-            UpdateValue(Value);
+            DoOperation(Value);
         }
     }
 }
