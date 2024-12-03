@@ -158,7 +158,7 @@ namespace RCGMaker.Core
                 //不是自動生的
                 var gameStateSo =
                     CreateScriptableObject(type,
-                            StaticDataAttribute.GetFullPath(refObj.gameObject, subFolderName)) as
+                            GameStateAttribute.GetFullPath(refObj.gameObject, subFolderName)) as
                         GameFlagBase;
                 if (gameStateSo == null)
                 {
@@ -170,8 +170,8 @@ namespace RCGMaker.Core
             }
             else
             {
-                var folderRelativePath = StaticDataAttribute.GetRelativePath(refObj.gameObject, subFolderName, true);
-                var fileName = StaticDataAttribute.GetFileName(refObj.gameObject) + autoGenGameState.MyGuid +
+                var folderRelativePath = GameStateAttribute.GetRelativePath(refObj.gameObject, subFolderName, true);
+                var fileName = GameStateAttribute.GetFileName(refObj.gameObject) + autoGenGameState.MyGuid +
                                ".asset";
                 var gameStateSo =
                     CreateScriptableObject(type, folderRelativePath + "/" + fileName) as GameFlagBase;

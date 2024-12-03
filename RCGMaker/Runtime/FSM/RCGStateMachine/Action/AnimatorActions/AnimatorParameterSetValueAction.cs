@@ -7,6 +7,7 @@ namespace RCGFSM.Animation
 {
     public class AnimatorParameterSetValueAction : AbstractStateAction
     {
+        public bool IsUpdateSet = false;
         public Animator animator;
 
         [ValueDropdown(nameof(GetParameterNames))]
@@ -26,6 +27,12 @@ namespace RCGFSM.Animation
         protected override void OnStateEnterImplement()
         {
             animator.SetBool(ParameterName, value);
+        }
+
+        protected override void OnStateUpdateImplement()
+        {
+            if(IsUpdateSet)
+                animator.SetBool(ParameterName, value);
         }
     }
 }

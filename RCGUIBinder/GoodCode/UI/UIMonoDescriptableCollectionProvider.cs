@@ -8,14 +8,21 @@ using UnityEngine.Serialization;
 
 namespace RCGUIBinder
 {
+    
+    //Scriptable 內包含陣列
+    //ex: requireItems Entry.Item(Descriptable), Entry.Count(int)
+    
     //對應背包的slots
     //甚至更多
     
     //給UI用的，要把主角身上的資料綁過來
     public class UIMonoDescriptableCollectionProvider:MonoBehaviour,ILevelResetStart
     {
+        [SOConfig("DescriptableTag")]
         public MonoDescriptableTag tag;
-        //FIXME: 什麼時候DI過來？用type? 用拉的？ 某種type? binding, Solver
+        
+        
+        //FIXME:同步數量，instantiate prefab?
         // [AutoChildren]
         // MonoDescriptableProvider[] _descriptableProviders;
         [PreviewInInspector]

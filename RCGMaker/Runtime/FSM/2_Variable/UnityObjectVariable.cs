@@ -4,6 +4,7 @@ using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.ResourceManagement.Util;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
@@ -16,6 +17,8 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         public abstract Object RawValue { get; set; }
         public abstract void ClearValue();
     }
+    
+    //FIXME: 這個好像不好...
     public class GenericUnityObjectVariable<T>:AbstractReferenceVariable,ILevelResetStart where T:Object
     {
         // protected virtual IEnumerable<Type> filter()
@@ -46,7 +49,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         // public T Value => _currentValue;
         [PreviewInInspector]
         [InlineEditor]
-        private T _currentValue;
+        private T _currentValue; //要用ObjectField? 這樣才統一？
         [PreviewInInspector]
         private T _lastValue;
 
@@ -57,6 +60,11 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             _lastValue = _currentValue;
             if(_currentValue != null)
                 _lastNonNullValue = _currentValue;
+        }
+
+        public override void SetValue(object value, MonoBehaviour byWho = null)
+        {
+            _currentValue = value as T;
         }
 
         public override void ClearValue()
@@ -79,18 +87,21 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     //variable
     //Monobehaviour 包著一個變數
     //需要Generic嗎...好像算了
-    public class UnityObjectVariable:GenericUnityObjectVariable<Component>
+    public class UnityObjectVariable : GenericUnityObjectVariable<Component>
     {
         IEnumerable<Component> _filter()
         {
-            return this.GetComponentsOfSibling<LevelRunner>(type);
-        }
-        
-        [ValueDropdown(nameof(_filter))]
-        [SerializeField]
-        private Component DefaultValue;
 
-        [TypeDrawerSettings(BaseType = typeof(Component)),ShowInInspector]
-        public Type type;
+            return this.GetComponentsOfSibling<LevelRunner>(serializedType.GetType());
+        }
+
+        // [ValueDropdown(nameof(_filter))]
+        // [SerializeField]
+        // private Component DefaultValue;
+
+        [TypeDrawerSettings(BaseType = typeof(Component)), ShowInInspector]
+        public Type type; //FIXME: 要用string 回推 type?
+
+        public SerializedType serializedType;
     }
 }

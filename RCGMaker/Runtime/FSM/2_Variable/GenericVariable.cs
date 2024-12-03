@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using mixpanel;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
@@ -30,7 +31,12 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     {
         Field.CommitValue();
     }
-    
+
+    public override void SetValue(object value, MonoBehaviour byWho = null)
+    {
+        SetValue((TType) value, byWho);
+    }
+
     protected virtual void OnValidate()
     {
 #if UNITY_EDITOR
@@ -197,7 +203,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     // [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
     [TabGroup("Data")]
     [Header("存檔")]
-    [StaticData]
+    [GameState]
     [InlineEditor()]
     [EnableIf(nameof(PrefabKindMatchTagCheck))]
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, "IsGameStateSaveIDNotMatch")]
@@ -322,8 +328,9 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
     // private MonoBehaviour lastValueSetter;
 
-    
-    
+     HashSet<MonoBehaviour> byWhoHashSet = new();
+    [PreviewInInspector]
+    public List<MonoBehaviour> byWhoList => byWhoHashSet.ToList();
     public void SetValue(TType value, MonoBehaviour byWho = null)
     {
         // lastValueSetter = byWho;
@@ -336,6 +343,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         Debug.Log("[Variable] Set" + value+"tempValue:"+tempValue+", Value:"+CurrentValue, byWho);
         if (tempValue.Equals(CurrentValue)) return;
         byWho.Log("[Variable] Set",value);
+        byWhoHashSet.Add(byWho);
    
         Field.SetCurrentValue(tempValue, byWho);
 
@@ -479,6 +487,7 @@ public abstract class AbstractVariable : MonoBehaviour, IGuidEntity, IName
     [PropertyOrder(-1)]
     [SOConfig("VariableType")] public VariableTag varTag;
     public abstract void CommitValue();
+    public abstract void SetValue(object value, MonoBehaviour byWho = null);
     public abstract GameFlagBase FinalData { get; } //這是啥？
     public abstract Type FinalDataType { get; }
     public abstract object objectValue { get; }

@@ -5,15 +5,15 @@ using UnityEngine;
 namespace RCGFSM.Variable
 {
     //set flag, pick item...和GameFlag有關的要用一個interface才可以撈出來
-    
-    public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver
+    //FIXME: 需要雙向reference, debug用，要不然不知道誰在set? candidate
+    public class SetVariableBoolAction : AbstractStateAction
     {
         //FIXME: 用selection dropdown來篩選
         protected override string renamePostfix => targetFlag ? targetFlag.name+" to "+TargetValue : "null";
 
         IList<VariableBool> GetVariables()
         {
-            var context =GetComponentInParent<StateMachineOwner>(true);
+            var context = GetComponentInParent<StateMachineOwner>(true);
             var vars = context.GetComponentsInChildren<VariableBool>(true);
             return vars;
         }
@@ -36,13 +36,16 @@ namespace RCGFSM.Variable
             SetValue();
         }
 
-        public void EventReceived<T>(T arg)
+        public override void EventReceived<T>(T arg)
         {
             this.Log("EventReceived setVariableBoolAction");
-            SetValue();
+            if(arg is bool b)
+                SetValue(b);
+            else
+                SetValue();
         }
 
-        void SetValue()
+        void SetValue(bool v)
         {
             if (Multiple)
             {
@@ -52,7 +55,7 @@ namespace RCGFSM.Variable
                 foreach (var flag in targetFlags)
                 {
                     if (flag != null)
-                        flag.SetValue(TargetValue, this);
+                        flag.SetValue(v, this);
                 }
             }
             else
@@ -63,8 +66,13 @@ namespace RCGFSM.Variable
                     return;
                 }
 
-                targetFlag.SetValue(TargetValue, this);
+                targetFlag.SetValue(v, this);
             }
+        }
+
+        void SetValue()
+        {
+           SetValue(TargetValue);
         }
     }
 

@@ -55,9 +55,13 @@ namespace RCGMaker.Runtime
 
             return true;
         }
-        public object GetValue(VariableTag tag)
+        public object GetValue(VariableTag varTag)
         {
-            return _variableFolder.GetVariable(tag).objectValue;
+            return _variableFolder.GetVariable(varTag).objectValue;
+        }
+        public AbstractVariable GetVariable(VariableTag varTag)
+        {
+            return _variableFolder.GetVariable(varTag);
         }
 
         // public int GetIntValue(VariableTypeTag typeTag)

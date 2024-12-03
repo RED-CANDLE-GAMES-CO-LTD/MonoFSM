@@ -82,7 +82,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
 
             foreach (var field in fields)
             {
-                var gameStateAttribute = field.GetAttribute<StaticDataAttribute>();
+                var gameStateAttribute = field.GetAttribute<GameStateAttribute>();
 
                 if (gameStateAttribute == null) continue;
 

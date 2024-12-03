@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -18,7 +19,8 @@ public class OnEnableInvoker : MonoBehaviour, IUnityEventHolder
 {
     public UnityEvent OnEnableEvent;
     public UnityEvent OnDisableEvent;
-
+    [PreviewInInspector]
+    [AutoChildren] IRCGArgEventReceiver[] _eventReceivers;
     private void Awake()
     {
         OnAwakeEvent?.Invoke();
@@ -27,6 +29,12 @@ public class OnEnableInvoker : MonoBehaviour, IUnityEventHolder
     private void OnEnable()
     {
         InvokeEvent();
+        if(_eventReceivers == null)
+            return;
+        foreach (var eventReceiver in _eventReceivers)
+        {
+            eventReceiver.EventReceived(true);
+        }
     }
 
     public void InvokeEvent()
@@ -34,11 +42,19 @@ public class OnEnableInvoker : MonoBehaviour, IUnityEventHolder
         //這個都會GC?
         OnEnableEvent?.Invoke();
         OnEnableTransformEvent?.Invoke(transform);
+       
+        
     }
 
     private void OnDisable()
     {
         OnDisableEvent?.Invoke();
+        if(_eventReceivers == null)
+            return;
+        foreach (var eventReceiver in _eventReceivers)
+        {
+            eventReceiver.EventReceived(false);
+        }
     }
 
     //FIXME: 還有在用這個嗎？沒有dependency checker很難用

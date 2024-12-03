@@ -52,7 +52,6 @@ public interface IMonoDescriptableCollection:IValueOfKey<MonoDescriptableTag>
 public interface IMonoDescriptable:IValueOfKey<MonoDescriptableTag>
 {
     public IDescriptable Descriptable { get; }
-    public MonoDescriptableTag Tag { get; }
     // public IFloatValue GetFloatValue(VariableTypeTag tag);
     // public VariableBool GetBoolValue(VariableTypeTag tag);
     // public VariableString GetStringValue(VariableTypeTag tag);

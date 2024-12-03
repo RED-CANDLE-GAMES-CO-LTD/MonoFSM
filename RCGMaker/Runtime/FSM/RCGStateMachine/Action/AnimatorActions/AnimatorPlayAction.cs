@@ -20,6 +20,8 @@ namespace RCGFSM.Animation
     public class AnimatorPlayAction : AbstractStateAction, IRCGArgEventReceiver, IAnimatorPlayAction,
         ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent
     {
+        protected override string renamePostfix => " "+animator.gameObject.name+": "+ StateName;
+
         protected override void Awake()
         {
             base.Awake();

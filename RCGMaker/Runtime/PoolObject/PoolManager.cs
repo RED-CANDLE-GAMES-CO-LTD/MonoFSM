@@ -252,7 +252,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             }
         }
     }
-    public bool IsReady = false;
+    // public bool IsReady = false;
     [Header("PrewarmData Logger")] public Transform poolbjects;
     public PoolPrewarmData prewarmDataLogger;
     public PoolPrewarmData globalPrewarmDataLogger;
@@ -499,7 +499,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         Action<PoolObject> handler = null)
     {
         //FIXME: 這很糟
-        if (IsReady == false) Debug.LogError("太早跟pool拿東西了，危險。" + prefab, prefab);
+        // if (IsReady == false) Debug.LogError("太早跟pool拿東西了，危險。" + prefab, prefab);
 
 
         if (prefab.UseSceneAsPool)
