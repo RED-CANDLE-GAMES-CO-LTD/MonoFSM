@@ -13,10 +13,13 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         [Component]
         [AutoChildren] GeneralEffectReceiver[] _effectReceivers;
         [ShowInInspector] public GeneralEffectReceiver[] EffectReceivers => _effectReceivers;
-[AutoParent] private Collider _collider;
+        [AutoParent] private Collider _collider;
         public Collider MyCollider => _collider;
         
         //DebugOnly
         private List<SpatialDetector> _detectors;
+        
+        
+        List<SpatialDetector> fromDetectors;
     }
 }

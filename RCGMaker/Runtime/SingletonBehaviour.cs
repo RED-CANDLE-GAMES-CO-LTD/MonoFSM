@@ -33,7 +33,10 @@ public abstract class SingletonBehaviour<T> : MonoBehaviour where T : MonoBehavi
             
             if (Application.isPlaying == false)
             {
-                Debug.LogError("Don't use Singleton in edit mode!!");
+                var editorObjs = FindObjectsByType<T>(FindObjectsSortMode.None);
+                if (editorObjs.Length > 0)
+                    return editorObjs[0];
+                Debug.LogError("No instance found of SingletonBehaviour in editor mode"+typeof(T).FullName);
                 return null;
             }
 

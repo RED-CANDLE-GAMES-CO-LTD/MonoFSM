@@ -1,5 +1,7 @@
 using RCGMaker.Runtime.FSM._2_Variable;
+using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace RCGFSM.Variable
 {
@@ -18,16 +20,35 @@ namespace RCGFSM.Variable
         [DropDownRef]
         [SerializeField] private VariableFloat targetFlag;
         [SerializeField] private ArithmeticOperator Arithmetic;
-        public float Value;
-        public bool IsConstantValue;
         
+        //要直接用值？
+        //上面會有EffectDealer or EffectReceiver?
+        [ShowIf(nameof(sourceType), ValueSourceType.Constant)]
+        public float ConstValue;
+        
+        public enum ValueSourceType
+        {
+            Dealer,
+            Receiver,
+            Constant
+        }
+        [FormerlySerializedAs("valueSource")] public ValueSourceType sourceType;
         public void EventReceived(IEffectHitData arg) //FIXME: runtime value source? 狀態接著？
         {
-            if(IsConstantValue)
-                DoOperation(Value);
-            else
+            switch (sourceType)
             {
-                DoOperation(arg.Dealer.FinalValue);
+                case ValueSourceType.Dealer:
+                    DoOperation(arg.Dealer.FinalValue);
+                    break;
+                case ValueSourceType.Receiver:
+                    DoOperation(arg.Receiver.ReactValue);
+                    break;
+                case ValueSourceType.Constant:
+                    DoOperation(ConstValue);
+                    break;
+                default:
+                    DoOperation(ConstValue);
+                    break;
             }
         }
 
@@ -57,7 +78,7 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
-            DoOperation(Value);
+            DoOperation(ConstValue);
         }
     }
 }

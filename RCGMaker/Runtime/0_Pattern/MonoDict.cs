@@ -46,7 +46,6 @@ namespace RCGMaker.Core
             if (Contains(key))
                 return _dict[key];
             return default;
-            ;
         }
 
         //remove

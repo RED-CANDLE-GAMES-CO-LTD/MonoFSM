@@ -541,7 +541,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         if (!PoolDictionary.ContainsKey(prefab))
         {
 #if RCG_DEV
-            Debug.LogError("PoolManager: " + prefab.name + " is not in the pool dictionary");
+            //FIXME: 先拿掉的註解
+            // Debug.LogError("PoolManager: " + prefab.name + " is not in the pool dictionary");
 #endif
             AddAPool(prefab);
             PoolDictionary[prefab].UpdatePoolEntry();
@@ -806,9 +807,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             if (DisabledObjs.Count == 0)
             {
-                Debug.LogError(
-                    "[Pool Manager]" + _prefab.gameObject.name + " Pool Bankrupt" + "OnUsed:" + OnUseObjs.Count,
-                    _prefab);
+                //FIXME: 先拿掉的註解
+                // Debug.LogError(
+                //     "[Pool Manager]" + _prefab.gameObject.name + " Pool Bankrupt" + "OnUsed:" + OnUseObjs.Count,
+                //     _prefab);
                 AddAObject(true);
             }
                 
@@ -934,8 +936,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 }
             }
 
-            Debug.LogError("Update Pre warm Data Failed :" + _bindingEntry.prefab.gameObject.name,
-                _bindingEntry.prefab.gameObject);
+            //FIXME: 這裡有問題
+            // Debug.LogError("Update Pre warm Data Failed :" + _bindingEntry.prefab.gameObject.name,
+            //     _bindingEntry.prefab.gameObject);
         }
 
 

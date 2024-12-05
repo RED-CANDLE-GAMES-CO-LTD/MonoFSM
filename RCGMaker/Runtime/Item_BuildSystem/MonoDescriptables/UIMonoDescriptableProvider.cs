@@ -25,35 +25,62 @@ namespace RCGUIBinder
     [Searchable]
     public class UIMonoDescriptableProvider:MonoBehaviour,IDescriptableProvider,ILevelResetStart
     {
-        [TabGroup("Single")]
+        public enum SourceType
+        {
+            MonoTag,
+            CollectionIndex
+        }
+        public SourceType sourceType; //FIXME: 把這個做完
+        [ShowIf(nameof(sourceType),SourceType.MonoTag)]
+        
         [SOConfig("DescriptableTag")]
-        public MonoDescriptableTag tag;
-        [TabGroup("Single")]
+        public MonoDescriptableTag tag; //我就是provider...
+        
+        [ShowIf(nameof(sourceType),SourceType.MonoTag)]
+        
         [PreviewInInspector]
-        MonoDescriptable bindedDescriptable; //單一型
-        [TabGroup("Single")]
+        MonoDescriptable bindedDescriptable; //單一型 
+        
+        [ShowIf(nameof(sourceType),SourceType.MonoTag)]
         public GameFlagDescriptable SampleItemData;
         //從上面怎麼灌到？
         //怎麼DI綁這個？
         
-        [TabGroup("WithCollection")]
+        [ShowIf(nameof(sourceType),SourceType.CollectionIndex)]
         [PreviewInInspector]
         [AutoParent]
-        UIMonoDescriptableCollectionProvider collectionProvider;
-        [TabGroup("WithCollection")]
-        public int index; //陣列型
+        UIMonoDescriptableCollectionProvider collectionProvider; //用provider
         
-       
-        public void BindDescriptable(IMonoDescriptable descriptable)
-        {
-            bindedDescriptable = (MonoDescriptable)descriptable;
-        }
+        // [TabGroup("WithCollection")]
+        // [SerializeField] GameFlagCollection collection;//直接拉Data
+        [ShowIf(nameof(sourceType),SourceType.CollectionIndex)]
+        public int index; //陣列型
 
         [PreviewInInspector]
-        public MonoDescriptable monoInstance => collectionProvider != null
-            ? collectionProvider.GetDescriptable(index)
-            : bindedDescriptable;
-        public IDescriptable Descriptable => monoInstance.Descriptable;
+        string instanceFrom
+        {
+            get
+            {
+                if(collectionProvider != null)
+                    return "collectionProvider";
+                return "bindedDescriptable";
+            }
+        }
+
+
+        [PreviewInInspector]
+        public MonoDescriptable monoInstance
+        {
+            get
+            {
+                if (sourceType == SourceType.CollectionIndex && collectionProvider != null)
+                {
+                    return collectionProvider.GetDescriptable(index);
+                }
+                return bindedDescriptable;
+            }   
+        } 
+        // public IDescriptable Descriptable => monoInstance.Descriptable;
         public ValueDropdownList<string> GetProperties(List<Type> supportedTypes)
         {
             // AppDomain.CurrentDomain.GetAssemblies().
@@ -106,7 +133,20 @@ namespace RCGUIBinder
       
 
         public IDescriptable SampleData => SampleItemData;
-        public IDescriptable CurrentInstance => monoInstance.Descriptable;
+        public IDescriptable CurrentInstance
+        {
+            get
+            {
+                if (monoInstance == null)
+                {
+                    Debug.LogError("No monoInstance found", this);
+                    return null;
+                }
+                    
+                return monoInstance.Descriptable;
+            }
+        }
+
         public object GetInstanceProperty(string fieldName)
         {
             return monoInstance.GetPropertyCache(fieldName)?.Invoke(monoInstance);
@@ -116,27 +156,45 @@ namespace RCGUIBinder
             return data.GetPropertyCache(propertyName)?.Invoke(data);
         }
         
-         [PreviewInInspector] [AutoChildren] private AbstractUIValueBinder[] _additionalDisplayers;
+        //FIXME: 更新UI另外拉出去做？ UIValueUpdater?
+         // [PreviewInInspector] [AutoChildren] private AbstractUIValueBinder[] _additionalDisplayers;
 
-         private void Update()
+         // private void Update()
+         // {
+         //     if(monoInstance == null)
+         //         return;
+         //     foreach (var displayer in _additionalDisplayers)
+         //     {
+         //         displayer.UpdateView(CurrentInstance);
+         //     }
+         // }
+         
+         public void BindDescriptable(IMonoDescriptable descriptable)
          {
-             if(monoInstance == null)
-                 return;
-             foreach (var displayer in _additionalDisplayers)
-             {
-                 displayer.UpdateView(CurrentInstance);
-             }
+             
          }
+         
+         [PreviewInInspector]
+         [AutoParent] MonoDescriptableBinder _binder;
          
          [Button]
          void Bind()
          {
-             if (tag != null)
+             if (tag == null)
              {
-                 var instance = GetComponentInParent<MonoDescriptableBinder>().Get(tag);
-                 BindDescriptable(instance);
+                 Debug.LogError("No tag found", this);
+                 return;
              }
+
+             Debug.Log("Bind: "+tag,this);
+
+             if (!_binder.Contains(tag))
+             {
+                 Debug.LogError("No mono found "+tag, this);
+             }
+             var mono = _binder.Get(tag);
              
+             bindedDescriptable = (MonoDescriptable)mono;
          }
 
          public void LevelResetStart()

@@ -89,19 +89,20 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     //需要Generic嗎...好像算了
     public class UnityObjectVariable : GenericUnityObjectVariable<Component>
     {
-        IEnumerable<Component> _filter()
-        {
-
-            return this.GetComponentsOfSibling<LevelRunner>(serializedType.GetType());
-        }
+        // IEnumerable<Component> _filter()
+        // {
+        //     // var type = serializedType.Value;
+        //     // if(type == null)
+        //     //     return null;
+        //     // return this.GetComponentsOfSibling<LevelRunner>(type);
+        // }
 
         // [ValueDropdown(nameof(_filter))]
         // [SerializeField]
         // private Component DefaultValue;
 
-        [TypeDrawerSettings(BaseType = typeof(Component)), ShowInInspector]
-        public Type type; //FIXME: 要用string 回推 type?
-
-        public SerializedType serializedType;
+        // [TypeDrawerSettings(BaseType = typeof(Component)), ShowInInspector]
+        // public Type type; //FIXME: 要用string 回推 type?
+        
     }
 }

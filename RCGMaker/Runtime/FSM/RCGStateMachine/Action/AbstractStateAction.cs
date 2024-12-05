@@ -9,6 +9,7 @@ using UnityEngine;
 public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable,
     IRCGArgEventReceiver
 {
+    
     //怎麼知道誰用Enter, 誰用Update
     private bool IsValid //AND
     {

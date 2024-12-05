@@ -118,7 +118,11 @@ namespace RCGMaker.Core
                     // fsm.CurrentStateMap.LateUpdate();
                 }
             }
-            
+
+            if (owner == null || owner.VariableFolder == null)
+            {
+                Debug.LogError("No owner found",this);
+            }
             //late update 之後才能更新
             owner.VariableFolder.CommitVariableValues();
         }

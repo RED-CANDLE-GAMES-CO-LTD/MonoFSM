@@ -63,6 +63,7 @@ public interface IEffectReceiver
     void OnEffectHitEnter(IEffectHitData data);
     // void OnHitStay(IEffectHitData data);
     void OnEffectHitExit(IEffectHitData data);
+    float ReactValue { get; }
 }
 
 namespace RCGMaker.Core

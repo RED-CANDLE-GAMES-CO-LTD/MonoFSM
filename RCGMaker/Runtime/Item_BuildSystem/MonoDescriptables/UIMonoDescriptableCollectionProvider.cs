@@ -20,8 +20,6 @@ namespace RCGUIBinder
     {
         [SOConfig("DescriptableTag")]
         public MonoDescriptableTag tag;
-        
-        
         //FIXME:同步數量，instantiate prefab?
         // [AutoChildren]
         // MonoDescriptableProvider[] _descriptableProviders;

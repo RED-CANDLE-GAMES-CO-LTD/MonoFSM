@@ -33,7 +33,7 @@ namespace RCGMaker.Core.Detection
 
         [PreviewInInspector]
         protected List<SpatialDetectable> _detectedObjects = new List<SpatialDetectable>();
-        protected void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
+        public void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
         {
             //理論上不該打到別的東西，layer就擋掉了才對 (有分layer的話)
             if (!other.TryGetComponent<SpatialDetectable>(out var effectCollider))
@@ -56,7 +56,7 @@ namespace RCGMaker.Core.Detection
             }
         }
 
-        protected void OnSpatialExit(GameObject other)
+        public void OnSpatialExit(GameObject other)
         {
             if (!other.TryGetComponent<SpatialDetectable>(out var effectCollider))
             {

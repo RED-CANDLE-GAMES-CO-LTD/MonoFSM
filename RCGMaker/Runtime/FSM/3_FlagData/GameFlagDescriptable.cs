@@ -52,6 +52,8 @@ public interface IMonoDescriptableCollection:IValueOfKey<MonoDescriptableTag>
 public interface IMonoDescriptable:IValueOfKey<MonoDescriptableTag>
 {
     public IDescriptable Descriptable { get; }
+
+    public void OnUIEventReceived();//FIXME: 之後可以加參數？
     // public IFloatValue GetFloatValue(VariableTypeTag tag);
     // public VariableBool GetBoolValue(VariableTypeTag tag);
     // public VariableString GetStringValue(VariableTypeTag tag);
@@ -70,11 +72,13 @@ public interface IDescriptable
     void LoadAndSetIconForImage(Image image, Color loadedColor = default);
     void LoadAndSetSpriteForImage(Image image, Color loadedColor = default);
     Func<IDescriptable, object> GetPropertyCache(string knownFieldName);
+    object GetProperty(string knownFieldName);
 }
 
 public interface IItem:IDescriptable
 {
      public int SlotStackCount { get; }
+     void Use();
 }
 //Static資料，描述一個/種 東西的性質
 [CreateAssetMenu(fileName = "Descriptable", menuName = "ScriptableObjects/Descriptable", order = 1)]
@@ -128,7 +132,12 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
         propertyCache[propertyName] = _getMyProperty;
         return _getMyProperty;
     }
-    
+
+    public object GetProperty(string knownFieldName)
+    {
+        return GetPropertyCache(knownFieldName)?.Invoke(this);
+    }
+
     public void CopyFrom(GameFlagDescriptable source)
     {
 #if UNITY_EDITOR
@@ -139,7 +148,8 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
     
     //類別，需要的自己用enum override掉
     public virtual int category => 0;
-    public virtual PoolObject bindObject => null;
+    [PreviewInInspector]
+    public virtual PoolObject bindPrefab => null; //FIXME: 要弄這個？
     public FlagFieldBool unlocked; //在介面中可以看到的狀態，但可能還沒取得
     public virtual bool IsRevealed => unlocked.CurrentValue;
     [FormerlySerializedAs("aquired")]
@@ -207,6 +217,7 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
     //
     // [DisableIf("@true")]
     // [SerializeField] private AssetReferenceSprite smallSpriteRefSprite;
+    [PreviewField(100)]
     [Header("一開遊戲就會讀進來的")] public Sprite staticSprite;
     [InlineField] [SerializeField] public RCGAssetReference spriteRef;
 

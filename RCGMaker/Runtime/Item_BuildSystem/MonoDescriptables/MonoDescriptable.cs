@@ -19,6 +19,11 @@ namespace RCGMaker.Runtime
 
         public GameFlagDescriptable data;
         public virtual IDescriptable Descriptable => data;
+        public virtual void OnUIEventReceived()
+        {
+            Debug.Log("UI Event Received",this);   
+        }
+
         public MonoDescriptableTag Tag => DescriptableTag;
 
         private string errorValue;
@@ -57,7 +62,13 @@ namespace RCGMaker.Runtime
         }
         public object GetValue(VariableTag varTag)
         {
-            return _variableFolder.GetVariable(varTag).objectValue;
+            var variable = _variableFolder.GetVariable(varTag);
+            if (variable == null)
+            {
+                Debug.LogError($"Variable {varTag} not found in {name}", this);
+                return null;
+            }
+            return variable.objectValue;
         }
         public AbstractVariable GetVariable(VariableTag varTag)
         {
