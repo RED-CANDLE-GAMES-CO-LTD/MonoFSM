@@ -258,7 +258,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     [Component( AddComponentAt.Children, "[Transition]")]
     // [InlineEditor()]
     [PreviewInInspector]
-    AbstractStateTransition[] transitions;
+    AbstractStateTransition[] transitions = Array.Empty<AbstractStateTransition>();
 
     public AbstractStateTransition[] Transitions => transitions;
 

@@ -9,6 +9,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit
     //空間中的物件，可以被偵測到, 基本上會有collider或是collider2D
     public class SpatialDetectable : MonoBehaviour, IDefaultSerializable
     {
+        [AutoParent] private StateMachineOwner owner;
+        public StateMachineOwner Owner => owner;
         //FIXME: 確保layer有設定
         [Component]
         [AutoChildren] GeneralEffectReceiver[] _effectReceivers;
@@ -17,9 +19,30 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public Collider MyCollider => _collider;
         
         //DebugOnly
-        private List<SpatialDetector> _detectors;
+        public List<SpatialDetector> _detectors;
         
         
-        List<SpatialDetector> fromDetectors;
+        // List<SpatialDetector> fromDetectors;
+        private List<SpatialDetector> toRemoves = new List<SpatialDetector>();
+        private void OnDisable()
+        {
+            toRemoves.AddRange(_detectors);
+            foreach (var toRemove in toRemoves)
+            {
+                Debug.Log("OnDisable of Detectable",this);
+                Debug.Log("OnDisable of Detectable removef from"+toRemove,toRemove);
+                toRemove.OnSpatialExit(gameObject);
+                
+                //copy _detectedObjects to toRemove
+                // toRemove.AddRange(_detectedObjects);
+                // foreach (var detectable in toRemove)
+                // {
+                //     // Debug.Log("OnDisable of detectable",detectable);
+                //     OnTriggerExit(detectable.MyCollider);
+                // }
+                // toRemove.Clear();
+            }
+            toRemoves.Clear();
+        }
     }
 }

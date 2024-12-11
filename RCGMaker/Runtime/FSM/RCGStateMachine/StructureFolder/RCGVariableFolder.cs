@@ -46,8 +46,14 @@ public class RCGVariableFolder : AbstractFolder
         var dict = new Dictionary<VariableTag, AbstractVariable>();
         foreach (var variable in variables)
         {
-            if(variable.varTag == null) continue;
-                dict[variable.varTag] = variable;
+            if (variable is AbstractVariable abstractVariable)
+            {
+                if(abstractVariable.varTag == null) continue;
+                dict[abstractVariable.varTag] = abstractVariable;
+            }
+                
+            // if(variable.varTag == null) continue;
+            //     dict[variable.varTag] = variable;
         }
         return dict;
     }
@@ -55,7 +61,7 @@ public class RCGVariableFolder : AbstractFolder
   
 
     // [PreviewInInspector]
-    [Component] [AutoChildren] private AbstractVariable[] variables = Array.Empty<AbstractVariable>();
+    [Component] [AutoChildren] private ISettable[] variables = Array.Empty<ISettable>();
 
     // private void OnValidate()
     // {

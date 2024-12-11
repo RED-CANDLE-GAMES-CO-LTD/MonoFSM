@@ -14,12 +14,13 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     public abstract class AbstractReferenceVariable:AbstractVariable
     {
         //FIXME: RawValue
+        [PreviewInInspector]
         public abstract Object RawValue { get; set; }
         public abstract void ClearValue();
     }
     
     //FIXME: 這個好像不好...
-    public class GenericUnityObjectVariable<T>:AbstractReferenceVariable,ILevelResetStart where T:Object
+    public class GenericUnityObjectVariable<T>:AbstractReferenceVariable,ISettable<T>,ILevelResetStart where T:Object
     {
         // protected virtual IEnumerable<Type> filter()
         // {
@@ -47,22 +48,29 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             } 
         }
         // public T Value => _currentValue;
+        //green
+        [GUIColor(0.2f, 0.8f, 0.2f)]
         [PreviewInInspector]
-        [InlineEditor]
+        // [InlineEditor]
         private T _currentValue; //要用ObjectField? 這樣才統一？
         [PreviewInInspector]
         private T _lastValue;
 
         [PreviewInInspector]
         private T _lastNonNullValue;
-        public override void CommitValue()
+        public void CommitValue()
         {
             _lastValue = _currentValue;
             if(_currentValue != null)
                 _lastNonNullValue = _currentValue;
         }
 
-        public override void SetValue(object value, MonoBehaviour byWho = null)
+        public void SetValue(T value, MonoBehaviour byWho = null)
+        {
+            _currentValue = value;
+        }
+
+        public void SetValue(object value, MonoBehaviour byWho = null)
         {
             _currentValue = value as T;
         }

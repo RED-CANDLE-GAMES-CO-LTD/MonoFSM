@@ -4,8 +4,8 @@ using UnityEngine;
 
 public interface ICollection
 {
-    GameFlagDescriptable currentItem { get; }
-    List<GameFlagDescriptable> rawCollection { get; }
+    DescriptableData currentItem { get; }
+    List<DescriptableData> rawCollection { get; }
     int currentIndex { get; }
 }
 public interface IHasNewItem
@@ -13,7 +13,8 @@ public interface IHasNewItem
     public bool HasNewItem();
 }
 
-public abstract class AbstractGameFlagCollection : GameFlagBase, IHasNewItem
+//FIXME: collection 要是 descriptable嗎？
+public abstract class AbstractGameFlagCollection : DescriptableData, IHasNewItem
 {
     public override void FlagAwake(TestMode mode)
     {
@@ -25,9 +26,9 @@ public abstract class AbstractGameFlagCollection : GameFlagBase, IHasNewItem
     [Header("顯示未取得的欄位(佔有格子)")] 
     [HideInInlineEditors]
     public bool IsDisplayingNotAcquiredItems = false;
-    public abstract GameFlagDescriptable currentItem { get; }
+    public abstract DescriptableData currentItem { get; }
     // public abstract List<GameFlagDescriptable> collection { get; }
-    public abstract List<GameFlagDescriptable> rawCollection { get; }
+    public abstract List<DescriptableData> rawCollection { get; }
 
     public int AcquiredCount //已經拿到的數量
     {
@@ -53,7 +54,7 @@ public abstract class AbstractGameFlagCollection : GameFlagBase, IHasNewItem
 
    
     
-    public bool Contains(GameFlagDescriptable flag)
+    public bool Contains(DescriptableData flag)
     {
         return rawCollection.Contains(flag);
     }
@@ -110,7 +111,7 @@ public abstract class AbstractGameFlagCollection : GameFlagBase, IHasNewItem
     
     public FlagFieldInt index;
     // public GameFlagInt indexFlag;
-    public virtual void SetCurrent(GameFlagDescriptable data)
+    public virtual void SetCurrent(DescriptableData data)
     {
 
     }

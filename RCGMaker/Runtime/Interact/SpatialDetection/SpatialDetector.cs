@@ -11,6 +11,23 @@ namespace RCGMaker.Core.Detection
     [DisallowMultipleComponent]
     public abstract class SpatialDetector : MonoBehaviour, IDefaultSerializable
     {
+        List<SpatialDetectable> toRemove = new List<SpatialDetectable>();
+        //FIXME: Receiver的部分要怎麼處理？ 也會有開關的問題？還是沒差遇到再說
+        private void OnDisable()
+        {
+            // Debug.Log("OnDisable of detector",this);
+            //copy _detectedObjects to toRemove
+            toRemove.AddRange(_detectedObjects);
+            foreach (var detectable in toRemove)
+            {
+                // Debug.Log("OnDisable of detectable",detectable);
+                OnSpatialExit(detectable.gameObject);
+            }
+            toRemove.Clear();
+        }
+        
+        [AutoParent] private StateMachineOwner owner;
+        public StateMachineOwner Owner => owner;
         [PreviewInInspector] [AutoChildren] private GeneralEffectDealer[] dealers;
 
         //GameObject必定要在Detector的layer
@@ -36,19 +53,25 @@ namespace RCGMaker.Core.Detection
         public void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
         {
             //理論上不該打到別的東西，layer就擋掉了才對 (有分layer的話)
-            if (!other.TryGetComponent<SpatialDetectable>(out var effectCollider))
+            if (!other.TryGetComponent<SpatialDetectable>(out var spatialDetectable))
             {
                 // Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer, other);
                 return;
             }
-            _detectedObjects.Add(effectCollider);
+            if(spatialDetectable.Owner == Owner) return; //自己身上的不算
+            _detectedObjects.Add(spatialDetectable);
+            spatialDetectable._detectors.Add(this);
             // Debug.Log("OnSpatialEnter dealers:"+dealers.Length+" receivers:"+effectCollider.EffectReceivers.Length, this);
             //FIXME: 用update撈起來等等再判？
             foreach (var dealer in dealers)
             {
-                foreach (var receiver in effectCollider.EffectReceivers)
+                if(!dealer.isActiveAndEnabled) //沒開的不算
+                    continue;
+                foreach (var receiver in spatialDetectable.EffectReceivers)
                 {
-                    if (!dealer.CanHitReceiver(receiver)) continue;
+                    if(!receiver.isActiveAndEnabled) //沒開的不算
+                        continue;
+                    if (!dealer.CanHitReceiver(receiver)) continue; //不會打到的不算
                     var hitData = receiver.GenerateEffectHitData(dealer, receiver);
                     dealer.OnHitEnter(hitData);
                     receiver.OnEffectHitEnter(hitData);
@@ -58,15 +81,16 @@ namespace RCGMaker.Core.Detection
 
         public void OnSpatialExit(GameObject other)
         {
-            if (!other.TryGetComponent<SpatialDetectable>(out var effectCollider))
+            if (!other.TryGetComponent<SpatialDetectable>(out var spatialDetectable))
             {
                 // Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer);
                 return;
             }
-            _detectedObjects.Remove(effectCollider);
+            _detectedObjects.Remove(spatialDetectable);
+            spatialDetectable._detectors.Remove(this);
             foreach (var dealer in dealers)
             {
-                foreach (var receiver in effectCollider.EffectReceivers)
+                foreach (var receiver in spatialDetectable.EffectReceivers)
                 {
                     if (!dealer.CanHitReceiver(receiver)) continue;
                     var hitData = receiver.GenerateEffectHitData(dealer, receiver);

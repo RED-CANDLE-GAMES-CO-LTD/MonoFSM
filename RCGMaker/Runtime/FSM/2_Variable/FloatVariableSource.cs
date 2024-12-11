@@ -9,7 +9,9 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     [Serializable]
     public class FloatValueSource : InterfaceMonoRef<StateMachineOwner, IFloatValue>, IFloatValue
     {
-        public float FinalValue => ((IFloatValue)ValueSource).FinalValue;
+        public float FinalValue => ValueSource != null ? ((IFloatValue)ValueSource).FinalValue : ConstValue;
+        [HideIf("@ValueSource != null")]
+        public float ConstValue;
     }
 
 
@@ -32,7 +34,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
     public interface IBoolValue
     {
-        bool IsValid { get; }
+        bool IsTrue { get; }
     }
 
     [InlineProperty]
@@ -40,6 +42,6 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     public class BoolValueSource : InterfaceMonoRef<StateMachineOwner, IBoolValue>, IBoolValue
     {
         //從StateMachineOwner下面找到所有的IBoolValue
-        public bool IsValid => ((IBoolValue)ValueSource).IsValid;
+        public bool IsTrue => ((IBoolValue)ValueSource).IsTrue; //FIXME: 如果ValueSource是null, 不好debug...
     }
 }

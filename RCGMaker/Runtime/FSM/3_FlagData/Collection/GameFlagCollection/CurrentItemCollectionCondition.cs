@@ -6,13 +6,13 @@ public class CurrentItemCollectionCondition : AbstractConditionComp
     public AbstractGameFlagCollection collection;
     //FIXME: 用dropdown選
 
-    private IEnumerable<GameFlagDescriptable> GetCollection()
+    private IEnumerable<DescriptableData> GetCollection()
     {
         return collection.rawCollection;
     }
 
     [ValueDropdown("GetCollection", IsUniqueList = true)]
-    public GameFlagDescriptable targetItem;
+    public DescriptableData targetItem;
 
 
     protected override bool isValid => collection.currentItem == targetItem;

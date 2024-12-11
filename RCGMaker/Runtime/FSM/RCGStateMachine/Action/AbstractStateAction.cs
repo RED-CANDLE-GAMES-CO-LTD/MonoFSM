@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.Vote;
 using Sirenix.OdinInspector;
 using UnityEngine;
 [Searchable]
@@ -40,7 +41,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [Button]
     private void Rename()
     {
-        gameObject.name = "[Action] " + GetType().Name.Split("Action")[0] + renamePostfix;
+        gameObject.name = $"[Action] {GetType().Name.Split("Action")[0]} {renamePostfix}";
     }
 
     protected virtual string renamePostfix => "";
@@ -117,7 +118,8 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
         OnStateExitImplement();
     }
     protected virtual void OnStateExitImplement() { }
-    public MonoBehaviour VoteOwner => bindingState.Context.fsmOwner;
+    public virtual MonoBehaviour VoteOwner => nearestBinder as MonoBehaviour;
+    [AutoParent] private IBinder nearestBinder;
 
     protected CancellationTokenSource cancellationTokenSource => bindingState.GetStateExitCancellationTokenSource();
 

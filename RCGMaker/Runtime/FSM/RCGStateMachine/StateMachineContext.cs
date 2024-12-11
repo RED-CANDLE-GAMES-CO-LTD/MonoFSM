@@ -35,8 +35,8 @@ namespace RCGMaker.Core
 
         protected virtual void Awake()
         {
-          
 
+           
         }
 
         protected virtual void Start()
@@ -63,8 +63,10 @@ namespace RCGMaker.Core
             return state as GeneralState;
         }
 
-        public void EnterLevelAwake()
+        public void InitStateMachine()
         {
+            if(fsm != null)
+                return;
             var stateBehaviorMapping = new StateMapping<T>();
 
             // var stateDict = new Dictionary<T, TState>();
@@ -99,6 +101,12 @@ namespace RCGMaker.Core
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(gameObject);
 #endif
+        }
+
+        public void EnterLevelAwake()
+        {
+            //FIXME: 場景call一次，poolObject又call一次...
+            InitStateMachine();
         }
     }
 }

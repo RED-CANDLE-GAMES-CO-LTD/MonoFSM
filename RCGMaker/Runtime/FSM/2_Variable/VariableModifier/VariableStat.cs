@@ -61,7 +61,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             for (var i = 0; i < statModifiers.Count; i++)
             {
                 var mod = statModifiers[i];
-
+                    if(mod.IsValid == false) continue;
                 if (mod.Type == StatModType.Flat)
                 {
                     finalValue += mod.Value;
@@ -173,6 +173,10 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             return isDirty;
         }
 
+        public void SetDirty()
+        {
+            isDirty = true;
+        }
         private Comparison<VariableStatModifier> _modifierOrder =
             (a, b) => a.Order < b.Order ? -1 : a.Order > b.Order ? 1 : 0;
     }

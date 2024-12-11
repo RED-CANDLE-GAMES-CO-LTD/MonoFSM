@@ -39,7 +39,7 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
                 break;
             }
 
-            if (flag is GameFlagDescriptable descriptable)
+            if (flag is DescriptableData descriptable)
             {
                 // var descriptable = flag as GameFlagDescriptable;
                 // descriptable.UpgradeSpriteToAddressable();
@@ -71,7 +71,7 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
     {
         foreach (var flag in Flags)
         {
-            if (flag is GameFlagDescriptable descriptable)
+            if (flag is DescriptableData descriptable)
             {
                 // var descriptable = flag as GameFlagDescriptable;
                 // descriptable.UpgradeSpriteToAddressable();

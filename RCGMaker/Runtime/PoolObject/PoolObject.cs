@@ -140,6 +140,13 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         }
     }
 
+    private void OnEnable()
+    {
+        //FIXME: 沒有cache, 很爛
+        // AutoAttributeManager.AutoReferenceAllChildren(gameObject);
+        // PoolManager.PreparePoolObjectImplementation(this);
+    }
+
     // private void OnEnable() //從poolObject拿出來要確定動畫有重置，因為有人很壞，還沒開就被call Reset and Start
     // {
     //     if (needResetAnim == false)
@@ -305,30 +312,12 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         ResetAnim();
 
         this.Log("[PoolObjectResetAndStart]", gameObject);
-
-        // for (var i = 0; i < IResetterList.Count; i++)
-        // {
-        //     try
-        //     {
-        //         // Debug.Log("Resetting:" + IPoolObjectList[i]);
-        //         //FIXME: 不喜歡這個
-        //         IResetterList[i].EnterLevelReset();
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         Debug.LogError("gameObject:" + gameObject + " reset failed");
-        //         Debug.LogError(e.Message, gameObject);
-        //         Debug.LogError(e.StackTrace, gameObject);
-        //     }
-        // }
-        //FIXME: 效能
         PoolManager.Instance.ResetFromRoot(gameObject);
 
         foreach (var iBorrowOnEnable in IPoolBorrowedList)
         {
             iBorrowOnEnable.OnBorrowFromPoolOnEnable();
         }
-
     }
 
 
@@ -443,31 +432,31 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     public Animator[] animators => _anims;
     int animDefaultNameHash;
 
-    public void OnPrepare() //還關著的時候
-    {
-        InitAnimResetters();
-        CheckList();
-        foreach (var poolObj in IPoolObjectList)
-        {
-            try
-            {
-                poolObj.PoolOnPrepared(this);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e.Message);
-                Debug.LogError(e.StackTrace);
-            }
-        }
-
-        // this.Log("[PoolObject] OnPrepare", _anims.Length, animResetters.Count, this);
-        // if (_anims.Length != animResetters.Count)
-        // {
-        //     Debug.LogError("Animator count not match", this);
-        // }
-  
-
-    }
+    // public void OnPrepare() //還關著的時候
+    // {
+    //     InitAnimResetters();
+    //     CheckList();
+    //     foreach (var poolObj in IPoolObjectList)
+    //     {
+    //         try
+    //         {
+    //             poolObj.PoolOnPrepared(this);
+    //         }
+    //         catch (Exception e)
+    //         {
+    //             Debug.LogError(e.Message);
+    //             Debug.LogError(e.StackTrace);
+    //         }
+    //     }
+    //
+    //     // this.Log("[PoolObject] OnPrepare", _anims.Length, animResetters.Count, this);
+    //     // if (_anims.Length != animResetters.Count)
+    //     // {
+    //     //     Debug.LogError("Animator count not match", this);
+    //     // }
+    //
+    //
+    // }
     public bool isOnScene => onScene;
 
     public bool isInPool => !onScene;

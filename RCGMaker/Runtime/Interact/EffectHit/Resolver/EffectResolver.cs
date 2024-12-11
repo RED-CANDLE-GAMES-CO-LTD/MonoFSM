@@ -6,6 +6,12 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 {
     public class EffectResolver : MonoBehaviour, IDefaultSerializable
     {
+        [Button]
+        void Rename()
+        {
+            name = EffectType.ToString();
+        }
+        
         [Required] [SOConfig("GeneralEffectType")]
         public GeneralEffectType EffectType;
         // public IEffectType getEffectType => EffectType;

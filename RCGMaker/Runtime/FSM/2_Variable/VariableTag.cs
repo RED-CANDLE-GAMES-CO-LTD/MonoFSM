@@ -1,6 +1,9 @@
 using System;
+using System.Linq;
 using System.Reflection;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
+using Sirenix.Utilities;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
@@ -31,11 +34,14 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         
         void TypeToString()
         {
+            if(_type == null)
+                return;
             typeName = _type.ToString();
         }
         
+        [Required]
+        [PreviewInInspector]
         [SerializeField]
-        [HideInInspector]
         string typeName;
     }
     
@@ -46,9 +52,19 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         //FIXME: 下拉式巢狀分類: 
         
         //可以DI標記variable類型，像是血量？要降低對方的血量之類的
-        [InlineProperty]
+        // [InlineProperty]
         public MySerializedType _variableType;
 
-       
+       //FIXME: Editor time 把雙向連結撈出來
+#if UNITY_EDITOR
+        [PreviewInInspector]
+        AbstractVariable[] bindedVariables;
+        
+        [Button]
+        void GetBindedVariables()
+        {
+            bindedVariables = FindObjectsOfType<AbstractVariable>(true).Where(v => v.varTag == this).ToArray();
+        }
+#endif
     }
 }

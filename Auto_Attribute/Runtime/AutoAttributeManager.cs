@@ -88,7 +88,8 @@ public class AutoAttributeManager : MonoBehaviour
     {
         // Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
         monoReferenceCache.RestoreReferenceCacheToMonoFields();
-        monoReferenceCache.ClearRefs();
+        //FIXME: 這可以減少GC嗎？
+        // monoReferenceCache.ClearRefs();
 #if UNITY_EDITOR
         SweepScene();
 #endif
@@ -96,7 +97,7 @@ public class AutoAttributeManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        monoReferenceCache.ClearRefs();
+        // monoReferenceCache.ClearRefs();
     }
 
     //async版本的auto
@@ -312,16 +313,16 @@ public class AutoAttributeManager : MonoBehaviour
     // 	monoBehavioursInSceneWithAuto = GetAllMonobehavioursWithAuto().ToList();
     // 	UnityEngine.Debug.Log($"Cached {monoBehavioursInSceneWithAuto.Count} MonoBehaviours in {Time.time - start} mills");
     // }
-    private IEnumerable<MonoBehaviour> GetAllAutoCaches()
-    {
-
-        IEnumerable<AutoCache> autoCaches = GameObject.FindObjectsOfType<AutoCache>(true)
-                .Where(mb => mb.gameObject.scene == this.gameObject.scene);
-
-        // autoCaches = autoCaches.Where(mb => GetFieldsWithAuto(mb).Count() + GetPropertiesWithAuto(mb).Count() > 0);
-
-        return autoCaches;
-    }
+    // private IEnumerable<MonoBehaviour> GetAllAutoCaches()
+    // {
+    //
+    //     IEnumerable<AutoCache> autoCaches = GameObject.FindObjectsOfType<AutoCache>(true)
+    //             .Where(mb => mb.gameObject.scene == this.gameObject.scene);
+    //
+    //     // autoCaches = autoCaches.Where(mb => GetFieldsWithAuto(mb).Count() + GetPropertiesWithAuto(mb).Count() > 0);
+    //
+    //     return autoCaches;
+    // }
 
     public IEnumerable<MonoBehaviour> GetAllMonoBehavioursWithAuto() //(GameObject[] roots)
     {

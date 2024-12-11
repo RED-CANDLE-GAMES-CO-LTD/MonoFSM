@@ -8,7 +8,7 @@ using UnityEngine;
 namespace RCGMaker.Core
 {
     
-    public abstract class MonoDict<T, TU> : MonoBehaviour, IResetter where TU:IValueOfKey<T>
+    public abstract class MonoDict<T, TU> : MonoBehaviour, ILevelResetPrepare where TU:IValueOfKey<T>
     {
         [PreviewInInspector]
         [AutoChildren] TU[] collections;
@@ -38,7 +38,7 @@ namespace RCGMaker.Core
             if (key == null)
                 return;
             _dict.Add(key, value);
-            enabled = true;
+            // enabled = true;
         }
 
         public TU Get(T key)
@@ -95,7 +95,30 @@ namespace RCGMaker.Core
 
         [ShowInInspector] public List<T> GetKeys => new(_dict.Keys);
 
-        public void EnterLevelReset()
+        // public void EnterLevelReset()
+        // {
+        //    
+        // }
+        //
+        // public void ExitLevelAndDestroy()
+        // {
+        // }
+        private void Start()
+        {
+            // PrepareDict();
+        }
+
+        public void LevelResetPrepareRuntimeData()
+        {
+            PrepareDict();   
+        }
+
+        [Button]
+        void Preview()
+        {
+            PrepareDict();
+        }
+        void PrepareDict()
         {
             Clear();
             foreach (var item in collections)
@@ -103,11 +126,7 @@ namespace RCGMaker.Core
                 Add(item.Key, item);
                 Debug.Log($"Add key:{item.Key} item:{item}",this);
             }
-            enabled = false;
-        }
-
-        public void ExitLevelAndDestroy()
-        {
+            // enabled = false;
         }
     }
 

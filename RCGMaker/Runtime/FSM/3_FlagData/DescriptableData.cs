@@ -83,7 +83,7 @@ public interface IItem:IDescriptable
 //Static資料，描述一個/種 東西的性質
 [CreateAssetMenu(fileName = "Descriptable", menuName = "ScriptableObjects/Descriptable", order = 1)]
 [Searchable]
-public class GameFlagDescriptable : GameFlagBase, IDescriptable
+public class DescriptableData : GameFlagBase, IDescriptable
 {
     public async void PreloadSprite()
     {
@@ -138,7 +138,7 @@ public class GameFlagDescriptable : GameFlagBase, IDescriptable
         return GetPropertyCache(knownFieldName)?.Invoke(this);
     }
 
-    public void CopyFrom(GameFlagDescriptable source)
+    public void CopyFrom(DescriptableData source)
     {
 #if UNITY_EDITOR
         Undo.RegisterCompleteObjectUndo(this, "CopyValue");

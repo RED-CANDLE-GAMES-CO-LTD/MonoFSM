@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -17,17 +18,20 @@ public interface IVariableFloatSetOperation //很確定是set variable時的oper
     float SetOperation(float value);
 }
 
-public abstract class AbstractVariableModifier<T> : MonoBehaviour
+public interface AbstractVariableModifier<T> 
 {
-    public abstract T BeforeSetValueModifyCheck(T value);
-    public abstract T AfterGetValueModifyCheck(T value);
+     T BeforeSetValueModifyCheck(T value);
+     T AfterGetValueModifyCheck(T value);
 }
 
 
 //限制VariableFloat的最小最大值，可以用RCGEventSender倒接事件
-public class VariableFloatBoundModifier : MonoBehaviour, IVariableFloatSetOperation
+public class VariableFloatBoundModifier : MonoBehaviour, AbstractVariableModifier<float>
 {
+    [PreviewInInspector]
+    [AutoParent] VariableFloat variable;
     // [Auto] VariableFloat variable;
+    [HideIf(nameof(MinVar))]
     public float min = 0;
 
     [HideIf(nameof(MaxVar))]
@@ -35,10 +39,14 @@ public class VariableFloatBoundModifier : MonoBehaviour, IVariableFloatSetOperat
 
     //ex: 血量
     //這會不會很麻煩每次都要設定？
-
+    
+    [DropDownRef]
+    [SerializeField] VariableFloat MinVar;
+    [DropDownRef]
     [SerializeField] VariableFloat MaxVar; //好像應該用繼承的
-    [ShowInInspector] private float MaxValue => MaxVar != null ? MaxVar.CurrentValue : max;
-
+    [ShowInInspector] public float MaxValue => MaxVar != null ? MaxVar.CurrentValue : max;
+    [ShowInInspector] public float MinValue => MinVar != null ? MinVar.CurrentValue : min;
+    public float Percentage => (variable.CurrentValue - MinValue) / (MaxValue - MinValue);
 
     public UnityEvent OnMin;
     public UnityEvent OnMax;
@@ -58,5 +66,15 @@ public class VariableFloatBoundModifier : MonoBehaviour, IVariableFloatSetOperat
         }
 
         return value;
+    }
+
+    public float BeforeSetValueModifyCheck(float value)
+    {
+        return SetOperation(value);
+    }
+
+    public float AfterGetValueModifyCheck(float value)
+    {
+        return value; //要再bound一次嗎？
     }
 }

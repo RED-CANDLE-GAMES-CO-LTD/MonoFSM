@@ -50,6 +50,25 @@ public delegate void BeforeActiveHandler(PoolObject obj);
 
 public class PoolManager : SingletonBehaviour<PoolManager>
 {
+    public static void PreparePoolObjectImplementation(PoolObject obj)
+    {
+        if (obj.TryGetComponent<PrefabSerializeCache>(out var cache))
+        {
+            cache.RestoreReferenceCache();
+        }
+        else
+        {
+            AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject); //
+        }
+        
+        HandleGameLevelAwakeReverse(obj.gameObject);
+        HandleGameLevelAwake(obj.gameObject);
+        HandleGameLevelStartReverse(obj.gameObject);
+        HandleGameLevelStart(obj.gameObject);
+        LevelResetChildrenPrepareRuntimeData(obj.gameObject);
+        obj.PoolObjectResetAndStart();
+        // obj.OnPrepare();
+    }
     public static void HandleGameLevelConfigSetting(MonoBehaviour level)
     {
         var ILevelConfigs = new List<ILevelConfig>(level.GetComponentsInChildren<ILevelConfig>(true));
@@ -73,12 +92,14 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     }
     
+    //LevelReset, 重職關卡時，一換scene時
+    //開放世界用不到？死掉復活？
     public void ResetFromRoot(GameObject root)
     {
         //每次重置都要做的, LevelReset, LevelResetAfter?
         LevelResetChildrenPrepareRuntimeData(root);
         //大便！
-        HandleEnterLevelReset(root);
+        // HandleEnterLevelReset(root);
         //FIXME: 再重整一下
         LevelResetStart(root);
     }
@@ -155,27 +176,27 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
     }
 
-    public static void HandleEnterLevelReset(GameObject level)
-    {
-        var ILevelResets = new List<IResetter>(level.GetComponentsInChildren<IResetter>(true));
-        // ILevelAwakes.Reverse();
-        foreach (var item in ILevelResets)
-        {
-            if (item == null)
-                continue;
-            try
-            {
-                item.EnterLevelReset();
-            }
-            catch (Exception e)
-            {
-                if (item is MonoBehaviour behaviour)
-                    Debug.LogError(e.StackTrace, behaviour);
-                else
-                    Debug.LogError(e.StackTrace);
-            }
-        }
-    }
+    // public static void HandleEnterLevelReset(GameObject level)
+    // {
+    //     var ILevelResets = new List<IResetter>(level.GetComponentsInChildren<IResetter>(true));
+    //     // ILevelAwakes.Reverse();
+    //     foreach (var item in ILevelResets)
+    //     {
+    //         if (item == null)
+    //             continue;
+    //         try
+    //         {
+    //             item.EnterLevelReset();
+    //         }
+    //         catch (Exception e)
+    //         {
+    //             if (item is MonoBehaviour behaviour)
+    //                 Debug.LogError(e.StackTrace, behaviour);
+    //             else
+    //                 Debug.LogError(e.StackTrace);
+    //         }
+    //     }
+    // }
     
     
 
@@ -884,23 +905,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
 
 
-        private void PreparePoolObjectImplementation(PoolObject obj)
-        {
-            if (obj.TryGetComponent<PrefabSerializeCache>(out var cache))
-            {
-                cache.RestoreReferenceCache();
-            }
-            else
-            {
-                AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject); //
-            }
-            LevelResetChildrenPrepareRuntimeData(obj.gameObject);
-            HandleGameLevelAwakeReverse(obj.gameObject);
-            HandleGameLevelAwake(obj.gameObject);
-            HandleGameLevelStartReverse(obj.gameObject);
-            HandleGameLevelStart(obj.gameObject);
-            obj.OnPrepare();
-        }
+        
 
     
         [Conditional("UNITY_EDITOR")]

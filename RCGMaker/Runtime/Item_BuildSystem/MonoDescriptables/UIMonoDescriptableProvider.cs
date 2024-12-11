@@ -8,6 +8,7 @@ using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace RCGUIBinder
 {
@@ -21,7 +22,7 @@ namespace RCGUIBinder
     }
     
     
-    //目的：提供一個DescriptableProvider，可以從外部注入Descriptable
+    //目的：提供一個MonoDescriptable，可以從外部注入Descriptable
     [Searchable]
     public class UIMonoDescriptableProvider:MonoBehaviour,IDescriptableProvider,ILevelResetStart
     {
@@ -31,10 +32,10 @@ namespace RCGUIBinder
             CollectionIndex
         }
         public SourceType sourceType; //FIXME: 把這個做完
+        [FormerlySerializedAs("tag")]
         [ShowIf(nameof(sourceType),SourceType.MonoTag)]
-        
         [SOConfig("DescriptableTag")]
-        public MonoDescriptableTag tag; //我就是provider...
+        public MonoDescriptableTag monoTag; //我就是provider...
         
         [ShowIf(nameof(sourceType),SourceType.MonoTag)]
         
@@ -42,7 +43,7 @@ namespace RCGUIBinder
         MonoDescriptable bindedDescriptable; //單一型 
         
         [ShowIf(nameof(sourceType),SourceType.MonoTag)]
-        public GameFlagDescriptable SampleItemData;
+        public DescriptableData SampleItemData;
         //從上面怎麼灌到？
         //怎麼DI綁這個？
         
@@ -56,20 +57,20 @@ namespace RCGUIBinder
         [ShowIf(nameof(sourceType),SourceType.CollectionIndex)]
         public int index; //陣列型
 
-        [PreviewInInspector]
-        string instanceFrom
-        {
-            get
-            {
-                if(collectionProvider != null)
-                    return "collectionProvider";
-                return "bindedDescriptable";
-            }
-        }
+        // [PreviewInInspector]
+        // string instanceFrom
+        // {
+        //     get
+        //     {
+        //         if(collectionProvider != null)
+        //             return "collectionProvider";
+        //         return "bindedDescriptable";
+        //     }
+        // }
 
 
         [PreviewInInspector]
-        public MonoDescriptable monoInstance
+        public virtual MonoDescriptable monoInstance
         {
             get
             {
@@ -100,11 +101,16 @@ namespace RCGUIBinder
             }
             return dropdownList;
         }
-        
-        public static ValueDropdownList<string> GetProperties(object obj, List<Type> supportedTypes,bool isArray = false)
+
+        public static ValueDropdownList<string> GetProperties(object obj, List<Type> supportedTypes,
+            bool isArray = false)
+        {
+            return GetProperties(obj.GetType(), supportedTypes, isArray);
+        }
+        public static ValueDropdownList<string> GetProperties(Type type, List<Type> supportedTypes,bool isArray = false)
         {
             // AppDomain.CurrentDomain.GetAssemblies().
-            var type = obj.GetType();
+           
             // Debug.Log(type);
             var fields = new List<string>();
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -180,21 +186,31 @@ namespace RCGUIBinder
          [Button]
          void Bind()
          {
-             if (tag == null)
+             if (monoTag == null)
              {
                  Debug.LogError("No tag found", this);
                  return;
              }
 
-             Debug.Log("Bind: "+tag,this);
-
-             if (!_binder.Contains(tag))
+             if (sourceType != SourceType.MonoTag)
              {
-                 Debug.LogError("No mono found "+tag, this);
+                 return;
              }
-             var mono = _binder.Get(tag);
+
+             Debug.Log("Bind: "+monoTag,this);
+
+             if (!_binder.Contains(monoTag))
+             {
+                 Debug.LogError("No mono found "+monoTag, this);
+             }
+             var mono = _binder.Get(monoTag);
              
              bindedDescriptable = (MonoDescriptable)mono;
+         }
+
+         private void Start()
+         {
+             // Bind();
          }
 
          public void LevelResetStart()

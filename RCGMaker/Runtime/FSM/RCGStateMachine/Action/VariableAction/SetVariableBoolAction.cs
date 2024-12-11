@@ -6,7 +6,7 @@ namespace RCGFSM.Variable
 {
     //set flag, pick item...和GameFlag有關的要用一個interface才可以撈出來
     //FIXME: 需要雙向reference, debug用，要不然不知道誰在set? candidate
-    public class SetVariableBoolAction : AbstractStateAction
+    public class SetVariableBoolAction : AbstractStateAction,IRCGArgEventReceiver<bool>
     {
         //FIXME: 用selection dropdown來篩選
         protected override string renamePostfix => targetFlag ? targetFlag.name+" to "+TargetValue : "null";
@@ -73,6 +73,11 @@ namespace RCGFSM.Variable
         void SetValue()
         {
            SetValue(TargetValue);
+        }
+
+        public void EventReceived(bool arg)
+        {
+            SetValue(arg);
         }
     }
 

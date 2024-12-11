@@ -12,7 +12,7 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
 
         protected override void RemoveImplement(IMonoDescriptableCollection item)
         {
-            throw new System.NotImplementedException();
+            // throw new System.NotImplementedException();
         }
     }
     

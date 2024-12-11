@@ -8,7 +8,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
     public class EffectEnterNode : MonoBehaviour, IEffectReceivedHandler, IDefaultSerializable
     {
         [Component]
-        [PreviewInInspector] [AutoChildren]
+        [PreviewInInspector] [AutoChildren(DepthOneOnly = true)]
         private IRCGArgEventReceiver<IEffectHitData>[] _effectReceivedProcessor = Array.Empty<IRCGArgEventReceiver<IEffectHitData>>();
 
         public void OnEffectReceived(IEffectHitData data)

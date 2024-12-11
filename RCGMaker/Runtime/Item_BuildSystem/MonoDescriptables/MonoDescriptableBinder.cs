@@ -1,5 +1,4 @@
 using RCGMaker.Core;
-using RCGUIBinder;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
@@ -26,8 +25,15 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
         }
         public static MonoDescriptable GetMonoDescriptableInstance(this MonoBehaviour mono, MonoDescriptableTag tag)
         {
-             var descriptable = mono.GetComponentInParent<MonoDescriptableBinder>().Get(tag);
-             return descriptable as MonoDescriptable;
+            //FIXME: 效能好像不好？
+            var binder = mono.GetComponentInParent<MonoDescriptableBinder>();
+            if (binder == null)
+            {
+                Debug.LogError("No MonoDescriptableBinder found "+tag,mono);
+                return null;
+            }
+            var descriptable = binder.Get(tag);
+            return descriptable as MonoDescriptable;
         }
     }
     

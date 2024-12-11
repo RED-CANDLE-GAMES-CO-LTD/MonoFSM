@@ -1,3 +1,4 @@
+using System;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime;
 using RCGMaker.Runtime.Item_BuildSystem;
@@ -39,6 +40,11 @@ namespace RCGUIBinder
         void Bind()
         {
             MonoDescriptableCollection = GetComponentInParent<MonoDescriptableCollectionBinder>().Get(tag);
+        }
+
+        private void Start()
+        {
+            // Bind();
         }
 
         public void LevelResetStart()

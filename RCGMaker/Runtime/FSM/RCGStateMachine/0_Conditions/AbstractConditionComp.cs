@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.FSM._2_Variable;
 using RCGSetting;
 using UnityEngine;
 using Sirenix.OdinInspector;
@@ -55,7 +56,7 @@ public static class AbstractConditionCompExtension
 
 
 //FIXME: 關掉condition節點算什麼？
-public abstract class AbstractConditionComp : MonoBehaviour
+public abstract class AbstractConditionComp : MonoBehaviour,IBoolValue
 {
     protected virtual bool IsShowRenameButton => nameDescription != "";
 
@@ -132,5 +133,7 @@ public abstract class AbstractConditionComp : MonoBehaviour
     {
         Debug.LogError("This Condition Can't ForceSetValid");
     }
+
+    public bool IsTrue => FinalResult;
 }
 

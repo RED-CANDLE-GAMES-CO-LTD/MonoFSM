@@ -1,6 +1,9 @@
+using System;
+
 namespace RCGMaker.Runtime.Interact.EffectHit
 {
-    public class GeneralEffectHitData : IEffectHitData
+    [Serializable]
+    public struct GeneralEffectHitData : IEffectHitData
     {
         public IEffectDealer Dealer => _dealer;
         public IEffectReceiver Receiver => _receiver;

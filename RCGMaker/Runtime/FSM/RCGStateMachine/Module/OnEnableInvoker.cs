@@ -20,7 +20,7 @@ public class OnEnableInvoker : MonoBehaviour, IUnityEventHolder
     public UnityEvent OnEnableEvent;
     public UnityEvent OnDisableEvent;
     [PreviewInInspector]
-    [AutoChildren] IRCGArgEventReceiver[] _eventReceivers;
+    [AutoChildren] IRCGArgEventReceiver<bool>[] _eventReceivers;
     private void Awake()
     {
         OnAwakeEvent?.Invoke();

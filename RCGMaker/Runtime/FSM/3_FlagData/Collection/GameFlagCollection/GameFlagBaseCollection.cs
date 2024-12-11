@@ -5,9 +5,9 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 
-public abstract class GameFlagBaseCollection<T> : AbstractGameFlagCollection where T : GameFlagDescriptable
+public abstract class GameFlagBaseCollection<T> : AbstractGameFlagCollection where T : DescriptableData
 {
-    protected virtual bool isValidLastSavedFlag(GameFlagDescriptable f)
+    protected virtual bool isValidLastSavedFlag(DescriptableData f)
     {
         return true;
     }
@@ -36,8 +36,8 @@ public abstract class GameFlagBaseCollection<T> : AbstractGameFlagCollection whe
     
 
     // public GameFlagInt indexFlag; //要存可以用這個
-    public override List<GameFlagDescriptable> rawCollection => gameFlagDataList.ToList<GameFlagDescriptable>();
-    public override GameFlagDescriptable currentItem => gameFlagDataList[currentIndex];
+    public override List<DescriptableData> rawCollection => gameFlagDataList.ToList<DescriptableData>();
+    public override DescriptableData currentItem => gameFlagDataList[currentIndex];
 
 
     protected virtual bool FlagBelongThisCollection(T t)//用一些條件去篩掉特定flag, 例如要做百科分類
@@ -77,7 +77,8 @@ public abstract class GameFlagBaseCollection<T> : AbstractGameFlagCollection whe
         {
             string path = AssetDatabase.GUIDToAssetPath(allProjectFlags[i]);
             T flag = AssetDatabase.LoadAssetAtPath<T>(path);
-
+            if(flag is AbstractGameFlagCollection) //collection不算
+                continue;
             //  自動生成pathName
             // var pathName = path.Substring(16, path.Length - 16);
             // if (flag.flagpath != pathName)
@@ -102,7 +103,7 @@ public abstract class GameFlagBaseCollection<T> : AbstractGameFlagCollection whe
     protected FlagFieldString serializedLastSaveID; //存檔點最後一個碰到的
 
 //用這個寫出去
-    public void SetLastSaveItem(GameFlagDescriptable item)
+    public void SetLastSaveItem(DescriptableData item)
     {
         
         if (item == null)
@@ -131,7 +132,7 @@ public abstract class GameFlagBaseCollection<T> : AbstractGameFlagCollection whe
 
     [TabGroup("lastSaveItem")]
     [ShowInInspector]
-    public GameFlagDescriptable lastSaveItem => isLastSaveIndexValid ? rawCollection[LastSaveIndex] : null;
+    public DescriptableData lastSaveItem => isLastSaveIndexValid ? rawCollection[LastSaveIndex] : null;
 
     private void BuildSaveIDToIndex() //從SaveID對回index的對照表
     {

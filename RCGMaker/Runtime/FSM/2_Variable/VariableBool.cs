@@ -12,11 +12,11 @@ internal interface IValueChangeCallback
     void OnValueChanged(bool value);
 }
 
-public interface IVariableBoolProvider
-{
-    bool FlagValue { get; }
-    public ScriptableDataBool ScriptableData { get; }
-}
+// public interface IVariableBoolProvider
+// {
+//     bool FlagValue { get; }
+//     public ScriptableDataBool ScriptableData { get; }
+// }
 
 public interface IRebindable
 {
@@ -24,7 +24,7 @@ public interface IRebindable
     void SetBindingTarget(IRebindable rebindable);
 }
 
-public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition, IVariableBoolProvider,
+public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
     IBoolValue,IRebindable
 {
     
@@ -58,7 +58,7 @@ public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, b
 
     private readonly Value _trackValue = new();
 
-    public bool IsValid => CurrentValue;
+    public bool IsTrue => CurrentValue;
 
 
     [ShowInPlayMode] private Component source; //單一來源
@@ -72,4 +72,6 @@ public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, b
         source = rebindable as Component;
         // Debug.Log("SetBindingSource"+source,source);
     }
+
+    public bool IsValid => CurrentValue;
 }

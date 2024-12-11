@@ -15,6 +15,7 @@ public class VariableBoolTransition : AbstractStateTransition
         return "[Transition] =>" + Target.name + " when " + variableNode.name + " is " + TargetValue;
     }
 
+    [Required]
     [Header("When")] [PropertyOrder(-1)]
     [DropDownRef]
     public VariableBool variableNode;
@@ -33,6 +34,12 @@ public class VariableBoolTransition : AbstractStateTransition
         //     if (value == TargetValue)
         //         TransitionCheck();
         // }, this);
+        if (variableNode == null)
+        {
+            Debug.LogError("VariableNode is null",this);
+            return;
+        }
+            
         variableNode.Field.AddListener(OnValueChange, this);
     }
 

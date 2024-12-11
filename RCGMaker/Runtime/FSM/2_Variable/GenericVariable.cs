@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using mixpanel;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
@@ -19,7 +20,7 @@ using UnityEngine.Serialization;
 
 //現在根本還沒做監聽，是用condition做polling
 [Searchable]
-public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable, IResetter, ISelfValidator,
+public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,ISettable<TType>, IResetter, ISelfValidator,
     IGameStateOwner, IDefaultSerializable,ILevelResetPrepare
     where TScriptableData : AbstractScriptableData<TField, TType>
     where TField : FlagField<TType>, new()
@@ -27,12 +28,12 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 {
     //想要直接選一個field就拿他的值，應該抽出去做成一個新東西不要放在GenericVariable裡面
     //VariableFloat應該獨立寫？這樣就一定可以有一個最好的abstract class
-    public override void CommitValue()
+    public void CommitValue()
     {
         Field.CommitValue();
     }
 
-    public override void SetValue(object value, MonoBehaviour byWho = null)
+    public void SetValue(object value, MonoBehaviour byWho = null)
     {
         SetValue((TType) value, byWho);
     }
@@ -340,7 +341,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         if (modifiers != null)
             foreach (var modifier in modifiers)
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
-        Debug.Log("[Variable] Set" + value+"tempValue:"+tempValue+", Value:"+CurrentValue, byWho);
+        // Debug.Log("[Variable] Set" + value+"tempValue:"+tempValue+", Value:"+CurrentValue, byWho);
         if (tempValue.Equals(CurrentValue)) return;
         byWho.Log("[Variable] Set",value);
         byWhoHashSet.Add(byWho);
@@ -465,6 +466,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     public override Type FinalDataType => typeof(TScriptableData);
     public override object objectValue => CurrentValue;
 
+
     public string Serialize()
     {
         return GetType().Name + ":" + localField.ProductionValue;
@@ -481,16 +483,68 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     }
     
 }
-
+public interface ISettable //FIXME: 有點蠢
+{
+    void CommitValue();
+    void SetValue(object value, MonoBehaviour byWho = null);
+}
+public interface ISettable<in T>:ISettable
+{
+    void SetValue(T value, MonoBehaviour byWho = null);
+}
 public abstract class AbstractVariable : MonoBehaviour, IGuidEntity, IName
 {
     [PropertyOrder(-1)]
     [SOConfig("VariableType")] public VariableTag varTag;
-    public abstract void CommitValue();
-    public abstract void SetValue(object value, MonoBehaviour byWho = null);
+    // public abstract void CommitValue();
+    // public abstract void SetValue(object value, MonoBehaviour byWho = null); //一開始就預設要可以Set了
     public abstract GameFlagBase FinalData { get; } //這是啥？
     public abstract Type FinalDataType { get; }
     public abstract object objectValue { get; }
+    public T GetValue<T>()
+    {
+        return (T)objectValue;
+    }
+    public object GetProperty(string knownFieldName)
+    {
+        return GetPropertyCache(knownFieldName)?.Invoke(this);
+    }
+    public Dictionary<string, Func<AbstractVariable, object>> propertyCache = new();
+
+    //GameFlagDescriptable有一樣的東西喔
+    public Func<AbstractVariable, object> GetPropertyCache(
+        string propertyName)
+    {
+        if (propertyCache.TryGetValue(propertyName, out var info))
+            return info;
+
+
+        var propertyInfo = GetType()
+            .GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
+
+        // Debug.Log($"Property {propertyName} found in {sourceObject.GetType()}", sourceObject);
+
+        if (propertyInfo == null)
+        {
+            propertyCache[propertyName] = null;
+            //FIXME: 可能因為unknownData所以有可能會找不到 有點危險？
+            // Debug.LogError($"Property {propertyName} not found in {GetType()}");
+            return null;
+        }
+
+        var getMethod = propertyInfo.GetGetMethod();
+        if (getMethod == null)
+        {
+            Debug.LogError($"Property {propertyName} does not have a getter in {GetType()}"
+            );
+            return null;
+        }
+
+        Func<AbstractVariable, object>
+            getMyProperty = (source) => getMethod.Invoke(source, null);
+        propertyCache[propertyName] = getMyProperty;
+        return getMyProperty;
+    }
 
 #if UNITY_EDITOR
     [Header("GameState 功能說明")] [TextArea(1, 4)]

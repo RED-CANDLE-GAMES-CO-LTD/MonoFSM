@@ -30,6 +30,33 @@ public static class StateMachineExtension
         return default;
     }
     
+    //FIXME: 效能不好？editor code沒差
+    public static Component[] GetComponentsOfSibling(this Component monoBehaviour,Type parentType,Type siblingType) 
+    {
+        var binder = monoBehaviour.GetComponentInParent(parentType) as MonoBehaviour;
+        if (binder != null) return binder.GetComponentsInChildren(siblingType);
+        Debug.LogError("IBinder not found", monoBehaviour);
+        return Array.Empty<Component>();
+    }
+    public static Component[] GetComponentsOfSiblingAll(this Component monoBehaviour,Type parentType,Type siblingType) 
+    {
+        var parents = monoBehaviour.GetComponentsInParent(parentType);
+        var list = new List<Component>();
+        if (parents == null || parents.Length == 0)
+        {
+            Debug.LogError("IBinder not found", monoBehaviour);
+            return Array.Empty<Component>();
+        }
+            
+        foreach (var binder in parents)
+        {
+            list.AddRange(binder.GetComponentsInChildren(siblingType));
+        }
+        return list.ToArray();
+        // if (binder != null) return binder.GetComponentsInChildren(siblingType);
+        Debug.LogError("IBinder not found", monoBehaviour);
+        return Array.Empty<Component>();
+    }
     public static IList<T> GetComponentsOfSibling<TParent, T>(this MonoBehaviour monoBehaviour) 
     {
         var binder = monoBehaviour.GetComponentInParent<TParent>() as MonoBehaviour;
@@ -53,20 +80,21 @@ public static class StateMachineExtension
         return default;
     }
     
-    public static T[] GetComponentsInBinder<T>(this MonoBehaviour monoBehaviour) 
+    public static T[] GetComponentsInBinder<T>(this Component monoBehaviour) 
     {
         var binder = monoBehaviour.GetComponentInParent<IBinder>(true) as MonoBehaviour;
         if (binder != null) return binder.GetComponentsInChildren<T>(true);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<T>();
     }
-    public static Component[] GetComponentsInBinder(this MonoBehaviour monoBehaviour, Type type) 
+    public static Component[] GetComponentsInBinder(this Component monoBehaviour, Type type) 
     {
         var binder = monoBehaviour.GetComponentInParent<IBinder>(true) as MonoBehaviour;
         if (binder != null) return binder.GetComponentsInChildren(type,true);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<Component>();
     }
+    
 }
 
 public interface IBinder
@@ -89,7 +117,11 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
     public void ResetFSM()
     {
         if (fsmContext.fsm == null)
+        {
+            Debug.LogError("fsmContext.fsm is null", gameObject);
             return;
+        }
+            
         // fsmContext.ChangeState(fsmContext.startState);
         if (fsmContext.fsm.HasState(fsmContext.startState))
             fsmContext.ChangeState(fsmContext.startState);
@@ -111,11 +143,14 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
     {
        
     }
-    
-   
+
+    private void Start()
+    {
+        // ResetFSM(); //中途加入的玩家沒有call到這個
+    }
     //2. 關卡重置後開始
 
-    void ILevelResetStart.LevelResetStart()
+    void ILevelResetStart.LevelResetStart() //Instaniate之後不會call這個...
     {
         //不能有兩個進入點喔
        ResetFSM(); //最新規, levelReset之後, 

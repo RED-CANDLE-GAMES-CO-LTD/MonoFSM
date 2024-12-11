@@ -17,7 +17,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
    
     public class VariableFloatValueCondition : AbstractConditionComp
     {
-        protected override string nameDescription => name = "[Condition] " + variableFloat.name + " " + op + " " + targetValue;
+        protected override string nameDescription => variableFloat ? name = "[Condition] " + variableFloat.name + " " + op + " " + targetValue: name = "[Condition]";
 
         [DropDownRef] public VariableFloat variableFloat;
         public Operator op;

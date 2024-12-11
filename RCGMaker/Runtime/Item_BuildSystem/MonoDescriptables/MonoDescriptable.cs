@@ -4,35 +4,69 @@ using System.Reflection;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
+using RCGMaker.Runtime.Interact.EffectHit;
 using RCGMaker.Runtime.Item_BuildSystem;
+using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Runtime
 {
     //描述物件的monoNode
+    //場景物件、角色、
     public class MonoDescriptable:MonoBehaviour,IMonoDescriptable, IValueOfKey<MonoDescriptableTag>
     {
+        #if UNITY_EDITOR
+        [Required]
+        [PreviewInInspector]
+        [AutoParent]
+        MonoDescriptableBinder _binder;
+        #endif
+        
+        [PreviewInInspector]
+        [AutoChildren] GeneralEffectReceiver[] _receivers; //可以互動的性質門
+        HashSet<GeneralEffectType> _effectTypes;
+        public bool IsEffectTypeIn(GeneralEffectType effectType)
+        {
+            return _effectTypes.Contains(effectType);
+        }
+
+        private void Awake()
+        {
+            _effectTypes = new HashSet<GeneralEffectType>();
+            if(_receivers == null)
+                return;
+            foreach (var receiver in _receivers)
+            {
+                _effectTypes.Add(receiver.EffectType);
+            }
+        }
+
         [Component]
         [AutoChildren]
         RCGVariableFolder _variableFolder;
 
-        public GameFlagDescriptable data;
+        //FIXME: 怎麼區分 data 和 DescriptableTag?
+        public DescriptableData data;
         public virtual IDescriptable Descriptable => data;
-        public virtual void OnUIEventReceived()
-        {
-            Debug.Log("UI Event Received",this);   
-        }
-
-        public MonoDescriptableTag Tag => DescriptableTag;
-
-        private string errorValue;
-        string errorString => errorValue;
         [InfoBox(nameof(errorString), InfoMessageType.Error, nameof(IsVariableMissing))]
         [InlineEditor] [Required] [ShowInInspector]
         [SerializeField]
         [SOConfig("DescriptableTag")]
         MonoDescriptableTag DescriptableTag;
+        
+        public MonoDescriptableTag Tag => DescriptableTag;
+        
+        public virtual void OnUIEventReceived()
+        {
+            Debug.Log("UI Event Received",this);   
+        }
+
+      
+
+        private string errorValue;
+        string errorString => errorValue;
+  
         
         bool IsVariableMissing()
         {

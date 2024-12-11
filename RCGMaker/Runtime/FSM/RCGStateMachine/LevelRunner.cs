@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 namespace RCGMaker.Core
 {
     [DefaultExecutionOrder(10000)]
-    public class LevelRunner : MonoBehaviour
+    public class LevelRunner : SingletonBehaviour<LevelRunner>
     {
         //FIXME: 
         [MenuItem("RCG/ResetLevel %R")]
