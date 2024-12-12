@@ -138,6 +138,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         {
             animResetters.Add(new AnimatorResetter(animator));
         }
+
+        Debug.Log("[PoolObjectResetAndStart] animResetters", this);
     }
 
     private void OnEnable()
@@ -153,23 +155,23 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     //         return;
     //     ResetAnim();
     // }
-    public void ResetAnim()
-    {
-        // if (_animResetterInited == false)
-        //     return;
-        //
-        // if (isActiveAndEnabled == false)
-        //     return;
-        //
-        // foreach (var animatorResetter in animResetters)
-        // {
-        //     this.Log(animatorResetter.animator, "[PoolObjectResetAndStart] anim Reset", animatorResetter.animator);
-        //     animatorResetter.ResetToDefault();
-        //     // this.Break();
-        // }
-
-        // needResetAnim = false;
-    }
+    // public void ResetAnim()
+    // {
+    //     // if (_animResetterInited == false)
+    //     //     return;
+    //     //
+    //     // if (isActiveAndEnabled == false)
+    //     //     return;
+    //     //
+    //     // foreach (var animatorResetter in animResetters)
+    //     // {
+    //     //     this.Log(animatorResetter.animator, "[PoolObjectResetAndStart] anim Reset", animatorResetter.animator);
+    //     //     animatorResetter.ResetToDefault();
+    //     //     // this.Break();
+    //     // }
+    //
+    //     // needResetAnim = false;
+    // }
 
     private void CheckList()
     {
@@ -309,7 +311,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
             RegisterDestroy(); //打開了才註冊ㄋ
         }
         CheckList();
-        ResetAnim();
+        // ResetAnim();
 
         this.Log("[PoolObjectResetAndStart]", gameObject);
         PoolManager.Instance.ResetFromRoot(gameObject);
@@ -326,7 +328,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     {
         destroyTween.Stop();
         CheckList();
-        ResetAnim();
+        // ResetAnim();
+        
         foreach (var t in IPoolObjectList)
         {
             try
@@ -432,31 +435,23 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     public Animator[] animators => _anims;
     int animDefaultNameHash;
 
-    // public void OnPrepare() //還關著的時候
-    // {
-    //     InitAnimResetters();
-    //     CheckList();
-    //     foreach (var poolObj in IPoolObjectList)
-    //     {
-    //         try
-    //         {
-    //             poolObj.PoolOnPrepared(this);
-    //         }
-    //         catch (Exception e)
-    //         {
-    //             Debug.LogError(e.Message);
-    //             Debug.LogError(e.StackTrace);
-    //         }
-    //     }
-    //
-    //     // this.Log("[PoolObject] OnPrepare", _anims.Length, animResetters.Count, this);
-    //     // if (_anims.Length != animResetters.Count)
-    //     // {
-    //     //     Debug.LogError("Animator count not match", this);
-    //     // }
-    //
-    //
-    // }
+    public void OnPrepare() //還關著的時候
+    {
+        InitAnimResetters();
+        CheckList();
+        foreach (var poolObj in IPoolObjectList)
+        {
+            try
+            {
+                poolObj.PoolOnPrepared(this);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.Message);
+                Debug.LogError(e.StackTrace);
+            }
+        }
+    }
     public bool isOnScene => onScene;
 
     public bool isInPool => !onScene;

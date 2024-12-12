@@ -18,7 +18,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         [Component(AddComponentAt.Parent)]
         [Required]
         [AutoParent] private SpatialDetectable _detectable;
-        [PropertyOrder(-1)]
+      
+        // [PropertyOrder(-1)]
         public FloatValueSource ValueSource;
         public IEffectHitData GenerateEffectHitData(IEffectDealer dealer, IEffectReceiver receiver)
         {

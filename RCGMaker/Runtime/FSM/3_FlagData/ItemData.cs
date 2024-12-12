@@ -34,8 +34,10 @@ namespace RCGMaker.Runtime.FSM._3_FlagData
             UnityEditor.Undo.RegisterCreatedObjectUndo(instance.gameObject, "InstantiateEquipView");
 #endif
             //PoolManager.Instance.BorrowOrInstantiate(
-            if(Application.isPlaying)
-                AutoAttributeManager.AutoReferenceAllChildren(instance.gameObject);
+            //FIXME: 這個auto比較慢...awake先做掉了...
+            // if(Application.isPlaying)
+            //     AutoAttributeManager.AutoReferenceAllChildren(instance.gameObject);
+            PoolManager.PreparePoolObjectImplementation(instance.GetComponent<PoolObject>());
             return instance;
         }
     }

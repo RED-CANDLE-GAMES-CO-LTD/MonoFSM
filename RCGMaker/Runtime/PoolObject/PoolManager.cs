@@ -66,8 +66,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         HandleGameLevelStartReverse(obj.gameObject);
         HandleGameLevelStart(obj.gameObject);
         LevelResetChildrenPrepareRuntimeData(obj.gameObject);
+        obj.OnPrepare();
         obj.PoolObjectResetAndStart();
-        // obj.OnPrepare();
+        
     }
     public static void HandleGameLevelConfigSetting(MonoBehaviour level)
     {
@@ -547,7 +548,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             prefab.TransformReset();
             
             prefab.gameObject.SetActive(true);
-            prefab.ResetAnim();
+            // prefab.ResetAnim();
             //FIXME:這裡又跑一次...
             prefab.PoolObjectResetAndStart();
 

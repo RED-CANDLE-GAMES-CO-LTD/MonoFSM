@@ -14,37 +14,44 @@ namespace RCGMaker.Runtime
 {
     //描述物件的monoNode
     //場景物件、角色、
-    public class MonoDescriptable:MonoBehaviour,IMonoDescriptable, IValueOfKey<MonoDescriptableTag>
+    public class MonoDescriptable:MonoBehaviour,IMonoDescriptable, ILevelAwake
     {
         #if UNITY_EDITOR
-        [Required]
+        [RequiredIn(PrefabKind.InstanceInScene)]
         [PreviewInInspector]
         [AutoParent]
         MonoDescriptableBinder _binder;
         #endif
         
         [PreviewInInspector]
+        [AutoChildren] GeneralEffectDealer[] _dealers; //可以互動的性質門
+        HashSet<GeneralEffectType> _dealerTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
+        [PreviewInInspector]
+        private int _dealerSetCount => _dealerTypeSet.Count;
+        [PreviewInInspector]
         [AutoChildren] GeneralEffectReceiver[] _receivers; //可以互動的性質門
-        HashSet<GeneralEffectType> _effectTypes;
-        public bool IsEffectTypeIn(GeneralEffectType effectType)
+        HashSet<GeneralEffectType> _receiverTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
+        [PreviewInInspector]
+        private int _receiverSetCount => _receiverTypeSet.Count;
+        //帶有xx性質的物件
+        public bool HasReceiverType(GeneralEffectType effectType)
         {
-            return _effectTypes.Contains(effectType);
+            return _receiverTypeSet.Contains(effectType);
+        }
+        public bool HasDealerType(GeneralEffectType effectType)
+        {
+            return _dealerTypeSet.Contains(effectType);
         }
 
-        private void Awake()
-        {
-            _effectTypes = new HashSet<GeneralEffectType>();
-            if(_receivers == null)
-                return;
-            foreach (var receiver in _receivers)
-            {
-                _effectTypes.Add(receiver.EffectType);
-            }
-        }
+        // private void Awake()
+        // {
+        //     
+        //   
+        // }
 
         [Component]
         [AutoChildren]
-        RCGVariableFolder _variableFolder;
+        RCGVariableFolder _variableFolder; //需要這個嗎？
 
         //FIXME: 怎麼區分 data 和 DescriptableTag?
         public DescriptableData data;
@@ -163,5 +170,21 @@ namespace RCGMaker.Runtime
         }
 
         public MonoDescriptableTag Key => DescriptableTag;
+        public void EnterLevelAwake()
+        {
+            // _receiverTypeSet = new HashSet<GeneralEffectType>();
+            if(_receivers != null)
+                foreach (var receiver in _receivers)
+                {
+                    _receiverTypeSet.Add(receiver.EffectType);
+                }
+            
+            // _dealerTypeSet = new HashSet<GeneralEffectType>();
+            if(_dealers != null)
+                foreach (var dealer in _dealers)
+                {
+                    _dealerTypeSet.Add(dealer.EffectType);
+                }
+        }
     }
 }
