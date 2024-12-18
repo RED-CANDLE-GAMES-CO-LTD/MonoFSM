@@ -4,6 +4,7 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core
 {
@@ -11,7 +12,7 @@ namespace RCGMaker.Core
     public abstract class MonoDict<T, TU> : MonoBehaviour, ILevelResetPrepare where TU:IValueOfKey<T>
     {
         [PreviewInInspector]
-        [AutoChildren] TU[] collections;
+        [AutoChildren] TU[] collections; //disable也會被加進來
 
 
         //現在是一個runtime dict...有點爛
@@ -94,6 +95,7 @@ namespace RCGMaker.Core
         protected abstract void RemoveImplement(TU item); //FIXME:為什麼需要這個？
 
         [ShowInInspector] public List<T> GetKeys => new(_dict.Keys);
+        [ShowInInspector] public List<TU> GetValues => new(_dict.Values);
 
         // public void EnterLevelReset()
         // {
@@ -123,11 +125,16 @@ namespace RCGMaker.Core
             Clear();
             foreach (var item in collections)
             {
+                if(CanBeAdded(item) == false)
+                    continue;
                 Add(item.Key, item);
-                Debug.Log($"Add key:{item.Key} item:{item}",this);
+                Debug.Log($"Add key:{item.Key} item:{item}",item as Object);
             }
             // enabled = false;
         }
+        
+        protected abstract bool CanBeAdded(TU item);
+
     }
 
     public interface IValueOfKey<out T>

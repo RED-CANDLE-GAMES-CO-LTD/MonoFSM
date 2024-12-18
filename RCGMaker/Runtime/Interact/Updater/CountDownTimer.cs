@@ -37,7 +37,7 @@ public class CountDownTimer:MonoBehaviour
             pauseTimeCounter = 0;
    
         }
-        else if(isConsuming.CurrentValue)
+        else if(isConsuming.CurrentValue && decreaseSpeedStat.FinalValue > 0)
         {
             countType = CountType.Decrease;
             pauseTimeCounter = 0;

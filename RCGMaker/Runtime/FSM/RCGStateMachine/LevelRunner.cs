@@ -42,7 +42,7 @@ namespace RCGMaker.Core
         private GameObject level;
         void Start()
         {
-            Application.targetFrameRate = 60;
+            // Application.targetFrameRate = 60;
             // Debug.Log("OnSceneLoaded" + arg0.name);
             var arg0 = gameObject.scene;
             // var level = new GameObject("Level");

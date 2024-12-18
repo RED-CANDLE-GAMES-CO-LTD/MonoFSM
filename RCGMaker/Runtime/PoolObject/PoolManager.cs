@@ -131,7 +131,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
 
     //最新規，九日沒在用？
-    public static void LevelResetStart(GameObject gObj)
+    public static void LevelResetStart(GameObject gObj) //由下往上
     {
         var levelResets = new List<ILevelResetStart>();
         gObj.GetComponentsInChildren(true, levelResets);

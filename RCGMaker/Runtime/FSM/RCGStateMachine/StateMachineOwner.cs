@@ -129,6 +129,20 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
             Debug.LogError("fsmContext.startState not found?", gameObject);
     }
 
+    public void PauseAll()
+    {
+        foreach (var context in fsmContexts)
+        {
+            context.PauseFSM();
+        }
+    }
+    public void ResumeAll()
+    {
+        foreach (var context in fsmContexts)
+        {
+            context.ResumeFSM();
+        }
+    }
 
     public Animator ChildAnimator => GetComponentInChildren<Animator>();
     public Animator[] ChildAnimators => GetComponentsInChildren<Animator>();

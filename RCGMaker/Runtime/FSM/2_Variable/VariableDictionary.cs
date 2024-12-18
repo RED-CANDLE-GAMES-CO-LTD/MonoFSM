@@ -11,6 +11,11 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         protected override void RemoveImplement(VariableFloat item)
         {
         }
+
+        protected override bool CanBeAdded(VariableFloat item)
+        {
+            return item.isActiveAndEnabled;
+        }
     }
 
     [Serializable]

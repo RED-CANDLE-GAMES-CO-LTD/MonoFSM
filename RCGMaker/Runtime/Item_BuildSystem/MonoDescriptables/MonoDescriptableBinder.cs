@@ -6,14 +6,18 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
     /// <summary>
     /// 用MonoDescriptableTag當key的來找IMonoDescriptable
     /// </summary>
-    public class MonoDescriptableBinder:MonoDict<MonoDescriptableTag,IMonoDescriptable>
+    public class MonoDescriptableBinder:MonoDict<MonoDescriptableTag, MonoDescriptable>
     {
         //FIXME: 直接用MonoDescriptable就好？
-        protected override void RemoveImplement(IMonoDescriptable item)
+        protected override void RemoveImplement(MonoDescriptable item)
         {
             
         }
-        
+
+        protected override bool CanBeAdded(MonoDescriptable item)
+        {
+            return item.isActiveAndEnabled;
+        }
     }
     
     public static class MonoDescriptableBinderExtension

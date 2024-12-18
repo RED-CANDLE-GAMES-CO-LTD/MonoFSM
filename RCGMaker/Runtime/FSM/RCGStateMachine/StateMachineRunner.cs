@@ -85,6 +85,7 @@ namespace RCGMaker.Core
         public void UpdateFromManager()
         {
             Profiler.BeginSample("StateMachineRunner.UpdateFromManager", this);
+            
             for (var i = stateMachineList.Count - 1; i >= 0; i--)
             {
                 var fsm = stateMachineList[i];

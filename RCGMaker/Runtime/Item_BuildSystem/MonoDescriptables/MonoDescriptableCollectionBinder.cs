@@ -14,6 +14,11 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
         {
             // throw new System.NotImplementedException();
         }
+
+        protected override bool CanBeAdded(IMonoDescriptableCollection item)
+        {
+            return item.isActiveAndEnabled;
+        }
     }
     
 }

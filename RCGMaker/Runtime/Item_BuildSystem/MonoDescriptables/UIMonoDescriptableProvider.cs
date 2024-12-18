@@ -201,7 +201,7 @@ namespace RCGUIBinder
 
              if (!_binder.Contains(monoTag))
              {
-                 Debug.LogError("No mono found "+monoTag, this);
+                 Debug.LogError("No mono found: "+monoTag, this);
              }
              var mono = _binder.Get(monoTag);
              

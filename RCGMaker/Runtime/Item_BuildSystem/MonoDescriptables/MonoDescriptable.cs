@@ -49,6 +49,7 @@ namespace RCGMaker.Runtime
         //   
         // }
 
+        [PreviewInInspector]
         [Component]
         [AutoChildren]
         RCGVariableFolder _variableFolder; //需要這個嗎？
@@ -81,7 +82,7 @@ namespace RCGMaker.Runtime
         }
         bool CheckAllVariableExists()
         {
-            if(DescriptableTag == null)
+            if(DescriptableTag == null || _variableFolder == null)
                 return false;
             foreach (var varTag in DescriptableTag.containsVariableTypeTags)
             {

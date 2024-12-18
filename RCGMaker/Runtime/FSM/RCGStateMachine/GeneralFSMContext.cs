@@ -19,7 +19,10 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
 {
 #if UNITY_EDITOR
 
-
+    public void Pause()
+    {
+        fsm.Pause();
+    }
     private void OnDrawGizmos()
     {
         if (!Application.isPlaying)
@@ -107,7 +110,7 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
             }
         }
     }
-    public void PauseFSM()
+    public void PauseFSM() //被culling時
     {
         fsm.Pause();
         

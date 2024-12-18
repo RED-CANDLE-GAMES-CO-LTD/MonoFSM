@@ -47,6 +47,7 @@ public interface IToggleable
 public interface IMonoDescriptableCollection:IValueOfKey<MonoDescriptableTag>
 {
     public IList<IMonoDescriptable> MonoDescriptableList { get; }
+    bool isActiveAndEnabled { get; }
     // public MonoDescriptableTag Tag { get; }
 }
 public interface IMonoDescriptable:IValueOfKey<MonoDescriptableTag>

@@ -8,6 +8,11 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
+    public interface IVariableTagSetter
+    {
+        VariableTag refVariableTag { get;}
+    }
+    
     [Serializable]
    public class MySerializedType
     {
@@ -64,7 +69,11 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         void GetBindedVariables()
         {
             bindedVariables = FindObjectsOfType<AbstractVariable>(true).Where(v => v.varTag == this).ToArray();
+            bindedVariableSetters = FindObjectsOfType<MonoBehaviour>(true).OfType<IVariableTagSetter>().Where(v => v.refVariableTag == this).ToArray();
         }
+        
+        [PreviewInInspector]
+        IVariableTagSetter[] bindedVariableSetters;
 #endif
     }
 }
