@@ -139,7 +139,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
             animResetters.Add(new AnimatorResetter(animator));
         }
 
-        Debug.Log("[PoolObjectResetAndStart] animResetters", this);
+        // Debug.Log("[PoolObjectResetAndStart] animResetters", this);
     }
 
     private void OnEnable()

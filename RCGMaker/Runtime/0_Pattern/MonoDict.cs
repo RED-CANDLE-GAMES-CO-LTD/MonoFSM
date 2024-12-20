@@ -128,7 +128,7 @@ namespace RCGMaker.Core
                 if(CanBeAdded(item) == false)
                     continue;
                 Add(item.Key, item);
-                Debug.Log($"Add key:{item.Key} item:{item}",item as Object);
+                // Debug.Log($"Add key:{item.Key} item:{item}",item as Object);
             }
             // enabled = false;
         }
