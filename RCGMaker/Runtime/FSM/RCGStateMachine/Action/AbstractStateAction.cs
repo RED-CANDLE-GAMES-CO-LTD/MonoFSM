@@ -11,6 +11,8 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     IRCGArgEventReceiver
 {
     
+    
+    protected virtual string Description => $"Action: {GetType().Name}";
     //怎麼知道誰用Enter, 誰用Update
     private bool IsValid //AND
     {
@@ -37,7 +39,8 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [AutoChildren(false, DepthOneOnly = true)] public AbstractConditionComp[] conditions;//condition 成立，才能做事
 //FIXME: public應該拿掉
 
-[HideInInlineEditors]
+    [InfoBox("$Description", InfoMessageType.Info)]
+    [HideInInlineEditors]
     [Button]
     private void Rename()
     {

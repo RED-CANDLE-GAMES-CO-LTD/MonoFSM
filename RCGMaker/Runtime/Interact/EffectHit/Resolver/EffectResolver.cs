@@ -9,7 +9,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         [Button]
         void Rename()
         {
-            name = EffectType.ToString();
+            name = "[Receiver] "+EffectType.name.Replace("[EffectType]","");
         }
         
         [Required] [SOConfig("GeneralEffectType")]

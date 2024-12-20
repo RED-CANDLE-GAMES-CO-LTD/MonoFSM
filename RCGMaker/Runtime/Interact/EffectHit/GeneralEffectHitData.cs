@@ -1,4 +1,6 @@
 using System;
+using RCGMaker.Runtime.FSM.RCGStateMachine;
+using RCGMaker.Runtime.Item_BuildSystem;
 
 namespace RCGMaker.Runtime.Interact.EffectHit
 {
@@ -7,6 +9,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit
     {
         public IEffectDealer Dealer => _dealer;
         public IEffectReceiver Receiver => _receiver;
+        public GeneralEffectDealer GeneralDealer => _dealer;
+        public GeneralEffectReceiver GeneralReceiver => _receiver;
 
         private GeneralEffectDealer _dealer;
         private GeneralEffectReceiver _receiver;
@@ -15,6 +19,15 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         {
             _dealer = dealer as GeneralEffectDealer;
             _receiver = receiver as GeneralEffectReceiver;
+        }
+        
+        public T GetComponentFromDealerOwner<T>() where T : class
+        {
+            return GeneralDealer.GetComponentOfSibling<IModuleOwner, T>();
+        }
+        public T GetComponentFromReceiver<T>() where T : class
+        {
+            return GeneralReceiver.GetComponentOfSibling<IModuleOwner, T>();
         }
     }
 }

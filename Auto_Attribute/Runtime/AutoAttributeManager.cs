@@ -27,6 +27,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Sirenix.OdinInspector;
+
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
@@ -35,6 +36,7 @@ using Debug = UnityEngine.Debug;
 
 public class AutoAttributeManager : MonoBehaviour
 {
+    
     public static IEnumerable<MonoBehaviour> GetAllMonoBehavioursOfCurrentScene()
     {
         var roots = SceneManager.GetActiveScene().GetRootGameObjects();
@@ -87,11 +89,13 @@ public class AutoAttributeManager : MonoBehaviour
     private void Awake()
     {
         // Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
-        monoReferenceCache.RestoreReferenceCacheToMonoFields();
+        
         //FIXME: 這可以減少GC嗎？
         // monoReferenceCache.ClearRefs();
 #if UNITY_EDITOR
         SweepScene();
+#else
+        monoReferenceCache.RestoreReferenceCacheToMonoFields();
 #endif
     }
 

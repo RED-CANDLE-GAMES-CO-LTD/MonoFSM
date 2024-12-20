@@ -7,10 +7,20 @@ using System.Linq;
 [InitializeOnLoad]
 public class AutoAttributeManagerEditor : UnityEditor.AssetModificationProcessor
 {
-    static AutoAttributeManagerEditor()
-    {
-    }
+    
+    // [InitializeOnLoadMethod]
+    // static void Init()
+    // {
+    //     // EditorApplication.playModeStateChanged += PlayModeChanged;
+    // }
 
+    // private static void PlayModeChanged(PlayModeStateChange obj)
+    // {
+    //     if (obj == PlayModeStateChange.ExitingEditMode)
+    //     {
+    //         AutoAttributeManager.BuildFieldCache();
+    //     }
+    // }
     private static void MakeSureAutoManagerIsInScene()
     {
         var autoManagers = GameObject.FindObjectsOfType<AutoAttributeManager>(true);
