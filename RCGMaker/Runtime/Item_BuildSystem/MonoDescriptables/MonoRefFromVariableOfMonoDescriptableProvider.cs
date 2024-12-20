@@ -41,6 +41,11 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
                 }
 
                 var variable = base.monoInstance.GetVariable(_variableTag);
+                if(variable == null)
+                {
+                    Debug.LogError("Variable is null"+_variableTag,this);
+                    return null;
+                }
                 var monoDescriptable = variable.GetValue<MonoDescriptable>();
                 return monoDescriptable;
 
