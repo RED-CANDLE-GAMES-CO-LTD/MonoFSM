@@ -23,6 +23,13 @@ public class VariableFloat : GenericVariable<ScriptableDataFloat, FlagFieldFloat
     public float EditorValue
     {
         get => Field.ProductionValue;
-        set => Field.ProductionValue = value;
+        set
+        {
+            Field.ProductionValue = value;  
+            Field.DevValue = value;
+            #if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+            #endif
+        } 
     }
 }

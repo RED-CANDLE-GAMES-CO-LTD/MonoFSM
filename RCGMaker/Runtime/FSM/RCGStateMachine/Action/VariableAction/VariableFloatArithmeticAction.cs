@@ -70,7 +70,7 @@ namespace RCGFSM.Variable
                     break;
             }
 
-            Debug.Log("VariableFloatArithmeticAction: " + targetFlag.CurrentValue);
+            Debug.Log("VariableFloatArithmeticAction: " + targetFlag.CurrentValue, this);
         }
         
         //last value < current value

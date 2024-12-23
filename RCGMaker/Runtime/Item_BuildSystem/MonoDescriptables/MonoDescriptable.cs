@@ -57,7 +57,7 @@ namespace RCGMaker.Runtime
         //FIXME: 怎麼區分 data 和 DescriptableTag?
         public DescriptableData data;
         public virtual IDescriptable Descriptable => data;
-        [InfoBox(nameof(errorString), InfoMessageType.Error, nameof(IsVariableMissing))]
+        [InfoBox("$errorString", InfoMessageType.Error, nameof(IsVariableMissing))]
         [InlineEditor] [Required] [ShowInInspector]
         [SerializeField]
         [SOConfig("DescriptableTag")]
@@ -82,8 +82,12 @@ namespace RCGMaker.Runtime
         }
         bool CheckAllVariableExists()
         {
-            if(DescriptableTag == null || _variableFolder == null)
+            if (DescriptableTag == null || _variableFolder == null)
+            {
+                errorValue = "Descriptable Tag or Variable Folder is null";
                 return false;
+            }
+                
             foreach (var varTag in DescriptableTag.containsVariableTypeTags)
             {
                 if (varTag == null)

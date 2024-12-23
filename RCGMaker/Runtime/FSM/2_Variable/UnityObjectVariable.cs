@@ -93,7 +93,18 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         }
 
         //FIXME: Editor用的...EditorObjectValue?
-        public Object ObjectValue { get => DefaultValue; set => DefaultValue = value as T; }
+        public Object EditorValue
+        {
+            get => DefaultValue;
+            set
+            {
+                DefaultValue = value as T;
+                #if UNITY_EDITOR
+                UnityEditor.EditorUtility.SetDirty(this);
+                #endif
+            }
+        }
+
         public Type ObjectType => typeof(T);
     }
     //variable
