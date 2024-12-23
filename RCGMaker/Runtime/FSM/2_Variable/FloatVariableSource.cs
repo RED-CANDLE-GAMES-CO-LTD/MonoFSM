@@ -27,9 +27,15 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     {
         int FinalValue { get; }
     }
+    public interface ISerializedFloatValue
+    {
+        float EditorValue { get; set; }
+    }
     public interface IFloatValue
     {
         float FinalValue { get; }
+       
+        //要可以set?
     }
 
     public interface IBoolValue

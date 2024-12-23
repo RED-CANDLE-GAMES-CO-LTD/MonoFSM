@@ -6,7 +6,7 @@ using RCGMaker.Runtime.FSM._2_Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class VariableFloat : GenericVariable<ScriptableDataFloat, FlagFieldFloat, float>, IFloatValue, IValueOfKey<VariableTag>
+public class VariableFloat : GenericVariable<ScriptableDataFloat, FlagFieldFloat, float>, IFloatValue, IValueOfKey<VariableTag>,ISerializedFloatValue
 {
     //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 
     public VariableTag Key => varTag;
@@ -19,5 +19,10 @@ public class VariableFloat : GenericVariable<ScriptableDataFloat, FlagFieldFloat
     [Component]
     [AutoChildren]
     AbstractVariableModifier<float> [] _setOperations;
-    
+
+    public float EditorValue
+    {
+        get => Field.ProductionValue;
+        set => Field.ProductionValue = value;
+    }
 }

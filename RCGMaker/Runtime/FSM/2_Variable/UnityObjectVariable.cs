@@ -20,7 +20,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     }
     
     //FIXME: 這個好像不好...
-    public class GenericUnityObjectVariable<T>:AbstractReferenceVariable,ISettable<T>,ILevelResetStart where T:Object
+    public class GenericUnityObjectVariable<T>:AbstractReferenceVariable,ISettable<T>,ILevelResetStart,IObjectReference where T:Object
     {
         // protected virtual IEnumerable<Type> filter()
         // {
@@ -91,6 +91,10 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         {
             _currentValue = DefaultValue;
         }
+
+        //FIXME: Editor用的...EditorObjectValue?
+        public Object ObjectValue { get => DefaultValue; set => DefaultValue = value as T; }
+        public Type ObjectType => typeof(T);
     }
     //variable
     //Monobehaviour 包著一個變數
