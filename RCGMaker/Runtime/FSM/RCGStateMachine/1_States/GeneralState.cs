@@ -4,6 +4,7 @@ using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using RCGExtension;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
@@ -11,7 +12,6 @@ using UnityEditor;
 #endif
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
-using vHierarchy.RCGExtension;
 
 public interface INodeModel
 {

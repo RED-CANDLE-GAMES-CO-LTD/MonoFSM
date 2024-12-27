@@ -1,6 +1,4 @@
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace RCGMaker.Core
 {
@@ -8,7 +6,8 @@ namespace RCGMaker.Core
     public class LevelRunner : MonoBehaviour// SingletonBehaviour<LevelRunner>
     {
         //FIXME: 
-        [MenuItem("RCG/ResetLevel %R")]
+        #if UNITY_EDITOR
+        [UnityEditor.MenuItem("RCG/ResetLevel %R")]
         public static void TestResetLevel()
         {
 
@@ -25,6 +24,7 @@ namespace RCGMaker.Core
             }
                 
         }
+        #endif
         
         public void ResetLevel()
         {

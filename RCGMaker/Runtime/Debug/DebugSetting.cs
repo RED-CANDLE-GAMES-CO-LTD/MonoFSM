@@ -1,7 +1,6 @@
 // using QFSW.QC;
 
 using System.Collections.Generic;
-using UnityEditor.SettingsManagement;
 // using QFSW.QC;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -228,7 +227,9 @@ get => false;
         
         public static bool IsDebugMode
         {
-            get => RCGDebugSetting.IsDebugMode;
+            get => false;
+            //FIXME: 怎麼從這邊拿...
+            //RCGDebugSetting.IsDebugMode;
 //             //為什麼之前要註解掉editor if?
 //             
 // #if RCG_DEV

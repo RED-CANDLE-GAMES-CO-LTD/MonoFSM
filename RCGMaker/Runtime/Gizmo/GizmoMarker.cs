@@ -1,9 +1,8 @@
 ﻿#if UNITY_EDITOR
 using UnityEditor;
 #endif
-using RCGMaker.Core.Attributes;
+using RCGExtension;
 using UnityEngine;
-using vHierarchy.RCGExtension;
 
 
 // #if UNITY_EDITOR

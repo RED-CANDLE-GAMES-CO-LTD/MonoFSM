@@ -89,9 +89,10 @@ namespace RCGMaker.Core
             for (var i = stateMachineList.Count - 1; i >= 0; i--)
             {
                 var fsm = stateMachineList[i];
+                if (fsm.isPaused) continue;
                 fsm.SetLastActiveTime(Time.time);
                 //暫停不跑
-                if (fsm.isPaused) continue;
+                
                 if (!fsm.IsInTransition && fsm.Component.enabled)
                 {
                     fsm.CurrentStateMap.Update();

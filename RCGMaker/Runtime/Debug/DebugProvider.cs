@@ -7,14 +7,18 @@ using RCGSetting;
 using Sirenix.OdinInspector;
 using UnityEditor;
 #if UNITY_EDITOR
+using RCGExtension;
 using UnityEditorInternal;
 #endif
 using UnityEngine;
-using vHierarchy.RCGExtension;
+
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
-public class DebugProvider : MonoBehaviour, IEditorOnly,IOverrideHierarchyIcon //往上找
+public class DebugProvider : MonoBehaviour, IEditorOnly
+    #if UNITY_EDITOR
+    ,IOverrideHierarchyIcon //往上找
+#endif
 {
     
     #if UNITY_EDITOR
