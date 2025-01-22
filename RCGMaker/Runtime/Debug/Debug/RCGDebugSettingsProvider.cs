@@ -1,12 +1,15 @@
 using RCGMaker.Core;
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SettingsManagement;
+#endif
 // using UnityEditor.SettingsManagement;
 using UnityEngine;
 
 namespace RCGSetting
 {
 
+        #if UNITY_EDITOR
         public class DebugSetting<T> : UserSetting<T>
         {
             public DebugSetting(string key, T value)
@@ -76,4 +79,5 @@ namespace RCGSetting
                 // BlackBox.ApplyDisabledByDefault = BlackBoxSettings.ApplyDisabledByDefault.value;
             }
         }
+        #endif
 }

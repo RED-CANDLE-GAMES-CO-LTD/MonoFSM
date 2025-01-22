@@ -227,9 +227,9 @@ get => false;
         
         public static bool IsDebugMode
         {
-            get => false;
+            // get => false;
             //FIXME: 怎麼從這邊拿...
-            //RCGDebugSetting.IsDebugMode;
+            get =>  RCGDebugSetting.IsDebugMode;
 //             //為什麼之前要註解掉editor if?
 //             
 // #if RCG_DEV
