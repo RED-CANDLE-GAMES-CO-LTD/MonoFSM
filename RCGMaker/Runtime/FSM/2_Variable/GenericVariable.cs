@@ -20,7 +20,7 @@ using UnityEngine.Serialization;
 
 //現在根本還沒做監聽，是用condition做polling
 [Searchable]
-public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,ISettable<TType>, IResetter, ISelfValidator,
+public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,ISettable<TType>, ISelfValidator,
     IGameStateOwner, IDefaultSerializable,ILevelResetPrepare
     where TScriptableData : AbstractScriptableData<TField, TType>
     where TField : FlagField<TType>, new()
@@ -374,52 +374,24 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     private string GameStateID => gameEntity != null
         ? $"{gameObject.scene.name}_{gameEntity.name}_{gameObject.name}"
         : $"{gameObject.scene.name}_{gameObject.name}";
-
-   
-    private void Start()
-    {
-        // if (ScriptableData != null)
-        //     ScriptableData.field.AddListener(FlagValueChange, this);
-        // else
-        // {
-        //     localField ??= default(TField);
-        //     Debug.Log("[Variable] Init local Field"+localField,gameObject);
-        //     localField?.AddListener(FlagValueChange, this);
-        // }
-    }
-
-    // void FlagValueChange(TType flagValue)
-    // {
-    //     // if (ValueChangedEvent != null)
-    //     //     ValueChangedEvent.Invoke();
-    //     Debug.Log("[Variable] Changed"+name,gameObject);
-    //     OnValueChanged.Invoke(flagValue);
-    //     //倒著接?
-    // }
-
-    // protected override void Awake()
-    // {
-    //     base.Awake();
-    //     
-    // }
     
     //為了讀檔後才能設定？reset又要重置參數...
     
     
 
-    void IResetter.EnterLevelReset()
-    {
-        // this.Log("[VariableType] Before local Reset" + localField.CurrentValue, gameObject);
-        //Scene裡的物件沒有要存檔的必要，重置
-        if (TestModeGameFlag.Instance)
-            localField.Init(TestModeGameFlag.Instance.mode, this);
-        else
-        {
-            localField.Init(TestMode.EditorDevelopment, this);
-        }
-        localField.ResetToDefault();
-        this.Log("[VariableType] After local Reset" , localField.CurrentValue, gameObject);
-    }
+    // void IResetter.EnterLevelReset()
+    // {
+    //     // this.Log("[VariableType] Before local Reset" + localField.CurrentValue, gameObject);
+    //     //Scene裡的物件沒有要存檔的必要，重置
+    //     if (TestModeGameFlag.Instance)
+    //         localField.Init(TestModeGameFlag.Instance.mode, this);
+    //     else
+    //     {
+    //         localField.Init(TestMode.EditorDevelopment, this);
+    //     }
+    //     localField.ResetToDefault();
+    //     this.Log("[VariableType] After local Reset" , localField.CurrentValue, gameObject);
+    // }
 
     public void ExitLevelAndDestroy()
     {

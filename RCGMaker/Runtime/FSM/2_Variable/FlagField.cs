@@ -511,6 +511,7 @@ public class
         
         if(_owner is Component comp)
             comp.Log("FlagField Init",comp);
+        ResetToDefault();
     }
 
     private Object owner;

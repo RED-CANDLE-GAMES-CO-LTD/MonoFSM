@@ -84,7 +84,7 @@ public interface IItem:IDescriptable
 //Static資料，描述一個/種 東西的性質
 [CreateAssetMenu(fileName = "Descriptable", menuName = "ScriptableObjects/Descriptable", order = 1)]
 [Searchable]
-public class DescriptableData : GameFlagBase, IDescriptable
+public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagDescriptable
 {
     public async void PreloadSprite()
     {
