@@ -1,4 +1,5 @@
 using Sirenix.OdinInspector;
+using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
@@ -6,15 +7,15 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     {
         VariableBool[] GetBoolVariables()
         {
-           return this.GetComponentsInBinder<VariableBool>();
+            return this.GetComponentsInBinder<VariableBool>();
         }
         //FIXME: 好像可以再簡化喔
-        
-        [Required]
-        [DropDownRef]
+
+        [FormerlySerializedAs("variableBool")] [Required] [DropDownRef]
         // [ValueDropdown(nameof(GetBoolVariables))]
-        public VariableBool variableBool;
+        public VariableBool _monoVariableBool;
+
         public bool targetValue = true;
-        protected override bool isValid => variableBool.CurrentValue == targetValue;
+        protected override bool isValid => _monoVariableBool.CurrentValue == targetValue;
     }
 }

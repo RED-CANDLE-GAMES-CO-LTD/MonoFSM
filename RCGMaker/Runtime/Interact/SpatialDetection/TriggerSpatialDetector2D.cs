@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core.Detection
 {
-    public class TriggerSpatialDetector2D : SpatialDetector
+    public class TriggerSpatialDetector2D : AbstractDetector
     {
         [PreviewInInspector] [Auto] Collider2D _collider;
 

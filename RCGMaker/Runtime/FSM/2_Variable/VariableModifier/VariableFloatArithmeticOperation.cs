@@ -10,12 +10,13 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     {
         [SerializeField] ArithmeticOperator Operator;
 
-        [SerializeField] [HideIf(nameof(OperandVariable))]
+        [SerializeField] [HideIf(nameof(_operandMonoVariable))]
         float anotherValue;
 
-        [SerializeField] VariableFloat OperandVariable;
+        [FormerlySerializedAs("OperandVariable")] [SerializeField]
+        MonoVariableFloat _operandMonoVariable;
 
-        private float OperandValue => OperandVariable == null ? anotherValue : OperandVariable.CurrentValue;
+        private float OperandValue => _operandMonoVariable == null ? anotherValue : _operandMonoVariable.CurrentValue;
 
         public float ApplyOperation(float value)
         {

@@ -3,19 +3,19 @@ using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
-    
-
     //FIXME: 玩惹九日有用到...
-    public class VariableFloatVirtual : VariableFloat //這個是不是沒有屁用, 還是純屬拿來rebind?
+    public class MonoVariableFloatVirtual : MonoVariableFloat //這個是不是沒有屁用, 還是純屬拿來rebind?
     {
         //要標注等等才會有嗎？
 
-        public VariableFloat variableFloat;
+        [FormerlySerializedAs("variableFloat")]
+        public MonoVariableFloat _monoVariableFloat;
 
-        public override float FinalValue => variableFloat ? variableFloat.CurrentValue : 0; //用接過來的變數
+        public override float FinalValue => _monoVariableFloat ? _monoVariableFloat.CurrentValue : 0; //用接過來的變數
 
         // [PreviewInInspector] [Auto] private AbstractVariableModifier<float> modifier;
 
@@ -27,6 +27,5 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         // }
         // [Component(typeof(AbstractVariableModifier<float>))]
         // [PreviewInInspector] [Auto] private AbstractVariableModifier<float> modifier;
-        
     }
 }

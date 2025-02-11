@@ -13,7 +13,7 @@ namespace RCGMaker.Core
         public bool IsPrefabKindMatch => this.IsPrefabKindMatchedWith(prefabKind); //TODO: 這段最好拿去drawer就好
 #endif
 
-        private AbstractVariable variable; //好像也不用反向指
+        private AbstractMonoVariable _monoVariable; //好像也不用反向指
         //讓AbstractVariable可以來反查
         //MonoVariable
     }

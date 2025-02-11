@@ -1,35 +1,40 @@
 using System.Runtime.CompilerServices;
 using Sirenix.OdinInspector;
+using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
     public class VariableFloatLastValueCompareCondition : AbstractConditionComp
     {
         //講中文
-        [InfoBox("比較VariableFloat的LastValue和CalValue")]
-        [DropDownRef] public VariableFloat variableFloat;
+        [FormerlySerializedAs("variableFloat")] [InfoBox("比較VariableFloat的LastValue和CalValue")] [DropDownRef]
+        public MonoVariableFloat _monoVariableFloat;
+
         public Operator op;
 
-        protected override string nameDescription => variableFloat ? name = "[Condition] " + variableFloat.name + " LastValue " + op +" CurrentValue": "[Condition] VariableFloatLastValueCompareCondition";
+        protected override string nameDescription => _monoVariableFloat
+            ? name = "[Condition] " + _monoVariableFloat.name + " LastValue " + op + " CurrentValue"
+            : "[Condition] VariableFloatLastValueCompareCondition";
 
         protected override bool isValid
         {
             get
             {
-                if (variableFloat == null)
+                if (_monoVariableFloat == null)
                 {
                     return false;
                 }
+
 //15 -> 10, Last 15, Current 10,
                 // this.Log("LastValue Compare: " , variableFloat.LastValue , " CalValue: " ,variableFloat.CurrentValue);
                 return op switch
                 {
-                    Operator.Equals => variableFloat.CurrentValue == variableFloat.LastValue,
-                    Operator.NotEqual => variableFloat.CurrentValue != variableFloat.LastValue,
-                    Operator.GreaterThan => variableFloat.CurrentValue > variableFloat.LastValue,
-                    Operator.LessThan => variableFloat.CurrentValue < variableFloat.LastValue,
-                    Operator.GreaterThanOrEqual => variableFloat.CurrentValue >= variableFloat.LastValue,
-                    Operator.LessThanOrEqual => variableFloat.CurrentValue <= variableFloat.LastValue,
+                    Operator.Equals => _monoVariableFloat.CurrentValue == _monoVariableFloat.LastValue,
+                    Operator.NotEqual => _monoVariableFloat.CurrentValue != _monoVariableFloat.LastValue,
+                    Operator.GreaterThan => _monoVariableFloat.CurrentValue > _monoVariableFloat.LastValue,
+                    Operator.LessThan => _monoVariableFloat.CurrentValue < _monoVariableFloat.LastValue,
+                    Operator.GreaterThanOrEqual => _monoVariableFloat.CurrentValue >= _monoVariableFloat.LastValue,
+                    Operator.LessThanOrEqual => _monoVariableFloat.CurrentValue <= _monoVariableFloat.LastValue,
                     _ => false
                 };
             }

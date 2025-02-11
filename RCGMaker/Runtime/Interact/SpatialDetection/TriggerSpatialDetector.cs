@@ -8,9 +8,9 @@ using UnityEngine;
 
 namespace RCGMaker.Core.Detection
 {
-    public class TriggerSpatialDetector : SpatialDetector
+    public class TriggerSpatialDetector : AbstractDetector
     {
-        public SpatialDetector virtualDetector;
+        public AbstractDetector virtualDetector;
         [Auto] private Collider _collider;
 
         private void OnTriggerEnter(Collider other)

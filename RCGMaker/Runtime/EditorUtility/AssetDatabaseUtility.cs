@@ -131,7 +131,8 @@ namespace RCGMaker.Core
             result.AddError($"ScriptableObject {asset} should be in " + folderNames[0]).WithFix(() =>
             {
                 //move asset to Resources/Config
-                var newPath = assetPath.Replace("Assets/", "Assets/" + folderNames[0] + "/");
+                var name = Path.GetFileName(assetPath);
+                var newPath =  "Assets/" + folderNames[0] + "/" + name;
                 Debug.Log("Move SO To:" + newPath);
                 var moveResult = AssetDatabase.MoveAsset(assetPath, newPath);
                 if (moveResult != "")

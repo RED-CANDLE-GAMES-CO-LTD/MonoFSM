@@ -16,23 +16,24 @@ namespace RCGFSM.Variable
     public class VariableFloatArithmeticAction : AbstractStateAction, IRCGArgEventReceiver<IEffectHitData>
     {
         //兩種情境，一種是從dealer來，一種是固定值觸發
-        
-        [DropDownRef]
-        [SerializeField] private VariableFloat targetFlag;
+
+        [DropDownRef] [SerializeField] private MonoVariableFloat targetFlag;
         [SerializeField] private ArithmeticOperator Arithmetic;
-        
+
         //要直接用值？
         //上面會有EffectDealer or EffectReceiver?
         [ShowIf(nameof(sourceType), ValueSourceType.Constant)]
         public float ConstValue;
-        
+
         public enum ValueSourceType
         {
             Dealer,
             Receiver,
             Constant
         }
+
         [FormerlySerializedAs("valueSource")] public ValueSourceType sourceType;
+
         public void EventReceived(IEffectHitData arg) //FIXME: runtime value source? 狀態接著？
         {
             switch (sourceType)
@@ -72,9 +73,9 @@ namespace RCGFSM.Variable
 
             Debug.Log("VariableFloatArithmeticAction: " + targetFlag.CurrentValue, this);
         }
-        
+
         //last value < current value
-        
+
 
         protected override void OnStateEnterImplement()
         {

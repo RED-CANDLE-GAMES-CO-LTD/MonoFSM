@@ -24,14 +24,13 @@ public interface IRebindable
     void SetBindingTarget(IRebindable rebindable);
 }
 
-public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
-    IBoolValue,IRebindable
+public class VariableBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
+    IBoolValue, IRebindable
 {
-    
-    public ScriptableDataBool boolFlag =>scriptableData; // scriptableData;
+    public ScriptableDataBool boolFlag => scriptableData; // scriptableData;
 
     public override ScriptableDataBool ScriptableData => scriptableData == null ? boolFlag : scriptableData;
-    
+
     [ShowInPlayMode]
     public bool FlagValue
     {
@@ -63,10 +62,12 @@ public class VariableBool : GenericVariable<ScriptableDataBool, FlagFieldBool, b
 
     [ShowInPlayMode] private Component source; //單一來源
     [ShowInPlayMode] private List<Component> overridingTargets = new(); //多個來源
+
     public void SetBindingTarget(IRebindable rebindable)
     {
         overridingTargets.Add(rebindable as Component);
     }
+
     public void SetBindingSource(IRebindable rebindable)
     {
         source = rebindable as Component;

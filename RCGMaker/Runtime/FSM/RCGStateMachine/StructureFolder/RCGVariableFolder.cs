@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
 using UnityEngine;
@@ -12,7 +13,7 @@ public abstract class AbstractFolder : MonoBehaviour
     public bool IsDrawingIcon => true;
 }
 
-public class RCGVariableFolder : AbstractFolder
+public class RCGVariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
 {
     // [ReadOnly] [Component( AddComponentAt.Children, "[Variable]")]
     // public AbstractVariable flag;
@@ -22,46 +23,54 @@ public class RCGVariableFolder : AbstractFolder
     // {
     //     //按完就沒我的事了??
     // }
-    private void Awake()
+    // private void Awake()
+    // {
+    //     // varDict = GetVariableDict();
+    // }
+    public AbstractMonoVariable GetVariable(VariableTag type)
     {
-        varDict = GetVariableDict();
+        return Get(type);
+        // return varDict.GetValueOrDefault(type);
     }
-    public AbstractVariable GetVariable(VariableTag type)
+
+    public AbstractMonoVariable GetVariable(string varName)
     {
-        return varDict.GetValueOrDefault(type);
+        return Get(varName);
     }
-    
+
+    //GetConfig?
+
     public void CommitVariableValues()
     {
         // var variables = GetComponentsInChildren<AbstractVariable>(true);
-        foreach (var variable in variables)
+        foreach (var variable in _variables)
         {
             variable.CommitValue();
         }
     }
 
-    private Dictionary<VariableTag, AbstractVariable> varDict = new();
-    Dictionary<VariableTag, AbstractVariable> GetVariableDict()
-    {
-        var dict = new Dictionary<VariableTag, AbstractVariable>();
-        foreach (var variable in variables)
-        {
-            if (variable is AbstractVariable abstractVariable)
-            {
-                if(abstractVariable.varTag == null) continue;
-                dict[abstractVariable.varTag] = abstractVariable;
-            }
-                
-            // if(variable.varTag == null) continue;
-            //     dict[variable.varTag] = variable;
-        }
-        return dict;
-    }
+    // private Dictionary<VariableTag, AbstractVariable> varDict = new();
+    // Dictionary<VariableTag, AbstractVariable> GetVariableDict()
+    // {
+    //     var dict = new Dictionary<VariableTag, AbstractVariable>();
+    //     foreach (var variable in variables)
+    //     {
+    //         if (variable is AbstractVariable abstractVariable)
+    //         {
+    //             if(abstractVariable.varTag == null) continue;
+    //             dict[abstractVariable.varTag] = abstractVariable;
+    //         }
+    //             
+    //         // if(variable.varTag == null) continue;
+    //         //     dict[variable.varTag] = variable;
+    //     }
+    //     return dict;
+    // }
 
-  
 
     // [PreviewInInspector]
-    [Component] [AutoChildren] private ISettable[] variables = Array.Empty<ISettable>();
+    [PreviewInInspector] [Component] [AutoChildren]
+    private ISettable[] _variables = Array.Empty<ISettable>();
 
     // private void OnValidate()
     // {
@@ -78,4 +87,14 @@ public class RCGVariableFolder : AbstractFolder
         return varBool;
     }
 #endif
+    protected override void RemoveImplement(AbstractMonoVariable item)
+    {
+    }
+
+    protected override bool CanBeAdded(AbstractMonoVariable item)
+    {
+        return item.gameObject.activeSelf == true;
+        //一定要可以加，還是用disable?
+        // return true;
+    }
 }

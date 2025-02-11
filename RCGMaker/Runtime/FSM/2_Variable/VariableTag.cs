@@ -1,79 +1,142 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
     public interface IVariableTagSetter
     {
-        VariableTag refVariableTag { get;}
+        VariableTag refVariableTag { get; }
     }
-    
+
     [Serializable]
-   public class MySerializedType
+    public class MySerializedType : MySerializedType<object>
     {
+    }
+
+
+    [Serializable]
+    public class MySerializedType<T>
+    {
+        protected virtual Type varType => typeof(T);
+
         [Button]
         void GetTypeFromString()
         {
             _type = Type.GetType(typeName);
         }
-        
+
+        [Header("宣告型別：")]
         [ShowInInspector]
         [OnValueChanged(nameof(TypeToString))]
-        [TypeDrawerSettings(BaseType = typeof(AbstractVariable))]
+        // [TypeDrawerSettings(BaseType = typeof(MonoBehaviour))] //FIXME: abstractVariable...每種type要分開寫喔，好煩，attribute的內容要分開，好像也可以啦...
+        // [TypeSelectorSettings(FilterTypesFunction = nameof(FilterTypes))]
+        // [TypeDrawerSettings]
+        [TypeSelectorSettings(FilterTypesFunction = nameof(FilterTypes))]
         private Type _type;
+
+        private bool FilterTypes(Type type)
+        {
+            return varType.IsAssignableFrom(type);
+        }
+        // {
+        //     var baseType = typeof(T);
+        //     return Assembly.GetAssembly(baseType)
+        //         .GetTypes()
+        //         .Where(t => t.BaseType == baseType && !t.IsAbstract);
+        //     // return Assembly.GetAssembly(typeof(Object)).GetTypes().Where(t => varType.IsAssignableFrom(t)).ToArray();
+        // }
+        // private IEnumerable<Type> FilterTypes()
+        // {
+        //     var baseType = typeof(T);
+        //     return Assembly.GetAssembly(baseType)
+        //         .GetTypes()
+        //         .Where(t => t.BaseType == baseType && !t.IsAbstract);
+        //     // return Assembly.GetAssembly(typeof(Object)).GetTypes().Where(t => varType.IsAssignableFrom(t)).ToArray();
+        // }
+        //只有type額外定義...
+
+        public void SetType(Type type)
+        {
+            _type = type;
+            TypeToString();
+        }
 
         public Type RestrictType
         {
             get
             {
-                if(_type == null)
+                if (_type == null)
                     GetTypeFromString();
                 return _type;
             }
         }
-        
+
         void TypeToString()
         {
-            if(_type == null)
+            if (_type == null)
                 return;
             typeName = _type.ToString();
         }
-        
-        [Required]
-        [PreviewInInspector]
-        [SerializeField]
+
+        [Required] [PreviewInInspector] [SerializeField]
         string typeName;
+
+        public string TypeName => typeName;
     }
-    
+
+    public interface IStringKey
+    {
+        public string GetStringKey { get; }
+    }
+
     [CreateAssetMenu(menuName = "RCG/VariableTag")]
-    public class VariableTag : ScriptableObject//, IFloatValue
+    public class VariableTag : ScriptableObject, IStringKey //, IFloatValue
     {
         //FIXME: 限定型別？
-        //FIXME: 下拉式巢狀分類: 
-        
+        //FIXME: 下拉式巢狀分類:
+
+
+        private void OnValidate()
+        {
+            if (StringKey == "")
+                StringKey = name;
+        }
+
+        [SerializeField] private string StringKey;
+
+        public string GetStringKey => StringKey;
+
+
+        [HideInInlineEditors] [TextArea] public string Note;
+
         //可以DI標記variable類型，像是血量？要降低對方的血量之類的
         // [InlineProperty]
-        public MySerializedType _variableType;
+        [HideInInlineEditors] public MySerializedType<AbstractMonoVariable> _variableType; //我這個variable是什麼型別
 
-       //FIXME: Editor time 把雙向連結撈出來
+        public MySerializedType<Object> _valueFilterType; //當我是ObjectVariable時，才用的到這個？
+
+        //FIXME: Editor time 把雙向連結撈出來
 #if UNITY_EDITOR
-        [PreviewInInspector]
-        AbstractVariable[] bindedVariables;
-        
+
+        [PreviewInInspector] AbstractMonoVariable[] bindedVariables;
+
+        // [OnInspectorGUI] //會lag?
         [Button]
         void GetBindedVariables()
         {
-            bindedVariables = FindObjectsOfType<AbstractVariable>(true).Where(v => v.varTag == this).ToArray();
-            bindedVariableSetters = FindObjectsOfType<MonoBehaviour>(true).OfType<IVariableTagSetter>().Where(v => v.refVariableTag == this).ToArray();
+            bindedVariables = FindObjectsOfType<AbstractMonoVariable>(true).Where(v => v.varTag == this).ToArray();
+            bindedVariableSetters = FindObjectsOfType<MonoBehaviour>(true).OfType<IVariableTagSetter>()
+                .Where(v => v.refVariableTag == this).ToArray();
         }
-        
-        [PreviewInInspector]
-        IVariableTagSetter[] bindedVariableSetters;
+
+        [PreviewInInspector] IVariableTagSetter[] bindedVariableSetters;
 #endif
     }
 }

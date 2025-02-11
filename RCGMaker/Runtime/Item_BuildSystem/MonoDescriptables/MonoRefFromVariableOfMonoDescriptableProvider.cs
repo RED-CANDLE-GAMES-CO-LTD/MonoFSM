@@ -26,7 +26,7 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
         [InfoBox("VariableTag should be in the MonoTag", InfoMessageType.Error, nameof(IsVariableTagNotMatchingMonoTag))]
         public VariableTag _variableTag;
 
-        public override MonoDescriptable monoInstance
+        public override MonoDescriptable MonoInstance
         {
             get
             {
@@ -40,7 +40,7 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
                     return null;
                 }
 
-                var variable = base.monoInstance.GetVariable(_variableTag);
+                var variable = base.MonoInstance.GetVariable(_variableTag);
                 if(variable == null)
                 {
                     Debug.LogError("Variable is null"+_variableTag,this);

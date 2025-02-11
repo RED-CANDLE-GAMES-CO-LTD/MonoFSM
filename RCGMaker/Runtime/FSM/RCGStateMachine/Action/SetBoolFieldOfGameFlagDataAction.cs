@@ -2,12 +2,15 @@ using System.Collections.Generic;
 using System.Reflection;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace RCGFSM.Variable
 {
     public class SetBoolFieldOfVariableAction : AbstractStateAction
     {
-        public AbstractVariable targetVariable;
+        [FormerlySerializedAs("targetVariable")]
+        public AbstractMonoVariable _targetMonoVariable;
+
         public bool TargetValue = true;
         public SetBoolType targetType;
 
@@ -17,6 +20,7 @@ namespace RCGFSM.Variable
             False,
             Toggle
         }
+
         private FieldInfo targetField;
 
         [ValueDropdown(nameof(GetAllFieldNames))]
@@ -24,8 +28,8 @@ namespace RCGFSM.Variable
 
         private IEnumerable<string> GetAllFieldNames()
         {
-            if (targetVariable == null) yield break;
-            foreach (var field in targetVariable.FinalDataType.GetFields())
+            if (_targetMonoVariable == null) yield break;
+            foreach (var field in _targetMonoVariable.FinalDataType.GetFields())
             {
                 if (field.FieldType != typeof(FlagFieldBool)) continue;
                 yield return field.Name;
@@ -34,18 +38,21 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
-            if (targetVariable == null)
+            if (_targetMonoVariable == null)
             {
                 Debug.LogError("SetBoolFieldOfGameFlagDataAction: targetVariable is null", this);
                 return;
             }
-            if (targetVariable.FinalData == null)
+
+            if (_targetMonoVariable.FinalData == null)
             {
                 Debug.LogWarning(
-                    $"SetBoolFieldOfGameFlagDataAction: targetVariable.FinalData:{targetVariable.name} is null", this);
+                    $"SetBoolFieldOfGameFlagDataAction: targetVariable.FinalData:{_targetMonoVariable.name} is null",
+                    this);
                 return;
             }
-            targetField = targetVariable.FinalDataType.GetField(targetFieldName,
+
+            targetField = _targetMonoVariable.FinalDataType.GetField(targetFieldName,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (targetField == null)
             {
@@ -53,7 +60,7 @@ namespace RCGFSM.Variable
                 return;
             }
 
-            var flag = targetField.GetValue(targetVariable.FinalData) as FlagFieldBool;
+            var flag = targetField.GetValue(_targetMonoVariable.FinalData) as FlagFieldBool;
             if (flag == null)
             {
                 Debug.LogError($"SetBoolFieldOfGameFlagDataAction: {targetFieldName} is not FlagFieldBool");
@@ -67,7 +74,6 @@ namespace RCGFSM.Variable
                 //FIXME: refactor: use switch
                 flag.CurrentValue = TargetValue;
             }
-                
         }
     }
 }

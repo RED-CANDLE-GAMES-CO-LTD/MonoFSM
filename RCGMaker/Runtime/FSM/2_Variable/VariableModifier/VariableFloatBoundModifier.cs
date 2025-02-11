@@ -18,35 +18,31 @@ public interface IVariableFloatSetOperation //很確定是set variable時的oper
     float SetOperation(float value);
 }
 
-public interface AbstractVariableModifier<T> 
+public interface AbstractVariableModifier<T>
 {
-     T BeforeSetValueModifyCheck(T value);
-     T AfterGetValueModifyCheck(T value);
+    T BeforeSetValueModifyCheck(T value);
+    T AfterGetValueModifyCheck(T value);
 }
 
 
 //限制VariableFloat的最小最大值，可以用RCGEventSender倒接事件
 public class VariableFloatBoundModifier : MonoBehaviour, AbstractVariableModifier<float>
 {
-    [PreviewInInspector]
-    [AutoParent] VariableFloat variable;
-    // [Auto] VariableFloat variable;
-    [HideIf(nameof(MinVar))]
-    public float min = 0;
+    [PreviewInInspector] [AutoParent] MonoVariableFloat _monoVariable;
 
-    [HideIf(nameof(MaxVar))]
-    public float max = 1;
+    // [Auto] VariableFloat variable;
+    [HideIf(nameof(MinVar))] public float min = 0;
+
+    [HideIf(nameof(MaxVar))] public float max = 1;
 
     //ex: 血量
     //這會不會很麻煩每次都要設定？
-    
-    [DropDownRef]
-    [SerializeField] VariableFloat MinVar;
-    [DropDownRef]
-    [SerializeField] VariableFloat MaxVar; //好像應該用繼承的
+
+    [DropDownRef] [SerializeField] MonoVariableFloat MinVar;
+    [DropDownRef] [SerializeField] MonoVariableFloat MaxVar; //好像應該用繼承的
     [ShowInInspector] public float MaxValue => MaxVar != null ? MaxVar.CurrentValue : max;
     [ShowInInspector] public float MinValue => MinVar != null ? MinVar.CurrentValue : min;
-    public float Percentage => (variable.CurrentValue - MinValue) / (MaxValue - MinValue);
+    public float Percentage => (_monoVariable.CurrentValue - MinValue) / (MaxValue - MinValue);
 
     public UnityEvent OnMin;
     public UnityEvent OnMax;

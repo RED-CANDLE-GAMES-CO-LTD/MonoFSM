@@ -8,7 +8,16 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
-    public class ValueInstance<TField> : MonoBehaviour
+    //[Serializable]
+    // public class StringHolder : IValueHolder
+    // {
+    //     public string Value;
+    //     public object GetValue() => Value;
+    // }
+    // [SerializeReference, InlineProperty, ValueDropdown("GetAllowedTypes")]
+    //     public IValueHolder Value;
+    //FIXME: 可以用serialize reference做polymorphism嗎？ 
+    public class ValueInstance<TField> : MonoBehaviour //拿值，透過某個Object的Ref 和某個property的Name, Reflection
     {
         public UnityEngine.Object sourceObject;
 

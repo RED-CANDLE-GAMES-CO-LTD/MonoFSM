@@ -10,7 +10,7 @@ using UnityEngine.Serialization;
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
     //FIXME: 好富雜QQ
-    public sealed class VariableStat : VariableFloat
+    public sealed class MonoVariableStat : MonoVariableFloat
     {
         private float BaseValue => CurrentValue;
         private bool isDirty = true;
@@ -24,7 +24,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         protected override void Awake()
         {
             base.Awake();
-            if(LocalStatModifiers != null)
+            if (LocalStatModifiers != null)
                 statModifiers.AddRange(LocalStatModifiers);
         }
 
@@ -61,7 +61,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             for (var i = 0; i < statModifiers.Count; i++)
             {
                 var mod = statModifiers[i];
-                    if(mod.IsValid == false) continue;
+                if (mod.IsValid == false) continue;
                 if (mod.Type == StatModType.Flat)
                 {
                     finalValue += mod.Value;
@@ -177,6 +177,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         {
             isDirty = true;
         }
+
         private Comparison<VariableStatModifier> _modifierOrder =
             (a, b) => a.Order < b.Order ? -1 : a.Order > b.Order ? 1 : 0;
     }

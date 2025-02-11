@@ -3,10 +3,9 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
-    public class VariableStatOwner:MonoBehaviour
+    public class VariableStatOwner : MonoBehaviour
     {
-        [PreviewInInspector]
-        [AutoChildren] VariableStat[] _variableStats;
-        public VariableStat[] VariableStats => _variableStats;
+        [PreviewInInspector] [AutoChildren] MonoVariableStat[] _variableStats;
+        public MonoVariableStat[] VariableStats => _variableStats;
     }
 }

@@ -1,4 +1,4 @@
-public class VariableString : GenericVariable<GameFlagString, FlagFieldString, string>, IStringProvider
+public class VariableString : GenericMonoVariable<GameFlagString, FlagFieldString, string>
 {
     public string StringValue => CurrentValue;
 }

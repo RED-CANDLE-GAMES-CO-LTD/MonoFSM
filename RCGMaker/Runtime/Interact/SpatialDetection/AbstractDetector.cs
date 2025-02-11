@@ -9,7 +9,7 @@ using UnityEngine.Serialization;
 namespace RCGMaker.Core.Detection
 {
     [DisallowMultipleComponent]
-    public abstract class SpatialDetector : MonoBehaviour, IDefaultSerializable
+    public abstract class AbstractDetector : MonoBehaviour, IDefaultSerializable
     {
         List<SpatialDetectable> toRemove = new List<SpatialDetectable>();
         //FIXME: Receiver的部分要怎麼處理？ 也會有開關的問題？還是沒差遇到再說

@@ -7,7 +7,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 {
     [DisallowMultipleComponent]
     //空間中的物件，可以被偵測到, 基本上會有collider或是collider2D
-    public class SpatialDetectable : MonoBehaviour, IDefaultSerializable
+    //從Detector過來
+    public class SpatialDetectable : MonoBehaviour, IDefaultSerializable //mousedown?
     {
         [AutoParent] private StateMachineOwner owner;
         public StateMachineOwner Owner => owner;
@@ -19,11 +20,11 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public Collider MyCollider => _collider;
         
         //DebugOnly
-        public List<SpatialDetector> _detectors;
+        public List<AbstractDetector> _detectors;
         
         
         // List<SpatialDetector> fromDetectors;
-        private List<SpatialDetector> toRemoves = new List<SpatialDetector>();
+        private List<AbstractDetector> toRemoves = new List<AbstractDetector>();
         private void OnDisable()
         {
             toRemoves.AddRange(_detectors);

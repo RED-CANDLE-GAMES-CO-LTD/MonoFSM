@@ -8,12 +8,12 @@ using UnityEngine;
 public class AnimatorStateStringListProvider : AbstractStringProvider
 {
     public Animator animator;
-    [ValueDropdown("GetAnimatorStateNames")]//, IsUniqueList = true???
+
+    [ValueDropdown("GetAnimatorStateNames")] //, IsUniqueList = true???
     public List<string> list;
 
     private List<int> hashList;
-    [Required]
-    public VariableInt currentIndex;
+    [Required] public VariableInt currentIndex;
 
     public override string StringValue =>
         currentIndex.CurrentValue < 0 || currentIndex.CurrentValue >= list.Count ? "" : list[currentIndex.CurrentValue];
@@ -47,6 +47,7 @@ public class AnimatorStateStringListProvider : AbstractStringProvider
             if (_name == name)
                 return false;
         }
+
         return true;
     }
 

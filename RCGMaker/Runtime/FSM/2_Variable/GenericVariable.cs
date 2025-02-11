@@ -17,11 +17,13 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Profiling;
 using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 //現在根本還沒做監聽，是用condition做polling
 [Searchable]
-public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,ISettable<TType>, ISelfValidator,
-    IGameStateOwner, IDefaultSerializable,ILevelResetPrepare
+public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable, ISettable<TType>,
+    ISelfValidator,
+    IGameStateOwner, IDefaultSerializable, ILevelResetPrepare
     where TScriptableData : AbstractScriptableData<TField, TType>
     where TField : FlagField<TType>, new()
     where TType : IEquatable<TType>
@@ -35,7 +37,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
     public void SetValue(object value, MonoBehaviour byWho = null)
     {
-        SetValue((TType) value, byWho);
+        SetValue((TType)value, byWho);
     }
 
     protected virtual void OnValidate()
@@ -56,7 +58,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
     private bool AutoGenCheck()
     {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         if (PrefabKindMatchTagCheck() && IsAutoGen)
         {
             if (scriptableData == null)
@@ -74,7 +76,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                     return true;
             }
         }
-        #endif
+#endif
 
         return true;
     }
@@ -84,8 +86,8 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 #if UNITY_EDITOR
         if (myPrefabKind == PrefabKind.NonPrefabInstance) //場景上的非prefab給過
             return true;
-        
-        
+
+
         var tag = GetComponent<GameStateRequireAtPrefabKind>();
 
         if (tag == null) return false; //[]: 該給過嗎？ 不該，要不然prefab會很吵
@@ -144,7 +146,6 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
     private bool IsSuggestingAutoGen()
     {
-       
         if (IsAutoGen) return false;
         return scriptableData == null;
     }
@@ -198,7 +199,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
     [TabGroup("Data")] public TField Field => ScriptableData ? ScriptableData.field : localField;
     //給非Auto的人看的，要綁，Auto自己就會生，就結束了
-    
+
     [InfoBox("需要綁GameState!", InfoMessageType.Error, "IsGameStateRequiredButMissing")]
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
     // [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
@@ -249,14 +250,13 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
 
     public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
 
-  
-    
+
     [AutoChildren(false)] private AbstractVariableModifier<TType>[] modifiers;
 //會有external modifier...
 
     [TabGroup("Data"), PreviewInInspector] public virtual TType FinalValue => CurrentValue;
     [TabGroup("Data"), PreviewInInspector] public virtual TType LastValue => Field.LastValue; //FIXME: 這裡沒有過到modifier
-    
+
     [ShowInPlayMode]
     public TType CurrentValue //FIXME: 
     {
@@ -264,10 +264,10 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         {
             Profiler.BeginSample("Variable GetValue");
             var tempValue = localField.CurrentValue;
-            
+
             if (VariableSource != null)
             {
-                var v = VariableSource as GenericVariable<TScriptableData, TField, TType>;
+                var v = VariableSource as GenericMonoVariable<TScriptableData, TField, TType>;
                 tempValue = v.CurrentValue;
             }
             else if (ScriptableData != null)
@@ -302,7 +302,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                 //     localField = default(TField);
                 localField.CurrentValue = tempValue;
             }
-            
+
             else
             {
                 if (ScriptableData.CurrentValue.Equals(tempValue)) return;
@@ -320,18 +320,22 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                 this.Track("Variable Changed", _trackValue);
 #endif
                 // Debug.Log("Set Value" + tempValue);
-                
+
                 ScriptableData.CurrentValue = tempValue;
             }
-                
         }
     }
 
     // private MonoBehaviour lastValueSetter;
 
-     HashSet<MonoBehaviour> byWhoHashSet = new();
-    [PreviewInInspector]
-    public List<MonoBehaviour> byWhoList => byWhoHashSet.ToList();
+    HashSet<MonoBehaviour> byWhoHashSet = new();
+    [PreviewInInspector] public List<MonoBehaviour> byWhoList => byWhoHashSet.ToList();
+
+    protected override void SetValueInternal<T>(T value, Object byWho = null)
+    {
+        SetValue(value, byWho as MonoBehaviour);
+    }
+
     public void SetValue(TType value, MonoBehaviour byWho = null)
     {
         // lastValueSetter = byWho;
@@ -343,9 +347,9 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
         // Debug.Log("[Variable] Set" + value+"tempValue:"+tempValue+", Value:"+CurrentValue, byWho);
         if (tempValue.Equals(CurrentValue)) return;
-        byWho.Log("[Variable] Set",value);
+        byWho.Log("[Variable] Set", value);
         byWhoHashSet.Add(byWho);
-   
+
         Field.SetCurrentValue(tempValue, byWho);
 
         if (FinalData == null) return;
@@ -374,10 +378,9 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     private string GameStateID => gameEntity != null
         ? $"{gameObject.scene.name}_{gameEntity.name}_{gameObject.name}"
         : $"{gameObject.scene.name}_{gameObject.name}";
-    
+
     //為了讀檔後才能設定？reset又要重置參數...
-    
-    
+
 
     // void IResetter.EnterLevelReset()
     // {
@@ -415,7 +418,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
             if ((OdinPrefabUtility.GetPrefabKind(this) & PrefabKind.InstanceInScene) == 0) return;
             if (IsAutoGenButNotYet()) result.AddError("需要GameState Not Gen").WithFix(GenData);
         }
-        
+
         if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
 #endif
     }
@@ -435,6 +438,7 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
         foreach (var field in fields)
             yield return field;
     }
+
     public override Type FinalDataType => typeof(TScriptableData);
     public override object objectValue => CurrentValue;
 
@@ -453,38 +457,66 @@ public class GenericVariable<TScriptableData, TField, TType> : AbstractVariable,
     {
         localField.Init(TestMode.EditorDevelopment, this);
     }
-    
 }
+
 public interface ISettable //FIXME: 有點蠢
 {
     void CommitValue();
     void SetValue(object value, MonoBehaviour byWho = null);
 }
-public interface ISettable<in T>:ISettable
+
+public interface ISettable<in T> : ISettable
 {
     void SetValue(T value, MonoBehaviour byWho = null);
 }
-public abstract class AbstractVariable : MonoBehaviour, IGuidEntity, IName
+
+public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, IValueOfKey<VariableTag>
 {
-    [PropertyOrder(-1)]
-    [SOConfig("VariableType")] public VariableTag varTag;
+    [Header("變數名稱")] [PropertyOrder(-1)] [Required] [SOConfig("VariableType", nameof(CreateTagPostProcess))]
+    public VariableTag varTag; //直接看當下是什麼就可以
+
+    void CreateTagPostProcess()
+    {
+        varTag._variableType.SetType(GetType());
+    }
+
     // public abstract void CommitValue();
     // public abstract void SetValue(object value, MonoBehaviour byWho = null); //一開始就預設要可以Set了
     public abstract GameFlagBase FinalData { get; } //這是啥？
     public abstract Type FinalDataType { get; }
     public abstract object objectValue { get; }
+
     public T GetValue<T>()
     {
-        return (T)objectValue;
+        try
+        {
+            return (T)objectValue;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Can't cast {objectValue} to {typeof(T)}", this);
+            throw;
+        }
+        // return (T)objectValue;
     }
+
+    protected abstract void SetValueInternal<T>(T value, UnityEngine.Object byWho = null);
+
+    public void SetValue<T>(T value, MonoBehaviour byWho = null)
+    {
+        SetValueInternal(value, byWho);
+        //FIXME: 如果還有什麼需要處理的？
+    }
+
     public object GetProperty(string knownFieldName)
     {
         return GetPropertyCache(knownFieldName)?.Invoke(this);
     }
-    public Dictionary<string, Func<AbstractVariable, object>> propertyCache = new();
+
+    public Dictionary<string, Func<AbstractMonoVariable, object>> propertyCache = new();
 
     //GameFlagDescriptable有一樣的東西喔
-    public Func<AbstractVariable, object> GetPropertyCache(
+    public Func<AbstractMonoVariable, object> GetPropertyCache(
         string propertyName)
     {
         if (propertyCache.TryGetValue(propertyName, out var info))
@@ -512,7 +544,7 @@ public abstract class AbstractVariable : MonoBehaviour, IGuidEntity, IName
             return null;
         }
 
-        Func<AbstractVariable, object>
+        Func<AbstractMonoVariable, object>
             getMyProperty = (source) => getMethod.Invoke(source, null);
         propertyCache[propertyName] = getMyProperty;
         return getMyProperty;
@@ -529,15 +561,18 @@ public abstract class AbstractVariable : MonoBehaviour, IGuidEntity, IName
     {
     }
 
-    [ShowIf("VariableSource")] [InlineEditor]
-    public AbstractVariable VariableSource; //用別人的值 //FIXME: 什麼時候會用到這個？
+    //FIXME: virtual variable?
+    // [FormerlySerializedAs("VariableSource")]
+    // [ShowIf("VariableSource")] 
+    [InlineEditor] public AbstractMonoVariable VariableSource; //用別人的值 //FIXME: 什麼時候會用到這個？
 
     [ReadOnly] public List<AbstractVariableConsumer> consumers; //有誰有用我，binder綁一下
 
 
     //FIXME: 這個是錯的，要改成用scriptableData的 (flagFlied的？
-   // public UnityEvent ValueChangedEvent => valueChangedEvent;
+    // public UnityEvent ValueChangedEvent => valueChangedEvent;
 
-   // [HideInInlineEditors] public UnityEvent valueChangedEvent;
-   public string Name => gameObject.name;
+    // [HideInInlineEditors] public UnityEvent valueChangedEvent;
+    public string Name => gameObject.name;
+    public VariableTag Key => varTag;
 }

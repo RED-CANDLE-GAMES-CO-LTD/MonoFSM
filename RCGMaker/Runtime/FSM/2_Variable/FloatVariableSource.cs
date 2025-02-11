@@ -7,9 +7,9 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 {
     [InlineProperty]
     [Serializable]
-    public class FloatValueSource : InterfaceMonoRef<StateMachineOwner, IFloatValue>, IFloatValue
+    public class FloatValueSource : InterfaceMonoRef<StateMachineOwner, IFloatValueProvider>, IFloatValueProvider
     {
-        public float FinalValue => ValueSource != null ? ((IFloatValue)ValueSource).FinalValue : ConstValue;
+        public float FinalValue => ValueSource != null ? ((IFloatValueProvider)ValueSource).FinalValue : ConstValue;
         [HideIf("@ValueSource != null")]
         public float ConstValue;
     }
@@ -18,20 +18,16 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     //FIXME: 為什麼要從condition下面拿？
     [InlineProperty]
     [Serializable]
-    public class FloatValueRef : InterfaceMonoRef<AbstractConditionComp, IFloatValue>, IFloatValue
+    public class FloatValueRef : InterfaceMonoRef<AbstractConditionComp, IFloatValueProvider>, IFloatValueProvider
     {
-        public float FinalValue => ((IFloatValue)ValueSource).FinalValue;
+        public float FinalValue => ((IFloatValueProvider)ValueSource).FinalValue;
     }
-
-    public interface IIntValue
-    {
-        int FinalValue { get; }
-    }
+    
     public interface ISerializedFloatValue
     {
         float EditorValue { get; set; }
     }
-    public interface IFloatValue
+    public interface IFloatValueProvider
     {
         float FinalValue { get; }
        

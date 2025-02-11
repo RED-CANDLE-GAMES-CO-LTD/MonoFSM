@@ -8,7 +8,7 @@ namespace RCGFSM.Variable
 {
     public class SetVariableFloatAction : AbstractStateAction
     {
-        public VariableFloat targetFlag;
+        public MonoVariableFloat targetFlag;
         public float TargetValue;
 
         protected override void OnStateEnterImplement()
@@ -16,6 +16,4 @@ namespace RCGFSM.Variable
             targetFlag.SetValue(TargetValue, this);
         }
     }
-
-    
 }

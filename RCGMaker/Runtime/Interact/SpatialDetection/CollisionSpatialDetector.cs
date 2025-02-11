@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core.Detection
 {
-    public class CollisionSpatialDetector : SpatialDetector
+    public class CollisionSpatialDetector : AbstractDetector
     {
         private void OnCollisionEnter(Collision other)
         {

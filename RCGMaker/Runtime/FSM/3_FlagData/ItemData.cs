@@ -1,13 +1,16 @@
 using RCGMaker.Core;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._3_FlagData
 {
+    [CreateAssetMenu(menuName = "RCG/ItemData")]
     public class ItemData:DescriptableData, IItem
     {
+        [BoxGroup("物品")]
         [SerializeField]
-         int slotStackCount = 1;
+        int slotStackCount = 1;
         public int SlotStackCount => slotStackCount;
         public virtual void Use() //FIXME: 怎麼吃更多類型、參數？ 搖桿操作？直接判 UI/Action?
         {
@@ -17,6 +20,9 @@ namespace RCGMaker.Runtime.FSM._3_FlagData
         }
 
         public virtual bool needInstance => false;
+        
+        [BoxGroup("物品")]
+        [Required]
         public PoolObject fsmPrefab;
         public override PoolObject bindPrefab => fsmPrefab; //需要這個變數嗎...
 
@@ -29,6 +35,7 @@ namespace RCGMaker.Runtime.FSM._3_FlagData
         {
             
             //可以用async
+            if(prefab == null) return null;
             var instance = Instantiate(prefab, parent);
 #if UNITY_EDITOR
             UnityEditor.Undo.RegisterCreatedObjectUndo(instance.gameObject, "InstantiateEquipView");

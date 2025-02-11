@@ -3,12 +3,19 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.Interact.EffectHit;
 using RCGMaker.Runtime.Vote;
 using Sirenix.OdinInspector;
 using UnityEngine;
+
+public interface IActionParent
+{
+    
+}
+
 [Searchable]
 public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable,
-    IRCGArgEventReceiver
+    IRCGArgEventReceiver,IRCGArgEventReceiver<IEffectHitData>
 {
     
     
@@ -25,9 +32,16 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
         }
     }
 
-    [PreviewInInspector]
-    [AutoParent()] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true);
+    
+    // [PreviewInInspector]
+    [AutoParent()] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true)// ;
 
+    [Required]
+    [PreviewInInspector] [AutoParent] protected IActionParent _actionParent;
+    
+    
+    
+    
     [HideInInlineEditors]
     // #if UNITY_EDITOR
     [HideFromFSMExport]
@@ -140,18 +154,24 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
 
     public virtual void EventReceived<T>(T arg)
     {
-        if (this is IRCGArgEventReceiver<T> receiver)
-        {
-            Debug.Log("AbstractStateAction.EventReceived"+receiver, this);
-            Debug.Log("AbstractStateAction.EventReceived arg"+arg, this);
-            receiver.EventReceived(arg);
-        }
-        else
-            OnStateEnterImplement();
+        //FIXME: 這個會無窮迴圈..
+        // if (this is IRCGArgEventReceiver<T> receiver)
+        // {
+        //     Debug.Log("AbstractStateAction.EventReceived"+receiver, this);
+        //     Debug.Log("AbstractStateAction.EventReceived arg"+arg, this);
+        //     receiver.EventReceived(arg);
+        // }
+        // else
+        OnStateEnterImplement();
     }
 
     public virtual void SimulationUpdate(float passedDuration)
     {
         
+    }
+
+    public virtual void EventReceived(IEffectHitData arg)
+    {
+        EventReceived<IEffectHitData>(arg);
     }
 }

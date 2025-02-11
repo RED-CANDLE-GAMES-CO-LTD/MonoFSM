@@ -19,34 +19,32 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         //FIXME: auto fetch, preview?
         [PreviewInInspector] IStatModifierOwner _source; //原本的parent?可以用interface?
         public IStatModifierOwner Source => _source;
+
         [Button]
         void Rename()
         {
-            name = "Stat Modifier "+ ValueDescription;
+            name = "Stat Modifier " + ValueDescription;
         }
-        
-        [PreviewInInspector]
-        [AutoChildren]
-        AbstractConditionComp[] _conditions;
 
-        [PreviewInInspector]
-        public bool IsValid => _conditions.IsAllValid();
+        [PreviewInInspector] [AutoChildren] AbstractConditionComp[] _conditions;
+
+        [PreviewInInspector] public bool IsValid => _conditions.IsAllValid();
+
         //FIXME: 監聽condition才觸發dirty? 很貴耶...
         //bool condition?
         //update檢查valid...hmmm 這裡又polling
-        [AutoParent] VariableStat _stat;
+        [AutoParent] MonoVariableStat _stat;
         private bool lastValid = false;
 
         private void Update()
         {
             if (IsValid != lastValid)
             {
-              _stat.SetDirty();
+                _stat.SetDirty();
             }
+
             lastValid = IsValid;
         }
-
-      
     }
 
     //應該要是什麼關係...就是一個Stat? 但Variable和Stat要分開宣告嗎？ 還是就繼承？

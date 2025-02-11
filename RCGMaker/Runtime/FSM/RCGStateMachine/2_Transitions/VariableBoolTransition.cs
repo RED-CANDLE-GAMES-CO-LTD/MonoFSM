@@ -8,24 +8,22 @@ using UnityEngine.Serialization;
 //FIXME: 還沒有測試過唷, 現在listen應該會錯?
 //監聽condition是不是比較泛用，用組合的
 //lazy update condition
-public class VariableBoolTransition : AbstractStateTransition,ILevelResetStart
+public class VariableBoolTransition : AbstractStateTransition, ILevelResetStart
 {
     protected override string GetNameByBehaviour()
     {
-        return "[Transition] =>" + Target.name + " when " + variableNode.name + " is " + TargetValue;
+        return "[Transition] =>" + Target.name + " when " + _monoVariableNode.name + " is " + TargetValue;
     }
 
-    [Required]
-    [Header("When")] [PropertyOrder(-1)]
-    [DropDownRef]
-    public VariableBool variableNode;
+    [FormerlySerializedAs("variableNode")] [Required] [Header("When")] [PropertyOrder(-1)] [DropDownRef]
+    public VariableBool _monoVariableNode;
 
 
-    [Header("Equals To")] [PropertyOrder(-1)] 
+    [Header("Equals To")] [PropertyOrder(-1)]
     public bool TargetValue;
     // public float delay;
     // private Tuple<float> _delayParam;
-    
+
     protected override void Awake()
     {
         base.Awake();
@@ -34,34 +32,35 @@ public class VariableBoolTransition : AbstractStateTransition,ILevelResetStart
         //     if (value == TargetValue)
         //         TransitionCheck();
         // }, this);
-       
     }
-    
+
 
     private void OnValueChange(bool value)
     {
         if (value == TargetValue)
         {
-            this.Log("OnValueChange TransitionCheck",TargetValue);
+            this.Log("OnValueChange TransitionCheck", TargetValue);
             TransitionCheck();
         }
-            
     }
 
     private void OnDestroy()
     {
-        variableNode.Field.RemoveListener(OnValueChange, this);
+        _monoVariableNode.Field.RemoveListener(OnValueChange, this);
     }
 
 
     public void LevelResetStart()
     {
-        if (variableNode == null)
+        if (_monoVariableNode == null)
         {
-            Debug.LogError("VariableNode is null",this);
+            Debug.LogError("VariableNode is null", this);
             return;
         }
-        this.Log("VariableBoolTransition Awake",variableNode.name);
-        variableNode.Field.AddListener(OnValueChange, this);
+
+        this.Log("VariableBoolTransition Awake", _monoVariableNode.name);
+        //FIXME: 這個沒有管到優先順序....會自己觸發
+        //不該作為transition, 而是作為event?
+        _monoVariableNode.Field.AddListener(OnValueChange, this);
     }
 }

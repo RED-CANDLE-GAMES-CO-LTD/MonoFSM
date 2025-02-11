@@ -24,9 +24,7 @@ public class Descriptable
     // [SerializeField]
     // string title;
     public LocalizedString titleStr;
-    [SerializeField]
-    [TextArea(2, 10)]
-    string description;
+    [SerializeField] [TextArea(2, 10)] string description;
     string summary;
     public LocalizedString descriptionStr;
 
@@ -36,55 +34,65 @@ public class Descriptable
 
 public interface IToggleable
 {
-    bool IsActivated
-    {
-        get;
-    }
+    bool IsActivated { get; }
 
     bool UnEquipCheck();
     bool EquipCheck(bool force = false);
 }
-public interface IMonoDescriptableCollection:IValueOfKey<MonoDescriptableTag>
+
+public interface IMonoDescriptableCollection : IValueOfKey<MonoDescriptableTag>
 {
     public IList<IMonoDescriptable> MonoDescriptableList { get; }
+
     bool isActiveAndEnabled { get; }
     // public MonoDescriptableTag Tag { get; }
 }
-public interface IMonoDescriptable:IValueOfKey<MonoDescriptableTag>
-{
-    public IDescriptable Descriptable { get; }
 
-    public void OnUIEventReceived();//FIXME: 之後可以加參數？
+public interface IMonoDescriptable : IValueOfKey<MonoDescriptableTag>
+{
+    public IDescriptableData Descriptable { get; }
+
+    // public void OnUIEventReceived(); //FIXME: 之後可以加參數？  ??
     // public IFloatValue GetFloatValue(VariableTypeTag tag);
     // public VariableBool GetBoolValue(VariableTypeTag tag);
     // public VariableString GetStringValue(VariableTypeTag tag);
     // public VariableInt GetIntValue(VariableTypeTag tag);
 }
-public interface IDescriptable
+
+public interface IDescriptableData : IProperty
 {
     string Title { get; }
     string Description { get; }
     string Summary { get; }
-    Sprite Image { get; }
+    Sprite FullSprite { get; }
     Sprite SmallIcon { get; }
     bool IsRevealed { get; } //UI看得到 => 技能樹上看得到，但還沒拿到
     bool IsAcquired { get; } //在身上了
     string ItemType { get; }
     void LoadAndSetIconForImage(Image image, Color loadedColor = default);
     void LoadAndSetSpriteForImage(Image image, Color loadedColor = default);
-    Func<IDescriptable, object> GetPropertyCache(string knownFieldName);
-    object GetProperty(string knownFieldName);
 }
 
-public interface IItem:IDescriptable
+public interface IProperty
 {
-     public int SlotStackCount { get; }
-     void Use();
+    Func<IDescriptableData, object> GetPropertyCache(string knownFieldName);
+    object GetProperty(string knownFieldName);
+    ValueDropdownList<string> GetProperties(List<Type> supportedTypes);
+    ValueDropdownList<string> GetProperties<T>();
 }
+
+public interface IItem : IDescriptableData
+{
+    public int SlotStackCount { get; }
+    void Use();
+}
+
 //Static資料，描述一個/種 東西的性質
+//ConfigData?
+//GameData?
 [CreateAssetMenu(fileName = "Descriptable", menuName = "ScriptableObjects/Descriptable", order = 1)]
 [Searchable]
-public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagDescriptable
+public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptable //以前是GameFlagDescriptable
 {
     public async void PreloadSprite()
     {
@@ -97,10 +105,12 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
         // Debug.Log("ReleaseSprite", this);
         SpriteRef?.Release();
     }
-    
-    public Dictionary<string, Func<IDescriptable, object>> propertyCache = new();
 
-    public Func<IDescriptable, object> GetPropertyCache(
+    //一個propertyName會對應到一個Getter Func, 輸入是IDescriptableData, 輸出是object
+    //nested應該不行...
+    public Dictionary<string, Func<IDescriptableData, object>> propertyCache = new();
+
+    public Func<IDescriptableData, object> GetPropertyCache(
         string propertyName)
     {
         if (propertyCache.TryGetValue(propertyName, out var info))
@@ -128,7 +138,7 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
             return null;
         }
 
-        Func<IDescriptable, object>
+        Func<IDescriptableData, object>
             _getMyProperty = (source) => getMethod.Invoke(source, null);
         propertyCache[propertyName] = _getMyProperty;
         return _getMyProperty;
@@ -139,6 +149,51 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
         return GetPropertyCache(knownFieldName)?.Invoke(this);
     }
 
+    public ValueDropdownList<string> GetProperties(List<Type> supportedTypes)
+    {
+        return GetProperties(supportedTypes, this);
+    }
+
+    public ValueDropdownList<string> GetProperties<T>()
+    {
+        return GetProperties<T>(GetType());
+    }
+
+    public static ValueDropdownList<string> GetProperties<T>(Type dataType)
+    {
+        // var fields = new List<string>();
+        var properties = dataType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var dropdownList = new ValueDropdownList<string>();
+        foreach (var property in properties)
+        {
+            if (!typeof(T).IsAssignableFrom(property.PropertyType))
+                continue;
+            // fields.Add(property.Name);
+            dropdownList.Add(property.Name + " (" + property.PropertyType.Name + ")", property.Name);
+        }
+
+        return dropdownList;
+    }
+
+    public static ValueDropdownList<string> GetProperties(List<System.Type> supportedTypes, DescriptableData sampleData)
+    {
+        // AppDomain.CurrentDomain.GetAssemblies().
+        var type = sampleData.GetType();
+        // Debug.Log(type);
+        var fields = new List<string>();
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var dropdownList = new ValueDropdownList<string>();
+        foreach (var property in properties)
+        {
+            if (!supportedTypes.Contains(property.PropertyType))
+                continue;
+            fields.Add(property.Name);
+            dropdownList.Add(property.Name + " (" + property.PropertyType.Name + ")", property.Name);
+        }
+
+        return dropdownList;
+    }
+
     public void CopyFrom(DescriptableData source)
     {
 #if UNITY_EDITOR
@@ -146,15 +201,13 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
         EditorUtility.CopySerializedManagedFieldsOnly(source, this);
 #endif
     }
-    
+
     //類別，需要的自己用enum override掉
     public virtual int category => 0;
-    [PreviewInInspector]
-    public virtual PoolObject bindPrefab => null; //FIXME: 要弄這個？
+    [PreviewInInspector] public virtual PoolObject bindPrefab => null; //FIXME: 要弄這個？
     public FlagFieldBool unlocked; //在介面中可以看到的狀態，但可能還沒取得
     public virtual bool IsRevealed => unlocked.CurrentValue;
-    [FormerlySerializedAs("aquired")]
-    public FlagFieldBool acquired; //取得
+    [FormerlySerializedAs("aquired")] public FlagFieldBool acquired; //取得
 
     public virtual bool IsAcquired
     {
@@ -166,6 +219,7 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
 
     [Header("當有從按鈕上的bindInstance來顯示過這個物件的資訊，就當作看過了把通知移除")]
     public bool IsUpdateDescriptionAsViewed = true;
+
     public FlagFieldBool viewed; //玩家有沒有看過
     public FlagFieldBool promptViewed; //玩家有沒有看過
     public bool IsViewed => viewed.CurrentValue && acquired.CurrentValue;
@@ -178,10 +232,11 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
         viewed.SetCurrentValue(true, byWho);
         return true;
     }
+
     //
     public bool IsImportantObject = false;
-    
-    
+
+
     // public bool isViewed => viewed.CurrentValue;
 
 // [HideInInspector]
@@ -190,10 +245,11 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
     // [SerializeField]
     // string title;
     public LocalizedString titleStr;
-    [SerializeField]
-    [TextArea(2, 10)]
+
+    [SerializeField] [TextArea(2, 10)]
     // [HideInInspector]
     string description;
+
     string summary;
     public LocalizedString descriptionStr;
     public LocalizedString typeStr;
@@ -201,7 +257,10 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
     public virtual string ItemType => typeStr;
 
     public virtual string Title => titleStr.ToString();
-    public virtual string Description => descriptionStr.ToString().Length > 0 ? descriptionStr.ToString() : this.description;
+
+    public virtual string Description =>
+        descriptionStr.ToString().Length > 0 ? descriptionStr.ToString() : this.description;
+
     public virtual string Summary => summaryStr.ToString().Length > 0 ? summaryStr.ToString() : this.summary;
 
     // [DisableIf("@true")]
@@ -218,7 +277,9 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
     //
     // [DisableIf("@true")]
     // [SerializeField] private AssetReferenceSprite smallSpriteRefSprite;
-    [PreviewField(100)]
+
+
+    //ref到so就會load sprite
     [Header("一開遊戲就會讀進來的")] public Sprite staticSprite;
     [InlineField] [SerializeField] public RCGAssetReference spriteRef;
 
@@ -253,14 +314,14 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
             {
                 Debug.LogError("AssignToUIImage: rcgAssetRef = null", this);
             }
+
             return;
         }
-        
+
         //不用清掉前一個 才不會閃白 讀取其實很快。
         //image.sprite = null;
         if (rcgAssetRef.IsAssetLoaded)
         {
-            
             var newSprite = rcgAssetRef.GetAsset<Sprite>();
             if (image.sprite == newSprite)
             {
@@ -272,7 +333,7 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
             // Debug.Log("AssignToUIImage already loaded:" + rcgAssetRef, this);
             image.sprite = newSprite;
         }
-        else 
+        else
         {
             //FIXME: 可能會被animation key
             image.color = Color.clear;
@@ -288,14 +349,17 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
         }
     }
 
-    public virtual Sprite Image => staticSprite ? staticSprite : spriteRef.GetAsset<Sprite>();
+    [PreviewInInspector]
+    [PreviewField(100)]
+    public virtual Sprite FullSprite => staticSprite ? staticSprite : spriteRef.GetAsset<Sprite>();
+
     public virtual Sprite SmallIcon => IconSpriteRef.GetAsset<Sprite>();
     public virtual RCGAssetReference SpriteRef => spriteRef;
 
     public virtual RCGAssetReference IconSpriteRef => spriteRef;
 
     //FIXME: Deprecated 要dynamic load
- 
+
 
 #if UNITY_EDITOR
     [Button]
@@ -404,4 +468,13 @@ public class DescriptableData : GameFlagBase, IDescriptable //以前是GameFlagD
 #if MIXPANEL
     private readonly Value _trackValue = new();
 #endif
+
+    //FIXME: 亂寫看看
+    public MonoDescriptableTag Key { get; }
+    public IDescriptableData Descriptable => this;
+
+    public void OnUIEventReceived()
+    {
+        //throw new NotImplementedException();
+    }
 }

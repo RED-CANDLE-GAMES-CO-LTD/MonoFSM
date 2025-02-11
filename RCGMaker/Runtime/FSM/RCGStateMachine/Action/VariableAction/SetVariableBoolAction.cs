@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RCGMaker.Runtime.FSM.RCGStateMachine;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -6,23 +7,24 @@ namespace RCGFSM.Variable
 {
     //set flag, pick item...和GameFlag有關的要用一個interface才可以撈出來
     //FIXME: 需要雙向reference, debug用，要不然不知道誰在set? candidate
-    public class SetVariableBoolAction : AbstractStateAction,IRCGArgEventReceiver<bool>
+    public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver<bool>
     {
         //FIXME: 用selection dropdown來篩選
-        protected override string renamePostfix => targetFlag ? targetFlag.name+" to "+TargetValue : "null";
+        protected override string renamePostfix => targetFlag ? targetFlag.name + " to " + TargetValue : "null";
 
         IList<VariableBool> GetVariables()
         {
-            var context = GetComponentInParent<StateMachineOwner>(true);
+            var context = GetComponentInParent<VariableOwner>(true);
             var vars = context.GetComponentsInChildren<VariableBool>(true);
             return vars;
         }
-        
+
         [DropDownRef]
         [ValueDropdown(nameof(GetVariables))]
         // [InlineEditor]
         [Required]
-        [HideIf("Multiple")] public VariableBool targetFlag;
+        [HideIf("Multiple")]
+        public VariableBool targetFlag;
 
         [ShowIf("Multiple")] public List<VariableBool> targetFlags;
 
@@ -39,7 +41,7 @@ namespace RCGFSM.Variable
         public override void EventReceived<T>(T arg)
         {
             this.Log("EventReceived setVariableBoolAction");
-            if(arg is bool b)
+            if (arg is bool b)
                 SetValue(b);
             else
                 SetValue();
@@ -72,7 +74,7 @@ namespace RCGFSM.Variable
 
         void SetValue()
         {
-           SetValue(TargetValue);
+            SetValue(TargetValue);
         }
 
         public void EventReceived(bool arg)

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core
@@ -14,6 +16,7 @@ namespace RCGMaker.Core
         [PreviewInInspector]
         [AutoChildren] TU[] collections; //disable也會被加進來
 
+        protected virtual bool IsStringDictEnable => false; 
 
         //現在是一個runtime dict...有點爛
         public TU this[T key]
@@ -21,16 +24,41 @@ namespace RCGMaker.Core
             get => _dict.GetValueOrDefault(key);
             set => _dict[key] = value;
         }
+        //FIXME: 我還想要兩種key....tag.string? 一定給一個基底string?
         // [ShowInInspector] protected IEnumerable<U> values => _dict.Values;
         // [ShowInInspector] private List<U> items = new();
         protected readonly Dictionary<T, TU> _dict = new();
+        protected readonly Dictionary<string, TU> _stringDict = new();
         protected readonly List<T> _tempRemoveList = new();
         public bool Contains(T key)
         {
             if (key == null)
                 return false;
+            
+            EditorPrepareCheck();
             return _dict.ContainsKey(key);
         }
+
+        [Conditional("UNITY_EDITOR")]
+        void EditorPrepareCheck()
+        {
+#if UNITY_EDITOR
+            if (Application.isPlaying == false)
+            {
+                PrepareDictCheck();
+            }
+#endif
+        }
+
+        public bool Contains(string stringKey)
+        {
+            if (stringKey == null)
+                return false;
+            EditorPrepareCheck();
+            return _stringDict.ContainsKey(stringKey);
+        }
+        
+        //add不行用string?
 
         public virtual void Add(T key, TU value)
         {
@@ -39,13 +67,27 @@ namespace RCGMaker.Core
             if (key == null)
                 return;
             _dict.Add(key, value);
+            if(IsStringDictEnable)
+                _stringDict.Add(value.Key.ToString(), value);
             // enabled = true;
         }
 
+        
+        public TU Get(string key)
+        {
+            // EditorPrepareCheck();
+            if (Contains(key))
+                return _stringDict[key];
+            return default;
+        }
         public TU Get(T key)
         {
+            // EditorPrepareCheck();
+            //FIXME: 
+            
             if (Contains(key))
                 return _dict[key];
+            // Debug.Log($"Key:{key} not found in {this}",this);
             return default;
         }
 
@@ -112,17 +154,38 @@ namespace RCGMaker.Core
 
         public void LevelResetPrepareRuntimeData()
         {
-            PrepareDict();   
+            _isPrepared = false;
+            PrepareDictCheck();
         }
 
         [Button]
         void Preview()
         {
-            PrepareDict();
+            _isPrepared = false;
+            PrepareDictCheck();
         }
-        void PrepareDict()
+        
+        [NonSerialized]
+        [PreviewInInspector]
+        bool _isPrepared = false; //這個值 reload domain後，為什麼沒有清掉？
+
+        private void PrepareDictCheck()
         {
-            Clear();
+            if (_isPrepared)
+            {
+                // Debug.Log("PrepareDictCheck Already prepared",this);
+                return;
+            }
+            //Auto還沒作用...好討厭...
+#if UNITY_EDITOR
+            if (Application.isPlaying == false) //reload domain完就空掉了...
+            {
+                Clear();
+                Debug.Log("PrepareDictCheck?",this);
+                _isPrepared = true;
+                collections = GetComponentsInChildren<TU>(true);
+            }
+#endif
             foreach (var item in collections)
             {
                 if(CanBeAdded(item) == false)
@@ -130,6 +193,7 @@ namespace RCGMaker.Core
                 Add(item.Key, item);
                 // Debug.Log($"Add key:{item.Key} item:{item}",item as Object);
             }
+            
             // enabled = false;
         }
         

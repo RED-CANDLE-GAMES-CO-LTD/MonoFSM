@@ -275,8 +275,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   favorites:
-  - comp: {fileID: 0}
-    note: 
+  - note: 
+    comp: {fileID: 0}
 --- !u!1 &4619145615866190664
 GameObject:
   m_ObjectHideFlags: 0

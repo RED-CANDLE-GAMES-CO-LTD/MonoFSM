@@ -341,7 +341,7 @@ public class
     protected T _lastValue;
     [ShowInPlayMode] public T LastValue => _lastValue;
 
-    public void RevertToLastValue()
+    public void RevertToLastValue() //FIXME: 什麼時候需要revert?
     {
         CurrentValue = LastValue;
     }

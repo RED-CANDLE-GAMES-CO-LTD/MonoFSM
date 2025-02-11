@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
+using RCGMaker.Runtime.FSM.RCGStateMachine;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -15,15 +16,39 @@ public class CustomSerializableAttribute : PropertyAttribute
 {
 }
 
+public interface IVariableOwner
+{
+    RCGVariableFolder VariableFolder { get; }
+}
 public static class StateMachineExtension
 {
     public static T FindVariableOfBinder<T>(this MonoBehaviour monoBehaviour, VariableTag type) where T : class
     {
-        return monoBehaviour.GetComponentInParent<StateMachineOwner>().VariableFolder.GetVariable(type) as T;
+        //FIXME: 效能
+        if (monoBehaviour == null)
+        {
+            Debug.LogError("monoBehaviour is null");
+            return default;
+        }
+
+        var owner = monoBehaviour.GetComponentInParent<IVariableOwner>(); //被monoDescriptable擋掉了...
+        if (owner == null)
+        {
+            Debug.LogError("IVariableOwner not found", monoBehaviour);
+            return default;
+        }
+        var folder = owner.VariableFolder;
+        if (folder == null)
+        {
+            Debug.LogError("VariableFolder not found", owner as MonoBehaviour);
+            return default;
+        }
+        return folder.GetVariable(type) as T;
         // return GetComponentOfSibling<StateMachineOwner, RCGVariableFolder>(monoBehaviour).GetVariable(type);
     }
     public static T GetComponentOfSibling<TParent, T>(this MonoBehaviour monoBehaviour) 
     {
+        //FIXME: 效能不好
         var binder = monoBehaviour.GetComponentInParent<TParent>() as MonoBehaviour;
         if (binder != null) return binder.GetComponentInChildren<T>(true);
         Debug.LogError("IBinder not found", monoBehaviour);
@@ -44,7 +69,7 @@ public static class StateMachineExtension
         var list = new List<Component>();
         if (parents == null || parents.Length == 0)
         {
-            Debug.LogError("IBinder not found", monoBehaviour);
+            Debug.LogError("parent Type not found:"+parentType, monoBehaviour);
             return Array.Empty<Component>();
         }
             
@@ -101,7 +126,7 @@ public interface IBinder
 {
     
 }
-public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable,IBinder
+public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable,IBinder,IVariableOwner
 {
 
     
@@ -116,6 +141,9 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
 
     public void ResetFSM()
     {
+        if(fsmContext == null)
+            Debug.LogError("fsmContext is null", gameObject);
+        
         if (fsmContext.fsm == null)
         {
             Debug.LogError("fsmContext.fsm is null", gameObject);
@@ -177,9 +205,20 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IResetter, IL
 
     }
     
-    [PreviewInInspector]
-    [AutoChildren]
-    RCGVariableFolder variableFolder;
-    public RCGVariableFolder VariableFolder => variableFolder;
-    
+    // [PreviewInInspector]
+    // [AutoChildren]
+    // RCGVariableFolder _variableFolder;
+    // public RCGVariableFolder VariableFolder
+    // {
+    //     get
+    //     {
+    //         #if UNITY_EDITOR
+    //         if (Application.isPlaying == false && _variableFolder == null)
+    //         {
+    //             _variableFolder = GetComponentInChildren<RCGVariableFolder>();
+    //         }
+    //         #endif
+    //         return _variableFolder;
+    //     }
+    // }
 }

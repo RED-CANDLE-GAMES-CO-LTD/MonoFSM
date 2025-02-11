@@ -17,13 +17,20 @@ namespace RCGUIBinder
     //甚至更多
     
     //給UI用的，要把主角身上的資料綁過來
+    //從一個collection中取得某個Descriptable
     public class UIMonoDescriptableCollectionProvider:MonoBehaviour,ILevelResetStart
     {
+        
+        //ItemCollection?
+        [TabGroup("Collection")]
         [SOConfig("DescriptableTag")]
         public MonoDescriptableTag tag;
+        
         //FIXME:同步數量，instantiate prefab?
         // [AutoChildren]
         // MonoDescriptableProvider[] _descriptableProviders;
+        [Required]
+        [TabGroup("Collection")]
         [PreviewInInspector]
         public IMonoDescriptableCollection MonoDescriptableCollection; 
         public MonoDescriptable GetDescriptable(int index)
@@ -35,17 +42,17 @@ namespace RCGUIBinder
             }
             return MonoDescriptableCollection.MonoDescriptableList[index] as MonoDescriptable;
         }
-
+//FIXME: 要runtime才有用，dict還沒見建立好
         [Button]
         void Bind()
         {
             MonoDescriptableCollection = GetComponentInParent<MonoDescriptableCollectionBinder>().Get(tag);
         }
 
-        private void Start()
-        {
-            // Bind();
-        }
+        // private void Start()
+        // {
+        //     // Bind();
+        // }
 
         public void LevelResetStart()
         {

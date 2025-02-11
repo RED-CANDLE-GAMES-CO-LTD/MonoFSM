@@ -2,7 +2,7 @@ namespace RCGFSM.Variable
 {
     public class VariableIntArithmeticAction : AbstractStateAction
     {
-        public VariableInt target;
+        [DropDownRef] public VariableInt target;
         public ArithmeticOperator Arithmetic;
         public int Value;
 

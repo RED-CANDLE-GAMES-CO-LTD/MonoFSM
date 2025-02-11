@@ -4,7 +4,7 @@ using UnityEngine;
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
     //functional 來獲取float value (lazy evaluation)
-    public class FloatValueGetter:MonoBehaviour, IFloatValue
+    public class FloatValueGetter:MonoBehaviour, IFloatValueProvider
     {
         public FloatValueSource value1;
         public FloatValueSource value2;

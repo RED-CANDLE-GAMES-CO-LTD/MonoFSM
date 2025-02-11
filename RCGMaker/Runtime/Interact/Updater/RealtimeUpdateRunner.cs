@@ -3,10 +3,10 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace RCGMaker.Core
 {
-    
     public interface IUpdatable
     {
         void MonoBindAwake();
@@ -39,12 +39,13 @@ namespace RCGMaker.Core
         // private float LastForSecondsValue => LastForSeconds ? LastForSeconds.Value : lastForSecondsValue;
         private float LastForSecondsValue =>
             LastForSecondsStatData ? LastForSecondsStatData.Value : lastForSecondsValue;
+
         [Header("持續多久")] public float lastForSecondsValue = 0.5f;
         public StatData LastForSecondsStatData;
-        [PreviewInInspector]
-        private float _timer;
-        
-        public VariableFloat _timerVariableFloat;
+        [PreviewInInspector] private float _timer;
+
+        [FormerlySerializedAs("_timerVariableFloat")]
+        public MonoVariableFloat _timerMonoVariableFloat;
 
         [PreviewInInspector] [AutoChildren()] private IUpdatable[] _updatables;
 
@@ -57,14 +58,12 @@ namespace RCGMaker.Core
         public void ResetCounter()
         {
             _timer = LastForSecondsValue;
-            
         }
 
         private void OnEnable()
         {
             _timer = LastForSecondsValue;
             _intervalTimer = UpdateIntervalValue;
-           
         }
 
         public void MonoBindAwake()
@@ -77,6 +76,7 @@ namespace RCGMaker.Core
         // Buff Runner Type...
 
         public UnityEvent OnStop;
+
         private void Update()
         {
             _intervalTimer -= Time.deltaTime;

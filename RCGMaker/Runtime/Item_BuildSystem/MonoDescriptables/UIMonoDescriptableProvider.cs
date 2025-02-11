@@ -12,17 +12,18 @@ using UnityEngine.Serialization;
 
 namespace RCGUIBinder
 {
-    public interface IDescriptableProvider
+    public interface IDescriptableProvider //FIXME: 這樣只能對應到一個instance, 而不能隨意查找
     {
         ValueDropdownList<string> GetProperties(List<Type> supportedTypes);
-        object GetProperty(IDescriptable data, string propertyName);
-        IDescriptable SampleData { get;  }
-        IDescriptable CurrentInstance { get;  }
+        object GetPropertyValue(IDescriptableData data, string propertyName);
+        IDescriptableData SampleData { get;  }
+        IDescriptableData CurrentInstance { get;  }
         object GetInstanceProperty(string fieldName);
     }
     
-    
-    //目的：提供一個MonoDescriptable，可以從外部注入Descriptable
+    //FIXME: 好像不需要了？應該從拿valueBinder直接assign => 有tag就可以拿到
+    //目的：提供一個MonoDescriptable，可以從外部注入Descriptable，或是從一個collection拿到
+    //FIXME: Consumer? 重點是從Collection拿
     [Searchable]
     public class UIMonoDescriptableProvider:MonoBehaviour,IDescriptableProvider,ILevelResetStart
     {
@@ -31,6 +32,7 @@ namespace RCGUIBinder
             MonoTag,
             CollectionIndex
         }
+        [Header("DI注入MonoDescriptable")]
         public SourceType sourceType; //FIXME: 把這個做完
         [FormerlySerializedAs("tag")]
         [ShowIf(nameof(sourceType),SourceType.MonoTag)]
@@ -42,7 +44,8 @@ namespace RCGUIBinder
         [PreviewInInspector]
         MonoDescriptable bindedDescriptable; //單一型 
         
-        [ShowIf(nameof(sourceType),SourceType.MonoTag)]
+        // [ShowIf(nameof(sourceType),SourceType.MonoTag)]
+        [Required] //FIXME: 一定要有sampleData才能選property?
         public DescriptableData SampleItemData;
         //從上面怎麼灌到？
         //怎麼DI綁這個？
@@ -69,11 +72,15 @@ namespace RCGUIBinder
         // }
 
 
+        [GUIColor(0.2f, 0.8f, 0.2f)]
         [PreviewInInspector]
-        public virtual MonoDescriptable monoInstance
+        public virtual MonoDescriptable MonoInstance
         {
             get
             {
+                //FIXME: 會因為沒有play資料還沒初始化？
+                // if (!Application.isPlaying)
+                //     return null;
                 if (sourceType == SourceType.CollectionIndex && collectionProvider != null)
                 {
                     return collectionProvider.GetDescriptable(index);
@@ -138,26 +145,28 @@ namespace RCGUIBinder
 
       
 
-        public IDescriptable SampleData => SampleItemData;
-        public IDescriptable CurrentInstance
+        public IDescriptableData SampleData => SampleItemData;
+        public IDescriptableData CurrentInstance
         {
             get
             {
-                if (monoInstance == null)
+                if (MonoInstance == null)
                 {
+                    if (Application.isPlaying == false)
+                        return SampleData;
                     Debug.LogError("No monoInstance found", this);
                     return null;
                 }
                     
-                return monoInstance.Descriptable;
+                return MonoInstance.Descriptable;
             }
         }
 
         public object GetInstanceProperty(string fieldName)
         {
-            return monoInstance.GetPropertyCache(fieldName)?.Invoke(monoInstance);
+            return MonoInstance.GetPropertyCache(fieldName)?.Invoke(MonoInstance);
         }
-        public object GetProperty(IDescriptable data, string propertyName)
+        public object GetPropertyValue(IDescriptableData data, string propertyName)
         {
             return data.GetPropertyCache(propertyName)?.Invoke(data);
         }
@@ -186,14 +195,13 @@ namespace RCGUIBinder
          [Button]
          void Bind()
          {
+             if (sourceType != SourceType.MonoTag)
+             {
+                 return;
+             }
              if (monoTag == null)
              {
                  Debug.LogError("No tag found", this);
-                 return;
-             }
-
-             if (sourceType != SourceType.MonoTag)
-             {
                  return;
              }
 

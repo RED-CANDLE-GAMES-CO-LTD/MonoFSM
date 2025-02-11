@@ -512,7 +512,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
         else
         {
-            Debug.LogError("It's not a pool object...");
+            Debug.LogError("It's not a pool object...", obj);
             return Instantiate(obj, position, rotation, parent);
         }
     }

@@ -37,7 +37,7 @@ namespace _3_Script._0_RedCandleGamesUtilities.UICanvas.ActivateChecker
             ActivateCheck();
         }
 
-        public void UpdateView(IDescriptable data) //更新所選的instance時檢查看看
+        public void UpdateView(IDescriptableData data) //更新所選的instance時檢查看看
         {
             ActivateCheck();
         }

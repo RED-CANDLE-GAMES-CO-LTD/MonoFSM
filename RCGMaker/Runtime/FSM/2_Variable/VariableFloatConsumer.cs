@@ -6,7 +6,7 @@ using UnityEngine;
 //使用 VariableFloat 的人要用這個
 public class VariableFloatConsumer : AbstractVariableConsumer
 {
-    public VariableFloat VariableSource => variableSource as VariableFloat;
+    public MonoVariableFloat MonoVariableSource => variableSource as MonoVariableFloat;
     // public float Value
     // {
     //     get
@@ -19,7 +19,8 @@ public class VariableFloatConsumer : AbstractVariableConsumer
     //     }
     // }
 }
+
 public abstract class AbstractVariableConsumer : MonoBehaviour
 {
-    public AbstractVariable variableSource;
+    public AbstractMonoVariable variableSource;
 }

@@ -3,23 +3,25 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using I2.Loc;
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 
 //
-public abstract class AbstractStringProvider : MonoBehaviour, IStringProvider
+public abstract class AbstractStringProvider : MonoBehaviour//, IStringProvider
 {
     public abstract string StringValue
     {
         get;
     }
-}
 
-internal interface IStringProvider
-{
-    string StringValue { get; }
+    public string GetString()
+    {
+        return StringValue;
+    }
 }
 
 public class StringFromDataProvider<TField> : AbstractStringProvider, IStringProvider

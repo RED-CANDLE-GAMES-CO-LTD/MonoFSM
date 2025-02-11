@@ -23,7 +23,7 @@ using Object = UnityEngine.Object;
 public class AbstractScriptableData<TField, TType> : GameFlagBase where TField : FlagField<TType>
 {
     public TField field;
-    public void Revert()
+    public void Revert() //什麼時候需要revert?
     {
         field.RevertToLastValue();
     }

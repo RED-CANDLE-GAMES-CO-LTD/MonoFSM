@@ -184,6 +184,12 @@ public class AutoAttributeManager : MonoBehaviour
             if (!attributeDict.ContainsKey(field))
                 attributeDict[field] = field.GetCustomAttributes(typeof(IAutoAttribute), true);
 
+            //FIXME: nested class悲劇..
+            // if (field.FieldType.IsAssignableFrom(typeof(IAutoAttributeClass)))
+            // {
+            //     //
+            //     var obj = field.GetValue(targetMb);
+            // }
             //FIXME: 還是讓全世界都serialize就好了？
             // if (field.IsPublic || Attribute.IsDefined(field, typeof(SerializeField)))
             // {
@@ -360,7 +366,7 @@ public class AutoAttributeManager : MonoBehaviour
     }
 
 
-    public static IEnumerable<FieldInfo> GetFieldsWithAutoAndBuildCache(MonoBehaviour mb)
+    public static IEnumerable<FieldInfo> GetFieldsWithAutoAndBuildCache(object mb)
     {
         if (mb == null)
             return default;
