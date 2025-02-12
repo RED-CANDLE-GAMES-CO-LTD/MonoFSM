@@ -1,8 +1,8 @@
 using RCGMaker.Core;
 
-namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
+namespace RCGMaker.Runtime.Mono
 {
-    public class MonoDescriptableCollectionBinder:MonoDict<MonoDescriptableTag,IMonoDescriptableCollection>
+    public class MonoDescriptableCollectionBinder : MonoDict<MonoDescriptableTag, IMonoDescriptableCollection>
     {
         // public void Inject()
         // {
@@ -20,5 +20,4 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
             return item.isActiveAndEnabled;
         }
     }
-    
 }

@@ -6,12 +6,10 @@ using RCGMaker.Runtime.FSM._2_Variable;
 using RCGSetting;
 using UnityEngine;
 using Sirenix.OdinInspector;
+
 public interface ICondition
 {
-    bool IsValid
-    {
-        get;
-    }
+    bool IsValid { get; }
 }
 
 public static class ConditionHelper
@@ -31,6 +29,7 @@ public static class ConditionHelper
                 return false;
             }
         }
+
         return true;
     }
 }
@@ -54,32 +53,31 @@ public static class AbstractConditionCompExtension
 }
 
 
-
 //FIXME: 關掉condition節點算什麼？
-public abstract class AbstractConditionComp : MonoBehaviour,IBoolValue
+public abstract class AbstractConditionComp : MonoBehaviour, IBoolValue
 {
     protected virtual bool IsShowRenameButton => nameDescription != "";
 
+    //FIXME: AI 可以解釋性？
     protected virtual string nameDescription => this.GetType().Name;
 
     [Button]
     [ShowIf("IsShowRenameButton")]
     private void RenameOfGameObject()
     {
-        
         var text = "[Condition] " + nameDescription;
-        if(FinalResultInverted)
+        if (FinalResultInverted)
             text += " is Inverted";
         gameObject.name = text;
     }
-    
+
     // public Action OnConditionChanged; //要用這個？還是用polling就好了
     //直接用interface往上叫好像不錯？
     private bool _isConditionChanged = false;
 
     //用類似statData 檢查dirty來決定要不要重新檢查condition
     public bool IsDirty => _isConditionChanged;
-    
+
     public bool FinalResultInverted = false;
     protected abstract bool isValid { get; }
 
@@ -88,7 +86,6 @@ public abstract class AbstractConditionComp : MonoBehaviour,IBoolValue
     {
         get
         {
-
             if (Application.isPlaying == false)
                 return false;
 #if UNITY_EDITOR
@@ -101,7 +98,7 @@ public abstract class AbstractConditionComp : MonoBehaviour,IBoolValue
             // if (isActiveAndEnabled == false)
             //     return false;
             //FIXME: 關著表示不判...
-            
+
             if (FinalResultInverted)
                 return !isValid;
 
@@ -109,16 +106,11 @@ public abstract class AbstractConditionComp : MonoBehaviour,IBoolValue
         }
     }
 
-    
-    
 
 #if UNITY_EDITOR
-    [ShowIf("IsDebugMode")]
-    [PropertyOrder(1)]
-    [TabGroup("Debug")]
-    [Component] [AutoChildren(false)]
+    [ShowIf("IsDebugMode")] [PropertyOrder(1)] [TabGroup("Debug")] [Component] [AutoChildren(false)]
     private DebugConditionResultOverrider _debugConditionResultOverrider;
-    
+
     [ShowIf("IsDebugMode")]
     [ShowInInspector]
     [TabGroup("Debug")]
@@ -136,4 +128,3 @@ public abstract class AbstractConditionComp : MonoBehaviour,IBoolValue
 
     public bool IsTrue => FinalResult;
 }
-

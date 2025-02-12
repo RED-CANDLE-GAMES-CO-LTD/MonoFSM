@@ -33,7 +33,7 @@ namespace RCGMaker.Core.DataProvider
     public class FloatProviderFromVariable : IFloatProvider
     {
         [FormerlySerializedAs("_variable")] [HideLabel] [DropDownRef]
-        public MonoVariableFloat _monoVariable;
+        public VariableFloat _monoVariable;
 
         public float GetFloat()
         {

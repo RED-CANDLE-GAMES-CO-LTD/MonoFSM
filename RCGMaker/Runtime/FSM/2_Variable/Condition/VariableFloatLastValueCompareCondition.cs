@@ -8,7 +8,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     {
         //講中文
         [FormerlySerializedAs("variableFloat")] [InfoBox("比較VariableFloat的LastValue和CalValue")] [DropDownRef]
-        public MonoVariableFloat _monoVariableFloat;
+        public VariableFloat _monoVariableFloat;
 
         public Operator op;
 

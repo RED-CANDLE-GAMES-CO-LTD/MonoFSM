@@ -22,7 +22,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
             : name = "[Condition]";
 
         [FormerlySerializedAs("variableFloat")] [DropDownRef]
-        public MonoVariableFloat _monoVariableFloat;
+        public VariableFloat _monoVariableFloat;
 
         public Operator op;
         public float targetValue;

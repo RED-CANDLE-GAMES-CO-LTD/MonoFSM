@@ -6,8 +6,8 @@ using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Interact.EffectHit;
-using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
+using RCGMaker.Runtime.Mono;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -45,8 +45,17 @@ namespace RCGMaker.Runtime
 
         // public DescriptableData SampleData;
         //FIXME: 型別限制？
-        public DescriptableData data; //config
+        [SOConfig("10_Flags/GameData")] [SerializeField]
+        DescriptableData data; //config
+
         public virtual IDescriptableData Descriptable => data;
+
+        public T GetData<T>() where T : DescriptableData
+        {
+            return data as T;
+        }
+
+        public DescriptableData Data => data;
 
         //FIXME:  schema
         [InfoBox("$errorString", InfoMessageType.Error, nameof(IsVariableMissing))]

@@ -23,7 +23,6 @@ public interface IEffectHitData
     IEffectDealer Dealer { get; }
     IEffectReceiver Receiver { get; }
     void Override(IEffectDealer dealer, IEffectReceiver receiver);
-   
 }
 
 public interface IEffectReceivedHandler //FIXME:和下面整和吧
@@ -44,10 +43,11 @@ public interface IEffectReceivedProcessor
 public interface IEffectType
 {
 }
-public interface IEffectDealer
+
+public interface IEffectDealer //FIXME: 好像不需要interface
 {
     // IEffectType getEffectType { get; }
-    
+
     // void OnHitEnter(IEffectHitData data);
     // void OnHitStay(IEffectHitData data);
     // void OnHitExit(IEffectHitData data);
@@ -57,10 +57,12 @@ public interface IEffectDealer
     float FinalValue { get; }
 }
 
-public interface IEffectReceiver
+public interface IEffectReceiver //FIXME: 好像不需要interface
 {
     Transform transform { get; }
+
     void OnEffectHitEnter(IEffectHitData data);
+
     // void OnHitStay(IEffectHitData data);
     void OnEffectHitExit(IEffectHitData data);
     float ReactValue { get; }

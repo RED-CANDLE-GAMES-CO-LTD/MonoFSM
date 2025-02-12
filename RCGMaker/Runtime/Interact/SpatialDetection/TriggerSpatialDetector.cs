@@ -15,16 +15,17 @@ namespace RCGMaker.Core.Detection
 
         private void OnTriggerEnter(Collider other)
         {
-            this.Log("OnTriggerEnter",this);
+            this.Log("OnTriggerEnter", this);
             // ReliableOnTriggerExit.NotifyTriggerEnter(other, gameObject, OnTriggerExit);
+            //FIXME: 先標記，再Update做
             virtualDetector?.OnSpatialEnter(other.gameObject);
             OnSpatialEnter(other.gameObject);
         }
 
-       
 
         private void OnTriggerExit(Collider other)
         {
+            //FIXME: 先標記，再Update做
             virtualDetector?.OnSpatialExit(other.gameObject);
             // ReliableOnTriggerExit.NotifyTriggerExit(other, gameObject);
             OnSpatialExit(other.gameObject);

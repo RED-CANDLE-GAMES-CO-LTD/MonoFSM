@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 public class VariableIntTransition : AbstractStateTransition
 {
     [FormerlySerializedAs("variableNode")] [Required]
-    public MonoVariableFloat _monoVariableNode;
+    public VariableFloat _monoVariableNode;
 
     public float delay;
 

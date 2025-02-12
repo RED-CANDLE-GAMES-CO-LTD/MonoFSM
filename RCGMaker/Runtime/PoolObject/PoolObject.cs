@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using PrimeTween;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
@@ -24,6 +25,7 @@ public interface IFXPlayerOwner
 {
     bool IsActive { get; }
 }
+
 public interface IPoolObjectPlayer
 {
     IFXPlayerOwner Owner { get; }
@@ -33,22 +35,25 @@ public interface IPoolObjectPlayer
 public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 {
     // public MonoReferenceCache _monoReferenceCache; //要是prefab asset才需要
-    
-    [BoxGroup("誰噴的")]
-    [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
+
+    [BoxGroup("誰噴的")] [ShowInPlayMode] public IPoolObjectPlayer lastPlayer;
 #if UNITY_EDITOR
     [ShowInPlayMode] [NonSerialized] public string _lastPlayerName;
 #endif
     [BoxGroup("誰噴的")]
     [PropertyOrder(-1)]
-    [ShowInPlayMode] public Component lastPlayerComponent => lastPlayer as Component;
+    [ShowInPlayMode]
+    public Component lastPlayerComponent => lastPlayer as Component;
+
     [Button("Find fx to assign")]
     void Find()
     {
         this.SetFilterForAssignPrefab();
     }
-    public bool canBePlayByFXplayer = true;//可不可以被Fxplayer 丟出來 (FIXME: 狀聲詞ㄑ)
+
+    public bool canBePlayByFXplayer = true; //可不可以被Fxplayer 丟出來 (FIXME: 狀聲詞ㄑ)
     public bool IsGlobalPool;
+
     public enum ShootFrom
     {
         HitData = 0,
@@ -64,7 +69,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
     //FIXME: 不一定會有hitData呀，怪物被噴出來了
     [Header("決定要跟fxplayer, 還是hitData(Receiver)的位置")]
-    public ShootFrom InitPosType = ShootFrom.HitData;//TODO: 應該是IPoolObject... PoolOnShoot, OnSpawn
+    public ShootFrom InitPosType = ShootFrom.HitData; //TODO: 應該是IPoolObject... PoolOnShoot, OnSpawn
     // public bool IsShootFromHitData = true;
     // public List<EffectPositionConstrain> posContraints;
     // [HideInInspector]
@@ -85,12 +90,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     // private int _unsolvedIssueBeforeDestroy = 0;
 
 
-    [HideInInspector]
-    public PoolObject OriginalPrefab;
+    [HideInInspector] public PoolObject OriginalPrefab;
     // private bool _onUse = false;
 
-    [HideInInspector]
-    public PoolManager _bindingPoolManager;
+    [HideInInspector] public PoolManager _bindingPoolManager;
 
     public PoolObjEvent OnReturnEvent = new PoolObjEvent();
 
@@ -111,15 +114,13 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     [AutoChildren] private IPoolObject[] _iPoolObjectRefs;
     [AutoChildren] private IResetter[] _iResetterRefs;
 
-    [PreviewInInspector]
-    [AutoChildren] private IPoolBorrowOnEnable[] IPoolBorrowedList;
+    [PreviewInInspector] [AutoChildren] private IPoolBorrowOnEnable[] IPoolBorrowedList;
     private bool inited = false;
 
     [PreviewInInspector] private List<AnimatorResetter> animResetters = new();
 
 
-    [PreviewInInspector]
-    private bool _animResetterInited = false;
+    [PreviewInInspector] private bool _animResetterInited = false;
 
     private void InitAnimResetters() //一次就夠了, FIXME: defensive爛扣一個進入點的話就沒有這個問題??
     {
@@ -196,8 +197,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         inited = true;
     }
 
-    
-
 
     //Position , Parent, Rotation
     public void TransformReset()
@@ -254,13 +253,11 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         isResetParameterInit = true;
     }
 
-    [PreviewInInspector]
-    private Quaternion initRotation;
+    [PreviewInInspector] private Quaternion initRotation;
 
     [PreviewInInspector] private Vector3 InitEulerRotation => initRotation.eulerAngles;
 
-    [ShowInPlayMode]
-    private Transform initParent;
+    [ShowInPlayMode] private Transform initParent;
     private Vector3 initlocalScale;
 
     public Vector3 ResetPos => initPosition;
@@ -284,11 +281,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     }
 
 
-
     public void OnBorrowFromPool(PoolManager manager)
     {
         onScene = true;
-        
+
         // EnterLevelResetAndStart();
     }
 
@@ -306,13 +302,8 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     public void PoolObjectResetAndStart() //只有收進去pool的才需要這個
     {
         // this.Break();
-        if (UseAutoDestroy)
-        {
-            RegisterDestroy(); //打開了才註冊ㄋ
-        }
         CheckList();
         // ResetAnim();
-
         this.Log("[PoolObjectResetAndStart]", gameObject);
         PoolManager.Instance.ResetFromRoot(gameObject);
 
@@ -320,8 +311,12 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         {
             iBorrowOnEnable.OnBorrowFromPoolOnEnable();
         }
-    }
 
+        if (UseAutoDestroy)
+        {
+            RegisterDestroy(); //打開了才註冊ㄋ
+        }
+    }
 
 
     public void BeforeObjectReturnToPool(PoolManager manager)
@@ -329,7 +324,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         destroyTween.Stop();
         CheckList();
         // ResetAnim();
-        
+
         foreach (var t in IPoolObjectList)
         {
             try
@@ -353,7 +348,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         // RaisePoolObjectReturnEvent();
         CheckList();
         // needResetAnim = true;
-        
+
         destroyTween.Stop();
         if (TryGetComponent<PositionConstraint>(out var constraint))
         {
@@ -377,8 +372,6 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
                 {
                     IPoolObjectList[i].PoolOnReturnToPool();
                 }
-
-
             }
             catch (Exception e)
             {
@@ -426,13 +419,10 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     }
 
 
-
     public bool IsFromPool => _bindingPoolManager != null;
 
     [AutoChildren(false)] private Animator[] _anims;
-    [ReadOnly]
-    [ShowInInspector]
-    public Animator[] animators => _anims;
+    [ReadOnly] [ShowInInspector] public Animator[] animators => _anims;
     int animDefaultNameHash;
 
     public void OnPrepare() //還關著的時候
@@ -452,6 +442,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
             }
         }
     }
+
     public bool isOnScene => onScene;
 
     public bool isInPool => !onScene;
@@ -462,25 +453,27 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     {
         if (UseAutoDestroy)
         {
+            Debug.Log("RegisterDestroy" + AutoDestroyTime, this);
             destroyTween.Stop();
+            // UniTask.Delay(TimeSpan.FromSeconds(AutoDestroyTime)).Forget();
             destroyTween = this.DelayTask(AutoDestroyTime, (target) =>
             {
+                Debug.Log("DelayTask AutoDestroyTime", target);
                 target.ReturnToPool();
                 target.Log("AutoDestroyTime:", target.AutoDestroyTime);
             });
         }
     }
 
-    private Tween destroyTween;
+    [PreviewInInspector] private Tween destroyTween;
 
-    
 
     //一開始就在場景上的物件
     public bool UseSceneAsPool => this.gameObject.scene.name != null && OriginalPrefab == null;
     private Transform oriParent; //在場景上的物件，要回到原本的parent
 
     public bool UseAutoDestroy = false;
-    public float AutoDestroyTime = 0;
+    [ShowIf(nameof(UseAutoDestroy))] public float AutoDestroyTime = 0; //fixme: 用-1就好了？
 
     private void OnDestroy()
     {
@@ -494,12 +487,14 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
 
         OnReturnEvent?.RemoveAllListeners();
         OnReturnEvent = null;
-        if (IPoolObjectList != null) {
+        if (IPoolObjectList != null)
+        {
             IPoolObjectList.Clear();
             IPoolObjectList = null;
         }
 
-        if (IResetterList != null) {
+        if (IResetterList != null)
+        {
             IResetterList.Clear();
             IResetterList = null;
         }
@@ -543,7 +538,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     [Button]
     public void LevelResetPrepareRuntimeData()
     {
-      //  Debug.Log("LevelReset", this);
+        //  Debug.Log("LevelReset", this);
         TransformReset();
 
         // ResetAnim();
@@ -551,8 +546,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         // this.Break();
     }
 
-    [Auto(false)]
-    private TransformResetOverrider _transformResetOverrider;
+    [Auto(false)] private TransformResetOverrider _transformResetOverrider;
 
 
     // public void OnBeforePrefabSave()
@@ -568,4 +562,6 @@ public interface TransformResetOverrider
     public void ResetTransform();
 }
 
-public class PoolObjEvent : UnityEvent<PoolObject> { }
+public class PoolObjEvent : UnityEvent<PoolObject>
+{
+}

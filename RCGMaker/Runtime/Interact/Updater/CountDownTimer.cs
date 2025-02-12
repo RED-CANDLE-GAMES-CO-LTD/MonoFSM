@@ -10,7 +10,7 @@ public class CountDownTimer : MonoBehaviour
     [DropDownRef] public MonoVariableStat maxValueStat;
     [DropDownRef] public MonoVariableStat increaseSpeedStat; //regen
     [DropDownRef] public MonoVariableStat decreaseSpeedStat; //consume
-    [DropDownRef] public MonoVariableFloat currentTime;
+    [DropDownRef] public VariableFloat currentTime;
     [DropDownRef] public MonoVariableStat TimeToRegen;
     [PreviewInInspector] float pauseTimeCounter;
 

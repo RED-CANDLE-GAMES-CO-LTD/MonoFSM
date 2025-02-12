@@ -60,16 +60,16 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject); //
         }
-        
+
         HandleGameLevelAwakeReverse(obj.gameObject);
         HandleGameLevelAwake(obj.gameObject);
         HandleGameLevelStartReverse(obj.gameObject);
         HandleGameLevelStart(obj.gameObject);
         LevelResetChildrenPrepareRuntimeData(obj.gameObject);
         obj.OnPrepare();
-        obj.PoolObjectResetAndStart();
-        
+        // obj.PoolObjectResetAndStart();
     }
+
     public static void HandleGameLevelConfigSetting(MonoBehaviour level)
     {
         var ILevelConfigs = new List<ILevelConfig>(level.GetComponentsInChildren<ILevelConfig>(true));
@@ -90,9 +90,8 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                     Debug.LogError(e.StackTrace);
             }
         }
-
     }
-    
+
     //LevelReset, 重職關卡時，一換scene時
     //開放世界用不到？死掉復活？
     public void ResetFromRoot(GameObject root)
@@ -142,17 +141,18 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 continue;
             // try
             // {
-                item.LevelResetStart();
-                // }
-                // catch (Exception e)
-                // {
-                //     if (item is MonoBehaviour behaviour)
-                //         Debug.LogError(e.Message + "\n" + e.StackTrace, behaviour);
-                //     else
-                //         Debug.LogError(e.Message + "\n" + e.StackTrace);
-                // }
+            item.LevelResetStart();
+            // }
+            // catch (Exception e)
+            // {
+            //     if (item is MonoBehaviour behaviour)
+            //         Debug.LogError(e.Message + "\n" + e.StackTrace, behaviour);
+            //     else
+            //         Debug.LogError(e.Message + "\n" + e.StackTrace);
+            // }
         }
     }
+
     public static void HandleGameLevelAwake(GameObject level)
     {
         var ILevelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));
@@ -173,6 +173,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 else
                     Debug.LogError(e.StackTrace);
             }
+
             Profiler.EndSample();
         }
     }
@@ -198,8 +199,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     //         }
     //     }
     // }
-    
-    
+
 
     public static void HandleGameLevelAwakeReverse(GameObject level)
     {
@@ -221,6 +221,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 else
                     Debug.LogError(e.StackTrace);
             }
+
             Profiler.EndSample();
         }
     }
@@ -274,6 +275,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             }
         }
     }
+
     // public bool IsReady = false;
     [Header("PrewarmData Logger")] public Transform poolbjects;
     public PoolPrewarmData prewarmDataLogger;
@@ -342,25 +344,27 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         {
             loadedAsset.Release();
         }
+
         allLoadedRCGRefereces.Clear();
 
         //沒有人需要用了。
         for (int i = records.Count - 1; i >= 0; i--)
         {
-            if (records[i]._requester== null)
+            if (records[i]._requester == null)
             {
                 records[i].Clear();
                 records.RemoveAt(i);
             }
         }
-        
+
         foreach (var e in PoolObjectEntries)
         {
             e.Clear();
         }
+
         PoolObjectEntries.Clear();
 
-        for (var i = 0; i < records.Count; i++) 
+        for (var i = 0; i < records.Count; i++)
             AddEntry(PoolObjectEntries, records[i]._prefab, records[i]._count);
     }
 
@@ -368,15 +372,13 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     {
         if (PoolDictionary.ContainsKey(poolobj.OriginalPrefab))
             PoolDictionary[poolobj.OriginalPrefab].PoolObjectOnDestroySignal(poolobj);
-
-       
     }
 
     private void AddEntry(List<PoolObjectEntry> list, PoolObject poolObject, int count)
     {
         for (var i = 0; i < list.Count; i++)
             if (list[i].prefab == poolObject)
-            { 
+            {
                 list[i].DefaultMaximumCount += count;
                 return;
             }
@@ -416,7 +418,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             _assetReference = assetReference;
         }
     }
-    
+
     private List<PoolObjectEntry> PoolObjectEntries;
 
     [Header("Run Time Data")] public Dictionary<PoolObject, ObjectPool> PoolDictionary;
@@ -457,17 +459,18 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             return Instantiate(obj, position, rotation, parent);
         }
     }
-    
-    public async UniTask<GameObject>  BorrowOrInstantiateRcgAssetReference(RCGAssetReference obj, Vector3 position = default, Quaternion rotation = default,
+
+    public async UniTask<GameObject> BorrowOrInstantiateRcgAssetReference(RCGAssetReference obj,
+        Vector3 position = default, Quaternion rotation = default,
         Transform parent = null, Action<PoolObject> handler = null)
     {
         GameObject poolObject = null;
         if (prewarmDataLogger != null)
         {
             poolObject = prewarmDataLogger.TryFindPrefab(obj.AssetReference);
-            
-            if(poolObject!=null)
-               return BorrowOrInstantiate(poolObject, position, rotation, parent, handler);
+
+            if (poolObject != null)
+                return BorrowOrInstantiate(poolObject, position, rotation, parent, handler);
         }
 
 
@@ -482,21 +485,22 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
 
         poolObject = await obj.GetAssetAsync<GameObject>();
-        
-        if( this.prewarmDataLogger!=null)
-            this.prewarmDataLogger.RegisterEntry(poolObject,obj.AssetReference);
-        
+
+        if (this.prewarmDataLogger != null)
+            this.prewarmDataLogger.RegisterEntry(poolObject, obj.AssetReference);
+
         return BorrowOrInstantiate(poolObject, position, rotation, parent, handler);
-        
+
         return null;
     }
 
     public List<RCGAssetReference> allLoadedRCGRefereces = new List<RCGAssetReference>();
 
-    public T BorrowOrInstantiate<T>(T obj, Transform parent)  where T : MonoBehaviour
+    public T BorrowOrInstantiate<T>(T obj, Transform parent) where T : MonoBehaviour
     {
         return BorrowOrInstantiate(obj, Vector3.zero, Quaternion.identity, parent);
     }
+
     public T BorrowOrInstantiate<T>(T obj, Vector3 position = default, Quaternion rotation = default,
         Transform parent = null, Action<PoolObject> handler = null) where T : MonoBehaviour
     {
@@ -505,7 +509,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             Debug.LogError("BorrowOrInstantiate: obj is null");
             return null;
         }
-        
+
         if (obj.TryGetComponent<PoolObject>(out var poolObj))
         {
             return Borrow(poolObj, position, rotation, parent, handler).GetComponent<T>();
@@ -535,7 +539,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             transform1.rotation = rotation;
             transform1.position = position;
 
-         
 
             prefab.OnBorrowFromPool(null); //OnPoolReset
 
@@ -546,7 +549,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             //先reset, 後面才
             prefab.OverrideTransformSetting(position, rotation, parent, prefab.transform.localScale);
             prefab.TransformReset();
-            
+
             prefab.gameObject.SetActive(true);
             // prefab.ResetAnim();
             //FIXME:這裡又跑一次...
@@ -582,36 +585,36 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     public void ReCalculatePools()
     {
         Profiler.BeginSample("ReCalculatePools");
-        
+
         //把null game level 清掉了
         ReCalculatePoolObjectEntries();
 
         Profiler.BeginSample("DestroyNonUsedPool");
-        for (var i =  allPools.Count-1; i >=0; i--)
+        for (var i = allPools.Count - 1; i >= 0; i--)
         {
             var currentPool = allPools[i];
             //FIXME: 同一個景重load!????
-             var entry = isInRequest(currentPool._prefab);
+            var entry = isInRequest(currentPool._prefab);
 
-             //移除沒用到的pool
-             if (entry == null)
-             {
-                 PoolDictionary.Remove(currentPool._prefab);
-                 allPools[i].DestroyPool();
-                 allPools[i] = null;
-                 allPools.RemoveAt(i);
-             }
-             //綁定新的Entry
-             else
-             {
-                 allPools[i]._bindingEntry = entry;
-             }
+            //移除沒用到的pool
+            if (entry == null)
+            {
+                PoolDictionary.Remove(currentPool._prefab);
+                allPools[i].DestroyPool();
+                allPools[i] = null;
+                allPools.RemoveAt(i);
+            }
+            //綁定新的Entry
+            else
+            {
+                allPools[i]._bindingEntry = entry;
+            }
         }
 
         Profiler.EndSample();
 
         Profiler.BeginSample("ScalePoolToNewMaximum");
-        for (var i = 0; i < allPools.Count; i++) 
+        for (var i = 0; i < allPools.Count; i++)
             allPools[i].ScalePoolToNewMaximum();
         Profiler.EndSample();
 
@@ -624,12 +627,12 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 var pool = new ObjectPool(PoolObjectEntries[i], this);
                 allPools.Add(pool);
                 pool.Init();
-                PoolDictionary.Add(PoolObjectEntries[i].prefab,pool);
+                PoolDictionary.Add(PoolObjectEntries[i].prefab, pool);
             }
         }
 
         Profiler.EndSample();
-        
+
         // sw.Stop();
         // Debug.Log("[PoolManager] Prepare ElapsedMilliseconds:" + sw.ElapsedMilliseconds);
         // UnityEngine.Debug.LogFormat("[Auto] Assigned <color={5}><b>{4}/{2}</b></color> [Auto*] variables in <color=#cc3300><b>{3} Milliseconds </b></color> - Analized {0} MonoBehaviours and {1} variables",
@@ -643,9 +646,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         for (var i = 0; i < allPools.Count; i++)
             allPools[i].ReturnAllObjects(withScene);
     }
+
     public delegate bool PoolPredicate(PoolObject p);
 
-    public void ReturnAllObjects(Scene withScene,PoolPredicate poolPredicate)
+    public void ReturnAllObjects(Scene withScene, PoolPredicate poolPredicate)
     {
         var StillOnUses = new List<PoolObject>();
 
@@ -656,7 +660,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 allPools[i].ReturnAllObjects(withScene);
             }
         }
-        
     }
 
     private void AddAPool(PoolObject obj)
@@ -678,7 +681,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public PoolObjectEntry isInRequest(PoolObject prefab)
     {
-        for (var i = PoolObjectEntries.Count-1; i >=0 ; i--)
+        for (var i = PoolObjectEntries.Count - 1; i >= 0; i--)
             if (PoolObjectEntries[i].prefab == prefab)
                 return PoolObjectEntries[i];
 
@@ -721,9 +724,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
             if (OnUseObjs.Contains(p))
                 OnUseObjs.Remove(p);
-
-
-
         }
 
         public void ReturnAllObjects()
@@ -742,8 +742,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
             for (var i = 0; i < StillOnUses.Count; i++) StillOnUses[i].ReturnToPool();
         }
-
-       
 
 
         public void DestroyPool()
@@ -835,7 +833,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 //     _prefab);
                 AddAObject(true);
             }
-                
+
 
             if (DisabledObjs.Count > 0)
             {
@@ -889,7 +887,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             //打開 開始跑Awake
 
             // obj.transform.SetParent(_poolManager.poolbjects);
-            
+
             obj.gameObject.SetActive(false);
 
             obj.OriginalPrefab = _prefab;
@@ -906,9 +904,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
 
 
-        
-
-    
         [Conditional("UNITY_EDITOR")]
         public void UpdatePoolEntry()
         {
@@ -920,7 +915,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
                 return;
             }
-            
+
             if (_bindingEntry.prefab.IsGlobalPool)
             {
                 if (_poolManager.globalPrewarmDataLogger != null)
@@ -929,8 +924,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                     Debug.LogError("Update Global Pool Entry" + AllObjs.Count, _bindingEntry.prefab);
                     return;
                 }
-                   
-                
             }
             else
             {
@@ -963,7 +956,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 //FIXME: 
                 if (obj.transform.parent != null) //有被借到某個特定node才
                     obj.transform.SetParent(_poolManager.poolbjects);
-                
+
                 obj.OnReturnToPool(_poolManager);
                 obj.gameObject.SetActive(false);
             }
@@ -986,7 +979,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             AllObjs = new List<PoolObject>();
             DisabledObjs = new List<PoolObject>();
             OnUseObjs = new HashSet<PoolObject>();
-            
+
 #if RCG_DEV
             Debug.Log(
                 "[PoolManager] Create New Pool: " + _bindingEntry.prefab + ":AllObjs.Count " +

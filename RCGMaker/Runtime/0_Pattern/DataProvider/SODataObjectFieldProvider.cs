@@ -437,7 +437,12 @@ namespace RCGMaker.Core.DataProvider
             get
             {
                 if (Application.isPlaying == false) //FIXME: 如果有也可以用descriptable?
-                    return _descriptableProvider?.SampleData;
+                {
+                    if (_descriptableProvider?.CurrentInstance?.Descriptable == null)
+                        return _descriptableProvider?.SampleData;
+                    return _descriptableProvider?.CurrentInstance?.Descriptable as Object;
+                }
+
                 else
                     return _descriptableProvider?.CurrentInstance?.Descriptable as Object;
                 //一定要sample data?

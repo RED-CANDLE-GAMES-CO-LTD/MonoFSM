@@ -112,12 +112,12 @@ namespace RCGMaker.Core
         public IDescriptableData GetDescriptableData()
         {
             if (_monoDescriptable == null) return null;
-            return _monoDescriptable.data;
+            return _monoDescriptable.Descriptable;
         }
 
         public Type GetDescriptableType()
         {
-            return _monoDescriptable.data.GetType();
+            return _monoDescriptable.Descriptable.GetType();
         }
     }
 

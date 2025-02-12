@@ -17,7 +17,7 @@ namespace RCGFSM.Variable
     {
         //兩種情境，一種是從dealer來，一種是固定值觸發
 
-        [DropDownRef] [SerializeField] private MonoVariableFloat targetFlag;
+        [DropDownRef] [SerializeField] private VariableFloat targetFlag;
         [SerializeField] private ArithmeticOperator Arithmetic;
 
         //要直接用值？
@@ -25,7 +25,7 @@ namespace RCGFSM.Variable
         [ShowIf(nameof(sourceType), ValueSourceType.Constant)]
         public float ConstValue;
 
-        public enum ValueSourceType
+        public enum ValueSourceType //FIXME: 太限定了
         {
             Dealer,
             Receiver,
@@ -34,7 +34,7 @@ namespace RCGFSM.Variable
 
         [FormerlySerializedAs("valueSource")] public ValueSourceType sourceType;
 
-        public void EventReceived(IEffectHitData arg) //FIXME: runtime value source? 狀態接著？
+        public override void EventReceived(IEffectHitData arg) //FIXME: runtime value source? 狀態接著？
         {
             switch (sourceType)
             {

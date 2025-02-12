@@ -19,7 +19,7 @@ namespace RCGMaker.Core
     {
         [SerializeField]
         [DropDownRef] //fixme 好像不行耶..還是要在這裡做
-        [ValueDropdown(nameof(GetComps), NumberOfItemsBeforeEnablingSearch = 3)]
+        // [ValueDropdown(nameof(GetComps), NumberOfItemsBeforeEnablingSearch = 3)]
         [HideLabel]
         protected MonoBehaviour ValueSource;
 

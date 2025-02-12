@@ -6,6 +6,7 @@ using RCGMaker.Runtime;
 using RCGMaker.Runtime.FSM._3_FlagData;
 using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
+using RCGMaker.Runtime.Mono;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -16,48 +17,43 @@ namespace RCGUIBinder
     {
         ValueDropdownList<string> GetProperties(List<Type> supportedTypes);
         object GetPropertyValue(IDescriptableData data, string propertyName);
-        IDescriptableData SampleData { get;  }
-        IDescriptableData CurrentInstance { get;  }
+        IDescriptableData SampleData { get; }
+        IDescriptableData CurrentInstance { get; }
         object GetInstanceProperty(string fieldName);
     }
-    
+
     //FIXME: 好像不需要了？應該從拿valueBinder直接assign => 有tag就可以拿到
     //目的：提供一個MonoDescriptable，可以從外部注入Descriptable，或是從一個collection拿到
     //FIXME: Consumer? 重點是從Collection拿
     [Searchable]
-    public class UIMonoDescriptableProvider:MonoBehaviour,IDescriptableProvider,ILevelResetStart
+    public class UIMonoDescriptableProvider : MonoBehaviour, IDescriptableProvider, ILevelResetStart
     {
         public enum SourceType
         {
             MonoTag,
             CollectionIndex
         }
-        [Header("DI注入MonoDescriptable")]
-        public SourceType sourceType; //FIXME: 把這個做完
-        [FormerlySerializedAs("tag")]
-        [ShowIf(nameof(sourceType),SourceType.MonoTag)]
-        [SOConfig("DescriptableTag")]
+
+        [Header("DI注入MonoDescriptable")] public SourceType sourceType; //FIXME: 把這個做完
+
+        [FormerlySerializedAs("tag")] [ShowIf(nameof(sourceType), SourceType.MonoTag)] [SOConfig("DescriptableTag")]
         public MonoDescriptableTag monoTag; //我就是provider...
-        
-        [ShowIf(nameof(sourceType),SourceType.MonoTag)]
-        
-        [PreviewInInspector]
+
+        [ShowIf(nameof(sourceType), SourceType.MonoTag)] [PreviewInInspector]
         MonoDescriptable bindedDescriptable; //單一型 
-        
+
         // [ShowIf(nameof(sourceType),SourceType.MonoTag)]
         [Required] //FIXME: 一定要有sampleData才能選property?
         public DescriptableData SampleItemData;
         //從上面怎麼灌到？
         //怎麼DI綁這個？
-        
-        [ShowIf(nameof(sourceType),SourceType.CollectionIndex)]
-        [PreviewInInspector]
-        [AutoParent]
+
+        [ShowIf(nameof(sourceType), SourceType.CollectionIndex)] [PreviewInInspector] [AutoParent]
         UIMonoDescriptableCollectionProvider collectionProvider; //用provider
-        
+
         // [TabGroup("WithCollection")]
         // [SerializeField] GameFlagCollection collection;//直接拉Data
-        [ShowIf(nameof(sourceType),SourceType.CollectionIndex)]
+        [ShowIf(nameof(sourceType), SourceType.CollectionIndex)]
         public int index; //陣列型
 
         // [PreviewInInspector]
@@ -85,14 +81,16 @@ namespace RCGUIBinder
                 {
                     return collectionProvider.GetDescriptable(index);
                 }
+
                 return bindedDescriptable;
-            }   
-        } 
+            }
+        }
+
         // public IDescriptable Descriptable => monoInstance.Descriptable;
         public ValueDropdownList<string> GetProperties(List<Type> supportedTypes)
         {
             // AppDomain.CurrentDomain.GetAssemblies().
-            if(SampleData == null)
+            if (SampleData == null)
                 return new ValueDropdownList<string>();
             var type = SampleData.GetType();
             // Debug.Log(type);
@@ -106,6 +104,7 @@ namespace RCGUIBinder
                 fields.Add(property.Name);
                 dropdownList.Add(property.Name + " (" + property.PropertyType.Name + ")", property.Name);
             }
+
             return dropdownList;
         }
 
@@ -114,38 +113,41 @@ namespace RCGUIBinder
         {
             return GetProperties(obj.GetType(), supportedTypes, isArray);
         }
-        public static ValueDropdownList<string> GetProperties(Type type, List<Type> supportedTypes,bool isArray = false)
+
+        public static ValueDropdownList<string> GetProperties(Type type, List<Type> supportedTypes,
+            bool isArray = false)
         {
             // AppDomain.CurrentDomain.GetAssemblies().
-           
+
             // Debug.Log(type);
             var fields = new List<string>();
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             var dropdownList = new ValueDropdownList<string>();
             foreach (var property in properties)
             {
-                if(isArray && !property.PropertyType.IsArray)
+                if (isArray && !property.PropertyType.IsArray)
                 {
                     // fields.Add(property.Name);
                     // dropdownList.Add(property.Name + " (" + property.PropertyType.Name + ")", property.Name);
                     continue;
                 }
-                
-                if (supportedTypes !=null && !supportedTypes.Contains(property.PropertyType))
+
+                if (supportedTypes != null && !supportedTypes.Contains(property.PropertyType))
                     continue;
                 fields.Add(property.Name);
                 dropdownList.Add(property.Name + " (" + property.PropertyType.Name + ")", property.Name);
             }
+
             return dropdownList;
         }
-        
+
         //nested reflection
         //a.b.c.d
         //a.b[i].c.d[i]
 
-      
 
         public IDescriptableData SampleData => SampleItemData;
+
         public IDescriptableData CurrentInstance
         {
             get
@@ -157,7 +159,7 @@ namespace RCGUIBinder
                     Debug.LogError("No monoInstance found", this);
                     return null;
                 }
-                    
+
                 return MonoInstance.Descriptable;
             }
         }
@@ -166,64 +168,65 @@ namespace RCGUIBinder
         {
             return MonoInstance.GetPropertyCache(fieldName)?.Invoke(MonoInstance);
         }
+
         public object GetPropertyValue(IDescriptableData data, string propertyName)
         {
             return data.GetPropertyCache(propertyName)?.Invoke(data);
         }
-        
+
         //FIXME: 更新UI另外拉出去做？ UIValueUpdater?
-         // [PreviewInInspector] [AutoChildren] private AbstractUIValueBinder[] _additionalDisplayers;
+        // [PreviewInInspector] [AutoChildren] private AbstractUIValueBinder[] _additionalDisplayers;
 
-         // private void Update()
-         // {
-         //     if(monoInstance == null)
-         //         return;
-         //     foreach (var displayer in _additionalDisplayers)
-         //     {
-         //         displayer.UpdateView(CurrentInstance);
-         //     }
-         // }
-         
-         public void BindDescriptable(IMonoDescriptable descriptable)
-         {
-             
-         }
-         
-         [PreviewInInspector]
-         [AutoParent] MonoDescriptableBinder _binder;
-         
-         [Button]
-         void Bind()
-         {
-             if (sourceType != SourceType.MonoTag)
-             {
-                 return;
-             }
-             if (monoTag == null)
-             {
-                 Debug.LogError("No tag found", this);
-                 return;
-             }
+        // private void Update()
+        // {
+        //     if(monoInstance == null)
+        //         return;
+        //     foreach (var displayer in _additionalDisplayers)
+        //     {
+        //         displayer.UpdateView(CurrentInstance);
+        //     }
+        // }
 
-             Debug.Log("Bind: "+monoTag,this);
+        public void BindDescriptable(IMonoDescriptable descriptable)
+        {
+        }
 
-             if (!_binder.Contains(monoTag))
-             {
-                 Debug.LogError("No mono found: "+monoTag, this);
-             }
-             var mono = _binder.Get(monoTag);
-             
-             bindedDescriptable = (MonoDescriptable)mono;
-         }
+        [PreviewInInspector] [AutoParent] MonoDescriptableBinder _binder;
 
-         private void Start()
-         {
-             // Bind();
-         }
+        [Button]
+        void Bind()
+        {
+            if (sourceType != SourceType.MonoTag)
+            {
+                return;
+            }
 
-         public void LevelResetStart()
-         {
-             Bind();
-         }
+            if (monoTag == null)
+            {
+                Debug.LogError("No tag found", this);
+                return;
+            }
+
+            Debug.Log("Bind: " + monoTag, this);
+
+            if (!_binder.Contains(monoTag))
+            {
+                Debug.LogError("No mono found: " + monoTag, this);
+            }
+
+            var mono = _binder.Get(monoTag);
+
+            bindedDescriptable = (MonoDescriptable)mono;
+        }
+
+        private void Start()
+        {
+            // Bind();
+        }
+
+        public void LevelResetStart()
+        {
+            Bind();
+        }
     }
 }

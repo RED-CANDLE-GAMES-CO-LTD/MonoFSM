@@ -14,7 +14,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         float anotherValue;
 
         [FormerlySerializedAs("OperandVariable")] [SerializeField]
-        MonoVariableFloat _operandMonoVariable;
+        VariableFloat _operandMonoVariable;
 
         private float OperandValue => _operandMonoVariable == null ? anotherValue : _operandMonoVariable.CurrentValue;
 

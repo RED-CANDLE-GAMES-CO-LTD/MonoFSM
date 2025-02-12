@@ -4,11 +4,12 @@ using UnityEngine;
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
     //functional 來獲取float value (lazy evaluation)
-    public class FloatValueGetter:MonoBehaviour, IFloatValueProvider
+    public class FloatValueGetter : MonoBehaviour, IFloatValueProvider
     {
-        public FloatValueSource value1;
-        public FloatValueSource value2;
+        public IFloatValueProvider value1;
+        public IFloatValueProvider value2;
         public ArithmeticOperator op;
+
         public float FinalValue => op switch
         {
             ArithmeticOperator.Add => value1.FinalValue + value2.FinalValue,

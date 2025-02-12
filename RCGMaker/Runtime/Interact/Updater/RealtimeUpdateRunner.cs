@@ -45,7 +45,7 @@ namespace RCGMaker.Core
         [PreviewInInspector] private float _timer;
 
         [FormerlySerializedAs("_timerVariableFloat")]
-        public MonoVariableFloat _timerMonoVariableFloat;
+        public VariableFloat _timerMonoVariableFloat;
 
         [PreviewInInspector] [AutoChildren()] private IUpdatable[] _updatables;
 

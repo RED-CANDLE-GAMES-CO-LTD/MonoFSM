@@ -14,9 +14,10 @@ namespace RCGFSM.Animation
             Float,
             Int
         }
+
         public ValueType valueType;
         public bool IsUpdateSet = false;
-        
+
         [DropDownRef] //FIXME:Component?
         public Animator animator;
 
@@ -26,7 +27,9 @@ namespace RCGFSM.Animation
         public bool boolvalue;
         public float floatValue;
         public int intValue;
-        public FloatValueSource floatValueSource;
+
+        public IFloatValueProvider floatValueSource;
+
         // [DropDownRef]
         // public AbstractVariable sourceVariable;
         private IEnumerable<string> GetParameterNames()
@@ -60,6 +63,7 @@ namespace RCGFSM.Animation
                 }
             }
         }
+
         protected override void OnStateEnterImplement()
         {
             SetValue();
@@ -71,7 +75,6 @@ namespace RCGFSM.Animation
             {
                 SetValue();
             }
-                
         }
     }
 }

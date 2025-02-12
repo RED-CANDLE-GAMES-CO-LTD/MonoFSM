@@ -120,7 +120,13 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         // [InlineProperty]
         [HideInInlineEditors] public MySerializedType<AbstractMonoVariable> _variableType; //我這個variable是什麼型別
 
-        public MySerializedType<Object> _valueFilterType; //當我是ObjectVariable時，才用的到這個？
+        public MySerializedType<object> _valueFilterType; //當我是ObjectVariable時，才用的到這個？
+
+        [Button]
+        void FetchFilterType()
+        {
+            //FIXME: 好像拿不到...
+        }
 
         //FIXME: Editor time 把雙向連結撈出來
 #if UNITY_EDITOR

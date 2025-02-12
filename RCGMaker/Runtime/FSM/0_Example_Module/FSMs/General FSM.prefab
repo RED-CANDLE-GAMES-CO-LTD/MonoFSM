@@ -258,7 +258,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bf7bf97a6cac4c51abbcbf3da26769a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsLogInChildren: 1
+  IsLogInChildren: 0
   IsBreak: 0
   IsBreakWhenStateChange: 0
   logEntries: []

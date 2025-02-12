@@ -5,6 +5,8 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
     public class VariableBoolValueCondition : AbstractConditionComp
     {
+        protected override string nameDescription => _monoVariableBool.name + " == " + targetValue;
+
         VariableBool[] GetBoolVariables()
         {
             return this.GetComponentsInBinder<VariableBool>();

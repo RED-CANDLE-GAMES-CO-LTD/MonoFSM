@@ -8,6 +8,7 @@ using RCGMaker.Runtime.FSM._2_Variable;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
+using RCGMaker.Runtime.Mono;
 using RCGUIBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -15,75 +16,6 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Core.DataProvider
 {
-    //這個好像是正解喔？封裝完只需要宣告一個field, assign一個tag就能拿到了
-    //從parent的VariableOwner拿到Variable
-    //VariableProviderInParent?
-    public enum ProviderType
-    {
-        ParentMono, //已經有Instance了
-        GlobalMonoInstance, //已經有Instance了
-        Variable, //還不一定有。可能是null
-    }
-
-    [Serializable]
-    public class MonoDescriptableProvider<TMonoDescriptable> : IMonoDescriptableProvider
-        where TMonoDescriptable : class, IMonoDescriptable
-    {
-        [SerializeReferenceParentValidate] [SerializeField]
-        private MonoBehaviour propertyParent;
-        //從Parent拿
-        //從Variable拿？
-
-
-        public ProviderType providerType;
-
-        //如果是parent就不需要這個了？
-        [ShowIf("providerType", ProviderType.GlobalMonoInstance)] [SerializeField]
-        MonoDescriptableTag monoDescriptableTag;
-
-        [ShowIf("providerType", ProviderType.Variable)] [SerializeReference]
-        public IVariableMonoDescriptableProvider variableProvider;
-
-        [PreviewInInspector]
-        public DescriptableData SampleData
-        {
-            get
-            {
-                switch (providerType)
-                {
-                    case ProviderType.Variable:
-                        return variableProvider.SampleData;
-                }
-
-                var monoDescriptable = GetMonoDescriptable();
-                if (monoDescriptable == null) return null;
-                return monoDescriptable.Key?.SamepleData;
-            }
-        }
-
-        [PreviewInInspector]
-        public IMonoDescriptable GetMonoDescriptable()
-        {
-            if (propertyParent == null) return null;
-            switch (providerType)
-            {
-                case ProviderType.ParentMono:
-                    return propertyParent.GetComponentInParent<TMonoDescriptable>();
-                case ProviderType.GlobalMonoInstance:
-                    return propertyParent.GetMonoDescriptableInstance(monoDescriptableTag);
-                case ProviderType.Variable:
-                    return variableProvider?.GetVariableMonoDescriptable?.Value;
-                default:
-                    return propertyParent.GetComponentInParent<TMonoDescriptable>();
-            }
-            // return propertyParent.GetMonoDescriptableInstance(monoDescriptableTag);
-        }
-
-        [GUIColor(0.8f, 1.0f, 0.8f)]
-        [PreviewInInspector]
-        public TMonoDescriptable CurrentInstance => GetMonoDescriptable() as TMonoDescriptable;
-    }
-
     public interface IVariableMonoDescriptableProvider
     {
         VariableMonoDescriptable GetVariableMonoDescriptable { get; }
@@ -104,18 +36,49 @@ namespace RCGMaker.Core.DataProvider
             GetVariableMonoDescriptable?.SampleData;
     }
 
+    //這個好像是正解喔？封裝完只需要宣告一個field, assign一個tag就能拿到了
+    //從parent的VariableOwner拿到Variable
+    //VariableProviderInParent?
     //同個owner下的variable
     //FIXME: 壞處：沒有SampleData, 不能直接拿到property
     [Serializable]
-    public class VariableProvider<T> : IVariableProvider
+    public class VariableProvider<TVariableType> : IVariableProvider
     {
         [SerializeReferenceParentValidate] [SerializeField]
         private MonoBehaviour propertyParent;
 
+        private MonoBehaviour CurrentTarget
+        {
+            get
+            {
+                if (_currentTarget == null)
+                    return propertyParent;
+                return _currentTarget;
+            }
+        }
+
+        [PreviewInInspector] private MonoBehaviour _currentTarget;
+
+        //Dynamic Parent
+        public AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target)
+        {
+            _currentTarget = target;
+            FetchOwner(target);
+            //FIXME:
+            return GetMonoVariable;
+        }
+
+        public TVariableType GetValueFrom(MonoBehaviour target)
+        {
+            _currentTarget = target;
+            FetchOwner(target);
+            return Value;
+        }
+
         private bool TypeCheckFail()
         {
             if (varTag == null) return false;
-            return typeof(T).IsAssignableFrom(varTag._valueFilterType.RestrictType) == false;
+            return typeof(TVariableType).IsAssignableFrom(varTag._valueFilterType.RestrictType) == false;
         }
 
         //FIXME: dropdown validate? 多檢查parent的owner?
@@ -127,10 +90,23 @@ namespace RCGMaker.Core.DataProvider
             _runtimeCachedOwner = null;
         }
 
-        [OnValueChanged(nameof(OnGlobalMonoTagChange))]
+        //FIXME: filter tags in parent? hide if parent is null? bool? enum?
+        IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetGlobalMonoTags()
+        {
+            var parents = CurrentTarget.GetComponentsInParent<MonoDescriptable>();
+            var tags = new List<ValueDropdownItem<MonoDescriptableTag>>();
+            foreach (var parent in parents)
+            {
+                tags.Add(new ValueDropdownItem<MonoDescriptableTag>(parent.Tag.name, parent.Tag));
+            }
+
+            return tags;
+        }
+
+        [ValueDropdown(nameof(GetGlobalMonoTags))] [OnValueChanged(nameof(OnGlobalMonoTagChange))]
         public MonoDescriptableTag globalMonoTag; //空的話就是自己
 
-        [PreviewInInspector] private Type variableValueType => typeof(T);
+        [PreviewInInspector] private Type variableValueType => typeof(TVariableType);
         //FIXME:也可以用string拿？
         // MonoDescriptable parentDescriptable => propertyParent.GetComponentInParent<MonoDescriptable>();
 
@@ -146,21 +122,33 @@ namespace RCGMaker.Core.DataProvider
                 if (Application.isPlaying && _runtimeCachedOwner != null) //runtime才要cache
                     return _runtimeCachedOwner;
 
-                if (propertyParent == null) return null;
-                if (globalMonoTag != null)
-                {
-                    var globalDescriptable = propertyParent.GetMonoDescriptableInstance(globalMonoTag);
-                    if (globalDescriptable == null) return null;
-                    //FIXME: 
-                    return globalDescriptable;
-                }
-
-                _runtimeCachedOwner = propertyParent.GetComponentInParent<VariableOwner>();
+                _runtimeCachedOwner = FetchOwner(CurrentTarget);
                 return _runtimeCachedOwner;
             }
         }
 
+        VariableOwner FetchOwner(MonoBehaviour target)
+        {
+            if (target == null) return null;
+            if (globalMonoTag != null)
+            {
+                var globalDescriptable = target.GetMonoDescriptableInstance(globalMonoTag);
+                if (globalDescriptable == null) return null;
+                //FIXME: 
+                return globalDescriptable;
+            }
+
+            _runtimeCachedOwner = target.GetComponentInParent<VariableOwner>();
+            return _runtimeCachedOwner;
+            // return _runtimeCachedOwner;
+        }
+
         private VariableOwner _runtimeCachedOwner;
+
+        public void SetValue(TVariableType value, MonoBehaviour byWho)
+        {
+            GetMonoVariable.SetValue(value, byWho);
+        }
 
         [GUIColor(0.8f, 1.0f, 0.8f)]
         [PreviewInInspector]
@@ -171,14 +159,14 @@ namespace RCGMaker.Core.DataProvider
                 if (owner == null)
                 {
                     if (Application.isPlaying)
-                        Debug.LogError("Owner is null", propertyParent);
+                        Debug.LogError("Owner is null", CurrentTarget);
                     return null;
                 }
 
                 if (owner.VariableFolder == null)
                 {
                     if (Application.isPlaying)
-                        Debug.LogError("VariableFolder is null", propertyParent);
+                        Debug.LogError("VariableFolder is null", CurrentTarget);
                     return null;
                 }
 
@@ -188,21 +176,28 @@ namespace RCGMaker.Core.DataProvider
 
         // [ShowInInspector]
         // RCGVariableFolder GetFolder =>  owner?.VariableFolder;
-        [PreviewInInspector] public T Value => GetMonoVariable == null ? default : GetMonoVariable.GetValue<T>();
+        [PreviewInInspector]
+        public TVariableType Value => GetMonoVariable == null ? default : GetMonoVariable.GetValue<TVariableType>();
     }
 
     public interface IVariableProvider
     {
-        AbstractMonoVariable GetMonoVariable { get; }
+        AbstractMonoVariable GetMonoVariable { get; } //還是其實這個也可以？
+        // AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target);
     }
 
-    public class VariableProviderFromParentEntity : IVariableProvider
+    public interface IDynamicVariableProvider //動態拿到Variable
     {
-        [SerializeReferenceParentValidate] public MonoBehaviour propertyParent;
-        public VariableTag varTag;
-        private MonoDescriptable parentDescriptable => propertyParent.GetComponentInParent<MonoDescriptable>();
-        public AbstractMonoVariable GetMonoVariable => parentDescriptable.GetVariable(varTag);
+        AbstractMonoVariable GetMonoVariable(MonoBehaviour target);
     }
+
+    // public class VariableProviderFromParentEntity : IVariableProvider
+    // {
+    //     [SerializeReferenceParentValidate] public MonoBehaviour propertyParent;
+    //     public VariableTag varTag;
+    //     private MonoDescriptable parentDescriptable => propertyParent.GetComponentInParent<MonoDescriptable>();
+    //     public AbstractMonoVariable GetMonoVariable => parentDescriptable.GetVariable(varTag);
+    // }
 
     public class VariableProviderFromGlobalInstance : IVariableProvider
     {
@@ -252,6 +247,7 @@ namespace RCGMaker.Core.DataProvider
         //不能用autoParent了齁... 還是連nested class都可以爬出來，或是掛[AutoClassBinder]
         private void BindCache()
         {
+            if (propertyParent == null) return;
             var owner = propertyParent.GetComponentInParent<IVariableOwner>();
             if (owner == null) return; //會一直叫...怎麼辦... 用getter不好，應該是要從Editor/Odin那邊叫
             _cachedMonoVariable = owner.VariableFolder.GetVariable(varTag);

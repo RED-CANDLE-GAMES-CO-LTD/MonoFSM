@@ -8,6 +8,7 @@ using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
 using RCGMaker.Runtime.Item_BuildSystem;
+using RCGMaker.Runtime.Mono;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;

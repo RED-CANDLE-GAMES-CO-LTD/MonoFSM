@@ -10,7 +10,7 @@ using UnityEngine.Serialization;
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
     //FIXME: 好富雜QQ
-    public sealed class MonoVariableStat : MonoVariableFloat
+    public sealed class MonoVariableStat : VariableFloat
     {
         private float BaseValue => CurrentValue;
         private bool isDirty = true;

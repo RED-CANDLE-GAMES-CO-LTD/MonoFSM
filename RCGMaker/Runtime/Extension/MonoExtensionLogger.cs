@@ -34,13 +34,18 @@ public static class MonoExtensionLogger
         // var providerName = "";
 
         //FIXME: 陣列有gc...
+        if (comp == null)
+        {
+            // Debug.LogError("Component is null!?");
+            return (false, null);
+        }
+
         var hasProvider = DebugProviderDict.TryGetValue(comp, out var providers);
 
 
         //空的
         if (!hasProvider)
         {
-     
             providers = comp.GetComponentsInParent<DebugProvider>(true);
             DebugProviderDict.Add(comp, providers);
         }
@@ -64,7 +69,7 @@ public static class MonoExtensionLogger
             providers = comp.GetComponentsInParent<DebugProvider>(true);
             DebugProviderDict.Add(comp, providers);
         }
-        
+
 
         foreach (var item in providers)
             if (item.IsLogInChildren)
@@ -88,7 +93,7 @@ public static class MonoExtensionLogger
             FinalLog(go, result, provider);
         }
     }
-    
+
     [HideInCallstack]
     [Conditional("UNITY_EDITOR")]
     public static void Log(this Component go, string s1)
@@ -264,8 +269,6 @@ public static class MonoExtensionLogger
     }
 
     #endregion
-    
-    
 
 
     [HideInCallstack]
@@ -281,6 +284,7 @@ public static class MonoExtensionLogger
                         provider.currentState.CurrentFrameCount,
                         message);
                 }
+
                 Debug.Log(message, go);
                 break;
             case LogType.Error:

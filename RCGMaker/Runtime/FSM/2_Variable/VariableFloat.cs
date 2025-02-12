@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
@@ -5,7 +6,14 @@ using RCGMaker.Runtime.FSM._2_Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class MonoVariableFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat, float>, IFloatValueProvider,
+[Serializable]
+public class VariableFloatProvider : IFloatValueProvider
+{
+    public float FinalValue => _source.CurrentValue;
+    [DropDownRef] [SerializeField] VariableFloat _source;
+}
+
+public class VariableFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat, float>, IFloatValueProvider,
     IValueOfKey<VariableTag>, ISerializedFloatValue
 {
     //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 

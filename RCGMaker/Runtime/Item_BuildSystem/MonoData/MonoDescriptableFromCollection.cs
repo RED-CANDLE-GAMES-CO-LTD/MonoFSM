@@ -1,8 +1,9 @@
 using RCGMaker.Core.Attributes;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
+namespace RCGMaker.Runtime.Mono
 {
+    //好像也沒有用到
     public class MonoDescriptableFromCollection : MonoBehaviour, IMonoDescriptable
     {
         [PreviewInInspector] [AutoParent] IMonoDescriptableCollection _collection;
