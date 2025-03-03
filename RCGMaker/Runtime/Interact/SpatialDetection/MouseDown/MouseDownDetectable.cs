@@ -1,6 +1,7 @@
 using System;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.Interact.EffectHit;
+using UnityEngine;
 
 namespace RCGMaker.Runtime.Interact.SpatialDetection
 {
@@ -10,10 +11,15 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
         private void OnMouseDown()
         {
             if (!_conditions.IsAllValid())
+            {
+                Debug.Log("Conditions not met");
                 return;
+            }
+
             //current mouse effectDealer?
             var detector = MouseDownDetector.Instance;
             // if(detector.)
+            Debug.Log("OnMouseDown", this);
             detector.OnSpatialEnter(gameObject);
             //TODO: 馬上就Exit?
             //FIXME: 連點會有狀態問題耶...
@@ -24,7 +30,7 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
             // }
         }
 
-        [Component] [AutoChildren] [PreviewInInspector]
+        [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
         AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
     }
 }

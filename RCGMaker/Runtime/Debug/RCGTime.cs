@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 // using DG.Tweening;
 using JetBrains.Annotations;
+using PrimeTween;
 using UnityEngine;
 
 public struct UniTaskWrapper : IDisposable
@@ -24,7 +25,8 @@ public struct UniTaskWrapper : IDisposable
     public UniTask Task { get; }
 
     private readonly CancellationTokenSource _tokenSource;
-    
+
+
     public void Cancel()
     {
         if (_tokenSource == null) return;
@@ -40,21 +42,19 @@ public struct UniTaskWrapper : IDisposable
         }
 
         // _tokenSource?.Dispose();
-        
     }
 
     public void Dispose() //用 using(){}, 會自動呼叫
     {
-        
         _tokenSource?.Dispose();
     }
 }
+
 /// <summary>
 /// link:
 /// </summary>
 public static class RCGTime
 {
-    
     public static void SetTimeScaleUnsafe(float value)
     {
         _timeScale = value;
@@ -101,10 +101,11 @@ public static class RCGTime
         }
         // PrimeTween.Tween.Delay(delay).Chain(tween); //FIXME: 不確定這個是對的嗎？
     }
-    
+
     public static UniTask UnscaledDelay(this MonoBehaviour mb, float second)
     {
-        return UniTask.Delay(TimeSpan.FromSeconds(second), SelfTimeScale ? DelayType.DeltaTime : DelayType.UnscaledDeltaTime);
+        return UniTask.Delay(TimeSpan.FromSeconds(second),
+            SelfTimeScale ? DelayType.DeltaTime : DelayType.UnscaledDeltaTime);
     }
 
     public static UniTask Delay(this MonoBehaviour mb, float second)
@@ -112,8 +113,8 @@ public static class RCGTime
         return UniTask.Delay(TimeSpan.FromSeconds(second), DelayType.DeltaTime,
             cancellationToken: mb.GetCancellationTokenOnDestroy());
     }
-    
-    public static UniTask Delay(this MonoBehaviour mb, float second,CancellationToken cancelToken)
+
+    public static UniTask Delay(this MonoBehaviour mb, float second, CancellationToken cancelToken)
     {
         return UniTask.Delay(TimeSpan.FromSeconds(second), DelayType.DeltaTime,
             cancellationToken: cancelToken);
@@ -142,13 +143,14 @@ public static class RCGTime
         _timeScale = 1;
         SelfTimeScale = false;
     }
+
     private static float _timeScale = 1f;
 
     private static bool SelfTimeScale = false; //FIXME: 測試時要固定，改成true? 加速下tween也該加速
 
-    
-    
+
     public static bool IsUnscaledTime => !SelfTimeScale; //true
+
     //uncaledDeltaTime
     public static float cachedTime; //FIXME: 要有人來更新，TimePauseManager不在RCGMakerCore裡喔
 
@@ -169,33 +171,39 @@ public static class RCGTime
     }
 
     // public static float deltaTime => 0.02f * timeScale;
-    public static float unscaledDeltaTime  {
+    public static float unscaledDeltaTime
+    {
         get
         {
             if (SelfTimeScale)
             {
-                return  Time.deltaTime; //
+                return Time.deltaTime; //
             }
 
             return Time.unscaledDeltaTime;
         }
     }
-        
-        
+
 
     public static bool IsPaused => timeScale == 0f;
     public static float TimeScale => timeScale;
 
+    public static void Pause()
+    {
+        GlobalSimulationSpeed = 0f;
+    }
+
     public static PlayerLoopTiming UpdateTiming =>
         PlayerLoopTiming.LastUpdate; //UniTask default會比script update還早，要用LastPostLateUpdate回放指令才會對
 
-    public static float GlobalSimulationSpeed
+    public static float GlobalSimulationSpeed //忘記為什麼要另外加一層這個了...
     {
         get => _globalSimulationSpeed;
         set
         {
             _globalSimulationSpeed = value;
             Time.timeScale = _globalSimulationSpeed * timeScale;
+            Debug.Log("GlobalSimulationSpeed:" + _globalSimulationSpeed);
         }
     }
 
@@ -206,5 +214,4 @@ public static class RCGTime
         timeScale = 1.0f;
         // GlobalSimulationSpeed = 1.0f;
     }
-
 }

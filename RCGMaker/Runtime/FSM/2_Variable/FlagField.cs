@@ -23,6 +23,7 @@ public class FlagFieldString : FlagField<string>
         return _currentValue == value;
     }
 }
+
 [Serializable]
 public class FlagFieldEnum<T> : FlagField<T> where T : struct, IConvertible, IComparable
 {
@@ -77,6 +78,7 @@ public class FlagFieldFloat : FlagField<float>
     {
         return j.CurrentValue == k;
     }
+
     public static bool operator !=(FlagFieldFloat j, float k)
     {
         return j.CurrentValue != k;
@@ -98,17 +100,21 @@ public class ValueChangedListener<T>
         keys?.Clear();
         toRemove?.Clear();
     }
+
     private Dictionary<int, Tuple<Object, UnityAction<T>>> onChangeActionDict;
-    [PreviewInInspector]
-    List<Object> ownersInDict=> onChangeActionDict?.Values.Select(x => x.Item1).ToList();
+
+    [PreviewInInspector] List<Object> ownersInDict => onChangeActionDict?.Values.Select(x => x.Item1).ToList();
+
     // [PreviewInInspector]
     private List<int> keys = new List<int>();
+
     public void OnChange(T value, bool clearAll)
     {
         if (onChangeActionDict == null)
         {
             return;
         }
+
         CleanNullListener();
 
         //避免Dictionary變動 先把key 都拿出來
@@ -134,11 +140,12 @@ public class ValueChangedListener<T>
             {
                 Debug.LogError("WTF?");
             }
-
         }
+
         if (clearAll)
             onChangeActionDict.Clear();
     }
+
     public void AddListenerDict(UnityAction<T> action, Object target)
     {
         var tuple = Tuple.Create(target, action);
@@ -151,10 +158,13 @@ public class ValueChangedListener<T>
             // Debug.Log("Already AddListener" + key);
             return;
         }
+
         CleanNullListener();
         onChangeActionDict[key] = tuple;
     }
+
     List<int> toRemove; //這個new list呢？
+
     void CleanNullListener()
     {
         if (toRemove == null)
@@ -179,14 +189,15 @@ public class ValueChangedListener<T>
                 continue;
             }
         }
-        
-     
+
+
         for (var i = 0; i < toRemove.Count; i++)
         {
             //Debug.Log("Remove" + toRemove[i]);
             onChangeActionDict.Remove(toRemove[i]);
         }
     }
+
     // public static bool IsNullOrDestroyed(this System.Object obj)
     // {
     //     if (object.ReferenceEquals(obj, null)) return true;
@@ -199,12 +210,14 @@ public class ValueChangedListener<T>
         {
             return true;
         }
+
         // var key = action.GetHashCode();
         var key = Tuple.Create(target, action).GetHashCode();
         if (!onChangeActionDict.ContainsKey(key))
         {
             return false;
         }
+
         onChangeActionDict.Remove(key);
         return true;
     }
@@ -217,10 +230,12 @@ public class FlagFieldModifier<T>
     public IStatModifierOwner source;
     [PreviewInInspector] public Object sourceObj => source as Object;
 }
+
 [Serializable]
 public class FlagFieldBool : FlagField<bool>
 {
     public bool IsJustBecameTrue => _lastValue == false && _currentValue == true;
+
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj)) return false;
@@ -228,21 +243,23 @@ public class FlagFieldBool : FlagField<bool>
         if (obj.GetType() != GetType()) return false;
         return Equals((FlagFieldBool)obj);
     }
-    
+
     public FlagFieldBool() : base()
     {
-
     }
+
     public FlagFieldBool(bool defaultValue)
     {
         ProductionValue = defaultValue;
         DevValue = defaultValue;
         // PlayTestValue = defaultValue;
     }
+
     public static bool operator ==(FlagFieldBool j, bool k)
     {
         return j.CurrentValue == k;
     }
+
     public static bool operator !=(FlagFieldBool j, bool k)
     {
         return j.CurrentValue != k;
@@ -267,10 +284,12 @@ public class
     [ShowInInspector] [ReadOnly]
     // private FlagFieldModifier<T> _modifier;
     private List<FlagFieldModifier<T>> _modifiers = new();
+
     public FlagField()
     {
         ProductionValue = default(T);
     }
+
     public FlagField(T defaultValue)
     {
         ProductionValue = defaultValue;
@@ -279,20 +298,20 @@ public class
     // [JsonIgnore]
     // [SerializeField]
 
-    [FormerlySerializedAs("DefaultValue")]
-    public T ProductionValue;
+
+    //FIXME: 分Production和Dev好像怪怪的...九日是為了打勾某些能力，這個可以拿掉了？或是應該用別種方式側(環境)
+    //FIXME: Config, Stat不需要DevValue
+
+    [FormerlySerializedAs("DefaultValue")] public T ProductionValue;
 
     // public T PlayTestValue;
-
-
     [FormerlySerializedAs("TestValue")]
     // [JsonIgnore]
     public T DevValue;
 
     // [Header("Current State")]
-    
+
     // [OnChangedCallAttribute("SetCurrentValue")]
-    
 
 
     // public bool isDirty = false;
@@ -323,19 +342,25 @@ public class
 
 
     [PreviewInInspector] protected T _currentValue; //真正拿來存的值
-    
+
     [GUIColor(0, 1, 0.5f, 1)]
     [ShowInInspector]
     public virtual T CurrentValue
     {
-        get => _modifiers.Count > 0 ? _modifiers[^1].OverrideValue : _currentValue; //有modifier的話...
+        get
+        {
+            if (Application.isPlaying == false)
+                return ProductionValue;
+            return _modifiers.Count > 0 ? _modifiers[^1].OverrideValue : _currentValue;
+        }
+        //有modifier的話...
         set => SetCurrentValue(value); //從inspector來的就是null?不是很好可以塞一個dummy給他嗎
-            // SetCurrentValue(value);
-            //有事件而且值不同
-            //   Debug.Log("FlagField Set CurrentValue" + value);
+        // SetCurrentValue(value);
+        //有事件而且值不同
+        //   Debug.Log("FlagField Set CurrentValue" + value);
     }
 
-    
+
     public T SaveValue => _currentValue;
 
     protected T _lastValue;
@@ -345,16 +370,14 @@ public class
     {
         CurrentValue = LastValue;
     }
-    
+
     public void CommitValue() //state update之後，要commit
     {
         _lastValue = CurrentValue;
     }
 
-    [ShowInInspector]
-    private ValueChangedListener<T> listener = new(); //好像可以把監聽對象丟出來看？
-    [ShowInInspector]
-    private ValueChangedListener<T> listenerOnce = new();
+    [ShowInInspector] private ValueChangedListener<T> listener = new(); //好像可以把監聽對象丟出來看？
+    [ShowInInspector] private ValueChangedListener<T> listenerOnce = new();
     // private ValueChangedListener<object, object, T> listenerDict;
 
     // public void AddListener<TTarget, TParam>(TTarget target, TParam param, UnityAction<TTarget, TParam, T> callback)
@@ -377,7 +400,7 @@ public class
             // }
             // owner = mono;
         }
-        
+
         if (listener == null)
         {
             listener = new ValueChangedListener<T>();
@@ -385,9 +408,9 @@ public class
 
         if (owner is Component comp)
         {
-            comp.Log("FlagField Add Listener",comp);    
+            comp.Log("FlagField Add Listener", comp);
         }
-        
+
         listener.AddListenerDict(action, owner);
     }
     // public void AddListener(UnityAction<T> action, ScriptableObject owner)
@@ -419,6 +442,7 @@ public class
         {
             listenerOnce = new ValueChangedListener<T>();
         }
+
         listenerOnce.AddListenerDict(action, owner);
     }
 
@@ -434,8 +458,7 @@ public class
         // else
         //     Debug.Log("Remove Listener" + action.Method);
     }
-    
-    
+
 
     //[]: debug mode才顯示？ conditional inspector property
 
@@ -455,6 +478,7 @@ public class
     private Object _lastByWho;
 
     [ShowInInspector] public Object LastByWho => _lastByWho;
+
     //NOTE: public是為了，propertyDrawer
     public void SetCurrentValue(T value, Object byWho = null) //FIXME: 可能會memory leak
     {
@@ -464,11 +488,12 @@ public class
 // #endif
 
         Profiler.BeginSample("IsCurrentValueEquals");
-        if (IsCurrentValueEquals(value)) 
+        if (IsCurrentValueEquals(value))
         {
-            Profiler.EndSample();            
+            Profiler.EndSample();
             return;
         }
+
         Profiler.EndSample();
 #if UNITY_EDITOR
         //想要看誰改的，build不要看會memory leak
@@ -483,7 +508,7 @@ public class
     }
     //need UI update...
     // public bool InvokeSetEventValueNotChanged
-    
+
 
     private void OnChangeInvoke(T value)
     {
@@ -508,9 +533,9 @@ public class
         lastMode = mode;
         listener.Clear();
         listenerOnce.Clear();
-        
-        if(_owner is Component comp)
-            comp.Log("FlagField Init",comp);
+
+        if (_owner is Component comp)
+            comp.Log("FlagField Init", comp);
         ResetToDefault();
     }
 
@@ -525,7 +550,6 @@ public class
             else
                 Debug.Log(msg);
         }
-           
     }
 
     private TestMode lastMode = TestMode.EditorDevelopment;
@@ -551,9 +575,7 @@ public class
         // }
         // else
         CurrentValue = ProductionValue;
-        
     }
-
 }
 
 // public class OnChangedCallAttribute : PropertyAttribute

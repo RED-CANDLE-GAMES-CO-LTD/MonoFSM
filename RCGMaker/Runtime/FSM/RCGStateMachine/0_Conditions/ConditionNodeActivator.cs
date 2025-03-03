@@ -50,8 +50,8 @@ namespace RCGMaker.Core
         //Checker要一直開著，條件不對的時候，關掉下方的節點
         private void OnEnable()
         {
-            Debug.Log("IAdditionalChecker pass active true", gameObject);
-            childNode.SetActive(IsActivate);
+            // Debug.Log("IAdditionalChecker pass active true", gameObject);
+            // childNode.SetActive(IsActivate);
         }
 
         public void Init()

@@ -8,22 +8,20 @@ using RCGMaker.Runtime.Vote;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public interface IActionParent
+public interface IActionParent //給GameObject結構Validate用的
 {
-    
 }
 
 [Searchable]
 public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable,
-    IRCGArgEventReceiver,IRCGArgEventReceiver<IEffectHitData>
+    IRCGArgEventReceiver, IRCGArgEventReceiver<IEffectHitData>
 {
-    
-    
     protected virtual string Description => $"Action: {GetType().Name}";
+
     //怎麼知道誰用Enter, 誰用Update
     private bool IsValid //AND
     {
-        get 
+        get
         {
             if (_delay) return false;
             if (conditions.Length == 0)
@@ -32,25 +30,24 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
         }
     }
 
-    
+
     // [PreviewInInspector]
     [AutoParent()] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true)// ;
 
-    [Required]
-    [PreviewInInspector] [AutoParent] protected IActionParent _actionParent;
-    
-    
-    
-    
+    [Required] [PreviewInInspector] [AutoParent]
+    protected IActionParent _actionParent;
+
+
     [HideInInlineEditors]
     // #if UNITY_EDITOR
     [HideFromFSMExport]
     [PropertyOrder(1)]
     [TabGroup("Condition", false, 1)]
-    [Component( AddComponentAt.Children, "[Condition]")]
+    [Component(AddComponentAt.Children, "[Condition]")]
     [PreviewInInspector]
     // #endif
-    [AutoChildren(false, DepthOneOnly = true)] public AbstractConditionComp[] conditions;//condition 成立，才能做事
+    [AutoChildren(false, DepthOneOnly = true)]
+    public AbstractConditionComp[] conditions; //condition 成立，才能做事
 //FIXME: public應該拿掉
 
     [InfoBox("$Description", InfoMessageType.Info)]
@@ -78,8 +75,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     //     }
     // }
 
-    [AutoParent]
-    DelayActionModifier delayActionModifier;
+    [AutoParent] DelayActionModifier delayActionModifier;
 
     private bool _delay = false;
 
@@ -114,19 +110,28 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
         // this.AddTask(OnStateEnterImplement, delayActionModifier.delayTime);
         OnStateEnterImplement();
     }
+
     protected abstract void OnStateEnterImplement();
+
     public void OnActionUpdate()
     {
         if (IsValid)
             OnStateUpdateImplement();
     }
-    protected virtual void OnStateUpdateImplement() { }
+
+    protected virtual void OnStateUpdateImplement()
+    {
+    }
+
     public void OnActionSpriteUpdate()
     {
         if (IsValid)
             OnSpriteUpdateImplement();
     }
-    protected virtual void OnSpriteUpdateImplement() { }
+
+    protected virtual void OnSpriteUpdateImplement()
+    {
+    }
 
     public async void OnActionExit()
     {
@@ -134,7 +139,11 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
         if (delayActionModifier != null) await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime));
         OnStateExitImplement();
     }
-    protected virtual void OnStateExitImplement() { }
+
+    protected virtual void OnStateExitImplement()
+    {
+    }
+
     public virtual MonoBehaviour VoteOwner => nearestBinder as MonoBehaviour;
     [AutoParent] private IBinder nearestBinder;
 
@@ -167,7 +176,6 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
 
     public virtual void SimulationUpdate(float passedDuration)
     {
-        
     }
 
     public virtual void EventReceived(IEffectHitData arg)

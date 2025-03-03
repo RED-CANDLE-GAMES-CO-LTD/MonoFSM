@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
@@ -9,15 +10,22 @@ using RCGMaker.Runtime.Interact.EffectHit;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using RCGMaker.Runtime.Mono;
 using Sirenix.OdinInspector;
+using Sirenix.Utilities;
 using UnityEngine;
 
 namespace RCGMaker.Runtime
 {
+    public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData> //這樣data也要一直繼承，好ㄇ...
+    {
+        public VarFloat this[string statName] => GetVariable(statName) as VarFloat;
+    }
+
     //描述物件的monoNode, Entity? MonoEntity?
     //場景物件、角色、
     //應該要可以繼承這個嗎？Inventory
     //不該有variable嗎？
-    public class MonoDescriptable : VariableOwner, IMonoDescriptable, ILevelAwake //,IVariableOwner //VariableOwner?
+    public class AbstractMonoDescriptable<TMonoDescriptable> : VariableOwner, IMonoDescriptable, ILevelAwake
+        where TMonoDescriptable : DescriptableData //,IVariableOwner //VariableOwner?
     {
 #if UNITY_EDITOR
         [RequiredIn(PrefabKind.InstanceInScene)] [PreviewInInspector] [AutoParent]
@@ -25,12 +33,12 @@ namespace RCGMaker.Runtime
 #endif
 
         [PreviewInInspector] [AutoChildren] GeneralEffectDealer[] _dealers; //可以互動的性質門
-        HashSet<GeneralEffectType> _dealerTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
-        [PreviewInInspector] private int _dealerSetCount => _dealerTypeSet.Count;
+        private HashSet<GeneralEffectType> _dealerTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
+        [PreviewInInspector] private int DealerSetCount => _dealerTypeSet.Count;
         [PreviewInInspector] [AutoChildren] GeneralEffectReceiver[] _receivers; //可以互動的性質門
-        HashSet<GeneralEffectType> _receiverTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
+        readonly HashSet<GeneralEffectType> _receiverTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
 
-        [PreviewInInspector] private int _receiverSetCount => _receiverTypeSet.Count;
+        [PreviewInInspector] private int ReceiverSetCount => _receiverTypeSet.Count;
 
         //帶有xx性質的物件
         public bool HasReceiverType(GeneralEffectType effectType)
@@ -45,8 +53,10 @@ namespace RCGMaker.Runtime
 
         // public DescriptableData SampleData;
         //FIXME: 型別限制？
+        //FIXME: Generic?
+        //FIXME: 不一定需要data?
         [SOConfig("10_Flags/GameData")] [SerializeField]
-        DescriptableData data; //config
+        protected TMonoDescriptable data; //config
 
         public virtual IDescriptableData Descriptable => data;
 
@@ -55,20 +65,24 @@ namespace RCGMaker.Runtime
             return data as T;
         }
 
-        public DescriptableData Data => data;
+        public TMonoDescriptable Data => data;
 
-        //FIXME:  schema
+
+        //FIXME:  需要Descriptable Tag嗎？從Data拿就好了？
         [InfoBox("$errorString", InfoMessageType.Error, nameof(IsVariableMissing))]
         [InlineEditor]
         [Required]
         [ShowInInspector]
         [SerializeField]
         [SOConfig("DescriptableTag")]
-        MonoDescriptableTag DescriptableTag;
+        protected MonoDescriptableTag DescriptableTag; //這有什麼用？
+
+        //FIXME: 還不只需要一種呢....可能需要多種tag
+        [SerializeField] MonoDescriptableTag[] DescriptableTags; //
 
         public MonoDescriptableTag Tag => DescriptableTag;
 
-        public virtual void OnUIEventReceived()
+        public virtual void OnUIEventReceived() //FIXME; 這啥XD
         {
             Debug.Log("UI Event Received", this);
         }
@@ -84,9 +98,15 @@ namespace RCGMaker.Runtime
 
         bool CheckAllVariableExists()
         {
-            if (DescriptableTag == null || VariableFolder == null)
+            if (VariableFolder == null)
             {
-                errorValue = "Descriptable Tag or Variable Folder is null";
+                errorValue = "Variable Folder is null";
+                return false;
+            }
+
+            if (DescriptableTag == null)
+            {
+                errorValue = "Descriptable Tag is null"; //需要Descriptable Tag嗎？從Data取得？
                 return false;
             }
 
@@ -120,15 +140,6 @@ namespace RCGMaker.Runtime
             return variable.objectValue;
         }
 
-        public AbstractMonoVariable GetVariable(VariableTag varTag)
-        {
-            return VariableFolder.GetVariable(varTag);
-        }
-
-        public AbstractMonoVariable GetVariable(string varTagName)
-        {
-            return VariableFolder.GetVariable(varTagName);
-        }
 
         // public int GetIntValue(VariableTypeTag typeTag)
         // {
@@ -185,6 +196,11 @@ namespace RCGMaker.Runtime
 
         public MonoDescriptableTag Key => DescriptableTag;
 
+        public MonoDescriptableTag[] GetKeys()
+        {
+            return DescriptableTags;
+        }
+
         public void EnterLevelAwake()
         {
             // _receiverTypeSet = new HashSet<GeneralEffectType>();
@@ -219,5 +235,47 @@ namespace RCGMaker.Runtime
         //         return _variableFolder;
         //     }
         // }
+
+        //繼承MonoDescriptable的class，可以透過這個方法來將所有的variable field mapping到VariableFolder
+        FieldInfo[] _variableFields;
+
+        [Button]
+        void FieldMapping()
+        {
+            //find all fields which inherit from AbstractMonoVariable
+            //Check the value is not null
+            //FIXME: 用名字mapping, 不好，直接用tag map, 沒有配到表示要生variable之類的
+
+            _variableFields = this.GetType()
+                .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(field => field.FieldType.IsSubclassOf(typeof(AbstractMonoVariable)))
+                .ToArray();
+            _variableFields.ForEach(field =>
+            {
+                //FIXME: 要加Type嗎...
+                var fieldName = field.Name; //$"[{field.FieldType.Name}] {field.Name}";
+                //把空白,_拿掉好了
+                fieldName = fieldName.Replace(" ", "").Replace("_", "");
+                //FIXME: 模糊搜尋？
+                Debug.Log("fieldNameTarget: " + fieldName);
+                var variable = VariableFolder.GetVariable(fieldName);
+                if (variable != null)
+                {
+                    Debug.Log($"Set {fieldName} to {variable}", this);
+                    field.SetValue(this, variable);
+                }
+                else
+                {
+                    Debug.Log("all variables count:" + VariableFolder.GetValues.Count);
+                    VariableFolder.GetValues.ForEach(v => Debug.Log(v.varTag.GetStringKey, v.varTag));
+                    Debug.LogError($"{fieldName} not found", this);
+                }
+                // var value = field.GetValue(this) as AbstractMonoVariable;
+                // if (value == null)
+                // {
+                //     Debug.LogError($"Field {field.Name} is null", this);
+                // }
+            });
+        }
     }
 }

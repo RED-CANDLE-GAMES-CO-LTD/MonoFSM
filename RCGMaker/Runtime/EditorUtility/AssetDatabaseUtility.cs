@@ -19,59 +19,63 @@ namespace RCGMaker.Core
 #if UNITY_EDITOR
 
         public delegate T AssetCreateDelegate<out T>(string prefabPath) where T : UnityEngine.Object;
+
         //FIXME: 全世界都用這個！
         //把目標asset複製到prefab所在的資料夾
-        public static T CopyAssetOrCreateToPrefabFolder<T>(T oriAsset,string assetExtension, AssetCreateDelegate<T> customAssetCreationMethod) where T : UnityEngine.Object
+        public static T CopyAssetOrCreateToPrefabFolder<T>(T oriAsset, string assetExtension,
+            AssetCreateDelegate<T> customAssetCreationMethod) where T : UnityEngine.Object
         {
-           var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
-           if (prefabStage == null)
-           {
-               Debug.LogError("Not in prefab stage");
-               return null;
-           }
-           var prefabPath  = PrefabStageUtility.GetCurrentPrefabStage().assetPath;
-           var prefabFolderPath = Path.GetDirectoryName(prefabPath );
-           
-           if(oriAsset == null)
-           {
-               //create new asset
-               if (customAssetCreationMethod != null)
-               {
-                   Debug.Log("Create new asset");
-                   
-                   var fileName = Path.GetFileName(prefabPath);
-                   //remove extension
-                   fileName = fileName.Substring(0, fileName.Length - Path.GetExtension(fileName).Length);
-                   var createFilePath = prefabFolderPath + "/" + fileName + assetExtension;
+            var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (prefabStage == null)
+            {
+                Debug.LogError("Not in prefab stage");
+                return null;
+            }
 
-                   //從外部傳進來，特殊的create法
-                   var obj = customAssetCreationMethod.Invoke(createFilePath);
-                   if(string.IsNullOrEmpty(AssetDatabase.GetAssetPath(obj)))
-                       AssetDatabase.CreateAsset(obj, createFilePath);
-                   return obj;
-               }
-               return null;
-           }
-           
-           var originalPath = AssetDatabase.GetAssetPath(oriAsset);
-         
-           if(Path.GetDirectoryName(originalPath) == prefabFolderPath)
-           {
+            var prefabPath = PrefabStageUtility.GetCurrentPrefabStage().assetPath;
+            var prefabFolderPath = Path.GetDirectoryName(prefabPath);
+
+            if (oriAsset == null)
+            {
+                //create new asset
+                if (customAssetCreationMethod != null)
+                {
+                    Debug.Log("Create new asset");
+
+                    var fileName = Path.GetFileName(prefabPath);
+                    //remove extension
+                    fileName = fileName.Substring(0, fileName.Length - Path.GetExtension(fileName).Length);
+                    var createFilePath = prefabFolderPath + "/" + fileName + assetExtension;
+
+                    //從外部傳進來，特殊的create法
+                    var obj = customAssetCreationMethod.Invoke(createFilePath);
+                    if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(obj)))
+                        AssetDatabase.CreateAsset(obj, createFilePath);
+                    return obj;
+                }
+
+                return null;
+            }
+
+            var originalPath = AssetDatabase.GetAssetPath(oriAsset);
+
+            if (Path.GetDirectoryName(originalPath) == prefabFolderPath)
+            {
                 Debug.LogError("Same Folder, Move Prefab to another folder");
                 return null;
-           }
+            }
 
-           //extension of asset
-           var extension = Path.GetExtension(originalPath);
-           var newFilePath = prefabFolderPath + "/" + oriAsset.name+" Copied "+extension;
-           Debug.Log("Copy Asset to:" + newFilePath);
-           AssetDatabase.CopyAsset(originalPath, newFilePath);
-           var newAsset = AssetDatabase.LoadAssetAtPath<T>(newFilePath);
-           //生asset沒有得undo唷
-           // Undo.RegisterCreatedObjectUndo(newAsset, "Copy Asset");
-           return newAsset;
+            //extension of asset
+            var extension = Path.GetExtension(originalPath);
+            var newFilePath = prefabFolderPath + "/" + oriAsset.name + " Copied " + extension;
+            Debug.Log("Copy Asset to:" + newFilePath);
+            AssetDatabase.CopyAsset(originalPath, newFilePath);
+            var newAsset = AssetDatabase.LoadAssetAtPath<T>(newFilePath);
+            //生asset沒有得undo唷
+            // Undo.RegisterCreatedObjectUndo(newAsset, "Copy Asset");
+            return newAsset;
         }
-        
+
         private static void CreateFolderIfNotExist(string folderPath)
         {
             if (!System.IO.Directory.Exists(folderPath))
@@ -94,7 +98,7 @@ namespace RCGMaker.Core
                 EditorUtility.ClearProgressBar();
                 return data;
             }
-            
+
             var asset = ScriptableObject.CreateInstance<T>();
             AssetDatabase.CreateAsset(asset, folderPath + "/" + fileName + ".asset");
             AssetDatabase.SaveAssets();
@@ -132,7 +136,7 @@ namespace RCGMaker.Core
             {
                 //move asset to Resources/Config
                 var name = Path.GetFileName(assetPath);
-                var newPath =  "Assets/" + folderNames[0] + "/" + name;
+                var newPath = "Assets/" + folderNames[0] + "/" + name;
                 Debug.Log("Move SO To:" + newPath);
                 var moveResult = AssetDatabase.MoveAsset(assetPath, newPath);
                 if (moveResult != "")
@@ -209,7 +213,8 @@ namespace RCGMaker.Core
             asset = ScriptableObject.CreateInstance(type);
             AssetDatabase.CreateAsset(asset, "Assets/" + fileRelativePath);
             //[]: 這個不call OK 嗎？
-            // AssetDatabase.SaveAssets();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
             return asset;
         }
 

@@ -18,7 +18,8 @@ namespace RCGMaker.Core.Attributes
 
         public string GetPathFromOwnerObj(GameObject gObj, string configName)
         {
-            var finalName = $"{gObj.name}_{configName}";
+            //命名
+            var finalName = $"{gObj.name}";
             if (SubFolderPath == "")
                 return $"{finalName}.asset";
             else

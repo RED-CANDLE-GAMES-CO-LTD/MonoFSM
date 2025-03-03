@@ -1,4 +1,5 @@
 using RCGMaker.Core.Attributes;
+using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -7,56 +8,77 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 {
     public class FindStatToModifierAction : AbstractStateAction //FIXME: 好像做成一個action比較好？
     {
-        [FormerlySerializedAs("TargetVariableTypeType")]
-        [FormerlySerializedAs("targetVariableType")]
-        [InfoBox("This action will find the VariableStatOwner in the parent of the current GameObject and add the modifiers from the ModifierInjector to the VariableStat with the same type.")]
-        [SerializeField] VariableTag TargetVariable;
-        public VariableTag targetVariable => TargetVariable;
-        [Component]
-        [PreviewInInspector]
-        [AutoChildren] private VariableStatModifier[] _modifiers;
+        //FIXME: 沒辦法指定VariableStat..有點尷尬，要吃兩個Type?
+        //用varTag, monoTag直接找到 variable
+        //從VarMono, 拿到他的variable
+        // public VariableProvider<float> _variableProvider;
+
+        [SerializeReference] public IVariableProvider _variableProvider;
+        // [FormerlySerializedAs("TargetVariableTypeType")]
+        // [FormerlySerializedAs("targetVariableType")]
+        // [InfoBox(
+        //     "This action will find the VariableStatOwner in the parent of the current GameObject and add the modifiers from the ModifierInjector to the VariableStat with the same type.")]
+        // [SerializeField]
+        // VariableTag TargetVariable;
+
+        // public VariableTag targetVariable => TargetVariable;
+
+        [Component] [PreviewInInspector] [AutoChildren]
+        private VariableStatModifier[] _modifiers;
+
         public VariableStatModifier[] Modifiers => _modifiers; //有需要陣列嗎？
         //onstateenter時，找到parent的VariableStatOwner，然後找到相同type的VariableStat，然後加上modifier
         //onstateexit時，移除modifier
 
         VariableStatOwner _foundStatOwner;
+
         protected override void OnStateEnterImplement()
         {
-            _foundStatOwner = GetComponentInParent<VariableStatOwner>();
-            if (_foundStatOwner == null)
+            var varStat = _variableProvider.GetMonoVar<VarStat>();
+            foreach (var modifier in _modifiers)
             {
-                Debug.LogError("No VariableStatOwner found in parent of " + gameObject.name,this);
-                return;
+                varStat.AddModifier(modifier);
             }
-            var variableStats = _foundStatOwner.VariableStats;
-            foreach (var stat in variableStats)
-            {
-                if (stat.varTag == TargetVariable)
-                {
-                    foreach (var modifier in _modifiers)
-                    {
-                        stat.AddModifier(modifier);
-                    }
-                }
-            }
+            // _foundStatOwner = GetComponentInParent<VariableStatOwner>();
+            // if (_foundStatOwner == null)
+            // {
+            //     Debug.LogError("No VariableStatOwner found in parent of " + gameObject.name, this);
+            //     return;
+            // }
+            //
+            // var variableStats = _foundStatOwner.VariableStats;
+            // foreach (var stat in variableStats)
+            // {
+            //     if (stat.varTag == TargetVariable)
+            //     {
+            //         foreach (var modifier in _modifiers)
+            //         {
+            //             stat.AddModifier(modifier);
+            //         }
+            //     }
+            // }
         }
-        
+
         protected override void OnStateExitImplement()
         {
-            var variableStats = _foundStatOwner.VariableStats;
-            foreach (var stat in variableStats)
+            var varStat = _variableProvider.GetMonoVar<VarStat>();
+            foreach (var modifier in _modifiers)
             {
-                if (stat.varTag == TargetVariable)
-                {
-                    foreach (var modifier in _modifiers)
-                    {
-                        stat.RemoveModifier(modifier);
-                    }
-                }
+                varStat.RemoveModifier(modifier);
             }
-            _foundStatOwner = null;
+            // var variableStats = _foundStatOwner.VariableStats;
+            // foreach (var stat in variableStats)
+            // {
+            //     if (stat.varTag == TargetVariable)
+            //     {
+            //         foreach (var modifier in _modifiers)
+            //         {
+            //             stat.RemoveModifier(modifier);
+            //         }
+            //     }
+            // }
+            //
+            // _foundStatOwner = null;
         }
-        
-        
     }
 }

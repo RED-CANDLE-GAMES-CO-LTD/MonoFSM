@@ -41,7 +41,7 @@ namespace RCGMaker.Core.DataProvider
 
         // 父層型別，由外部更新（非序列化）
         // [NonSerialized] public Type parentType;
-        public MySerializedType _serializedType;
+        public MySerializedType _serializedType; //FIXME: refactor時會爛掉...有點麻煩
 
         Type parentType => _serializedType.RestrictType;
 
@@ -422,7 +422,7 @@ namespace RCGMaker.Core.DataProvider
 
         // [BoxGroup("Instance")] public VariableMonoDescriptableProvider _monoDescriptableProvider;
         [PropertyOrder(-1)] [BoxGroup("Instance")]
-        public MonoDescriptableProvider<IMonoDescriptable> _descriptableProvider;
+        public MonoDescriptableProvider<MonoDescriptable> _descriptableProvider;
 
         [PropertyOrder(-1)]
         [BoxGroup("Instance")]

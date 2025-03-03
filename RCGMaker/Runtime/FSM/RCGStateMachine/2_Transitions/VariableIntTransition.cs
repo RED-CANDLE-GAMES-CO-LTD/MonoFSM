@@ -7,8 +7,8 @@ using UnityEngine.Serialization;
 //FIXME: 應該用condition就好了，這個囉唆
 public class VariableIntTransition : AbstractStateTransition
 {
-    [FormerlySerializedAs("variableNode")] [Required]
-    public VariableFloat _monoVariableNode;
+    [FormerlySerializedAs("_monoVariableNode")] [FormerlySerializedAs("variableNode")] [Required]
+    public VarFloat _monoVarNode;
 
     public float delay;
 
@@ -30,7 +30,7 @@ public class VariableIntTransition : AbstractStateTransition
 
     private void Update() //FIXME: 先暴力polling判斷
     {
-        if (Mathf.Approximately(_monoVariableNode.CurrentValue, EqualValue))
+        if (Mathf.Approximately(_monoVarNode.CurrentValue, EqualValue))
             TransitionCheck(delay);
     }
 }

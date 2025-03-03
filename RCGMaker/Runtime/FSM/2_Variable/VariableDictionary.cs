@@ -6,13 +6,13 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
-    public class VariableDictionary : MonoDict<VariableTag, VariableFloat>
+    public class VariableDictionary : MonoDict<VariableTag, VarFloat>
     {
-        protected override void RemoveImplement(VariableFloat item)
+        protected override void RemoveImplement(VarFloat item)
         {
         }
 
-        protected override bool CanBeAdded(VariableFloat item)
+        protected override bool CanBeAdded(VarFloat item)
         {
             return item.isActiveAndEnabled;
         }

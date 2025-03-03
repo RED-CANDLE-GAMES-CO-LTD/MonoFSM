@@ -18,15 +18,16 @@ namespace RCGFSM.Animation
     [HelpURL("https://www.notion.so/AnimatorPlayA-061be2a2d4e5414e88e84f1ed80d8ea2")]
     [Searchable]
     public class AnimatorPlayAction : AbstractStateAction, IRCGArgEventReceiver, IAnimatorPlayAction,
-        ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent
+        ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent, ITransitionChecker
     {
-        protected override string renamePostfix => " "+animator.gameObject.name+": "+ StateName;
+        protected override string renamePostfix => " " + animator.gameObject.name + ": " + StateName;
 
         protected override void Awake()
         {
             base.Awake();
             _stateNameHash = Animator.StringToHash(StateName);
         }
+
         bool IsStateNameProvider()
         {
             return GetComponent<AbstractStringProvider>() != null;
@@ -35,7 +36,6 @@ namespace RCGFSM.Animation
         public override void SimulationUpdate(float passedDuration)
         {
             animator.playbackTime = passedDuration;
-            
         }
 
         //FIXME: 不能直接往下找？要從IFSMOwner下面往下找之類的？
@@ -46,7 +46,7 @@ namespace RCGFSM.Animation
                 return null;
             return provider.ChildAnimators;
         }
-        
+
         [TabGroup("Animator", false, 1)]
         [Required]
         // [InlineEditor]
@@ -54,15 +54,16 @@ namespace RCGFSM.Animation
         public Animator animator;
 
         [InlineEditor] [PreviewInInspector] private Animator animatorComp => animator;
-        
+
         [TabGroup("Animator")]
 #if UNITY_EDITOR
         [InfoBox("Not Valid State name", InfoMessageType.Error, nameof(IsStateNameNotInAnimator))]
-
         [ValueDropdown(nameof(GetAnimatorStateNames), IsUniqueList = true, NumberOfItemsBeforeEnablingSearch = 3)]
 #endif
-        [HideIf("IsStateNameProvider")] //有provider就藏起來
+        [HideIf("IsStateNameProvider")]
+        //有provider就藏起來
         public string stateName;
+
         [Auto(false)] AbstractStringProvider stateNameProvider; //拿旁邊的，蓋掉要怎麼做...藏起來
         public string StateName => stateNameProvider ? stateNameProvider.StringValue : stateName;
 
@@ -78,8 +79,8 @@ namespace RCGFSM.Animation
                 }
             }
         }
-        
-        #if UNITY_EDITOR
+
+#if UNITY_EDITOR
 
         private Dictionary<int, string> _stateHashToName = new();
 
@@ -94,12 +95,11 @@ namespace RCGFSM.Animation
                 _stateHashToName.Add(Animator.StringToHash(name), name);
             }
         }
-        #endif
-      
+#endif
+
         //
-        [TabGroup("Animator")]
-        [DisableIf("@true")]
-        public int stateLayer;//FIXME: 做什麼用的?還要再講清楚? playerLayer
+        [TabGroup("Animator")] [DisableIf("@true")]
+        public int stateLayer; //FIXME: 做什麼用的?還要再講清楚? playerLayer
 
         // [ValueDropdown()]
 #if UNITY_EDITOR
@@ -115,20 +115,17 @@ namespace RCGFSM.Animation
         [ValueDropdown(nameof(GetLayerNames))]
 #endif
         string _stateLayerName;
-        
+
         private int stateRange => animator.layerCount;
-        
-        [TabGroup("Animator")]
-        [Range(0, 1)]
-        public float startNormalizedTimeOffset = 0;
+
+        [TabGroup("Animator")] [Range(0, 1)] public float startNormalizedTimeOffset = 0;
 
         [TabGroup("Animator")] [Title("StateEnter 空降Normalized Time")] [ShowInPlayMode]
         float runtimeStartNormalizedTimeOffset = 0;
 
-        [TabGroup("Animator")]
-        public float animatorEnterCrossFade = 0;
+        [TabGroup("Animator")] public float animatorEnterCrossFade = 0;
 
-       
+
         private void OnValidate()
         {
 #if UNITY_EDITOR
@@ -159,14 +156,13 @@ namespace RCGFSM.Animation
             }
             catch (Exception e)
             {
-                Debug.LogError(e,this);
+                Debug.LogError(e, this);
             }
 
 
-
 #endif
-
         }
+
         int animDefaultNameHash;
         // protected override void Start()
         // {
@@ -177,11 +173,11 @@ namespace RCGFSM.Animation
         //         animDefaultNameHash = animator.GetCurrentAnimatorStateInfo(0).fullPathHash;
         //     }
         // }
-        
+
 #if UNITY_EDITOR
         bool IsStateNameNotInAnimator(string name)
         {
-            if (isActiveAndEnabled == false)//NOTE: 沒開的話不管
+            if (isActiveAndEnabled == false) //NOTE: 沒開的話不管
                 return false;
 
             var names = GetAnimatorStateNames();
@@ -192,10 +188,11 @@ namespace RCGFSM.Animation
                 if (_name == name)
                     return false;
             }
+
             return true;
         }
         //拿動畫上的所有state name
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         public IEnumerable<string> GetAnimatorStateNames()
         {
             return AnimatorHelpler.GetAnimatorStateNames(animator, stateLayer);
@@ -210,38 +207,40 @@ namespace RCGFSM.Animation
             // }
             // return names;
         }
-        #endif
+#endif
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         void OverrideClip()
         {
             var runtimeAnimatorController = animator.runtimeAnimatorController;
-            AnimatorOverrideController animatorOverrideController = runtimeAnimatorController as AnimatorOverrideController;
-            
+            AnimatorOverrideController animatorOverrideController =
+                runtimeAnimatorController as AnimatorOverrideController;
+
             if (animatorOverrideController == null)
             {
                 Debug.LogError("animatorOverrideController == null");
                 return;
             }
-            
+
             var originAnimatorController = animatorOverrideController.runtimeAnimatorController as AnimatorController;
-            if(originAnimatorController == null)
+            if (originAnimatorController == null)
             {
                 Debug.LogError("originAnimatorController == null");
                 return;
             }
-          
-      
+
+
             Undo.SetCurrentGroupName("Override Clip");
             var groupIndex = Undo.GetCurrentGroup();
             Undo.RecordObject(animatorOverrideController, "Override Clip");
             // Undo.RecordObject(this, "Override Clip");
-            
-            var mappingState = originAnimatorController.layers[stateLayer].stateMachine.states.First(s => s.state.name == StateName);
+
+            var mappingState = originAnimatorController.layers[stateLayer].stateMachine.states
+                .First(s => s.state.name == StateName);
             var baseClip = mappingState.state.motion as AnimationClip;
             var originalClip = animatorOverrideController[baseClip];
-            
-            var newClip = AssetDatabaseUtility.CopyAssetOrCreateToPrefabFolder(originalClip,".clip" ,(prefabPath) =>
+
+            var newClip = AssetDatabaseUtility.CopyAssetOrCreateToPrefabFolder(originalClip, ".clip", (prefabPath) =>
             {
                 var clip = new AnimationClip();
                 // AssetDatabase.CreateAsset(clip, path);
@@ -249,14 +248,15 @@ namespace RCGFSM.Animation
             });
             //copy asset to new clip
             //override clip
-        
+
             animatorOverrideController[originalClip] = newClip;
             animatorOverrideController.SetDirty();
-        
+
             // PrefabUtility.RecordPrefabInstancePropertyModifications(animatorPlayAction);
             AssetDatabase.SaveAssets();
             Undo.CollapseUndoOperations(groupIndex);
         }
+
         [TabGroup("Animator")]
         [PropertyOrder(-1)]
         [ShowInInspector]
@@ -266,8 +266,8 @@ namespace RCGFSM.Animation
             {
                 if (animator == null)
                     return null;
-                
-                if(animator.runtimeAnimatorController == null)
+
+                if (animator.runtimeAnimatorController == null)
                     return null;
                 //沒有OverrideController
                 var animatorController = animator.runtimeAnimatorController as AnimatorController;
@@ -276,6 +276,7 @@ namespace RCGFSM.Animation
                     animatorController = ((AnimatorOverrideController)animator.runtimeAnimatorController)
                         .runtimeAnimatorController as AnimatorController;
                 }
+
                 if (animatorController == null)
                     return null;
                 try
@@ -291,10 +292,10 @@ namespace RCGFSM.Animation
             }
         }
 
-        #endif
-        
+#endif
+
         // [CustomContextMenu("Override Clip", nameof(OverrideClip))]
-     
+
 
         private IEnumerable<string> GetLayerNames()
         {
@@ -312,7 +313,7 @@ namespace RCGFSM.Animation
             // }
             // return names;
         }
-        
+
         [CustomContextMenu("Override Clip", nameof(OverrideClip))]
         [TabGroup("Animator")]
         [PropertyOrder(-1)]
@@ -320,18 +321,18 @@ namespace RCGFSM.Animation
         private AnimationClip OverridingClip
         {
             get
-            { 
-                if(animator == null)
+            {
+                if (animator == null)
                     return null;
-                if(animator.runtimeAnimatorController == null)
+                if (animator.runtimeAnimatorController == null)
                     return null;
-                
+
                 var overrideController = animator.runtimeAnimatorController as AnimatorOverrideController;
                 if (overrideController == null)
                 {
                     return null;
                 }
-                
+
                 var ac = overrideController.runtimeAnimatorController as AnimatorController;
                 if (ac == null)
                     return null;
@@ -380,7 +381,7 @@ namespace RCGFSM.Animation
             // animator.keepAnimatorStateOnDisable = true;
             if (IsDontPlayWhenAnimatorDisabled == false)
                 animator.enabled = true;
-            
+
             if (animator.isActiveAndEnabled == false)
             {
                 // Debug.LogError("animator.isActiveAndEnabled == false "+this._fsmOwner.name,this);
@@ -410,7 +411,7 @@ namespace RCGFSM.Animation
                 //如果是init state過來的，就直接跳到最後一幀
                 animator.Play(StateHash, stateLayer, runtimeStartNormalizedTimeOffset);
 
-             
+
                 _onStateNameChange?.Invoke(StateName);
             }
             else
@@ -420,35 +421,27 @@ namespace RCGFSM.Animation
 
             // FIXME: 不要update 0就不會造成這個onenable了？
             // 是什麼情境一定要OnEnable?
-             animator.Update(0);
-            
+            animator.Update(0);
+
             // animator.Update(RCGTime.deltaTime);
             // Debug.Break();
         }
 
         public Action<AnimationClip> OnClipPlay;
         Action<string> _onStateNameChange;
-        
-        [TabGroup("Animator")]
-        [ShowInPlayMode]
+
+        [TabGroup("Animator")] [ShowInPlayMode]
         private int _stateNameHash;
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         [HideIf(nameof(NoDoneEventTransition))]
         [Header("Done")]
         [TabGroup("Animator")]
         [ValueDropdown("GetLayerNames", IsUniqueList = true)]
-        #endif
+#endif
         public string doneEventLayerName; //getter? onvalidate的時候，選的時候選string，存int？
-       
-        [HideIf(nameof(NoDoneEventTransition))]
-        [TabGroup("Animator")]
-        [ShowInInspector]
-        [ReadOnly]
-        [SerializeField]
-        int doneEventLayer;
 
-  
-   
+        [HideIf(nameof(NoDoneEventTransition))] [TabGroup("Animator")] [ShowInInspector] [ReadOnly] [SerializeField]
+        int doneEventLayer;
 
 
 #if UNITY_EDITOR
@@ -493,6 +486,7 @@ namespace RCGFSM.Animation
                 return null;
             }
         }
+
         int GetDoneEventLayerIndex()
         {
             var names = GetLayerNames();
@@ -509,8 +503,10 @@ namespace RCGFSM.Animation
                 {
                     return index;
                 }
+
                 index++;
             }
+
             return 0;
         }
 
@@ -522,7 +518,7 @@ namespace RCGFSM.Animation
             animator.Update(0);
         }
 
-      
+
 #endif
         public override void Pause()
         {
@@ -539,6 +535,7 @@ namespace RCGFSM.Animation
             animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime;
 
         public bool IsDone => CurrentPlayingNormalizedTime >= 1;
+
         private bool IsStatePlaying(int layer)
         {
             return animator.GetCurrentAnimatorStateInfo(layer).shortNameHash == StateHash;
@@ -560,6 +557,7 @@ namespace RCGFSM.Animation
         }
 
         private bool _hasAnimationPlaySuccess;
+
         public bool IsPlayingCurrentClip()
         {
             var layer = doneEventLayer;
@@ -569,8 +567,8 @@ namespace RCGFSM.Animation
             if (animator.isActiveAndEnabled == false)
                 return false;
             var stateInfo = animator.GetCurrentAnimatorStateInfo(layer);
-            
-            
+
+
             //Cross fade 這邊一定會叫
             if (animatorEnterCrossFade <= 0)
                 if (IsStatePlaying(layer) == false && stateInfo.normalizedTime > 0) //正在播別的state
@@ -583,6 +581,7 @@ namespace RCGFSM.Animation
                         Debug.LogError("AnimatorPlayAction: 沒有這個state:" + StateName + ",hash:" + StateHash, gameObject);
                         return false;
                     }
+
                     var shouldPlayStateName = _stateHashToName[StateHash];
                     var playingStateName = _stateHashToName[stateInfo.shortNameHash];
                     if (ClipLength == -1)
@@ -603,16 +602,13 @@ namespace RCGFSM.Animation
                             shouldPlayStateName +
                             ", playing: " + playingStateName + ", time:" + stateInfo.normalizedTime, gameObject);
                         Debug.Break();
-                        
                     }
-                        
+
 #else
                         // Debug.LogError("AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: "+this._fsmOwner.name, gameObject);
 #endif
-                    
-          
                 }
-            
+
 
             if (stateInfo.normalizedTime <= 0)
             {
@@ -627,13 +623,12 @@ namespace RCGFSM.Animation
             return result;
         }
 
-        
 
         //TODO:
         protected override void OnSpriteUpdateImplement()
         {
             // Debug.Log("time:" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
-            
+
             if (doneEventTransition == null)
                 return;
 
@@ -641,7 +636,7 @@ namespace RCGFSM.Animation
 #if UNITY_EDITOR
             if (animator == null)
             {
-                Debug.LogError("animator == null",this);
+                Debug.LogError("animator == null", this);
             }
 #endif
             if (animator.runtimeAnimatorController == null)
@@ -654,8 +649,7 @@ namespace RCGFSM.Animation
             //包子 Cross Fade 不能一直跑 （議會小電梯）    
             if (animator.isActiveAndEnabled && animatorEnterCrossFade <= 0)
                 animator.Play(StateHash, stateLayer);
- 
-            
+
 
             var info = animator.GetCurrentAnimatorStateInfo(doneEventLayer);
 
@@ -671,7 +665,6 @@ namespace RCGFSM.Animation
             //                       info.shortNameHash);
             if (IsPlayingCurrentClip() && CurrentPlayingNormalizedTime >= 1)
             {
-             
                 //TODO: AnimationDone
                 //Done;
                 // GetComponentInParent<GeneralState>().TransitionCheck();
@@ -693,6 +686,7 @@ namespace RCGFSM.Animation
         }
 
         public Action OnAnimationDone;
+
         void AnimationDone()
         {
             doneEventTransition.TransitionCheck();
@@ -709,12 +703,9 @@ namespace RCGFSM.Animation
         {
             return GetComponent<AbstractStateTransition>() == null;
         }
-        
-        [HideIf(nameof(NoDoneEventTransition))]
-        [TabGroup("Animator")]
-        [PreviewInInspector]
-        [Component]
-        [AutoChildren] AbstractStateTransition doneEventTransition;
+
+        [HideIf(nameof(NoDoneEventTransition))] [TabGroup("Animator")] [PreviewInInspector] [Component] [AutoChildren]
+        AbstractStateTransition doneEventTransition;
 
         private IRCGArgEventReceiver _ircgArgEventReceiverImplementation;
 
@@ -751,6 +742,7 @@ namespace RCGFSM.Animation
             previewClip = clip;
             return clip;
         }
+
         [Button("編輯動畫")]
         public void EditClip()
         {
@@ -797,6 +789,7 @@ namespace RCGFSM.Animation
         #region InitAndAutoSkipToLastFrame
 
         [AutoParent(false)] private StateMachineOwner _fsmOwner; //monster也可以，應該抽成interface
+
         private bool CheckInitAndSkipAnimationToLastFrame()
         {
             if (_fsmOwner == null)
@@ -804,7 +797,7 @@ namespace RCGFSM.Animation
                 // Debug.LogError("No _fsmowner?", this);
                 return false;
             }
-            
+
             //只有在init的時候才會跳過
             var context = _fsmOwner.FsmContext;
             if (context.LastState != context.startState)
@@ -824,8 +817,6 @@ namespace RCGFSM.Animation
                 context.LastTransition);
             // this.Break();
             return true;
-
-
         }
 
         #endregion
@@ -863,4 +854,3 @@ namespace RCGFSM.Animation
         // }
     }
 }
-

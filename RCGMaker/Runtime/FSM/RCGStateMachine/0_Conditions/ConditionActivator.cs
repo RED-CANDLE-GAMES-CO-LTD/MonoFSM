@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RCGMaker.Core
 {
     //FIXME: 用AbstractConditionActivateTarget
-    
+
     public interface IUIBehavior
     {
         public void EnableCheck(); //UI Reset??
@@ -21,11 +21,12 @@ namespace RCGMaker.Core
     //新規
     //可以直接放在該節點上
     //自動檢查條件，決定是否啟動節點
+    //放在下面？
     public class ConditionActivator : MonoBehaviour, IUIBehavior, ISelfValidator, IResetter
     {
-        [Title("自動檢查條件，決定開關節點")]
-        
-        [PreviewInInspector] [AutoChildren()] private AbstractConditionComp[] conditions;
+        [Title("自動檢查條件，決定開關節點")] [PreviewInInspector] [AutoChildren()]
+        private AbstractConditionComp[] conditions;
+
         [ReadOnly] [ShowInPlayMode] private bool IsActivate => conditions.IsAllValid();
 
         //[]: 要有蠻多時間點的，updateView就要做？
@@ -62,6 +63,12 @@ namespace RCGMaker.Core
 
         public void ExitLevelAndDestroy()
         {
+        }
+
+        //update check?
+        public void Update() //關起來就不會update了...
+        {
+            EnableCheck();
         }
     }
 }

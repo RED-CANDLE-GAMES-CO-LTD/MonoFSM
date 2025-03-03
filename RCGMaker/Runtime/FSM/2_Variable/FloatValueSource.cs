@@ -1,11 +1,25 @@
 using System;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Core.DataProvider;
 using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
+    //FIXME 用的到這個class嗎？
+    public class FloatValueSource : MonoBehaviour, IFloatProvider
+    {
+        [SerializeReference] public IFloatProvider _valueSource;
+
+        public float GetFloat()
+        {
+            return _valueSource.GetFloat();
+        }
+
+        public string Description => _valueSource.Description;
+    }
     // [InlineProperty]
     // [Serializable]
     // public class FloatValueSource : InterfaceMonoRef<StateMachineOwner, IFloatValueProvider>, IFloatValueProvider

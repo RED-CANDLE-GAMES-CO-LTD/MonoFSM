@@ -5,7 +5,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.VirutalizeVariable
     //FIXME: 這啥？
     public class EffectValue : MonoBehaviour, IFloatValueProvider
     {
-        public VariableFloat baseValue;
+        public VarFloat baseValue;
         [AutoChildren] private IVariableFloatOperation[] modifiers;
 
         public float FinalValue

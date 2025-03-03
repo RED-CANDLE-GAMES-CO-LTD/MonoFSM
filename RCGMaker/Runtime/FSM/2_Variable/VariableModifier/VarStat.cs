@@ -9,8 +9,8 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
-    //FIXME: 好富雜QQ
-    public sealed class MonoVariableStat : VariableFloat
+    // Gameplay Attributes
+    public sealed class VarStat : VarFloat
     {
         private float BaseValue => CurrentValue;
         private bool isDirty = true;
@@ -20,6 +20,8 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
         ValueChangedListener<float> listener;
         [PreviewInInspector] List<VariableStatModifier> statModifiers = new();
+
+        private List<IStatModifer> _statModifiers;
 
         protected override void Awake()
         {
@@ -58,6 +60,22 @@ namespace RCGMaker.Runtime.FSM._2_Variable
                 return BaseValue;
             var finalValue = BaseValue;
             float sumPercentAdd = 0;
+
+            //FIXME: mod必須要先把Owner灌進去？這樣才能拿到正確的targetStat和value
+            // foreach (var mod in _statModifiers)
+            // {
+            //     if (mod.GetModType == StatModType.Flat)
+            //         finalValue += mod.GetValue;
+            //     else if (mod.GetModType == StatModType.PercentAdd)
+            //     {
+            //         sumPercentAdd += mod.GetValue;
+            //         finalValue *= 1 + sumPercentAdd;
+            //         sumPercentAdd = 0;
+            //     }
+            //     else if (mod.GetModType == StatModType.PercentMult)
+            //         finalValue *= mod.GetValue;
+            // }
+
             for (var i = 0; i < statModifiers.Count; i++)
             {
                 var mod = statModifiers[i];
@@ -123,7 +141,22 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             listener.AddListenerDict(action, owner);
         }
 
-        public void AddModifier(VariableStatModifier mod)
+        public void AddModifier(IStatModifer mod)
+        {
+            //FIXME: 真的可以這樣新增嗎？
+            if (!_statModifiers.Contains(mod))
+            {
+                isDirty = true;
+                _statModifiers.Add(mod);
+                var value = CurrentValue; //modifier改變，更新一下值
+            }
+            else
+            {
+                Debug.Log("Character Stat Already Has Modifier" + mod.GetValue + mod.GetModType);
+            }
+        }
+
+        public void AddModifier(VariableStatModifier mod) //fixme: 可以用StatModifier就好嗎？
         {
             // Debug.Log("Add Stat modifier" + this);
             if (!statModifiers.Contains(mod))

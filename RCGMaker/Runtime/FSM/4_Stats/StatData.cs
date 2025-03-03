@@ -12,7 +12,7 @@ public abstract class AbstractStatData : ScriptableObject
 }
 
 [CreateAssetMenu(fileName = "StatData", menuName = "ScriptableObjects/StatData", order = 1)]
-public class StatData : AbstractStatData, IStringData,  INativeData
+public class StatData : AbstractStatData, IStringData, INativeData
 {
 //reset game的時候，要清除
 
@@ -21,6 +21,7 @@ public class StatData : AbstractStatData, IStringData,  INativeData
         stat.Clear();
         // Debug.Log("Clear StatData: " + name, this);
     }
+
     [Header("能力值")]
     // public FlagFieldStat flagStat;
     //TODO:
@@ -46,7 +47,17 @@ public class StatData : AbstractStatData, IStringData,  INativeData
     private float CalculateFinalValue()
     {
         var finalValue = DesignValue;
-        foreach (var ratio in baseRatios) finalValue *= ratio.Value;
+        if (baseRatios == null) return finalValue;
+        foreach (var ratio in baseRatios)
+        {
+            if (ratio == this)
+            {
+                return finalValue;
+            }
+
+            finalValue *= ratio.Value;
+        }
+
         return finalValue;
     }
 

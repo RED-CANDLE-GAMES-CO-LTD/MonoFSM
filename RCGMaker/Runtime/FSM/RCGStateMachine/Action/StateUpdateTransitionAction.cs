@@ -9,11 +9,9 @@ namespace RCGFSM.Transition
     //FIXME: 被動的？不用action而是監聽的transition?
     //StateEnter, Update的時候，檢查能不能去某個state
     [RequireComponent(typeof(AbstractStateTransition))]
-    public class StateUpdateTransitionAction : AbstractStateAction
+    public class StateUpdateTransitionAction : AbstractStateAction, ITransitionChecker
     {
-        [PreviewInInspector]
-        [Auto]
-        AbstractStateTransition validTransition;
+        [PreviewInInspector] [Auto] AbstractStateTransition validTransition;
 
         protected override void OnStateEnterImplement()
         {

@@ -16,8 +16,19 @@ namespace RCGFSM.Variable
     public class VariableFloatArithmeticAction : AbstractStateAction, IRCGArgEventReceiver<IEffectHitData>
     {
         //兩種情境，一種是從dealer來，一種是固定值觸發
+        protected override string Description =>
+            $"{targetFlag.varTag.name} {arithmeticSymbol}= {sourceType} {sourceType switch { ValueSourceType.Constant => ConstValue, _ => 0 }}";
 
-        [DropDownRef] [SerializeField] private VariableFloat targetFlag;
+        string arithmeticSymbol => Arithmetic switch
+        {
+            ArithmeticOperator.Add => "+",
+            ArithmeticOperator.Sub => "-",
+            ArithmeticOperator.Mul => "*",
+            ArithmeticOperator.Div => "/",
+            _ => "+"
+        };
+
+        [DropDownRef] [SerializeField] private VarFloat targetFlag;
         [SerializeField] private ArithmeticOperator Arithmetic;
 
         //要直接用值？

@@ -1,4 +1,5 @@
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.FSM._2_Variable;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM.RCGStateMachine
@@ -21,6 +22,16 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine
 #endif
                 return _variableFolder;
             }
+        }
+
+        public AbstractMonoVariable GetVariable(VariableTag varTag)
+        {
+            return VariableFolder.GetVariable(varTag);
+        }
+
+        public AbstractMonoVariable GetVariable(string varTagName)
+        {
+            return VariableFolder.GetVariable(varTagName);
         }
     }
 }

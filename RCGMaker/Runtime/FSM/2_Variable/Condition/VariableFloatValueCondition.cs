@@ -1,4 +1,5 @@
 using System;
+using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -17,12 +18,13 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
     public class VariableFloatValueCondition : AbstractConditionComp
     {
-        protected override string nameDescription => _monoVariableFloat
-            ? name = "[Condition] " + _monoVariableFloat.name + " " + op + " " + targetValue
+        protected override string nameDescription => _monoVarFloatProvider != null
+            ? name = "[Condition] " + _monoVarFloatProvider.Description + " " + op + " " + targetValue
             : name = "[Condition]";
 
-        [FormerlySerializedAs("variableFloat")] [DropDownRef]
-        public VariableFloat _monoVariableFloat;
+        // [Obsolete] [DropDownRef] public VarFloat _monoVarFloat;
+
+        [SerializeReference] public IFloatProvider _monoVarFloatProvider;
 
         public Operator op;
         public float targetValue;
@@ -31,26 +33,27 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         {
             get
             {
-                if (_monoVariableFloat == null)
-                {
-                    // Debug.LogError("variableFloat is null", this);
-                    return false;
-                }
+                // if (_monoVarFloat == null)
+                // {
+                //     // Debug.LogError("variableFloat is null", this);
+                //     return false;
+                // }
+                var value = _monoVarFloatProvider.Value;
 
                 switch (op)
                 {
                     case Operator.Equals:
-                        return _monoVariableFloat.CurrentValue == targetValue;
+                        return value == targetValue;
                     case Operator.NotEqual:
-                        return _monoVariableFloat.CurrentValue != targetValue;
+                        return value != targetValue;
                     case Operator.GreaterThan:
-                        return _monoVariableFloat.CurrentValue > targetValue;
+                        return value > targetValue;
                     case Operator.LessThan:
-                        return _monoVariableFloat.CurrentValue < targetValue;
+                        return value < targetValue;
                     case Operator.GreaterThanOrEqual:
-                        return _monoVariableFloat.CurrentValue >= targetValue;
+                        return value >= targetValue;
                     case Operator.LessThanOrEqual:
-                        return _monoVariableFloat.CurrentValue <= targetValue;
+                        return value <= targetValue;
                 }
 
                 return false;

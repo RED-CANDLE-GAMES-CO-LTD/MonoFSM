@@ -6,9 +6,9 @@ namespace RCGMaker.Core.DataProvider
 {
     public class VariableFieldValueProvider : AbstractFieldValueProvider
     {
-        public override Object targetObject => variableProvider?.GetMonoVariable;
+        public override Object targetObject => variableProvider?.Variable;
 
-        [InlineField] [PropertyOrder(-1)] [SerializeReference]
+        [Required] [InlineField] [PropertyOrder(-1)] [SerializeReference]
         public IVariableProvider variableProvider;
     }
 }

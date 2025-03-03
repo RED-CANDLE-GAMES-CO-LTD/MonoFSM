@@ -2,6 +2,7 @@ using System;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
 using RCGMaker.Runtime.FSM._2_Variable;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -14,6 +15,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver
     //目前是掛在Dealer下，拿到一個遠端的Receiver
     public abstract class AbstractEffectHitCondition : MonoBehaviour
     {
+        [PropertyOrder(-1)] protected abstract string description { get; }
+
         public abstract bool IsEffectHitValid(GeneralEffectReceiver receiver);
         //FIXME: 
         // VariableProvider<float> _provider;
@@ -43,12 +46,17 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver
 
         [PreviewInInspector] GeneralEffectReceiver _runtimeReceiver;
 
+        [PreviewInInspector]
+        protected override string description =>
+            $"Compare dealer:{dealerVariable._varTag.name} {compareType} receiver:{receiverVariable._varTag.name}";
+
         public override bool IsEffectHitValid(GeneralEffectReceiver receiver)
         {
             _runtimeReceiver = receiver;
             var dealerValue = dealerVariable.Value;
             var receiverValue = receiverVariable.GetValueFrom(receiver);
             Debug.Log($"IsEffectHitValid dealerValue: {dealerValue}, receiverValue: {receiverValue}", this);
+            // Debug.Log("receiver", receiver);
             var result = compareType switch
             {
                 CompareType.Equal => dealerValue == receiverValue,

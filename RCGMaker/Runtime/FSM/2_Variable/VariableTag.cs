@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
@@ -29,17 +30,18 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         [Button]
         void GetTypeFromString()
         {
+            if (typeName.IsNullOrWhitespace())
+                return;
             _type = Type.GetType(typeName);
         }
 
-        [Header("宣告型別：")]
-        [ShowInInspector]
-        [OnValueChanged(nameof(TypeToString))]
+
         // [TypeDrawerSettings(BaseType = typeof(MonoBehaviour))] //FIXME: abstractVariable...每種type要分開寫喔，好煩，attribute的內容要分開，好像也可以啦...
         // [TypeSelectorSettings(FilterTypesFunction = nameof(FilterTypes))]
         // [TypeDrawerSettings]
-        [TypeSelectorSettings(FilterTypesFunction = nameof(FilterTypes))]
-        private Type _type;
+
+
+        private Type _type; //cached
 
         private bool FilterTypes(Type type)
         {
@@ -64,10 +66,15 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
         public void SetType(Type type)
         {
+            // Debug.Log("SetType" + type);
             _type = type;
             TypeToString();
         }
 
+        [Header("宣告型別：")]
+        [ShowInInspector]
+        // [OnValueChanged(nameof(TypeToString))]
+        [TypeSelectorSettings(FilterTypesFunction = nameof(FilterTypes))]
         public Type RestrictType
         {
             get
@@ -75,6 +82,11 @@ namespace RCGMaker.Runtime.FSM._2_Variable
                 if (_type == null)
                     GetTypeFromString();
                 return _type;
+            }
+            set
+            {
+                _type = value;
+                TypeToString();
             }
         }
 
@@ -85,7 +97,12 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             typeName = _type.ToString();
         }
 
-        [Required] [PreviewInInspector] [SerializeField]
+        bool IsTypeMissing => _type == null && typeName.IsNullOrWhitespace() == false;
+
+        [InfoBox("type is not exist, reselect", InfoMessageType.Error, nameof(IsTypeMissing))]
+        [Required]
+        [PreviewInInspector]
+        [SerializeField]
         string typeName;
 
         public string TypeName => typeName;
@@ -101,17 +118,38 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     {
         //FIXME: 限定型別？
         //FIXME: 下拉式巢狀分類:
+        // sampleData? sampleDescriptableTag?
 
+        // private void OnValidate()
+        // {
+        //     if (StringKey == "")
+        //         StringKey = name;
+        // }
 
-        private void OnValidate()
+        // [SerializeField] private string StringKey; //run起來才？cache?
+        [Button]
+        void RefreshStringKey()
         {
-            if (StringKey == "")
-                StringKey = name;
+            _cachedStringKey = null;
+            var result = GetStringKey;
         }
 
-        [SerializeField] private string StringKey;
+        //scriptable object會殘留？
+        [NonSerialized] string _cachedStringKey;
 
-        public string GetStringKey => StringKey;
+        [PreviewInInspector]
+        public string GetStringKey
+        {
+            get
+            {
+                //remove Characters between '[' and ']'
+
+                _cachedStringKey = Regex.Replace(name, @"\[.*?\]", string.Empty);
+                _cachedStringKey = Regex.Replace(_cachedStringKey, @"\s+", string.Empty);
+                // _cachedStringKey = name.Replace(" ", "");
+                return _cachedStringKey;
+            }
+        }
 
 
         [HideInInlineEditors] [TextArea] public string Note;

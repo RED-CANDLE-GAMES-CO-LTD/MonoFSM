@@ -5,10 +5,9 @@ using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 //監聽variable變化讓state轉換？
-//FIXME: 還沒有測試過唷, 現在listen應該會錯?
 //監聽condition是不是比較泛用，用組合的
 //lazy update condition
-public class VariableBoolTransition : AbstractStateTransition, ILevelResetStart
+public class VariableBoolTransition : AbstractStateTransition, ILevelResetStart, ITransitionChecker
 {
     protected override string GetNameByBehaviour()
     {
@@ -16,7 +15,7 @@ public class VariableBoolTransition : AbstractStateTransition, ILevelResetStart
     }
 
     [FormerlySerializedAs("variableNode")] [Required] [Header("When")] [PropertyOrder(-1)] [DropDownRef]
-    public VariableBool _monoVariableNode;
+    public VarBool _monoVariableNode;
 
 
     [Header("Equals To")] [PropertyOrder(-1)]
@@ -59,8 +58,9 @@ public class VariableBoolTransition : AbstractStateTransition, ILevelResetStart
         }
 
         this.Log("VariableBoolTransition Awake", _monoVariableNode.name);
-        //FIXME: 這個沒有管到優先順序....會自己觸發
+
         //不該作為transition, 而是作為event?
+        //FIXME: 這個沒有管到優先順序....會自己觸發, 感覺不太好，應該是和lastValue比較決定要？
         _monoVariableNode.Field.AddListener(OnValueChange, this);
     }
 }

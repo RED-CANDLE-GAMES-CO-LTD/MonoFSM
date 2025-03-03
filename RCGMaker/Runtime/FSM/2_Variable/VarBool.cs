@@ -24,7 +24,7 @@ public interface IRebindable
     void SetBindingTarget(IRebindable rebindable);
 }
 
-public class VariableBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
+public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
     IBoolValue, IRebindable
 {
     public ScriptableDataBool boolFlag => scriptableData; // scriptableData;

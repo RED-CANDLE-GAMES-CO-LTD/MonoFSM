@@ -149,7 +149,7 @@ namespace RCGMaker.Core
     [Serializable]
     public class DescriptableDataFromVariable : IDescriptableDataProvider
     {
-        [DropDownRef] public AbstractMonoReferenceVariable _variable;
+        [DropDownRef] public AbstractObjectVariable _variable;
 
         public IDescriptableData GetDescriptableData()
         {

@@ -4,15 +4,20 @@ using RCGMaker.Runtime.FSM._2_Variable;
 using UnityEngine;
 
 //耐力條，體幹..應該都可以用這個套？
-public class CountDownTimer : MonoBehaviour
+//FIXME: 寫的不是很好
+public class StaminaTimer : MonoBehaviour
 {
-    public VariableBool isConsuming;
-    [DropDownRef] public MonoVariableStat maxValueStat;
-    [DropDownRef] public MonoVariableStat increaseSpeedStat; //regen
-    [DropDownRef] public MonoVariableStat decreaseSpeedStat; //consume
-    [DropDownRef] public VariableFloat currentTime;
-    [DropDownRef] public MonoVariableStat TimeToRegen;
+    public VarBool isConsuming;
+
+    // [DropDownRef] public VarStat maxValueStat;
+    [DropDownRef] public VarStat increaseSpeedStat; //regen
+    [DropDownRef] public VarStat decreaseSpeedStat; //consume //兩個可以不一樣快...但如果單純用timer就跟著時間就好了，default 1?
+    [DropDownRef] public VarFloat currentTime;
+    [DropDownRef] public VarStat TimeToRegen;
     [PreviewInInspector] float pauseTimeCounter;
+
+    float IncreaseSpeed => increaseSpeedStat ? increaseSpeedStat.FinalValue : 1;
+    float DecreaseSpeed => decreaseSpeedStat ? decreaseSpeedStat.FinalValue : 1;
 
     public enum CountType
     {
@@ -21,13 +26,16 @@ public class CountDownTimer : MonoBehaviour
         Pause
     }
 
-    CountType countType;
+    public CountType countType;
 
     private void Update() //FIXME: 用update不太好？
     {
         // Debug.Log("CountDownTimer Update"+currentTime.CurrentValue+" last:"+currentTime.LastValue);
         //FIXME; 執行順序會導致這個判定沒有用，已經CommitValue了？
         //直接設定對Counter pause，然後扣value是不是比較快？
+        //想要寫精力條，但這裡太複雜了，應該要再抽一層出來
+
+
         if (currentTime.CurrentValue + 1 < currentTime.LastValue) //比較上一個frame，如果是減少，就是消耗
         {
             countType = CountType.Pause;
@@ -54,19 +62,19 @@ public class CountDownTimer : MonoBehaviour
         switch (countType)
         {
             case CountType.Increase:
-                currentTime.CurrentValue += increaseSpeedStat.FinalValue * Time.deltaTime;
-                if (currentTime.CurrentValue >= maxValueStat.FinalValue)
-                {
-                    currentTime.CurrentValue = maxValueStat.FinalValue;
-                }
+                currentTime.CurrentValue += IncreaseSpeed * Time.deltaTime;
+                // if (currentTime.CurrentValue >= currentTime.Max)
+                // {
+                //     currentTime.CurrentValue = currentTime.Max;
+                // }
 
                 break;
             case CountType.Decrease:
-                currentTime.CurrentValue -= decreaseSpeedStat.FinalValue * Time.deltaTime;
-                if (currentTime.CurrentValue <= 0)
-                {
-                    currentTime.CurrentValue = 0;
-                }
+                currentTime.CurrentValue -= DecreaseSpeed * Time.deltaTime;
+                // if (currentTime.CurrentValue <= 0)
+                // {
+                //     currentTime.CurrentValue = 0;
+                // }
 
                 break;
             case CountType.Pause:

@@ -11,6 +11,7 @@ namespace RCGMaker.Runtime.Vote
         public RuntimeConditionVote _vote = new RuntimeConditionVote();
         public override GameFlagBase FinalData { get; }
         public override Type FinalDataType { get; }
+        public override Type ValueType => typeof(bool);
         public override object objectValue => _vote.Result;
 
         protected override void SetValueInternal<T>(T value, Object byWho = null)

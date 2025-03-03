@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable.VariableBinder
 {
-    public class VariableBoolRebindEntry : VariableBindingEntry<VariableBool>
+    public class VariableBoolRebindEntry : VariableBindingEntry<VarBool>
     {
         public override void Bind()
         {

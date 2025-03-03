@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,9 +17,17 @@ public interface IState<in TState>
     // bool TransitionCheck(GeneralState stateType);
 }
 
+//FIXME: 怎麼顯示沒有StateUpdateCheck? IChecker?
+public interface ITransitionChecker
+{
+}
+
 [Searchable]
 public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable
 {
+    [PreviewInInspector] [AutoParent] [Required] [Component(AddComponentAt.Same)]
+    ITransitionChecker _checker;
+
     [Button("依照Behaviour改名字")]
     void RenameByBehaviour()
     {
@@ -38,6 +45,7 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
             return true;
         return false;
     }
+
     [InfoBox("Target is self", InfoMessageType.Error, nameof(TransitionValidationResult))]
     [ValueDropdown(nameof(FindStates))]
     [Required]
@@ -51,6 +59,7 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
     // }
 
     [ReadOnly] [ShowInInspector] public GeneralState Target => target;
+
     IEnumerable<GeneralState> FindStates()
     {
         return GetComponentInParent<GeneralFSMContext>(true).GetAllStates();
@@ -58,14 +67,14 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
         //     .Where(state => state != this.GetComponentInParent<GeneralState>());
     }
 
-    [PreviewInInspector]
-    [AutoChildren(false)] AbstractConditionComp[] conditions;
+    [PreviewInInspector] [AutoChildren(false)] [Component]
+    private AbstractConditionComp[] conditions = Array.Empty<AbstractConditionComp>();
 
     [Title("從init來會播動畫的Transition")]
     [ShowInInspector]
     public bool IsDefaultTransition => conditions == null || conditions.Length == 0;
     //試圖封裝 resolving和resolved，不想要把clip和transition分開，有隱含邏輯在裡面
-    
+
     // protected override void Awake()
     // {
     //     bindingState = GetComponentInParent<GeneralState>();
@@ -78,16 +87,14 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
 
     // [AutoParent()] private GeneralState bindingState;
 
-    [PreviewInInspector]
-    [AutoParent()] private IState<GeneralState> parentState;
+    [PreviewInInspector] [AutoParent()] private IState<GeneralState> parentState;
     public IState<GeneralState> ParentState => parentState;
     [ShowInInspector] private bool IsSelfTransition => parentState as GeneralState == target;
 
-    
-    [AutoChildren(false)]
-    private ISkippableAnimationTransition[] _skippableAnimationTransitions;
 
-    [ShowInInspector] 
+    [AutoChildren(false)] private ISkippableAnimationTransition[] _skippableAnimationTransitions;
+
+    [ShowInInspector]
     public bool IsTransitionSkippable
     {
         get
@@ -129,7 +136,6 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
     //FIXME: 不該空降call, 只能在系統特定時間點
     public bool TransitionCheck(float timeOffset = 0)
     {
-
         // this.Log("[Transition] Check1" + target.stateType, gameObject);
         //Transition 被關了
         //if (this.isActiveAndEnabled == false) 
@@ -142,11 +148,11 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
 
         //整顆單位關著，表示config沒有想要打開
         //FIXME:只是為了擋掉關著的FSM?
-        if (_cullingGroup && _cullingGroup.HasActivated == false) 
+        if (_cullingGroup && _cullingGroup.HasActivated == false)
         {
             return false;
         }
-        
+
         if (conditions != null && conditions.IsAllValid() == false)
             return false;
 
@@ -155,6 +161,12 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
         //任何東西都是iState吧？不用分了
         if (parentState != null) //走any，直接過
         {
+            if (target == null)
+            {
+                Debug.LogError("No Target! 選一個", gameObject);
+                return false;
+            }
+
             this.Log("[Transition] GoTo:", target.stateType, gameObject);
             if (target.stateType.gameObject.activeSelf == false)
             {
@@ -168,6 +180,7 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
                 //會...
                 // parentState.Context.SetLastTransition(this);
             }
+
             return true;
         }
 
@@ -201,6 +214,7 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
         // }
         return false;
     }
+
     public bool IsLastTransition
     {
         get
@@ -210,16 +224,15 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
             return parentState.Context.LastTransition == this;
         }
     }
-
 }
+
 public abstract class AbstractBehaviour : MonoBehaviour
 {
     protected virtual void Awake()
     {
-
     }
+
     protected virtual void Start()
     {
-
     }
 }

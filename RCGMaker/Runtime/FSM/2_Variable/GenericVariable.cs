@@ -251,14 +251,15 @@ public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoV
     public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
 
 
-    [AutoChildren(false)] private AbstractVariableModifier<TType>[] modifiers;
+    [PreviewInInspector] [Component] [AutoChildren]
+    private AbstractVariableModifier<TType>[] modifiers;
 //會有external modifier...
 
     [TabGroup("Data"), PreviewInInspector] public virtual TType FinalValue => CurrentValue;
     [TabGroup("Data"), PreviewInInspector] public virtual TType LastValue => Field.LastValue; //FIXME: 這裡沒有過到modifier
 
     [ShowInPlayMode]
-    public TType CurrentValue //FIXME: 
+    public TType CurrentValue //FIXME: 改成Value?
     {
         get
         {
@@ -345,7 +346,8 @@ public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoV
         if (modifiers != null)
             foreach (var modifier in modifiers)
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
-        // Debug.Log("[Variable] Set" + value+"tempValue:"+tempValue+", Value:"+CurrentValue, byWho);
+        //after?
+        // Debug.Log("[Variable] Set" + value + "tempValue:" + tempValue + ", Value:" + CurrentValue, byWho);
         if (tempValue.Equals(CurrentValue)) return;
         byWho.Log("[Variable] Set", value);
         byWhoHashSet.Add(byWho);
@@ -440,6 +442,7 @@ public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoV
     }
 
     public override Type FinalDataType => typeof(TScriptableData);
+    public override Type ValueType => typeof(TType);
     public override object objectValue => CurrentValue;
 
 
@@ -462,6 +465,8 @@ public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoV
 public interface ISettable //FIXME: 有點蠢
 {
     void CommitValue();
+
+    //FIXME: 用T?
     void SetValue(object value, MonoBehaviour byWho = null);
 }
 
@@ -472,35 +477,64 @@ public interface ISettable<in T> : ISettable
 
 public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, IValueOfKey<VariableTag>
 {
-    [Header("變數名稱")] [PropertyOrder(-1)] [Required] [SOConfig("VariableType", nameof(CreateTagPostProcess))]
-    public VariableTag varTag; //直接看當下是什麼就可以
+    [Button]
+    void Rename()
+    {
+        // gameObject.name = GetType().Name +
+    }
 
-    void CreateTagPostProcess()
+    void TagChanged()
     {
         varTag._variableType.SetType(GetType());
+        varTag._valueFilterType.SetType(ValueType);
+        // Debug.Log("Tag Changed");
+        //variable folder refresh
+        var variableFolder = GetComponentInParent<RCGVariableFolder>();
+        if (variableFolder)
+            variableFolder.Refresh();
+    }
+
+    [OnValueChanged(nameof(TagChanged))]
+    [Header("變數名稱")]
+    [PropertyOrder(-1)]
+    [Required]
+    [SOConfig("VariableType", nameof(CreateTagPostProcess))]
+    public VariableTag varTag; //直接看當下是什麼就可以
+
+    protected void CreateTagPostProcess()
+    {
+        //FIXME: 從Drawer call 失敗了，感覺varTag還沒做好...
+        // varTag._variableType.SetType(GetType());
+        // varTag._valueFilterType.SetType(ValueType);
+        // Debug.Log("CreateTagPostProcess" + varTag._variableType.RestrictType + varTag._valueFilterType.RestrictType,
+        //     varTag);
     }
 
     // public abstract void CommitValue();
     // public abstract void SetValue(object value, MonoBehaviour byWho = null); //一開始就預設要可以Set了
     public abstract GameFlagBase FinalData { get; } //這是啥？
     public abstract Type FinalDataType { get; }
+    public abstract Type ValueType { get; }
+
     public abstract object objectValue { get; }
 
-    public T GetValue<T>()
+    public virtual T GetValue<T>()
     {
+        var value = objectValue;
+        if (value == null)
+            return default;
         try
         {
-            return (T)objectValue;
+            return (T)value;
         }
         catch (Exception e)
         {
-            Debug.LogError($"Can't cast {objectValue} to {typeof(T)}", this);
-            throw;
+            Debug.LogError($"Cannot cast {value} to {typeof(T)}", this);
+            return default;
         }
-        // return (T)objectValue;
     }
 
-    protected abstract void SetValueInternal<T>(T value, UnityEngine.Object byWho = null);
+    protected abstract void SetValueInternal<T>(T value, Object byWho = null);
 
     public void SetValue<T>(T value, MonoBehaviour byWho = null)
     {
@@ -575,4 +609,9 @@ public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, 
     // [HideInInlineEditors] public UnityEvent valueChangedEvent;
     public string Name => gameObject.name;
     public VariableTag Key => varTag;
+
+    public VariableTag[] GetKeys()
+    {
+        return new[] { varTag };
+    }
 }

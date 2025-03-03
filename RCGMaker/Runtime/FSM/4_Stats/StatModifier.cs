@@ -1,5 +1,6 @@
-
 using RCGMaker.Core.Attributes;
+using RCGMaker.Core.DataProvider;
+using RCGMaker.Runtime.FSM._2_Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -21,11 +22,33 @@ public interface IStatModifierOwner //是誰改數值的
 {
     public bool IsActivated { get; }
 }
-[System.Serializable]
-public class StatModifier
-{
 
-    
+[System.Serializable]
+public class StatModifierPro : IStatModifer
+{
+    public VariableProvider<float> _targetProvider;
+    public VariableProvider<float> _valueProvider;
+    public StatModType _type = StatModType.Flat;
+    public int _order;
+
+    public VariableTag targetStatTag => _targetProvider._varTag;
+    public int GetOrder => _order;
+    public StatModType GetModType => _type;
+    public float GetValue => _valueProvider.Value;
+}
+
+public interface IStatModifer
+{
+    public VariableTag targetStatTag { get; }
+    public int GetOrder { get; }
+    public StatModType GetModType { get; }
+    public float GetValue { get; }
+}
+
+[System.Serializable]
+public class StatModifier //以前是給Characterstat用的
+{
+    public VariableTag statTag;
     public float Value;
     public StatModType Type;
 

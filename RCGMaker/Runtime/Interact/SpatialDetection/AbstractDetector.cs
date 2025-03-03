@@ -53,19 +53,32 @@ namespace RCGMaker.Core.Detection
         protected abstract void SetLayerOverride();
 
         [PreviewInInspector] protected List<SpatialDetectable> _detectedObjects = new List<SpatialDetectable>();
+#if UNITY_EDITOR
+        [PreviewInInspector] protected List<SpatialDetectable> _lastDetectedObjects = new List<SpatialDetectable>();
+
+        [Button]
+        void ClearLastDetectedObjects()
+        {
+            _lastDetectedObjects.Clear();
+        }
+#endif
 
         public void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
         {
             //理論上不該打到別的東西，layer就擋掉了才對 (有分layer的話)
             if (!other.TryGetComponent<SpatialDetectable>(out var spatialDetectable))
             {
-                // Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer, other);
+                Debug.LogError(other.name + " is not a SpatialDetectable" + other.gameObject.layer, other);
 
                 return;
             }
 
-            if (spatialDetectable.Owner == Owner) return; //自己身上的不算
+            //FIXME: 物理的想要繞掉，另外做condition?
+            // if (spatialDetectable.Owner == Owner) return; //自己身上的不算
             _detectedObjects.Add(spatialDetectable);
+#if UNITY_EDITOR
+            _lastDetectedObjects.Add(spatialDetectable);
+#endif
             spatialDetectable._detectors.Add(this);
             // Debug.Log("OnSpatialEnter dealers:"+dealers.Length+" receivers:"+effectCollider.EffectReceivers.Length, this);
             //FIXME: 用update撈起來等等再判？

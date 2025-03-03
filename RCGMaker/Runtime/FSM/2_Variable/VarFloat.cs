@@ -6,14 +6,16 @@ using RCGMaker.Runtime.FSM._2_Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-[Serializable]
-public class VariableFloatProvider : IFloatValueProvider
-{
-    public float FinalValue => _source.CurrentValue;
-    [DropDownRef] [SerializeField] VariableFloat _source;
-}
+// [Serializable]
+// public class VariableFloatProvider : IFloatValueProvider
+// {
+//     public float FinalValue => _source.CurrentValue;
+//     [DropDownRef] [SerializeField] VarFloat _source;
+// }
 
-public class VariableFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat, float>, IFloatValueProvider,
+//CountdownTimer...直接掛在這個下面？
+
+public class VarFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat, float>, IFloatValueProvider,
     IValueOfKey<VariableTag>, ISerializedFloatValue
 {
     //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 
@@ -22,10 +24,12 @@ public class VariableFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldF
     public float Percentage => (CurrentValue - Min) / (Max - Min);
     public float Min => _boundModifier.MinValue;
     public float Max => _boundModifier.MaxValue;
-    [Auto(false)] [PreviewInInspector] VariableFloatBoundModifier _boundModifier;
 
-    [PreviewInInspector] [Component] [AutoChildren]
-    AbstractVariableModifier<float>[] _setOperations;
+    [AutoChildren(false)] [PreviewInInspector]
+    VariableFloatBoundModifier _boundModifier;
+
+    // [PreviewInInspector] [Component] [AutoChildren]
+    // AbstractVariableModifier<float>[] _setOperations;
 
     public float EditorValue
     {
@@ -39,4 +43,6 @@ public class VariableFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldF
 #endif
         }
     }
+
+    public float Value => CurrentValue;
 }

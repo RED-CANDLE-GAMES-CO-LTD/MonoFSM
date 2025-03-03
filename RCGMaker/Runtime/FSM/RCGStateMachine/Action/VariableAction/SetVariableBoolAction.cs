@@ -12,10 +12,10 @@ namespace RCGFSM.Variable
         //FIXME: 用selection dropdown來篩選
         protected override string renamePostfix => targetFlag ? targetFlag.name + " to " + TargetValue : "null";
 
-        IList<VariableBool> GetVariables()
+        IList<VarBool> GetVariables()
         {
             var context = GetComponentInParent<VariableOwner>(true);
-            var vars = context.GetComponentsInChildren<VariableBool>(true);
+            var vars = context.GetComponentsInChildren<VarBool>(true);
             return vars;
         }
 
@@ -24,9 +24,9 @@ namespace RCGFSM.Variable
         // [InlineEditor]
         [Required]
         [HideIf("Multiple")]
-        public VariableBool targetFlag;
+        public VarBool targetFlag;
 
-        [ShowIf("Multiple")] public List<VariableBool> targetFlags;
+        [ShowIf("Multiple")] public List<VarBool> targetFlags;
 
         public bool TargetValue = true;
 

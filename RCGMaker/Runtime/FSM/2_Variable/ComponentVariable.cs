@@ -4,6 +4,7 @@ using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.ResourceManagement.Util;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
@@ -11,25 +12,33 @@ using Object = UnityEngine.Object;
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
     [Searchable]
-    public abstract class AbstractMonoReferenceVariable : AbstractMonoVariable
+    public abstract class AbstractObjectVariable : AbstractMonoVariable
     {
-        //FIXME: RawValue
+        //FIXME: 這個是多的嗎？
         [PreviewInInspector] public abstract Object RawValue { get; set; }
         public abstract void ClearValue();
     }
 
     //FIXME: 這個好像不好...
-    public class GenericUnityObjectVariable<T> : AbstractMonoReferenceVariable, ISettable<T>, ILevelResetStart,
+    public class GenericUnityObjectVariable<T> : AbstractObjectVariable, ISettable<T>, ILevelResetPrepare,
         IObjectReference where T : Object
     {
+        public UnityAction<T> OnValueChanged;
+
         [Button]
         protected virtual void Rename()
         {
-            var str = "[" + GetType().Name + "]";
+            var str = "";
             if (varTag != null)
                 str += varTag.name;
+            else
+            {
+                str += "[" + GetType().Name + "]";
+            }
+
             name = str;
         }
+
         // protected virtual IEnumerable<Type> filter()
         // {
         //     var q = typeof(Object).Assembly.GetTypes();
@@ -42,13 +51,12 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         // }
         //
         // [ValueDropdown(nameof(_filter))]
-
-        //FIXME: 可以用schema來收斂型別嗎？
-        [FormerlySerializedAs("_siblingValue")]
-        [Header("預設值")]
-        [SerializeField]
-        [DropDownRef(null, nameof(SiblingValueFilter))]
-        private T _siblingDefaultValue;
+        //FIXME: 只有UnityObjectField有用到這個...Data的用不到啊, 移到外面？ override DefaultValue?
+        // [FormerlySerializedAs("_siblingValue")]
+        // [Header("預設值")]
+        // [SerializeField]
+        // [DropDownRef(null, nameof(SiblingValueFilter))]
+        // private T _siblingDefaultValue;
 
         Type SiblingValueFilter()
         {
@@ -58,15 +66,27 @@ namespace RCGMaker.Runtime.FSM._2_Variable
             return varTag._valueFilterType.RestrictType;
         }
 
-        [Header("預設值")] [HideIf(nameof(_siblingDefaultValue))] [SerializeField]
-        private T _defaultValue;
+        //FIXME: 繼承時想要加更多attribute
+        // [Header("預設值")] [HideIf(nameof(_siblingDefaultValue))] [SerializeField]
+        protected T _defaultValue;
 
 
-        private T DefaultValue => _siblingDefaultValue != null ? _siblingDefaultValue : _defaultValue;
+        protected virtual T DefaultValue
+        {
+            get { return _defaultValue; }
+            // set { _defaultValue = value; }
+        }
+        // _siblingDefaultValue != null ? _siblingDefaultValue : _defaultValue;
 
         [PreviewInInspector] public T Value => _currentValue;
 
-        public override Object RawValue
+        // public override T1 GetValue<T1>() //寫這三小...
+        // {
+        //     // return base.GetValue<T1>();
+        //     return _currentValue;
+        // }
+
+        public override Object RawValue //FIXME: 用Object?
         {
             get
             {
@@ -100,38 +120,35 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
         public void SetValue(T value, MonoBehaviour byWho = null)
         {
-            _currentValue = value;
+            SetValue<T>(value, byWho);
         }
 
         public void SetValue(object value, MonoBehaviour byWho = null)
         {
-            _currentValue = value as T;
+            SetValue<T>((T)value, byWho);
         }
 
+        //怎麼那麼多種...
         protected override void SetValueInternal<T1>(T1 value, Object byWho = null)
         {
             Debug.Log("Set value to " + value, this);
             _currentValue = value as T;
+            OnValueChanged?.Invoke(_currentValue);
         }
 
         public override void ClearValue()
         {
-            _currentValue = null;
+            SetValue(null);
+            // _currentValue = null;
         }
 
         public override GameFlagBase FinalData { get; }
         public override Type FinalDataType => RawValue != null ? RawValue.GetType() : null;
+        public override Type ValueType => typeof(T);
 
-        public override object objectValue => RawValue;
-
-
+        public override object objectValue => _currentValue;
         // public override Component objectValue => RawValue;
 
-
-        public void LevelResetStart()
-        {
-            _currentValue = DefaultValue;
-        }
 
         //FIXME: Editor用的...EditorObjectValue?
         public Object EditorValue
@@ -147,13 +164,39 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         }
 
         public Type ObjectType => typeof(T);
+
+        public void LevelResetPrepareRuntimeData()
+        {
+            _currentValue = DefaultValue;
+        }
     }
 
     //variable
     //Monobehaviour 包著一個變數
     //需要Generic嗎...好像算了
-    public class UnityObjectVariable : GenericUnityObjectVariable<Component>
+    public class ComponentVariable : GenericUnityObjectVariable<Component>
     {
+        [FormerlySerializedAs("_siblingValue")]
+        [Header("預設值")]
+        [SerializeField]
+        [DropDownRef(null, nameof(SiblingValueFilter))]
+        private Component _siblingDefaultValue;
+
+        Type SiblingValueFilter()
+        {
+            if (varTag == null)
+                return typeof(Component);
+            // Debug.Log("RestrictType is " + varTag._valueFilterType.RestrictType);
+            return varTag._valueFilterType.RestrictType;
+        }
+
+        //FIXME: 繼承時想要加更多attribute
+        // [Header("預設值")] [HideIf(nameof(_siblingDefaultValue))] [SerializeField]
+        // protected Component _defaultValue;
+
+
+        protected override Component DefaultValue =>
+            _siblingDefaultValue != null ? _siblingDefaultValue : _defaultValue;
         //FIXME: 把Variable直接丟到該模組上就好？
         // IEnumerable<Component> _filter()
         // {

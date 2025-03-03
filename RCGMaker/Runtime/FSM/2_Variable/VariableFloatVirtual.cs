@@ -8,14 +8,14 @@ using UnityEngine.Serialization;
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
     //FIXME: 玩惹九日有用到...
-    public class MonoVariableFloatVirtual : VariableFloat //這個是不是沒有屁用, 還是純屬拿來rebind?
+    public class MonoVarFloatVirtual : VarFloat //這個是不是沒有屁用, 還是純屬拿來rebind?
     {
         //要標注等等才會有嗎？
 
-        [FormerlySerializedAs("variableFloat")]
-        public VariableFloat _monoVariableFloat;
+        [FormerlySerializedAs("_monoVariableFloat")] [FormerlySerializedAs("variableFloat")]
+        public VarFloat _monoVarFloat;
 
-        public override float FinalValue => _monoVariableFloat ? _monoVariableFloat.CurrentValue : 0; //用接過來的變數
+        public override float FinalValue => _monoVarFloat ? _monoVarFloat.CurrentValue : 0; //用接過來的變數
 
         // [PreviewInInspector] [Auto] private AbstractVariableModifier<float> modifier;
 

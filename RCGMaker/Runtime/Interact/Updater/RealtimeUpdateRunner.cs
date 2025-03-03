@@ -44,8 +44,8 @@ namespace RCGMaker.Core
         public StatData LastForSecondsStatData;
         [PreviewInInspector] private float _timer;
 
-        [FormerlySerializedAs("_timerVariableFloat")]
-        public VariableFloat _timerMonoVariableFloat;
+        [FormerlySerializedAs("_timerMonoVariableFloat")] [FormerlySerializedAs("_timerVariableFloat")]
+        public VarFloat _timerMonoVarFloat;
 
         [PreviewInInspector] [AutoChildren()] private IUpdatable[] _updatables;
 

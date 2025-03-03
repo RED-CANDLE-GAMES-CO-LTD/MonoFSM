@@ -15,6 +15,7 @@ public abstract class AbstractFolder : MonoBehaviour
 
 public class RCGVariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
 {
+    protected override bool IsStringDictEnable => true;
     // [ReadOnly] [Component( AddComponentAt.Children, "[Variable]")]
     // public AbstractVariable flag;
 
@@ -36,6 +37,11 @@ public class RCGVariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
     public AbstractMonoVariable GetVariable(string varName)
     {
         return Get(varName);
+    }
+
+    public TVariable GetVariable<TVariable>(VariableTag type) where TVariable : AbstractMonoVariable
+    {
+        return Get(type) as TVariable;
     }
 
     //GetConfig?
@@ -81,9 +87,9 @@ public class RCGVariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
 
 
     // [Button]
-    public VariableBool CreateVariableBool()
+    public VarBool CreateVariableBool()
     {
-        var varBool = gameObject.AddChildrenComponent<VariableBool>("[Variable] flag");
+        var varBool = gameObject.AddChildrenComponent<VarBool>("[Variable] flag");
         return varBool;
     }
 #endif

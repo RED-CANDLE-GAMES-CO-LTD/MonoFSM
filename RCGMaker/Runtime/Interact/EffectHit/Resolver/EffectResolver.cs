@@ -38,5 +38,6 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
 
         public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid();
+        public IActor Owner => GetComponentInParent<IActor>();
     }
 }

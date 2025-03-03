@@ -95,6 +95,8 @@ public interface IItem : IDescriptableData
 [Searchable]
 public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptable //以前是GameFlagDescriptable
 {
+    public MonoDescriptableTag descriptableTag;
+
     public async void PreloadSprite()
     {
         if (SpriteRef == null) return;
@@ -195,13 +197,19 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
         return dropdownList;
     }
 
-    public void CopyFrom(DescriptableData source)
-    {
 #if UNITY_EDITOR
+    [ShowInInspector] [BoxGroup("CopyFrom")]
+    private DescriptableData toCopySource;
+
+    [BoxGroup("CopyFrom")]
+    [Button]
+    void CopyFrom()
+    {
+        var source = toCopySource;
         Undo.RegisterCompleteObjectUndo(this, "CopyValue");
         EditorUtility.CopySerializedManagedFieldsOnly(source, this);
-#endif
     }
+#endif
 
     //類別，需要的自己用enum override掉
     public virtual int category => 0;
@@ -257,7 +265,7 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
     public LocalizedString summaryStr;
     public virtual string ItemType => typeStr;
 
-    public virtual string Title => titleStr.ToString();
+    [PreviewInInspector] public virtual string Title => titleStr.ToString();
 
     public virtual string Description =>
         descriptionStr.ToString().Length > 0 ? descriptionStr.ToString() : this.description;
@@ -352,7 +360,7 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
 
     [PreviewInInspector]
     [PreviewField(100)]
-    public virtual Sprite FullSprite => staticSprite ? staticSprite : spriteRef.GetAsset<Sprite>();
+    public virtual Sprite FullSprite => staticSprite ? staticSprite : spriteRef?.GetAsset<Sprite>();
 
     public virtual Sprite SmallIcon => IconSpriteRef.GetAsset<Sprite>();
     public virtual RCGAssetReference SpriteRef => spriteRef;
@@ -472,6 +480,12 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
 
     //FIXME: 亂寫看看
     public MonoDescriptableTag Key { get; }
+
+    public MonoDescriptableTag[] GetKeys()
+    {
+        return new[] { descriptableTag };
+    }
+
     public IDescriptableData Descriptable => this;
 
     public void OnUIEventReceived()

@@ -2,6 +2,7 @@ using System;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime;
 using RCGMaker.Runtime.Attributes;
+using RCGMaker.Runtime.FSM._2_Variable;
 using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using RCGMaker.Runtime.Mono;
@@ -12,7 +13,7 @@ namespace RCGMaker.Core.DataProvider
 {
     public interface IMonoDescriptableProvider
     {
-        public IMonoDescriptable GetMonoDescriptable();
+        public MonoDescriptable GetMonoDescriptable();
     }
 
     public enum ProviderType
@@ -22,9 +23,11 @@ namespace RCGMaker.Core.DataProvider
         Variable, //還不一定有。可能是null
     }
 
+
+    //FIXME: TMonoDescriptable是不是不好？不要再inherit MonoDescriptable
     [Serializable]
     public class MonoDescriptableProvider<TMonoDescriptable> : IMonoDescriptableProvider
-        where TMonoDescriptable : class, IMonoDescriptable
+        where TMonoDescriptable : MonoDescriptable
     {
         [SerializeReferenceParentValidate] [SerializeField]
         private MonoBehaviour propertyParent;
@@ -32,11 +35,11 @@ namespace RCGMaker.Core.DataProvider
         //從Variable拿？
 
 
-        public ProviderType providerType;
+        [SerializeField] ProviderType providerType;
 
         //如果是parent就不需要這個了？
-        [ShowIf("providerType", ProviderType.GlobalMonoInstance)] [SerializeField]
-        MonoDescriptableTag monoDescriptableTag;
+        // [ShowIf("providerType", ProviderType.GlobalMonoInstance)] 
+        [SerializeField] MonoDescriptableTag monoDescriptableTag;
 
         [ShowIf("providerType", ProviderType.Variable)] [SerializeReference]
         public IVariableMonoDescriptableProvider variableProvider;
@@ -49,6 +52,7 @@ namespace RCGMaker.Core.DataProvider
                 switch (providerType)
                 {
                     case ProviderType.Variable:
+                        if (variableProvider == null) return null;
                         return variableProvider.SampleData;
                 }
 
@@ -58,18 +62,34 @@ namespace RCGMaker.Core.DataProvider
             }
         }
 
-        [PreviewInInspector]
-        public IMonoDescriptable GetMonoDescriptable()
+        public AbstractMonoVariable GetVariable(VariableTag tag)
         {
-            if (propertyParent == null) return null;
+            return GetMonoDescriptable()?.GetVariable(tag);
+        }
+
+        [Button]
+        void Refresh()
+        {
+            GetMonoDescriptable();
+        }
+
+        [PreviewInInspector]
+        public MonoDescriptable GetMonoDescriptable()
+        {
+            if (propertyParent == null)
+            {
+                Debug.LogError("No Parent Found");
+                return null;
+            }
+
             switch (providerType)
             {
                 case ProviderType.ParentMono:
-                    return propertyParent.GetComponentInParent<TMonoDescriptable>();
+                    return propertyParent.GetMonoCompInParent(monoDescriptableTag);
                 case ProviderType.GlobalMonoInstance:
-                    return propertyParent.GetMonoDescriptableInstance(monoDescriptableTag);
+                    return propertyParent.GetGlobalInstance(monoDescriptableTag);
                 case ProviderType.Variable:
-                    return variableProvider?.GetVariableMonoDescriptable?.Value;
+                    return variableProvider?.GetVarMonoDescriptable?.Value;
                 default:
                     return propertyParent.GetComponentInParent<TMonoDescriptable>();
             }
@@ -84,7 +104,7 @@ namespace RCGMaker.Core.DataProvider
     //可以refactor
     // [MovedFrom(false, null, "rcg.rcgmakercore.Runtime", "MonoDescriptableSource")]
     [Serializable]
-    public class MonoDescriptableConfig : IConfigVar, IMonoDescriptableProvider
+    public class MonoDescriptableDropdownRefProvider : IConfigVar, IMonoDescriptableProvider
     {
         // [InlineEditor]
         [DropDownRef] public MonoDescriptable _monoDescriptable;
@@ -94,7 +114,7 @@ namespace RCGMaker.Core.DataProvider
             return _monoDescriptable;
         }
 
-        public IMonoDescriptable GetMonoDescriptable()
+        public MonoDescriptable GetMonoDescriptable()
         {
             return _monoDescriptable;
         }
@@ -115,9 +135,9 @@ namespace RCGMaker.Core.DataProvider
         [PreviewInInspector]
         IMonoDescriptable currentInstance => GetMonoDescriptable();
 
-        public IMonoDescriptable GetMonoDescriptable()
+        public MonoDescriptable GetMonoDescriptable()
         {
-            return propertyParent.GetMonoDescriptableInstance(monoDescriptableTag);
+            return propertyParent.GetMonoCompInParent(monoDescriptableTag);
         }
     }
 }

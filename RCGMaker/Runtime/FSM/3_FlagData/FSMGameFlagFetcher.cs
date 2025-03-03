@@ -22,6 +22,6 @@ namespace RCGMaker.Runtime.FSM
         }
 
         public List<GameFlagBase> flags = new();
-        public List<VariableBool> variableBools = new();
+        public List<VarBool> variableBools = new();
     }
 }

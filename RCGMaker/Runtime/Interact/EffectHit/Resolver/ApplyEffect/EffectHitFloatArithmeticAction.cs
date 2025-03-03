@@ -1,6 +1,7 @@
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
 using RCGMaker.Runtime.FSM._2_Variable;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -8,15 +9,23 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 {
     public abstract class AbstractEffectHitAction : MonoBehaviour, IRCGArgEventReceiver<IEffectHitData>
     {
+        [Button]
+        private void Rename()
+        {
+            name = "[EffectHitAction]" + GetType().Name;
+        }
+
         // public abstract void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver);
         public void EventReceived(IEffectHitData arg)
         {
+            _runtimeDealer = arg.Dealer as GeneralEffectDealer;
             _runtimeReceiver = arg.Receiver as GeneralEffectReceiver;
-            Debug.Log("EffectHitAction EventReceived", this);
-            ApplyEffect(arg.Dealer, arg.Receiver);
+            // Debug.Log("EffectHitAction EventReceived", this);
+            ApplyEffect(arg.Dealer as GeneralEffectDealer, arg.Receiver as GeneralEffectReceiver);
         }
 
-        protected abstract void ApplyEffect(IEffectDealer dealer, IEffectReceiver receiver);
+        protected abstract void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver);
+        [PreviewInInspector] GeneralEffectDealer _runtimeDealer;
         [PreviewInInspector] GeneralEffectReceiver _runtimeReceiver;
     }
 
@@ -26,6 +35,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         {
             Dealer,
             Receiver,
+            // Constant
         }
 
         public OperandType _setter;
@@ -34,15 +44,15 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         public OperandType _operator2;
 
         private VariableTag op1 =>
-            _operator1 == OperandType.Dealer ? dealerVariableProvider?.varTag : receiverVariableProvider?.varTag;
+            _operator1 == OperandType.Dealer ? dealerVariableProvider?._varTag : receiverVariableProvider?._varTag;
 
         private VariableTag op2 =>
-            _operator2 == OperandType.Dealer ? dealerVariableProvider?.varTag : receiverVariableProvider?.varTag;
+            _operator2 == OperandType.Dealer ? dealerVariableProvider?._varTag : receiverVariableProvider?._varTag;
 
         AbstractMonoVariable setterVariable =>
             _setter == OperandType.Dealer
-                ? dealerVariableProvider?.GetMonoVariable
-                : receiverVariableProvider?.GetMonoVariable;
+                ? dealerVariableProvider?.Variable
+                : receiverVariableProvider?.Variable;
 
         string ArithmeticString => Arithmetic switch
         {
@@ -55,7 +65,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         };
 
         [PreviewInInspector]
-        string _description => $"{setterVariable?.name} = {op1?.name} {ArithmeticString} {op2?.name}";
+        string _description =>
+            $"{setterVariable?.name} = {_operator1}.{op1?.name} {ArithmeticString} {_operator2}.{op2?.name}";
         //要用entry?
 
 
@@ -75,11 +86,13 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
             Modulo,
         }
 
-        protected override void ApplyEffect(IEffectDealer dealer, IEffectReceiver receiver)
+        protected override void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver)
         {
-            var dealerValue = dealerVariableProvider.Value;
-            var receiverValue = receiverVariableProvider.GetValueFrom(receiver as GeneralEffectReceiver);
-            Debug.Log($"dealerValue: {dealerValue}, receiverValue: {receiverValue}", this);
+            var dealerValue = dealerVariableProvider.GetValueFrom(dealer);
+            var receiverValue = receiverVariableProvider.GetValueFrom(receiver);
+            Debug.Log(
+                $"{_setter} = {dealerVariableProvider._varTag.name} dealerValue: {dealerValue}, {Arithmetic} {receiverVariableProvider._varTag.name} receiverValue: {receiverValue}",
+                this);
             var value1 = _operator1 == OperandType.Dealer ? dealerValue : receiverValue;
             var value2 = _operator2 == OperandType.Dealer ? dealerValue : receiverValue;
             if (_setter == OperandType.Dealer)
