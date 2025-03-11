@@ -13,7 +13,7 @@ public class AnimatorStateStringListProvider : AbstractStringProvider
     public List<string> list;
 
     private List<int> hashList;
-    [Required] public VariableInt currentIndex;
+    [Required] public VarInt currentIndex;
 
     public override string StringValue =>
         currentIndex.CurrentValue < 0 || currentIndex.CurrentValue >= list.Count ? "" : list[currentIndex.CurrentValue];

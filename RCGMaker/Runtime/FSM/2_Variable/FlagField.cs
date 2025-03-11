@@ -97,7 +97,7 @@ public class ValueChangedListener<T>
     public void Clear()
     {
         onChangeActionDict?.Clear();
-        keys?.Clear();
+        tempKeys?.Clear();
         toRemove?.Clear();
     }
 
@@ -105,8 +105,7 @@ public class ValueChangedListener<T>
 
     [PreviewInInspector] List<Object> ownersInDict => onChangeActionDict?.Values.Select(x => x.Item1).ToList();
 
-    // [PreviewInInspector]
-    private List<int> keys = new List<int>();
+    [PreviewInInspector] private List<int> tempKeys = new List<int>();
 
     public void OnChange(T value, bool clearAll)
     {
@@ -118,22 +117,20 @@ public class ValueChangedListener<T>
         CleanNullListener();
 
         //避免Dictionary變動 先把key 都拿出來
-        keys.Clear();
+        tempKeys.Clear();
 
         var iterator = onChangeActionDict.GFIterator();
         while (iterator.MoveNext())
         {
-            keys.Add(iterator.Current.Key);
+            tempKeys.Add(iterator.Current.Key);
         }
 
-        // keys.AddRange(onChangeActionDict.Keys);
-
-        foreach (var key in keys)
+        foreach (var key in tempKeys) //這個keys怎麼可能變動？在別的地方add listener?
         {
             if (onChangeActionDict.TryGetValue(key, out var value1))
             {
                 var action = value1.Item2;
-                //  Debug.Log("FlagField Invoke" + action);
+                //FIXME: 這個invoke可能會造成這個field又change?很糟糕要怎麼避免
                 action.Invoke(value);
             }
             else

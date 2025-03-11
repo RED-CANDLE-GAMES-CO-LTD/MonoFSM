@@ -35,7 +35,7 @@ namespace RCGMaker.Core
 
         public int layerIndex = 0;
 
-        protected override bool isValid
+        protected override bool IsValid
         {
             get
             {

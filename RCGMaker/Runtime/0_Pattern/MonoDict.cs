@@ -14,7 +14,21 @@ namespace RCGMaker.Core
     public abstract class MonoDict<T, TU> : MonoBehaviour, ILevelResetPrepare
         where TU : IValueOfKey<T> where T : IStringKey
     {
-        [PreviewInInspector] [AutoChildren] TU[] collections; //disable也會被加進來
+        protected virtual bool isLog => false;
+
+        protected virtual void Awake()
+        {
+            _isPrepared = false;
+            PrepareDictCheck();
+        }
+
+        public void LevelResetPrepareRuntimeData() //這會不會太晚？
+        {
+            // _isPrepared = false;
+            // PrepareDictCheck();
+        }
+
+        [PreviewInInspector] [AutoChildren] protected TU[] collections; //disable也會被加進來
 
         protected virtual bool IsStringDictEnable => false;
 
@@ -73,22 +87,27 @@ namespace RCGMaker.Core
 
         public virtual void Add(T key, TU value)
         {
+            if (key == null)
+                return;
             if (Contains(key))
             {
                 // Debug.LogError($"Key:{key} already exists in {this}", this);
                 return;
             }
 
-            if (key == null)
-                return;
             if (value is IGlobalInstance) //
             {
                 _typeDict[value.GetType()] = value;
             }
 
+            if (isLog)
+            {
+                Debug.Log($"Add key:{key} value:{value}", value as Object);
+            }
+
             _dict.Add(key, value);
             if (IsStringDictEnable)
-                _stringDict.Add(value.Key.GetStringKey, value);
+                _stringDict.TryAdd(value.Key.GetStringKey, value);
             // enabled = true;
         }
 
@@ -109,11 +128,19 @@ namespace RCGMaker.Core
         public TU Get(T key)
         {
             // EditorPrepareCheck();
+            if (key == null)
+                return default;
             //FIXME: 
+            if (_dict.TryGetValue(key, out var value))
+                return value;
 
-            if (Contains(key))
-                return _dict[key];
-            this.LogError($"Key:{key} not found in {this}");
+            if (_isPrepared == false && Application.isPlaying)
+            {
+                Debug.LogError("Not prepared", this);
+                return default;
+            }
+
+            Debug.LogError($"Key:{key} not found in {this}");
             return default;
         }
 
@@ -164,14 +191,17 @@ namespace RCGMaker.Core
 
         [ShowInInspector] public List<string> GetStringKeys => new(_stringDict.Keys);
         [ShowInInspector] public List<T> GetKeys => new(_dict.Keys);
-        [ShowInInspector] public List<TU> GetValues => new(_dict.Values);
 
-
-        public void LevelResetPrepareRuntimeData()
+        [ShowInInspector]
+        public List<TU> GetValues
         {
-            _isPrepared = false;
-            PrepareDictCheck();
+            get
+            {
+                EditorPrepareCheck();
+                return new List<TU>(_dict.Values);
+            }
         }
+
 
         [Button]
         public void Refresh()
@@ -200,10 +230,18 @@ namespace RCGMaker.Core
                 collections = GetComponentsInChildren<TU>(true);
             }
 #endif
+            _isPrepared = true;
+            // Debug.Log("PrepareDictCheck" + name + collections.Length, this);
             foreach (var item in collections)
             {
                 if (CanBeAdded(item) == false)
+                {
+                    if (isLog)
+                        Debug.Log($"Can't add {item}", item as Object);
                     continue;
+                }
+
+
                 // item.GetKeys().ForEach(key =>
                 // {
                 //     if (key == null)
@@ -215,6 +253,7 @@ namespace RCGMaker.Core
                 // Debug.Log($"Add key:{item.Key} item:{item}",item as Object);
             }
 
+            // _isPrepared = true;
             // enabled = false;
         }
 

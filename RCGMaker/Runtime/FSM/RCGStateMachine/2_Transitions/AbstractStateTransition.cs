@@ -23,10 +23,11 @@ public interface ITransitionChecker
 }
 
 [Searchable]
-public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable
+public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable, ILevelResetPrepare
 {
     [PreviewInInspector] [AutoParent] [Required] [Component(AddComponentAt.Same)]
     ITransitionChecker _checker;
+
 
     [Button("依照Behaviour改名字")]
     void RenameByBehaviour()
@@ -223,6 +224,12 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
                 return false;
             return parentState.Context.LastTransition == this;
         }
+    }
+
+    public void LevelResetPrepareRuntimeData()
+    {
+        if (_checker == null)
+            Debug.LogError("No Checker", gameObject);
     }
 }
 

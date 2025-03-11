@@ -6,12 +6,11 @@ using UnityEngine;
 namespace RCGMaker.Runtime.FSM._3_FlagData
 {
     [CreateAssetMenu(menuName = "RCG/ItemData")]
-    public class ItemData:DescriptableData, IItem
+    public class ItemData : DescriptableData, IItem
     {
-        [BoxGroup("物品")]
-        [SerializeField]
-        int slotStackCount = 1;
+        [BoxGroup("物品")] [SerializeField] int slotStackCount = 1;
         public int SlotStackCount => slotStackCount;
+
         public virtual void Use() //FIXME: 怎麼吃更多類型、參數？ 搖桿操作？直接判 UI/Action?
         {
             //食物=> 吃
@@ -20,22 +19,25 @@ namespace RCGMaker.Runtime.FSM._3_FlagData
         }
 
         public virtual bool needInstance => false;
-        
-        [BoxGroup("物品")]
-        [Required]
-        public PoolObject fsmPrefab;
+
+        [BoxGroup("物品")] [Required] public PoolObject fsmPrefab;
         public override PoolObject bindPrefab => fsmPrefab; //需要這個變數嗎...
 
         public PoolObject InstantiateFsm(Transform parent)
         {
-            return MyInstantiate(bindPrefab,parent );
+            return MyInstantiate(bindPrefab, parent);
         }
-        
-        protected T MyInstantiate<T>(T prefab, Transform parent) where T:MonoBehaviour
+
+        protected T MyInstantiate<T>(T prefab, Transform parent) where T : MonoBehaviour
         {
-            
             //可以用async
-            if(prefab == null) return null;
+            if (prefab == null)
+            {
+                Debug.LogError("prefab is null", this);
+                return null;
+            }
+
+            //FIXME: 要先關起來...
             var instance = Instantiate(prefab, parent);
 #if UNITY_EDITOR
             UnityEditor.Undo.RegisterCreatedObjectUndo(instance.gameObject, "InstantiateEquipView");

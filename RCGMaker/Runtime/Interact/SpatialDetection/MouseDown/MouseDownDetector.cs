@@ -11,9 +11,9 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
     {
         public static MouseDownDetector Instance;
 
-        //放在dealer層？
-        [AutoChildren] AbstractConditionComp[] conditions;
-        public bool IsValid => conditions.IsAllValid();
+        // //放在dealer層？
+        // [AutoChildren] AbstractConditionComp[] conditions;
+        // public bool IsValid => conditions.IsAllValid();
 
         protected override void SetLayerOverride()
         {

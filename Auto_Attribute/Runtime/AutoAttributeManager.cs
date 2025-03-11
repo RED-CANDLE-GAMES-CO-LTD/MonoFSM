@@ -16,6 +16,7 @@
 
 
 // #define DEB
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,16 +28,13 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Sirenix.OdinInspector;
-
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
 
 [ScriptTiming(-20000)]
-
 public class AutoAttributeManager : MonoBehaviour
 {
-    
     public static IEnumerable<MonoBehaviour> GetAllMonoBehavioursOfCurrentScene()
     {
         var roots = SceneManager.GetActiveScene().GetRootGameObjects();
@@ -85,11 +83,20 @@ public class AutoAttributeManager : MonoBehaviour
     // }
     // // public bool IsFindAllBehavior = true;
     // private List<MonoBehaviour> monoBehavioursInSceneWithAuto = new List<MonoBehaviour>();
+
+    [ShowInInspector]
+    int GetAllGameObjectCount()
+    {
+        var roots = SceneManager.GetActiveScene().GetRootGameObjects();
+        return roots.SelectMany(go => go.GetComponentsInChildren<Transform>(true)).Count();
+    }
+
     public MonoReferenceCache monoReferenceCache = new();
+
     private void Awake()
     {
         // Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
-        
+
         //FIXME: 這可以減少GC嗎？
         // monoReferenceCache.ClearRefs();
 #if UNITY_EDITOR
@@ -141,7 +148,8 @@ public class AutoAttributeManager : MonoBehaviour
     {
         AutoReference(mb, out _, out _);
     }
-    public static void AutoReferenceAllChildren(GameObject targetGo)//把所有的children都綁看看
+
+    public static void AutoReferenceAllChildren(GameObject targetGo) //把所有的children都綁看看
     {
         var monos = targetGo.GetComponentsInChildren<MonoBehaviour>(true);
         foreach (var mono in monos)
@@ -195,7 +203,7 @@ public class AutoAttributeManager : MonoBehaviour
             // {
             //     continue; //skip serialized fields
             // }
-             
+
             var attributes = attributeDict[field];
             //TODO: 這個也可以cache with dict
             // var attributes = 
@@ -212,9 +220,8 @@ public class AutoAttributeManager : MonoBehaviour
                 }
             }
         }
-
-      
     }
+
     [Button("Clear Cache")]
     void Clear()
     {
@@ -240,7 +247,7 @@ public class AutoAttributeManager : MonoBehaviour
         Debug.LogFormat(
             $"[Auto] Assigned <color={result_color}><b>{autoVariablesAssignedCount}/..</b></color> [Auto*] variables in <color=#cc3300><b>{sw.ElapsedMilliseconds} Milliseconds </b></color> - Analized {monoBehaviours.Count()} MonoBehaviours and .. variables");
     }
-    
+
     [Button("Bind")]
     public void SweepScene()
     {
@@ -386,20 +393,20 @@ public class AutoAttributeManager : MonoBehaviour
 
         var fields =
             t.GetFields(BindingFlags.Instance | BindingFlags.Public)
-            .Where(prop => prop.FieldType.IsPrimitive == false)
-            .Where(prop => Attribute.IsDefined(prop, typeof(PreventAutoCacheAttribute)) == false &&
-                           (Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
-                            Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
-                            Attribute.IsDefined(prop, typeof(AutoParentAttribute))))
-            .Concat(
-            ReflectionHelperMethods.GetNonPublicFieldsInBaseClasses(t)
-        // .Where(prop => prop.FieldType.IsPrimitive == false)
-        .Where(prop => Attribute.IsDefined(prop, typeof(PreventAutoCacheAttribute)) == false &&
-                       (Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
-                        Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
-                        Attribute.IsDefined(prop, typeof(AutoParentAttribute)))
-        )
-        );
+                .Where(prop => prop.FieldType.IsPrimitive == false)
+                .Where(prop => Attribute.IsDefined(prop, typeof(PreventAutoCacheAttribute)) == false &&
+                               (Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
+                                Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
+                                Attribute.IsDefined(prop, typeof(AutoParentAttribute))))
+                .Concat(
+                    ReflectionHelperMethods.GetNonPublicFieldsInBaseClasses(t)
+                        // .Where(prop => prop.FieldType.IsPrimitive == false)
+                        .Where(prop => Attribute.IsDefined(prop, typeof(PreventAutoCacheAttribute)) == false &&
+                                       (Attribute.IsDefined(prop, typeof(AutoAttribute)) ||
+                                        Attribute.IsDefined(prop, typeof(AutoChildrenAttribute)) ||
+                                        Attribute.IsDefined(prop, typeof(AutoParentAttribute)))
+                        )
+                );
         var fieldsWithAuto = fields as FieldInfo[] ?? fields.ToArray();
         fieldDict.TryAdd(t, fieldsWithAuto.ToList());
         var fieldDictByName = FieldCache.fieldDictByName;

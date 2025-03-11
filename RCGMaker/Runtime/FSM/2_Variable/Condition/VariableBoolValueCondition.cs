@@ -13,11 +13,16 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         }
         //FIXME: 好像可以再簡化喔
 
-        [FormerlySerializedAs("variableBool")] [Required] [DropDownRef]
+        void OnVariableBoolChanged()
+        {
+            RenameOfGameObject();
+        }
+
+        [OnValueChanged(nameof(OnVariableBoolChanged))] [FormerlySerializedAs("variableBool")] [Required] [DropDownRef]
         // [ValueDropdown(nameof(GetBoolVariables))]
         public VarBool _monoVariableBool;
 
         public bool targetValue = true;
-        protected override bool isValid => _monoVariableBool.CurrentValue == targetValue;
+        protected override bool IsValid => _monoVariableBool.CurrentValue == targetValue;
     }
 }

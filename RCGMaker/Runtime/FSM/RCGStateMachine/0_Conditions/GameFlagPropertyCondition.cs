@@ -4,6 +4,6 @@ namespace RCGMaker.Core
     public class GameFlagPropertyCondition : AbstractConditionComp
     {
         public FlagFieldBoolEntry FieldBool;
-        protected override bool isValid => FieldBool.isValid;
+        protected override bool IsValid => FieldBool.isValid;
     }
 }

@@ -119,6 +119,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         //FIXME: 限定型別？
         //FIXME: 下拉式巢狀分類:
         // sampleData? sampleDescriptableTag?
+        GameFlagBase SampleData;
 
         // private void OnValidate()
         // {

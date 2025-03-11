@@ -75,4 +75,5 @@ public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bo
     }
 
     public bool IsValid => CurrentValue;
+    public override GameFlagBase FinalData => scriptableData;
 }

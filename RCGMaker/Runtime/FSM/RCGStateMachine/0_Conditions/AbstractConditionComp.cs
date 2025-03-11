@@ -63,12 +63,15 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolValue
 
     [Button]
     [ShowIf("IsShowRenameButton")]
-    private void RenameOfGameObject()
+    protected void RenameOfGameObject()
     {
         var text = "[Condition] " + nameDescription;
         if (FinalResultInverted)
             text += " is Inverted";
         gameObject.name = text;
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(gameObject);
+#endif
     }
 
     // public Action OnConditionChanged; //要用這個？還是用polling就好了
@@ -79,7 +82,7 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolValue
     public bool IsDirty => _isConditionChanged;
 
     public bool FinalResultInverted = false;
-    protected abstract bool isValid { get; }
+    protected abstract bool IsValid { get; }
 
     [ShowInPlayMode]
     public bool FinalResult
@@ -100,9 +103,9 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolValue
             //FIXME: 關著表示不判...
 
             if (FinalResultInverted)
-                return !isValid;
+                return !IsValid;
 
-            return isValid;
+            return IsValid;
         }
     }
 

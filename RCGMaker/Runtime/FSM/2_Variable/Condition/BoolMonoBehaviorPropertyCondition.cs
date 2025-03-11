@@ -11,7 +11,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     //選到一個任何MonoBehavior的bool property
     public class BoolMonoBehaviorPropertyCondition : AbstractFieldConditionComp<bool, MonoBehaviour>
     {
-        protected override bool isValid =>
+        protected override bool IsValid =>
             SourceValue == TargetValue;
     }
 
@@ -29,8 +29,8 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         [ValueDropdown(nameof(GetBoolPropertyNames))]
         public string propertyName;
 
-        [Header("小心 bool default 是false")]
-        [FormerlySerializedAs("targetValue")] public TField TargetValue;
+        [Header("小心 bool default 是false")] [FormerlySerializedAs("targetValue")]
+        public TField TargetValue;
 
         public TField SourceValue => GetPropertyInfo().Invoke(); //喔喔不需要吃參數了 已經確定是sourceObject的特定property
 
@@ -45,7 +45,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
                 .GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
 
             // Debug.Log($"Property {propertyName} found in {sourceObject.GetType()}", sourceObject);
-            
+
             if (propertyInfo == null)
             {
                 Debug.LogError($"Property {propertyName} not found in {sourceObject.GetType()}", sourceObject);
@@ -70,8 +70,8 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 
             return _getMyProperty;
         }
-        
-        
+
+
         // protected abstract bool isValid { get; }
         // protected override bool isValid =>
         //     (bool)target.GetType().GetProperty(propertyName).GetValue(target) == targetValue;

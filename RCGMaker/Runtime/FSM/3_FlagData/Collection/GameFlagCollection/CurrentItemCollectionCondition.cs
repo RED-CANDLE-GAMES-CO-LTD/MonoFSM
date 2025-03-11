@@ -15,5 +15,5 @@ public class CurrentItemCollectionCondition : AbstractConditionComp
     public DescriptableData targetItem;
 
 
-    protected override bool isValid => collection.currentItem == targetItem;
+    protected override bool IsValid => collection.currentItem == targetItem;
 }

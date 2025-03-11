@@ -26,7 +26,7 @@ namespace RCGMaker.Core.DataProvider
 
     //FIXME: TMonoDescriptable是不是不好？不要再inherit MonoDescriptable
     [Serializable]
-    public class MonoDescriptableProvider<TMonoDescriptable> : IMonoDescriptableProvider
+    public class MonoDescriptableProvider<TMonoDescriptable> : IMonoDescriptableProvider, IConfigVar
         where TMonoDescriptable : MonoDescriptable
     {
         [SerializeReferenceParentValidate] [SerializeField]
@@ -42,7 +42,8 @@ namespace RCGMaker.Core.DataProvider
         [SerializeField] MonoDescriptableTag monoDescriptableTag;
 
         [ShowIf("providerType", ProviderType.Variable)] [SerializeReference]
-        public IVariableMonoDescriptableProvider variableProvider;
+        public IVarMonoProvider variableProvider;
+        //有可能沒有？
 
         [PreviewInInspector]
         public DescriptableData SampleData
@@ -89,7 +90,7 @@ namespace RCGMaker.Core.DataProvider
                 case ProviderType.GlobalMonoInstance:
                     return propertyParent.GetGlobalInstance(monoDescriptableTag);
                 case ProviderType.Variable:
-                    return variableProvider?.GetVarMonoDescriptable?.Value;
+                    return variableProvider?.Variable?.Value;
                 default:
                     return propertyParent.GetComponentInParent<TMonoDescriptable>();
             }
@@ -99,6 +100,11 @@ namespace RCGMaker.Core.DataProvider
         [GUIColor(0.8f, 1.0f, 0.8f)]
         [PreviewInInspector]
         public TMonoDescriptable CurrentInstance => GetMonoDescriptable() as TMonoDescriptable;
+
+        public object GetValue()
+        {
+            return CurrentInstance;
+        }
     }
 
     //可以refactor

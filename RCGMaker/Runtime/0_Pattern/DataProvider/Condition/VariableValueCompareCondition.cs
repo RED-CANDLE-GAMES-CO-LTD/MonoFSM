@@ -7,8 +7,11 @@ namespace RCGMaker.Core.DataProvider.Condition
         [SerializeReference] IVariableProvider _sourceVariableProvider;
         [SerializeReference] IVariableProvider _targetVariableProvider;
 
-        protected override bool isValid => _targetVariableProvider.Variable.objectValue != null &&
-                                           _sourceVariableProvider.Variable.objectValue ==
-                                           _targetVariableProvider.Variable.objectValue;
+        AbstractMonoVariable targetVariable => _targetVariableProvider.VarRaw;
+        AbstractMonoVariable sourceVariable => _sourceVariableProvider.VarRaw;
+
+        protected override bool IsValid => targetVariable.objectValue != null &&
+                                           sourceVariable.objectValue ==
+                                           targetVariable.objectValue;
     }
 }

@@ -27,28 +27,47 @@ namespace RCGMaker.Runtime
     public class AbstractMonoDescriptable<TMonoDescriptable> : VariableOwner, IMonoDescriptable, ILevelAwake
         where TMonoDescriptable : DescriptableData //,IVariableOwner //VariableOwner?
     {
+        //FIXME: 更複雜的描述組合？
+        public virtual string RuntimeDescription => Data.Description;
+
 #if UNITY_EDITOR
         [RequiredIn(PrefabKind.InstanceInScene)] [PreviewInInspector] [AutoParent]
         MonoDescriptableBinder _binder;
 #endif
 
+        //GameLogic不該Nested?
+        //FIXME: 太深了...會包到過多的東西
         [PreviewInInspector] [AutoChildren] GeneralEffectDealer[] _dealers; //可以互動的性質門
-        private HashSet<GeneralEffectType> _dealerTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
-        [PreviewInInspector] private int DealerSetCount => _dealerTypeSet.Count;
-        [PreviewInInspector] [AutoChildren] GeneralEffectReceiver[] _receivers; //可以互動的性質門
-        readonly HashSet<GeneralEffectType> _receiverTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
+        // private HashSet<GeneralEffectType> _dealerTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
 
-        [PreviewInInspector] private int ReceiverSetCount => _receiverTypeSet.Count;
+        Dictionary<GeneralEffectType, GeneralEffectDealer> _dealerTypeMap = new();
+
+        [PreviewInInspector] private int DealerSetCount => _dealerTypeMap.Count;
+
+        [PreviewInInspector] [AutoChildren] GeneralEffectReceiver[] _receivers; //可以互動的性質門
+
+        // readonly HashSet<GeneralEffectType> _receiverTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
+        Dictionary<GeneralEffectType, GeneralEffectReceiver> _receiverTypeMap = new();
+
+        [PreviewInInspector] private int ReceiverSetCount => _receiverTypeMap.Count;
+
 
         //帶有xx性質的物件
         public bool HasReceiverType(GeneralEffectType effectType)
         {
-            return _receiverTypeSet.Contains(effectType);
+            return _receiverTypeMap.ContainsKey(effectType);
+            // return _receiverTypeSet.Contains(effectType);
         }
 
         public bool HasDealerType(GeneralEffectType effectType)
         {
-            return _dealerTypeSet.Contains(effectType);
+            return _dealerTypeMap.ContainsKey(effectType);
+            // return _dealerTypeSet.Contains(effectType);
+        }
+
+        public GeneralEffectDealer GetDealer(GeneralEffectType effectType)
+        {
+            return _dealerTypeMap[effectType];
         }
 
         // public DescriptableData SampleData;
@@ -65,7 +84,12 @@ namespace RCGMaker.Runtime
             return data as T;
         }
 
-        public TMonoDescriptable Data => data;
+        [ShowInInspector]
+        public TMonoDescriptable Data
+        {
+            get => data;
+            set => data = value;
+        }
 
 
         //FIXME:  需要Descriptable Tag嗎？從Data拿就好了？
@@ -207,15 +231,25 @@ namespace RCGMaker.Runtime
             if (_receivers != null)
                 foreach (var receiver in _receivers)
                 {
-                    _receiverTypeSet.Add(receiver.EffectType);
+                    // _receiverTypeSet.Add(receiver.EffectType);
+                    _receiverTypeMap[receiver.EffectType] = receiver;
                 }
 
+            foreach (var dealer in _dealers)
+            {
+                if (_dealerTypeMap.TryAdd(dealer.EffectType, dealer) == false)
+                    Debug.LogError($"Dealer {dealer.EffectType} already exists", this);
+            }
+
+            // _dealerTypeMap = _dealers.ToDictionary(dealer => dealer.EffectType);
+
             // _dealerTypeSet = new HashSet<GeneralEffectType>();
-            if (_dealers != null)
-                foreach (var dealer in _dealers)
-                {
-                    _dealerTypeSet.Add(dealer.EffectType);
-                }
+            // if (_dealers != null)
+            //     foreach (var dealer in _dealers)
+            //     {
+            //         // _dealerTypeSet.Add(dealer.EffectType);
+            //         _dealerTypeMap[dealer.EffectType] = dealer;
+            //     }
         }
 
         // [PreviewInInspector]

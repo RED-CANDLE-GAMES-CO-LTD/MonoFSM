@@ -14,9 +14,9 @@ namespace RCGMaker.Runtime.FSM._2_Variable
     public class VariableStatModifier : MonoBehaviour //單一數值的modify...不同層
     {
         //還是用Variable比較好，可以被UI顯示？
-        [Header("Target Stat")] public VariableProvider<float> _targetStatProvider;
+        [Header("Target Stat")] public VariableFloatProvider _targetStatProvider;
 
-        public VariableProvider<float> _valueProvider;
+        public VariableFloatProvider _valueProvider;
 
         public float Value => _valueProvider.Value;
 

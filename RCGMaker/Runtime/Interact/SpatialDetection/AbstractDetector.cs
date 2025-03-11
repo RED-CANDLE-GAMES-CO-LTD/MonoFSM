@@ -11,6 +11,11 @@ namespace RCGMaker.Core.Detection
     [DisallowMultipleComponent]
     public abstract class AbstractDetector : MonoBehaviour, IDefaultSerializable
     {
+        [PreviewInInspector] [Component] [AutoChildren]
+        private AbstractConditionComp[] _conditions;
+
+        public bool IsValid => _conditions.IsAllValid();
+
         List<SpatialDetectable> toRemove = new List<SpatialDetectable>();
 
         //FIXME: Receiver的部分要怎麼處理？ 也會有開關的問題？還是沒差遇到再說
@@ -63,8 +68,11 @@ namespace RCGMaker.Core.Detection
         }
 #endif
 
+        //FIXME: 這個是spatial Detector的特性，不是所有的Detector都有
         public void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
         {
+            if (IsValid == false) //條件不符合
+                return;
             //理論上不該打到別的東西，layer就擋掉了才對 (有分layer的話)
             if (!other.TryGetComponent<SpatialDetectable>(out var spatialDetectable))
             {
@@ -91,15 +99,10 @@ namespace RCGMaker.Core.Detection
 
                 foreach (var receiver in spatialDetectable.EffectReceivers)
                 {
-                    if (!receiver.IsValid) //沒開的不算
-                        continue;
+                    //FIXME: proxy的判定
                     if (!dealer.CanHitReceiver(receiver)) continue; //不會打到的不算
                     //移到System?
-
                     //互動雙方的條件描述
-
-                    //FIXME: 先做條件判定？ 兩邊再發生後做判定？
-
                     var hitData = receiver.GenerateEffectHitData(dealer, receiver);
                     dealer.OnHitEnter(hitData);
                     receiver.OnEffectHitEnter(hitData);

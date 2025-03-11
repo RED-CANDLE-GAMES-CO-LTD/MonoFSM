@@ -29,7 +29,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         public Operator op;
         public float targetValue;
 
-        protected override bool isValid
+        protected override bool IsValid
         {
             get
             {

@@ -45,8 +45,13 @@ public class VariableFloatBoundModifier : MonoBehaviour, AbstractVariableModifie
     [SerializeReference] [SerializeField] IFloatProvider _minValueProvider;
     [SerializeReference] [SerializeField] IFloatProvider _maxValueProvider;
 
-    [ShowInInspector] public float MinValue => _minValueProvider.Value; //MaxVar != null ? MaxVar.CurrentValue : max;
-    [ShowInInspector] public float MaxValue => _maxValueProvider.Value; //MinVar != null ? MinVar.CurrentValue : min;
+    [ShowInInspector]
+    public float MinValue =>
+        _minValueProvider?.Value ?? Mathf.NegativeInfinity; //MaxVar != null ? MaxVar.CurrentValue : max;
+
+    [ShowInInspector]
+    public float MaxValue => _maxValueProvider?.Value ?? Mathf.Infinity; //MinVar != null ? MinVar.CurrentValue : min;
+
     public float Percentage => (_monoVar.CurrentValue - MinValue) / (MaxValue - MinValue);
 
     public UnityEvent OnMin;

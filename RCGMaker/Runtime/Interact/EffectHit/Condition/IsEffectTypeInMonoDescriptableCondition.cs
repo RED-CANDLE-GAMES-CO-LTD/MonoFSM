@@ -24,7 +24,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Condition
         [Header("的")] public EffectSide effectSide;
         [Header("有")] public GeneralEffectType effectType;
 
-        protected override bool isValid
+        protected override bool IsValid
         {
             get
             {

@@ -8,11 +8,16 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
     public class MouseDownDetectable : SpatialDetectable
     {
         //
+        private void OnMouseOver()
+        {
+            // Debug.Log("OnMouseOver", this);
+        }
+
         private void OnMouseDown()
         {
             if (!_conditions.IsAllValid())
             {
-                Debug.Log("Conditions not met");
+                Debug.Log("Conditions not met", this);
                 return;
             }
 

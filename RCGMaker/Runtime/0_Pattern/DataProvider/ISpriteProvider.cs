@@ -14,39 +14,39 @@ namespace RCGMaker.Core.DataProvider
     }
 
     //不能還是蠻討厭的...
-    [Serializable]
-    public class SpriteProviderFromDescriptableData : AbstractDescriptablePropertyProvider, ISpriteProvider
-    {
-        
-        protected override List<Type> supportedTypes => new() { typeof(Sprite), typeof(RCGAssetReference) };
-        public async UniTask<Sprite> GetSprite()
-        {
-            var descriptableData = _dataProvider.GetDescriptableData();
-            if (descriptableData == null)
-            {
-                // Debug.LogError("descriptableData == null");
-                return null;
-            }
-            var data = descriptableData.GetProperty(_propertyName);
-            switch (data)
-            {
-#if UNITY_EDITOR
-                case RCGAssetReference assetReference when Application.isPlaying == false:
-                    return assetReference.editorAsset as Sprite;
-#endif
-                case RCGAssetReference { IsAssetLoaded: true } assetReference:
-                    var sprite = assetReference.GetAsset<Sprite>();
-                    return sprite;
-                case RCGAssetReference assetReference:
-                    return await assetReference.GetAssetAsync<Sprite>();
-                case Sprite sp:
-                    return sp;
-            }
-            return null;
-        }
-
-        
-    }
+//     [Serializable]
+//     public class SpriteProviderFromDescriptableData : AbstractDescriptablePropertyProvider, ISpriteProvider
+//     {
+//         
+//         protected override List<Type> supportedTypes => new() { typeof(Sprite), typeof(RCGAssetReference) };
+//         public async UniTask<Sprite> GetSprite()
+//         {
+//             var descriptableData = _dataProvider.GetDescriptableData();
+//             if (descriptableData == null)
+//             {
+//                 // Debug.LogError("descriptableData == null");
+//                 return null;
+//             }
+//             var data = descriptableData.GetProperty(_propertyName);
+//             switch (data)
+//             {
+// #if UNITY_EDITOR
+//                 case RCGAssetReference assetReference when Application.isPlaying == false:
+//                     return assetReference.editorAsset as Sprite;
+// #endif
+//                 case RCGAssetReference { IsAssetLoaded: true } assetReference:
+//                     var sprite = assetReference.GetAsset<Sprite>();
+//                     return sprite;
+//                 case RCGAssetReference assetReference:
+//                     return await assetReference.GetAssetAsync<Sprite>();
+//                 case Sprite sp:
+//                     return sp;
+//             }
+//             return null;
+//         }
+//
+//         
+//     }
 }
 
 

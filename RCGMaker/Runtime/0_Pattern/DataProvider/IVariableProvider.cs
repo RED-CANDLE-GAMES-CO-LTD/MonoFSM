@@ -12,24 +12,29 @@ using RCGMaker.Runtime.Mono;
 using RCGUIBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
 namespace RCGMaker.Core.DataProvider
 {
-    public interface IVariableMonoDescriptableProvider
+    //重要，這個是最基本的拿到VarMono的Provider
+    public interface IVarMonoProvider //IVarMonoProvider
     {
-        VarMono GetVarMonoDescriptable { get; }
+        VarMono Variable { get; }
         DescriptableData SampleData { get; }
+        MonoDescriptable Value => Variable?.Value;
     }
 
-
+    // [MovedFrom(true, "RCGMaker.Runtime")]
+    //FIXME: 簡寫VarMonoProvider?
+    //FIXME:好像還是要把常用的Property包掉，否則很難用
     [Serializable]
-    public class VariableMonoDescriptableProvider : VariableProvider<MonoDescriptable>,
-        IVariableMonoDescriptableProvider
+    public class VariableMonoDescriptableProvider : VariableProvider<VarMono, MonoDescriptable>,
+        IVarMonoProvider
     {
         //目的：是要拿到Variable, value 是 MonoDescriptable
 
-        public VarMono GetVarMonoDescriptable => Variable as VarMono;
+        public VarMono GetVarMonoDescriptable => VarRaw as VarMono;
 
         [PreviewInInspector]
         public DescriptableData SampleData =>
@@ -41,9 +46,19 @@ namespace RCGMaker.Core.DataProvider
     //VariableProviderInParent?
     //同個owner下的variable
     //FIXME: 壞處：沒有SampleData, 不能直接拿到property
+    //FIXME: 好像應該要有個可以直接傳VarBool的Provider? VarBool是DirectRef
+    //FIXME:好像還是要把常用的Property包掉，否則很難用
     [Serializable]
-    public class VariableProvider<TVariableType> : IVariableProvider, IVarTagProperty
+    public class VariableProvider<TVarMonoType, TValueType> : IVariableProvider, IVarTagProperty, IConfigVar
+        where TVarMonoType : AbstractMonoVariable
     {
+        public Type GetValueType => typeof(TValueType);
+
+        public TVarMonoType GetVar()
+        {
+            return GetVar<TVarMonoType>();
+        }
+
         [FormerlySerializedAs("propertyParent")] [SerializeReferenceParentValidate] [SerializeField]
         private MonoBehaviour _propertyParent;
 
@@ -65,10 +80,10 @@ namespace RCGMaker.Core.DataProvider
             _currentTarget = target;
             FetchOwner(target);
             //FIXME:
-            return Variable;
+            return VarRaw;
         }
 
-        public TVariableType GetValueFrom(MonoBehaviour target)
+        public TValueType GetValueFrom(MonoBehaviour target)
         {
             _currentTarget = target;
             FetchOwner(target);
@@ -78,15 +93,24 @@ namespace RCGMaker.Core.DataProvider
         private bool TypeCheckFail()
         {
             if (_varTag == null) return false;
-            return typeof(TVariableType).IsAssignableFrom(_varTag._valueFilterType.RestrictType) == false;
+            return typeof(TValueType).IsAssignableFrom(_varTag._valueFilterType.RestrictType) == false;
         }
 
-        //FIXME: dropdown validate? 多檢查parent的owner?
+        //FIXME: dropdown validate? 多檢查parent的owner? dropdown tag?
+        [BoxGroup("varTag")]
         [FormerlySerializedAs("varTag")]
         [InfoBox("Tag Type is wrong", InfoMessageType.Error, nameof(TypeCheckFail))]
         [Required]
         public VariableTag _varTag;
 
+        [BoxGroup("varTag")]
+        [ShowInInspector]
+        [ValueDropdown(nameof(GetParentVariableTags))]
+        private VariableTag DropDownVarTag
+        {
+            set => _varTag = value;
+            get => _varTag;
+        }
         //FIXME: 拿到Variable的方式還是要很多種？
         //用varTag, monoTag直接找到 variable
         //從VarMono, 拿到他的variable
@@ -94,6 +118,22 @@ namespace RCGMaker.Core.DataProvider
         private void OnGlobalMonoTagChange()
         {
             _runtimeCachedOwner = null;
+        }
+
+        IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
+        {
+            var parents = CurrentTarget.GetComponentsInParent<VariableOwner>();
+            var tags = new List<ValueDropdownItem<VariableTag>>();
+            foreach (var parent in parents)
+            {
+                foreach (var variable in parent.VariableFolder.GetValues)
+                {
+                    if (variable is TVarMonoType)
+                        tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable.varTag));
+                }
+            }
+
+            return tags;
         }
 
         IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
@@ -112,7 +152,7 @@ namespace RCGMaker.Core.DataProvider
         //FIXME: 1. 常常會空著
         public MonoDescriptableTag _parentMonoTag; //空的話就是自己
 
-        [PreviewInInspector] private Type variableValueType => typeof(TVariableType);
+        [PreviewInInspector] private Type variableValueType => typeof(TValueType);
         //FIXME:也可以用string拿？
         // MonoDescriptable parentDescriptable => propertyParent.GetComponentInParent<MonoDescriptable>();
 
@@ -137,7 +177,8 @@ namespace RCGMaker.Core.DataProvider
         {
             if (target == null)
             {
-                Debug.LogError("Target is null", _propertyParent);
+                if (Application.isPlaying)
+                    Debug.LogError("Target is null", _propertyParent);
                 return null;
             }
 
@@ -158,19 +199,23 @@ namespace RCGMaker.Core.DataProvider
 
         private VariableOwner _runtimeCachedOwner;
 
-        public void SetValue(TVariableType value, MonoBehaviour byWho)
+        public void SetValue(TValueType value, MonoBehaviour byWho)
         {
-            Variable.SetValue(value, byWho);
+            VarRaw.SetValue(value, byWho);
         }
 
-        public TMonoVar GetMonoVar<TMonoVar>() where TMonoVar : AbstractMonoVariable
+        public TMonoVar GetVar<TMonoVar>() where TMonoVar : AbstractMonoVariable
         {
-            return Variable as TMonoVar;
+            return VarRaw as TMonoVar;
         }
 
         [GUIColor(0.8f, 1.0f, 0.8f)]
         [PreviewInInspector]
-        public AbstractMonoVariable Variable
+        public TVarMonoType Variable => VarRaw as TVarMonoType;
+
+        // [GUIColor(0.8f, 1.0f, 0.8f)]
+        // [PreviewInInspector]
+        public AbstractMonoVariable VarRaw
         {
             get
             {
@@ -188,19 +233,26 @@ namespace RCGMaker.Core.DataProvider
                     return null;
                 }
 
-                return owner.GetVariable(_varTag);
+                var variable = owner.GetVariable(_varTag);
+                if (variable == null)
+                    Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);
+                return variable;
             }
         }
 
         // [ShowInInspector]
         // RCGVariableFolder GetFolder =>  owner?.VariableFolder;
-        [PreviewInInspector]
-        public TVariableType Value => Variable == null ? default : Variable.GetValue<TVariableType>();
+        [PreviewInInspector] public TValueType Value => VarRaw == null ? default : VarRaw.GetValue<TValueType>();
 
         public VariableTag varTag
         {
             get => _varTag;
             set => _varTag = value;
+        }
+
+        public object GetValue()
+        {
+            return Value;
         }
     }
 
@@ -209,11 +261,15 @@ namespace RCGMaker.Core.DataProvider
         VariableTag varTag { get; set; }
     }
 
+
     public interface IVariableProvider
     {
-        AbstractMonoVariable Variable { get; } //還是其實這個也可以？
+        public GameFlagBase FinalData => VarRaw?.FinalData;
+        AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
+        Type GetValueType { get; }
 
-        TVariable GetMonoVar<TVariable>() where TVariable : AbstractMonoVariable;
+        TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable;
+        // object SampleData { get; }
         // AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target);
     }
 
@@ -300,13 +356,13 @@ namespace RCGMaker.Core.DataProvider
         public VariableTag Value => _variableTag;
     }
 
-    [Serializable]
-    public class VariableTagFromVariable : IVariableTagProvider
-    {
-        // IVariableTagProvider _varTagProvider;
-        public VarTagVariable _monoVariable;
-        public VariableTag Value => _monoVariable?.Value;
-    }
+    // [Serializable]
+    // public class VariableTagFromVariable : IVariableTagProvider
+    // {
+    //     // IVariableTagProvider _varTagProvider;
+    //     public VarTagVariable _monoVariable;
+    //     public VariableTag Value => _monoVariable?.Value;
+    // }
 
     [Serializable]
     public class ValueRefProvider<TValue> : IValue<TValue>
@@ -334,6 +390,7 @@ namespace RCGMaker.Core.DataProvider
 
 
     //超級無敵複雜？
+    //FIXME: 這個可以砍掉？
     [Serializable]
     public class VariableProviderFromMonoDescriptable : IVariableProvider
     {
@@ -343,12 +400,14 @@ namespace RCGMaker.Core.DataProvider
         //FIXME: 任何資料都可能可以DI...VariableEntry
         public VariableTag _varTag;
 
-        public AbstractMonoVariable Variable =>
-            _monoDescriptableProvider.GetMonoDescriptable().GetVariable(_varTag);
+        public AbstractMonoVariable VarRaw =>
+            _monoDescriptableProvider?.GetMonoDescriptable()?.GetVariable(_varTag);
 
-        public TVariable GetMonoVar<TVariable>() where TVariable : AbstractMonoVariable
+        public Type GetValueType => typeof(MonoDescriptable);
+
+        public TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable
         {
-            return Variable as TVariable;
+            return VarRaw as TVariable;
         }
     }
 
@@ -377,7 +436,7 @@ namespace RCGMaker.Core.DataProvider
         [Required] public VariableTag varTag;
 
         [PreviewInInspector]
-        public AbstractMonoVariable Variable
+        public AbstractMonoVariable VarRaw
         {
             get
             {
@@ -393,17 +452,20 @@ namespace RCGMaker.Core.DataProvider
             }
         }
 
-        public TVariable1 GetMonoVar<TVariable1>() where TVariable1 : AbstractMonoVariable
+        public Type GetValueType => VarRaw.ValueType;
+
+        public TVariable1 GetVar<TVariable1>() where TVariable1 : AbstractMonoVariable
         {
-            return Variable as TVariable1;
+            return VarRaw as TVariable1;
         }
 
         public TVariable GetMonoVar()
         {
-            return Variable as TVariable;
+            return VarRaw as TVariable;
         }
     }
 
+    //FIXME: 這個連型別都沒有，太粗了吧？
     [Serializable]
     public class VariableProviderFromGlobalInstance : IVariableProvider //fixme
     {
@@ -414,7 +476,7 @@ namespace RCGMaker.Core.DataProvider
         [Required] public VariableTag varTag;
 
         [PreviewInInspector]
-        public AbstractMonoVariable Variable
+        public AbstractMonoVariable VarRaw
         {
             get
             {
@@ -430,9 +492,11 @@ namespace RCGMaker.Core.DataProvider
             }
         }
 
-        public TVariable GetMonoVar<TVariable>() where TVariable : AbstractMonoVariable
+        public Type GetValueType => VarRaw.ValueType;
+
+        public TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable
         {
-            return Variable as TVariable;
+            return VarRaw as TVariable;
         }
     }
 
@@ -478,27 +542,27 @@ namespace RCGMaker.Core.DataProvider
     // }
 
     //dropdown選owner下的variable, 好像還算蠻好的？FIXME: 但沒有用到tag?太特定
-    [Serializable]
-    public class VariableInOwner : IConfigVar, IVariableProvider
-    {
-        // [InlineEditor]
-        // public VariableTag varTag; //這個assign也要被限定範圍？
-        // // public object GetValue => varTag;
-        //
-        //Direct Ref, 不太好
-        [Required] [DropDownRef] public AbstractMonoVariable _monoVariable;
-
-        object IConfigVar.GetValue()
-        {
-            // throw new NotImplementedException();
-            return _monoVariable.objectValue;
-        }
-
-        public AbstractMonoVariable Variable => _monoVariable;
-
-        public TVariable GetMonoVar<TVariable>() where TVariable : AbstractMonoVariable
-        {
-            return _monoVariable as TVariable;
-        }
-    }
+    // [Serializable]
+    // public class VariableInOwner : IConfigVar, IVariableProvider
+    // {
+    //     // [InlineEditor]
+    //     // public VariableTag varTag; //這個assign也要被限定範圍？
+    //     // // public object GetValue => varTag;
+    //     //
+    //     //Direct Ref, 不太好
+    //     [Required] [DropDownRef] public AbstractMonoVariable _monoVariable;
+    //
+    //     object IConfigVar.GetValue()
+    //     {
+    //         // throw new NotImplementedException();
+    //         return _monoVariable.objectValue;
+    //     }
+    //
+    //     public AbstractMonoVariable VarRaw => _monoVariable;
+    //
+    //     public TVariable GetMonoVar<TVariable>() where TVariable : AbstractMonoVariable
+    //     {
+    //         return _monoVariable as TVariable;
+    //     }
+    // }
 }

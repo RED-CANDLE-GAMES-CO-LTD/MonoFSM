@@ -51,8 +51,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 
         AbstractMonoVariable setterVariable =>
             _setter == OperandType.Dealer
-                ? dealerVariableProvider?.Variable
-                : receiverVariableProvider?.Variable;
+                ? dealerVariableProvider?.VarRaw
+                : receiverVariableProvider?.VarRaw;
 
         string ArithmeticString => Arithmetic switch
         {
@@ -72,8 +72,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 
         // [DropDownRef] public VariableFloat dealerVariable;
 
-        public VariableProvider<float> dealerVariableProvider;
-        public VariableProvider<float> receiverVariableProvider;
+        public VariableFloatProvider dealerVariableProvider;
+        public VariableFloatProvider receiverVariableProvider;
 
         //FIXME: target Variable會交換...有時候想處理的是Dealer，有時候想處理的是Receiver
 

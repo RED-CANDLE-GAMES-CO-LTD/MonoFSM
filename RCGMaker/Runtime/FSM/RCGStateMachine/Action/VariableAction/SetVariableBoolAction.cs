@@ -24,7 +24,7 @@ namespace RCGFSM.Variable
         // [InlineEditor]
         [Required]
         [HideIf("Multiple")]
-        public VarBool targetFlag;
+        public VarBool targetFlag; //var?
 
         [ShowIf("Multiple")] public List<VarBool> targetFlags;
 
@@ -68,6 +68,7 @@ namespace RCGFSM.Variable
                     return;
                 }
 
+                Debug.Log($"SetVariableBool {targetFlag} SetValue:{v}", this);
                 targetFlag.SetValue(v, this);
             }
         }

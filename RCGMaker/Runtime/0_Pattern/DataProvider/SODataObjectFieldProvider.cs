@@ -9,6 +9,7 @@ using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using RCGUIBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
@@ -113,15 +114,40 @@ namespace RCGMaker.Core.DataProvider
         public List<Type> SupportedTypes { get; }
     }
 
+    //各種data來源
+    //監聽的模組要另外掛嗎？
     public abstract class AbstractFieldValueProvider : MonoBehaviour
     {
+        [BoxGroup("Get Value From a Variable")] [SerializeReference]
+        public IVariableProvider _variableProvider; //可能是mono, 也可能是數字而已
+
+        [PreviewInInspector] [Auto] IDataChangedListener _dataChangedListener;
+        protected abstract AbstractMonoVariable ListenToVariable { get; }
         [PreviewInInspector] [Auto] ITypeRestrict _typeRestrict;
-        public abstract UnityEngine.Object targetObject { get; }
+        public abstract Object targetObject { get; }
+        public abstract Type targetType { get; }
         [PreviewInInspector] [AutoParent] IIndexInjector _indexInjector;
 
-        private void Awake()
+        void UpdateView()
         {
-            // UpdateParentTypes();
+            _dataChangedListener.OnDataChanged(targetObject);
+        }
+
+        private void Start()
+        {
+            //這個variable已經準備好了嗎？
+            if (ListenToVariable)
+                ListenToVariable.OnValueChangedRaw += UpdateView;
+            else
+            {
+                Debug.LogError("ListenToVariable is null", this);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (ListenToVariable)
+                ListenToVariable.OnValueChangedRaw -= UpdateView;
         }
 
         /// <summary>
@@ -132,7 +158,7 @@ namespace RCGMaker.Core.DataProvider
         // [Button("更新")]
         private void UpdateParentTypes()
         {
-            var currentType = targetObject ? targetObject.GetType() : null;
+            var currentType = targetObject ? targetObject.GetType() : targetType;
             for (var i = 0; i < pathEntries.Count; i++)
             {
                 pathEntries[i]._serializedType.SetType(currentType);
@@ -213,35 +239,15 @@ namespace RCGMaker.Core.DataProvider
                     return $"在 '{entry.fieldName}' 層級遇到 null";
                 }
 
+                //FIXME: 如果某個type被refactor的時候，serializedType記得東西會爛掉，要重新開Prefab儲存
+                //FIXME: 這個prefab抓到的不一定會是對的耶... 除非是先拿到正確的sampleData
                 var type = entry._serializedType.RestrictType;
-                if (type == null)
-                {
-                    Debug.LogError("Type is null" + entry.fieldName + entry._serializedType.TypeName, this);
-                    return "Type is null";
-                }
 
-                // var type = currentObj.GetType();
                 if (entry.fieldName == null)
                 {
                     Debug.LogError("欄位名稱為空", this);
                     return "欄位名稱為空";
                 }
-
-
-                // var field = type.GetField(entry.fieldName,
-                //     BindingFlags.Public | BindingFlags.Instance);
-                // if (field != null)
-                // {
-                //     currentObj = field.GetValue(currentObj);
-                // }
-                // else
-                // {
-                // var prop = type.GetProperty(entry.fieldName,
-                //     BindingFlags.Public | BindingFlags.Instance);
-                // if (prop != null)
-                //     currentObj = prop.GetValue(currentObj, null);
-                // else
-                //     return $"在 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性";
 
                 Func<object, object> getter = GetMemberGetter(type, entry.fieldName);
                 if (getter != null)
@@ -250,7 +256,7 @@ namespace RCGMaker.Core.DataProvider
                 }
                 else
                 {
-                    Debug.LogError($"在 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性", this);
+                    Debug.LogError($"在 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性" + obj, this);
                     return $"在 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性";
                 }
 
@@ -421,33 +427,61 @@ namespace RCGMaker.Core.DataProvider
         //從某個VariableMonoDescriptable拿到Data
 
         // [BoxGroup("Instance")] public VariableMonoDescriptableProvider _monoDescriptableProvider;
-        [PropertyOrder(-1)] [BoxGroup("Instance")]
+        //FIXME: 這個不好！
+        [Header("Deprecated")] [Obsolete] [PropertyOrder(-1)] [BoxGroup("Instance")]
         public MonoDescriptableProvider<MonoDescriptable> _descriptableProvider;
+
 
         [PropertyOrder(-1)]
         [BoxGroup("Instance")]
         [PreviewInInspector]
-        private IDescriptableData dataInstance =>
-            _descriptableProvider?.CurrentInstance?.Descriptable;
+        private GameFlagBase dataInstance => _variableProvider?.FinalData;
+        // _descriptableProvider?.CurrentInstance?.Descriptable;
 
         //不一定需要instance, 有type就好了？
+
+        protected override AbstractMonoVariable ListenToVariable => _variableProvider?.VarRaw;
+
+        //_descriptableProvider?.variableProvider.Variable;
+        // VarMono varMono => _variableProvider?.GetVar<VarMono>();
+        [PreviewInInspector]
         [PropertyOrder(-1)]
         public override Object targetObject
         {
             get
             {
+#if UNITY_EDITOR
                 if (Application.isPlaying == false) //FIXME: 如果有也可以用descriptable?
                 {
-                    if (_descriptableProvider?.CurrentInstance?.Descriptable == null)
-                        return _descriptableProvider?.SampleData;
-                    return _descriptableProvider?.CurrentInstance?.Descriptable as Object;
+                    // if (varMono == null)
+                    // {
+                    //     
+                    //     if (_variableProvider is IVariableMonoDescriptableProvider varMonoDescriptableProvider)
+                    //         return varMonoDescriptableProvider.SampleData;
+                    //     return null;
+                    // }
+                    //
+                    // if (varMono.Value == null)
+                    //     return varMono.SampleData;
+                    // return varMono.Value.Data;
+                    // if (_descriptableProvider?.CurrentInstance?.Descriptable == null)
+                    //     return _descriptableProvider?.SampleData;
+                    // return _descriptableProvider?.CurrentInstance?.Descriptable as Object;
+                }
+#endif
+                if (_variableProvider == null)
+                {
+                    Debug.LogError("Variable Provider is null", this);
+                    return null;
                 }
 
-                else
-                    return _descriptableProvider?.CurrentInstance?.Descriptable as Object;
+                return _variableProvider.FinalData;
+                // return varMono.Value.Data; //_descriptableProvider?.CurrentInstance?.Descriptable as Object;
                 //一定要sample data?
             }
         }
+
+        public override Type targetType => typeof(DescriptableData); //有currentInstance的話，就可以直接拿到type
 
         // private Type dataType => _monoDescriptableProvider.GetVariable.FinalDataType; //FIXME: 還是錯...
         //Data Object Field Provider

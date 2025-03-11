@@ -10,7 +10,6 @@ using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
-using UnityEditor;
 #endif
 
 using UnityEngine;
@@ -21,7 +20,7 @@ using Object = UnityEngine.Object;
 
 //現在根本還沒做監聽，是用condition做polling
 [Searchable]
-public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable, ISettable<TType>,
+public abstract class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable, ISettable<TType>,
     ISelfValidator,
     IGameStateOwner, IDefaultSerializable, ILevelResetPrepare
     where TScriptableData : AbstractScriptableData<TField, TType>
@@ -192,7 +191,7 @@ public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoV
     //FIXME: 這個可以cache嗎...
 #endif
 
-    [TabGroup("Data")] [InlineField] [HideIf("VariableSource")] [HideIf("scriptableData")] [SerializeField]
+    [TabGroup("Data")] [InlineField] [HideIf(nameof(scriptableData))] [SerializeField]
     protected TField localField; // = new();
 
     //這個值會被蓋掉???
@@ -258,6 +257,8 @@ public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoV
     [TabGroup("Data"), PreviewInInspector] public virtual TType FinalValue => CurrentValue;
     [TabGroup("Data"), PreviewInInspector] public virtual TType LastValue => Field.LastValue; //FIXME: 這裡沒有過到modifier
 
+    public TType Value => CurrentValue;
+
     [ShowInPlayMode]
     public TType CurrentValue //FIXME: 改成Value?
     {
@@ -266,12 +267,13 @@ public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoV
             Profiler.BeginSample("Variable GetValue");
             var tempValue = localField.CurrentValue;
 
-            if (VariableSource != null)
-            {
-                var v = VariableSource as GenericMonoVariable<TScriptableData, TField, TType>;
-                tempValue = v.CurrentValue;
-            }
-            else if (ScriptableData != null)
+            //FIXME: 這裡就有proxy? 而且還是直接reference...
+            // if (VariableSource != null)
+            // {
+            //     var v = VariableSource as GenericMonoVariable<TScriptableData, TField, TType>;
+            //     tempValue = v.CurrentValue;
+            // }
+            if (ScriptableData != null)
             {
                 tempValue = ScriptableData.CurrentValue;
             }
@@ -409,7 +411,7 @@ public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoV
     }
 
     //FIXME 不該用這個？
-    [HideInInlineEditors] public UnityEvent<TType> OnValueChanged = new();
+    // [HideInInlineEditors] public UnityEvent<TType> OnValueChanged = new();
 
     public void Validate(SelfValidationResult result)
     {
@@ -425,21 +427,21 @@ public class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoV
 #endif
     }
 
-    public override GameFlagBase FinalData => mainData ? mainData : ScriptableData;
-    [TabGroup("再說")] public GameFlagBase mainData;
+    // public override GameFlagBase FinalData => ScriptableData ? ScriptableData : Sampledata;
+    // [TabGroup("再說")] public GameFlagBase mainData;
 
-    [TabGroup("再說")] [ShowIf(nameof(mainData))] [ValueDropdown(nameof(GetAllFlagField))]
-    public string fieldOfMainData;
-
-    public TField fieldOfMainDataValue => mainData.FindField<TType>(fieldOfMainData) as TField;
-
-    private IEnumerable<string> GetAllFlagField()
-    {
-        if (mainData == null) yield break;
-        var fields = mainData.GetAllFlagFieldNames<TField>();
-        foreach (var field in fields)
-            yield return field;
-    }
+    // [TabGroup("再說")] [ShowIf(nameof(mainData))] [ValueDropdown(nameof(GetAllFlagField))]
+    // public string fieldOfMainData;
+    //
+    // public TField fieldOfMainDataValue => mainData.FindField<TType>(fieldOfMainData) as TField;
+    //
+    // private IEnumerable<string> GetAllFlagField()
+    // {
+    //     if (mainData == null) yield break;
+    //     var fields = mainData.GetAllFlagFieldNames<TField>();
+    //     foreach (var field in fields)
+    //         yield return field;
+    // }
 
     public override Type FinalDataType => typeof(TScriptableData);
     public override Type ValueType => typeof(TType);
@@ -477,13 +479,10 @@ public interface ISettable<in T> : ISettable
 
 public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, IValueOfKey<VariableTag>
 {
-    [Button]
-    void Rename()
-    {
-        // gameObject.name = GetType().Name +
-    }
+    public UnityAction OnValueChangedRaw; //任何數值改變就通知
 
-    void TagChanged()
+    [Button]
+    void UpdateTag()
     {
         varTag._variableType.SetType(GetType());
         varTag._valueFilterType.SetType(ValueType);
@@ -492,9 +491,12 @@ public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, 
         var variableFolder = GetComponentInParent<RCGVariableFolder>();
         if (variableFolder)
             variableFolder.Refresh();
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(varTag);
+#endif
     }
 
-    [OnValueChanged(nameof(TagChanged))]
+    [OnValueChanged(nameof(UpdateTag))]
     [Header("變數名稱")]
     [PropertyOrder(-1)]
     [Required]
@@ -539,6 +541,7 @@ public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, 
     public void SetValue<T>(T value, MonoBehaviour byWho = null)
     {
         SetValueInternal(value, byWho);
+        OnValueChangedRaw?.Invoke(); //通知有人改變了
         //FIXME: 如果還有什麼需要處理的？
     }
 
@@ -598,7 +601,7 @@ public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, 
     //FIXME: virtual variable?
     // [FormerlySerializedAs("VariableSource")]
     // [ShowIf("VariableSource")] 
-    [InlineEditor] public AbstractMonoVariable VariableSource; //用別人的值 //FIXME: 什麼時候會用到這個？
+    // [InlineEditor] public AbstractMonoVariable VariableSource; //用別人的值 //FIXME: 什麼時候會用到這個？
 
     [ReadOnly] public List<AbstractVariableConsumer> consumers; //有誰有用我，binder綁一下
 

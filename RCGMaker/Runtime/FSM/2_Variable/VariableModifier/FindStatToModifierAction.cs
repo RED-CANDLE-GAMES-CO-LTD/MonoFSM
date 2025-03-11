@@ -34,7 +34,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
         protected override void OnStateEnterImplement()
         {
-            var varStat = _variableProvider.GetMonoVar<VarStat>();
+            var varStat = _variableProvider.GetVar<VarStat>();
             foreach (var modifier in _modifiers)
             {
                 varStat.AddModifier(modifier);
@@ -61,7 +61,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
         protected override void OnStateExitImplement()
         {
-            var varStat = _variableProvider.GetMonoVar<VarStat>();
+            var varStat = _variableProvider.GetVar<VarStat>();
             foreach (var modifier in _modifiers)
             {
                 varStat.RemoveModifier(modifier);

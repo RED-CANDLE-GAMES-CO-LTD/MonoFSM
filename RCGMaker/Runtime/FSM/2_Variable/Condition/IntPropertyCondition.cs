@@ -3,7 +3,6 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
-    
     //選一個game flag 的int property
     public class IntPropertyCondition : AbstractFieldConditionComp<int, ScriptableObject>
     {
@@ -14,7 +13,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 
         public Operator Op;
 
-        protected override bool isValid
+        protected override bool IsValid
         {
             get
             {
@@ -29,6 +28,4 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
             }
         }
     }
-    
-    
 }

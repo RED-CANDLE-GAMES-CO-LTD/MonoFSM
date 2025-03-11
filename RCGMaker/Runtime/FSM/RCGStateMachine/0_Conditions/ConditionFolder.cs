@@ -8,7 +8,7 @@ namespace RCGMaker.Core
         [Component] [ShowInInspector] [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionComp[] _conditions;
 
-        protected override bool isValid
+        protected override bool IsValid
         {
             get
             {

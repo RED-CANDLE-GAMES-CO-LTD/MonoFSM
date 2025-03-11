@@ -56,18 +56,18 @@ namespace RCGMaker.Core.DataProvider
     [Serializable]
     public class StringProviderFromDescriptableProperty : IStringProvider
     {
-        [SerializeReference] public IDescriptableDataProvider dataProvider;
+        [SerializeReference] public IGameDataProvider dataProvider;
         static List<Type> supportTypes = new List<Type>() { typeof(string), typeof(int), typeof(float) };
 
         private ValueDropdownList<string> GetPropertyNames =>
-            dataProvider.GetDescriptableData().GetProperties(supportTypes);
+            dataProvider.GameData.GetProperties(supportTypes);
 
         [ValueDropdown(nameof(GetPropertyNames))]
         public string propertyName;
 
         public string GetString()
         {
-            return dataProvider.GetDescriptableData().GetProperty(propertyName).ToString();
+            return dataProvider.GameData.GetProperty(propertyName).ToString();
         }
     }
 }

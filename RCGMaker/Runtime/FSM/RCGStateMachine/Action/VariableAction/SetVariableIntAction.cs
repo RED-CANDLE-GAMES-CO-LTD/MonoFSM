@@ -7,7 +7,7 @@ namespace RCGFSM.Variable
 {
     public class SetVariableIntAction : AbstractStateAction
     {
-        public VariableInt targetFlag;
+        [DropDownRef] public VarInt targetFlag;
         public int TargetValue;
 
 

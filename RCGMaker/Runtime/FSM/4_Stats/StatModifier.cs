@@ -26,8 +26,8 @@ public interface IStatModifierOwner //是誰改數值的
 [System.Serializable]
 public class StatModifierPro : IStatModifer
 {
-    public VariableProvider<float> _targetProvider;
-    public VariableProvider<float> _valueProvider;
+    public VariableFloatProvider _targetProvider;
+    public VariableFloatProvider _valueProvider;
     public StatModType _type = StatModType.Flat;
     public int _order;
 

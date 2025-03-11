@@ -1,32 +1,41 @@
+using System;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 
 namespace RCGMaker.Core.DataProvider
 {
-    public interface IGameDataProvider
+    public interface IGameDataProvider //
     {
         // public DescriptableData GetGameData();
         public DescriptableData GameData { get; }
     }
 
-    [System.Serializable]
-    public class GameDataProviderFromVariable : IGameDataProvider
-    {
-        [DropDownRef] public SODataVariable variable;
+    // [Serializable]
+    // public class SODataVarProvider : IVariableProvider, IGameDataProvider
+    // {
+    //     [DropDownRef] public SODataVariable variable;
+    //
+    //     public DescriptableData GameData => variable?.Value;
+    //     public AbstractMonoVariable VarRaw => variable;
+    //     public Type GetValueType => variable?.ValueType;
+    //
+    //     public TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable
+    //     {
+    //         return variable as TVariable;
+    //     }
+    // }
 
-        public DescriptableData GameData => variable?.Value;
-    }
-
-    [System.Serializable]
-    public class GameDataProviderFromVariableTag : VariableProvider<DescriptableData>, IGameDataProvider
+    [Serializable]
+    public class SODataVarProvider : VariableProvider<SODataVariable, DescriptableData>, IGameDataProvider
+    // IDescriptableDataProvider
     {
         // [DropDownRef] public VariableTag variableTag;
 
         public DescriptableData GameData => Value;
     }
 
-    [System.Serializable]
+    [Serializable]
     public class GameDataProviderReference : IGameDataProvider
     {
         public DescriptableData data;

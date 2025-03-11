@@ -1,4 +1,5 @@
 using System;
+using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -47,15 +48,26 @@ namespace RCGMaker.Core.DataProvider
 
         public float GetFloat()
         {
-            return _monoVar.FinalValue;
+            return _monoVar?.FinalValue ?? 0;
         }
 
         public string Description => _monoVar?.varTag?.name;
     }
 
+    [Serializable]
+    public class VariableBoolProvider : VariableProvider<VarBool, bool>
+    {
+        public bool GetBool()
+        {
+            return Value;
+        }
+
+        public string Description => varTag?.name;
+    }
+
     //平常都該用這個宣告？封裝過的VarFloat, 又有tag, 但沒有global instance
     [Serializable]
-    public class VariableFloatProvider : VariableProvider<float>, IFloatProvider
+    public class VariableFloatProvider : VariableProvider<VarFloat, float>, IFloatProvider
     {
         //這個只管了value, 沒有管是什麼var...
         public float GetFloat()
@@ -67,7 +79,28 @@ namespace RCGMaker.Core.DataProvider
 
         public VarFloat GetVar()
         {
-            return GetMonoVar<VarFloat>();
+            return GetVar<VarFloat>();
+        }
+    }
+
+    [Serializable]
+    public class VariableIntProvider : VariableProvider<VarInt, int>, IFloatProvider
+    {
+        public int GetInt()
+        {
+            return Value;
+        }
+
+        public float GetFloat()
+        {
+            return Value;
+        }
+
+        public string Description => varTag?.name;
+
+        public VarInt GetVar()
+        {
+            return GetVar<VarInt>();
         }
     }
 
@@ -80,5 +113,14 @@ namespace RCGMaker.Core.DataProvider
         }
 
         public string Description => monoDescriptableTag.name + "." + varTag.name;
+    }
+
+    [Serializable]
+    public class VarMonoFromGlobalInstance : VariableProviderFromGlobalInstance<VarMono>,
+        IVarMonoProvider
+    {
+        public string Description => monoDescriptableTag.name + "." + varTag.name;
+        public VarMono Variable => GetMonoVar();
+        public DescriptableData SampleData => Variable?.SampleData;
     }
 }

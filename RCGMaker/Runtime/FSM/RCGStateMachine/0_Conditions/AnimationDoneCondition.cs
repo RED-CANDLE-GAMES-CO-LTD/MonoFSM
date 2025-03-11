@@ -4,7 +4,7 @@ namespace RCGMaker.Core
 {
     public class AnimationDoneCondition : AbstractConditionComp
     {
-        protected override bool isValid => action.IsDone;
+        protected override bool IsValid => action.IsDone;
         [AutoParent] private AnimatorPlayAction action;
     }
 }

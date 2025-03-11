@@ -38,11 +38,11 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver
 
         public CompareType compareType;
 
-        public VariableProvider<float> dealerVariable;
+        public VariableFloatProvider dealerVariable;
 
         // [DropDownRef] public VariableFloat dealerVariable;
 
-        public VariableProvider<float> receiverVariable; //FIXME: 這個static就拿到了，要改成動態的耶...
+        public VariableFloatProvider receiverVariable; //FIXME: 這個static就拿到了，要改成動態的耶...
 
         [PreviewInInspector] GeneralEffectReceiver _runtimeReceiver;
 
@@ -54,6 +54,12 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver
         {
             _runtimeReceiver = receiver;
             var dealerValue = dealerVariable.Value;
+            if (receiverVariable == null)
+            {
+                Debug.LogError("receiverVariable is null", this);
+                return false;
+            }
+
             var receiverValue = receiverVariable.GetValueFrom(receiver);
             Debug.Log($"IsEffectHitValid dealerValue: {dealerValue}, receiverValue: {receiverValue}", this);
             // Debug.Log("receiver", receiver);

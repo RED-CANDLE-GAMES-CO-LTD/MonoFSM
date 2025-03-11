@@ -26,6 +26,9 @@ namespace RCGMaker.Core
 
         private void Update()
         {
+            //FIXME: 還要有condition?
+            if (!_conditions.IsAllValid())
+                return;
             if (currentTime.CurrentValue > currentTime.Min)
             {
                 // Debug.Log("Counting down" + currentTime.CurrentValue + " " + Time.deltaTime);
@@ -33,5 +36,7 @@ namespace RCGMaker.Core
                 currentTime.SetValue(currentTime.CurrentValue - Time.deltaTime);
             }
         }
+
+        [PreviewInInspector] [AutoChildren] AbstractConditionComp[] _conditions;
     }
 }
