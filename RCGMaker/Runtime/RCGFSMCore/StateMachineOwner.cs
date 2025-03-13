@@ -20,6 +20,7 @@ public interface IVariableOwner
 {
     RCGVariableFolder VariableFolder { get; }
 }
+
 public static class StateMachineExtension
 {
     public static T FindVariableOfBinder<T>(this MonoBehaviour monoBehaviour, VariableTag type) where T : class
@@ -37,16 +38,19 @@ public static class StateMachineExtension
             Debug.LogError("IVariableOwner not found", monoBehaviour);
             return default;
         }
+
         var folder = owner.VariableFolder;
         if (folder == null)
         {
             Debug.LogError("VariableFolder not found", owner as MonoBehaviour);
             return default;
         }
+
         return folder.GetVariable(type) as T;
         // return GetComponentOfSibling<StateMachineOwner, RCGVariableFolder>(monoBehaviour).GetVariable(type);
     }
-    public static T GetComponentOfSibling<TParent, T>(this MonoBehaviour monoBehaviour) 
+
+    public static T GetComponentOfSibling<TParent, T>(this MonoBehaviour monoBehaviour)
     {
         //FIXME: 效能不好
         var binder = monoBehaviour.GetComponentInParent<TParent>() as MonoBehaviour;
@@ -54,102 +58,108 @@ public static class StateMachineExtension
         Debug.LogError("IBinder not found", monoBehaviour);
         return default;
     }
-    
+
     //FIXME: 效能不好？editor code沒差
-    public static Component[] GetComponentsOfSibling(this Component monoBehaviour,Type parentType,Type siblingType) 
+    public static Component[] GetComponentsOfSibling(this Component monoBehaviour, Type parentType, Type siblingType)
     {
         var binder = monoBehaviour.GetComponentInParent(parentType) as MonoBehaviour;
         if (binder != null) return binder.GetComponentsInChildren(siblingType);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<Component>();
     }
-    public static Component[] GetComponentsOfSiblingAll(this Component monoBehaviour,Type parentType,Type siblingType) 
+
+    public static Component[] GetComponentsOfSiblingAll(this Component monoBehaviour, Type parentType, Type siblingType)
     {
         var parents = monoBehaviour.GetComponentsInParent(parentType);
         var list = new List<Component>();
         if (parents == null || parents.Length == 0)
         {
-            Debug.LogError("parent Type not found:"+parentType, monoBehaviour);
+            Debug.LogError("parent Type not found:" + parentType, monoBehaviour);
             return Array.Empty<Component>();
         }
-            
+
         foreach (var binder in parents)
         {
             list.AddRange(binder.GetComponentsInChildren(siblingType));
         }
+
         return list.ToArray();
         // if (binder != null) return binder.GetComponentsInChildren(siblingType);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<Component>();
     }
-    public static IList<T> GetComponentsOfSibling<TParent, T>(this MonoBehaviour monoBehaviour) 
+
+    public static IList<T> GetComponentsOfSibling<TParent, T>(this MonoBehaviour monoBehaviour)
     {
         var binder = monoBehaviour.GetComponentInParent<TParent>() as MonoBehaviour;
         if (binder != null) return binder.GetComponentsInChildren<T>(true);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<T>();
     }
-    public static IList<Component> GetComponentsOfSibling<TParent>(this MonoBehaviour monoBehaviour,Type type) 
+
+    public static IList<Component> GetComponentsOfSibling<TParent>(this MonoBehaviour monoBehaviour, Type type)
     {
         var binder = monoBehaviour.GetComponentInParent<TParent>() as MonoBehaviour;
-        if (binder != null) return binder.GetComponentsInChildren(type,true);
+        if (binder != null) return binder.GetComponentsInChildren(type, true);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<Component>();
     }
-    
-    public static T GetComponentInBinder<T>(this MonoBehaviour monoBehaviour) 
+
+    public static T GetComponentInBinder<T>(this MonoBehaviour monoBehaviour)
     {
         var binder = monoBehaviour.GetComponentInParent<IBinder>(true) as MonoBehaviour;
         if (binder != null) return binder.GetComponentInChildren<T>(true);
         Debug.LogError("IBinder not found", monoBehaviour);
         return default;
     }
-    
-    public static T[] GetComponentsInBinder<T>(this Component monoBehaviour) 
+
+    public static T[] GetComponentsInBinder<T>(this Component monoBehaviour)
     {
         var binder = monoBehaviour.GetComponentInParent<IBinder>(true) as MonoBehaviour;
         if (binder != null) return binder.GetComponentsInChildren<T>(true);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<T>();
     }
-    public static Component[] GetComponentsInBinder(this Component monoBehaviour, Type type) 
+
+    public static Component[] GetComponentsInBinder(this Component monoBehaviour, Type type)
     {
         var binder = monoBehaviour.GetComponentInParent<IBinder>(true) as MonoBehaviour;
-        if (binder != null) return binder.GetComponentsInChildren(type,true);
+        if (binder != null) return binder.GetComponentsInChildren(type, true);
         Debug.LogError("IBinder not found", monoBehaviour);
         return Array.Empty<Component>();
     }
-    
 }
 
 public interface IBinder
 {
-    
 }
-public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable,IBinder,IVariableOwner
-{
 
-    
+public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable,
+    IBinder, IVariableOwner
+{
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext[] fsmContexts;
+
     public GeneralFSMContext FsmContext =>
         fsmContext ? fsmContext : fsmContext = GetComponentInChildren<GeneralFSMContext>();
 
     [HideFromFSMExport]
-    [Title("超連結，只有prefab可以改")] [InlineEditor] [DisallowModificationsIn(PrefabKind.NonPrefabInstance)]
+    [Title("超連結，只有prefab可以改")]
+    [InlineEditor]
+    [DisallowModificationsIn(PrefabKind.NonPrefabInstance)]
     public List<Component> quickFindLinks;
 
     public void ResetFSM()
     {
-        if(fsmContext == null)
+        if (fsmContext == null)
             Debug.LogError("fsmContext is null", gameObject);
-        
+
         if (fsmContext.fsm == null)
         {
             Debug.LogError("fsmContext.fsm is null", gameObject);
             return;
         }
-            
+
         // fsmContext.ChangeState(fsmContext.startState);
         if (fsmContext.fsm.HasState(fsmContext.startState))
             fsmContext.ChangeState(fsmContext.startState);
@@ -164,6 +174,7 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, IL
             context.PauseFSM();
         }
     }
+
     public void ResumeAll()
     {
         foreach (var context in fsmContexts)
@@ -173,7 +184,9 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, IL
     }
 
     public Animator ChildAnimator => GetComponentInChildren<Animator>();
+
     public Animator[] ChildAnimators => GetComponentsInChildren<Animator>();
+
     //1. 關卡重置
     public void EnterLevelReset() //舊的九日code, enter levelReset
     {
@@ -183,7 +196,6 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, IL
 
     public void ExitLevelAndDestroy() //舊的九日code, enter levelReset
     {
-       
     }
 
     private void Start()
@@ -195,16 +207,14 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, IL
     void ILevelResetStart.LevelResetStart() //Instaniate之後不會call這個...
     {
         //不能有兩個進入點喔
-       ResetFSM(); //最新規, levelReset之後, 
-       
+        ResetFSM(); //最新規, levelReset之後, 
     }
 
     [Button]
     void ExportSerializedData()
     {
-
     }
-    
+
     // [PreviewInInspector]
     // [AutoChildren]
     // RCGVariableFolder _variableFolder;

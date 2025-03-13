@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using jerryee.UnityMCP;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
 using RCGSetting;
@@ -34,32 +35,13 @@ public static class ConditionHelper
     }
 }
 
-public static class AbstractConditionCompExtension
-{
-    //[]: 這麼前衛？實作放外面耶
-    // public static bool IsValidCondition(this MonoBehaviour owner)
-    // {
-    //     AbstractConditionComp[] conditions = owner.GetComponentsInChildren<AbstractConditionComp>();
-    //
-    //     return conditions.IsAllValid();
-    //     // for (int i = 0; i < conditions.Length; i++)
-    //     // {
-    //     //     if (conditions[i].FinalResult == false)
-    //     //         return false;
-    //     // }
-    //     //
-    //     // return true;
-    // }
-}
-
-
 //FIXME: 關掉condition節點算什麼？
 public abstract class AbstractConditionComp : MonoBehaviour, IBoolValue
 {
     protected virtual bool IsShowRenameButton => nameDescription != "";
 
     //FIXME: AI 可以解釋性？
-    protected virtual string nameDescription => this.GetType().Name;
+    [MCPExtractable] protected virtual string nameDescription => this.GetType().Name;
 
     [Button]
     [ShowIf("IsShowRenameButton")]

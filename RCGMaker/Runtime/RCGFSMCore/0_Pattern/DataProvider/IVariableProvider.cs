@@ -52,6 +52,11 @@ namespace RCGMaker.Core.DataProvider
     public class VariableProvider<TVarMonoType, TValueType> : IVariableProvider, IVarTagProperty, IConfigVar
         where TVarMonoType : AbstractMonoVariable
     {
+        public override string ToString()
+        {
+            return GetValue().ToString();
+        }
+
         public Type GetValueType => typeof(TValueType);
 
         public TVarMonoType GetVar()
