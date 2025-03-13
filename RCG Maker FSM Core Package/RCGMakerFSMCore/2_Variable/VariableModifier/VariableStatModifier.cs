@@ -1,13 +1,8 @@
 using UnityEngine;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable
 {

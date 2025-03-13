@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 
 namespace RCGFSMCore._0_Pattern.DataProvider.ComponentWrapper
 {
-    public class FloatProviderLiteral : MonoBehaviour, IFloatProvider
+    public class FloatLiteralComp : MonoBehaviour, IFloatProvider
     {
         [FormerlySerializedAs("literal")] public float _literal;
 
@@ -19,7 +19,10 @@ namespace RCGFSMCore._0_Pattern.DataProvider.ComponentWrapper
         [Button("Rename")]
         void Rename()
         {
+#if UNITY_EDITOR
+            UnityEditor.Undo.RecordObject(this, "Rename");
             name = "[FloatLiteral]" + _literal;
+#endif
         }
     }
 }

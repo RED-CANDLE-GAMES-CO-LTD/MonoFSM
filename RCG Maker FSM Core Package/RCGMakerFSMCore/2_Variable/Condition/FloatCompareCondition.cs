@@ -1,3 +1,4 @@
+using System;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
 using UnityEngine;
@@ -7,7 +8,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     public class FloatCompareCondition : AbstractConditionComp
     {
         [Component] [AutoChildren] [PreviewInInspector]
-        IFloatProvider[] floatValueSourceArray;
+        private IFloatProvider[] floatValueSourceArray = Array.Empty<IFloatProvider>();
 
         float Value1 => floatValueSourceArray[0].GetFloat();
         float Value2 => floatValueSourceArray[1].GetFloat();

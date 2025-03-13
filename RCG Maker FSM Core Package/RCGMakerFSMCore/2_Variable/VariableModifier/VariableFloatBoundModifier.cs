@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
@@ -42,8 +43,9 @@ public class VariableFloatBoundModifier : MonoBehaviour, AbstractVariableModifie
     // [DropDownRef] [SerializeField] VarFloat MinVar;
     // [DropDownRef] [SerializeField] VarFloat MaxVar; //好像應該用繼承的
 
-    [SerializeReference] [SerializeField] IFloatProvider _minValueProvider;
-    [SerializeReference] [SerializeField] IFloatProvider _maxValueProvider;
+    [Component] [AutoChildren] IFloatProvider[] _floatProviderArray = Array.Empty<IFloatProvider>();
+    [Component] [SerializeField] IFloatProvider _minValueProvider;
+    [Component] [SerializeField] IFloatProvider _maxValueProvider;
 
     [ShowInInspector]
     public float MinValue =>

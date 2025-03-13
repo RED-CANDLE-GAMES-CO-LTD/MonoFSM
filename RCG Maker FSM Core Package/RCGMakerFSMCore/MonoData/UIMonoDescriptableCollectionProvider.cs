@@ -20,7 +20,7 @@ namespace RCGUIBinder
     {
         //ItemCollection?
         [TabGroup("Collection")] [SOConfig("DescriptableTag")]
-        public MonoDescriptableTag tag;
+        public MonoDescriptableTag _tag;
 
         //FIXME:同步數量，instantiate prefab?
         // [AutoChildren]
@@ -43,7 +43,7 @@ namespace RCGUIBinder
         [Button]
         void Bind()
         {
-            MonoDescriptableCollection = GetComponentInParent<MonoDescriptableCollectionBinder>().Get(tag);
+            MonoDescriptableCollection = GetComponentInParent<MonoDescriptableCollectionBinder>().Get(_tag);
         }
 
         // private void Start()

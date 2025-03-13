@@ -46,5 +46,5 @@ public class VarFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat,
         }
     }
 
-    public float Value => CurrentValue;
+    // public float Value => CurrentValue;
 }
