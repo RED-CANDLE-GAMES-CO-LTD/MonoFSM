@@ -1,6 +1,6 @@
 using RCGMaker.Core.DataProvider;
 
-namespace RCGMakerFSM.RCGMakerFSMCore._0_Pattern.DataProvider.ComponentWrapper
+namespace RCGMakerFSM.VarRef
 {
     public class VarIntProviderRef : VariableProviderRef<VarInt, int>, IFloatProvider, IIntProvider
     {

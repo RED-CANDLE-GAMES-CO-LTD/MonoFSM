@@ -1,7 +1,7 @@
 using RCGMaker.Core.DataProvider;
 using RCGMaker.Runtime.FSM._2_Variable;
 
-namespace RCG_Maker_FSM_Core_Package.RCGMakerFSMCore._0_Pattern.DataProvider.ComponentWrapper
+namespace RCGMakerFSM.VarRef
 {
     /// <summary>
     /// 可以拿到一個SODataVariable的MonoBehaviour

@@ -1,7 +1,7 @@
 using RCGMaker.Core;
 using UnityEngine;
 
-namespace RCGMakerFSM.RCGMakerFSMCore._0_Pattern.DataProvider.ComponentWrapper
+namespace RCGMakerFSM.VarRef
 {
     public class SourceValueRef : MonoBehaviour
     {

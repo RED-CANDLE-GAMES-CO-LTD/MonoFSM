@@ -2,7 +2,7 @@ using System;
 using RCGMaker.Core.DataProvider;
 using UnityEngine;
 
-namespace RCGMakerFSM.RCGMakerFSMCore._0_Pattern.DataProvider.ComponentWrapper
+namespace RCGMakerFSM.VarRef
 {
     public class TargetVarRef : MonoBehaviour, IVariableProvider
     {
