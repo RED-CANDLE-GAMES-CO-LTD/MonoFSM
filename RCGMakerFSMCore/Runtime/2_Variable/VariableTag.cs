@@ -176,8 +176,8 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         [Button]
         void GetBindedVariables()
         {
-            bindedVariables = FindObjectsOfType<AbstractMonoVariable>(true).Where(v => v.varTag == this).ToArray();
-            bindedVariableSetters = FindObjectsOfType<MonoBehaviour>(true).OfType<IVariableTagSetter>()
+            bindedVariables = FindObjectsByType<AbstractMonoVariable>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(v => v.varTag == this).ToArray();
+            bindedVariableSetters = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None).OfType<IVariableTagSetter>()
                 .Where(v => v.refVariableTag == this).ToArray();
         }
 
