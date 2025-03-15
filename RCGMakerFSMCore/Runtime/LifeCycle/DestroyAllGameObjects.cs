@@ -74,7 +74,7 @@ public class DestroyAllGameObjects : MonoBehaviour
 
     private void CheckList()
     {
-        var allObjects = FindObjectsOfType<GameObject>(true);
+        var allObjects = FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         if (allObjects.Length > 0)
         {
             for (int i = 0; i < allObjects.Length; i++)
@@ -95,7 +95,7 @@ public class DestroyAllGameObjects : MonoBehaviour
 
     private IEnumerator _DestroyAll()
     {
-        GameObject[] allObjects = FindObjectsOfType<GameObject>(true);
+        GameObject[] allObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         
 
         foreach (var go in allObjects)
