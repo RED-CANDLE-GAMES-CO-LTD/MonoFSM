@@ -7,6 +7,7 @@ using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 using RCGMaker.Core;
+using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using Sirenix.Utilities.Editor;
 
@@ -97,7 +98,7 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
             type = type.GetElementType();
         }
 
-        if (GUILayout.Button("搜尋：新增" + buttonStr + ":" + type.Name))
+        if (SirenixEditorGUI.SDFIconButton("搜尋：新增" + buttonStr + ":" + type.Name, 16, SdfIconType.CaretDownFill))
         {
             Debug.Log("Parent Value:" + baseMemberProperty.ParentValues[0]);
             var selector = new ComponentTypeSelector(type);
