@@ -4,14 +4,17 @@ namespace RCG_Maker_FSM_Core_Package.RCGMakerFSMCore.Tracking
 {
     public interface ITrackableValue //到時候還要把Mixpanel的Value多包一層
     {
-        void SetProperty(string key, object value);
-        void Clear(); // 用來重置內容，避免 GC
+        void SetProperty(string key, object value); // 用來設定tracking data的屬性
+
+        void Track(string eventName); //最後送出
+        //TODO: batch track?
     }
 
     public interface ITracker //override這個？assign這個？
     {
+        //TODO: opt in/out
         ITrackableValue BorrowTrackableValue(); // 取得預分配的屬性容器
-        void Track(string eventName, ITrackableValue value);
+        void RecycleTrackableValue(ITrackableValue value);
     }
 
     //singleton DI
@@ -19,13 +22,14 @@ namespace RCG_Maker_FSM_Core_Package.RCGMakerFSMCore.Tracking
     {
         //RCG Mixpanel wrapper package要assign這個Tracker
         public static ITracker _tracker;
-
         public static ITrackableValue BorrowTrackableValue => _tracker?.BorrowTrackableValue();
 
-        public static void Track(string eventName, ITrackableValue value)
+        public static void Track(string eventName, ITrackableValue trackableValue)
         {
             //要傳GUID嗎？
-            _tracker.Track(eventName, value);
+            trackableValue.Track(eventName);
+            //track完之後要回收
+            _tracker.RecycleTrackableValue(trackableValue);
         }
     }
 }

@@ -379,14 +379,14 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 // #endif
     }
 
-    void TrackValue(TType tempValue, MonoBehaviour byWho)
+    void TrackValue(TType value, MonoBehaviour byWho)
     {
         var trackValue = UserDataTracker.BorrowTrackableValue;
         if (trackValue == null) return;
-        trackValue.Clear();
         trackValue.SetProperty("Data", FinalData ? FinalData.name : "null");
         trackValue.SetProperty("byWho", byWho ? byWho.name : "null");
-        trackValue.SetProperty("value", tempValue);
+        trackValue.SetProperty("value", value);
+        //FIXME: 還是這裡應該用trackValue.Track(...?)既然都包了
         UserDataTracker.Track("Variable Changed", trackValue);
     }
 #if MIXPANEL

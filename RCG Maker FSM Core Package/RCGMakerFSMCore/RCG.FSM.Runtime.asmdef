@@ -1,5 +1,5 @@
 {
-    "name": "rcgmaker.fsm.core",
+    "name": "com.rcg.fsm",
     "rootNamespace": "",
     "references": [
         "GUID:c2f440c9fef6c8c40ac5c50eea18c599",
