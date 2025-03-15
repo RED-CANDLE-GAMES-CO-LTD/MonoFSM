@@ -296,7 +296,6 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
     //ref到so就會load sprite
     [Header("一開遊戲就會讀進來的")] public Sprite staticSprite;
     [InlineField] [SerializeField] public RCGAssetReference spriteRef;
-
     [InlineField] [SerializeField] public RCGAssetReference smallSpriteRef;
 
     public virtual void LoadAndSetIconForImage(Image image, Color loadedColor = default)

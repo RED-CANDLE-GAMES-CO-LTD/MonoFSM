@@ -1,0 +1,30 @@
+{
+    "name": "rcg.fsm.editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:f2f860dd0c0594e9d880d20baa7b20c3",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:5a99140e5b7ff4b43aa1f06887b3637d",
+        "GUID:c2f440c9fef6c8c40ac5c50eea18c599",
+        "GUID:0a57e0bc8f6cb4e7d8b89973bc84e5da",
+        "GUID:f06555f75b070af458a003d92f9efb00",
+        "GUID:02f771204943f4a40949438e873e3eff",
+        "GUID:92f5e35d95a2645d3a36426c06255e50",
+        "GUID:2c573e6b271651846a79655161004c5b",
+        "GUID:6c38422beac1345fa9f608afcc935641",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:49818357e697641afb75d2f8acaf1861",
+        "GUID:2ce824e5d56f8495cb762ccff02f283b"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
