@@ -7,9 +7,6 @@
   "keywords": [
     "fsm"
   ],
-  "dependencies": {
-    "com.unity.nuget.newtonsoft-json": "3.0.2"
-  },
   "gitDependencies": {
     "com.nuget.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity"
   },

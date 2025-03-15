@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-// using Newtonsoft.Json;
-// using Newtonsoft.Json.Linq;
+//using Newtonsoft.Json;
+//using Newtonsoft.Json.Linq;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
@@ -396,6 +396,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
 #endif
     }
 
+    /*
     //FIXME: 要把這個換掉嗎？
     public void FlagToJSON(JSONObject o)
     {
@@ -423,7 +424,7 @@ public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValid
             }
         }
     }
-
+*/
     //Dictionary type.
     public void FlagToJSON(Dictionary<string, object> o)
     {
