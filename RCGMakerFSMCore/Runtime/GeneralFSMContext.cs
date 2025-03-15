@@ -131,7 +131,7 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
 
     private Random.State randomState;
 
-    public GeneralState[] GetAllStates()
+    public GeneralState[] GetAllGeneralStates()
     {
         // if (states == null)
         states = GetComponentsInChildren<GeneralState>();

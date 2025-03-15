@@ -63,7 +63,7 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
 
     IEnumerable<GeneralState> FindStates()
     {
-        return GetComponentInParent<GeneralFSMContext>(true).GetAllStates();
+        return GetComponentInParent<GeneralFSMContext>(true).GetAllGeneralStates();
         // return GetComponentInParent<GeneralFSMContext>().GetAllStates()
         //     .Where(state => state != this.GetComponentInParent<GeneralState>());
     }
