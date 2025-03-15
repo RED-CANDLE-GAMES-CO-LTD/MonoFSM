@@ -77,19 +77,20 @@ public class GuidManager
     // Singleton interface
     public static GuidManager Instance;
 
-// #if UNITY_EDITOR
-//     [InitializeOnLoadMethod]
-//     private static void Init()
-//     {
-//         Instance = new GuidManager();
-//         EditorApplication.playModeStateChanged += (PlayModeStateChange state) =>
-//         {
-//             if (state == PlayModeStateChange.EnteredPlayMode)
-//             {
-//             }
-//         };
-//     }
-// #endif
+    //FIXME: 以前有注解掉，
+#if UNITY_EDITOR
+    [InitializeOnLoadMethod]
+    private static void Init()
+    {
+        Instance = new GuidManager();
+        EditorApplication.playModeStateChanged += (PlayModeStateChange state) =>
+        {
+            if (state == PlayModeStateChange.EnteredPlayMode)
+            {
+            }
+        };
+    }
+#endif
 
     public static void InitRuntime() //before all scene awake?
     {
