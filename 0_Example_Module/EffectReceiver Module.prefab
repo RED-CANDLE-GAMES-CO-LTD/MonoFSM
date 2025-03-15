@@ -48,7 +48,8 @@ MonoBehaviour:
   conditions: []
   targetFlag: {fileID: 0}
   Arithmetic: 1
-  Value: 0
+  ConstValue: 0
+  sourceType: 0
 --- !u!114 &5263169592953954574
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -267,6 +268,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da001379065748ad8f35741f44a2ecbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _detectors: []
 --- !u!1 &9045084041347427011
 GameObject:
   m_ObjectHideFlags: 0

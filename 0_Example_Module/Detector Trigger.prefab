@@ -141,8 +141,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EffectType: {fileID: 11400000, guid: 107db2b0d31734c8abe3d999951b9667, type: 2}
-  ValueSource:
-    ValueSource: {fileID: 0}
 --- !u!1 &2642439091165249996
 GameObject:
   m_ObjectHideFlags: 0
@@ -394,3 +392,4 @@ MonoBehaviour:
   HittingLayer:
     serializedVersion: 2
     m_Bits: 0
+  virtualDetector: {fileID: 0}
