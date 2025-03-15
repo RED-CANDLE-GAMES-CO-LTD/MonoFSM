@@ -52,7 +52,7 @@ public abstract class SingletonBehaviour<T> : MonoBehaviour where T : MonoBehavi
                     return _instance;
 
 
-                _instance = (T)FindObjectOfType(typeof(T));
+                _instance = (T)FindFirstObjectByType(typeof(T));
                 // TODO: Automatic creation
                 if (_instance == null && destroyed == false)
                     // Debug.Log("Auto Generate" + typeof(T).FullName);

@@ -97,7 +97,7 @@ public class GuidManager
         if (Instance == null)
             Instance = new GuidManager();
         Instance.guidToObjectMapRuntime.Clear();
-        var guidComps = Object.FindObjectsOfType<GuidComponent>(true);
+        var guidComps = Object.FindObjectsByType<GuidComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         Debug.Log("GuidManager Find All Runtime GuidComponent Count:" + guidComps.Length);
 
         //排除...
