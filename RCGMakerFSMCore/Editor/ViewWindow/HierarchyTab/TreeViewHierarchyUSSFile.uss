@@ -1,0 +1,5 @@
+
+
+.unity-text-element--inner-input-field-component {
+    cursor: text;
+}
