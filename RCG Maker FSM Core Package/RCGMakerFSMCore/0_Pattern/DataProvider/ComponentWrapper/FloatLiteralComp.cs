@@ -17,11 +17,11 @@ namespace RCGFSMCore._0_Pattern.DataProvider.ComponentWrapper
         public string Description => _literal.ToString();
 
         [Button("Rename")]
-        void Rename()
+        void Rename() //FIXME: rename可以包起來大家用？
         {
 #if UNITY_EDITOR
             UnityEditor.Undo.RecordObject(this, "Rename");
-            name = "[FloatLiteral]" + _literal;
+            name = "[Float]" + _literal;
 #endif
         }
     }

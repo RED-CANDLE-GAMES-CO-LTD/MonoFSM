@@ -14,7 +14,10 @@ namespace RCGMaker.Core.DataProvider
     //監聽的模組要另外掛嗎？
     public abstract class AbstractFieldValueProvider : MonoBehaviour
     {
-        [Required] [BoxGroup("Get Value From a Variable")] [SerializeReference]
+        [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
+        private AbstractVariableProviderRef _variableProviderRef;
+
+        [Required] [BoxGroup("Get Value From a Variable")] [SerializeReference] [HideIf(nameof(_variableProviderRef))]
         public IVariableProvider _variableProvider; //可能是mono, 也可能是數字而已
 
         [PreviewInInspector] [Auto] IDataChangedListener _dataChangedListener;

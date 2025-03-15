@@ -12,13 +12,13 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Core.DataProvider
 {
-    public class VariableProviderComp<TVarMonoType, TValueType> : AbstractVariableProviderComp,
+    public class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
         IConfigVar
         where TVarMonoType : AbstractMonoVariable
     {
         public override string ToString()
         {
-            return GetValue().ToString();
+            return varTag.name;
         }
 
         public override Type GetValueType => typeof(TValueType);
@@ -162,8 +162,12 @@ namespace RCGMaker.Core.DataProvider
             }
 
             _runtimeCachedOwner = target.GetComponentInParent<VariableOwner>();
-            if (_runtimeCachedOwner == null)
-                Debug.LogError("VariableOwner InParent is null at:" + target, target);
+            if (Application.isPlaying)
+            {
+                if (_runtimeCachedOwner == null)
+                    Debug.LogError("VariableOwner InParent is null at:" + target, target);
+            }
+
             return _runtimeCachedOwner;
             // return _runtimeCachedOwner;
         }

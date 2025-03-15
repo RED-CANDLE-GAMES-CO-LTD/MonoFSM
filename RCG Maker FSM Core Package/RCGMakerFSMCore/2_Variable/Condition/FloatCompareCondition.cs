@@ -1,6 +1,7 @@
 using System;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
@@ -8,18 +9,31 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     public class FloatCompareCondition : AbstractConditionComp
     {
         [Component] [AutoChildren] [PreviewInInspector]
-        private IFloatProvider[] floatValueSourceArray = Array.Empty<IFloatProvider>();
+        private IFloatProvider[] _floatValueSourceArray = Array.Empty<IFloatProvider>();
 
-        float Value1 => floatValueSourceArray[0].GetFloat();
-        float Value2 => floatValueSourceArray[1].GetFloat();
+        [PreviewInInspector]
+        private float Value1 => _floatValueSourceArray is { Length: > 0 }
+            ? _floatValueSourceArray[0].GetFloat()
+            : 0;
 
-        [SerializeReference] public IFloatProvider floatValueSource1;
+        [PreviewInInspector] Operator opView => op;
+
+        [PreviewInInspector]
+        private float Value2 => _floatValueSourceArray is { Length: > 1 }
+            ? _floatValueSourceArray[1].GetFloat()
+            : 0;
+
+        bool isFloatValueSourceValid => _floatValueSourceArray is { Length: > 1 };
+
+        [HideIf(nameof(isFloatValueSourceValid))] [SerializeReference]
+        public IFloatProvider floatValueSource1;
 
         // public FloatValueRef floatValueSource1;
         public Operator op;
 
         // public FloatValueRef floatValueSource2;
-        [SerializeReference] public IFloatProvider floatValueSource2;
+        [HideIf(nameof(isFloatValueSourceValid))] [SerializeReference]
+        public IFloatProvider floatValueSource2;
 
         protected override bool IsValid
         {

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core.DataProvider
 {
-    public abstract class AbstractVariableProviderComp : MonoBehaviour
+    public abstract class AbstractVariableProviderRef : MonoBehaviour
     {
         public GameFlagBase FinalData => VarRaw?.FinalData;
         public abstract AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？

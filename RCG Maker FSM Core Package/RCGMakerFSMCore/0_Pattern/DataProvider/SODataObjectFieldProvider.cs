@@ -21,8 +21,8 @@ namespace RCGMaker.Core.DataProvider
 
         // [BoxGroup("Instance")] public VariableMonoDescriptableProvider _monoDescriptableProvider;
         //FIXME: 這個不好！
-        [Header("Deprecated")] [Obsolete] [PropertyOrder(-1)] [BoxGroup("Instance")]
-        public MonoDescriptableProvider<MonoDescriptable> _descriptableProvider;
+        // [Header("Deprecated")] [Obsolete] [PropertyOrder(-1)] [BoxGroup("Instance")]
+        // public MonoDescriptableProvider<MonoDescriptable> _descriptableProvider;
 
 
         [PropertyOrder(-1)]

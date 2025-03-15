@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using RCG_Maker_FSM_Core_Package.RCGMakerFSMCore.Tracking;
 #if MIXPANEL
 using mixpanel;
 #endif
@@ -359,21 +360,34 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         Field.SetCurrentValue(tempValue, byWho);
 
         if (FinalData == null) return;
-#if MIXPANEL
-        _trackValue.OnRecycle();
-        _trackValue["Data"] = FinalData ? FinalData.name : "null";
-        _trackValue["byWho"] = byWho ? byWho.name : "null";
-        _trackValue["value"] = tempValue switch
-        {
-            bool valueBool => valueBool,
-            int valueInt => valueInt,
-            float valueFloat => valueFloat,
-            _ => _trackValue["value"]
-        };
-        this.Log("Set Value byWho", tempValue, "byWho", byWho);
-     
-        this.Track("Variable Changed", _trackValue);
-#endif
+
+        TrackValue(tempValue, byWho);
+// #if MIXPANEL
+//         _trackValue.OnRecycle();
+//         _trackValue["Data"] = FinalData ? FinalData.name : "null";
+//         _trackValue["byWho"] = byWho ? byWho.name : "null";
+//         _trackValue["value"] = tempValue switch
+//         {
+//             bool valueBool => valueBool,
+//             int valueInt => valueInt,
+//             float valueFloat => valueFloat,
+//             _ => _trackValue["value"]
+//         };
+//         this.Log("Set Value byWho", tempValue, "byWho", byWho);
+//      
+//         this.Track("Variable Changed", _trackValue);
+// #endif
+    }
+
+    void TrackValue(TType tempValue, MonoBehaviour byWho)
+    {
+        var trackValue = UserDataTracker.BorrowTrackableValue;
+        if (trackValue == null) return;
+        trackValue.Clear();
+        trackValue.SetProperty("Data", FinalData ? FinalData.name : "null");
+        trackValue.SetProperty("byWho", byWho ? byWho.name : "null");
+        trackValue.SetProperty("value", tempValue);
+        UserDataTracker.Track("Variable Changed", trackValue);
     }
 #if MIXPANEL
     private readonly Value _trackValue = new();

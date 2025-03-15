@@ -5,6 +5,7 @@ using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 
 namespace RCGMaker.Core.DataProvider
 {
+    //FIXME: 改名？
     public interface IGameDataProvider //
     {
         // public DescriptableData GetGameData();
@@ -27,7 +28,7 @@ namespace RCGMaker.Core.DataProvider
     // }
 
     [Serializable]
-    public class SODataVarProvider : VariableProvider<SODataVariable, DescriptableData>, IGameDataProvider
+    public class SODataVarProvider : VariableProvider<VarGameData, DescriptableData>, IGameDataProvider
     // IDescriptableDataProvider
     {
         // [DropDownRef] public VariableTag variableTag;
