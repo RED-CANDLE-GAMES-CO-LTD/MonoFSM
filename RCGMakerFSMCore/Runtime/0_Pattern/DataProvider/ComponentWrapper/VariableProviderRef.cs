@@ -18,9 +18,9 @@ namespace RCGMaker.Core.DataProvider
         GlobalInstance
     }
 
-    //FIXME: drag drop reference後，自動填入tag/monoTag
-    public class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
-        IConfigVar, IVariableProvider
+    //TODO: FIXME: drag drop reference後，自動填入tag/monoTag
+    public abstract class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
+        IConfigVar, IVariableProvider,IStringProvider
         where TVarMonoType : AbstractMonoVariable
     {
         public GetFromType _getFromType = GetFromType.VariableOwner;
@@ -28,6 +28,11 @@ namespace RCGMaker.Core.DataProvider
         public override string ToString()
         {
             return varTag.name;
+        }
+
+        public string GetString()
+        {
+            return Value.ToString();
         }
 
         public override Type GetValueType => typeof(TValueType);

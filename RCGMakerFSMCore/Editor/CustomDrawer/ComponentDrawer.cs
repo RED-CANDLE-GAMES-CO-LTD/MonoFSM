@@ -104,7 +104,6 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
             var selector = new ComponentTypeSelector(type);
             // selector.EnableSingleClickTselector.EnableSingleClickToConfirm();oSelect();
             // selector.SelectionChanged += col => { Debug.Log("SelectionChanged" + col.FirstOrDefault()); };
-
             selector.SelectionConfirmed += col =>
             {
                 Debug.Log(col);

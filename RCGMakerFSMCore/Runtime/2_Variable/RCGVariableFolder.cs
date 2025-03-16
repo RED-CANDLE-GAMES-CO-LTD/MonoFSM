@@ -54,26 +54,7 @@ public class RCGVariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
             variable.CommitValue();
         }
     }
-
-    // private Dictionary<VariableTag, AbstractVariable> varDict = new();
-    // Dictionary<VariableTag, AbstractVariable> GetVariableDict()
-    // {
-    //     var dict = new Dictionary<VariableTag, AbstractVariable>();
-    //     foreach (var variable in variables)
-    //     {
-    //         if (variable is AbstractVariable abstractVariable)
-    //         {
-    //             if(abstractVariable.varTag == null) continue;
-    //             dict[abstractVariable.varTag] = abstractVariable;
-    //         }
-    //             
-    //         // if(variable.varTag == null) continue;
-    //         //     dict[variable.varTag] = variable;
-    //     }
-    //     return dict;
-    // }
-
-
+    
     // [PreviewInInspector]
     [PreviewInInspector] [Component] [AutoChildren]
     private ISettable[] _variables = Array.Empty<ISettable>();
