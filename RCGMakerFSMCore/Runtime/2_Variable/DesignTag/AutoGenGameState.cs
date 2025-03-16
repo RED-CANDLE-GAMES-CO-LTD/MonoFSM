@@ -61,16 +61,31 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
         if (Application.isPlaying)
             return;
 
-        if (IsAssetOnDisk()) return; //prefab就不可能auto gen?
-        if (EditorUtility.IsPersistent(this)) return;
+        if (IsAssetOnDisk())
+        {
+            Debug.LogError("AutoGenCheck: AssetOnDisk", this);
+            return; //prefab就不可能auto gen?
+        }
+
+        if (EditorUtility.IsPersistent(this))
+        {
+            Debug.LogError("AutoGenCheck: Persistent", this);
+            return;
+        }
 
         if (!IsGuidAssigned()) //guid 0000的時候，不要gen，先等下面gen, 只是這個OnBeforeSerialize不會遞迴嗎... call stack有點醜的感覺
+        {
+            Debug.LogError("Guid not assigned", this);
             return;
+        }
+            
         // Debug.Log("Auto Gen When Save: " + gameObject.name);
         //改成ShowInInspector Property?
         if (Owners == null)
+        {
+            Debug.LogError("No GameStateOwner", this);
             return;
-
+        }
 
         foreach (var o in Owners)
         {
@@ -99,13 +114,7 @@ public class AutoGenGameState : GuidComponent, ISceneSavingCallbackReceiver
                         continue;
                     }
                 }
-
-
-                // Debug.Log("Need Auto Gen: gameStateAttribute " + ",value:" + value + ",saveID:" + SaveID, gameObject);
-
                 //幫他生成
-                //if null, create new instance
-                // var fieldType = field.FieldType;
                 //FIXME: 非正式scene的時候，不要生成？怎麼標記這件事，看有沒有在build setting?
 
                 var data = field.FieldType.CreateGameStateSO(owner, gameStateAttribute.SubFolderName);

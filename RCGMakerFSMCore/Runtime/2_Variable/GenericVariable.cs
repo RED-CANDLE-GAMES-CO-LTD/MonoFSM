@@ -21,10 +21,11 @@ using UnityEngine.Profiling;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
-//現在根本還沒做監聽，是用condition做polling
+//FIXME: autoGen太複雜，可能需要再拆漂亮
+//TODO: 現在根本還沒做監聽，是用condition做polling
 [Searchable]
 public abstract class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable, ISettable<TType>,
-    ISelfValidator,
+    
     IGameStateOwner, IDefaultSerializable, ILevelResetPrepare
     where TScriptableData : AbstractScriptableData<TField, TType>
     where TField : FlagField<TType>, new()
@@ -57,39 +58,37 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         // GenData();
 #endif
     }
-
-    private bool AutoGenCheck()
-    {
-#if UNITY_EDITOR
-        if (PrefabKindMatchTagCheck() && IsAutoGen)
-        {
-            if (scriptableData == null)
-            {
-                Debug.Log("Empty, About to Auto Gen" + myPrefabKind, this);
-                GenData();
-                if (scriptableData)
-                    return true;
-            }
-            else if (IsGameStateSaveIDNotMatch())
-            {
-                Debug.Log("SaveID NotMatch, About to Auto Gen" + myPrefabKind, this);
-                GenData();
-                if (scriptableData)
-                    return true;
-            }
-        }
-#endif
-
-        return true;
-    }
+    
+//     private bool AutoGenCheck()
+//     {
+// #if UNITY_EDITOR
+//         if (PrefabKindMatchTagCheck() && IsAutoGen)
+//         {
+//             if (scriptableData == null)
+//             {
+//                 Debug.Log("Empty, About to Auto Gen" + myPrefabKind, this);
+//                 GenData();
+//                 if (scriptableData)
+//                     return true;
+//             }
+//             else if (IsGameStateSaveIDNotMatch())
+//             {
+//                 Debug.Log("SaveID NotMatch, About to Auto Gen" + myPrefabKind, this);
+//                 GenData();
+//                 if (scriptableData)
+//                     return true;
+//             }
+//         }
+// #endif
+//
+//         return true;
+//     }
 
     private bool PrefabKindMatchTagCheck()
     {
 #if UNITY_EDITOR
         if (myPrefabKind == PrefabKind.NonPrefabInstance) //場景上的非prefab給過
             return true;
-
-
         var tag = GetComponent<GameStateRequireAtPrefabKind>();
 
         if (tag == null) return false; //[]: 該給過嗎？ 不該，要不然prefab會很吵
@@ -119,6 +118,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         //[]:已經在Auto那邊用OnBeforeSerialize全部做掉了
     }
 
+    
     [TabGroup("GameState")]
     [LabelText("自動生成")]
     [ShowInInspector]
@@ -202,7 +202,8 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [TabGroup("Data")] public TField Field => ScriptableData ? ScriptableData.field : localField;
     //給非Auto的人看的，要綁，Auto自己就會生，就結束了
 
-    [InfoBox("需要綁GameState!", InfoMessageType.Error, "IsGameStateRequiredButMissing")]
+    [InlineButton(nameof(GenData), "Auto Gen Fix",ShowIf = nameof(IsGenDataRequired))]
+    [InfoBox("需要綁GameState!", InfoMessageType.Error, nameof(IsGameStateRequiredButMissing))]
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
     // [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
     [TabGroup("Data")]
@@ -210,13 +211,11 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [GameState]
     [InlineEditor()]
     [EnableIf(nameof(PrefabKindMatchTagCheck))]
-    [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, "IsGameStateSaveIDNotMatch")]
-    [InfoBox("GameState的類型不對", InfoMessageType.Error, "IsGameStateTypeNotMatch")]
+    [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, nameof(IsGameStateSaveIDNotMatch))]
+    [InfoBox("GameState的類型不對", InfoMessageType.Error, nameof(IsGameStateTypeNotMatch))]
     // [ValidateInput("AutoGenCheck", "自動生成檢查失敗")]
     public TScriptableData scriptableData;
-
-
-    //<summary> 用來檢查auto gen時, 但是saveID不對 </summary>
+    
 #if UNITY_EDITOR
     private bool IsGameStateSaveIDNotMatch() //需檢查情境：複製時，造成綁到同一個gameState ref, 檢查saveID
     {
@@ -429,19 +428,33 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     //FIXME 不該用這個？
     // [HideInInlineEditors] public UnityEvent<TType> OnValueChanged = new();
 
-    public void Validate(SelfValidationResult result)
+//     public void Validate(SelfValidationResult result)
+//     {
+// #if UNITY_EDITOR
+//         if (IsAutoGen)
+//         {
+//             //不在景裏，不需要
+//             if ((OdinPrefabUtility.GetPrefabKind(this) & PrefabKind.InstanceInScene) == 0) return;
+//             if (IsAutoGenButNotYet()) result.AddError("需要GameState Not Gen").WithFix(GenData);
+//         }
+//
+//         if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
+// #endif
+//     }
+
+    bool IsGenDataRequired()
     {
-#if UNITY_EDITOR
         if (IsAutoGen)
         {
             //不在景裏，不需要
-            if ((OdinPrefabUtility.GetPrefabKind(this) & PrefabKind.InstanceInScene) == 0) return;
-            if (IsAutoGenButNotYet()) result.AddError("需要GameState Not Gen").WithFix(GenData);
+            if ((OdinPrefabUtility.GetPrefabKind(this) & PrefabKind.InstanceInScene) == 0) return false;
+            if (IsAutoGenButNotYet()) return true;
         }
 
-        if (IsGameStateSaveIDNotMatch()) result.AddError("SaveID不一致, 清掉重綁").WithFix(GenData);
-#endif
+        return IsGameStateSaveIDNotMatch();
     }
+  
+    
 
     // public override GameFlagBase FinalData => ScriptableData ? ScriptableData : Sampledata;
     // [TabGroup("再說")] public GameFlagBase mainData;
