@@ -54,7 +54,7 @@ namespace RCGMaker.Runtime.Mono
         [Button]
         void FindAllMonoDescriptable()
         {
-            _allMonoDescriptable = FindObjectsOfType<MonoDescriptable>().Where(x => x.Tag == this).ToArray();
+            _allMonoDescriptable = FindObjectsByType<MonoDescriptable>(FindObjectsSortMode.None).Where(x => x.Tag == this).ToArray();
         }
 
         [PreviewInInspector] public MonoDescriptable[] _allMonoDescriptable;

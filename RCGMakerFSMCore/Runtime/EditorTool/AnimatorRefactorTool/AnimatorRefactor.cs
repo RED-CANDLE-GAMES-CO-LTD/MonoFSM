@@ -58,7 +58,7 @@ namespace RCGMaker.Core.Editor
          }
          else
          {
-            nodes = Object.FindObjectsOfType<RefactorNode>(true);
+            nodes = Object.FindObjectsByType<RefactorNode>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             Debug.Log("Find all RefactorNode in Scene" + nodes.Length);
          }
       

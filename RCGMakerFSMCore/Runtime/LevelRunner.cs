@@ -13,7 +13,7 @@ namespace RCGMaker.Core
             if (Application.isPlaying)
             {
                 Debug.Log("ResetLevel CMD+Shift+R");
-                FindObjectOfType<LevelRunner>().ResetLevel();
+                FindFirstObjectByType<LevelRunner>().ResetLevel();
             }
             else
             {
