@@ -26,7 +26,7 @@ namespace RCGMaker.Core
 
         public void ResetLevel()
         {
-            // PoolManager.Instance.ResetFromRoot(level);
+            PoolManager.Instance.ResetFromRoot(level);
         }
 
         // [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
