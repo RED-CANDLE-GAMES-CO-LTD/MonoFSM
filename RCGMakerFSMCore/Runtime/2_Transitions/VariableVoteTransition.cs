@@ -5,7 +5,9 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM.RCGStateMachine._2_Transitions
 {
-    public class VariableVoteTransition : AbstractStateTransition
+    //FIXME: 用condition
+    [Obsolete]
+    public class VariableVoteTransition : StateTransition
     {
         [Required] [Header("When")] [PropertyOrder(-1)] [DropDownRef]
         public MonoVariableVote _vote; //FIXME: 可以用interface IBoolVariable? 可以和variable bool 合併
@@ -27,18 +29,19 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine._2_Transitions
             //     return;
             // }
 
-            _vote._vote.OnVoteChange.AddListener(OnValueChange);
+            _vote.Vote.OnVoteChange.AddListener(OnValueChange);
         }
 
         private void OnValueChange(bool arg0)
         {
-            if (arg0 == TargetValue)
-                TransitionCheck();
+            // if (arg0 == TargetValue)
+            //     TransitionCheck();
+            Debug.LogError("Deprecated", this);
         }
 
         private void OnDestroy()
         {
-            _vote._vote.OnVoteChange.RemoveListener(OnValueChange);
+            _vote.Vote.OnVoteChange.RemoveListener(OnValueChange);
         }
     }
 }

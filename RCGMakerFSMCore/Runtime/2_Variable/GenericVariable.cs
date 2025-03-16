@@ -252,10 +252,9 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
 
-
+    //不同type不同類型的modifier
     [PreviewInInspector] [Component] [AutoChildren]
-    private AbstractVariableModifier<TType>[] modifiers;
-//會有external modifier...
+    protected AbstractVariableModifier<TType>[] _modifiers;
 
     [TabGroup("Data"), PreviewInInspector] public virtual TType FinalValue => CurrentValue;
     [TabGroup("Data"), PreviewInInspector] public virtual TType LastValue => Field.LastValue; //FIXME: 這裡沒有過到modifier
@@ -284,8 +283,8 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
             Profiler.EndSample();
             Profiler.BeginSample("AfterGetValueModifyCheck");
             //FIXME: 這個是不是有點貴？有需要在這層做嗎？應該在set時就做掉了？不需要ㄅ
-            if (modifiers != null)
-                foreach (var modifier in modifiers)
+            if (_modifiers != null)
+                foreach (var modifier in _modifiers)
                     tempValue = modifier.AfterGetValueModifyCheck(tempValue);
             Profiler.EndSample();
             // this.Log("[Variable] Get", tempValue);
@@ -297,8 +296,8 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
             var tempValue = value;
             //先檢查會被修改
 
-            if (modifiers != null)
-                foreach (var modifier in modifiers)
+            if (_modifiers != null)
+                foreach (var modifier in _modifiers)
                     tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
             // this.Log("[Variable] Set", value); 
             if (ScriptableData == null)
@@ -348,8 +347,8 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         var tempValue = value;
         //先檢查會被修改
 
-        if (modifiers != null)
-            foreach (var modifier in modifiers)
+        if (_modifiers != null)
+            foreach (var modifier in _modifiers)
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
         //after?
         // Debug.Log("[Variable] Set" + value + "tempValue:" + tempValue + ", Value:" + CurrentValue, byWho);

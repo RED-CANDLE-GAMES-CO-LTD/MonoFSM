@@ -473,6 +473,7 @@ public static class MonoNodeExtension
     // return default(T);
 
 
+    [Conditional("UNITY_EDITOR")]
     public static void Break(this Component go)
     {
 #if UNITY_EDITOR
@@ -480,9 +481,11 @@ public static class MonoNodeExtension
         // var provider = go.GetComponentInParent<DebugProvider>(true);
         if (isLogging == false)
             return;
-        Debug.Log("[DebugProvider] Break");
-        Debug.Break();
-
+        if (provider.IsBreak)
+        {
+            Debug.Log("[DebugProvider] Break",go);
+            Debug.Break();    
+        }
 #endif
     }
 }

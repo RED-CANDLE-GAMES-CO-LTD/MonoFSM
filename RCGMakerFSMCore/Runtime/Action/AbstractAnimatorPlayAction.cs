@@ -13,7 +13,7 @@ namespace RCGMaker.Core
 {
     //[]: 先弄成abstract不會和原專案的class衝突
     public abstract class AbstractAnimatorPlayAction : AbstractStateAction, IAnimatorPlayAction,
-        ISceneSavingCallbackReceiver
+        ISceneSavingCallbackReceiver,ITransitionCheckInvoker
     {
         private bool IsStateNameProvider()
         {
@@ -257,12 +257,13 @@ namespace RCGMaker.Core
 
         private void AnimationDone()
         {
-            doneEventTransition.TransitionCheck();
+            // TransitionTarget.OnTransitionCheck();
+            doneEventTransition.IsTransitionCheckNeeded = true;
             // doneEventTransition.EventReceived("AnimationDone");
         }
 
         [TabGroup("Animator")] [ShowInInspector] [ReadOnly] [Auto(false)]
-        private AbstractStateTransition doneEventTransition;
+        private global::StateTransition doneEventTransition;
 
 #if UNITY_EDITOR
         //不一定有，optional...
@@ -272,7 +273,7 @@ namespace RCGMaker.Core
         private void CreateEventReceiver()
         {
             // doneEventTransition = gameObject.AddChildrenComponent<AbstractStateTransition>("[Transition] Anim Done");
-            doneEventTransition = this.TryGetCompOrAdd<AbstractStateTransition>();
+            doneEventTransition = this.TryGetCompOrAdd<global::StateTransition>();
             // doneEventTransition = gameObject.AddComponent<AbstractStateTransition>();
         }
 
@@ -361,5 +362,6 @@ namespace RCGMaker.Core
         }
 
         #endregion
+        
     }
 }

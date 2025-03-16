@@ -16,7 +16,7 @@ namespace RCGMaker.Core
         public GeneralFSMContext Context => context;
 
         public bool TransitionCheck(GeneralState toState, float timeOffset = 0,
-            AbstractStateTransition fromTransition = null)
+            global::StateTransition fromTransition = null)
         {
             context.SetLastTransition(fromTransition);
             return TransitionCheck(toState);
@@ -37,7 +37,7 @@ namespace RCGMaker.Core
         // }
 
 
-        [AutoChildren] AbstractStateTransition[] transitions;
+        [AutoChildren] global::StateTransition[] transitions;
 
 #if UNITY_EDITOR
         // [Button("Add Event Transition")]

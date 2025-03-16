@@ -97,8 +97,9 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
         {
             type = type.GetElementType();
         }
-
-        if (SirenixEditorGUI.SDFIconButton("搜尋：新增" + buttonStr + ":" + type.Name, 16, SdfIconType.CaretDownFill))
+        //localization strings?
+        // var style = new GUIStyle(EditorStyles.toolbarButton);
+        if (SirenixEditorGUI.SDFIconButton("Search：Add" + buttonStr + ":" + type.Name, 16, SdfIconType.Plus))
         {
             Debug.Log("Parent Value:" + baseMemberProperty.ParentValues[0]);
             var selector = new ComponentTypeSelector(type);

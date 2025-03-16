@@ -18,7 +18,7 @@ namespace RCGFSM.Animation
     [HelpURL("https://www.notion.so/AnimatorPlayA-061be2a2d4e5414e88e84f1ed80d8ea2")]
     [Searchable]
     public class AnimatorPlayAction : AbstractStateAction, IRCGArgEventReceiver, IAnimatorPlayAction,
-        ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent, ITransitionChecker
+        ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent, ITransitionCheckInvoker
     {
         protected override string renamePostfix => " " + animator.gameObject.name + ": " + StateName;
 
@@ -623,6 +623,7 @@ namespace RCGFSM.Animation
             return result;
         }
 
+        public bool IsPlayDone => IsPlayingCurrentClip() && CurrentPlayingNormalizedTime >= 1;
 
         //TODO:
         protected override void OnSpriteUpdateImplement()
@@ -689,8 +690,10 @@ namespace RCGFSM.Animation
 
         void AnimationDone()
         {
-            doneEventTransition.TransitionCheck();
-            OnAnimationDone?.Invoke();
+            // TransitionTarget.OnTransitionCheck();
+            //FIXME: 還是應該用condition...hmm
+            doneEventTransition.IsTransitionCheckNeeded = true; 
+            OnAnimationDone?.Invoke(); //事件驅動，不太好
             // doneEventTransition.EventReceived("AnimationDone");
         }
 
@@ -701,11 +704,11 @@ namespace RCGFSM.Animation
 
         bool NoDoneEventTransition()
         {
-            return GetComponent<AbstractStateTransition>() == null;
+            return GetComponent<StateTransition>() == null;
         }
 
         [HideIf(nameof(NoDoneEventTransition))] [TabGroup("Animator")] [PreviewInInspector] [Component] [AutoChildren]
-        AbstractStateTransition doneEventTransition;
+        StateTransition doneEventTransition; //寫成condition更好？
 
         private IRCGArgEventReceiver _ircgArgEventReceiverImplementation;
 
@@ -717,7 +720,7 @@ namespace RCGFSM.Animation
         void CreateEventReceiver()
         {
             // doneEventTransition = gameObject.AddChildrenComponent<AbstractStateTransition>("[Transition] Anim Done");
-            doneEventTransition = this.AddChildrenComponent<AbstractStateTransition>("[Transition] Anim Done");
+            doneEventTransition = this.AddChildrenComponent<StateTransition>("[Transition] Anim Done");
             // doneEventTransition = gameObject.AddComponent<AbstractStateTransition>();
         }
 
@@ -852,5 +855,6 @@ namespace RCGFSM.Animation
         //     animator.keepAnimatorStateOnDisable = true;
         //     
         // }
+        // public ITransitionCheckingTarget ValueChangedTarget => doneEventTransition;
     }
 }

@@ -27,7 +27,7 @@ public interface IRebindable
 }
 
 public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
-    IBoolValue, IRebindable
+    IBoolProvider, IRebindable
 {
     public ScriptableDataBool boolFlag => scriptableData; // scriptableData;
 

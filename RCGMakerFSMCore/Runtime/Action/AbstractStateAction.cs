@@ -81,6 +81,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     //一定是AND的啦
     public async void OnActionEnter()
     {
+        if (!isActiveAndEnabled) return;
         if (_delay)
             UnityEngine.Debug.LogError("Delay 還沒結束又DELAY 死罪", this);
 

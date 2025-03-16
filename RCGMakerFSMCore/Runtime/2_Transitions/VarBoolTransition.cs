@@ -5,9 +5,9 @@ using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 //監聽variable變化讓state轉換？
-//監聽condition是不是比較泛用，用組合的
-//lazy update condition
-public class VariableBoolTransition : AbstractStateTransition, ILevelResetStart, ITransitionChecker
+//FIXME: 監聽condition是不是比較泛用，用組合的
+[Obsolete]
+public class VarBoolTransition : StateTransition, ILevelResetStart
 {
     protected override string GetNameByBehaviour()
     {
@@ -39,7 +39,8 @@ public class VariableBoolTransition : AbstractStateTransition, ILevelResetStart,
         if (value == TargetValue)
         {
             this.Log("OnValueChange TransitionCheck", TargetValue);
-            TransitionCheck();
+            Debug.LogError("Deprecated", this);
+            // TransitionCheck();
         }
     }
 

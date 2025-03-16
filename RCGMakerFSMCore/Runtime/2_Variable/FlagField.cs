@@ -143,6 +143,7 @@ public class ValueChangedListener<T>
             onChangeActionDict.Clear();
     }
 
+    //重複註冊就留著
     public void AddListenerDict(UnityAction<T> action, Object target)
     {
         var tuple = Tuple.Create(target, action);

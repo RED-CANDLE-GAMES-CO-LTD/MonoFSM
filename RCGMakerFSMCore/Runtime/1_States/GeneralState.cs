@@ -135,12 +135,15 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         if (actions == null) return;
         foreach (var action in actions)
         {
-            if (action.isActiveAndEnabled)
+         
             // if (action.gameObject.activeSelf)
                 action.OnActionEnter();
         }
 
-
+        foreach (var transition in transitions)
+        {
+            transition.TransitionCheck();
+        }
        
     }
 
@@ -173,6 +176,10 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         {
             if (action.isActiveAndEnabled)
                 action.OnActionUpdate();
+        }
+        foreach (var transition in transitions)
+        {
+            transition.TransitionCheck();
         }
     }
 
@@ -218,7 +225,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         context.ChangeState(this);
     }
 
-    public bool TransitionCheck(GeneralState toState, float timeOffset, AbstractStateTransition fromTransition)
+    public bool TransitionCheck(GeneralState toState, float timeOffset, StateTransition fromTransition)
     {
         if (gameObject.activeSelf == false)
         {
@@ -260,13 +267,13 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     [Component( AddComponentAt.Children, "[Transition]")]
     // [InlineEditor()]
     [PreviewInInspector]
-    AbstractStateTransition[] transitions = Array.Empty<AbstractStateTransition>();
+    StateTransition[] transitions = Array.Empty<StateTransition>();
 
-    public AbstractStateTransition[] Transitions => transitions;
+    public StateTransition[] Transitions => transitions;
 
     public void RefreshTransitions()
     {
-        transitions = GetComponentsInChildren<AbstractStateTransition>();
+        transitions = GetComponentsInChildren<StateTransition>();
     }
     // private void AddTransition()
     // {
@@ -274,9 +281,9 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     // }
 
     //FIXME: 沒有實作
-    public AbstractStateTransition AddTransition(System.Type transitionType)
+    public StateTransition AddTransition(System.Type transitionType)
     {
-        var t = this.AddChildrenComponent<AbstractStateTransition>("[Transition] NewTransition");
+        var t = this.AddChildrenComponent<StateTransition>("[Transition] NewTransition");
         // transitions.Add(t);
         return t;
         // return null;

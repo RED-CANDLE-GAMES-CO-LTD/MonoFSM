@@ -18,20 +18,23 @@ namespace RCGMaker.Core
     //自動撈？
     public class AutoUtils
     {
-        public static bool IsSerialized(InspectorProperty property,object belongObj,out FieldInfo privateField)
+        public static bool IsSerialized(InspectorProperty property,object belongObj,MonoBehaviour mb,out FieldInfo field)
         {
+            var isSerialized = property.Info.GetAttribute<SerializeField>() != null;
+            var propName = property.Name;
+            field = belongObj.GetType().GetField(propName, BindingFlags.Public |BindingFlags.NonPublic | BindingFlags.Instance);
             
-            bool isSerialized = property.Info.GetAttribute<SerializeField>() != null;
-            var propName = property.Info.PropertyName;
-            FieldInfo publicField = belongObj.GetType().GetField(propName, BindingFlags.Public | BindingFlags.Instance);
-            privateField = belongObj.GetType().GetField(propName, BindingFlags.NonPublic | BindingFlags.Instance);
+            // var publicField = belongObj.GetType().GetField(propName, BindingFlags.Public | BindingFlags.Instance);
+            // privateField = belongObj.GetType().GetField(propName, BindingFlags.NonPublic | BindingFlags.Instance);
             
-            if (privateField == null && publicField == null)
+            if (field == null)
             {
-                Debug.LogError("No Field Found:"+propName);
+                Debug.LogError("No Field Found:"+propName+" "+belongObj+" "+mb,mb);
+                
+                return false;
             }
                 
-            bool isPublicOrSerialized = publicField != null || isSerialized;
+            bool isPublicOrSerialized = field.IsPublic || isSerialized;
             return isPublicOrSerialized;
         }
         public static void SetPrivate(FieldInfo field,object belongObj,InspectorProperty property,AutoFamily autoAttribute,MonoBehaviour mb,Type componentType)
@@ -94,11 +97,17 @@ namespace RCGMaker.Core
             }
 
             // Debug.Log("Init: "+componentType+" "+mb+" "+Property.Name);
-            var isSerialized = AutoUtils.IsSerialized(Property,belongObj,out var privateField);
+            var isSerialized = AutoUtils.IsSerialized(Property,belongObj,mb,out var field);
+            if (field == null)
+            {
+                //FIXME: 參考ReflectionHelperMethod GetNonPublicFieldsInBaseClasses
+                Debug.LogError("No Field Found, field might be private, change to protected: "+Property.Name+" "+mb,mb);
+                return;
+            }
             if (isSerialized)
                 AutoUtils.SetSerialized(Property.ValueEntry,Attribute,mb,componentType);
             else
-                AutoUtils.SetPrivate(privateField,belongObj,Property,Attribute,mb,componentType);
+                AutoUtils.SetPrivate(field,belongObj,Property,Attribute,mb,componentType);
             // var componentType = Property.ValueEntry.TypeOfValue;
             // var currentProperty = Property;
             // //任何

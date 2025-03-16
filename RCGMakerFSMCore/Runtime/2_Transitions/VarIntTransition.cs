@@ -5,7 +5,8 @@ using UnityEngine.Serialization;
 
 //FIXME: 還沒有測試過唷, 現在listen應該會錯
 //FIXME: 應該用condition就好了，這個囉唆
-public class VariableIntTransition : AbstractStateTransition
+[Obsolete]
+public class VarIntTransition : StateTransition
 {
     [FormerlySerializedAs("_monoVariableNode")] [FormerlySerializedAs("variableNode")] [Required]
     public VarFloat _monoVarNode;
@@ -30,7 +31,7 @@ public class VariableIntTransition : AbstractStateTransition
 
     private void Update() //FIXME: 先暴力polling判斷
     {
-        if (Mathf.Approximately(_monoVarNode.CurrentValue, EqualValue))
-            TransitionCheck(delay);
+        // if (Mathf.Approximately(_monoVarNode.CurrentValue, EqualValue))
+        //     TransitionCheck(delay);
     }
 }

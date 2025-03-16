@@ -139,11 +139,11 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
     }
 
 
-    [ReadOnly] private AbstractStateTransition lastTransition;
+    [ReadOnly] private StateTransition lastTransition;
 
-    [PreviewInInspector] public AbstractStateTransition LastTransition => lastTransition;
+    [PreviewInInspector] public StateTransition LastTransition => lastTransition;
 
-    public void SetLastTransition(AbstractStateTransition transition)
+    public void SetLastTransition(StateTransition transition)
     {
         lastTransition = transition;
     }

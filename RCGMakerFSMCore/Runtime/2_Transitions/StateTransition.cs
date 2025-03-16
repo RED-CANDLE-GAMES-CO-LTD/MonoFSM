@@ -10,24 +10,46 @@ using UnityEngine;
 public interface IState<in TState>
 {
     GeneralFSMContext Context { get; }
-    bool TransitionCheck(TState toState, float timeOffset, AbstractStateTransition fromTransition = null);
+    bool TransitionCheck(TState toState, float timeOffset, StateTransition fromTransition = null);
 
     bool TransitionCheck(TState toState);
     // bool ForceTransition(GeneralState stateType);
     // bool TransitionCheck(GeneralState stateType);
 }
 
-//FIXME: 怎麼顯示沒有StateUpdateCheck? IChecker?
-public interface ITransitionChecker
+//FIXME:如果所有的condition都可以自行註冊，這個就不需要了，全部都用condition處理
+public interface ITransitionCheckInvoker //interface沒有意義？
 {
+    // void RegisterTransitionCheck(ITransitionCheckingTarget target);
+    // void UnRegisterTransitionCheck(ITransitionCheckingTarget target);
+    // ITransitionCheckingTarget TransitionTarget { get; }
 }
 
-[Searchable]
-public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable, ILevelResetPrepare
-{
-    [PreviewInInspector] [AutoParent] [Required] [Component(AddComponentAt.Same)]
-    ITransitionChecker _checker;
+// public interface ITransitionCheckingTarget
+// {
+//     bool OnTransitionCheck();
+// }
 
+//還是用IRCGEventReceiver?
+
+[Searchable]
+public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable, ILevelResetPrepare
+{
+    //現在event driven直接set也work, 要做成只有condition改變才會觸發transition?
+    public bool IsTransitionCheckNeeded = false;
+    //TODO: 我需要保證附近有checker, 我應該和_checker註冊？
+    [InfoBox("No Checker", InfoMessageType.Error, nameof(HasChecker))]
+    [PreviewInInspector] [AutoParent] [Component(AddComponentAt.Same)]
+    ITransitionCheckInvoker _checkInvoker; 
+
+    //要分同層級的嗎？
+    [Component]
+    [PreviewInInspector][AutoChildren] ITransitionCheckInvoker[] _childrenCheckers = Array.Empty<ITransitionCheckInvoker>();
+
+    bool HasChecker()
+    {
+        return _checkInvoker != null || _childrenCheckers is { Length: > 0 };
+    }
 
     [Button("依照Behaviour改名字")]
     void RenameByBehaviour()
@@ -137,6 +159,8 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
     //FIXME: 不該空降call, 只能在系統特定時間點
     public bool TransitionCheck(float timeOffset = 0)
     {
+        if(IsTransitionCheckNeeded == false)
+            return false;
         // this.Log("[Transition] Check1" + target.stateType, gameObject);
         //Transition 被關了
         //if (this.isActiveAndEnabled == false) 
@@ -228,9 +252,11 @@ public class AbstractStateTransition : AbstractBehaviour, IGuidEntity, IDefaultS
 
     public void LevelResetPrepareRuntimeData()
     {
-        if (_checker == null)
+        if (_checkInvoker == null)
             Debug.LogError("No Checker", gameObject);
     }
+
+    //需要外部通知檢查Transition, Update / ValueChanged, 還有嗎？
 }
 
 public abstract class AbstractBehaviour : MonoBehaviour

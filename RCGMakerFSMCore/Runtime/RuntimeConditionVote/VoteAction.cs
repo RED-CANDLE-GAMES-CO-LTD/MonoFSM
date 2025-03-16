@@ -25,9 +25,9 @@ namespace RCGMaker.Runtime.Vote
         protected override void OnStateEnterImplement()
         {
             if (voteType == VoteType.Vote)
-                _voteVar._vote.Vote(this, voteValue);
+                _voteVar.Vote.Vote(this, voteValue);
             else if (voteType == VoteType.Revoke)
-                _voteVar._vote.Revoke(this);
+                _voteVar.Vote.Revoke(this);
         }
 
         private void OnEnable()
@@ -35,7 +35,7 @@ namespace RCGMaker.Runtime.Vote
             if (_isPrepared == false)
                 return;
             if (voteType == VoteType.EnableDisable)
-                _voteVar._vote.Vote(this, voteValue);
+                _voteVar.Vote.Vote(this, voteValue);
         }
 
         private void OnDisable()
@@ -43,7 +43,7 @@ namespace RCGMaker.Runtime.Vote
             if (_isPrepared == false)
                 return;
             if (voteType == VoteType.EnableDisable)
-                _voteVar._vote.Revoke(this);
+                _voteVar.Vote.Revoke(this);
         }
 
         bool _isPrepared = false;

@@ -32,8 +32,10 @@ public static class ConditionHelper
 }
 
 //FIXME: 關掉condition節點算什麼？
-public abstract class AbstractConditionComp : MonoBehaviour, IBoolValue
+public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider
 {
+    //要能實作OnConditionChanged?
+    [AutoParent] protected StateTransition _parentTransition;
     protected virtual bool IsShowRenameButton => nameDescription != "";
 
     //FIXME: AI 可以解釋性？
@@ -52,6 +54,7 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolValue
 #endif
     }
 
+    //FIXME: 可是 _parentTransition等著被call
     // public Action OnConditionChanged; //要用這個？還是用polling就好了
     //直接用interface往上叫好像不錯？
     private bool _isConditionChanged = false;
@@ -90,7 +93,7 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolValue
 
 #if UNITY_EDITOR
     [ShowIf("IsDebugMode")] [PropertyOrder(1)] [TabGroup("Debug")] [Component] [AutoChildren(false)]
-    private DebugConditionResultOverrider _debugConditionResultOverrider;
+    protected DebugConditionResultOverrider _debugConditionResultOverrider;
 
     [ShowIf("IsDebugMode")]
     [ShowInInspector]

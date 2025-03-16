@@ -43,6 +43,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         float EditorValue { get; set; }
     }
 
+    [Obsolete]
     public interface IFloatValueProvider
     {
         [PreviewInInspector] float FinalValue { get; }
@@ -50,7 +51,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         //要可以set?
     }
 
-    public interface IBoolValue
+    public interface IBoolProvider
     {
         bool IsTrue { get; }
     }

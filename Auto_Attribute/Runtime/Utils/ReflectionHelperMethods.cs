@@ -344,6 +344,8 @@ namespace Auto.Utils
         }
         static List<FieldInfo> result = new List<FieldInfo>();
         static HashSet<string> fieldsFoundSoFar = new HashSet<string>();
+        
+        //這個會把baseClass的field都找出來
         public static List<FieldInfo> GetNonPublicFieldsInBaseClasses(Type type, bool excludeOverriddenMethods = true)
         {
             result.Clear();

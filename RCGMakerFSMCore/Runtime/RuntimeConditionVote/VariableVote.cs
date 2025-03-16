@@ -8,7 +8,8 @@ namespace RCGMaker.Runtime.Vote
     public class MonoVariableVote : AbstractMonoVariable
     {
         // [SerializeField]
-        public RuntimeConditionVote _vote = new RuntimeConditionVote();
+        private readonly RuntimeConditionVote _vote = new();
+        public RuntimeConditionVote Vote => _vote;
         public override GameFlagBase FinalData { get; }
         public override Type FinalDataType { get; }
         public override Type ValueType => typeof(bool);
