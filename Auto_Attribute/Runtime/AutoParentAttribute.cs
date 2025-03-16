@@ -36,10 +36,10 @@ public class AutoParentAttribute : AutoFamily
             destinationArray as object[]; //Array.ConvertAll(results, item => Convert.ChangeType(item, componentType));
     }
 
-    public object[] GetComponents(MonoBehaviour mb, Type componentType)
-    {
-        return mb.GetComponentsInParent(LimitedType ?? componentType, true) as object[];
-    }
+    // public object[] GetComponents(MonoBehaviour mb, Type componentType)
+    // {
+    //     return mb.GetComponentsInParent(LimitedType ?? componentType, true) as object[];
+    // }
 
     // protected override string GetMethodName()
     // {

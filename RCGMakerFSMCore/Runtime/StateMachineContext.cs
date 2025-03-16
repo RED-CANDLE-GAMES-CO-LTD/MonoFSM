@@ -81,7 +81,9 @@ namespace RCGMaker.Core
             
         }
 
+        // [AutoChildren] [PreviewInInspector] [SerializeField] TState[] serstates;
         [AutoChildren] [PreviewInInspector] protected TState[] states;
+        // [AutoChildren] [PreviewInInspector] public TState[] pstates;
         public TState[] States => states;
        
         

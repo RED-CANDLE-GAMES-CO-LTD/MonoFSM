@@ -47,8 +47,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [PreviewInInspector]
     // #endif
     [AutoChildren(false, DepthOneOnly = true)]
-    public AbstractConditionComp[] conditions; //condition 成立，才能做事
-//FIXME: public應該拿掉
+    protected AbstractConditionComp[] conditions; //condition 成立，才能做事
 
     [InfoBox("$Description", InfoMessageType.Info)]
     [HideInInlineEditors]
