@@ -8,6 +8,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
     public class FloatCompareCondition : AbstractConditionComp
     {
+        //FIXME: 這個是最複雜的狀況, simple的話就一個Dropdown varfloat和一個constant?
         [Component] [AutoChildren] [PreviewInInspector]
         private IFloatProvider[] _floatValueSourceArray = Array.Empty<IFloatProvider>();
 

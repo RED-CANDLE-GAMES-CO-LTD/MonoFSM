@@ -16,6 +16,9 @@ public enum Operator //FIXME: equality operator
 
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
+    /// <summary>
+    /// 和FloatCompareCondition重複？還是這個要做成簡單版？
+    /// </summary>
     public class VariableFloatValueCondition : AbstractConditionComp
     {
         protected override string nameDescription => _monoVarFloatProvider != null
@@ -24,8 +27,9 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 
         // [Obsolete] [DropDownRef] public VarFloat _monoVarFloat;
 
-        [SerializeReference] public IFloatProvider _monoVarFloatProvider;
-
+        public IFloatProvider _monoVarFloatProvider;
+        [DropDownRef]
+        public VarFloat _monoVarFloat;
         public Operator op;
         public float targetValue;
 

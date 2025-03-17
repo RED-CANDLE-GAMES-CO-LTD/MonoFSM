@@ -1,4 +1,5 @@
-﻿using RCGMaker.Core.Attributes;
+﻿using JetBrains.Annotations;
+using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
 using RCGSetting;
 using UnityEngine;
@@ -31,7 +32,7 @@ public static class ConditionHelper
     }
 }
 
-//FIXME: 關掉condition節點算什麼？
+//還是Condition要用Is開頭？
 public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider
 {
     //要能實作OnConditionChanged?

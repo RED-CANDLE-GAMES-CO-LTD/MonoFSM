@@ -4,11 +4,11 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
+    /// <summary>
+    /// 和上個frame的值比較
+    /// </summary>
     public class VariableFloatLastValueCompareCondition : AbstractConditionComp
     {
-        //講中文
-        [FormerlySerializedAs("_monoVariableFloat")]
-        [FormerlySerializedAs("variableFloat")]
         [InfoBox("比較VariableFloat的LastValue和CalValue")]
         [DropDownRef]
         public VarFloat _monoVarFloat;

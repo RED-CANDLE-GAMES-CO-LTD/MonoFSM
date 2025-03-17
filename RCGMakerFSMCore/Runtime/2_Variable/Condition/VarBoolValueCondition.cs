@@ -1,26 +1,29 @@
 using RCGFSMCore._0_Pattern.DataProvider.ComponentWrapper;
 using RCGMaker.Core.DataProvider;
+using RCGMakerFSMCore.Runtime._0_Pattern.DataProvider.ComponentWrapper;
 using Sirenix.OdinInspector;
 using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
+    //分成simple和complex?
     public class VarBoolValueCondition : AbstractConditionComp,ILevelResetPrepare,ITransitionCheckInvoker
     {
-        protected override string nameDescription => _monoVariableBool.name + " == " + targetValue;
-        //FIXME: 好像可以再簡化喔
+        protected override string nameDescription => _monoVariableBool?.name + " == " + targetValue;
         void OnVariableChanged()
         {
             RenameOfGameObject();
         }
 
-        //FIXME: 要用VarBoolProvider?
+        
         [OnValueChanged(nameof(OnVariableChanged))] [FormerlySerializedAs("variableBool")] [Required] [DropDownRef]
         // [ValueDropdown(nameof(GetBoolVariables))]
         public VarBool _monoVariableBool;
-        [Component] [Auto] public VarFloatProviderRef _variableBoolProvider;
-        [Component] [Auto] IBoolProvider _boolValue;
+        //FIXME: 要用VarBoolProvider?
+        [Component] [Auto] public VarBoolProviderRef _varBoolProvider;
+        // [Component] [Auto] IBoolProvider _boolValue; //會再度抓到自己，...沒屁用
         public bool targetValue = true;
+        //FIXME: 會有需求要比對其他東西嗎？
         protected override bool IsValid => _monoVariableBool.CurrentValue == targetValue;
         public void LevelResetPrepareRuntimeData()
         {

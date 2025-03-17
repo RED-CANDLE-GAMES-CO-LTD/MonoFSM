@@ -67,7 +67,7 @@ namespace RCGMaker.Core.DataProvider
 
     //平常都該用這個宣告？封裝過的VarFloat, 又有tag, 但沒有global instance
     [Serializable]
-    public class VariableFloatProvider : VariableProvider<VarFloat, float>, IFloatProvider
+    public class VariableFloatProvider : VariableProvider<VarFloat, float>//, IFloatProvider 反而不要用provider?
     {
         //這個只管了value, 沒有管是什麼var...
         public float GetFloat()

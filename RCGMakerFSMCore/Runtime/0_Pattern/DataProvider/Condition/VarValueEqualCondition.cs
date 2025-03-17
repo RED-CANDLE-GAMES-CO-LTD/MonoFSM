@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace RCGMaker.Core.DataProvider.Condition
 {
-    public class VariableValueCompareCondition : AbstractConditionComp
+    //還是Condition要用Is開頭？
+    public class VarValueEqualCondition : AbstractConditionComp
     {
         [SerializeReference] IVariableProvider _sourceVariableProvider;
         [SerializeReference] IVariableProvider _targetVariableProvider;

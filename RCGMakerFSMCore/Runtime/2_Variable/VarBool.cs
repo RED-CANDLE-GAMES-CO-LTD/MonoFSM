@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using RCGExtension;
 #if MIXPANEL
 using mixpanel;
 #endif
@@ -27,7 +28,7 @@ public interface IRebindable
 }
 
 public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
-    IBoolProvider, IRebindable
+    IBoolProvider, IRebindable, IDrawDetail, IOverrideHierarchyIcon
 {
     public ScriptableDataBool boolFlag => scriptableData; // scriptableData;
 
@@ -79,4 +80,7 @@ public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bo
 
     public bool IsValid => CurrentValue;
     public override GameFlagBase FinalData => scriptableData;
+    public bool IsFullRect { get; }
+    public string IconName => "Toggle Icon"; //  "d_Toggle Icon"
+    public bool IsDrawingIcon => true;
 }

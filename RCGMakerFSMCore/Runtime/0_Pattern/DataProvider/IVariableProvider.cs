@@ -49,8 +49,10 @@ namespace RCGMaker.Core.DataProvider
     //FIXME: 壞處：沒有SampleData, 不能直接拿到property
     //FIXME: 好像應該要有個可以直接傳VarBool的Provider? VarBool是DirectRef
     //FIXME:好像還是要把常用的Property包掉，否則很難用
+    
+    //Serializable至少都不會掉內容，不要用SerializeReference
     [Serializable]
-    public class VariableProvider<TVarMonoType, TValueType> : IVariableProvider, IVarTagProperty, IConfigVar
+    public class VariableProvider<TVarMonoType, TValueType> //: IVariableProvider, IVarTagProperty, IConfigVar
         where TVarMonoType : AbstractMonoVariable
     {
         public override string ToString()

@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 
 namespace RCGFSMCore._0_Pattern.DataProvider.ComponentWrapper
 {
+    //FloatConstant?
     public class FloatLiteralComp : MonoBehaviour, IFloatProvider
     {
         [FormerlySerializedAs("literal")] public float _literal;
