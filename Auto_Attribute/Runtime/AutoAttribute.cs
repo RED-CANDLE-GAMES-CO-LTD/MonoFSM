@@ -25,82 +25,30 @@ using UnityEngine;
 
 [IncludeMyAttributes]
 [AttributeUsage(AttributeTargets.Field)]
-public class AutoAttribute : AbstractAutoAttribute, IAutoAttribute
+public class AutoAttribute : AutoFamily
 {
     private const string MonoBehaviourNameColor = "green"; //Changeme
 
-    private bool logMissingAsError = true;
-
-    // private Component targetComponent;
-
-    public AutoAttribute(bool logMissingAsError = true)
+    // Constructor calls the base constructor with the logMissingAsError parameter
+    public AutoAttribute(bool logMissingAsError = true) : base(logMissingAsError)
     {
-        this.logMissingAsError = logMissingAsError;
     }
 
-    /// <Summary>
-    ///	Executes the call to fetch the component and assign it to the variable with [Auto*]
-    /// </Summary>
-    public override bool Execute(MonoBehaviour mb, FieldInfo field)
+    // Implementation of abstract method required by AutoFamily
+    public override object GetTheSingleComponent(MonoBehaviour mb, Type componentType)
     {
-        var fieldType = field.FieldType;
-        GameObject go = mb.gameObject;
-        var listElementType = AutoUtils.GetElementType(fieldType);
-        try
-        {
-            if (fieldType.IsArray)
-            {
-                var results = go.GetComponents(listElementType);
-
-                if (results == null || results.Length == 0)
-                {
-                    LogMissingComponent(mb, fieldType, go);
-                    return false;
-                }
-
-                var destinationArray = Array.CreateInstance(listElementType, results.Length);
-                Array.Copy(results, destinationArray, results.Length);
-                field.SetValue(mb, destinationArray);
-                // SetVariableType(mb, componentToReferences);
-            }
-            else
-            {
-                var componentToReference = go.GetComponent(listElementType);
-                if (componentToReference == null)
-                {
-                    LogMissingComponent(mb, fieldType, go);
-                    return false;
-                }
-
-                field.SetValue(mb, componentToReference);
-            }
-
-            return true;
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("Auto Fail" + mb.name + ":" + e, mb);
-            return false;
-        }
+        return mb.GetComponent(LimitedType ?? componentType);
     }
 
-
-    private void LogMissingComponent(MonoBehaviour mb, Type componentType, GameObject go)
+    // Implementation of abstract method required by AutoFamily
+    protected override object[] GetComponents(MonoBehaviour mb, GameObject go, Type componentType)
     {
-        string errorMessage = string.Format(
-            "[Auto]: <color={3}><b>{1}</b></color> couldn't find <color=#cc3300><b>{0}</b></color> on <color=#e68a00>{2}</color>",
-            componentType.Name, mb.GetType().Name, go.name, MonoBehaviourNameColor);
-
-        if (logMissingAsError)
-        {
-            //Logging an error during PostProcessScene halts the build.
-            Debug.LogError(errorMessage, mb);
-        }
-
-
-        // else
-        // {
-        // 	Debug.LogWarning("<color=red>" + errorMessage + "</color>", mb);
-        // }
+        var results = go.GetComponents(LimitedType ?? componentType) as object[];
+        var destinationArray = Array.CreateInstance(componentType, results.Length);
+        Array.Copy(results, destinationArray, results.Length);
+        return destinationArray as object[];
     }
+
+    // LogMissingComponent method is now handled by the base AutoFamily class
+    // through its logErrorIfMissing functionality
 }

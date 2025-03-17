@@ -11,25 +11,8 @@ using Object = UnityEngine.Object;
 namespace RCGMaker.Core
 {
     [DrawerPriority(0, 100, 0)]
-    public class AutoDrawer : OdinAttributeDrawer<AutoAttribute>
+    public class AutoDrawer : AutoFamilyDrawer<AutoAttribute>
     {
-        protected override void Initialize()
-        {
-            if (mb == null) //不是第一層，可能更深
-                return;
-            var componentType = Property.ValueEntry.TypeOfValue;
-            // var targetValue = Attribute.get
-            var targetValue = mb.GetComponent(componentType);
-            Property.ValueEntry.WeakSmartValue = targetValue;
-
-            //TODO: single comp;
-        }
-
-        private MonoBehaviour mb => Property.ParentValues[0] as MonoBehaviour;
-
-        protected override void DrawPropertyLayout(GUIContent label)
-        {
-            CallNextDrawer(label);
-        }
+        // The base class (AutoFamilyDrawer) now handles all the functionality that was previously in this class
     }
 }

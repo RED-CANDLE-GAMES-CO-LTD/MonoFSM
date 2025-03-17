@@ -214,7 +214,7 @@ namespace Auto.Utils
         }
 
         #region Singles
-        public MethodInfo GetNonPublicMethodInBaseClasses(Type type, string name, bool excludeOverriddenMethods = true)
+        public static MethodInfo GetNonPublicMethodInBaseClasses(Type type, string name, bool excludeOverriddenMethods = true)
         {
             Type baseType = type;
             while (baseType != typeof(object) && baseType != typeof(Component) && baseType != typeof(Behaviour))
@@ -275,8 +275,7 @@ namespace Auto.Utils
         }
 
         #endregion
-
-        #region Plurals
+        
         public List<MethodInfo> GetNonPublicMethodsInBaseClasses(Type type, bool excludeOverriddenMethods = true)
         {
             List<MethodInfo> result = new List<MethodInfo>();
@@ -375,7 +374,45 @@ namespace Auto.Utils
 
             return result;
         }
-        #endregion
+
+        /// <summary>
+        /// Finds a non-public field in the type hierarchy by field name
+        /// </summary>
+        /// <param name="type">The starting type to search from</param>
+        /// <param name="fieldName">The name of the field to find</param>
+        /// <returns>The FieldInfo if found, null otherwise</returns>
+        public static FieldInfo FindNonPublicFieldInBaseClasses(Type type, string fieldName)
+        {
+            Type baseType = type;
+            while (baseType != typeof(object) && baseType != typeof(MonoBehaviour) && baseType != typeof(Component) && baseType != typeof(Behaviour))
+            {
+                var fieldInfo = baseType.GetField(fieldName,BindingFlags.Public| BindingFlags.NonPublic | BindingFlags.Instance);
+                
+                if (fieldInfo != null)
+                {
+                    return fieldInfo;
+                }
+
+                baseType = baseType.BaseType;
+                if (baseType == null) break;
+            }
+
+            return null;
+        }
+        
+        /// <summary>
+        /// Finds a non-public field in the object's type hierarchy by field name
+        /// </summary>
+        /// <param name="obj">The object instance to search from</param>
+        /// <param name="fieldName">The name of the field to find</param>
+        /// <returns>The FieldInfo if found, null otherwise</returns>
+        public static FieldInfo FindNonPublicFieldInBaseClasses(object obj, string fieldName)
+        {
+            if (obj == null)
+                return null;
+                
+            return FindNonPublicFieldInBaseClasses(obj.GetType(), fieldName);
+        }
 
         /// <summary>
         /// Uses reflection to call a method in a class. It will aggressively search all methods, and will be successful even if the method is a private AND in a base/upper class.
