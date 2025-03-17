@@ -9,6 +9,7 @@ using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
 using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Mono;
+using RCGMakerFSMCore.Runtime.Localization;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -256,10 +257,10 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
 
     //FIXME: 這個用到I2, 有點悲劇
     //FIXME: 以前這四個都是localized string
-    public string titleStr; //FIXME: 應該用interface？但這樣怎麼用別人的...從主專案再接過去嗎
-    public string descriptionStr;
-    public string typeStr;
-    public string summaryStr;
+    public LocalizedString titleStr; //FIXME: 應該用interface？但這樣怎麼用別人的...從主專案再接過去嗎
+    public LocalizedString descriptionStr;
+    public LocalizedString typeStr;
+    public LocalizedString summaryStr;
 
     [SerializeField] [TextArea(2, 10)]
     // [HideInInspector]
