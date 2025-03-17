@@ -44,13 +44,15 @@ namespace RCGExtension
     }
     public interface IDrawDetail
     {
-        bool IsFullRect { get; }
+        bool IsFullRect { get; } //這要做啥？
+        //
     }
 
     public interface IOverrideHierarchyIcon
     {
         public string IconName { get; }
         public bool IsDrawingIcon { get; }
+        public Texture2D CustomIcon { get; }
     }
 
     public interface IHierarchyTimelineTrack

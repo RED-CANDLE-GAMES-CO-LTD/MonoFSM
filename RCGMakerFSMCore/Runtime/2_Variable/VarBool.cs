@@ -83,4 +83,5 @@ public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bo
     public bool IsFullRect { get; }
     public string IconName => "Toggle Icon"; //  "d_Toggle Icon"
     public bool IsDrawingIcon => true;
+    public Texture2D CustomIcon => null;
 }

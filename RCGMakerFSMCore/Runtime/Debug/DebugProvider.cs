@@ -89,6 +89,7 @@ public class DebugProvider : MonoBehaviour, IEditorOnly
 
     public string IconName => "console.infoicon@2x";
     public bool IsDrawingIcon => IsLogInChildren && DebugSetting.IsDebugMode;
+    public Texture2D CustomIcon => null;
 }
 
 [Serializable]

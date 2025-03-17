@@ -38,14 +38,16 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
     //現在event driven直接set也work, 要做成只有condition改變才會觸發transition?
     public bool IsTransitionCheckNeeded = false;
     //TODO: 我需要保證附近有checker, 我應該和_checker註冊？
-    [InfoBox("No Checker", InfoMessageType.Error, nameof(HasChecker))]
-    [PreviewInInspector] [AutoParent] [Component(AddComponentAt.Same)]
+    //FIXME: 空transition就可以自動過去？
+    [InfoBox("No Checker", InfoMessageType.Error, nameof(NoChecker))]
+    [PreviewInInspector] [AutoParent] [Component(AddComponentAt.Same)] //FIXME: 會有需要parent的情況嗎？ children也包括自己
     ITransitionCheckInvoker _checkInvoker; 
 
     //要分同層級的嗎？
     [Component]
     [PreviewInInspector][AutoChildren] ITransitionCheckInvoker[] _childrenCheckers = Array.Empty<ITransitionCheckInvoker>();
 
+    bool NoChecker => !HasChecker();
     bool HasChecker()
     {
         return _checkInvoker != null || _childrenCheckers is { Length: > 0 };
@@ -252,7 +254,7 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
 
     public void LevelResetPrepareRuntimeData()
     {
-        if (_checkInvoker == null)
+        if (!HasChecker())
             Debug.LogError("No Checker", gameObject);
     }
 
