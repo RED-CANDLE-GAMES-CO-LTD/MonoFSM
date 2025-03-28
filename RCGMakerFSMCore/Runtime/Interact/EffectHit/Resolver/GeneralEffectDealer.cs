@@ -48,8 +48,16 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         [PreviewInInspector] [AutoParent] IBinder _binder;
 
+        public bool IsEnteredReceiver(IEffectReceiver receiver)
+        {
+            return _receivers.Contains(receiver);
+        }
         public bool CanHitReceiver(IEffectReceiver receiver)
         {
+            // if (!IsValid)
+            // {
+            //     return false;
+            // }
             if (!receiver.IsValid) //沒開的不算
                 return false;
             var r = (GeneralEffectReceiver)receiver;
@@ -69,14 +77,11 @@ namespace RCGMaker.Runtime.Interact.EffectHit
                     return false;
                 }
 
-                proxyDealer.CanHitReceiver(r); //繼續盼囉？
+                proxyDealer.CanHitReceiver(r); //繼續判囉？
             }
 
-            //FIXME: 還要有特別的condition
-            ////EffectDealerCondition
-            // //IsValid(Receiver)
 
-
+//FIXME: 應該要先判這個嗎？
             //特殊的EffectCondition
             foreach (var condition in _effectConditions)
             {
@@ -90,7 +95,10 @@ namespace RCGMaker.Runtime.Interact.EffectHit
                 }
             }
 
-            this.Log("CanHitReceiver:" , receiver);
+            var id = UnityEditor.GlobalObjectId.GetGlobalObjectIdSlow(r);
+            
+            this.Log("HitReceiver Success:" , r.GetGlobalId());
+            Debug.Log("HitReceiver Success:" , r);
             return true;
         }
 
@@ -98,6 +106,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         //FIXME: runtime receivers
         [PreviewInInspector] List<IEffectReceiver> _receivers = new();
+        [PreviewInInspector] private GeneralEffectReceiver _lastReceiver;
 
         public void OnHitEnter(IEffectHitData data)
         {
@@ -109,10 +118,12 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
             _enterNode?.OnEffectReceived(data);
             _receivers.Add(data.Receiver);
+            _lastReceiver = data.Receiver as GeneralEffectReceiver;
         }
 
         public void OnHitExit(IEffectHitData data)
         {
+            //_receivers裡面要有才可以做這件事
             if (_proxyProvider != null)
             {
                 proxyDealer.OnHitEnter(data);

@@ -247,11 +247,20 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         toState.EnterTimeOffset = timeOffset;
         //每個地方都要call這個有點煩
         context.SetLastTransition(fromTransition);
+        toState.SetLastTransition(fromTransition);
+
         this.Log("[Transition] GoTo:", toState, gameObject);
         fsm.ChangeState(toState);
-
         return true;
     }
+
+    private void SetLastTransition(StateTransition transition)
+    {
+        _lastTransition = transition;
+    }
+    
+    [PreviewInInspector]
+    private StateTransition _lastTransition;
 
     public bool TransitionCheck(GeneralState toState)
     {

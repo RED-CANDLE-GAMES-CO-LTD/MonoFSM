@@ -40,7 +40,7 @@ namespace RCGFSM.Variable
 
         public override void EventReceived<T>(T arg)
         {
-            this.Log("EventReceived setVariableBoolAction");
+            // this.Log("EventReceived setVariableBoolAction");
             if (arg is bool b)
                 SetValue(b);
             else

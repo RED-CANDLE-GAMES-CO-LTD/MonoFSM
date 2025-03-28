@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.Interact.EffectHit
 {
-    public class EffectExitNode : EffectEnterNode
+    public sealed class EffectExitNode : AbstractEffectNode
     {
         
     }

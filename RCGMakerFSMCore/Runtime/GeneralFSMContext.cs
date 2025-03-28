@@ -139,18 +139,18 @@ public class GeneralFSMContext : StateMachineContext<GeneralState, GeneralState>
     }
 
 
-    [ReadOnly] private StateTransition lastTransition;
+    private StateTransition _lastTransition;
 
-    [PreviewInInspector] public StateTransition LastTransition => lastTransition;
+    [PreviewInInspector] public StateTransition LastTransition => _lastTransition;
 
     public void SetLastTransition(StateTransition transition)
     {
-        lastTransition = transition;
+        _lastTransition = transition;
     }
 
     [PreviewInInspector] public GeneralState LastState => fsm?.LastState;
 
-    [ReadOnly]
+    // [ReadOnly]
     // public RCGEventBinding[] eventBindings; //TODO:這樣有比較好看懂嗎...？
     protected override void Awake()
     {

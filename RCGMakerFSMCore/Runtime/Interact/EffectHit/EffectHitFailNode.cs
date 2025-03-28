@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.Interact.EffectHit
 {
-    public class EffectHitFailNode : EffectEnterNode
+    public sealed class EffectHitFailNode : AbstractEffectNode
     {
     }
 }

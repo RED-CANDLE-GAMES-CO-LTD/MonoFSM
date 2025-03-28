@@ -206,7 +206,8 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
             {
                 //FIXME: 這個時間點會太晚嗎？ 會，這個回來就已經切到另一個state了
                 //會...
-                // parentState.Context.SetLastTransition(this);
+           
+                
             }
 
             return true;

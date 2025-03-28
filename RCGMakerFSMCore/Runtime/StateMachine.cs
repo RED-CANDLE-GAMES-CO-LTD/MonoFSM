@@ -228,6 +228,7 @@ namespace RCGMaker.Core
         }
 
         //FIXME: //如何避免遞迴 changeState 過去又回來，condition都符合就一直跳過去又跳回來
+        //bool ?
         public void ChangeState(T newState, StateTransition transition, bool forceSameState = false)
         {
             // Debug.Log("Change to state" + newState);

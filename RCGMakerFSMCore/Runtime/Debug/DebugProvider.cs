@@ -26,6 +26,7 @@ public class DebugProvider : MonoBehaviour, IEditorOnly
         if (debugProvider)
         {
             debugProvider.IsLogInChildren = !debugProvider.IsLogInChildren;
+            EditorUtility.SetDirty(debugProvider);
             Debug.Log("Toggle DebugProvider IsLogInChildren:" + debugProvider.IsLogInChildren);
         }
 

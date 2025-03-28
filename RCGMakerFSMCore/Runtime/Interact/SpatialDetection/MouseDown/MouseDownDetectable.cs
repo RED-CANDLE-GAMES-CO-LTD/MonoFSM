@@ -17,7 +17,7 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
         {
             if (!_conditions.IsAllValid())
             {
-                Debug.Log("Conditions not met", this);
+                Debug.Log("MouseDownDetectable Conditions not met", this);
                 return;
             }
 
@@ -28,6 +28,7 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
             detector.OnSpatialEnter(gameObject);
             //TODO: 馬上就Exit?
             //FIXME: 連點會有狀態問題耶...
+            //FIXME: 要條件對才可以做這件事？
             detector.OnSpatialExit(gameObject);
             // foreach (var effectReceiver in EffectReceivers)
             // {

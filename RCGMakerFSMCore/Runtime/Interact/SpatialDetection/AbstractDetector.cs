@@ -11,7 +11,7 @@ namespace RCGMaker.Core.Detection
     [DisallowMultipleComponent]
     public abstract class AbstractDetector : MonoBehaviour, IDefaultSerializable
     {
-        [PreviewInInspector] [Component] [AutoChildren]
+        [PreviewInInspector] [Component] [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionComp[] _conditions;
 
         public bool IsValid => _conditions.IsAllValid();
@@ -123,10 +123,21 @@ namespace RCGMaker.Core.Detection
             //FIXME: 連點會有狀態問題耶...
             foreach (var dealer in dealers)
             {
+                //FIXME: 點下去，可能就造成dealer的condition變了耶
+                // if (!dealer.IsValid) //有點討厭，這個很容易漏掉, 這個會讓
+                // {
+                //     dealer.Log("Dealer is not valid");
+                //     continue;
+                // }
+                //Dealer觸發後，造成條件變化了，這樣這邊會很難判定？
                 foreach (var receiver in spatialDetectable.EffectReceivers)
                 {
-                    if (!dealer.CanHitReceiver(receiver)) continue;
+                    //對稱
+                    if(!dealer.IsEnteredReceiver(receiver)) continue;
+                    // if (!dealer.CanHitReceiver(receiver)) continue;
+                    //FIXME: 這個是不是不該generate? 還是重新gen也還好
                     var hitData = receiver.GenerateEffectHitData(dealer, receiver);
+                    
                     dealer.OnHitExit(hitData);
                     receiver.OnEffectHitExit(hitData);
                 }

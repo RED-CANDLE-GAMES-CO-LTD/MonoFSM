@@ -11,7 +11,7 @@ namespace RCGMaker.Core
 
     public abstract class AbstractState<T> : MonoBehaviour
     {
-        [PreviewInInspector] [Required] public T stateType;
+        [Required] public T stateType;
         public float statusTimer = 0;
         [PreviewInInspector] private int _currentFrameCount = 0;
         public int CurrentFrameCount => _currentFrameCount;

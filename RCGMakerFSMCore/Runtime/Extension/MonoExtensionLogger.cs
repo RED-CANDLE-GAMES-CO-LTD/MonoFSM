@@ -81,18 +81,18 @@ public static class MonoExtensionLogger
         return (false, null);
     }
 
-    public static void LogContext(this Component go, string s1)
-    {
-        var (isLogging, provider) = IsLoggingCheck(go);
-
-
-        if (isLogging)
-        {
-            var result = ZString.Concat("[", provider, provider.GetInstanceID(), ",", go.GetInstanceID(), "]\n",
-                ZString.Join(",", s1));
-            FinalLog(go, result, provider);
-        }
-    }
+    // public static void LogContext(this Component go, string s1)
+    // {
+    //     var (isLogging, provider) = IsLoggingCheck(go);
+    //
+    //
+    //     if (isLogging)
+    //     {
+    //         var result = ZString.Concat("[", provider, provider.GetInstanceID(), ",", go.GetInstanceID(), "]\n",
+    //             ZString.Join(",", s1));
+    //         FinalLog(go, result, provider);
+    //     }
+    // }
 
     [HideInCallstack]
     [Conditional("UNITY_EDITOR")]
@@ -102,7 +102,7 @@ public static class MonoExtensionLogger
 
         if (isLogging)
         {
-            var result = ZString.Concat("[",provider.GetInstanceID(), ",", go.GetInstanceID(), "]\n",
+            var result = ZString.Concat("[",provider.GetInstanceID(), "]\n",
                 ZString.Join(",", s1));
             FinalLog(go, result, provider);
         }
@@ -128,7 +128,7 @@ public static class MonoExtensionLogger
         if (isLogging)
         {
             // var fullStr = string.Join(",", items);
-            var result = ZString.Concat("[",provider.GetInstanceID(), "]\n", s1, " ", s2);
+            var result = ZString.Concat("[",provider.GetInstanceID(), "]", s1, " ", s2);
             FinalLog(go, result, provider);
         }
 #endif
@@ -139,12 +139,12 @@ public static class MonoExtensionLogger
     public static void Log<T1, T2, T3>(this Component go, T1 s1, T2 s2, T3 s3)
     {
 #if RCG_DEV
-        var (isLogging, providerName) = IsLoggingCheck(go);
+        var (isLogging, provider) = IsLoggingCheck(go);
 
         if (isLogging)
         {
-            var result = ZString.Concat("[" ,providerName.GetInstanceID(), "]\n", s1, " ", s2, " ", s3);
-            FinalLog(go, result, providerName);
+            var result = ZString.Concat("[" ,provider.GetInstanceID(), "]", s1, " ", s2, " ", s3);
+            FinalLog(go, result, provider);
         }
 #endif
     }
@@ -280,9 +280,9 @@ public static class MonoExtensionLogger
             case LogType.Log:
                 if (provider.currentState)
                 {
-                    message = ZString.Concat("state:", provider.currentState, ",frame:",
-                        provider.currentState.CurrentFrameCount,
-                        message);
+                    //多餘？
+                    message = ZString.Concat(message,"\n at state:", provider.currentState, ",frame:",
+                        provider.currentState.CurrentFrameCount);
                 }
 
                 Debug.Log(message, go);

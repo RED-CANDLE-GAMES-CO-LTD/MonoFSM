@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.FSM._2_Variable;
 using RCGSetting;
@@ -33,7 +34,7 @@ public static class ConditionHelper
 }
 
 //還是Condition要用Is開頭？
-public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider
+public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider,IBeforePrefabSaveCallbackReceiver
 {
     //要能實作OnConditionChanged?
     [AutoParent] protected StateTransition _parentTransition;
@@ -47,13 +48,20 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider
     [ShowIf("IsShowRenameButton")]
     protected void RenameOfGameObject()
     {
-        var text = "[Condition] " + Description;
-        if (FinalResultInverted)
-            text += " is Inverted";
-        gameObject.name = text;
+        try
+        {
+            var text = "[Condition] " + Description;
+            if (FinalResultInverted)
+                text = "[Condition] Not " + Description;
+            gameObject.name = text;
 #if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(gameObject);
+            UnityEditor.EditorUtility.SetDirty(gameObject);
 #endif
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError(e,this);
+        }
     }
 
     //FIXME: 可是 _parentTransition等著被call
@@ -115,4 +123,8 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider
     }
 
     public bool IsTrue => FinalResult;
+    public void OnBeforePrefabSave()
+    {
+        RenameOfGameObject();
+    }
 }

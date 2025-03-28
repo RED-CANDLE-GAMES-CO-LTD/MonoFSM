@@ -1,12 +1,28 @@
 using System;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace RCGMaker.Runtime.Interact.EffectHit
 {
     public abstract class EffectResolver : MonoBehaviour, IDefaultSerializable
     {
+#if UNITY_EDITOR
+        private GlobalObjectId _globalId;
+        public GlobalObjectId GetGlobalId()
+        {
+            if (_globalId.targetObjectId == 0)
+            {
+                _globalId = GlobalObjectId.GetGlobalObjectIdSlow(this);
+            }
+
+            return _globalId;
+        }
+#endif
+        
         [Button]
         void Rename()
         {
@@ -37,7 +53,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         [Component] [PreviewInInspector] [AutoChildren]
         private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
 
-        public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid();
+        [PreviewInInspector]
+        public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid(); //condition 可以burst?感覺不會比較快，這個數量級
         public IActor Owner => GetComponentInParent<IActor>();
     }
 }
