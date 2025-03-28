@@ -23,7 +23,7 @@ public class AutoAttributeManagerEditor : UnityEditor.AssetModificationProcessor
     // }
     private static void MakeSureAutoManagerIsInScene()
     {
-        var autoManagers = GameObject.FindObjectsOfType<AutoAttributeManager>(true);
+        var autoManagers = GameObject.FindObjectsByType<AutoAttributeManager>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         bool noAutoAttributeManager_inScene = autoManagers == null || autoManagers.Length == 0;
         if (noAutoAttributeManager_inScene)
         {
