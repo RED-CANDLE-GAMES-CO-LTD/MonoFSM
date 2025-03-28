@@ -85,14 +85,6 @@ public static class MonoNodeExtension
         return result;
     }
 
-    [Conditional("UNITY_EDITOR")]
-    public static void DebugLog(this Component owner, string result)
-    {
-        if (DebugSetting.IsDebugMode)
-            Debug.Log(result, owner);
-    }
-
-
     public static T GetComponentInChildrenOfDepthOne<T>(this Component go)
     {
         foreach (Transform child in go.transform)
