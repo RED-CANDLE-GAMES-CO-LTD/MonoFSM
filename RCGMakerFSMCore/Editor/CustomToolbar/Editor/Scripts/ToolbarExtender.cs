@@ -167,6 +167,7 @@ namespace UnityToolbarExtender
 				GUILayout.EndHorizontal();
 				GUILayout.EndArea();
 			}
+			
 		}
 
 		private static void GUILeft() 

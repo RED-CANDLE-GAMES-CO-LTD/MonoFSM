@@ -80,6 +80,8 @@ namespace UnityToolbarExtender.ToolbarElements
 
         protected override void OnDrawInToolbar()
         {
+            
+            //偷懶了...每個工具都要寫一個BaseToolbarElement很麻煩，直接在這裡寫
             if (GUILayout.Button(_pasteLinkBtn, ToolbarStyles.commandButtonStyle))
             {
             }
@@ -125,6 +127,8 @@ namespace UnityToolbarExtender.ToolbarElements
                 //     }
                 // }
             }
+            if(EditorPrefs.GetBool("RCGDebugSetting.IsDebugMode"))
+                GUILayout.Label("Debug Mode");
         }
     }
 }
