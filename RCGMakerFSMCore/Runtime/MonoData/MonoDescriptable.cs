@@ -15,6 +15,7 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime
 {
+    [Searchable]
     public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData> //這樣data也要一直繼承，好ㄇ...
     {
         public VarFloat this[string statName] => GetVariable(statName) as VarFloat;

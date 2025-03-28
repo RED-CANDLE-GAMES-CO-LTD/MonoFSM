@@ -9,6 +9,9 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 {
     public class FloatCompareCondition : AbstractConditionComp
     {
+        //每種表達都可以用op做到，不需要invert的功能
+        public override bool IsInvertResultOptionAvailable => false;
+
         // Comparison mode determines the UI and input approach
         public enum ComparisonMode
         {
@@ -24,9 +27,9 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         [ShowIf(nameof(comparisonMode), ComparisonMode.Simple)]
         [BoxGroup("Simple Comparison")]
         [DropDownRef]
-        public VarFloat leftValue;
+        public VarFloat leftValue; //varint被排擠...
 
-        [ShowIf(nameof(comparisonMode), ComparisonMode.Simple)]
+        // [ShowIf(nameof(comparisonMode), ComparisonMode.Simple)]
         [BoxGroup("Simple Comparison")]
         public Operator op;
 
@@ -53,7 +56,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         [ShowIf(nameof(comparisonMode), ComparisonMode.Advanced)]
         [PreviewInInspector] 
         [BoxGroup("Advanced Comparison")]
-        private float Value1 => _floatValueSourceArray is { Length: > 0 }
+        private float Value1 =>  _floatValueSourceArray is { Length: > 0 }
             ? _floatValueSourceArray[0].GetFloat()
             : 0;
 
@@ -80,6 +83,10 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         [BoxGroup("Simple Comparison")]
         private string SimplePreview => $"{(leftValue != null ? leftValue.ToString() : "null")} {op} {(useConstantForRightValue ? rightConstantValue.ToString() : (rightValue != null ? rightValue.ToString() : "null"))}";
 
+        protected override string Description => comparisonMode == ComparisonMode.Simple
+            ? SimplePreview
+            : $"{_floatValueSourceArray[0].Description} {op} {_floatValueSourceArray[1].Description}";
+
         protected override bool IsValid
         {
             get
@@ -90,28 +97,16 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
                     float right = useConstantForRightValue ? rightConstantValue : 
                                  (rightValue != null ? rightValue.GetFloat() : 0);
                     
-                    return CompareValues(left, right, op);
+                    return ArithmeticHelper.CompareValues(left, right, op);
                 }
                 else
                 {
                     // Advanced mode
-                    return CompareValues(Value1, Value2, op);
+                    return ArithmeticHelper.CompareValues(Value1, Value2, op);
                 }
             }
         }
 
-        private bool CompareValues(float value1, float value2, Operator op)
-        {
-            return op switch
-            {
-                Operator.Equals => value1 == value2,
-                Operator.NotEqual => value1 != value2,
-                Operator.GreaterThan => value1 > value2,
-                Operator.LessThan => value1 < value2,
-                Operator.GreaterThanOrEqual => value1 >= value2,
-                Operator.LessThanOrEqual => value1 <= value2,
-                _ => false
-            };
-        }
+       
     }
 }

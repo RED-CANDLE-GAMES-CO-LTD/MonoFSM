@@ -1,4 +1,5 @@
 using System;
+using RCGMaker.Runtime.FSM._2_Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace RCGMaker.Core.DataProvider
         public GameFlagBase FinalData => VarRaw?.FinalData;
         public abstract AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
         public abstract Type GetValueType { get; }
-
+        public abstract VariableTag varTag { get; set; }
         public abstract TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable;
 
         [Button]

@@ -3,7 +3,7 @@ public interface IAbstractEventReceiver
     bool isActiveAndEnabled { get; }
 }
 
-
+//FIXME:改名ㄅ IEffectReceiver?
 //FIXME: 什麼時候需要沒有型別的？
 public interface IRCGArgEventReceiver : IAbstractEventReceiver //Data Receiver
 {

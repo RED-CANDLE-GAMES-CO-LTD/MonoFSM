@@ -1,18 +1,25 @@
+using RCGMaker.Core.Attributes;
+using RCGMakerFSM.VarRef;
 using UnityEngine;
 
 namespace RCGMaker.Core.DataProvider.Condition
 {
     //還是Condition要用Is開頭？
-    public class VarValueEqualCondition : AbstractConditionComp
+    //好像太抽象了，MonoVar Compare就好？ 
+    //ex: FloatCompareCondition
+    public class VarValueEqualCondition : AbstractConditionComp //
     {
-        [SerializeReference] IVariableProvider _sourceVariableProvider;
-        [SerializeReference] IVariableProvider _targetVariableProvider;
+        // [Component][PreviewInInspector] IVariableProvider _sourceVariableProvider;
+        // [Component][PreviewInInspector] IVariableProvider _targetVariableProvider;
+        [AutoChildren] [Component][PreviewInInspector] private TargetVarRef _targetVarRef;
+        [AutoChildren] [Component][PreviewInInspector] private SourceValueRef _sourceValueRef;
+            
+        AbstractMonoVariable targetVariable => _targetVarRef?.VarRaw;
+        // AbstractMonoVariable sourceVariable => _sourceValueRef?.VarRaw;
 
-        AbstractMonoVariable targetVariable => _targetVariableProvider.VarRaw;
-        AbstractMonoVariable sourceVariable => _sourceVariableProvider.VarRaw;
-
-        protected override bool IsValid => targetVariable.objectValue != null &&
-                                           sourceVariable.objectValue ==
-                                           targetVariable.objectValue;
+        protected override bool IsValid => false;
+        // targetVariable?.objectValue != null &&
+        //                                   _sourceValueRef?.GetValue() ==
+          //                                 targetVariable?.objectValue;
     }
 }

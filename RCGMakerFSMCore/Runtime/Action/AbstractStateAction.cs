@@ -16,7 +16,8 @@ public interface IActionParent //給GameObject結構Validate用的
 public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable,
     IRCGArgEventReceiver, IRCGArgEventReceiver<IEffectHitData>
 {
-    protected virtual string Description => $"Action: {GetType().Name}";
+    //介面上也顯示？textarea?
+    protected virtual string Description => $"{GetType().Name}";
 
     //怎麼知道誰用Enter, 誰用Update
     private bool IsValid //AND
@@ -54,7 +55,8 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [Button]
     private void Rename()
     {
-        gameObject.name = $"[Action] {GetType().Name.Split("Action")[0]} {renamePostfix}";
+        // gameObject.name = $"[Action] {GetType().Name.Split("Action")[0]} {renamePostfix}";
+        gameObject.name = $"[Action] {Description}";
     }
 
     protected virtual string renamePostfix => "";

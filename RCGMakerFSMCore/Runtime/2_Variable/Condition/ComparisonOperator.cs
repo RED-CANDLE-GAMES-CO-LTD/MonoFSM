@@ -12,4 +12,6 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         GreaterThanOrEqual,
         LessThanOrEqual
     }
+    //TODO: 符號化description
+    
 }

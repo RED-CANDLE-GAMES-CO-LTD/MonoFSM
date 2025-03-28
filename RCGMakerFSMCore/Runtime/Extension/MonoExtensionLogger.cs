@@ -102,7 +102,7 @@ public static class MonoExtensionLogger
 
         if (isLogging)
         {
-            var result = ZString.Concat("[", provider, provider.GetInstanceID(), ",", go.GetInstanceID(), "]\n",
+            var result = ZString.Concat("[",provider.GetInstanceID(), ",", go.GetInstanceID(), "]\n",
                 ZString.Join(",", s1));
             FinalLog(go, result, provider);
         }
@@ -128,7 +128,7 @@ public static class MonoExtensionLogger
         if (isLogging)
         {
             // var fullStr = string.Join(",", items);
-            var result = ZString.Concat("[", provider, go.GetInstanceID(), "]\n", s1, " ", s2);
+            var result = ZString.Concat("[",provider.GetInstanceID(), "]\n", s1, " ", s2);
             FinalLog(go, result, provider);
         }
 #endif
@@ -143,7 +143,7 @@ public static class MonoExtensionLogger
 
         if (isLogging)
         {
-            var result = ZString.Concat("[", providerName, go.GetInstanceID(), "]\n", s1, " ", s2, " ", s3);
+            var result = ZString.Concat("[" ,providerName.GetInstanceID(), "]\n", s1, " ", s2, " ", s3);
             FinalLog(go, result, providerName);
         }
 #endif

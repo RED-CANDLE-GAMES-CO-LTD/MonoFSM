@@ -24,7 +24,7 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
             //current mouse effectDealer?
             var detector = MouseDownDetector.Instance;
             // if(detector.)
-            Debug.Log("OnMouseDown", this);
+            // Debug.Log("OnMouseDown", this);
             detector.OnSpatialEnter(gameObject);
             //TODO: 馬上就Exit?
             //FIXME: 連點會有狀態問題耶...

@@ -8,7 +8,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     {
         protected override bool IsShowRenameButton => true;
 
-        protected override string nameDescription =>
+        protected override string Description =>
             sourceObject.name + "." + propertyName + " " + Op + " " + TargetValue;
 
         public Operator Op;

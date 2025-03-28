@@ -33,7 +33,7 @@ public interface ITransitionCheckInvoker //interface沒有意義？
 //還是用IRCGEventReceiver?
 
 [Searchable]
-public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable, ILevelResetPrepare
+public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable, ILevelResetPrepare,IBeforePrefabSaveCallbackReceiver
 {
     //現在event driven直接set也work, 要做成只有condition改變才會觸發transition?
     public bool IsTransitionCheckNeeded = false;
@@ -72,9 +72,10 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
     }
 
     [InfoBox("Target is self", InfoMessageType.Error, nameof(TransitionValidationResult))]
-    [ValueDropdown(nameof(FindStates))]
+    [ValueDropdown(nameof(FindStates),NumberOfItemsBeforeEnablingSearch=5)]
     [Required]
     [Header("Go To")]
+    [GUIColor(0.8f, 0.8f, 1)]
     public GeneralState target;
 
     // private void OnValidate()
@@ -166,7 +167,7 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
         // this.Log("[Transition] Check1" + target.stateType, gameObject);
         //Transition 被關了
         //if (this.isActiveAndEnabled == false) 
-
+        IsTransitionCheckNeeded = false;
         if (gameObject.activeSelf == false) //關著也想change state
         {
             // this.Log("[Transition] Check1 fail active false" + target.stateType, gameObject);
@@ -194,7 +195,7 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
                 return false;
             }
 
-            this.Log("[Transition] GoTo:", target.stateType, gameObject);
+            
             if (target.stateType.gameObject.activeSelf == false)
             {
                 this.Log("[Transition] Fail ChangeState target inactive" + target.stateType, gameObject);
@@ -259,6 +260,10 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
     }
 
     //需要外部通知檢查Transition, Update / ValueChanged, 還有嗎？
+    public void OnBeforePrefabSave()
+    {
+        RenameByBehaviour();
+    }
 }
 
 public abstract class AbstractBehaviour : MonoBehaviour

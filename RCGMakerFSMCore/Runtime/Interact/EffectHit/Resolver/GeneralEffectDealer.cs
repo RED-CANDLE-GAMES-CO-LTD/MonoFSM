@@ -90,7 +90,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
                 }
             }
 
-            Debug.Log("CanHitReceiver" + receiver, this);
+            this.Log("CanHitReceiver:" , receiver);
             return true;
         }
 

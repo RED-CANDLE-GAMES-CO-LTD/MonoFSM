@@ -17,14 +17,7 @@ namespace RCGMaker.Core.DataProvider
         //這個auto會太慢耶導致看的時候error?
         [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
         protected AbstractVariableProviderRef _variableProviderRef;
-
-        // [Obsolete]
-        // [Required]
-        // [BoxGroup("Get Value From a Variable")]
-        // [SerializeReference]
-        // [HideIf(nameof(_variableProviderRef))]
-        // public IVariableProvider _variableProvider; //可能是mono, 也可能是數字而已
-
+        
         [PreviewInInspector] [Auto] IDataChangedListener _dataChangedListener;
         protected abstract AbstractMonoVariable ListenToVariable { get; }
         [PreviewInInspector] [Auto] ITypeRestrict _typeRestrict;
@@ -219,6 +212,8 @@ namespace RCGMaker.Core.DataProvider
         [Button("Runtime 取得欄位值")]
         public object GetFieldValue()
         {
+            if(Application.isPlaying == false)
+            {UpdateParentTypes();}
             // 每次按下前先更新所有層級的 parentType
             var resultValue = GetFieldValueFromPath(targetObject, pathEntries);
             // Debug.Log("結果：" + (resultValue != null ? resultValue.ToString() : "null"));

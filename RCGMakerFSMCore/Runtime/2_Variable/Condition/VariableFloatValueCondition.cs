@@ -21,7 +21,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     /// </summary>
     public class VariableFloatValueCondition : AbstractConditionComp
     {
-        protected override string nameDescription => _monoVarFloatProvider != null
+        protected override string Description => _monoVarFloatProvider != null
             ? name = "[Condition] " + _monoVarFloatProvider.Description + " " + op + " " + targetValue
             : name = "[Condition]";
 

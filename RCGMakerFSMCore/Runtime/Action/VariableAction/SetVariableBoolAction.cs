@@ -68,7 +68,7 @@ namespace RCGFSM.Variable
                     return;
                 }
 
-                Debug.Log($"SetVariableBool {targetFlag} SetValue:{v}", this);
+                this.Log($"SetVariableBool {targetFlag} SetValue:{v}");
                 targetFlag.SetValue(v, this);
             }
         }

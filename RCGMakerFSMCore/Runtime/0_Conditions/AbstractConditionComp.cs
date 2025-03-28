@@ -37,16 +37,17 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider
 {
     //要能實作OnConditionChanged?
     [AutoParent] protected StateTransition _parentTransition;
-    protected virtual bool IsShowRenameButton => nameDescription != "";
+    protected virtual bool IsShowRenameButton => Description != "";
 
     //FIXME: AI 可以解釋性？
-    protected virtual string nameDescription => this.GetType().Name;
+    //FIXME: 整合 Description, interface?
+    protected virtual string Description => this.GetType().Name;
 
     [Button]
     [ShowIf("IsShowRenameButton")]
     protected void RenameOfGameObject()
     {
-        var text = "[Condition] " + nameDescription;
+        var text = "[Condition] " + Description;
         if (FinalResultInverted)
             text += " is Inverted";
         gameObject.name = text;
@@ -63,6 +64,8 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider
     //用類似statData 檢查dirty來決定要不要重新檢查condition
     public bool IsDirty => _isConditionChanged;
 
+    public virtual bool IsInvertResultOptionAvailable => true;
+    [ShowIf(nameof(IsInvertResultOptionAvailable))]
     public bool FinalResultInverted = false;
     protected abstract bool IsValid { get; }
 

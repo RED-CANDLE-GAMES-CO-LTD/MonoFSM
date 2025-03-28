@@ -9,7 +9,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
     //分成simple和complex?
     public class VarBoolValueCondition : AbstractConditionComp,ILevelResetPrepare,ITransitionCheckInvoker
     {
-        protected override string nameDescription => _monoVariableBool?.name + " == " + targetValue;
+        protected override string Description => _monoVariableBool?.name + " == " + targetValue;
         void OnVariableChanged()
         {
             RenameOfGameObject();

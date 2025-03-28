@@ -374,8 +374,8 @@ public class
         _lastValue = CurrentValue;
     }
 
-    [ShowInInspector] private ValueChangedListener<T> listener = new(); //好像可以把監聽對象丟出來看？
-    [ShowInInspector] private ValueChangedListener<T> listenerOnce = new();
+    [ShowInDebugMode] private ValueChangedListener<T> listener = new(); //好像可以把監聽對象丟出來看？
+    [ShowInDebugMode] private ValueChangedListener<T> listenerOnce = new();
     // private ValueChangedListener<object, object, T> listenerDict;
 
     // public void AddListener<TTarget, TParam>(TTarget target, TParam param, UnityAction<TTarget, TParam, T> callback)

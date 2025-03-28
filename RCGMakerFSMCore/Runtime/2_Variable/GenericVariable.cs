@@ -24,7 +24,7 @@ using Object = UnityEngine.Object;
 //FIXME: autoGen太複雜，可能需要再拆漂亮
 //TODO: 現在根本還沒做監聽，是用condition做polling
 [Searchable]
-public abstract class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable, ISettable<TType>,
+public abstract class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable,IBeforePrefabSaveCallbackReceiver, ISettable<TType>,
     
     IGameStateOwner, IDefaultSerializable, ILevelResetPrepare
     where TScriptableData : AbstractScriptableData<TField, TType>
@@ -141,6 +141,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     private bool IsGameStateRequiredButMissing()
     {
+        //FIXME: default不需要存檔，標記需要存檔的流程是什麼？
         if (PrefabKindMatchTagCheck() && scriptableData == null)
             return true;
         return false;
@@ -352,7 +353,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         //after?
         // Debug.Log("[Variable] Set" + value + "tempValue:" + tempValue + ", Value:" + CurrentValue, byWho);
         if (tempValue.Equals(CurrentValue)) return;
-        byWho.Log("[Variable] Set", value);
+        byWho.Log("[Variable] Set",name, value);
         byWhoHashSet.Add(byWho);
 
         Field.SetCurrentValue(tempValue, byWho);
@@ -490,6 +491,16 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     public void LevelResetPrepareRuntimeData()
     {
         localField.Init(TestMode.EditorDevelopment, this);
+    }
+
+    public void OnBeforePrefabSave()
+    {
+        if (varTag == null)
+        {
+            Debug.LogError("No VarTag", this);
+        }
+        else
+            name = varTag.name;
     }
 }
 

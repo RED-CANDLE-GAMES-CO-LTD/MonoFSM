@@ -42,10 +42,11 @@ public class VariableFloatBoundModifier : MonoBehaviour, AbstractVariableModifie
     //
     // [DropDownRef] [SerializeField] VarFloat MinVar;
     // [DropDownRef] [SerializeField] VarFloat MaxVar; //好像應該用繼承的
-
+    
+    //FIXME: simple bound怎麼設計？
     [Component] [AutoChildren] IFloatProvider[] _floatProviderArray = Array.Empty<IFloatProvider>();
-    [Component] [SerializeField] IFloatProvider _minValueProvider;
-    [Component] [SerializeField] IFloatProvider _maxValueProvider;
+    [PreviewInInspector] [Component] IFloatProvider _minValueProvider => _floatProviderArray.Length > 0 ? _floatProviderArray[0] : null;
+    [PreviewInInspector] [Component] IFloatProvider _maxValueProvider => _floatProviderArray.Length > 1 ? _floatProviderArray[1] : null;
 
     [ShowInInspector]
     public float MinValue =>

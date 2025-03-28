@@ -17,7 +17,7 @@ namespace RCGFSM.Variable
     {
         //兩種情境，一種是從dealer來，一種是固定值觸發
         protected override string Description =>
-            $"{targetFlag.varTag.name} {arithmeticSymbol}= {sourceType} {sourceType switch { ValueSourceType.Constant => ConstValue, _ => 0 }}";
+            $"{targetFlag?.varTag?.name} {arithmeticSymbol}= {sourceType} {sourceType switch { ValueSourceType.Constant => ConstValue, _ => 0 }}";
 
         string arithmeticSymbol => Arithmetic switch
         {
@@ -34,13 +34,15 @@ namespace RCGFSM.Variable
         //要直接用值？
         //上面會有EffectDealer or EffectReceiver?
         [ShowIf(nameof(sourceType), ValueSourceType.Constant)]
-        public float ConstValue;
+        public float ConstValue; //FIXME: 另外包？
 
         public enum ValueSourceType //FIXME: 太限定了
         {
             Dealer,
             Receiver,
-            Constant
+            Constant,
+            Variable,
+            Provider,
         }
 
         [FormerlySerializedAs("valueSource")] public ValueSourceType sourceType;
@@ -82,7 +84,7 @@ namespace RCGFSM.Variable
                     break;
             }
 
-            Debug.Log("VariableFloatArithmeticAction: " + targetFlag.CurrentValue, this);
+            this.Log("VariableFloatArithmeticAction: " , targetFlag.CurrentValue);
         }
 
         //last value < current value

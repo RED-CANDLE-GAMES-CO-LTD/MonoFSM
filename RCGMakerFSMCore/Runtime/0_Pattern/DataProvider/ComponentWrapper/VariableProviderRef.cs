@@ -75,7 +75,10 @@ namespace RCGMaker.Core.DataProvider
             if (_varTag == null) return false;
             return typeof(TValueType).IsAssignableFrom(_varTag._valueFilterType.RestrictType) == false;
         }
-
+        // [ValueDropdown(nameof(GetGlobalMonoTags))] [OnValueChanged(nameof(OnGlobalMonoTagChange))]
+        //FIXME: 1. 常常會空著
+        public MonoDescriptableTag _parentMonoTag; //空的話就是自己
+        
         [BoxGroup("varTag")]
         [GUIColor(0.8f, 1.0f, 0.8f)]
         // [PreviewInInspector]
@@ -144,9 +147,7 @@ namespace RCGMaker.Core.DataProvider
             return tags;
         }
 
-        // [ValueDropdown(nameof(GetGlobalMonoTags))] [OnValueChanged(nameof(OnGlobalMonoTagChange))]
-        //FIXME: 1. 常常會空著
-        public MonoDescriptableTag _parentMonoTag; //空的話就是自己
+     
 
         [PreviewInInspector] private Type variableValueType => typeof(TValueType);
         //FIXME:也可以用string拿？
@@ -270,7 +271,7 @@ namespace RCGMaker.Core.DataProvider
         // RCGVariableFolder GetFolder =>  owner?.VariableFolder;
         [PreviewInInspector] public TValueType Value => VarRaw == null ? default : VarRaw.GetValue<TValueType>();
 
-        public VariableTag varTag
+        public override VariableTag varTag
         {
             get => _varTag;
             set => _varTag = value;

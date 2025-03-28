@@ -28,6 +28,7 @@ public interface IStateExit
    void OnStateExit();
 }
 
+//FIXME: 可以拿掉？
 public interface IGuidEntity
 {
 }
@@ -52,6 +53,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public bool IsFullRect => false;
     public string DrawCustomIcon => "";
     public float StateDuration;
+    
+    //還沒用到
     [DropDownRef]
      public GeneralState NextState;
     public bool IsDrawGUIHierarchyBackground =>
@@ -140,10 +143,10 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
                 action.OnActionEnter();
         }
 
-        foreach (var transition in transitions)
-        {
-            transition.TransitionCheck();
-        }
+        // foreach (var transition in transitions)
+        // {
+        //     transition.TransitionCheck();
+        // }
        
     }
 
@@ -235,17 +238,19 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
         var fsm = context.fsm;
 
-        if (fsm.State == stateType) //現在是我才能
+        if (fsm.State != stateType) return false; //現在是我才能
+        if(fsm.State == toState)
         {
-            toState.EnterTimeOffset = timeOffset;
-            //每個地方都要call這個有點煩
-            context.SetLastTransition(fromTransition);
-            
-            fsm.ChangeState(toState, CanSelfTransition);
-
-            return true;
+            Debug.LogError("不能自己跳自己");
+            return false; //不能自己跳自己
         }
-        return false;
+        toState.EnterTimeOffset = timeOffset;
+        //每個地方都要call這個有點煩
+        context.SetLastTransition(fromTransition);
+        this.Log("[Transition] GoTo:", toState, gameObject);
+        fsm.ChangeState(toState);
+
+        return true;
     }
 
     public bool TransitionCheck(GeneralState toState)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using RCGExtension;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Core.DataProvider;
 using RCGMaker.Runtime.FSM._2_Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -16,7 +17,7 @@ using UnityEngine;
 
 //CountdownTimer...直接掛在這個下面？
 
-public class VarFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat, float>, IFloatValueProvider,
+public class VarFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat, float>,
     IValueOfKey<VariableTag>, ISerializedFloatValue,IOverrideHierarchyIcon
 {
     //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 

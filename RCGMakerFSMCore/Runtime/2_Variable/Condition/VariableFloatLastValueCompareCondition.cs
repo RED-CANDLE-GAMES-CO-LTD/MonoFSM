@@ -15,7 +15,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
 
         public Operator op;
 
-        protected override string nameDescription => _monoVarFloat
+        protected override string Description => _monoVarFloat
             ? name = "[Condition] " + _monoVarFloat.name + " LastValue " + op + " CurrentValue"
             : "[Condition] VariableFloatLastValueCompareCondition";
 

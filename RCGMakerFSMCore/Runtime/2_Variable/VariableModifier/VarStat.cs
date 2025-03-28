@@ -7,6 +7,7 @@ using UnityEngine.Events;
 namespace RCGMaker.Runtime.FSM._2_Variable
 {
     // Gameplay Attributes
+    //FIXME: 不需要狀態？應該要是一個Getter, IFloatProvider
     public sealed class VarStat : VarFloat
     {
         private float BaseValue => CurrentValue;

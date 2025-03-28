@@ -140,7 +140,7 @@ namespace RCGMaker.Core
                 return default;
             }
 
-            Debug.LogError($"Key:{key} not found in {this}");
+            Debug.LogError($"Key:{key} not found in {this}",this);
             return default;
         }
 

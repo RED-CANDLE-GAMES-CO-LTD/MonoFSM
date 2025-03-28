@@ -20,7 +20,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         //     
         // }
 
-        protected override string nameDescription =>
+        protected override string Description =>
             $"{sourceObject.name} {propertyName} is {TargetValue}";
     }
 }
