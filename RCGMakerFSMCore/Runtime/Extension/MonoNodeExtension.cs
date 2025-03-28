@@ -221,17 +221,54 @@ public static class MonoNodeExtension
     }
 
 
-    //找到所有繼承自t的class
-    //TODO: exclude?
-    public static List<Type> FilterSubClassOrImplementationFromDomain(this Type t)
+    /// <summary>
+    /// Find all class types that derives from the given <see cref="baseType"/> and:
+    /// 1. aren't generic or abstract if the <see cref="baseType"/> is a class.
+    /// 2. are <see cref="MonoBehaviour"/>s if the <see cref="baseType"/> is an interface.
+    /// If the <see cref="baseType"/> is an interface, the list will only include inherited types that are <see cref="MonoBehaviour"/>.
+    /// </summary>
+    /// <param name="baseType"></param>
+    /// <returns></returns>
+    public static List<Type> FilterSubClassOrImplementationFromDomain(this Type baseType)
     {
+#if UNITY_EDITOR
+        var typeList = new List<Type>();
+        if (baseType.IsClass && !baseType.IsAbstract && !baseType.IsGenericType)
+        {
+            // We also want to include the given type if it's not an abstract or a generic type.
+            typeList.Add(baseType);
+        }
+        
+        var types = TypeCache.GetTypesDerivedFrom(baseType);
+        if (baseType.IsInterface)
+        {
+            foreach (Type type in types)
+            {
+                if (type.InheritsFrom<MonoBehaviour>())
+                {
+                    typeList.Add(type);
+                }
+            }
+        }
+        else // if baseType.IsClass
+        {
+            foreach (Type type in types)
+            {
+                if (type.IsClass && !type.IsAbstract && !type.IsGenericType)
+                {
+                    typeList.Add(type);
+                }
+            }
+        }
+        return typeList;
+#else
         var typeList = new List<Type>();
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
             foreach (var type in assembly.GetTypes())
             {
                 //有這個interface加進來
-                if (t.IsInterface && type.GetInterfaces().Contains(t) && type.InheritsFrom(typeof(MonoBehaviour)))
+                if (baseType.IsInterface && type.GetInterfaces().Contains(baseType) && type.InheritsFrom(typeof(MonoBehaviour)))
                 {
                     typeList.Add(type);
                     continue;
@@ -239,8 +276,7 @@ public static class MonoNodeExtension
 
                 //是class, 不是abstract, 不是泛型, 是t的子類或是t
                 if (type.IsClass && !type.IsAbstract && !type.IsGenericType &&
-                    (type.IsSubclassOf(t) || type == t))
-
+                    (type.IsSubclassOf(baseType) || type == baseType))
                 {
                     typeList.Add(type);
                 }
@@ -248,8 +284,9 @@ public static class MonoNodeExtension
         }
 
         return typeList;
+#endif
     }
-
+    
     //Filter sub classes of Type t having certain attribute 
     public static List<Type> FilterSubClassFromDomain(this Type t, Type attri)
     {
