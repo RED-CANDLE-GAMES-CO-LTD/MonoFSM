@@ -196,6 +196,22 @@ public static class MonoExtensionLogger
 #endif
     }
 
+    //這個還是舊規
+    [Conditional("UNITY_EDITOR")]
+    public static void
+        LogWarning(this Component go, object message, UnityEngine.Object context = null) //where T : Component
+    {
+#if RCG_DEV
+        var (isLogging, provider) = IsLoggingCheck(go);
+
+        if (isLogging)
+        {
+            // var fullStr = string.Join(",", items);
+            var result = ZString.Concat("[", provider, go.GetInstanceID(), "]\n", message);
+            FinalLog(go, result, provider, LogType.Warning);
+        }
+#endif
+    }
 
     [HideInCallstack]
     [Conditional("UNITY_EDITOR")]

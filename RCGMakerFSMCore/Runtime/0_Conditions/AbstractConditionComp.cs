@@ -125,6 +125,9 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider,IBefo
     public bool IsTrue => FinalResult;
     public void OnBeforePrefabSave()
     {
+#if UNITY_EDITOR
+        AutoAttributeManager.AutoReference(this); //有些field需要autoChildren容易造成 description null
         RenameOfGameObject();
+#endif
     }
 }

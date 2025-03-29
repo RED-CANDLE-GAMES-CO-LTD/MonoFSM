@@ -21,6 +21,7 @@ namespace RCGMaker.Core.DataProvider
         [PreviewInInspector] [Auto] IDataChangedListener _dataChangedListener;
         protected abstract AbstractMonoVariable ListenToVariable { get; }
         [PreviewInInspector] [Auto] ITypeRestrict _typeRestrict;
+        [PreviewInInspector]
         public abstract Object targetObject { get; }
         public abstract Type targetType { get; }
         [PreviewInInspector] [AutoParent] IIndexInjector _indexInjector;
@@ -128,7 +129,7 @@ namespace RCGMaker.Core.DataProvider
         {
             //第一次是obj是DescriptableData
             if (obj == null)
-                return "";
+                return null;
             var currentObj = obj;
 
             var i = 0;
@@ -212,21 +213,29 @@ namespace RCGMaker.Core.DataProvider
         [Button("Runtime 取得欄位值")]
         public object GetFieldValue()
         {
-            if(Application.isPlaying == false)
-            {UpdateParentTypes();}
+#if UNITY_EDITOR
+            if (Application.isPlaying == false)
+            {
+                AutoAttributeManager.AutoReference(this);
+            }
+#endif
             // 每次按下前先更新所有層級的 parentType
             var resultValue = GetFieldValueFromPath(targetObject, pathEntries);
+            if (resultValue == null)
+            {
+                Debug.LogError("結果為 null"+targetObject, this);
+            }
             // Debug.Log("結果：" + (resultValue != null ? resultValue.ToString() : "null"));
             return resultValue;
         }
 
-        [Button("Editor 取得欄位值")]
-        public object EditorGetFieldValue()
-        {
-            UpdateParentTypes();
-            var resultValue = GetFieldValueFromPath(targetObject, pathEntries);
-            return resultValue;
-        }
+        // [Button("Editor 取得欄位值")]
+        // public object EditorGetFieldValue()
+        // {
+        //     UpdateParentTypes();
+        //     var resultValue = GetFieldValueFromPath(targetObject, pathEntries);
+        //     return resultValue;
+        // }
 
         [Button("新增層級")]
         private void AddLevel()

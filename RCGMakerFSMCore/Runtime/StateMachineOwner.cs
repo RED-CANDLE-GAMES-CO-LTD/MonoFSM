@@ -135,7 +135,7 @@ public interface IBinder
 }
 
 public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable,
-    IBinder, IVariableOwner
+    IBinder
 {
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext[] fsmContexts;

@@ -25,10 +25,10 @@ namespace RCGMaker.Core.DataProvider
         // public MonoDescriptableProvider<MonoDescriptable> _descriptableProvider;
 
 
-        [PropertyOrder(-1)]
-        [BoxGroup("Instance")]
-        [PreviewInInspector]
-        private GameFlagBase dataInstance => _variableProviderRef?.FinalData;
+        // [PropertyOrder(-1)]
+        // [BoxGroup("Instance")]
+        // [PreviewInInspector]
+        // private GameFlagBase dataInstance => _variableProviderRef?.FinalData;
         // _descriptableProvider?.CurrentInstance?.Descriptable;
 
         //不一定需要instance, 有type就好了？

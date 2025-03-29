@@ -50,7 +50,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable.Condition
         [Component]
         [AutoChildren]
         [PreviewInInspector]
-        [BoxGroup("Advanced Comparison")]
+        [BoxGroup("Advanced Comparison")] //editor time不會auto...好煩, 還是serialized field比較好?
         private IFloatProvider[] _floatValueSourceArray = Array.Empty<IFloatProvider>();
 
         [ShowIf(nameof(comparisonMode), ComparisonMode.Advanced)]
