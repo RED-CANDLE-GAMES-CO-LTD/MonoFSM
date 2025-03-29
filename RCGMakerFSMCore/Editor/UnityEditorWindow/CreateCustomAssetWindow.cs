@@ -317,7 +317,7 @@ public class CreateCustomAssetWindow : EditorWindow
             // }
             
         };
-        var scriptables = MonoNodeExtension.GetAllScriptableAsset();
+        var scriptables = EditorMonoNodeExtension.GetAllScriptableAsset();
         foreach (var scriptable in scriptables)
             if (!assetDataDict.ContainsKey(scriptable.Name))
                 assetDataDict.Add(scriptable.Name, new AssetData(".asset", scriptable));

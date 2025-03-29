@@ -56,104 +56,6 @@ using Object = UnityEngine.Object;
 // }
 public static class MonoNodeExtension
 {
-    // private static ILogger<DebugProvider> logger;
-    // [Conditional("UNITY_EDITOR")]
-    // public static void DebugLog(this MonoBehaviour mono, string message)
-    // {
-    //     Debug.Log(message, mono);
-    // }
-    // public static ILogger<DebugProvider> Logger(this MonoBehaviour comp)
-    // {
-    //     LazyInit();
-    //     return logger;
-    // }
-    //
-    // // public static ILogger<DebugProvider> L(this MonoBehaviour comp)
-    // // {
-    // //     //任何class都要有一個logger?
-    // // }
-    //
-    // private static void LazyInit()
-    // {
-    //     if (logger == null)
-    //     {
-    //         logger = LoggerFactory.Create(builder =>
-    //         {
-    //             builder.ClearProviders();
-    //             builder.SetMinimumLevel(LogLevel.Debug);
-    //             // builder.AddZLoggerConsole();
-    //             builder.AddZLoggerUnityDebug();
-    //         }).CreateLogger<DebugProvider>();
-    //     }
-    //
-    //     if (logger.IsEnabled(LogLevel.Debug))
-    //         logger.LogDebug("Logger Init");
-    // }
-    [Conditional("UNITY_EDITOR")]
-    public static void LogErrorUsedCheck(this MonoBehaviour target, string message)
-    {
-        Debug.LogError("有是缺東西沒綁到還是要關掉/刪掉？" + message, target);
-    }
-
-    public static void CopyToClipboard(this string str)
-    {
-        GUIUtility.systemCopyBuffer = str;
-    }
-
-
-    public static IEnumerable<Type> FindSubClassesOf(this MonoBehaviour owner, Type type)
-    {
-        var baseType = type;
-        var assembly = baseType.Assembly;
-        return assembly.GetTypes().Where(t => t.IsSubclassOf(baseType) || (t == type && t.IsAbstract == false));
-    }
-
-
-    /// <summary>
-    /// Debug想要在Scene看到物理判定的位置/形狀
-    /// </summary>
-    /// <param name="gobj"></param>
-    /// <param name="position">在哪裡噴</param>
-    /// <param name="name"></param>
-    [Conditional("UNITY_EDITOR")]
-    public static void
-        CreateGizmoDebugNode(this MonoBehaviour gobj, Vector3 position, GameObject name) //TODO: 設圖形?? rect, radius?
-    {
-        var (isLogging, provider) = MonoExtensionLogger.IsLoggingCheck(gobj);
-        if (isLogging == false)
-            return;
-#if UNITY_EDITOR
-        var debugAnchor = new GameObject("[DebugAnchor]:" + name);
-        debugAnchor.transform.position = position;
-        //TODO: gizmo
-        //直接掛gizmo marker
-        debugAnchor.AddComponent<GizmoMarker>();
-        //TODO: 設圖形??
-
-        // debugAnchor.AddComponent<Gizmo
-        // Debug.Break();
-        EditorGUIUtility.PingObject(debugAnchor);
-#endif
-    }
-
-    [Conditional("UNITY_EDITOR")]
-    public static void DrawLineGizmoNode(this MonoBehaviour mono, string name, Vector3 start, Vector3 end, Color color)
-    {
-        var provider = mono.GetComponentInParent<DebugProvider>();
-        if (provider == null || provider.IsLogInChildren == false)
-            return;
-
-        var debugAnchor = new GameObject("[GizmoLine]:" + name);
-        debugAnchor.transform.position = start;
-        var lineGizmoNode = debugAnchor.AddComponent<LineGizmoNode>();
-        lineGizmoNode.offset = end - start;
-        lineGizmoNode.color = color;
-
-        // debugAnchor.AddComponent<GizmoMarker>();
-        // Debug.DrawLine(start, end, color, 1f);
-    }
-
-
     public static async UniTaskVoid LogException(this Component go, string e)
     {
         // Debug.LogError(e + go.gameObject.name);
@@ -182,14 +84,6 @@ public static class MonoNodeExtension
 
         return result;
     }
-
-    [Conditional("UNITY_EDITOR")]
-    public static void DebugLog(this Component owner, string result)
-    {
-        if (DebugSetting.IsDebugMode)
-            Debug.Log(result, owner);
-    }
-
 
     public static T GetComponentInChildrenOfDepthOne<T>(this Component go)
     {
@@ -220,70 +114,6 @@ public static class MonoNodeExtension
         return default;
     }
 
-
-    //找到所有繼承自t的class
-    //TODO: exclude?
-    public static List<Type> FilterSubClassOrImplementationFromDomain(this Type t)
-    {
-        var typeList = new List<Type>();
-        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-        {
-            foreach (var type in assembly.GetTypes())
-            {
-                //有這個interface加進來
-                if (t.IsInterface && type.GetInterfaces().Contains(t) && type.InheritsFrom(typeof(MonoBehaviour)))
-                {
-                    typeList.Add(type);
-                    continue;
-                }
-
-                //是class, 不是abstract, 不是泛型, 是t的子類或是t
-                if (type.IsClass && !type.IsAbstract && !type.IsGenericType &&
-                    (type.IsSubclassOf(t) || type == t))
-
-                {
-                    typeList.Add(type);
-                }
-            }
-        }
-
-        return typeList;
-    }
-
-    //Filter sub classes of Type t having certain attribute 
-    public static List<Type> FilterSubClassFromDomain(this Type t, Type attri)
-    {
-        var typeList = new List<Type>();
-        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-        foreach (var type in assembly.GetTypes())
-            if (type.IsClass && !type.IsAbstract && !type.IsGenericType &&
-                type.IsSubclassOf(t) && type.GetCustomAttributes(attri, true).Length > 0)
-                typeList.Add(type);
-
-        return typeList;
-    }
-
-    public static IEnumerable<Type> GetAllScriptableAsset()
-    {
-        //[]: 好像不一定需要這個attribute 才能拿? 但這個是介面問題，不該拿到不能變成asset的SO，但不確定有需要動態產生SO嗎？
-        var types = typeof(ScriptableObject).FilterSubClassFromDomain(typeof(CreateAssetMenuAttribute));
-        return types;
-    }
-
-    //這個還是舊規
-    [Conditional("UNITY_EDITOR")]
-    public static void
-        LogWarning(this Component go, object message, UnityEngine.Object context = null) //where T : Component
-    {
-#if RCG_DEV
-        var provider = go.GetComponentInParent<DebugProvider>(true);
-        if (provider && provider.IsLogInChildren)
-            Debug.LogWarning(ZString.Concat("[", provider.gameObject.name, go.GetInstanceID(), "]\n", message),
-                context ?? go.gameObject);
-        else if (provider == null)
-            Debug.LogWarning(message, context ?? go.gameObject);
-#endif
-    }
 
     public static bool IsNull(this Object obj)
     {
@@ -372,7 +202,7 @@ public static class MonoNodeExtension
         Undo.RegisterCreatedObjectUndo(newGo, "Add Children");
         Undo.SetTransformParent(newGo.transform, go.transform, "Set Parent");
 #else
-            newGo.transform.SetParent(go.transform);
+        newGo.transform.SetParent(go.transform);
 #endif
         newGo.transform.localPosition = Vector3.zero;
 
@@ -466,7 +296,7 @@ public static class MonoNodeExtension
         return Undo.AddComponent(go.gameObject, t);
 
 #else
-            return go.gameObject.AddComponent(t);
+        return go.gameObject.AddComponent(t);
 #endif
     }
 
