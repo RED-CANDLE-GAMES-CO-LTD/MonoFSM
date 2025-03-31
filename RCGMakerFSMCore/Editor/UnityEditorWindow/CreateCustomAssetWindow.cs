@@ -11,6 +11,9 @@ using UnityEditorInternal;
 using UnityEngine.UIElements;
 using AnimatorController = UnityEditor.Animations.AnimatorController;
 
+/// <summary>
+/// 快捷在Project視窗建立各種資源的視窗
+/// </summary>
 public class CreateCustomAssetWindow : EditorWindow
 {
     // public string searchQuery = "";

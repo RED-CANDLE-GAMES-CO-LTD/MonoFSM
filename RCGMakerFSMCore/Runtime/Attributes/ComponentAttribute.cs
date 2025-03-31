@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 
@@ -51,7 +52,7 @@ public enum AddComponentAt
 [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = true)]
 [Conditional("UNITY_EDITOR")]
 [IncludeMyAttributes]
-[ShowInInspector]
+[PreviewInInspector]
 //rename AddCompAttribute??
 //FIXME: 好像不該能夠掛在function上？
 public class ComponentAttribute : ShowInInspectorAttribute //ShowInInspectorAttribute很重要
@@ -66,12 +67,6 @@ public class ComponentAttribute : ShowInInspectorAttribute //ShowInInspectorAttr
         this.addAt = addAt;
     }
 
-    public bool IsDisplayProperty = false;
-
     public string nameTag;
-
-    // public Type baseType;
     public AddComponentAt addAt; //FIXME: 這個應該要自己判斷？如果遇到Auto就放在同一層
 }
-
-// }

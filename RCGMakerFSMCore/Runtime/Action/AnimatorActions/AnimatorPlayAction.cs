@@ -15,6 +15,8 @@ using UnityEditor.Animations;
 namespace RCGFSM.Animation
 {
     //小心從init routing來，會直接播結束的frame，要從transition上知道這件事
+    //documentation要放哪？
+
     [HelpURL("https://www.notion.so/AnimatorPlayA-061be2a2d4e5414e88e84f1ed80d8ea2")]
     [Searchable]
     public class AnimatorPlayAction : AbstractStateAction, IRCGArgEventReceiver, IAnimatorPlayAction,
@@ -692,7 +694,7 @@ namespace RCGFSM.Animation
         {
             // TransitionTarget.OnTransitionCheck();
             //FIXME: 還是應該用condition...hmm
-            doneEventTransition.IsTransitionCheckNeeded = true; 
+            doneEventTransition.IsTransitionCheckNeeded = true;
             OnAnimationDone?.Invoke(); //事件驅動，不太好
             // doneEventTransition.EventReceived("AnimationDone");
         }

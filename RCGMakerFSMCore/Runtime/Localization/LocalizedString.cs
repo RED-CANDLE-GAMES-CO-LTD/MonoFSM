@@ -1,15 +1,8 @@
 using System;
 using UnityEngine;
+
 namespace RCGMakerFSMCore.Runtime.Localization
 {
-
-    public interface ILocalizationManager
-    {
-        string GetTranslation(string termKey, bool rtlFix = true, int maxLineLength = 0, bool convertNumbers = true);
-        string ApplyLocalizationParams(string text);
-        void SetLanguage(string languageCode);
-        string CurrentLanguage { get; }
-    }
     [Serializable]
     public struct LocalizedString
     {
@@ -19,15 +12,15 @@ namespace RCGMakerFSMCore.Runtime.Localization
         [SerializeField] private bool convertRTLNumbers;
         [SerializeField] private bool dontLocalizeParameters;
         [SerializeField] private string fallbackText;
-        
+
         // Static accessor for the localization manager (set via DI)
         private static ILocalizationManager _localizationManager;
-        
+
         //給LocalizationManager設定 ex: I2.Loc.LocalizationManager
         public static ILocalizationManager LocalizationManager
         {
             get => _localizationManager;
-            set => _localizationManager = value; 
+            set => _localizationManager = value;
         }
 
         public string TermKey => termKey;
@@ -67,7 +60,7 @@ namespace RCGMakerFSMCore.Runtime.Localization
         {
             if (string.IsNullOrEmpty(termKey) || termKey == "-")
                 return fallbackText;
-                
+
             if (_localizationManager == null)
             {
                 Debug.LogWarning("LocalizationManager not set. Returning fallback text.");
@@ -80,16 +73,16 @@ namespace RCGMakerFSMCore.Runtime.Localization
                 maxLineLength: maxRTLLineLength,
                 convertNumbers: !convertRTLNumbers
             );
-            
+
             if (string.IsNullOrEmpty(translation))
                 return fallbackText;
-                
+
             if (!dontLocalizeParameters)
                 translation = _localizationManager.ApplyLocalizationParams(translation);
-                
+
             if (translation.Contains("$blank"))
                 return "";
-                
+
             return translation;
         }
     }
