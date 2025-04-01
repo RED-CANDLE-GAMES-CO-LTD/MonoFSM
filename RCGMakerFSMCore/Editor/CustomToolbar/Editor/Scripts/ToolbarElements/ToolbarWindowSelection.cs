@@ -127,8 +127,24 @@ namespace UnityToolbarExtender.ToolbarElements
                 //     }
                 // }
             }
-            if(EditorPrefs.GetBool("RCGDebugSetting.IsDebugMode"))
-                GUILayout.Label("Debug Mode");
+
+            //偷懶放label
+            var isDebugMode = EditorPrefs.GetBool("DebugSetting.IsDebugMode", false);
+            if (isDebugMode)
+            {
+                
+                //green text
+                GUIStyle style = new GUIStyle(GUI.skin.label);
+                style.normal.textColor = new Color(0.2f, 0.5f, 0.1f);
+                style.fontSize = 12;
+                style.alignment = TextAnchor.MiddleCenter;
+                // style.padding = new RectOffset(0, 0, 0, 0);
+                // style.margin = new RectOffset(0, 0, 0, 0);
+                // style.fontStyle = FontStyle.Bold;
+                // style.normal.background = null;
+                GUILayout.Label("Debug Mode", style);
+            }
+             
         }
     }
 }
