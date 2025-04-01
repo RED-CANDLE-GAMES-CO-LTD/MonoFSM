@@ -8,7 +8,7 @@ namespace RCGMaker.Core
 {
     public static class ScriptingDefineUtility
     {
-        //
+        //要改新規SetScriptingDefineSymbols
         [Obsolete("Obsolete")]
         public static void Add(string define, BuildTargetGroup target, bool log = false)
         {
