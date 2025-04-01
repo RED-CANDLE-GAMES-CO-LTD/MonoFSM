@@ -4,13 +4,12 @@ using System.Linq;
 using RCGExtension;
 using RCGMaker.Editor;
 using RCGMakerFSMCore.Editor.ViewWindow.HierarchyTab;
-// using RelationsInspector.Extensions;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
+using RCGMakerFSM.InternalBridge;
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
@@ -24,7 +23,7 @@ namespace RCGMaker.Core.Editor
     {
         [HideInInspector] [SerializeField] private StyleSheet uss;
 
-        private static List<TreeViewWindow> _windows = new List<TreeViewWindow>();
+        private static readonly List<TreeViewWindow> _windows = new();
         static TreeViewWindow _currentWindow;
         // [MenuItem("GameObject/子樹檢視模式 搜尋 %_F", false, -1)]
         // public static void Find()
@@ -45,9 +44,12 @@ namespace RCGMaker.Core.Editor
                 return;
 
 
-            // var window = GetWindow<TreeViewWindow>();
+            // var treeViewWindow = GetWindow<TreeViewWindow>();
 
-            var window = CreateInstance<TreeViewWindow>();
+            // if(treeViewWindow == null)
+            var treeViewWindow = CreateInstance<TreeViewWindow>();
+            
+            // treeViewWindow = CreateInstance<TreeViewWindow>();
 
             var guidComp = Selection.activeGameObject.GetComponent<GuidComponent>();
             if (guidComp == null)
@@ -55,81 +57,46 @@ namespace RCGMaker.Core.Editor
                 guidComp = (GuidComponent)Undo.AddComponent(Selection.activeGameObject, typeof(GuidComponent));
             }
 
-            var gObj = window.SubTreeRoot = Selection.activeGameObject;
+            var gObj = treeViewWindow.SubTreeRoot = Selection.activeGameObject;
             var windowName = gObj.name;
-
-            window.guidReference = new GuidReference(guidComp);
-            window._instanceId = gObj.GetInstanceID();
+            
+            treeViewWindow.guidReference = new GuidReference(guidComp);
+            treeViewWindow._instanceId = gObj.GetInstanceID();
             var titleContent = new GUIContent(windowName);
-            window.titleContent = titleContent;
+            treeViewWindow.titleContent = titleContent;
 
             // window.hideFlags = HideFlags.DontUnloadUnusedAsset;
-            window.Show();
-            _currentWindow = window;
+            // window.ShowTab();
+            treeViewWindow.Show();
+            
+            _currentWindow = treeViewWindow;
+            // var hierarchyWindow = GetWindow(t_SceneHierarchyWindow);
+            var hierarchyWindow = WindowDocker.GetSceneHierarchyWindow;
+            if (hierarchyWindow == null)
+            {
+                Debug.LogError("SceneHierarchyWindow not found");
+                return;
+            }
+            // var consoleWindow = GetWindow(typeof(SceneView));
+            hierarchyWindow.Dock(treeViewWindow, WindowDocker.DockPosition.Top);
+            // consoleWindow.DockTo(hierarchyWindow, WindowDocker.DockPosition.Top);
+            // window.AddTab(hierarchyWindow);
+            // hierarchyWindow.DockTo(window, Docker.DockPosition.Top);
+            // var hierarchyWindowDockArea = new DockAreaWrapped(hierarchyWindow.GetFieldValue("m_Parent"));
+            //
+            // Debug.Log("DockArea" + hierarchyWindowDockArea);
+            // hierarchyWindowDockArea.parentSplitViewWrapped.DropWindowAtTop(window);
             // _windows.Add(window);
         }
-
-        private void OnInspectorUpdate()
-        {
-            // Debug.Log("OnInspectorUpdate");
-            var currentEvent = Event.current;
-            if (currentEvent == null)
-                return;
-            Debug.Log("OnInspectorUpdate" + currentEvent.type);
-            // Check for Ctrl+F (or Cmd+F on macOS)
-            if (currentEvent.type == EventType.KeyDown && 
-                currentEvent.keyCode == KeyCode.F && 
-                currentEvent.command) // Use currentEvent.command for Cmd+F on macOS
-            {
-                // Verify this window is focused
-                // if (EditorWindow.focusedWindow == this)
-                // {
-                // Execute custom search logic
-                // PerformCustomSearch(searchQuery);
-                Debug.Log("Custom search triggered!");
-                _searchField.Focus();
-                // Consume the event to prevent default Unity search
-                currentEvent.Use();
-                // }
-            }
-        }
-
-        // protected override void OnGUI()
+        
+        // protected override void OnImGUI()
         // {
-        //     
-        //     // Debug.Log("OnGUI");
-        //     var currentEvent = Event.current;
-        //     if (currentEvent == null)
-        //         return;
-        //     Debug.Log(currentEvent.type);
-        //     if (currentEvent.type == EventType.KeyDown && 
-        //         currentEvent.keyCode == KeyCode.F ) // Use currentEvent.command for Cmd+F on macOS
-        //     {
-        //         // Verify this window is focused
-        //         // if (EditorWindow.focusedWindow == this)
-        //         // {
-        //         // Execute custom search logic
-        //         // PerformCustomSearch(searchQuery);
-        //         Debug.Log("Custom search triggered!");
-        //         if (
-        //             currentEvent.command)
-        //         {
-        //             _searchField.Focus();
-        //             currentEvent.Use();
-        //         }
-        //         
-        //         // }
-        //     }
+        //     base.OnImGUI();
+        //     Debug.Log("OnImGUI");
+        //     _currentWindow = this;
+        //     // base.OnGUI();
+        //    
         // }
-
-        protected override void OnImGUI()
-        {
-            base.OnImGUI();
-            Debug.Log("OnImGUI");
-            _currentWindow = this;
-            // base.OnGUI();
-           
-        }
 
 //         private void OnSelectionChange()
 //         {
@@ -176,25 +143,40 @@ namespace RCGMaker.Core.Editor
         protected override void OnEnable()
         {
             base.OnEnable();
+            if(!_windows.Contains(this))
+                _windows.Add(this);
             // EditorApplication.hierarchyChanged += MyOnHierarchyChange;
             _currentWindow = this;
-            var globalEventHandler = typeof(EditorApplication).GetFieldValue<EditorApplication.CallbackFunction>("globalEventHandler");
-            typeof(EditorApplication).SetFieldValue("globalEventHandler", Shortcuts + (globalEventHandler - Shortcuts));
+            // var globalEventHandler = typeof(EditorApplication).GetFieldValue<EditorApplication.CallbackFunction>("globalEventHandler");
+            // typeof(EditorApplication).SetFieldValue("globalEventHandler", Shortcuts + (globalEventHandler - Shortcuts));
         }
         static Type t_SceneHierarchyWindow = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
         static Type t_SceneView = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.SceneView");
+        
+        //全域監聽
         static void Shortcuts()
         {
             // Debug.Log("Event:"+curEvent.type);
             if (!curEvent.isKeyDown) return;
-            if (focusedWindow.GetType() != typeof(TreeViewWindow) && focusedWindow.GetType() != t_SceneHierarchyWindow && focusedWindow.GetType() != t_SceneView)
+            if (focusedWindow == null)
                 return;
+            if (focusedWindow.GetType() != typeof(TreeViewWindow) &&
+                focusedWindow.GetType() != t_SceneHierarchyWindow && focusedWindow.GetType() != t_SceneView)
+            {
+                // Debug.Log("Not in TreeViewWindow");
+                return;
+            }
+                
+            if (_windows.Count == 0)
+            {
+                // Debug.Log("No windows");
+                return;
+            }
+                
             if(PrefabStageUtility.GetCurrentPrefabStage() == null)
                 return;
-            // if(_windows.Count == 0)
-            //     return;
             
-            if (curEvent.keyCode == KeyCode.None) return;
+            // if (curEvent.keyCode == KeyCode.None) return;
             // if (curEvent.keyCode == KeyCode.Escape)
             // {
             //     //回到Hierarchy
@@ -204,19 +186,30 @@ namespace RCGMaker.Core.Editor
             // }
             if (curEvent.keyCode == KeyCode.F && curEvent.e.command)
             {
+                // Debug.Log("% F");
                 HierarchyHighLightEditor.currentFindObject = Selection.activeGameObject;
+                
                 if (_currentWindow == null)
                 {
                     _currentWindow = _windows.FirstOrDefault();
                 }
-                Debug.Log("Custom search triggered!"+_currentWindow.name);
+                if (_currentWindow == null)
+                {
+                    Debug.Log("No windows"+_windows.Count);
+                    _windows.RemoveAllNull();
+                    return;
+                }
+
+                Debug.Log("_currentWindow" + _currentWindow);
+                // Debug.Log("Custom search triggered!"+_currentWindow.name);
                 _currentWindow.Focus();
                 _currentWindow._searchField.Focus();
                 
                 
                 //這個可以直接搶走，有點猛！
+                curEvent.Use();
             }
-            curEvent.Use();
+            
         }
         
         protected override void OnDestroy()
@@ -260,12 +253,12 @@ namespace RCGMaker.Core.Editor
             }
 
             //有GUID的話，就用GUID
-            if (guidReference.gameObject != null)
-            {
-                SubTreeRoot = guidReference.gameObject;
-                _instanceId = SubTreeRoot.GetInstanceID();
-                return;
-            }
+            // if (guidReference.gameObject != null)
+            // {
+            //     SubTreeRoot = guidReference.gameObject;
+            //     _instanceId = SubTreeRoot.GetInstanceID();
+            //     return;
+            // }
 
             //用instanceId
             SubTreeRoot = EditorUtility.InstanceIDToObject(_instanceId) as GameObject;
@@ -521,8 +514,8 @@ namespace RCGMaker.Core.Editor
 
         void OnSearchFieldChanged(ChangeEvent<string> evt)
         {
-            HierarchyHighLightEditor.searchToken = evt.newValue;
-            HierarchyHighLightEditor.FilterObjects();
+            // HierarchyHighLightEditor.lastSearchToken = ;
+            HierarchyHighLightEditor.FilterObjects(evt.newValue);
             EditorApplication.RepaintHierarchyWindow();
             if (evt.newValue.IsNullOrWhitespace())
             {

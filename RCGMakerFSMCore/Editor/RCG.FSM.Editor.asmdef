@@ -1,5 +1,5 @@
 {
-    "name": "rcg.fsm.editor",
+    "name": "RCG.FSM.Editor",
     "rootNamespace": "",
     "references": [
         "GUID:f2f860dd0c0594e9d880d20baa7b20c3",
@@ -12,7 +12,8 @@
         "GUID:f51ebe6a0ceec4240a699833d6309b23",
         "GUID:49818357e697641afb75d2f8acaf1861",
         "GUID:2ce824e5d56f8495cb762ccff02f283b",
-        "GUID:678282a48c1694e8eb9d6ffb51ff91a8"
+        "GUID:678282a48c1694e8eb9d6ffb51ff91a8",
+        "GUID:ce6baade223984afda3f24c7fca12584"
     ],
     "includePlatforms": [
         "Editor"
