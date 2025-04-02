@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class EditorCloseWindowTab : EditorWindow
 {
-    [MenuItem("RCGs/Shortcut/Close Window Tab %_W")]
+    [MenuItem("RCGs/ShortCut/Close Window Tab %_W")]
     static void CloseTab()
     {
         EditorWindow focusedWindow = EditorWindow.focusedWindow;

@@ -41,9 +41,9 @@ namespace RCGSetting
 
         static class RCGDebugSettingsProvider
         {
-            const string SettingsPath = "RCG/Debug Setting";
+            // const string SettingsPath = "RCG/Debug Setting";
             
-            private const string MenuName = "RCG/Toggle DebugMode (Hierarchy Coloring) #%_D";
+            private const string MenuName = "RCGs/Toggle DebugMode (Hierarchy Coloring) #%_D";
 
             [MenuItem(MenuName)]
             private static void ToggleDebugMode()

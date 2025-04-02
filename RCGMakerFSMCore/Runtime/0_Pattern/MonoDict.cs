@@ -225,7 +225,7 @@ namespace RCGMaker.Core
             if (Application.isPlaying == false) //reload domain完就空掉了...
             {
                 Clear();
-                Debug.Log("PrepareDictCheck?", this);
+                // Debug.Log("PrepareDictCheck?", this);
                 _isPrepared = true;
                 collections = GetComponentsInChildren<TU>(true);
             }

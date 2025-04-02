@@ -5,9 +5,8 @@ namespace RCGMaker.Core
     [DefaultExecutionOrder(10000)]
     public class LevelRunner : MonoBehaviour // SingletonBehaviour<LevelRunner>
     {
-        //FIXME: 
 #if UNITY_EDITOR
-        [UnityEditor.MenuItem("RCG/ResetLevel %R")]
+        [UnityEditor.MenuItem("RCGs/ResetLevel %R")]
         public static void TestResetLevel()
         {
             if (Application.isPlaying)
