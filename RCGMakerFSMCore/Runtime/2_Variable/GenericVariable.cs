@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using jerryee.UnityMCP;
 using RCGMakerFSM.RCGMakerFSMCore.Tracking;
 #if MIXPANEL
 using mixpanel;
@@ -109,10 +110,10 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 #if UNITY_EDITOR
         //get type of scriptableData field using reflection
         var type = GetType().GetField("scriptableData").FieldType;
-        scriptableData =
+        _bindData =
             type.CreateGameStateSO(this) as TScriptableData;
         this.SetDirty();
-        Debug.Log("自動生成flag修正" + scriptableData, scriptableData);
+        Debug.Log("自動生成flag修正" + _bindData, _bindData);
 #endif
         //FIXME: 用validator檢查，然後自動Fix?
         //[]:已經在Auto那邊用OnBeforeSerialize全部做掉了
@@ -136,13 +137,13 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     private bool IsAutoGenButNotYet()
     {
         if (!IsAutoGen) return false;
-        return scriptableData == null;
+        return _bindData == null;
     }
 
     private bool IsGameStateRequiredButMissing()
     {
         //FIXME: default不需要存檔，標記需要存檔的流程是什麼？
-        if (PrefabKindMatchTagCheck() && scriptableData == null)
+        if (PrefabKindMatchTagCheck() && _bindData == null)
             return true;
         return false;
     }
@@ -150,7 +151,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     private bool IsSuggestingAutoGen()
     {
         if (IsAutoGen) return false;
-        return scriptableData == null;
+        return _bindData == null;
     }
 
 
@@ -195,14 +196,16 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     //FIXME: 這個可以cache嗎...
 #endif
 
-    [TabGroup("Data")] [InlineField] [HideIf(nameof(scriptableData))] [SerializeField]
-    protected TField localField; // = new();
+    // [MCPExtractable]
+    [FormerlySerializedAs("localField")] [TabGroup("Data")] [InlineField] [HideIf(nameof(_bindData))] [SerializeField]
+    protected TField _localField; // = new();
 
     //這個值會被蓋掉???
 
-    [TabGroup("Data")] public TField Field => ScriptableData ? ScriptableData.field : localField;
+    [TabGroup("Data")] public TField Field => BindData ? BindData.field : _localField;
     //給非Auto的人看的，要綁，Auto自己就會生，就結束了
 
+    [FormerlySerializedAs("scriptableData")]
     [InlineButton(nameof(GenData), "Auto Gen Fix",ShowIf = nameof(IsGenDataRequired))]
     [InfoBox("需要綁GameState!", InfoMessageType.Error, nameof(IsGameStateRequiredButMissing))]
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
@@ -215,15 +218,15 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, nameof(IsGameStateSaveIDNotMatch))]
     [InfoBox("GameState的類型不對", InfoMessageType.Error, nameof(IsGameStateTypeNotMatch))]
     // [ValidateInput("AutoGenCheck", "自動生成檢查失敗")]
-    public TScriptableData scriptableData;
+    public TScriptableData _bindData;
     
 #if UNITY_EDITOR
     private bool IsGameStateSaveIDNotMatch() //需檢查情境：複製時，造成綁到同一個gameState ref, 檢查saveID
     {
         if (!IsAutoGen) return false;
         var autoComp = GetComponent<AutoGenGameState>();
-        if (autoComp == null || scriptableData == null) return false;
-        return autoComp.SaveID != scriptableData.GetSaveID;
+        if (autoComp == null || _bindData == null) return false;
+        return autoComp.SaveID != _bindData.GetSaveID;
         // Debug.LogError("SaveID不一致", this);
     }
 #endif
@@ -232,17 +235,17 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     // <summary> 用來檢查是否有auto gen, 但是type不對 </summary>
     private bool IsGameStateTypeNotMatch()
     {
-        if (scriptableData == null) return false;
+        if (_bindData == null) return false;
 
         var autoComp = GetComponent<AutoGenGameState>();
         if (autoComp != null)
         {
             //有auto gen, 但是type不對
-            if (scriptableData.gameStateType != GameFlagBase.GameStateType.AutoUnique) return true;
+            if (_bindData.gameStateType != GameFlagBase.GameStateType.AutoUnique) return true;
         }
         else
         {
-            if (scriptableData.gameStateType != GameFlagBase.GameStateType.Manual)
+            if (_bindData.gameStateType != GameFlagBase.GameStateType.Manual)
                 return true;
         }
 
@@ -250,7 +253,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     }
 
 
-    public virtual TScriptableData ScriptableData => scriptableData; //FIXME:
+    public virtual TScriptableData BindData => _bindData; //FIXME:
 
     //不同type不同類型的modifier
     [PreviewInInspector] [Component] [AutoChildren]
@@ -259,6 +262,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [TabGroup("Data"), PreviewInInspector] public virtual TType FinalValue => CurrentValue;
     [TabGroup("Data"), PreviewInInspector] public virtual TType LastValue => Field.LastValue; //FIXME: 這裡沒有過到modifier
 
+    [MCPExtractable]
     public TType Value => CurrentValue;
 
     [ShowInPlayMode]
@@ -267,7 +271,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         get
         {
             Profiler.BeginSample("Variable GetValue");
-            var tempValue = localField.CurrentValue;
+            var tempValue = _localField.CurrentValue;
 
             //FIXME: 這裡就有proxy? 而且還是直接reference...
             // if (VariableSource != null)
@@ -275,9 +279,9 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
             //     var v = VariableSource as GenericMonoVariable<TScriptableData, TField, TType>;
             //     tempValue = v.CurrentValue;
             // }
-            if (ScriptableData != null)
+            if (BindData != null)
             {
-                tempValue = ScriptableData.CurrentValue;
+                tempValue = BindData.CurrentValue;
             }
 
             Profiler.EndSample();
@@ -300,17 +304,17 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
                 foreach (var modifier in _modifiers)
                     tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
             // this.Log("[Variable] Set", value); 
-            if (ScriptableData == null)
+            if (BindData == null)
             {
-                if (localField.CurrentValue.Equals(tempValue)) return;
+                if (_localField.CurrentValue.Equals(tempValue)) return;
                 // if (localField == null)
                 //     localField = default(TField);
-                localField.CurrentValue = tempValue;
+                _localField.CurrentValue = tempValue;
             }
 
             else
             {
-                if (ScriptableData.CurrentValue.Equals(tempValue)) return;
+                if (BindData.CurrentValue.Equals(tempValue)) return;
                 if (FinalData == null) return;
 #if MIXPANEL
                 _trackValue.OnRecycle();
@@ -326,7 +330,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 #endif
                 // Debug.Log("Set Value" + tempValue);
 
-                ScriptableData.CurrentValue = tempValue;
+                BindData.CurrentValue = tempValue;
             }
         }
     }
@@ -480,7 +484,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     public string Serialize()
     {
-        return GetType().Name + ":" + localField.ProductionValue;
+        return GetType().Name + ":" + _localField.ProductionValue;
     }
 
     public void Deserialize(string data)
@@ -490,7 +494,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     public void LevelResetPrepareRuntimeData()
     {
-        localField.Init(TestMode.EditorDevelopment, this);
+        _localField.Init(TestMode.EditorDevelopment, this);
     }
 
     public void OnBeforePrefabSave()
@@ -536,6 +540,7 @@ public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, 
 #endif
     }
 
+    [MCPExtractable]
     [OnValueChanged(nameof(UpdateTag))]
     [Header("變數名稱")]
     [PropertyOrder(-1)]

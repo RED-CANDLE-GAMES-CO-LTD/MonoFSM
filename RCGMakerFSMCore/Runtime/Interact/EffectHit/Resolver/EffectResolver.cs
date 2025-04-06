@@ -1,4 +1,5 @@
 using System;
+using jerryee.UnityMCP;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
@@ -31,6 +32,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         protected abstract string TypeTag { get; }
 
+        [MCPExtractable]
         [Required] [SOConfig("GeneralEffectType")]
         public GeneralEffectType EffectType;
         // public IEffectType getEffectType => EffectType;

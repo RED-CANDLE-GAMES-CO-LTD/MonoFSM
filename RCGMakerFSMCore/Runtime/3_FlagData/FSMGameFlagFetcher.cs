@@ -15,7 +15,7 @@ namespace RCGMaker.Runtime.FSM
 
             foreach (var variableBool in variableBools)
             {
-                var data = variableBool.ScriptableData;
+                var data = variableBool.BindData;
                 if (data != null && !flags.Contains(data))
                     flags.Add(data);
             }

@@ -15,12 +15,14 @@ RCGMakerFSM is a comprehensive Finite State Machine (FSM) framework for Unity, d
     * [PrimeTween](https://github.com/KyryloKuzyk/PrimeTween)
 ### Included in Project (with modification)
 * Auto Attribute
-    * GuidManager
-    * System.Runtime.CompilerServices.Unsafe
+* GuidManager
+* System.Runtime.CompilerServices.Unsafe
 
 # Installation
 * Just use: Install through Unity Package Manager with git url
 * To Contribute: use "git submodule" to include this module into your project, and add as local package through Unity package manager
+
+## Why Use RCGMakerFSM?
 
 ## Core Features
 
@@ -43,6 +45,13 @@ RCGMakerFSM is a comprehensive Finite State Machine (FSM) framework for Unity, d
 - **Descriptable Data**: Content description system via `DescriptableData`
 - **Mono Descriptable**: Runtime representation of descriptable objects (`MonoDescriptable`)
 - **Stats System**: Character and object statistics through `StatData`
+
+### Debug and Development Tools
+- **DebugProvider**: Runtime debugging utility
+- Logs state changes and transitions
+- Toggle debug mode with keyboard shortcuts (%#_L)
+- Visual indicators in hierarchy
+- DebugSetting: Configuration for debug features
 
 ### Animation Integration
 

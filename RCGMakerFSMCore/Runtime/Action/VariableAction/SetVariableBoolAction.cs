@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using jerryee.UnityMCP;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace RCGFSM.Variable
 {
@@ -10,7 +12,8 @@ namespace RCGFSM.Variable
     public class SetVariableBoolAction : AbstractStateAction, IRCGArgEventReceiver<bool>
     {
         //FIXME: 用selection dropdown來篩選
-        protected override string renamePostfix => targetFlag ? targetFlag.name + " to " + TargetValue : "null";
+        //這個還可以化簡嗎？整個description就代表含義了..但沒有Reference可能還是不夠用
+        protected override string renamePostfix => _target ? _target.name + " to " + TargetValue : "null";
 
         IList<VarBool> GetVariables()
         {
@@ -19,18 +22,24 @@ namespace RCGFSM.Variable
             return vars;
         }
 
+        [FormerlySerializedAs("_targetFlag")]
+        [FormerlySerializedAs("targetFlag")]
+        [MCPExtractable]
         [DropDownRef]
         [ValueDropdown(nameof(GetVariables))]
         // [InlineEditor]
         [Required]
-        [HideIf("Multiple")]
-        public VarBool targetFlag; //var?
+        // [HideIf("Multiple")]
+        public VarBool _target; //var?
+        //ObjectReference還指不到耶？ 
+        
+        //FIXME: Multiple的話另外寫SetVariableComplexAction, 直接用VariableProviderList之類的好了？
+        // [ShowIf("Multiple")] public List<VarBool> targetFlags;
 
-        [ShowIf("Multiple")] public List<VarBool> targetFlags;
-
+        [MCPExtractable]
         public bool TargetValue = true;
 
-        public bool Multiple = false;
+        // public bool Multiple = false;
 
 
         protected override void OnStateEnterImplement()
@@ -49,28 +58,28 @@ namespace RCGFSM.Variable
 
         void SetValue(bool v)
         {
-            if (Multiple)
+            // if (Multiple)
+            // {
+            //     if (targetFlags == null)
+            //         return;
+            //
+            //     foreach (var flag in targetFlags)
+            //     {
+            //         if (flag != null)
+            //             flag.SetValue(v, this);
+            //     }
+            // }
+            // else
+            // {
+            if (_target == null)
             {
-                if (targetFlags == null)
-                    return;
-
-                foreach (var flag in targetFlags)
-                {
-                    if (flag != null)
-                        flag.SetValue(v, this);
-                }
+                Debug.LogError("targetFlag==null", this);
+                return;
             }
-            else
-            {
-                if (targetFlag == null)
-                {
-                    Debug.LogError("targetFlag==null", this);
-                    return;
-                }
 
-                this.Log($"SetVariableBool {targetFlag} SetValue:{v}");
-                targetFlag.SetValue(v, this);
-            }
+            this.Log($"SetVariableBool {_target} SetValue:{v}");
+            _target.SetValue(v, this);
+            // }
         }
 
         void SetValue()

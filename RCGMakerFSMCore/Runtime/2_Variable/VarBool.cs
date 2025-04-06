@@ -30,9 +30,7 @@ public interface IRebindable
 public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
     IBoolProvider, IRebindable, IDrawDetail, IOverrideHierarchyIcon
 {
-    public ScriptableDataBool boolFlag => scriptableData; // scriptableData;
-
-    public override ScriptableDataBool ScriptableData => scriptableData == null ? boolFlag : scriptableData;
+    public override ScriptableDataBool BindData => _bindData;
 
     [ShowInPlayMode]
     public bool FlagValue
@@ -41,7 +39,7 @@ public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bo
         set
         {
             //FIXME: setter不該從這裡來？
-            if (scriptableData && value != CurrentValue) //值有改才送事件
+            if (_bindData && value != CurrentValue) //值有改才送事件
             {
                 // Debug.Log("Variable Bool Changed " + ScriptableData.name);
                 //[]: 灌tracker...   
@@ -79,7 +77,7 @@ public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bo
     }
 
     public bool IsValid => CurrentValue;
-    public override GameFlagBase FinalData => scriptableData;
+    public override GameFlagBase FinalData => _bindData;
     public bool IsFullRect { get; }
     public string IconName => "Toggle Icon"; //  "d_Toggle Icon"
     public bool IsDrawingIcon => true;

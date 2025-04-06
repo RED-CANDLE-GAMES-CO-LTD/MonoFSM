@@ -221,10 +221,12 @@ namespace RCGMaker.Core.DataProvider
 #endif
             // 每次按下前先更新所有層級的 parentType
             var resultValue = GetFieldValueFromPath(targetObject, pathEntries);
-            if (resultValue == null)
+#if UNITY_EDITOR
+            if (resultValue == null && Application.isPlaying == false)
             {
                 Debug.LogError("結果為 null"+targetObject, this);
             }
+#endif
             // Debug.Log("結果：" + (resultValue != null ? resultValue.ToString() : "null"));
             return resultValue;
         }

@@ -2,10 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using jerryee.UnityMCP;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public interface IState<in TState>
 {
@@ -61,22 +63,26 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
 
     protected virtual string GetNameByBehaviour()
     {
-        return "[Transition] =>" + target.stateType.name.Replace("[State]", "");
+        return "[Transition] =>" + _target.stateType.name.Replace("[State]", "");
     }
 
     bool TransitionValidationResult()
     {
-        if (target == parentState as GeneralState)
+        if (_target == _parentState as GeneralState)
             return true;
         return false;
     }
 
+    //這個其實光是用名字就可以了耶？
+    [FormerlySerializedAs("target")]
+    [MCPExtractable]
     [InfoBox("Target is self", InfoMessageType.Error, nameof(TransitionValidationResult))]
     [ValueDropdown(nameof(FindStates),NumberOfItemsBeforeEnablingSearch=5)]
     [Required]
     [Header("Go To")]
     [GUIColor(0.8f, 0.8f, 1)]
-    public GeneralState target;
+    [SerializeField]
+    protected GeneralState _target;
 
     // private void OnValidate()
     // {
@@ -84,7 +90,7 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
     //         Debug.LogError("No Target! 選一個", gameObject);
     // }
 
-    [ReadOnly] [ShowInInspector] public GeneralState Target => target;
+    [ReadOnly] [ShowInInspector] public GeneralState Target => _target;
 
     IEnumerable<GeneralState> FindStates()
     {
@@ -113,9 +119,9 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
 
     // [AutoParent()] private GeneralState bindingState;
 
-    [PreviewInInspector] [AutoParent()] private IState<GeneralState> parentState;
-    public IState<GeneralState> ParentState => parentState;
-    [ShowInInspector] private bool IsSelfTransition => parentState as GeneralState == target;
+    [PreviewInInspector] [AutoParent()] private IState<GeneralState> _parentState;
+    public IState<GeneralState> ParentState => _parentState;
+    [ShowInInspector] private bool IsSelfTransition => _parentState as GeneralState == _target;
 
 
     [AutoChildren(false)] private ISkippableAnimationTransition[] _skippableAnimationTransitions;
@@ -143,7 +149,7 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
 
     [InfoBox("SelfTransition要勾才會過", InfoMessageType.Error, "IsSelfTransitionNotValid")]
     [ShowInInspector]
-    private bool IsSelfTransitionNotValid => target != null && IsSelfTransition && !target.CanSelfTransition;
+    private bool IsSelfTransitionNotValid => _target != null && IsSelfTransition && !_target.CanSelfTransition;
 
     [PreviewInInspector]
     public bool TransitionConditionValid
@@ -187,22 +193,22 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
         //TODO: 這個runtime拿蠻不好的, 改成通通拿IState? 合併anyState和State
         // var anyState = GetComponentInParent<IState<GeneralState>>();
         //任何東西都是iState吧？不用分了
-        if (parentState != null) //走any，直接過
+        if (_parentState != null) //走any，直接過
         {
-            if (target == null)
+            if (_target == null)
             {
                 Debug.LogError("No Target! 選一個", gameObject);
                 return false;
             }
 
             
-            if (target.stateType.gameObject.activeSelf == false)
+            if (_target.stateType.gameObject.activeSelf == false)
             {
-                this.Log("[Transition] Fail ChangeState target inactive" + target.stateType, gameObject);
+                this.Log("[Transition] Fail ChangeState target inactive" + _target.stateType, gameObject);
                 return false;
             }
 
-            if (parentState.TransitionCheck(target.stateType, timeOffset, this))
+            if (_parentState.TransitionCheck(_target.stateType, timeOffset, this))
             {
                 //FIXME: 這個時間點會太晚嗎？ 會，這個回來就已經切到另一個state了
                 //會...
@@ -213,8 +219,8 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
             return true;
         }
 
-        if (parentState == null)
-            Debug.LogError("Why no parent State" + parentState, gameObject);
+        if (_parentState == null)
+            Debug.LogError("Why no parent State" + _parentState, gameObject);
 
         // if (parentState.TransitionCheck(target, timeOffset))
         // {
@@ -248,9 +254,9 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
     {
         get
         {
-            if (parentState == null)
+            if (_parentState == null)
                 return false;
-            return parentState.Context.LastTransition == this;
+            return _parentState.Context.LastTransition == this;
         }
     }
 

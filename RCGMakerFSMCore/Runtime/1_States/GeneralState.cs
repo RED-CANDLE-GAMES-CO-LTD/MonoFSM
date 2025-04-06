@@ -52,11 +52,13 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public Color BackgroundColor => HierarchyResource.CurrentStateColor;
     public bool IsFullRect => false;
     public string DrawCustomIcon => "";
+    
+    //FIXME: 想要culling進來後，直接空降到某個State的時間點，什麼情境？以前是
     public float StateDuration;
     
     //還沒用到
     [DropDownRef]
-     public GeneralState NextState;
+    public GeneralState NextState;
     public bool IsDrawGUIHierarchyBackground =>
         Application.isPlaying && context && context.currentStateType == stateType;
     // [HideInInspector] [Required] public new GeneralState stateType => this;
@@ -66,6 +68,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     [FormerlySerializedAs("enterOffsetDuration")] public float EnterTimeOffset = 0;
 
+    //FIXME: node base visual scripting才需要
     [HideInInspector] Vector2 _position;
     public Vector2 position
     {
@@ -115,18 +118,19 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         return StateExitCancellationTokenSource;
     }
 
-    public Action OnStateEnterAction;
+    // public Action OnStateEnterAction;
 
     private void OnDestroy()
     {
-        OnStateEnterAction = null;
+        // OnStateEnterAction = null;
     }
 
+    //FIXME: StateEnterNode, EventNode 是不是比較好？
     public override void OnStateEnter()
     {
         base.OnStateEnter();
         // Debug.Log("OnStateEnter");
-        OnStateEnterAction?.Invoke();
+        // OnStateEnterAction?.Invoke();
         
         foreach (var e in _stateEnters)
         {
@@ -302,28 +306,6 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         return t;
         // return null;
     }
-    // [Button("Add Animator Play")]
-    // void AddAnimatorPlay()
-    // {
-    //     Undo.AddComponent(gameObject, typeof(AnimatorPlayAction));
-    // }
-    //
-    // [Button("Add Event Transition")]
-    // public void AddEventTransitionEditor()
-    // {
-    //     AddEventTransition();
-    // }
-
-    // public RCGEventReceiveTransition AddEventTransition()
-    // {
-    //     Undo.RecordObject(this, "Add To Transition List");
-    //     var t = gameObject.AddChildrenComponent<RCGEventReceiveTransition>("[Transition] NewTransition");
-    //     // Undo.RegisterCompleteObjectUndo()
-    //     // Undo.IncrementCurrentGroup();
-    //     transitions.Add(t);
-    //     // EditorUtility.SetDirty(this);
-    //     return t;
-    // }
 #if UNITY_EDITOR
     // [Button("Add Delay Node")]
     //FIXME: 很危險，可能因為切state delay還沒結束結果沒有觸發
@@ -339,12 +321,6 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         // GetComponentsInChildren(true, transitions);
         
     }
-
-    // #if UNITY_EDITOR
-    // [ReadOnly]
-    // [Component(typeof(AbstractStateAction), "[Action]")]
-    // // #endif
-    // public AbstractStateAction testAction;
     
     //NOTE: 只撈一層
     [Component(AddComponentAt.Children, "[Action]")] [AutoChildren(DepthOneOnly = true)] //[InlineEditor()]
@@ -352,24 +328,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     // [ShowInInspector]
     public AbstractStateAction[] Actions => actions;
-    // #if UNITY_EDITOR
-    //     [Component(typeof(AbstractStateAction), "[Action]")]
-    // #endif
-    //     public List<AbstractStateAction> testActions;
-
-    // private int CustomAddFunction()
-    // {
-    //     Debug.Log("Custom Add");
-    //     return this.testActions.Count;
-    // }
-    // // [ReadOnly]
-    // [ListDrawerSettings(CustomAddFunction = "CustomAddFunction")]
-    // [Mono(typeof(AbstractAction), "[Action]")]
-    // public List<AbstractAction> testActions;
-
-    // // [MovedFrom("PlayerTestState")]
-    // [SerializeReference]
-    // ICommand command;
+ 
 #if UNITY_EDITOR
     [ShowIf("@GetAnimatorPlayAction()")]
     [Button("編輯動畫 Shift+E")]

@@ -21,7 +21,7 @@ public class VarFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat,
     IValueOfKey<VariableTag>, ISerializedFloatValue,IOverrideHierarchyIcon
 {
     //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 
-    public override GameFlagBase FinalData => ScriptableData;
+    public override GameFlagBase FinalData => BindData;
     public VariableTag Key => varTag;
     public int IntValue => Mathf.CeilToInt(CurrentValue);
     public float Percentage => (CurrentValue - Min) / (Max - Min);

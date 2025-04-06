@@ -1,3 +1,4 @@
+using jerryee.UnityMCP;
 using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -8,6 +9,7 @@ namespace RCGFSMCore._0_Pattern.DataProvider.ComponentWrapper
     //FloatConstant?
     public class FloatLiteralComp : MonoBehaviour, IFloatProvider
     {
+        [MCPExtractable]
         [FormerlySerializedAs("literal")] public float _literal;
 
         public float GetFloat()

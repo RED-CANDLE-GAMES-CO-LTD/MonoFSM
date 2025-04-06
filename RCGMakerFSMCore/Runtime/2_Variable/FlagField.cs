@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using jerryee.UnityMCP;
 // using Mono.CSharp;
 using RCGMaker.Core.Attributes;
 using RCGSetting;
@@ -36,15 +37,6 @@ public class FlagFieldEnum<T> : FlagField<T> where T : struct, IConvertible, ICo
 [Serializable]
 public class FlagFieldInt : FlagField<int>
 {
-    // public static bool operator ==(FlagFieldInt j, int k)
-    // {
-    //     return j.CurrentValue == k;
-    // }
-    // public static bool operator !=(FlagFieldInt j, int k)
-    // {
-    //     return j.CurrentValue != k;
-    // }
-
     protected override bool IsCurrentValueEquals(int value)
     {
         return _currentValue == value;
@@ -64,15 +56,6 @@ public class FlagFieldLong : FlagField<long>
 [Serializable]
 public class FlagFieldFloat : FlagField<float>
 {
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }
-
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
 
     public static bool operator ==(FlagFieldFloat j, float k)
     {
@@ -300,6 +283,8 @@ public class
     //FIXME: 分Production和Dev好像怪怪的...九日是為了打勾某些能力，這個可以拿掉了？或是應該用別種方式側(環境)
     //FIXME: Config, Stat不需要DevValue
 
+    //FIXME: Nested好像很不好assign...
+    // [MCPExtractable]
     [FormerlySerializedAs("DefaultValue")] public T ProductionValue;
 
     // public T PlayTestValue;
