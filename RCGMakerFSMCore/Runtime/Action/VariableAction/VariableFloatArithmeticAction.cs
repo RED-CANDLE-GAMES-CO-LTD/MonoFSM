@@ -1,4 +1,4 @@
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -17,7 +17,7 @@ namespace RCGFSM.Variable
     {
         //兩種情境，一種是從dealer來，一種是固定值觸發
         protected override string Description =>
-            $"{targetFlag?.varTag?.name} {arithmeticSymbol}= {sourceType} {sourceType switch { ValueSourceType.Constant => ConstValue, _ => 0 }}";
+            $"{targetFlag?._varTag?.name} {arithmeticSymbol}= {sourceType} {sourceType switch { ValueSourceType.Constant => ConstValue, _ => 0 }}";
 
         string arithmeticSymbol => Arithmetic switch
         {

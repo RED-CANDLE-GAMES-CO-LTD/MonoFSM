@@ -2,7 +2,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     //Operation?
     //變動的，input不同就可能有不同的output

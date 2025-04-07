@@ -1,6 +1,6 @@
 using System;
 using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 
 namespace RCGMaker.Core.DataProvider

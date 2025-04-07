@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     //FIXME: 玩惹九日有用到...
     public class MonoVarFloatVirtual : VarFloat //這個是不是沒有屁用, 還是純屬拿來rebind?

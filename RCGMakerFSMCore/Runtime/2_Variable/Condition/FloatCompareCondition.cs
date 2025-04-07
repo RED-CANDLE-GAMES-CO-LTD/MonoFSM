@@ -1,11 +1,11 @@
 using System;
-using RCGFSMCore._0_Pattern.DataProvider.ComponentWrapper;
+using MonoFSM.DataProvider;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     public class FloatCompareCondition : AbstractConditionComp
     {

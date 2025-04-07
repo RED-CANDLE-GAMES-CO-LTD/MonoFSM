@@ -14,7 +14,7 @@ public enum Operator //FIXME: equality operator
     LessThanOrEqual // <=
 }
 
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     /// <summary>
     /// 和FloatCompareCondition重複？還是這個要做成簡單版？

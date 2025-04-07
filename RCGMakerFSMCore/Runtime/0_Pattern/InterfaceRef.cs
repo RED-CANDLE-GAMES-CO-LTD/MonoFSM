@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RCGMaker.Runtime.FSM._2_Variable;
-using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
+using MonoFSM.Variable;
+using MonoFSM.Variable.VariableBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

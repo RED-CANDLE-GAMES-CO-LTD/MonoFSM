@@ -4,7 +4,7 @@ using System.Reflection;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime;
 using RCGMaker.Runtime.Attributes;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
@@ -137,7 +137,7 @@ namespace RCGMaker.Core.DataProvider
                 foreach (var variable in parent.VariableFolder.GetValues)
                 {
                     if (variable is TVarMonoType)
-                        tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable.varTag));
+                        tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
                 }
             }
 

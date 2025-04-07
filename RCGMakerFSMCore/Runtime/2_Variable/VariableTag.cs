@@ -9,7 +9,7 @@ using Sirenix.Utilities;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     public interface IVariableTagSetter
     {
@@ -176,7 +176,7 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         [Button]
         void GetBindedVariables()
         {
-            bindedVariables = FindObjectsByType<AbstractMonoVariable>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(v => v.varTag == this).ToArray();
+            bindedVariables = FindObjectsByType<AbstractMonoVariable>(FindObjectsInactive.Include, FindObjectsSortMode.None).Where(v => v._varTag == this).ToArray();
             bindedVariableSetters = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None).OfType<IVariableTagSetter>()
                 .Where(v => v.refVariableTag == this).ToArray();
         }

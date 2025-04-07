@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;

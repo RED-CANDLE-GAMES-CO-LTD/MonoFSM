@@ -4,7 +4,7 @@ using RCGExtension;
 using mixpanel;
 #endif
 using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 // using mixpanel;
 using Sirenix.OdinInspector;
 using UnityEngine;

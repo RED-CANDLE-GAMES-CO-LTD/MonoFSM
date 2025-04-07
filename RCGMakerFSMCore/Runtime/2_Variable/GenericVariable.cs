@@ -9,8 +9,8 @@ using mixpanel;
 #endif
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.FSM._2_Variable;
-using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
+using MonoFSM.Variable;
+using MonoFSM.Variable.VariableBinder;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
@@ -197,12 +197,12 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 #endif
 
     // [MCPExtractable]
-    [FormerlySerializedAs("localField")] [TabGroup("Data")] [InlineField] [HideIf(nameof(_bindData))] [SerializeField]
-    protected TField _localField; // = new();
+    [FormerlySerializedAs("localField")] [TabGroup("Data")] [InlineField] [HideIf(nameof(_bindData))]
+    public TField _localField; // = new();
 
     //這個值會被蓋掉???
 
-    [TabGroup("Data")] public TField Field => BindData ? BindData.field : _localField;
+    [TabGroup("Data")] public TField Field => BindData != null ? BindData.field : _localField;
     //給非Auto的人看的，要綁，Auto自己就會生，就結束了
 
     [FormerlySerializedAs("scriptableData")]
@@ -263,7 +263,37 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [TabGroup("Data"), PreviewInInspector] public virtual TType LastValue => Field.LastValue; //FIXME: 這裡沒有過到modifier
 
     [MCPExtractable]
-    public TType Value => CurrentValue;
+    public TType Value
+    {
+        get => CurrentValue;
+        set  //給reflection用的
+            // this.Log("[Variable] Set", value);
+            {
+                if(!Application.isPlaying)
+                    EditorValue = value;
+                else
+                {
+                    CurrentValue = value;
+                }
+            }
+            
+    }
+    
+    public TType EditorValue
+    {
+        get => Field.ProductionValue;
+        set
+        {
+            // Field.ProductionValue = value;
+            // Field.DevValue = value;
+            _localField.ProductionValue = value;
+            _localField.DevValue = value;
+            Debug.Log("Set EditorValue" + value, this);
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+#endif
+        }
+    }
 
     [ShowInPlayMode]
     public TType CurrentValue //FIXME: 改成Value?
@@ -499,12 +529,12 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     public void OnBeforePrefabSave()
     {
-        if (varTag == null)
+        if (_varTag == null)
         {
             Debug.LogError("No VarTag", this);
         }
         else
-            name = varTag.name;
+            name = _varTag.name;
     }
 }
 
@@ -528,25 +558,26 @@ public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, 
     [Button]
     void UpdateTag()
     {
-        varTag._variableType.SetType(GetType());
-        varTag._valueFilterType.SetType(ValueType);
+        _varTag._variableType.SetType(GetType());
+        _varTag._valueFilterType.SetType(ValueType);
         // Debug.Log("Tag Changed");
         //variable folder refresh
         var variableFolder = GetComponentInParent<RCGVariableFolder>();
         if (variableFolder)
             variableFolder.Refresh();
 #if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(varTag);
+        UnityEditor.EditorUtility.SetDirty(_varTag);
 #endif
     }
 
+    [FormerlySerializedAs("varTag")]
     [MCPExtractable]
     [OnValueChanged(nameof(UpdateTag))]
     [Header("變數名稱")]
     [PropertyOrder(-1)]
     [Required]
     [SOConfig("VariableType", nameof(CreateTagPostProcess))]
-    public VariableTag varTag; //直接看當下是什麼就可以
+    public VariableTag _varTag; //直接看當下是什麼就可以
 
     protected void CreateTagPostProcess()
     {
@@ -656,10 +687,10 @@ public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, 
 
     // [HideInInlineEditors] public UnityEvent valueChangedEvent;
     public string Name => gameObject.name;
-    public VariableTag Key => varTag;
+    public VariableTag Key => _varTag;
 
     public VariableTag[] GetKeys()
     {
-        return new[] { varTag };
+        return new[] { _varTag };
     }
 }

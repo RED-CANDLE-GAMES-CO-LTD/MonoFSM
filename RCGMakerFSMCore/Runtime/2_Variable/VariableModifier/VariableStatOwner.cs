@@ -1,7 +1,7 @@
 using RCGMaker.Core.Attributes;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     public class VariableStatOwner : MonoBehaviour
     {

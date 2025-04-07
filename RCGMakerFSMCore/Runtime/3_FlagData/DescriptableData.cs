@@ -6,7 +6,7 @@ using System.Reflection;
 using RCGMaker.AddressableAssets;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Mono;
 using RCGMakerFSMCore.Runtime.Localization;

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     //選到一個GameFlagBase的bool property
     public class BoolPropertyOfGameFlagCondition : AbstractFieldConditionComp<bool, GameFlagBase>

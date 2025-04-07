@@ -1,8 +1,8 @@
+using MonoFSM.Variable.VariableBinder;
 using RCGMaker.Core;
-using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     public class DynamicVariableBinder : AbstractFolder, ILevelResetStart,IBinder
     {

@@ -1,6 +1,6 @@
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     public class VirtualBool : VarBool
     {

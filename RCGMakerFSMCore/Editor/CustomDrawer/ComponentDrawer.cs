@@ -101,39 +101,39 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
         // var style = new GUIStyle(EditorStyles.toolbarButton);
         if (SirenixEditorGUI.SDFIconButton("Search：Add" + buttonStr + ":" + type.Name, 16, SdfIconType.Plus))
         {
-            Debug.Log("Parent Value:" + baseMemberProperty.ParentValues[0]);
+            // Debug.Log("Parent Value:" + baseMemberProperty.ParentValues[0]);
             var selector = new ComponentTypeSelector(type);
             // selector.EnableSingleClickTselector.EnableSingleClickToConfirm();oSelect();
             // selector.SelectionChanged += col => { Debug.Log("SelectionChanged" + col.FirstOrDefault()); };
             selector.SelectionConfirmed += col =>
             {
-                Debug.Log(col);
-                Debug.Log(col.FirstOrDefault());
-                var type = col.FirstOrDefault();
+                // Debug.Log(col);
+                // Debug.Log(col.FirstOrDefault());
+                var firstOrDefault = col.FirstOrDefault();
                 if (buttonStr == "Parent")
                 {
                     //add a new parent transform
 
-                    var name = type.Name;
+                    var name = firstOrDefault.Name;
                     if (!Attribute.nameTag.IsNullOrWhitespace())
-                        name = Attribute.nameTag + " " + type.Name; //FIXME: 重新命名的客製function?
+                        name = Attribute.nameTag + " " + firstOrDefault.Name; //FIXME: 重新命名的客製function?
                     var newParent = new GameObject(name);
                     newParent.transform.position = bindComp.transform.position;
                     newParent.transform.SetParent(bindComp.transform.parent);
                     newParent.transform.SetSiblingIndex(bindComp.transform.GetSiblingIndex());
                     newParent.transform.localScale = bindComp.transform.localScale;
                     newParent.transform.rotation = bindComp.transform.rotation;
-                    Undo.RegisterCreatedObjectUndo(newParent, "Add Parent Component" + type.Name);
-                    newParent.transform.AddComp(type);
+                    Undo.RegisterCreatedObjectUndo(newParent, "Add Parent Component" + firstOrDefault.Name);
+                    newParent.transform.AddComp(firstOrDefault);
                     bindComp.transform.SetParent(newParent.transform);
                     Selection.activeGameObject = newParent;
                 }
 
                 else if (buttonStr == "Child")
-                    AddChildComp(type);
+                    AddChildComp(firstOrDefault);
                 else
                 {
-                    bindComp.AddComp(type);
+                    bindComp.AddComp(firstOrDefault);
                 }
             };
 

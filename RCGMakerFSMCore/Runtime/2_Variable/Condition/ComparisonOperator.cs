@@ -1,4 +1,4 @@
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     /// <summary>
     /// Comparison operators for use with condition components

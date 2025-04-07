@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using Sirenix.OdinInspector;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     /// <summary>
     /// 和上個frame的值比較

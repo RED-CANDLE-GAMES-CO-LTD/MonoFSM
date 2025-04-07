@@ -1,6 +1,6 @@
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     public class IntCompareCondition: AbstractConditionComp
     {

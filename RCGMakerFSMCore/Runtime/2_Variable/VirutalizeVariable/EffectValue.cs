@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.VirutalizeVariable
+namespace MonoFSM.Variable.VirutalizeVariable
 {
     //FIXME: 這啥？
     public class EffectValue : MonoBehaviour, IFloatValueProvider

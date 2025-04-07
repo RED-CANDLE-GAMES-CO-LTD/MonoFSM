@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using RCGMaker.Runtime.Mono;
@@ -90,7 +90,7 @@ namespace RCGMaker.Core.DataProvider
             set
             {
                 //fixme: 自動爬出tag
-                _varTag = value.varTag;
+                _varTag = value._varTag;
                 //mono?
             }
         }
@@ -128,7 +128,7 @@ namespace RCGMaker.Core.DataProvider
                 foreach (var variable in parent.VariableFolder.GetValues)
                 {
                     if (variable is TVarMonoType)
-                        tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable.varTag));
+                        tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
                 }
             }
 

@@ -4,7 +4,7 @@ using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     public class VariableStatModifier : MonoBehaviour //單一數值的modify...不同層
     {

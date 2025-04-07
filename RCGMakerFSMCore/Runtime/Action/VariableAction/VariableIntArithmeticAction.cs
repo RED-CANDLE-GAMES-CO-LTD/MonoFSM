@@ -1,4 +1,5 @@
 using System;
+using jerryee.UnityMCP;
 using Sirenix.OdinInspector;
 
 namespace RCGFSM.Variable
@@ -22,11 +23,14 @@ namespace RCGFSM.Variable
     }
     public class VariableIntArithmeticAction : AbstractStateAction
     {
-        protected override string Description => target?.varTag?.name + " " + Arithmetic + " " + Value;
+        protected override string Description => target?._varTag?.name + " " + Arithmetic + " " + Value;
+        [MCPExtractable]
         [DropDownRef] public VarInt target;
+        [MCPExtractable]
         public ArithmeticOperator Arithmetic;
+        [MCPExtractable]
         public int Value; //FIXME: 需要DI? 
-        public IntValueWrapper operand2;
+        // public IntValueWrapper operand2;
         protected override void OnStateEnterImplement()
         {
             this.Log("Arithmetic: ", Arithmetic, " Value: ", Value);

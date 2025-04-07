@@ -9,7 +9,7 @@ using UnityEngine.Events;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     //variable
     //Monobehaviour 包著一個變數
@@ -25,10 +25,10 @@ namespace RCGMaker.Runtime.FSM._2_Variable
 
         Type SiblingValueFilter()
         {
-            if (varTag == null)
+            if (_varTag == null)
                 return typeof(MonoBehaviour);
             // Debug.Log("RestrictType is " + varTag._valueFilterType.RestrictType);
-            return varTag._valueFilterType.RestrictType;
+            return _varTag._valueFilterType.RestrictType;
         }
 
         //FIXME: 繼承時想要加更多attribute

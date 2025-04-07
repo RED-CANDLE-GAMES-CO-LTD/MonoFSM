@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     //這個應該直接用abstract class?
     public class VariableFloatArithmeticOperation : MonoBehaviour, IVariableFloatOperation

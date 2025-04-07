@@ -6,7 +6,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     //選到一個任何MonoBehavior的bool property
     public class BoolMonoBehaviorPropertyCondition : AbstractFieldConditionComp<bool, MonoBehaviour>

@@ -1,7 +1,7 @@
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     //FIXME: 可以不寫code就共用這個class然後restrict type嗎？
     //FIXME: GenCode也是一種想法

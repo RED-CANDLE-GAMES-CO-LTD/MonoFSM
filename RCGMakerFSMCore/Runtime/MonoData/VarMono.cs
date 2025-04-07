@@ -1,7 +1,7 @@
 using System;
 using RCGExtension;
 using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using RCGMaker.Runtime.Mono;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -30,10 +30,10 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
 
         Type SiblingValueFilter()
         {
-            if (varTag == null)
+            if (_varTag == null)
                 return typeof(MonoDescriptable);
             // Debug.Log("RestrictType is " + varTag._valueFilterType.RestrictType);
-            return varTag._valueFilterType.RestrictType;
+            return _varTag._valueFilterType.RestrictType;
         }
 
         //FIXME: 繼承時想要加更多attribute

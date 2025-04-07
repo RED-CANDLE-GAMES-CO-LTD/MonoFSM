@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGFSMCore._0_Pattern.DataProvider.ComponentWrapper
+namespace MonoFSM.DataProvider
 {
     //FloatConstant?
     public class FloatLiteralComp : MonoBehaviour, IFloatProvider

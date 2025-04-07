@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Interact.EffectHit;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
@@ -302,7 +302,7 @@ namespace RCGMaker.Runtime
                 else
                 {
                     Debug.Log("all variables count:" + VariableFolder.GetValues.Count);
-                    VariableFolder.GetValues.ForEach(v => Debug.Log(v.varTag.GetStringKey, v.varTag));
+                    VariableFolder.GetValues.ForEach(v => Debug.Log(v._varTag.GetStringKey, v._varTag));
                     Debug.LogError($"{fieldName} not found", this);
                 }
                 // var value = field.GetValue(this) as AbstractMonoVariable;

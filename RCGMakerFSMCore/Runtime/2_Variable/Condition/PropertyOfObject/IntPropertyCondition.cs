@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     //選一個game flag 的int property
     public class IntPropertyCondition : AbstractFieldConditionComp<int, ScriptableObject>

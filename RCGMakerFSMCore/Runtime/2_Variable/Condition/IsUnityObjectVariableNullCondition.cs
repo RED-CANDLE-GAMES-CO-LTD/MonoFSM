@@ -1,4 +1,4 @@
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     //FIXME: 並沒有註冊唷
     public class IsUnityObjectVariableNullCondition : AbstractConditionComp

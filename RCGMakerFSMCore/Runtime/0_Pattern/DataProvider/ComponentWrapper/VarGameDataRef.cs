@@ -1,5 +1,5 @@
 using RCGMaker.Core.DataProvider;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 
 namespace RCGMakerFSM.VarRef
 {

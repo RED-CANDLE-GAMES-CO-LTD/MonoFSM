@@ -2,7 +2,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.VariableBinder
+namespace MonoFSM.Variable.VariableBinder
 {
     public interface IName
     {

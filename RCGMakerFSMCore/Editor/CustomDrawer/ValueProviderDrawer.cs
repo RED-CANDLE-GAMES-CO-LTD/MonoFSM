@@ -1,6 +1,6 @@
 using System.Linq;
 using RCGMaker.Core.DataProvider;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
 using UnityEditor;

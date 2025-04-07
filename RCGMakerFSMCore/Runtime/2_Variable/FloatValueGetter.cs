@@ -1,7 +1,7 @@
 using RCGFSM.Variable;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     //functional 來獲取float value (lazy evaluation)
     public class FloatValueGetter : MonoBehaviour, IFloatValueProvider

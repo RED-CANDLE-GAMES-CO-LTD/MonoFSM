@@ -2,11 +2,11 @@ using System;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
-using RCGMaker.Runtime.FSM._2_Variable.VariableBinder;
+using MonoFSM.Variable.VariableBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     //FIXME 用的到這個class嗎？
     public class FloatValueSource : MonoBehaviour, IFloatProvider

@@ -1,5 +1,5 @@
 using System;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 
 namespace RCGMaker.Core
 {

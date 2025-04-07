@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.VariableBinder
+namespace MonoFSM.Variable.VariableBinder
 {
     public class VariableBoolRebindEntry : VariableBindingEntry<VarBool>
     {

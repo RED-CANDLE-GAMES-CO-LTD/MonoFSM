@@ -51,7 +51,7 @@ namespace RCGMaker.Core.DataProvider
             return _monoVar?.FinalValue ?? 0;
         }
 
-        public string Description => _monoVar?.varTag?.name;
+        public string Description => _monoVar?._varTag?.name;
     }
 
     [Serializable]

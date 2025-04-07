@@ -1,5 +1,5 @@
 using System.Linq;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using RCGUIBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Runtime.FSM._2_Variable
+namespace MonoFSM.Variable
 {
     [Searchable]
     public abstract class AbstractObjectVariable : AbstractMonoVariable
@@ -24,8 +24,8 @@ namespace RCGMaker.Runtime.FSM._2_Variable
         protected virtual void Rename()
         {
             var str = "";
-            if (varTag != null)
-                str += varTag.name;
+            if (_varTag != null)
+                str += _varTag.name;
             else
             {
                 str += "[" + GetType().Name + "]";

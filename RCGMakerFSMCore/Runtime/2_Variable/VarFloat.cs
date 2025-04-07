@@ -4,7 +4,7 @@ using RCGExtension;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
-using RCGMaker.Runtime.FSM._2_Variable;
+using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -22,7 +22,7 @@ public class VarFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat,
 {
     //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 
     public override GameFlagBase FinalData => BindData;
-    public VariableTag Key => varTag;
+    public VariableTag Key => _varTag;
     public int IntValue => Mathf.CeilToInt(CurrentValue);
     public float Percentage => (CurrentValue - Min) / (Max - Min);
     public float Min => _boundModifier.MinValue;
@@ -35,18 +35,7 @@ public class VarFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat,
     // [PreviewInInspector] [Component] [AutoChildren]
     // AbstractVariableModifier<float>[] _setOperations;
 
-    public float EditorValue
-    {
-        get => Field.ProductionValue;
-        set
-        {
-            Field.ProductionValue = value;
-            Field.DevValue = value;
-#if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(this);
-#endif
-        }
-    }
+
 
     // public float Value => CurrentValue;
     public string IconName { get; }

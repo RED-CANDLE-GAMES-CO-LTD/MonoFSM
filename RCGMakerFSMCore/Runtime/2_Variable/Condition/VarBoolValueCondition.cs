@@ -1,10 +1,10 @@
-using RCGFSMCore._0_Pattern.DataProvider.ComponentWrapper;
+using MonoFSM.DataProvider;
 using RCGMaker.Core.DataProvider;
 using RCGMakerFSMCore.Runtime._0_Pattern.DataProvider.ComponentWrapper;
 using Sirenix.OdinInspector;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM._2_Variable.Condition
+namespace MonoFSM.Variable.Condition
 {
     //分成simple和complex?
     public class VarBoolValueCondition : AbstractConditionComp,ILevelResetPrepare,ITransitionCheckInvoker
