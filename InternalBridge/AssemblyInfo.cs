@@ -7,3 +7,4 @@ using UnityEngine;
 
 // ADD_NEW_PLATFORM_HERE
 [assembly: InternalsVisibleTo("RCG.FSM.Editor")] //safe expose to this assembly
+[assembly: InternalsVisibleTo("jerryee.UnityMCP.Editor")] //safe expose to this assembly
