@@ -35,7 +35,7 @@ public interface ITransitionCheckInvoker //interface沒有意義？
 //還是用IRCGEventReceiver?
 
 [Searchable]
-public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable, ILevelResetPrepare,IBeforePrefabSaveCallbackReceiver
+public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable, IResetStateRestore,IBeforePrefabSaveCallbackReceiver
 {
     //現在event driven直接set也work, 要做成只有condition改變才會觸發transition?
     public bool IsTransitionCheckNeeded = false;
@@ -260,7 +260,7 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
         }
     }
 
-    public void LevelResetPrepareRuntimeData()
+    public void ResetStateRestore()
     {
         if (!HasChecker())
             Debug.LogError("No Checker", gameObject);

@@ -1,6 +1,6 @@
 using System.Linq;
 using MonoFSM.Variable;
-using RCGUIBinder;
+using UIValueBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

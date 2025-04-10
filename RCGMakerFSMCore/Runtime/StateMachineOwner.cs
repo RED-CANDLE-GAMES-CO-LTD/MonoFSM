@@ -134,7 +134,7 @@ public interface IBinder
 {
 }
 
-public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, ILevelResetStart, IDefaultSerializable,
+public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, IResetStart, IDefaultSerializable,
     IBinder
 {
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
@@ -204,7 +204,7 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, IL
     }
     //2. 關卡重置後開始
 
-    void ILevelResetStart.LevelResetStart() //Instaniate之後不會call這個...
+    void IResetStart.ResetStart() //Instaniate之後不會call這個...
     {
         //不能有兩個進入點喔
         ResetFSM(); //最新規, levelReset之後, 

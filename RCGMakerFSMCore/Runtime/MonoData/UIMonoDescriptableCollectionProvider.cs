@@ -6,7 +6,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGUIBinder
+namespace UIValueBinder
 {
     //Scriptable 內包含陣列
     //ex: requireItems Entry.Item(Descriptable), Entry.Count(int)
@@ -16,7 +16,7 @@ namespace RCGUIBinder
 
     //給UI用的，要把主角身上的資料綁過來
     //從一個collection中取得某個Descriptable
-    public class UIMonoDescriptableCollectionProvider : MonoBehaviour, ILevelResetStart
+    public class UIMonoDescriptableCollectionProvider : MonoBehaviour, IResetStart
     {
         //ItemCollection?
         [TabGroup("Collection")] [SOConfig("DescriptableTag")]
@@ -51,7 +51,7 @@ namespace RCGUIBinder
         //     // Bind();
         // }
 
-        public void LevelResetStart()
+        public void ResetStart()
         {
             Bind();
         }

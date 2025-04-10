@@ -80,6 +80,15 @@ namespace RCGMaker.Core.DataProvider
         public MonoDescriptableTag _parentMonoTag; //空的話就是自己
         
         [BoxGroup("varTag")]
+        [ShowInInspector]
+        [ValueDropdown(nameof(GetParentVariableTags))]
+        private VariableTag DropDownVarTag
+        {
+            set => _varTag = value;
+            get => _varTag;
+        }
+        
+        [BoxGroup("varTag")]
         [GUIColor(0.8f, 1.0f, 0.8f)]
         // [PreviewInInspector]
         [ShowInInspector]
@@ -94,22 +103,16 @@ namespace RCGMaker.Core.DataProvider
                 //mono?
             }
         }
-
+        
         //FIXME: dropdown validate? 多檢查parent的owner? dropdown tag?
+        [ShowInDebugMode]
         [BoxGroup("varTag")]
         [FormerlySerializedAs("varTag")]
         [InfoBox("Tag Type is wrong", InfoMessageType.Error, nameof(TypeCheckFail))]
         [Required]
         public VariableTag _varTag;
 
-        [BoxGroup("varTag")]
-        [ShowInInspector]
-        [ValueDropdown(nameof(GetParentVariableTags))]
-        private VariableTag DropDownVarTag
-        {
-            set => _varTag = value;
-            get => _varTag;
-        }
+
         //FIXME: 拿到Variable的方式還是要很多種？
         //用varTag, monoTag直接找到 variable
         //從VarMono, 拿到他的variable

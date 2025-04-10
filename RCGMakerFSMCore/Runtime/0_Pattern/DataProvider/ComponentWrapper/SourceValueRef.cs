@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace RCGMakerFSM.VarRef
 {
+    /// <summary>
+    /// 放在Children可以直接被Component Reference
+    /// </summary>
     public class SourceValueRef : MonoBehaviour
     {
         [Component] [Auto] IConfigVar _configVar;

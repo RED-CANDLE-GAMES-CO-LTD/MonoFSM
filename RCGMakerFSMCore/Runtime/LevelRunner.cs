@@ -25,7 +25,7 @@ namespace RCGMaker.Core
 
         public void ResetLevel()
         {
-            PoolManager.Instance.ResetFromRoot(level);
+            PoolManager.Instance.ResetReload(level);
         }
 
         // [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -63,7 +63,7 @@ namespace RCGMaker.Core
 
             Debug.Log("LevelRunner Start");
             //每次重置都要做的, LevelReset, LevelResetAfter?
-            PoolManager.Instance.ResetFromRoot(level);
+            ResetLevel();
             //EnterLevelReset
         }
     }

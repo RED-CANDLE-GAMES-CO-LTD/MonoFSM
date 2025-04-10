@@ -16,7 +16,7 @@ namespace MonoFSM.Variable
     }
 
     public abstract class GenericUnityObjectVariable<TValueType> : AbstractObjectVariable, ISettable<TValueType>,
-        ILevelResetPrepare where TValueType : Object
+        IResetStateRestore where TValueType : Object
     {
         public UnityAction<TValueType> OnValueChanged;
 
@@ -145,7 +145,7 @@ namespace MonoFSM.Variable
 
         public Type ObjectType => typeof(TValueType);
 
-        public void LevelResetPrepareRuntimeData()
+        public void ResetStateRestore()
         {
             //這裡才做會不會太晚？
             SetValue(DefaultValue);

@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core
 {
-    public abstract class MonoDict<T, TU> : MonoBehaviour, ILevelResetPrepare
+    public abstract class MonoDict<T, TU> : MonoBehaviour, IResetStateRestore
         where TU : IValueOfKey<T> where T : IStringKey
     {
         protected virtual bool isLog => false;
@@ -22,7 +22,7 @@ namespace RCGMaker.Core
             PrepareDictCheck();
         }
 
-        public void LevelResetPrepareRuntimeData() //這會不會太晚？
+        public void ResetStateRestore() //這會不會太晚？
         {
             // _isPrepared = false;
             // PrepareDictCheck();

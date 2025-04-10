@@ -32,7 +32,7 @@ public interface IPoolObjectPlayer
 }
 
 [DisallowMultipleComponent]
-public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
+public class PoolObject : MonoBehaviour, ILevelAwake, IResetStateRestore
 {
     // public MonoReferenceCache _monoReferenceCache; //要是prefab asset才需要
 
@@ -305,7 +305,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
         CheckList();
         // ResetAnim();
         this.Log("[PoolObjectResetAndStart]", gameObject);
-        PoolManager.Instance.ResetFromRoot(gameObject);
+        PoolManager.Instance.ResetReload(gameObject);
 
         foreach (var iBorrowOnEnable in IPoolBorrowedList)
         {
@@ -536,7 +536,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, ILevelResetPrepare
     }
 
     [Button]
-    public void LevelResetPrepareRuntimeData()
+    public void ResetStateRestore()
     {
         //  Debug.Log("LevelReset", this);
         TransformReset();

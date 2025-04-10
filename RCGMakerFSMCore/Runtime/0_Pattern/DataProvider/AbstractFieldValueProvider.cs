@@ -10,8 +10,10 @@ using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core.DataProvider
 {
-    //各種data來源
-    //監聽的模組要另外掛嗎？
+    // 監聽變數的變化，然後更新UI
+    /// <summary>
+    /// 
+    /// </summary>
     public abstract class AbstractFieldValueProvider : MonoBehaviour
     {
         //這個auto會太慢耶導致看的時候error?
@@ -26,7 +28,10 @@ namespace RCGMaker.Core.DataProvider
         public abstract Type targetType { get; }
         [PreviewInInspector] [AutoParent] IIndexInjector _indexInjector;
 
-        void UpdateView()
+        /// <summary>
+        /// 
+        /// </summary>
+        void OnValueChanged()
         {
             _dataChangedListener.OnDataChanged(targetObject);
         }
@@ -35,7 +40,7 @@ namespace RCGMaker.Core.DataProvider
         {
             //這個variable已經準備好了嗎？
             if (ListenToVariable)
-                ListenToVariable.OnValueChangedRaw += UpdateView;
+                ListenToVariable.OnValueChangedRaw += OnValueChanged;
             else
             {
                 Debug.LogError("ListenToVariable is null", this);
@@ -45,7 +50,7 @@ namespace RCGMaker.Core.DataProvider
         private void OnDestroy()
         {
             if (ListenToVariable)
-                ListenToVariable.OnValueChangedRaw -= UpdateView;
+                ListenToVariable.OnValueChangedRaw -= OnValueChanged;
         }
 
         /// <summary>

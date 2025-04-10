@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using RCGMaker.AddressableAssets;
-using RCGUIBinder;
+using UIValueBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

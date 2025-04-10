@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 //監聽variable變化讓state轉換？
 //FIXME: 監聽condition是不是比較泛用，用組合的
 [Obsolete]
-public class VarBoolTransition : StateTransition, ILevelResetStart
+public class VarBoolTransition : StateTransition, IResetStart
 {
     protected override string GetNameByBehaviour()
     {
@@ -50,7 +50,7 @@ public class VarBoolTransition : StateTransition, ILevelResetStart
     }
 
 
-    public void LevelResetStart()
+    public void ResetStart()
     {
         if (_monoVariableNode == null)
         {

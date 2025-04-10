@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MonoFSM.Variable
 {
-    public class DynamicVariableBinder : AbstractFolder, ILevelResetStart,IBinder
+    public class DynamicVariableBinder : AbstractFolder, IResetStart,IBinder
     {
         // VariableFloat[] variableFloats;
         // VariableFloatVirtual[] variableFloatVirtuals;
@@ -46,7 +46,7 @@ namespace MonoFSM.Variable
         //     }
         // }
 
-        public void LevelResetStart()
+        public void ResetStart()
         {
             foreach (var entry in entries)
             {

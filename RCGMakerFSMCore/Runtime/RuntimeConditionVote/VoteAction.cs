@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 namespace RCGMaker.Runtime.Vote
 {
     //Default: Vote
-    public class VoteAction : AbstractStateAction, ILevelResetPrepare
+    public class VoteAction : AbstractStateAction, IResetStateRestore
     {
         public enum VoteType
         {
@@ -48,7 +48,7 @@ namespace RCGMaker.Runtime.Vote
 
         bool _isPrepared = false;
 
-        public void LevelResetPrepareRuntimeData()
+        public void ResetStateRestore()
         {
             _isPrepared = true;
         }

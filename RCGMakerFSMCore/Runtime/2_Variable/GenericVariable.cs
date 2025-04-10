@@ -27,7 +27,7 @@ using Object = UnityEngine.Object;
 [Searchable]
 public abstract class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable,IBeforePrefabSaveCallbackReceiver, ISettable<TType>,
     
-    IGameStateOwner, IDefaultSerializable, ILevelResetPrepare
+    IGameStateOwner, IDefaultSerializable, IResetStateRestore
     where TScriptableData : AbstractScriptableData<TField, TType>
     where TField : FlagField<TType>, new()
     where TType : IEquatable<TType>
@@ -522,7 +522,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         throw new NotImplementedException();
     }
 
-    public void LevelResetPrepareRuntimeData()
+    public void ResetStateRestore()
     {
         _localField.Init(TestMode.EditorDevelopment, this);
     }

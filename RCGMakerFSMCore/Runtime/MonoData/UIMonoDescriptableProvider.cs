@@ -11,7 +11,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGUIBinder
+namespace UIValueBinder
 {
     public interface IDescriptableProvider //FIXME: 這樣只能對應到一個instance, 而不能隨意查找
     {
@@ -26,7 +26,7 @@ namespace RCGUIBinder
     //目的：提供一個MonoDescriptable，可以從外部注入Descriptable，或是從一個collection拿到
     //FIXME: Consumer? 重點是從Collection拿
     [Searchable]
-    public class UIMonoDescriptableProvider : MonoBehaviour, IDescriptableProvider, ILevelResetStart
+    public class UIMonoDescriptableProvider : MonoBehaviour, IDescriptableProvider, IResetStart
     {
         public enum SourceType
         {
@@ -224,7 +224,7 @@ namespace RCGUIBinder
             // Bind();
         }
 
-        public void LevelResetStart()
+        public void ResetStart()
         {
             Bind();
         }

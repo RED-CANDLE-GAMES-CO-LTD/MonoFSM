@@ -8,17 +8,6 @@ using UnityEngine;
 public class VariableFloatConsumer : AbstractVariableConsumer
 {
     public VarFloat MonoVarSource => variableSource as VarFloat;
-    // public float Value
-    // {
-    //     get
-    //     {
-    //         return VariableSource.Value;
-    //     }
-    //     set
-    //     {
-    //         VariableSource.Value = value;
-    //     }
-    // }
 }
 
 public abstract class AbstractVariableConsumer : MonoBehaviour

@@ -9,7 +9,7 @@ using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using RCGMaker.Runtime.Mono;
-using RCGUIBinder;
+using UIValueBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;

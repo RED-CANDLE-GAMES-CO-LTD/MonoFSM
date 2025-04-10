@@ -14,17 +14,26 @@ public interface IResetter
 }
 
 
-public interface ILevelResetPrepare //新規用這個，現在和上面都有call, exitLevelAndDestroy是為了換場景很煩可以拔掉
+//1. 先回狀態
+public interface IResetStateRestore //新規用這個，現在和上面都有call, exitLevelAndDestroy是為了換場景很煩可以拔掉
 {
-    void LevelResetPrepareRuntimeData();
+    void ResetStateRestore();
 }
 
-public interface ILevelResetStart
+//2. 在跑這個
+public interface IResetStart //摸別人
 {
-    void LevelResetStart();
+    void ResetStart();
 }
 
-public interface ILevelAwake
+/// <summary>
+/// 1.LevelAwake,
+/// 2.LevelAwakeReverse
+/// 3.LevelStart,
+/// 4.LevelStartReverse
+/// </summary>
+//關著也能call
+public interface ILevelAwake //摸自己
 {
     void EnterLevelAwake();
 }
@@ -34,25 +43,25 @@ public interface ILevelConfig
     void SetLevelConfig();
 }
 
-public interface ILevelAwakeReverse
+public interface ISceneAwakeReverse
 {
-    void EnterLevelAwakeReverse();
+    void EnterSceneAwakeReverse();
 }
 
-public interface ILevelStart
+public interface ISceneStart
 {
-    void EnterLevelStart();
+    void EnterSceneStart();
 }
 
-public interface ILevelStartReverse
+public interface ISceneStartReverse
 {
-    void EnterLevelStartReverse();
+    void EnterSceneStartReverse();
 }
 
 
-public interface ILevelDestroy 
+public interface ISceneDestroy 
 {
-    void OnLevelDestroy();
+    void OnSceneDestroy();
 }
 
 public interface IClearReference //PoolObject return 會清這個

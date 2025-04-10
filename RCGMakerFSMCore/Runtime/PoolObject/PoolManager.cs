@@ -65,7 +65,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         HandleGameLevelAwake(obj.gameObject);
         HandleGameLevelStartReverse(obj.gameObject);
         HandleGameLevelStart(obj.gameObject);
-        LevelResetChildrenPrepareRuntimeData(obj.gameObject);
+        LevelResetChildrenReload(obj.gameObject);
         obj.OnPrepare();
         // obj.PoolObjectResetAndStart();
     }
@@ -94,10 +94,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     //LevelReset, 重職關卡時，一換scene時
     //開放世界用不到？死掉復活？
-    public void ResetFromRoot(GameObject root)
+    public void ResetReload(GameObject root)
     {
         //每次重置都要做的, LevelReset, LevelResetAfter?
-        LevelResetChildrenPrepareRuntimeData(root);
+        LevelResetChildrenReload(root);
         //大便！
         // HandleEnterLevelReset(root);
         //FIXME: 再重整一下
@@ -105,9 +105,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     }
 
 
-    public static void LevelResetChildrenPrepareRuntimeData(GameObject gObj)
+    public static void LevelResetChildrenReload(GameObject gObj)
     {
-        var levelResets = new List<ILevelResetPrepare>();
+        var levelResets = new List<IResetStateRestore>();
         gObj.GetComponentsInChildren(true, levelResets);
         levelResets.Reverse();
         foreach (var item in levelResets)
@@ -116,7 +116,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 continue;
             try
             {
-                item.LevelResetPrepareRuntimeData();
+                item.ResetStateRestore();
             }
             catch (Exception e)
             {
@@ -132,7 +132,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     //最新規，九日沒在用？
     public static void LevelResetStart(GameObject gObj) //由下往上
     {
-        var levelResets = new List<ILevelResetStart>();
+        var levelResets = new List<IResetStart>();
         gObj.GetComponentsInChildren(true, levelResets);
         levelResets.Reverse();
         foreach (var item in levelResets)
@@ -141,7 +141,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 continue;
             // try
             // {
-            item.LevelResetStart();
+            item.ResetStart();
             // }
             // catch (Exception e)
             // {
@@ -155,9 +155,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public static void HandleGameLevelAwake(GameObject level)
     {
-        var ILevelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));
+        var levelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));
         // ILevelAwakes.Reverse();
-        foreach (var item in ILevelAwakes)
+        foreach (var item in levelAwakes)
         {
             if (item == null)
                 continue;
@@ -203,7 +203,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public static void HandleGameLevelAwakeReverse(GameObject level)
     {
-        var ILevelAwakes = new List<ILevelAwakeReverse>(level.GetComponentsInChildren<ILevelAwakeReverse>(true));
+        var ILevelAwakes = new List<ISceneAwakeReverse>(level.GetComponentsInChildren<ISceneAwakeReverse>(true));
         ILevelAwakes.Reverse();
         foreach (var item in ILevelAwakes)
         {
@@ -212,7 +212,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             Profiler.BeginSample(item.ToString());
             try
             {
-                item.EnterLevelAwakeReverse();
+                item.EnterSceneAwakeReverse();
             }
             catch (Exception e)
             {
@@ -228,7 +228,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public static void HandleGameLevelStart(GameObject level)
     {
-        var levelStarts = new List<ILevelStart>(level.GetComponentsInChildren<ILevelStart>(true));
+        var levelStarts = new List<ISceneStart>(level.GetComponentsInChildren<ISceneStart>(true));
 
         //巢狀RCGArgEventBinder  要從下面往上組
         // ILevelStarts.Reverse();
@@ -239,7 +239,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 continue;
             try
             {
-                item.EnterLevelStart();
+                item.EnterSceneStart();
             }
             catch (Exception e)
             {
@@ -253,7 +253,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public static void HandleGameLevelStartReverse(GameObject level)
     {
-        var ILevelStarts = new List<ILevelStartReverse>(level.GetComponentsInChildren<ILevelStartReverse>(true));
+        var ILevelStarts = new List<ISceneStartReverse>(level.GetComponentsInChildren<ISceneStartReverse>(true));
 
         //巢狀RCGArgEventBinder  要從下面往上組
         ILevelStarts.Reverse();
@@ -264,7 +264,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
                 continue;
             try
             {
-                item.EnterLevelStartReverse();
+                item.EnterSceneStartReverse();
             }
             catch (Exception e)
             {
