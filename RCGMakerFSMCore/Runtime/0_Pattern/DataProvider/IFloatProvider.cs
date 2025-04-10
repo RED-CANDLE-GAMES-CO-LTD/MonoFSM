@@ -1,4 +1,5 @@
 using System;
+using MonoFSM.Variable;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using Sirenix.OdinInspector;
 using UnityEngine;

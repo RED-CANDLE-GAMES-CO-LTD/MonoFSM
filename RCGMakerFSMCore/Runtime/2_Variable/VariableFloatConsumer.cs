@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using MonoFSM.Variable;
 using UnityEngine;
 
 

@@ -28,8 +28,9 @@ namespace MonoFSM.Variable
         T AfterGetValueModifyCheck(T value);
     }
 
-
-    //限制VariableFloat的最小最大值，可以用RCGEventSender倒接事件
+    /// <summary>
+    /// Function: 限制VariableFloat的最小最大值
+    /// </summary>
     public class VariableFloatBoundModifier : MonoBehaviour, AbstractVariableModifier<float>
     {
         [PreviewInInspector] [AutoParent] VarFloat _monoVar;

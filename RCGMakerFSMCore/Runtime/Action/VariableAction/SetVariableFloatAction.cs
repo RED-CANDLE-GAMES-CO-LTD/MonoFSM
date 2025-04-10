@@ -1,3 +1,5 @@
+using MonoFSM.Variable;
+
 namespace RCGFSM.Variable
 {
     public class SetVariableFloatAction : AbstractStateAction

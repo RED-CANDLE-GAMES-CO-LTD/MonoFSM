@@ -1,4 +1,5 @@
 using System.Globalization;
+using MonoFSM.Variable;
 using RCGMaker.Core.DataProvider;
 using UnityEngine;
 
