@@ -371,6 +371,12 @@ public class
     //     listenerDict.AddListenerDict(target, param, callback as UnityAction<object, object, T>);
     // }
 
+    /// fixme: 有可能做non gc 版本嗎？ 上面的看起來失敗了..
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="owner"></param>
     public void AddListener(UnityAction<T> action, Object owner)
     {
         if (owner == null)

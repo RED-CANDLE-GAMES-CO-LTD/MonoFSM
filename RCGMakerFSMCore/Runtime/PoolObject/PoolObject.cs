@@ -32,7 +32,7 @@ public interface IPoolObjectPlayer
 }
 
 [DisallowMultipleComponent]
-public class PoolObject : MonoBehaviour, ILevelAwake, IResetStateRestore
+public class PoolObject : MonoBehaviour, ISceneAwake, IResetStateRestore
 {
     // public MonoReferenceCache _monoReferenceCache; //要是prefab asset才需要
 
@@ -501,7 +501,7 @@ public class PoolObject : MonoBehaviour, ILevelAwake, IResetStateRestore
     }
 
     //  public bool Log= false;
-    public void EnterLevelAwake()
+    public void EnterSceneAwake()
     {
         //可能可以拔掉
         //收斂情境：hitData不需要跟著

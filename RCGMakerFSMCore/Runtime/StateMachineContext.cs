@@ -6,7 +6,7 @@ using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core
 {
-    public abstract class StateMachineContext<T, TState> : MonoBehaviour, ILevelAwake, ISceneSavingCallbackReceiver
+    public abstract class StateMachineContext<T, TState> : MonoBehaviour, ISceneAwake, ISceneSavingCallbackReceiver
         where TState : AbstractState<T> where T : class 
     {
         [InfoBox("出現不能改但卻是Null，找易衡討論討論")]
@@ -105,7 +105,7 @@ namespace RCGMaker.Core
 #endif
         }
 
-        public void EnterLevelAwake()
+        public void EnterSceneAwake()
         {
             //FIXME: 場景call一次，poolObject又call一次...
             InitStateMachine();

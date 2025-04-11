@@ -33,9 +33,9 @@ public interface IResetStart //摸別人
 /// 4.LevelStartReverse
 /// </summary>
 //關著也能call
-public interface ILevelAwake //摸自己
+public interface ISceneAwake //摸自己
 {
-    void EnterLevelAwake();
+    void EnterSceneAwake();
 }
 
 public interface ILevelConfig

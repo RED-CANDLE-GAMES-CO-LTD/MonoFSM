@@ -25,7 +25,7 @@ namespace RCGMaker.Runtime
     //場景物件、角色、
     //應該要可以繼承這個嗎？Inventory
     //不該有variable嗎？
-    public class AbstractMonoDescriptable<TMonoDescriptable> : VariableOwner, IMonoDescriptable, ILevelAwake
+    public class AbstractMonoDescriptable<TMonoDescriptable> : VariableOwner, IMonoDescriptable, ISceneAwake
         where TMonoDescriptable : DescriptableData //,IVariableOwner //VariableOwner?
     {
         //FIXME: 更複雜的描述組合？
@@ -226,7 +226,7 @@ namespace RCGMaker.Runtime
             return DescriptableTags;
         }
 
-        public void EnterLevelAwake()
+        public void EnterSceneAwake()
         {
             // _receiverTypeSet = new HashSet<GeneralEffectType>();
             if (_receivers != null)

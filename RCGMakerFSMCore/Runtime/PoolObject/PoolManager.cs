@@ -155,7 +155,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     public static void HandleGameLevelAwake(GameObject level)
     {
-        var levelAwakes = new List<ILevelAwake>(level.GetComponentsInChildren<ILevelAwake>(true));
+        var levelAwakes = new List<ISceneAwake>(level.GetComponentsInChildren<ISceneAwake>(true));
         // ILevelAwakes.Reverse();
         foreach (var item in levelAwakes)
         {
@@ -164,7 +164,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             Profiler.BeginSample(item.ToString());
             try
             {
-                item.EnterLevelAwake();
+                item.EnterSceneAwake();
             }
             catch (Exception e)
             {

@@ -6,7 +6,7 @@ using UnityEngine.Profiling;
 
 namespace RCGMaker.Core
 {
-    public class UpdateLoopManager : SingletonBehaviour<UpdateLoopManager>, ILevelAwake, IGameDestroy
+    public class UpdateLoopManager : SingletonBehaviour<UpdateLoopManager>, ISceneAwake, IGameDestroy
     {
         [PreviewInInspector]
         public readonly UpdateList<IProxyUpdate> UpdateList = new((t) => t.UpdateProxy());
@@ -24,7 +24,7 @@ namespace RCGMaker.Core
             LateUpdateList.UpdateManual();
         }
 
-        public void EnterLevelAwake()
+        public void EnterSceneAwake()
         {
             // ClearReference();
             UpdateList.ClearNull();
