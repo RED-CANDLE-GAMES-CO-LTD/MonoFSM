@@ -96,3 +96,134 @@ RCGMakerFSM can be integrated with:
 ## Notes
 
 This framework is designed for Unity projects and makes extensive use of MonoBehaviours and ScriptableObjects.
+```
+MonoFSM Architecture
+│
+├── Variables System
+│   ├── Base Classes
+│   │   ├── AbstractMonoVariable - Base for all variables
+│   │   ├── GenericMonoVariable<TScriptableData, TField, TType> - Generic implementation
+│   │   └── GenericUnityObjectVariable<T> - For Unity Object variables
+│   │
+│   ├── Variable Types
+│   │   ├── VarBool - Boolean variables
+│   │   ├── VarFloat - Float variables
+│   │   ├── VarInt - Integer variables
+│   │   ├── VarString - String variables
+│   │   ├── VarMono - MonoDescriptable variables
+│   │   └── VarGameData - Game data variables
+│   │
+│   ├── Variable Management
+│   │   ├── RCGVariableFolder - Container for variables
+│   │   ├── VariableDictionary - Dictionary of variables
+│   │   └── VariableBinder - Connects variables
+│   │
+│   └── Value Providers
+│       ├── FloatValueSource/FloatValueGetter
+│       ├── StringProvider
+│       ├── AnimatorProvider
+│       └── GameDataProvider
+│
+├── State Machine System
+│   ├── States
+│   │   ├── AbstractState<T> - Base state
+│   │   ├── GeneralState - Main state implementation
+│   │   └── RCGFSMAnyState - Special state for any-to-any transitions
+│   │
+│   ├── Transitions
+│   │   ├── StateTransition - Base transition
+│   │   ├── StateTransitionSkippable - Transition with skip check
+│   │   ├── VarBoolTransition - Transition based on boolean
+│   │   └── VarIntTransition - Transition based on int
+│   │
+│   ├── Conditions
+│   │   ├── AbstractConditionComp - Base condition
+│   │   ├── VarBoolValueCondition - Bool comparison
+│   │   ├── FloatCompareCondition - Float comparison
+│   │   ├── IntCompareCondition - Int comparison
+│   │   ├── IsStateCondition - Check current state
+│   │   ├── StateTimeUpCondition - Time based condition
+│   │   └── ConditionFolder - Container for conditions
+│   │
+│   └── Actions
+│       ├── AbstractStateAction - Base action
+│       ├── AnimatorActions
+│       │   ├── AnimatorPlayAction - Play animation
+│       │   ├── AnimatorParameterSetValueAction - Set animator parameter
+│       │   └── AnimatorPlayActionModule - Animation modules
+│       │
+│       ├── Variable Actions
+│       │   ├── SetVariableBoolAction - Set bool
+│       │   ├── SetVariableFloatAction - Set float
+│       │   ├── SetVariableIntAction - Set int
+│       │   ├── VariableFloatArithmeticAction - Float arithmetic
+│       │   └── VariableIntArithmeticAction - Int arithmetic
+│       │
+│       └── Debug Actions
+│           └── LogAction - Debug logging
+│
+├── Interaction System
+│   ├── Spatial Detection
+│   │   ├── AbstractDetector - Base detector
+│   │   ├── TriggerSpatialDetector - Collider detection
+│   │   ├── TriggerSpatialDetector2D - 2D collider detection
+│   │   ├── CollisionSpatialDetector - Collision detection
+│   │   ├── MouseDownDetector - Mouse input detection
+│   │   ├── SpatialDetectable - Objects that can be detected
+│   │   └── ReliableOnTriggerExit - Fixes Unity's OnTriggerExit issues
+│   │
+│   └── Effect System
+│       ├── IEffectType/GeneralEffectType - Effect type definition
+│       ├── Dealers
+│       │   └── GeneralEffectDealer - Apply effects
+│       │
+│       ├── Receivers
+│       │   └── GeneralEffectReceiver - Receive effects
+│       │
+│       ├── EffectHitData
+│       │   └── GeneralEffectHitData - Data passed between dealer and receiver
+│       │
+│       ├── Effect Resolvers
+│       │   ├── EffectResolver - Base resolver
+│       │   ├── EffectHitFloatValueCompareCondition - Effect condition
+│       │   └── EffectHitFloatArithmeticAction - Effect action
+│       │
+│       └── Effect Nodes
+│           ├── EffectEnterNode - Handle entry
+│           ├── EffectExitNode - Handle exit
+│           └── EffectHitFailNode - Handle failure
+│
+├── Data Provider System
+│   ├── Interface Providers
+│   │   ├── IFloatProvider - Float value source
+│   │   ├── IBoolProvider - Bool value source
+│   │   ├── IStringProvider - String value source
+│   │   ├── ISpriteProvider - Sprite source
+│   │   └── IGameDataProvider - Game data source
+│   │
+│   ├── Component Wrappers
+│   │   ├── VariableProviderRef<T,V> - Reference variable
+│   │   ├── VarFloatProviderRef - Float variable ref
+│   │   ├── VarBoolProviderRef - Bool variable ref
+│   │   ├── VarGameDataRef - Game data ref
+│   │   └── VarMonoRef - MonoDescriptable ref
+│   │
+│   └── Field Value Providers
+│       ├── AbstractFieldValueProvider - Base field provider
+│       ├── GameDataObjectFieldProvider - Field from game data
+│       └── VariableFieldProvider - Field from variable
+│
+├── Stats System
+│   ├── StatData - Stat definition
+│   ├── CharacterStat - Stat implementation
+│   ├── StatModifier - Stat modifier
+│   └── StatModifierEntry - Configurable modifier
+│
+└── Utility Classes
+    ├── Cache<K,V> - Generic caching
+    ├── SerializedDictionary<K,V> - Unity serializable dictionary
+    ├── SerializableDateTime - Date/time serialization
+    ├── MonoDict<T,U> - Dictionary of MonoBehaviours
+    ├── SingletonBehaviour<T> - Singleton pattern
+    └── ValueInstance<T> - Generic value container
+```
