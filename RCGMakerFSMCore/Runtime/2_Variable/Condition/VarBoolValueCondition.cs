@@ -13,7 +13,7 @@ namespace MonoFSM.Variable.Condition
         protected override string Description => _monoVariableBool?.name + " == " + targetValue;
         void OnVariableChanged()
         {
-            RenameOfGameObject();
+            Rename();
         }
 
         

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using MonoFSM.Foundation;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.Interact.EffectHit;
@@ -13,11 +14,10 @@ public interface IActionParent //給GameObject結構Validate用的
 }
 
 [Searchable]
-public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable,
+public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable,
     IRCGArgEventReceiver, IRCGArgEventReceiver<IEffectHitData>
 {
-    //介面上也顯示？textarea?
-    protected virtual string Description => $"{GetType().Name}";
+    protected override string DescriptionTag => "Action";
 
     //怎麼知道誰用Enter, 誰用Update
     private bool IsValid //AND
@@ -50,15 +50,7 @@ public abstract class AbstractStateAction : AbstractBehaviour, IVoteChild, IGuid
     [AutoChildren(false, DepthOneOnly = true)]
     protected AbstractConditionComp[] conditions; //condition 成立，才能做事
 
-    [InfoBox("$Description", InfoMessageType.Info)]
-    [HideInInlineEditors]
-    [Button]
-    private void Rename()
-    {
-        // gameObject.name = $"[Action] {GetType().Name.Split("Action")[0]} {renamePostfix}";
-        gameObject.name = $"[Action] {Description}";
-    }
-
+ 
     protected virtual string renamePostfix => "";
 
     // private bool conditionFeteched = false;

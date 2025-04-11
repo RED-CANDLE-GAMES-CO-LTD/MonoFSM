@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using MonoFSM.Foundation;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
@@ -34,36 +35,45 @@ public static class ConditionHelper
 }
 
 //還是Condition要用Is開頭？
-public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider,IBeforePrefabSaveCallbackReceiver
+public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoolProvider
 {
-    //要能實作OnConditionChanged?
-    [AutoParent] protected StateTransition _parentTransition;
-    protected virtual bool IsShowRenameButton => Description != "";
-
-    //FIXME: AI 可以解釋性？
-    //FIXME: 整合 Description, interface?
-    protected virtual string Description => this.GetType().Name;
-
-    [Button]
-    [ShowIf("IsShowRenameButton")]
-    protected void RenameOfGameObject()
+//     [Button]
+//     [ShowIf("IsShowRenameButton")]
+//     protected void RenameOfGameObject()
+//     {
+//         try
+//         {
+//             var text = "[Condition] " + Description;
+//             if (FinalResultInverted)
+//                 text = "[Condition] Not " + Description;
+//             gameObject.name = text;
+// #if UNITY_EDITOR
+//             UnityEditor.EditorUtility.SetDirty(gameObject);
+// #endif
+//         }
+//         catch (System.Exception e)
+//         {
+//             Debug.LogError(e,this);
+//         }
+//     }
+    protected override string DescriptionTag => "Condition";
+    protected override string DescriptionPreprocess(string description)
     {
-        try
-        {
-            var text = "[Condition] " + Description;
-            if (FinalResultInverted)
-                text = "[Condition] Not " + Description;
-            gameObject.name = text;
-#if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(gameObject);
-#endif
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError(e,this);
-        }
+        var text = base.DescriptionPreprocess(description);
+        return FinalResultInverted ? " Not "+ text : text;
     }
 
+    // protected override string Description => 
+
+    //要能實作OnConditionChanged?
+    [AutoParent] protected StateTransition _parentTransition;
+    // protected virtual bool IsShowRenameButton => Description != "";
+    //
+    // //FIXME: AI 可以解釋性？
+    // //FIXME: 整合 Description, interface?
+    // protected virtual string Description => this.GetType().Name;
+
+ 
     //FIXME: 可是 _parentTransition等著被call
     // public Action OnConditionChanged; //要用這個？還是用polling就好了
     //直接用interface往上叫好像不錯？
@@ -123,11 +133,4 @@ public abstract class AbstractConditionComp : MonoBehaviour, IBoolProvider,IBefo
     }
 
     public bool IsTrue => FinalResult;
-    public void OnBeforePrefabSave()
-    {
-#if UNITY_EDITOR
-        AutoAttributeManager.AutoReference(this); //有些field需要autoChildren容易造成 description null
-        RenameOfGameObject();
-#endif
-    }
 }

@@ -128,7 +128,10 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
     }
 
-
+    /// <summary>
+    /// 摸別人，綁定事件
+    /// </summary>
+    /// <param name="gObj"></param>
     //最新規，九日沒在用？
     public static void LevelResetStart(GameObject gObj) //由下往上
     {

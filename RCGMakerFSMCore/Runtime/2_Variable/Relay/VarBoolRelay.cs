@@ -1,3 +1,4 @@
+using MonoFSM.Foundation;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -11,7 +12,7 @@ namespace MonoFSM.Variable
     /// This component listens for changes in the source variable and 
     /// automatically propagates those changes to the target variable.
     /// </remarks>
-    public class VariableRelay:MonoBehaviour,IResetStart
+    public class VarBoolRelay:AbstractDescriptionBehaviour,IResetStart
     {
         //FIXME: source不一定是var?
         /// <summary>
@@ -30,7 +31,7 @@ namespace MonoFSM.Variable
         
         /// <summary>
         /// Initializes the relay by setting up a listener on the source variable.
-        /// Called when the component is being reset or started.
+        /// Called when the component is being ResetStart by LevelRunner.
         /// </summary>
         public void ResetStart()
         {
@@ -39,5 +40,9 @@ namespace MonoFSM.Variable
                 _target.Field.SetCurrentValue(value, this);
             },this);
         }
+
+        protected override string Description =>
+            "when '$"+_source?._varTag?.name + "' changed, set '$" + _target?._varTag?.name+"'";
+        protected override string DescriptionTag => "Relay";
     }
 }

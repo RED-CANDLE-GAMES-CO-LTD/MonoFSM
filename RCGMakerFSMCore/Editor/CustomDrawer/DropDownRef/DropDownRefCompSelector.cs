@@ -33,24 +33,26 @@ namespace RCGMaker.Core
             // tree.Selection.SupportsMultiSelect = this.supportsMultiSelect;
             
             Component[] comps;
-            if(_parentType == null)
-                _parentType = typeof(IVariableOwner);
+            _parentType ??= typeof(IVariableOwner);
             
             //1. prefab裏直接找root下的所有_filterType component
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
+                //FIXME: 行為不一致！？
                 var root = PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot;
                 comps = root.GetComponentsInChildren(_filterType, true);
                 
             }
             //2. scene裏找所有 IVariableOwner parent 下的所有_filterType component
             else
-                comps =  _forComp.GetComponentsOfSiblingAll(typeof(IVariableOwner),_filterType);
+                comps =  _forComp.GetComponentsOfSiblingAll(_parentType,_filterType);
         
             // var types = filterType.FilterSubClassOrImplementationFromDomain();
-            foreach (var type in comps)
+            foreach (var comp in comps)
             {
-                tree.Add(type.name+ " (" + type.GetType().Name+")", type);
+                var ownerName = comp.GetComponentInParent<IVariableOwner>().name;
+                // tree.Add(comp.name+ " (" + comp.GetType().Name+")"+ownerName, comp);
+                tree.Add(comp.name+ " ("+ownerName, comp);
                 // Debug.Log("Add type " + type);
             }
 

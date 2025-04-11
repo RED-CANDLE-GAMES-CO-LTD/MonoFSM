@@ -6,6 +6,7 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine
 {
     public class VariableOwner : MonoBehaviour, IVariableOwner
     {
+        //FIXME: 可能有多個？ multiple folder
         [Component] [PreviewInInspector] [AutoChildren]
         RCGVariableFolder _variableFolder;
 

@@ -18,7 +18,9 @@ public class CustomSerializableAttribute : PropertyAttribute
 
 public interface IVariableOwner
 {
+    public string name { get; }
     RCGVariableFolder VariableFolder { get; }
+    public AbstractMonoVariable GetVariable(VariableTag varTag);
 }
 
 public static class StateMachineExtension
@@ -68,8 +70,16 @@ public static class StateMachineExtension
         return Array.Empty<Component>();
     }
 
+    /// <summary>
+    /// 找到所有的parent下的sibling
+    /// </summary>
+    /// <param name="monoBehaviour"></param>
+    /// <param name="parentType"></param>
+    /// <param name="siblingType"></param>
+    /// <returns></returns>
     public static Component[] GetComponentsOfSiblingAll(this Component monoBehaviour, Type parentType, Type siblingType)
     {
+        //FIXME: 這個需要到multiple parent嗎？
         var parents = monoBehaviour.GetComponentsInParent(parentType);
         var list = new List<Component>();
         if (parents == null || parents.Length == 0)

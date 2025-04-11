@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using jerryee.UnityMCP;
+using MonoFSM.Foundation;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
@@ -35,7 +36,7 @@ public interface ITransitionCheckInvoker //interface沒有意義？
 //還是用IRCGEventReceiver?
 
 [Searchable]
-public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializable, IResetStateRestore,IBeforePrefabSaveCallbackReceiver
+public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefaultSerializable, IResetStateRestore,IBeforePrefabSaveCallbackReceiver
 {
     //現在event driven直接set也work, 要做成只有condition改變才會觸發transition?
     public bool IsTransitionCheckNeeded = false;
@@ -271,15 +272,6 @@ public class StateTransition : AbstractBehaviour, IGuidEntity, IDefaultSerializa
     {
         RenameByBehaviour();
     }
-}
 
-public abstract class AbstractBehaviour : MonoBehaviour
-{
-    protected virtual void Awake()
-    {
-    }
-
-    protected virtual void Start()
-    {
-    }
+    protected override string DescriptionTag => "Transition";
 }
