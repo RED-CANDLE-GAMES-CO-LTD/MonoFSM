@@ -4,6 +4,7 @@ using RCGInputAction;
 using RCGMaker.Core.Attributes;
 // using InControl;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace PlayerActionControl
 {
@@ -16,34 +17,23 @@ namespace PlayerActionControl
         {
             // InputManager.OnDeviceAttached += OnDeviceAttached;
             // InputManager.OnDeviceDetached += OnDeviceDetached;
-            PlayerInputActionListener._actionListenerDict.Clear();
+            PlayerBufferedInputAction._actionListenerDict.Clear();
         }
     }
-    public class PlayerInputActionListener:MonoBehaviour
+    public class PlayerBufferedInputAction:MonoBehaviour
     {
-        // static Dictionary<InputAction,PlayerInputActionListener> _actionListenerDict = new();
-        //
         [PreviewInInspector]
-        public Dictionary<InputAction,PlayerInputActionListener> dict => _actionListenerDict;
-        public InputActionReference ActionRef;
-       
-        // [AutoParent] PlayerInputActionBufferManager _bufferManager;
-        // public static PlayerInputActionListener GetListener(InputAction action)
-        // {
-        //     if (_actionListenerDict.TryGetValue(action, out var listener))
-        //     {
-        //         return listener;
-        //     }
-        //     return null;
-        // }
+        public Dictionary<InputAction,PlayerBufferedInputAction> dict => _actionListenerDict;
+        [FormerlySerializedAs("ActionRef")] public InputActionReference _actionRef;
+        
         [AutoParent] private PlayerInput _playerInput;
-        public static Dictionary<InputAction,PlayerInputActionListener> _actionListenerDict = new();
-        public static PlayerInputActionListener GetListener(InputAction action)
+        public static Dictionary<InputAction,PlayerBufferedInputAction> _actionListenerDict = new();
+        public static PlayerBufferedInputAction GetListener(InputAction action)
         {
             return _actionListenerDict.GetValueOrDefault(action);
         }
 
-        public InputAction myAction => _playerInput.actions[ActionRef.name];
+        public InputAction myAction => _playerInput.actions[_actionRef.name];
         private void Start()
         {
             if (_actionListenerDict.ContainsKey(myAction))
@@ -85,12 +75,13 @@ namespace PlayerActionControl
         //     return -1;
         // }
         //FIXME: 要開出來調嗎？
-        const float inputBufferTime = 0.1f;
-        void UpdateAction()
+        private const float InputBufferTime = 0.1f;
+
+        private void UpdateAction()
         {
             for (var i = 0; i < _bufferedQueue.Count; i++)
             {
-                if (_bufferedQueue[i] + inputBufferTime < Time.time)
+                if (_bufferedQueue[i] + InputBufferTime < Time.time)
                 {
                     _bufferedQueue.RemoveAt(i);
                     i--;

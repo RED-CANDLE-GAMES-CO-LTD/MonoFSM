@@ -4,7 +4,7 @@ namespace RCGInputAction
 {
     public class ConsumeInputBufferAction:AbstractStateAction
     {
-        public PlayerInputActionListener listener;
+        public PlayerBufferedInputAction listener;
         protected override void OnStateEnterImplement()
         {
             listener.ForceWasPressAction();

@@ -3,12 +3,13 @@ using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 namespace RCGInputAction
 {
-    public class Player2DAxisActionCondition : AbstractConditionComp, IFloatValueProvider
+    public class Player2DAxisActionCondition : AbstractConditionComp
     {
-        public InputActionReference ActionRef;
+        [FormerlySerializedAs("ActionRef")] public InputActionReference _actionRef;
         protected override bool IsValid => action is { inProgress: true };
 
         [PreviewInInspector] [AutoParent] private PlayerInput playerInput;
@@ -21,13 +22,13 @@ namespace RCGInputAction
         //     
         //     ActionRef.action.ReadValue<Vector2>();
         // }
-        InputAction action =>
-            playerInput != null && ActionRef != null ? playerInput.actions[ActionRef.action.name] : null;
+        private InputAction action =>
+            playerInput != null && _actionRef != null ? playerInput.actions[_actionRef.action.name] : null;
 
         [PreviewInInspector]
         public Vector2 axisValue =>
-            action != null ? action.ReadValue<Vector2>() : Vector2.Zero; //ActionRef.action.ReadValue<Vector2>();
+            action?.ReadValue<Vector2>() ?? Vector2.Zero; //ActionRef.action.ReadValue<Vector2>();
 
-        [PreviewInInspector] public float FinalValue => action.GetControlMagnitude();
+        // [PreviewInInspector] public float FinalValue => action.GetControlMagnitude();
     }
 }

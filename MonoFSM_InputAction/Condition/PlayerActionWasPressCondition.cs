@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 namespace PlayerActionControl
 {
     //有buffering
-    public class PlayerActionWasPressCondition : AbstractConditionComp, IFloatValueProvider
+    public class PlayerActionWasPressCondition : AbstractConditionComp
     {
         protected override string Description =>
             actionOfRef != null ? actionOfRef.name + "Was Press Buffer" : "No ActionRef";
@@ -22,7 +22,7 @@ namespace PlayerActionControl
             get
             {
                 if (ActionDriver != null)
-                    return ActionDriver.ActionRef.action;
+                    return ActionDriver._actionRef.action;
                 if (ActionRef != null)
                     return ActionRef.action;
                 return null;
@@ -30,7 +30,7 @@ namespace PlayerActionControl
         }
 
         [DropDownRef(_parentType = typeof(PlayerInput))]
-        public PlayerInputActionListener ActionDriver;
+        public PlayerBufferedInputAction ActionDriver;
 
         [PreviewInInspector] [AutoParent] PlayerInput playerInput; //FIXME: 要再抽一層，做角色控制的話，直接作為ConditionComp NPC會烙賽
 
@@ -38,7 +38,7 @@ namespace PlayerActionControl
         private InputAction action => playerInput != null ? playerInput.actions[actionOfRef.name] : null;
 
         protected override bool IsValid =>
-            action != null && PlayerInputActionListener.GetListener(action).WasPressBuffered();
+            action != null && PlayerBufferedInputAction.GetListener(action).WasPressBuffered();
 
         public float FinalValue => IsValid ? 1 : 0;
     }
