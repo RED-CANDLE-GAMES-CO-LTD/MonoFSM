@@ -5,21 +5,14 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.Interact.SpatialDetection
 {
-    public class MouseDownDetectable : SpatialDetectable
+    public class MouseOverDetectable:SpatialDetectable
     {
-        //dispatch to children?
-        [AutoChildren] public MouseOverDetectable _detectable;
-        private void OnMouseEnter()
+        [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
+        private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
+        public void OnMouseEnter()
         {
-            _detectable.OnMouseEnter();
-        }
-
-        private void OnMouseExit()
-        {
-            _detectable.OnMouseExit();
-        }
-        private void OnMouseDown()
-        {
+            // Debug.Log("OnMouseEnter", this);
+            //可以顯示UI那類的
             if (!_conditions.IsAllValid())
             {
                 Debug.Log("MouseDownDetectable Conditions not met", this);
@@ -34,14 +27,17 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
             //TODO: 馬上就Exit?
             //FIXME: 連點會有狀態問題耶...
             //FIXME: 要條件對才可以做這件事？
+         
+        }
+
+        public void OnMouseExit()
+        {
+            var detector = MouseDetector.Instance;
             detector.OnSpatialExit(gameObject);
             // foreach (var effectReceiver in EffectReceivers)
             // {
             //     effectReceiver.OnEffectHit();
             // }
         }
-
-        [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
-        private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
     }
 }

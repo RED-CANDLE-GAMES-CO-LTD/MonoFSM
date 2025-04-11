@@ -15,7 +15,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public StateMachineOwner Owner => owner;
 
         //FIXME: 確保layer有設定
-        [Component] [AutoChildren] GeneralEffectReceiver[] _effectReceivers;
+        [Component] [AutoChildren(DepthOneOnly = true)] GeneralEffectReceiver[] _effectReceivers;
         [ShowInInspector] public GeneralEffectReceiver[] EffectReceivers => _effectReceivers;
         [AutoParent] private Collider _collider;
         public Collider MyCollider => _collider;

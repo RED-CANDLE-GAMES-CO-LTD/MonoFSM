@@ -7,10 +7,11 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
     {
     }
 
-    public class MouseDownDetector : AbstractDetector
+    public class MouseDetector : AbstractDetector
     {
-        public static MouseDownDetector Instance;
+        static MouseDetector _instance;
 
+        public static MouseDetector Instance => _instance;
         // //放在dealer層？
         // [AutoChildren] AbstractConditionComp[] conditions;
         // public bool IsValid => conditions.IsAllValid();
@@ -21,7 +22,7 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
 
         private void Awake()
         {
-            MouseDownDetector.Instance = this;
+            _instance = this;
         }
     }
 }
