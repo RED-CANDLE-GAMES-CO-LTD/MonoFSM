@@ -42,6 +42,7 @@ namespace RCGMaker.Core.DataProvider
             return GetVar<TVarMonoType>();
         }
 
+        [PreviewInInspector] 
         private MonoBehaviour CurrentTarget
         {
             get
@@ -52,7 +53,7 @@ namespace RCGMaker.Core.DataProvider
             }
         }
 
-        [PreviewInInspector] private MonoBehaviour _currentTarget;
+        private MonoBehaviour _currentTarget;
 
         //Dynamic Parent
         public AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target)
@@ -124,16 +125,39 @@ namespace RCGMaker.Core.DataProvider
 
         IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
         {
-            var parents = CurrentTarget.GetComponentsInParent<VariableOwner>();
             var tags = new List<ValueDropdownItem<VariableTag>>();
-            foreach (var parent in parents)
+            switch (_getFromType)
             {
-                foreach (var variable in parent.VariableFolder.GetValues)
+                case GetFromType.GlobalInstance:
+                    var instance = CurrentTarget.GetGlobalInstance(_parentMonoTag);
+                    if (instance == null)
+                    {
+                        Debug.LogError("GlobalInstance is null", CurrentTarget);
+                        return tags;
+                    }
+                    foreach (var variable in instance.VariableFolder.GetValues)
+                    {
+                        if (variable is TVarMonoType)
+                            tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+                    }
+
+                    break;
+                case GetFromType.VariableOwner:
                 {
-                    if (variable is TVarMonoType)
-                        tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+                    var parents = CurrentTarget.GetComponentsInParent<VariableOwner>();
+                    foreach (var parent in parents)
+                    {
+                        foreach (var variable in parent.VariableFolder.GetValues)
+                        {
+                            if (variable is TVarMonoType)
+                                tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+                        }
+                    }
+                    break;
                 }
+                    
             }
+           
 
             return tags;
         }

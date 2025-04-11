@@ -8,7 +8,7 @@ using RCGMakerFSMCore.Editor.ViewWindow.HierarchyTab;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
-using RCGMakerFSM.InternalBridge;
+using MonoFSM.InternalBridge;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;

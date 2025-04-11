@@ -1,8 +1,8 @@
 {
-  "name": "com.rcgmaker.fsm",
+  "name": "com.rcg.fsm",
   "version": "0.0.1",
-  "displayName": "RCG Maker FSM",
-  "description": "Core package for RCG Maker FSM",
+  "displayName": "MonoFSM",
+  "description": "Core package for RCG MonoFSM",
   "unity": "2021.3",
   "keywords": [
     "fsm"

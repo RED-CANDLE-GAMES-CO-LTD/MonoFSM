@@ -27,22 +27,22 @@ namespace RCGMaker.Core.DataProvider
     //     }
     // }
 
-    [Serializable]
-    public class SODataVarProvider : VariableProvider<VarGameData, DescriptableData>, IGameDataProvider
-    // IDescriptableDataProvider
-    {
-        // [DropDownRef] public VariableTag variableTag;
-
-        public DescriptableData GameData => Value;
-    }
-
-    [Serializable]
-    public class GameDataProviderReference : IGameDataProvider
-    {
-        public DescriptableData data;
-
-        public DescriptableData GameData => data;
-    }
+    // [Serializable]
+    // public class SODataVarProvider : VariableProvider<VarGameData, DescriptableData>, IGameDataProvider
+    // // IDescriptableDataProvider
+    // {
+    //     // [DropDownRef] public VariableTag variableTag;
+    //
+    //     public DescriptableData GameData => Value;
+    // }
+    //
+    // [Serializable]
+    // public class GameDataProviderReference : IGameDataProvider
+    // {
+    //     public DescriptableData data;
+    //
+    //     public DescriptableData GameData => data;
+    // }
 
     public interface IRandomGenerator<out T>
     {

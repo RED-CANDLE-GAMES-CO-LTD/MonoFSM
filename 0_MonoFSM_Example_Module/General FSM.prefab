@@ -534,7 +534,7 @@ GameObject:
   - component: {fileID: 3763308402822794965}
   - component: {fileID: 8035099416309375965}
   m_Layer: 0
-  m_Name: '[Transition][State] idle'
+  m_Name: '[Transition] => idle'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -568,7 +568,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsTransitionCheckNeeded: 0
-  target: {fileID: 4920970186908325163}
+  _target: {fileID: 4920970186908325163}
 --- !u!114 &8035099416309375965
 MonoBehaviour:
   m_ObjectHideFlags: 0
