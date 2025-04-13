@@ -8,28 +8,38 @@ using UnityEngine.Serialization;
 namespace MonoFSM.Variable.Condition
 {
     //分成simple和complex?
-    public class VarBoolValueCondition : AbstractConditionComp,IResetStart,ITransitionCheckInvoker
+    public class VarBoolValueCondition : AbstractConditionComp, IResetStart, ITransitionCheckInvoker
     {
         protected override string Description => _monoVariableBool?.name + " == " + targetValue;
-        void OnVariableChanged()
+
+        private void OnVariableChanged()
         {
             Rename();
         }
 
-        
+
         [OnValueChanged(nameof(OnVariableChanged))] [FormerlySerializedAs("variableBool")] [Required] [DropDownRef]
         // [ValueDropdown(nameof(GetBoolVariables))]
         public VarBool _monoVariableBool;
+
         //FIXME: 要用VarBoolProvider?
         [Component] [Auto] public VarBoolProviderRef _varBoolProvider;
+
         // [Component] [Auto] IBoolProvider _boolValue; //會再度抓到自己，...沒屁用
         public bool targetValue = true;
+
         //FIXME: 會有需求要比對其他東西嗎？
         protected override bool IsValid => _monoVariableBool.CurrentValue == targetValue;
-        
+
         //FIXME: condition本來就要實作狀態變化？必須listener? 會不會太強求？
-        public void OnValueChanged(bool value)
+        private void OnValueChanged(bool value)
         {
+            if (_parentTransition == null)
+            {
+                Debug.LogError("VarBoolValueCondition: No parent transition found", this);
+                return;
+            }
+
             _parentTransition.IsTransitionCheckNeeded = true;
         }
 

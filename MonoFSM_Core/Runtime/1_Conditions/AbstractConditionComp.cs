@@ -24,10 +24,7 @@ public static class ConditionHelper
                 continue;
             if (condition.gameObject.activeSelf == false) //只看自己，可能是parent有人關
                 continue;
-            if (condition.FinalResult == false)
-            {
-                return false;
-            }
+            if (condition.FinalResult == false) return false;
         }
 
         return true;
@@ -57,15 +54,17 @@ public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoo
 //         }
 //     }
     protected override string DescriptionTag => "Condition";
+
     protected override string DescriptionPreprocess(string description)
     {
         var text = base.DescriptionPreprocess(description);
-        return FinalResultInverted ? " Not "+ text : text;
+        return FinalResultInverted ? " Not " + text : text;
     }
 
     // protected override string Description => 
 
     //要能實作OnConditionChanged?
+    //FIXME: 不一定有transition啊
     [AutoParent] protected StateTransition _parentTransition;
     // protected virtual bool IsShowRenameButton => Description != "";
     //
@@ -73,7 +72,7 @@ public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoo
     // //FIXME: 整合 Description, interface?
     // protected virtual string Description => this.GetType().Name;
 
- 
+
     //FIXME: 可是 _parentTransition等著被call
     // public Action OnConditionChanged; //要用這個？還是用polling就好了
     //直接用interface往上叫好像不錯？
@@ -83,8 +82,10 @@ public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoo
     public bool IsDirty => _isConditionChanged;
 
     public virtual bool IsInvertResultOptionAvailable => true;
+
     [ShowIf(nameof(IsInvertResultOptionAvailable))]
     public bool FinalResultInverted = false;
+
     protected abstract bool IsValid { get; }
 
     [ShowInPlayMode]

@@ -7,6 +7,9 @@ using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using RCGMaker.Runtime.Mono;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
+using UnityEditor.SceneManagement;
+#endif
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -20,7 +23,7 @@ namespace RCGMaker.Core.DataProvider
 
     //TODO: FIXME: drag drop reference後，自動填入tag/monoTag
     public abstract class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
-        IConfigVar, IVariableProvider,IStringProvider
+        IConfigVar, IVariableProvider, IStringProvider
         where TVarMonoType : AbstractMonoVariable
     {
         public GetFromType _getFromType = GetFromType.VariableOwner;
@@ -42,7 +45,7 @@ namespace RCGMaker.Core.DataProvider
             return GetVar<TVarMonoType>();
         }
 
-        [PreviewInInspector] 
+        [PreviewInInspector]
         private MonoBehaviour CurrentTarget
         {
             get
@@ -76,10 +79,13 @@ namespace RCGMaker.Core.DataProvider
             if (_varTag == null) return false;
             return typeof(TValueType).IsAssignableFrom(_varTag._valueFilterType.RestrictType) == false;
         }
+
         // [ValueDropdown(nameof(GetGlobalMonoTags))] [OnValueChanged(nameof(OnGlobalMonoTagChange))]
-        //FIXME: 1. 常常會空著
+        //FIXME: 常常會空著?
+        //globalTag
+        //a(object).b(variable)
         public MonoDescriptableTag _parentMonoTag; //空的話就是自己
-        
+
         [BoxGroup("varTag")]
         [ShowInInspector]
         [ValueDropdown(nameof(GetParentVariableTags))]
@@ -88,7 +94,7 @@ namespace RCGMaker.Core.DataProvider
             set => _varTag = value;
             get => _varTag;
         }
-        
+
         [BoxGroup("varTag")]
         [GUIColor(0.8f, 1.0f, 0.8f)]
         // [PreviewInInspector]
@@ -96,15 +102,13 @@ namespace RCGMaker.Core.DataProvider
         [DisableIf(nameof(_varTag))]
         public TVarMonoType Variable
         {
-            get { return VarRaw as TVarMonoType; }
-            set
-            {
+            get => VarRaw as TVarMonoType;
+            set =>
                 //fixme: 自動爬出tag
                 _varTag = value._varTag;
-                //mono?
-            }
+            //mono?
         }
-        
+
         //FIXME: dropdown validate? 多檢查parent的owner? dropdown tag?
         [ShowInDebugMode]
         [BoxGroup("varTag")]
@@ -123,7 +127,7 @@ namespace RCGMaker.Core.DataProvider
             _runtimeCachedOwner = null;
         }
 
-        IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
+        private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
         {
             var tags = new List<ValueDropdownItem<VariableTag>>();
             switch (_getFromType)
@@ -132,14 +136,16 @@ namespace RCGMaker.Core.DataProvider
                     var instance = CurrentTarget.GetGlobalInstance(_parentMonoTag);
                     if (instance == null)
                     {
-                        Debug.LogError("GlobalInstance is null", CurrentTarget);
+#if UNITY_EDITOR
+                        if (PrefabStageUtility.GetCurrentPrefabStage() == null)
+                            Debug.LogError("GlobalInstance is null", CurrentTarget);
+#endif
                         return tags;
                     }
+
                     foreach (var variable in instance.VariableFolder.GetValues)
-                    {
                         if (variable is TVarMonoType)
                             tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
-                    }
 
                     break;
                 case GetFromType.VariableOwner:
@@ -147,34 +153,36 @@ namespace RCGMaker.Core.DataProvider
                     var parents = CurrentTarget.GetComponentsInParent<VariableOwner>();
                     foreach (var parent in parents)
                     {
-                        foreach (var variable in parent.VariableFolder.GetValues)
+                        if (parent.VariableFolder == null)
                         {
+                            Debug.LogError("Parent VariableFolder is null", parent);
+                            continue;
+                        }
+
+                        foreach (var variable in parent.VariableFolder.GetValues)
                             if (variable is TVarMonoType)
                                 tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
-                        }
                     }
+
+
                     break;
                 }
-                    
             }
-           
+
 
             return tags;
         }
 
-        IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
+        private IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
         {
             var parents = CurrentTarget.GetComponentsInParent<MonoDescriptable>();
             var tags = new List<ValueDropdownItem<MonoDescriptableTag>>();
             foreach (var parent in parents)
-            {
                 tags.Add(new ValueDropdownItem<MonoDescriptableTag>(parent.Tag.name, parent.Tag));
-            }
 
             return tags;
         }
 
-     
 
         [PreviewInInspector] private Type variableValueType => typeof(TValueType);
         //FIXME:也可以用string拿？
@@ -197,7 +205,7 @@ namespace RCGMaker.Core.DataProvider
             }
         }
 
-        VariableOwner FetchOwner(MonoBehaviour target)
+        private VariableOwner FetchOwner(MonoBehaviour target)
         {
             if (target == null)
             {
@@ -215,11 +223,10 @@ namespace RCGMaker.Core.DataProvider
             }
 
             _runtimeCachedOwner = target.GetComponentInParent<VariableOwner>();
+            //FIXME: 有variable folder的才算？
             if (Application.isPlaying)
-            {
                 if (_runtimeCachedOwner == null)
                     Debug.LogError("VariableOwner InParent is null at:" + target, target);
-            }
 
             return _runtimeCachedOwner;
             // return _runtimeCachedOwner;
@@ -285,10 +292,8 @@ namespace RCGMaker.Core.DataProvider
 
                 var variable = owner.GetVariable(_varTag);
                 if (Application.isPlaying)
-                {
                     if (variable == null)
                         Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);
-                }
 
                 return variable;
             }
