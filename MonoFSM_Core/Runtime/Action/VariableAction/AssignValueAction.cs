@@ -15,9 +15,11 @@ namespace RCGMaker.Runtime.Backpack.Actions
 //SourceValueWrapper?
 //TargetValueWrapper?
 
-        [AutoChildren] [ChildComp] private SourceValueRef _sourceValueRef;
+        [InlineEditor] [AutoChildren] [CompRef]
+        private SourceValueRef _sourceValueRef;
 
-        [AutoChildren] [ChildComp] private TargetVarRef _targetVarRef;
+        [InlineEditor] [AutoChildren] [CompRef]
+        private TargetVarRef _targetVarRef;
 
         // [AutoChildren] IConfigVar SourceValue; //FIXME; 怎麼用component...要手動assgin了嗎
         // [AutoChildren] IVariableProvider TargetVariable;

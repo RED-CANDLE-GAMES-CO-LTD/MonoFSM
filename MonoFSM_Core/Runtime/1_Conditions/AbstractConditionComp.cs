@@ -31,6 +31,11 @@ public static class ConditionHelper
     }
 }
 
+public interface IConditionChangeListener
+{
+    void OnConditionChanged();
+}
+
 //還是Condition要用Is開頭？
 public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoolProvider
 {
@@ -64,8 +69,9 @@ public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoo
     // protected override string Description => 
 
     //要能實作OnConditionChanged?
-    //FIXME: 不一定有transition啊
-    [AutoParent] protected StateTransition _parentTransition;
+    //FIXME: 不一定有transition啊, 不該用transition, 監聽的介面, IXXListener?
+    // [AutoParent] protected StateTransition _parentTransition;
+    [AutoParent] protected IConditionChangeListener _parentConditionChangeListener;
     // protected virtual bool IsShowRenameButton => Description != "";
     //
     // //FIXME: AI 可以解釋性？

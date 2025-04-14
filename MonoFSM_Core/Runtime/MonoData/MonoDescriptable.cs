@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
@@ -29,26 +30,28 @@ namespace RCGMaker.Runtime
         where TMonoDescriptable : DescriptableData //,IVariableOwner //VariableOwner?
     {
         //FIXME: 更複雜的描述組合？
-        public virtual string RuntimeDescription => Data.Description;
+        [UsedImplicitly] //從UI直接選
+        public virtual string RuntimeDescription =>
+            string.IsNullOrEmpty(Data.Description) ? Data.name : Data.Description;
 
 #if UNITY_EDITOR
         [RequiredIn(PrefabKind.InstanceInScene)] [PreviewInInspector] [AutoParent]
-        MonoDescriptableBinder _binder;
+        private MonoDescriptableBinder _binder;
 #endif
 
         //GameLogic不該Nested?
         //FIXME: 太深了...會包到過多的東西
-        [PreviewInInspector] [AutoChildren] GeneralEffectDealer[] _dealers; //可以互動的性質門
+        [PreviewInInspector] [AutoChildren] private GeneralEffectDealer[] _dealers; //可以互動的性質門
         // private HashSet<GeneralEffectType> _dealerTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
 
-        Dictionary<GeneralEffectType, GeneralEffectDealer> _dealerTypeMap = new();
+        private Dictionary<GeneralEffectType, GeneralEffectDealer> _dealerTypeMap = new();
 
         [PreviewInInspector] private int DealerSetCount => _dealerTypeMap.Count;
 
-        [PreviewInInspector] [AutoChildren] GeneralEffectReceiver[] _receivers; //可以互動的性質門
+        [PreviewInInspector] [AutoChildren] private GeneralEffectReceiver[] _receivers; //可以互動的性質門
 
         // readonly HashSet<GeneralEffectType> _receiverTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
-        Dictionary<GeneralEffectType, GeneralEffectReceiver> _receiverTypeMap = new();
+        private Dictionary<GeneralEffectType, GeneralEffectReceiver> _receiverTypeMap = new();
 
         [PreviewInInspector] private int ReceiverSetCount => _receiverTypeMap.Count;
 
@@ -103,7 +106,7 @@ namespace RCGMaker.Runtime
         protected MonoDescriptableTag DescriptableTag; //這有什麼用？
 
         //FIXME: 還不只需要一種呢....可能需要多種tag
-        [SerializeField] MonoDescriptableTag[] DescriptableTags; //
+        [SerializeField] private MonoDescriptableTag[] DescriptableTags; //
 
         public MonoDescriptableTag Tag => DescriptableTag;
 
@@ -113,15 +116,15 @@ namespace RCGMaker.Runtime
         }
 
         private string errorValue;
-        string errorString => errorValue;
+        private string errorString => errorValue;
 
 
-        bool IsVariableMissing()
+        private bool IsVariableMissing()
         {
             return !CheckAllVariableExists();
         }
 
-        bool CheckAllVariableExists()
+        private bool CheckAllVariableExists()
         {
             if (VariableFolder == null)
             {
@@ -231,16 +234,12 @@ namespace RCGMaker.Runtime
             // _receiverTypeSet = new HashSet<GeneralEffectType>();
             if (_receivers != null)
                 foreach (var receiver in _receivers)
-                {
                     // _receiverTypeSet.Add(receiver.EffectType);
                     _receiverTypeMap[receiver.EffectType] = receiver;
-                }
 
             foreach (var dealer in _dealers)
-            {
                 if (_dealerTypeMap.TryAdd(dealer.EffectType, dealer) == false)
                     Debug.LogError($"Dealer {dealer.EffectType} already exists", this);
-            }
 
             // _dealerTypeMap = _dealers.ToDictionary(dealer => dealer.EffectType);
 
@@ -272,16 +271,16 @@ namespace RCGMaker.Runtime
         // }
 
         //繼承MonoDescriptable的class，可以透過這個方法來將所有的variable field mapping到VariableFolder
-        FieldInfo[] _variableFields;
+        private FieldInfo[] _variableFields;
 
         [Button]
-        void FieldMapping()
+        private void FieldMapping()
         {
             //find all fields which inherit from AbstractMonoVariable
             //Check the value is not null
             //FIXME: 用名字mapping, 不好，直接用tag map, 沒有配到表示要生variable之類的
 
-            _variableFields = this.GetType()
+            _variableFields = GetType()
                 .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                 .Where(field => field.FieldType.IsSubclassOf(typeof(AbstractMonoVariable)))
                 .ToArray();

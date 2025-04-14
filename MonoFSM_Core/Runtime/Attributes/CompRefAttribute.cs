@@ -9,7 +9,7 @@ namespace MonoFSM_Core.Runtime.Attributes
     [ShowInInspector]
     [DisableIf("@true")]
     [IncludeMyAttributes]
-    public class ChildComp : Attribute
+    public class CompRefAttribute : Attribute
     {
     }
 }

@@ -1,19 +1,24 @@
 using RCGMaker.Core;
+using RCGMaker.Runtime;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Foundation
 {
-   
-    public abstract class AbstractDescriptionBehaviour : MonoBehaviour,IBeforePrefabSaveCallbackReceiver
+    public abstract class AbstractDescriptionBehaviour : MonoBehaviour, IBeforePrefabSaveCallbackReceiver
     {
+        [AutoParent] protected MonoDescriptable _self;
+
         //介面上也顯示？textarea?
         protected virtual string Description => $"{GetType().Name}";
+
         protected virtual string DescriptionPreprocess(string text)
         {
             return text;
         }
+
         protected abstract string DescriptionTag { get; }
+
         [InfoBox("$Description", InfoMessageType.Info)]
         [HideInInlineEditors]
         [Button]
@@ -24,7 +29,6 @@ namespace MonoFSM.Foundation
             gameObject.name = $"[{DescriptionTag}] {DescriptionPreprocess(Description)}";
             UnityEditor.EditorUtility.SetDirty(gameObject);
 #endif
-
         }
 
         protected virtual void Awake()

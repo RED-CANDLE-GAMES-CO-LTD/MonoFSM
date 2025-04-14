@@ -84,6 +84,7 @@ namespace RCGMaker.Core.DataProvider
         //FIXME: 常常會空著?
         //globalTag
         //a(object).b(variable)
+        //VariableOwner的話就可以往parent找，不是的話可以從asset找？
         public MonoDescriptableTag _parentMonoTag; //空的話就是自己
 
         [BoxGroup("varTag")]
@@ -154,10 +155,8 @@ namespace RCGMaker.Core.DataProvider
                     foreach (var parent in parents)
                     {
                         if (parent.VariableFolder == null)
-                        {
-                            Debug.LogError("Parent VariableFolder is null", parent);
+                            // Debug.LogError("Parent VariableFolder is null", parent);
                             continue;
-                        }
 
                         foreach (var variable in parent.VariableFolder.GetValues)
                             if (variable is TVarMonoType)

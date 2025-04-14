@@ -34,19 +34,17 @@ namespace MonoFSM.Variable.Condition
         //FIXME: condition本來就要實作狀態變化？必須listener? 會不會太強求？
         private void OnValueChanged(bool value)
         {
-            if (_parentTransition == null)
-            {
-                Debug.LogError("VarBoolValueCondition: No parent transition found", this);
+            if (_parentConditionChangeListener == null)
+                // Debug.LogError("VarBoolValueCondition: No parent transition found", this);
                 return;
-            }
-
-            _parentTransition.IsTransitionCheckNeeded = true;
+            _parentConditionChangeListener.OnConditionChanged();
         }
 
         public void ResetStart()
         {
-            //會和varbool 的reset 執行順序打架！
             Debug.Log("LevelResetPrepareRuntimeData", this);
+            if (_parentConditionChangeListener == null)
+                return;
             _monoVariableBool.Field.AddListener(OnValueChanged, this);
             //需要清掉嗎？還是leveldestroy就會自己把field的listener清掉？
         }

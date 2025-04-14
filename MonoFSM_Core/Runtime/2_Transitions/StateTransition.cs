@@ -36,28 +36,35 @@ public interface ITransitionCheckInvoker //interface沒有意義？
 //還是用IRCGEventReceiver?
 
 [Searchable]
-public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefaultSerializable, IResetStateRestore,IBeforePrefabSaveCallbackReceiver
+public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefaultSerializable, IResetStateRestore,
+    IBeforePrefabSaveCallbackReceiver, IConditionChangeListener
 {
     //現在event driven直接set也work, 要做成只有condition改變才會觸發transition?
     public bool IsTransitionCheckNeeded = false;
+
     //TODO: 我需要保證附近有checker, 我應該和_checker註冊？
     //FIXME: 空transition就可以自動過去？
     [InfoBox("No Checker", InfoMessageType.Error, nameof(NoChecker))]
-    [PreviewInInspector] [AutoParent] [Component(AddComponentAt.Same)] //FIXME: 會有需要parent的情況嗎？ children也包括自己
-    ITransitionCheckInvoker _checkInvoker; 
+    [PreviewInInspector]
+    [AutoParent]
+    [Component(AddComponentAt.Same)]
+    //FIXME: 會有需要parent的情況嗎？ children也包括自己
+    private ITransitionCheckInvoker _checkInvoker;
 
     //要分同層級的嗎？
-    [Component]
-    [PreviewInInspector][AutoChildren] ITransitionCheckInvoker[] _childrenCheckers = Array.Empty<ITransitionCheckInvoker>();
+    [Component] [PreviewInInspector] [AutoChildren]
+    private ITransitionCheckInvoker[] _childrenCheckers = Array.Empty<ITransitionCheckInvoker>();
 
-    bool NoChecker => !HasChecker();
-    bool HasChecker()
+    private bool NoChecker => !HasChecker();
+
+    private bool HasChecker()
     {
         return _checkInvoker != null || _childrenCheckers is { Length: > 0 };
     }
 
+    //FIXME: 和abstract整合
     [Button("依照Behaviour改名字")]
-    void RenameByBehaviour()
+    private void RenameByBehaviour()
     {
         gameObject.name = GetNameByBehaviour();
     }
@@ -67,7 +74,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
         return "[Transition] =>" + _target.stateType.name.Replace("[State]", "");
     }
 
-    bool TransitionValidationResult()
+    private bool TransitionValidationResult()
     {
         if (_target == _parentState as GeneralState)
             return true;
@@ -78,7 +85,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     [FormerlySerializedAs("target")]
     [MCPExtractable]
     [InfoBox("Target is self", InfoMessageType.Error, nameof(TransitionValidationResult))]
-    [ValueDropdown(nameof(FindStates),NumberOfItemsBeforeEnablingSearch=5)]
+    [ValueDropdown(nameof(FindStates), NumberOfItemsBeforeEnablingSearch = 5)]
     [Required]
     [Header("Go To")]
     [GUIColor(0.8f, 0.8f, 1)]
@@ -93,7 +100,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
 
     [ReadOnly] [ShowInInspector] public GeneralState Target => _target;
 
-    IEnumerable<GeneralState> FindStates()
+    private IEnumerable<GeneralState> FindStates()
     {
         return GetComponentInParent<GeneralFSMContext>(true).GetAllGeneralStates();
         // return GetComponentInParent<GeneralFSMContext>().GetAllStates()
@@ -113,7 +120,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     //     bindingState = GetComponentInParent<GeneralState>();
     // }
     [Button("測試transition")]
-    void TransitionTest()
+    private void TransitionTest()
     {
         TransitionCheck(0);
     }
@@ -132,16 +139,11 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     {
         get
         {
-            if (_skippableAnimationTransitions == null)
-            {
-                return true;
-            }
+            if (_skippableAnimationTransitions == null) return true;
 
             foreach (var s in _skippableAnimationTransitions)
-            {
                 if (s.CanSkip() == false)
                     return false;
-            }
 
             return true;
         }
@@ -169,17 +171,15 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     //FIXME: 不該空降call, 只能在系統特定時間點
     public bool TransitionCheck(float timeOffset = 0)
     {
-        if(IsTransitionCheckNeeded == false)
+        if (IsTransitionCheckNeeded == false)
             return false;
         // this.Log("[Transition] Check1" + target.stateType, gameObject);
         //Transition 被關了
         //if (this.isActiveAndEnabled == false) 
         IsTransitionCheckNeeded = false;
         if (gameObject.activeSelf == false) //關著也想change state
-        {
             // this.Log("[Transition] Check1 fail active false" + target.stateType, gameObject);
             return false;
-        }
 
         //整顆單位關著，表示config沒有想要打開
         //FIXME:只是為了擋掉關著的FSM?
@@ -202,7 +202,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
                 return false;
             }
 
-            
+
             if (_target.stateType.gameObject.activeSelf == false)
             {
                 this.Log("[Transition] Fail ChangeState target inactive" + _target.stateType, gameObject);
@@ -213,8 +213,6 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
             {
                 //FIXME: 這個時間點會太晚嗎？ 會，這個回來就已經切到另一個state了
                 //會...
-           
-                
             }
 
             return true;
@@ -274,4 +272,9 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     }
 
     protected override string DescriptionTag => "Transition";
+
+    public void OnConditionChanged()
+    {
+        IsTransitionCheckNeeded = true;
+    }
 }
