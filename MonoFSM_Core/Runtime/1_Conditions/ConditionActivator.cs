@@ -12,12 +12,6 @@ namespace RCGMaker.Core
         public void EnableCheck(); //UI Reset??
     }
 
-    public interface IUIInteractable
-    {
-        public void OnBecomeInteractable();
-        public void OnBecomeNotInteractable();
-    }
-
     //新規
     //可以直接放在該節點上
     //自動檢查條件，決定是否啟動節點
@@ -39,15 +33,11 @@ namespace RCGMaker.Core
         public void EnableCheck()
         {
             if (IsActivate)
-            {
                 // Debug.Log("IAdditionalChecker pass active true", gameObject);
                 gameObject.SetActive(true);
-            }
             else
-            {
                 // Debug.Log("IAdditionalChecker pass active false", gameObject);
                 gameObject.SetActive(false);
-            }
         }
 
         public void Validate(SelfValidationResult result)

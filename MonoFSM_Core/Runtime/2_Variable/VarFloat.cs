@@ -19,7 +19,7 @@ using UnityEngine;
 namespace MonoFSM.Variable
 {
     public class VarFloat : GenericMonoVariable<ScriptableDataFloat, FlagFieldFloat, float>,
-        IValueOfKey<VariableTag>, ISerializedFloatValue,IOverrideHierarchyIcon
+        IValueOfKey<VariableTag>, ISerializedFloatValue
     {
         //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 
         public override GameFlagBase FinalData => BindData;
@@ -31,18 +31,10 @@ namespace MonoFSM.Variable
         public bool IsMax => CurrentValue >= Max;
 
         [AutoChildren(false)] [PreviewInInspector]
-        VariableFloatBoundModifier _boundModifier;
-
+        private VariableFloatBoundModifier _boundModifier;
         // [PreviewInInspector] [Component] [AutoChildren]
         // AbstractVariableModifier<float>[] _setOperations;
 
-
-
         // public float Value => CurrentValue;
-        public string IconName { get; }
-        public bool IsDrawingIcon => true;
-#if UNITY_EDITOR
-        public Texture2D CustomIcon => UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");
-#endif
     }
 }

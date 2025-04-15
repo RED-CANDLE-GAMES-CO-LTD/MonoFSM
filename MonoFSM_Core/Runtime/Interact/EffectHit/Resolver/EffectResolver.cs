@@ -15,25 +15,21 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         private GlobalObjectId _globalId;
         public GlobalObjectId GetGlobalId()
         {
-            if (_globalId.targetObjectId == 0)
-            {
-                _globalId = GlobalObjectId.GetGlobalObjectIdSlow(this);
-            }
+            if (_globalId.targetObjectId == 0) _globalId = GlobalObjectId.GetGlobalObjectIdSlow(this);
 
             return _globalId;
         }
 #endif
-        
+
         [Button]
-        void Rename()
+        private void Rename()
         {
             name = "[" + TypeTag + "]" + EffectType.name.Replace("[EffectType]", "");
         }
 
         protected abstract string TypeTag { get; }
 
-        [MCPExtractable]
-        [Required] [SOConfig("GeneralEffectType")]
+        [MCPExtractable] [Required] [SOConfig("GeneralEffectType")]
         public GeneralEffectType EffectType;
         // public IEffectType getEffectType => EffectType;
 
@@ -45,7 +41,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         public void OnEffectHitConditionFail(IEffectHitData data)
         {
-            _failNode?.OnEffectReceived(data);
+            _failNode?.EventHandle(data);
         }
 
         [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
@@ -57,6 +53,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         [PreviewInInspector]
         public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid(); //condition 可以burst?感覺不會比較快，這個數量級
+
         public IActor Owner => GetComponentInParent<IActor>();
     }
 }

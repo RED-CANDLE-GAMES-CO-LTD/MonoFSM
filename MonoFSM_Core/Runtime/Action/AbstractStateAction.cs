@@ -50,7 +50,7 @@ public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteC
     [AutoChildren(false, DepthOneOnly = true)]
     protected AbstractConditionComp[] conditions; //condition 成立，才能做事
 
- 
+
     protected virtual string renamePostfix => "";
 
     // private bool conditionFeteched = false;
@@ -68,7 +68,7 @@ public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteC
     //     }
     // }
 
-    [AutoParent] DelayActionModifier delayActionModifier;
+    [AutoParent] private DelayActionModifier delayActionModifier;
 
     private bool _delay = false;
 
@@ -77,7 +77,7 @@ public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteC
     {
         if (!isActiveAndEnabled) return;
         if (_delay)
-            UnityEngine.Debug.LogError("Delay 還沒結束又DELAY 死罪", this);
+            Debug.LogError("Delay 還沒結束又DELAY 死罪", this);
 
         // _delay = false;
         //TODO: conditions
@@ -85,7 +85,6 @@ public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteC
 
         _delay = true;
         if (delayActionModifier != null)
-        {
             try
             {
                 //FIXME: 這個delay用unitask不好，時間軸和fsm錯開了
@@ -98,14 +97,13 @@ public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteC
                 // Debug.LogError("Delay Cancelled" + e, this);
                 return;
             }
-        }
 
         _delay = false;
         // this.AddTask(OnStateEnterImplement, delayActionModifier.delayTime);
         OnStateEnterImplement();
     }
 
-    protected abstract void OnStateEnterImplement();
+    protected abstract void OnStateEnterImplement(); //FIXME: 沒參數的?
 
     public void OnActionUpdate()
     {
@@ -165,6 +163,11 @@ public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteC
         //     receiver.EventReceived(arg);
         // }
         // else
+        OnStateEnterImplement();
+    }
+
+    public void EventReceived()
+    {
         OnStateEnterImplement();
     }
 

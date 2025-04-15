@@ -65,8 +65,7 @@ public static class RCGTime
     public static float timeScale
     {
         get => Time.timeScale;
-        set
-        {
+        set =>
             // if (SelfTimeScale)
             // {
             //     _timeScale = value;
@@ -74,24 +73,23 @@ public static class RCGTime
             // else
             // {
             Time.timeScale = value;
-            // Debug.Log("TimeScale:" + value);
-            // }
-        }
+        // Debug.Log("TimeScale:" + value);
+        // }
     }
 
-    public static PrimeTween.Tween DelayTask<T>([NotNull] this T target, float delayTime, Action<T> action)
+    public static Tween DelayTask<T>([NotNull] this T target, float delayTime, Action<T> action)
         where T : class
     {
-        return PrimeTween.Tween.Delay(target, delayTime, action, warnIfTargetDestroyed: false);
+        return Tween.Delay(target, delayTime, action, warnIfTargetDestroyed: false);
     }
 
-    public static PrimeTween.Tween DelayUITask<T>([NotNull] this T target, float delayTime, Action<T> action)
+    public static Tween DelayUITask<T>([NotNull] this T target, float delayTime, Action<T> action)
         where T : class
     {
-        return PrimeTween.Tween.Delay(target, delayTime, action, true);
+        return Tween.Delay(target, delayTime, action, true);
     }
 
-    public static void ExtendDelay(this PrimeTween.Tween tween, float delay)
+    public static void ExtendDelay(this Tween tween, float delay)
     {
         if (tween.isAlive)
         {
@@ -159,14 +157,10 @@ public static class RCGTime
         get
         {
             if (SelfTimeScale)
-            {
                 //FIXME: 寫爛了，不要再乘了？
                 return Time.deltaTime; // * timeScale;
-            }
             else
-            {
                 return Time.deltaTime;
-            }
         }
     }
 
@@ -175,10 +169,7 @@ public static class RCGTime
     {
         get
         {
-            if (SelfTimeScale)
-            {
-                return Time.deltaTime; //
-            }
+            if (SelfTimeScale) return Time.deltaTime; //
 
             return Time.unscaledDeltaTime;
         }

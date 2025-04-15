@@ -8,7 +8,6 @@ using UnityEngine.Events;
 
 namespace RCGMaker.Core
 {
-
     public abstract class AbstractState<T> : MonoBehaviour
     {
         [Required] public T stateType;
@@ -36,7 +35,7 @@ namespace RCGMaker.Core
         public virtual void OnCreateMapping(MonoBehaviour context)
         {
             if (_context != null)
-                Debug.LogError("State Binding Twice?",this);
+                Debug.LogError("State Binding Twice?", this);
 
             _context = context;
         }
@@ -46,13 +45,14 @@ namespace RCGMaker.Core
             statusTimer = 0;
         }
 
+        //如果要mapping 3個 節點 OnStateEnter, OnStateExit, OnStateUpdate 都要寫特殊class?
+
         public virtual void OnStateEnter()
         {
             //        Debug.Log("OnStateEnter" + name, gameObject);
             statusTimer = 0;
             _currentFrameCount = 0;
         }
-
 
 
         public virtual void OnStateExit()
@@ -62,12 +62,9 @@ namespace RCGMaker.Core
         }
 
 
-
         public virtual void OnStateFinally()
         {
-
         }
-
 
 
         public virtual void OnStateUpdate()
@@ -77,40 +74,30 @@ namespace RCGMaker.Core
         }
 
 
-
         // public virtual void OnStateLateUpdate()
         // {
         //
         // }
 
 
-
         public virtual void OnSpriteUpdate()
         {
-
         }
 
 
         public virtual void OnStateFixedUpdate()
         {
-
         }
-
 
 
         public virtual void OnStateCollisionEnter(Collision c)
         {
-
         }
-
-        
     }
-
 
 
     public class StateMapping<T>
     {
-      
         private Dictionary<T, AbstractState<T>> mapping = new();
         private List<MappingEntry> mappingList = new();
         public List<MappingEntry> getAllStates => mappingList;
@@ -119,7 +106,7 @@ namespace RCGMaker.Core
         {
             return mapping.ContainsKey(state);
         }
-        
+
         public struct MappingEntry
         {
             public T state;
@@ -146,13 +133,9 @@ namespace RCGMaker.Core
         public AbstractState<T> FindStateBehavior(T t, bool ResolveProxy = true)
         {
             if (mapping.ContainsKey(t))
-            {
                 return ResolveProxy ? mapping[t].ResolveProxy() : mapping[t];
-            }
             else
                 return null;
         }
     }
-
-
 }

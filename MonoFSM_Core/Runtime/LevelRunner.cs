@@ -2,6 +2,19 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
+    /// <summary>
+    /// Manages the lifecycle of a Unity level, including initialization, setup, and reset functionality.
+    /// </summary>
+    /// <remarks>
+    /// This class is responsible for:
+    /// <list type="bullet">
+    ///   <item>Setting up the scene hierarchy with all root game objects parented to a single level object</item>
+    ///   <item>Managing the execution order of Awake and Start events</item>
+    ///   <item>Providing functionality to reset the level state</item>
+    /// </list>
+    /// The class has a high execution order (10000) to ensure it runs after other components have initialized.
+    /// In the editor, it adds a menu item for resetting the level with a keyboard shortcut (CMD+Shift+R).
+    /// </remarks>
     [DefaultExecutionOrder(10000)]
     public class LevelRunner : MonoBehaviour // SingletonBehaviour<LevelRunner>
     {

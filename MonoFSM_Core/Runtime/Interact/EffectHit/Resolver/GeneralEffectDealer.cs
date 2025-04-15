@@ -24,10 +24,10 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         // [PreviewInInspector]
         [Component]
         // [ShowDrawerChain]
-        IVarMonoProvider _proxyProvider;
+        private IVarMonoProvider _proxyProvider;
 
         [PreviewInInspector]
-        GeneralEffectDealer proxyDealer =>
+        private GeneralEffectDealer proxyDealer =>
             _proxyProvider?.Value?.GetDealer(EffectType); //兩個都可以執行耶，那EffectHitData怎麼算呢？ ex: 人dealer耗體力，斧頭dealer耗耐久
 
 
@@ -39,19 +39,20 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         // [PreviewInInspector] 
         [Component]
         [PropertyOrder(-1)]
-        IFloatProvider _valueSource; //FIXME: 還是要把情境也寫死？
+        private IFloatProvider _valueSource; //FIXME: 還是要把情境也寫死？
         //FIXME: 可能還會涉及多個varfloat,不一定需要？ 用getFloat就好了 
         //通常就是 A 打 B
         //A有value
         //B有cost
         //或甚至有整套判定+運算，ApplyEffectCondition, ApplyEffects
 
-        [PreviewInInspector] [AutoParent] IBinder _binder;
+        [PreviewInInspector] [AutoParent] private IBinder _binder;
 
         public bool IsEnteredReceiver(IEffectReceiver receiver)
         {
             return _receivers.Contains(receiver);
         }
+
         public bool CanHitReceiver(IEffectReceiver receiver)
         {
             // if (!IsValid)
@@ -61,10 +62,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             if (!receiver.IsValid) //沒開的不算
                 return false;
             var r = (GeneralEffectReceiver)receiver;
-            if (r.EffectType != EffectType)
-            {
-                return false;
-            }
+            if (r.EffectType != EffectType) return false;
 
 
             if (_proxyProvider != null) //指定需要透過ProxyProvider拿 ex: 斧頭上的Dealer
@@ -96,27 +94,23 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             }
 
             var id = UnityEditor.GlobalObjectId.GetGlobalObjectIdSlow(r);
-            
-            this.Log("HitReceiver Success:" , r.GetGlobalId());
-            Debug.Log("HitReceiver Success:" , r);
+
+            this.Log("HitReceiver Success:", r.GetGlobalId());
+            Debug.Log("HitReceiver Success:", r);
             return true;
         }
 
         public float FinalValue => _valueSource.GetFloat();
 
         //FIXME: runtime receivers
-        [PreviewInInspector] List<IEffectReceiver> _receivers = new();
+        [PreviewInInspector] private List<IEffectReceiver> _receivers = new();
         [PreviewInInspector] private GeneralEffectReceiver _lastReceiver;
 
         public void OnHitEnter(IEffectHitData data)
         {
-            if (_proxyProvider != null)
-            {
-                proxyDealer.OnHitEnter(data);
-                //兩邊可能都要做事，都判
-            }
-
-            _enterNode?.OnEffectReceived(data);
+            if (_proxyProvider != null) proxyDealer.OnHitEnter(data);
+            //兩邊可能都要做事，都判
+            _enterNode?.EventHandle(data);
             _receivers.Add(data.Receiver);
             _lastReceiver = data.Receiver as GeneralEffectReceiver;
         }
@@ -124,12 +118,9 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public void OnHitExit(IEffectHitData data)
         {
             //_receivers裡面要有才可以做這件事
-            if (_proxyProvider != null)
-            {
-                proxyDealer.OnHitEnter(data);
-            }
+            if (_proxyProvider != null) proxyDealer.OnHitEnter(data);
 
-            _exitNode?.OnEffectReceived(data);
+            _exitNode?.EventHandle(data);
             _receivers.Remove(data.Receiver);
         }
 

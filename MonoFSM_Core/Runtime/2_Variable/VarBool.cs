@@ -10,10 +10,6 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
 
-internal interface IValueChangeCallback
-{
-    void OnValueChanged(bool value);
-}
 
 // public interface IVariableBoolProvider
 // {

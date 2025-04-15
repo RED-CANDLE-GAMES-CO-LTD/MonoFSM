@@ -25,10 +25,10 @@ public interface IEffectHitData
     void Override(IEffectDealer dealer, IEffectReceiver receiver);
 }
 
-public interface IEffectReceivedHandler //FIXME:和下面整和吧
-{
-    void OnEffectReceived(IEffectHitData data);
-}
+// public interface IEffectReceivedHandler //FIXME:和下面整和吧
+// {
+//     void OnEffectReceived(IEffectHitData data);
+// }
 
 public interface IEffectHitHandler
 {

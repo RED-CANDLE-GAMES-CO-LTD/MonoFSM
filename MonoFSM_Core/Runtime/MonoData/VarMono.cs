@@ -11,7 +11,7 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
 {
     //需要再定義更細的class嗎？還是MonoDescriptable就夠了
     //最常用的Variable? MonoDescriptable下也會有MonoDescriptable
-    public class VarMono : GenericUnityObjectVariable<MonoDescriptable>,IOverrideHierarchyIcon
+    public class VarMono : GenericUnityObjectVariable<MonoDescriptable>
     {
         //FIXME: 還能做型別限制、檢查嗎？
         //MonoSchema?
@@ -28,7 +28,7 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
         [Header("預設值")] [SerializeField] [DropDownRef(null, nameof(SiblingValueFilter))]
         private MonoDescriptable _siblingDefaultValue;
 
-        Type SiblingValueFilter()
+        private Type SiblingValueFilter()
         {
             if (_varTag == null)
                 return typeof(MonoDescriptable);
@@ -47,11 +47,11 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
         //FIXME: 用Type更好嗎？
         public override GameFlagBase FinalData => Value != null ? Value.Data : SampleData;
 
-        public string IconName => "vcs_document";
-        public bool IsDrawingIcon => true;
-        //Fixme: 還是應該要外部登記比較好？
-#if UNITY_EDITOR
-        public Texture2D CustomIcon => UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarMonoIcon.png");
-#endif
+//         public string IconName => "vcs_document";
+//         public bool IsDrawingIcon => true;
+//         //Fixme: 還是應該要外部登記比較好？
+// #if UNITY_EDITOR
+//         public Texture2D CustomIcon => UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarMonoIcon.png");
+// #endif
     }
 }

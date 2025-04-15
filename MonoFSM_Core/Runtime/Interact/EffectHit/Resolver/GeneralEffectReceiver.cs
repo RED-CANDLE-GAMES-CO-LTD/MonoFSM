@@ -37,15 +37,15 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         {
             this.Log("OnEffectHitEnter");
             _currentHitData = data;
-            _enterNode?.OnEffectReceived(data);
+            _enterNode?.EventHandle(data);
         }
 
-        [PreviewInInspector] IEffectHitData _currentHitData;
+        [PreviewInInspector] private IEffectHitData _currentHitData;
 
         public void OnEffectHitExit(IEffectHitData data)
         {
             this.Log("OnHitExit");
-            _exitNode?.OnEffectReceived(data);
+            _exitNode?.EventHandle(data);
             _currentHitData = null;
         }
 
