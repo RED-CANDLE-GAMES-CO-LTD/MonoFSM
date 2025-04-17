@@ -1,6 +1,6 @@
 using UnityEditor;
 
-namespace RCGMakerFSM.InternalBridge
+namespace MonoFSM.InternalBridge
 {
     internal static class GlobalObjectIdBridge
     {

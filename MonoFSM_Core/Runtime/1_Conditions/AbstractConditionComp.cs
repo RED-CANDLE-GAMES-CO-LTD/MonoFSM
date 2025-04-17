@@ -1,0 +1,143 @@
+﻿using JetBrains.Annotations;
+using MonoFSM.Foundation;
+using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
+using MonoFSM.Variable;
+using RCGSetting;
+using UnityEngine;
+using Sirenix.OdinInspector;
+
+public interface ICondition
+{
+    bool IsValid { get; }
+}
+
+public static class ConditionHelper
+{
+    public static bool IsAllValid(this AbstractConditionComp[] conditions)
+    {
+        if (conditions == null || conditions.Length == 0)
+            return true;
+        foreach (var condition in conditions)
+        {
+            if (condition == null)
+                continue;
+            if (condition.gameObject.activeSelf == false) //只看自己，可能是parent有人關
+                continue;
+            if (condition.FinalResult == false) return false;
+        }
+
+        return true;
+    }
+}
+
+public interface IConditionChangeListener
+{
+    void OnConditionChanged();
+}
+
+//還是Condition要用Is開頭？
+public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoolProvider
+{
+//     [Button]
+//     [ShowIf("IsShowRenameButton")]
+//     protected void RenameOfGameObject()
+//     {
+//         try
+//         {
+//             var text = "[Condition] " + Description;
+//             if (FinalResultInverted)
+//                 text = "[Condition] Not " + Description;
+//             gameObject.name = text;
+// #if UNITY_EDITOR
+//             UnityEditor.EditorUtility.SetDirty(gameObject);
+// #endif
+//         }
+//         catch (System.Exception e)
+//         {
+//             Debug.LogError(e,this);
+//         }
+//     }
+    protected override string DescriptionTag => "Condition";
+
+    protected override string DescriptionPreprocess(string description)
+    {
+        var text = base.DescriptionPreprocess(description);
+        return FinalResultInverted ? " Not " + text : text;
+    }
+
+    // protected override string Description => 
+
+    //要能實作OnConditionChanged?
+    //FIXME: 不一定有transition啊, 不該用transition, 監聽的介面, IXXListener?
+    // [AutoParent] protected StateTransition _parentTransition;
+    [AutoParent] protected IConditionChangeListener _parentConditionChangeListener;
+    // protected virtual bool IsShowRenameButton => Description != "";
+    //
+    // //FIXME: AI 可以解釋性？
+    // //FIXME: 整合 Description, interface?
+    // protected virtual string Description => this.GetType().Name;
+
+
+    //FIXME: 可是 _parentTransition等著被call
+    // public Action OnConditionChanged; //要用這個？還是用polling就好了
+    //直接用interface往上叫好像不錯？
+    private bool _isConditionChanged = false;
+
+    //用類似statData 檢查dirty來決定要不要重新檢查condition
+    public bool IsDirty => _isConditionChanged;
+
+    public virtual bool IsInvertResultOptionAvailable => true;
+
+    [ShowIf(nameof(IsInvertResultOptionAvailable))]
+    public bool FinalResultInverted = false;
+
+    protected abstract bool IsValid { get; }
+
+    [ShowInPlayMode]
+    public bool FinalResult
+    {
+        get
+        {
+            if (Application.isPlaying == false)
+                return false;
+#if UNITY_EDITOR
+
+            //Debug用，暫時強迫覆蓋值 (ex: 裝備可以在路上換)
+            if (_debugConditionResultOverrider != null && IsDebugMode)
+                return _debugConditionResultOverrider.OverrideResultValue;
+#endif
+            //之前都沒有...
+            // if (isActiveAndEnabled == false)
+            //     return false;
+            //FIXME: 關著表示不判...
+
+            if (FinalResultInverted)
+                return !IsValid;
+
+            return IsValid;
+        }
+    }
+
+
+#if UNITY_EDITOR
+    [ShowIf("IsDebugMode")] [PropertyOrder(1)] [TabGroup("Debug")] [Component] [AutoChildren(false)]
+    protected DebugConditionResultOverrider _debugConditionResultOverrider;
+
+    [ShowIf("IsDebugMode")]
+    [ShowInInspector]
+    [TabGroup("Debug")]
+    public bool OverrideValue =>
+        _debugConditionResultOverrider != null && _debugConditionResultOverrider.OverrideResultValue;
+
+    private static bool IsDebugMode => DebugSetting.IsDebugMode;
+#endif
+
+    //For Cheat Code
+    public virtual void CheatComplete()
+    {
+        Debug.LogError("This Condition Can't ForceSetValid");
+    }
+
+    public bool IsTrue => FinalResult;
+}

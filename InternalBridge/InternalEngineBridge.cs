@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace RCGMakerFSM.InternalBridge
+namespace MonoFSM.InternalBridge
 {
     // internal static class InternalEngineBridge
     // {

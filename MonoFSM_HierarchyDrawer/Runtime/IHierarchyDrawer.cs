@@ -48,17 +48,9 @@ namespace RCGExtension
         //
     }
 
-    public interface IOverrideHierarchyIcon
-    {
-        public string IconName { get; }
-        public bool IsDrawingIcon { get; }
-        public Texture2D CustomIcon { get; }
-    }
 
     public interface IHierarchyTimelineTrack
     {
         //這個應該要從editor code去參照...要用一個dictionary去紀錄有被timeline bind到的物件
     }
-
-    
 }

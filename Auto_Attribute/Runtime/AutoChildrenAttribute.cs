@@ -22,7 +22,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-[AttributeUsage(AttributeTargets.Field)]
+// [AttributeUsage(AttributeTargets.Field)]
+[AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
 public class AutoChildrenAttribute : AutoFamily
 {
     // public bool runtimeIgnore = false; //FIXME: 之後如果想要做全Serialized的
@@ -49,21 +50,13 @@ public class AutoChildrenAttribute : AutoFamily
         var result = mb.GetComponentInChildren(LimitedType ?? componentType, includeInactive);
         if (DepthOneOnly)
         {
-            if (result == null)
-            {
-                return null;
-            }
+            if (result == null) return null;
 
-//同一層給過？
-            if (result.transform == mb.transform)
-            {
-                return result;
-            }
+            //同一層給過？
+            if (result.transform == mb.transform) return result;
 
             if (result.transform.parent == mb.transform)
-            {
                 return result;
-            }
             else
                 return null;
         }
@@ -88,7 +81,7 @@ public class AutoChildrenAttribute : AutoFamily
                 all.AddRange(result);
             }
 
-            Array dest = Array.CreateInstance(componentType, all.Count);
+            var dest = Array.CreateInstance(componentType, all.Count);
             Array.Copy(all.ToArray(), dest, all.Count);
             return dest as object[];
         }
@@ -103,7 +96,7 @@ public class AutoChildrenAttribute : AutoFamily
         // }
 
         var results = mb.GetComponentsInChildren(LimitedType ?? componentType, includeInactive);
-        Array destinationArray = Array.CreateInstance(componentType, results.Length);
+        var destinationArray = Array.CreateInstance(componentType, results.Length);
         Array.Copy(results, destinationArray, results.Length);
         return
             destinationArray as object[]; //Array.ConvertAll(results, item => Convert.ChangeType(item, componentType));

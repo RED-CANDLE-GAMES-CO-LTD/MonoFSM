@@ -1,0 +1,18 @@
+{
+    "name": "MonoFSM_InputAction",
+    "rootNamespace": "",
+    "references": [
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:c2f440c9fef6c8c40ac5c50eea18c599",
+        "GUID:2ce824e5d56f8495cb762ccff02f283b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
