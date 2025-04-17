@@ -438,6 +438,25 @@
         "id": "53c50263-716c-5198-864b-2f3717d68438"
       }
     ],
+    "PrefabReferenceWindow": [
+      {
+        "filename": "MonoBehaviourContextMenuExtensions.cs",
+        "meta_guid": "28e2ebde6adbc4416be5028ced56212c",
+        "summary": {
+          "class": "MonoBehaviourContextMenuExtensions"
+        },
+        "id": "2a200fc0-40b9-5f83-a5d0-70aa76544ff7"
+      },
+      {
+        "filename": "PrefabReferenceWindow.cs",
+        "meta_guid": "481f18f3a4a1f464580ca7eed7cc1415",
+        "summary": {
+          "class": "PrefabReferenceWindow",
+          "base": "EditorWindow"
+        },
+        "id": "5ef1df36-01ee-5197-b0b8-23328cb4253f"
+      }
+    ],
     "UnityEditorWindow": [
       {
         "filename": "AnimationClipSearchWindow.cs",
@@ -654,7 +673,7 @@
               "interfaces": [
                 "IFloatProvider"
               ],
-              "extractable_properties": [
+              "properties": [
                 {
                   "type": "float",
                   "name": "_literal"
@@ -1226,7 +1245,7 @@
             "IConditionChangeListener",
             "IOverrideHierarchyIcon"
           ],
-          "extractable_properties": [
+          "properties": [
             {
               "type": "GeneralState",
               "name": "_target"
@@ -1456,7 +1475,11 @@
             "meta_guid": "13bf017d58a14658ab1624dae1969e2b",
             "summary": {
               "class": "VariableFloatValueCondition",
-              "base": "AbstractConditionComp"
+              "base": "AbstractConditionComp",
+              "interfaces": [
+                "IResetStart",
+                "ITransitionCheckInvoker"
+              ]
             },
             "id": "d5cf743a-aa99-5aa1-8ebd-d833fb1902b5"
           }
@@ -1683,7 +1706,7 @@
           "summary": {
             "class": "FlagFieldString",
             "base": "FlagField",
-            "extractable_properties": [
+            "properties": [
               {
                 "type": "T",
                 "name": "ProductionValue"
@@ -1718,7 +1741,7 @@
           "meta_guid": "be648fa95fd1749ceb15d228b29576b1",
           "summary": {
             "class": "GenericMonoVariable",
-            "extractable_properties": [
+            "properties": [
               {
                 "type": "TField",
                 "name": "_localField"
@@ -2302,7 +2325,7 @@
           "meta_guid": "4971fdf63480848d1addd15c83e94d6f",
           "summary": {
             "class": "IntValueWrapper",
-            "extractable_properties": [
+            "properties": [
               {
                 "type": "VarInt",
                 "name": "target"
@@ -3033,7 +3056,7 @@
                 "interfaces": [
                   "IDefaultSerializable"
                 ],
-                "extractable_properties": [
+                "properties": [
                   {
                     "type": "GeneralEffectType",
                     "name": "EffectType"

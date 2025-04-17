@@ -115,7 +115,12 @@ if __name__ == '__main__':
     tree = clean_tree(tree)
     add_ids(tree)
     manifest = build_manifest_root(tree)
-    
-    os.makedirs(os.path.dirname('../.ai/MonoFSM_Core_manifest.json'), exist_ok=True)
-    with open('../.ai/MonoFSM_Core_manifest.json', 'w', encoding='utf-8') as f:
+
+    # 取得母資料夾名稱
+    abs_root = os.path.abspath(root_path)
+    parent_folder = os.path.basename(abs_root.rstrip(os.sep))
+    ai_dir = os.path.join(abs_root, '.AI')
+    os.makedirs(ai_dir, exist_ok=True)
+    manifest_path = os.path.join(ai_dir, f'{parent_folder}_manifest.json')
+    with open(manifest_path, 'w', encoding='utf-8') as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)

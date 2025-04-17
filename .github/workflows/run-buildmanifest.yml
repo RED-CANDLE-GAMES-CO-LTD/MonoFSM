@@ -27,7 +27,7 @@ jobs:
 
       - name: Verify manifest file
         run: |
-          if [ ! -f .ai/MonoFSM_Core_manifest.json ]; then
+          if [ ! -f MonoFSM_Core/.AI/MonoFSM_Core_manifest.json ]; then
             echo "Manifest file not found!"
             exit 1
           fi
@@ -36,4 +36,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MonoFSM_Core_manifest
-          path: .ai/MonoFSM_Core_manifest.json
+          path: MonoFSM_Core/.AI/MonoFSM_Core_manifest.json

@@ -1,0 +1,37 @@
+# Ignore build and temp files
+*.obj
+*.exe
+*.dll
+*.pdb
+*.mdb
+*.log
+*.user
+*.suo
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+
+# Ignore Unity specific files
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore Rider settings
+.idea/
+*.sln.iml
+
+# Ignore OS generated files
+Thumbs.db
+Desktop.ini
+
+# Ignore package manager files
+Packages/manifest.json
+Packages/packages-lock.json
