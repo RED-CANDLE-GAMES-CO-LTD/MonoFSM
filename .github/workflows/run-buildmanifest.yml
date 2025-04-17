@@ -19,6 +19,9 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Create .ai directory
+        run: mkdir -p .ai
+
       - name: Run buildmanifest.py
         run: python3 MonoFSM_Core/buildmanifest.py
 
