@@ -13,7 +13,7 @@ namespace MonoFSM.Core
         // void HandleEvent(IEvent e);
     }
 
-    public abstract class AbstractEventHandler : MonoBehaviour, IEventHandler
+    public abstract class AbstractEventHandler : MonoBehaviour, IEventHandler, IActionParent
     {
         [CompRef] [AutoChildren(DepthOneOnly = true)]
         protected IRCGArgEventReceiver[] _eventReceivers;

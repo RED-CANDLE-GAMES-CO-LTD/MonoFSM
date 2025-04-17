@@ -12,6 +12,9 @@ namespace MonoFSM.Variable.Condition
     {
         protected override string Description => _monoVariableBool?.name + " == " + targetValue;
 
+        /// <summary>
+        /// Invoked when the bound variable changes.
+        /// </summary>
         private void OnVariableChanged()
         {
             Rename();

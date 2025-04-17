@@ -152,6 +152,7 @@ namespace RCGMaker.Core.DataProvider
                 case GetFromType.VariableOwner:
                 {
                     var parents = CurrentTarget.GetComponentsInParent<VariableOwner>();
+
                     foreach (var parent in parents)
                     {
                         if (parent.VariableFolder == null)
@@ -163,6 +164,11 @@ namespace RCGMaker.Core.DataProvider
                                 tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
                     }
 
+                    if (tags.Count == 0)
+                    {
+                        Debug.LogError("All Parent VariableFolder has no Variable", CurrentTarget);
+                        foreach (var parent in parents) Debug.LogError("Parent  has no Variable?", parent);
+                    }
 
                     break;
                 }
@@ -311,6 +317,11 @@ namespace RCGMaker.Core.DataProvider
         public object GetValue()
         {
             return Value;
+        }
+
+        public string GetDescription()
+        {
+            return _varTag.name;
         }
     }
 }

@@ -8,10 +8,20 @@ namespace RCGMakerFSM.VarRef
     /// </summary>
     public class SourceValueRef : MonoBehaviour
     {
-        [Component] [Auto] IConfigVar _configVar;
+        [Component] [Auto] private IConfigVar _configVar;
+
         public object GetValue()
         {
             return _configVar.GetValue();
+        }
+
+        public override string ToString()
+        {
+#if UNITY_EDITOR
+            _configVar = GetComponent<IConfigVar>();
+            if (_configVar == null) return "";
+#endif
+            return _configVar.GetDescription();
         }
     }
 }

@@ -3,6 +3,7 @@ using MonoFSM.Foundation;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
+using RCGExtension;
 using RCGSetting;
 using UnityEngine;
 using Sirenix.OdinInspector;
@@ -37,8 +38,16 @@ public interface IConditionChangeListener
 }
 
 //還是Condition要用Is開頭？
-public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoolProvider
+public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoolProvider, IOverrideHierarchyIcon
 {
+#if UNITY_EDITOR
+    public string IconName { get; }
+    public bool IsDrawingIcon => true;
+
+    public Texture2D CustomIcon =>
+        UnityEditor.EditorGUIUtility.ObjectContent(null, typeof(AbstractConditionComp)).image as Texture2D;
+    //UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");
+#endif
 //     [Button]
 //     [ShowIf("IsShowRenameButton")]
 //     protected void RenameOfGameObject()

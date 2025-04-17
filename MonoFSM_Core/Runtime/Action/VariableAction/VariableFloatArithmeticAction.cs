@@ -19,7 +19,7 @@ namespace RCGFSM.Variable
         protected override string Description =>
             $"{targetFlag?._varTag?.name} {arithmeticSymbol}= {sourceType} {sourceType switch { ValueSourceType.Constant => ConstValue, _ => 0 }}";
 
-        string arithmeticSymbol => Arithmetic switch
+        private string arithmeticSymbol => Arithmetic switch
         {
             ArithmeticOperator.Add => "+",
             ArithmeticOperator.Sub => "-",
@@ -42,7 +42,7 @@ namespace RCGFSM.Variable
             Receiver,
             Constant,
             Variable,
-            Provider,
+            Provider
         }
 
         [FormerlySerializedAs("valueSource")] public ValueSourceType sourceType;
@@ -51,11 +51,14 @@ namespace RCGFSM.Variable
         {
             switch (sourceType)
             {
+                //這個感覺太細了
                 case ValueSourceType.Dealer:
-                    DoOperation(arg.Dealer.FinalValue);
+                    throw new System.NotImplementedException();
+                    //     DoOperation(arg.Dealer.FinalValue);
                     break;
                 case ValueSourceType.Receiver:
-                    DoOperation(arg.Receiver.ReactValue);
+                    throw new System.NotImplementedException();
+                    //     DoOperation(arg.Receiver.ReactValue);
                     break;
                 case ValueSourceType.Constant:
                     DoOperation(ConstValue);
@@ -84,7 +87,7 @@ namespace RCGFSM.Variable
                     break;
             }
 
-            this.Log("VariableFloatArithmeticAction: " , targetFlag.CurrentValue);
+            this.Log("VariableFloatArithmeticAction: ", targetFlag.CurrentValue);
         }
 
         //last value < current value

@@ -16,7 +16,7 @@ namespace RCGMaker.Core.Detection
 
         public bool IsValid => _conditions.IsAllValid();
 
-        List<SpatialDetectable> toRemove = new List<SpatialDetectable>();
+        private List<EffectDetectable> toRemove = new();
 
         //FIXME: Receiver的部分要怎麼處理？ 也會有開關的問題？還是沒差遇到再說
         private void OnDisable()
@@ -27,10 +27,8 @@ namespace RCGMaker.Core.Detection
             //copy _detectedObjects to toRemove
             toRemove.AddRange(_detectedObjects);
             foreach (var detectable in toRemove)
-            {
                 // Debug.Log("OnDisable of detectable",detectable);
                 OnSpatialExit(detectable.gameObject);
-            }
 
             toRemove.Clear();
         }
@@ -57,12 +55,12 @@ namespace RCGMaker.Core.Detection
 
         protected abstract void SetLayerOverride();
 
-        [PreviewInInspector] protected List<SpatialDetectable> _detectedObjects = new List<SpatialDetectable>();
+        [PreviewInInspector] protected List<EffectDetectable> _detectedObjects = new();
 #if UNITY_EDITOR
-        [PreviewInInspector] protected List<SpatialDetectable> _lastDetectedObjects = new List<SpatialDetectable>();
+        [PreviewInInspector] protected List<EffectDetectable> _lastDetectedObjects = new();
 
         [Button]
-        void ClearLastDetectedObjects()
+        private void ClearLastDetectedObjects()
         {
             _lastDetectedObjects.Clear();
         }
@@ -74,9 +72,9 @@ namespace RCGMaker.Core.Detection
             if (IsValid == false) //條件不符合
                 return;
             //理論上不該打到別的東西，layer就擋掉了才對 (有分layer的話)
-            if (!other.TryGetComponent<SpatialDetectable>(out var spatialDetectable))
+            if (!other.TryGetComponent<EffectDetectable>(out var spatialDetectable))
             {
-                Debug.LogError(other.name + " is not a SpatialDetectable" + other.gameObject.layer, other);
+                Debug.LogError(other.name + " is not a EffectDetectable" + other.gameObject.layer, other);
 
                 return;
             }
@@ -92,10 +90,7 @@ namespace RCGMaker.Core.Detection
             //FIXME: 用update撈起來等等再判？
             foreach (var dealer in dealers)
             {
-                if (!dealer.IsValid)
-                {
-                    continue;
-                }
+                if (!dealer.IsValid) continue;
 
                 foreach (var receiver in spatialDetectable.EffectReceivers)
                 {
@@ -112,17 +107,14 @@ namespace RCGMaker.Core.Detection
 
         public void OnSpatialExit(GameObject other)
         {
-            if (!other.TryGetComponent<SpatialDetectable>(out var spatialDetectable))
-            {
+            if (!other.TryGetComponent<EffectDetectable>(out var spatialDetectable))
                 // Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer);
                 return;
-            }
 
             _detectedObjects.Remove(spatialDetectable);
             spatialDetectable._detectors.Remove(this);
             //FIXME: 連點會有狀態問題耶...
             foreach (var dealer in dealers)
-            {
                 //FIXME: 點下去，可能就造成dealer的condition變了耶
                 // if (!dealer.IsValid) //有點討厭，這個很容易漏掉, 這個會讓
                 // {
@@ -130,17 +122,16 @@ namespace RCGMaker.Core.Detection
                 //     continue;
                 // }
                 //Dealer觸發後，造成條件變化了，這樣這邊會很難判定？
-                foreach (var receiver in spatialDetectable.EffectReceivers)
-                {
-                    //對稱
-                    if(!dealer.IsEnteredReceiver(receiver)) continue;
-                    // if (!dealer.CanHitReceiver(receiver)) continue;
-                    //FIXME: 這個是不是不該generate? 還是重新gen也還好
-                    var hitData = receiver.GenerateEffectHitData(dealer, receiver);
-                    
-                    dealer.OnHitExit(hitData);
-                    receiver.OnEffectHitExit(hitData);
-                }
+            foreach (var receiver in spatialDetectable.EffectReceivers)
+            {
+                //對稱
+                if (!dealer.IsEnteredReceiver(receiver)) continue;
+                // if (!dealer.CanHitReceiver(receiver)) continue;
+                //FIXME: 這個是不是不該generate? 還是重新gen也還好
+                var hitData = receiver.GenerateEffectHitData(dealer, receiver);
+
+                dealer.OnHitExit(hitData);
+                receiver.OnEffectHitExit(hitData);
             }
         }
     }

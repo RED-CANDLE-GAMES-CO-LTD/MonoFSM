@@ -5,10 +5,11 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.Interact.SpatialDetection
 {
-    public class MouseOverDetectable:SpatialDetectable
+    public class MouseOverDetectable : EffectDetectable
     {
         [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
         private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
+
         public void OnMouseEnter()
         {
             // Debug.Log("OnMouseEnter", this);
@@ -27,7 +28,6 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
             //TODO: 馬上就Exit?
             //FIXME: 連點會有狀態問題耶...
             //FIXME: 要條件對才可以做這件事？
-         
         }
 
         public void OnMouseExit()

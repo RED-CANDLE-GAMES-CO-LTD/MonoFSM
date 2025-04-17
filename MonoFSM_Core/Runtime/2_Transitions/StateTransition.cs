@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using jerryee.UnityMCP;
 using MonoFSM.Foundation;
+using RCGExtension;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
@@ -37,8 +38,16 @@ public interface ITransitionCheckInvoker //interface沒有意義？
 
 [Searchable]
 public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefaultSerializable, IResetStateRestore,
-    IBeforePrefabSaveCallbackReceiver, IConditionChangeListener
+    IBeforePrefabSaveCallbackReceiver, IConditionChangeListener, IOverrideHierarchyIcon
 {
+#if UNITY_EDITOR
+    public string IconName { get; }
+    public bool IsDrawingIcon => true;
+
+    public Texture2D CustomIcon =>
+        UnityEditor.EditorGUIUtility.ObjectContent(null, typeof(StateTransition)).image as Texture2D;
+    //UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");
+#endif
     //現在event driven直接set也work, 要做成只有condition改變才會觸發transition?
     public bool IsTransitionCheckNeeded = false;
 
@@ -49,7 +58,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     [AutoParent]
     [Component(AddComponentAt.Same)]
     //FIXME: 會有需要parent的情況嗎？ children也包括自己
-    private ITransitionCheckInvoker _checkInvoker;
+    private ITransitionCheckInvoker _checkInvoker; //AnimatorPlayAction動畫...有點鳥
 
     //要分同層級的嗎？
     [Component] [PreviewInInspector] [AutoChildren]

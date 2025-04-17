@@ -14,5 +14,10 @@ namespace MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
         {
             return _descriptable;
         }
+
+        public string GetDescription()
+        {
+            return "[Mono]Self";
+        }
     }
 }

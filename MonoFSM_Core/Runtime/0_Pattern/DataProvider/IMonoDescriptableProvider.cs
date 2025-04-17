@@ -20,7 +20,7 @@ namespace RCGMaker.Core.DataProvider
     {
         ParentMono, //已經有Instance了
         GlobalMonoInstance, //已經有Instance了
-        Variable, //還不一定有。可能是null
+        Variable //還不一定有。可能是null
     }
 
 
@@ -35,11 +35,11 @@ namespace RCGMaker.Core.DataProvider
         //從Variable拿？
 
 
-        [SerializeField] ProviderType providerType;
+        [SerializeField] private ProviderType providerType;
 
         //如果是parent就不需要這個了？
         // [ShowIf("providerType", ProviderType.GlobalMonoInstance)] 
-        [SerializeField] MonoDescriptableTag monoDescriptableTag;
+        [SerializeField] private MonoDescriptableTag monoDescriptableTag;
 
         [ShowIf("providerType", ProviderType.Variable)] [SerializeReference]
         public IVarMonoProvider variableProvider;
@@ -69,7 +69,7 @@ namespace RCGMaker.Core.DataProvider
         }
 
         [Button]
-        void Refresh()
+        private void Refresh()
         {
             GetMonoDescriptable();
         }
@@ -105,6 +105,11 @@ namespace RCGMaker.Core.DataProvider
         {
             return CurrentInstance;
         }
+
+        public string GetDescription()
+        {
+            return monoDescriptableTag.name;
+        }
     }
 
     //可以refactor
@@ -118,6 +123,11 @@ namespace RCGMaker.Core.DataProvider
         object IConfigVar.GetValue()
         {
             return _monoDescriptable;
+        }
+
+        public string GetDescription()
+        {
+            return _monoDescriptable.name;
         }
 
         public MonoDescriptable GetMonoDescriptable()
@@ -137,9 +147,14 @@ namespace RCGMaker.Core.DataProvider
             return GetMonoDescriptable();
         }
 
+        public string GetDescription()
+        {
+            return monoDescriptableTag.name;
+        }
+
         [GUIColor(0.8f, 1.0f, 0.8f)]
         [PreviewInInspector]
-        IMonoDescriptable currentInstance => GetMonoDescriptable();
+        private IMonoDescriptable currentInstance => GetMonoDescriptable();
 
         public MonoDescriptable GetMonoDescriptable()
         {

@@ -15,10 +15,10 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         }
 
         [PreviewInInspector] [Component(AddComponentAt.Parent)] [Required] [AutoParent]
-        private SpatialDetectable _detectable; //不一定是，IEffectDetectable?
+        private EffectDetectable _detectable; //不一定是，IEffectDetectable?
 
         // [PropertyOrder(-1)]
-        public IFloatValueProvider ValueSource; //FIXME: 拿來做什麼？
+        // public  ValueSource; //FIXME: 拿來做什麼？
 
         //FIXME: 從GeneralEffectHitData？
         public IEffectHitData GenerateEffectHitData(IEffectDealer dealer, IEffectReceiver receiver)
@@ -49,7 +49,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             _currentHitData = null;
         }
 
-        public float ReactValue => ValueSource?.FinalValue ?? 0;
+        // public float ReactValue => ValueSource?.FinalValue ?? 0;
 
         //EffectExit也要呢
         protected override string TypeTag => "Receiver";

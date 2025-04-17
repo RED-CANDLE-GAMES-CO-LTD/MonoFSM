@@ -65,7 +65,8 @@ public interface IEffectReceiver //FIXME: 好像不需要interface
 
     // void OnHitStay(IEffectHitData data);
     void OnEffectHitExit(IEffectHitData data);
-    float ReactValue { get; }
+
+    // float ReactValue { get; }
     bool IsValid { get; }
 }
 

@@ -14,9 +14,14 @@ namespace RCGMaker.Core.DataProvider
         public abstract TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable;
 
         [Button]
-        void Rename()
+        private void Rename()
         {
             name = "[Ref]" + VarRaw?.name;
+        }
+
+        public override string ToString()
+        {
+            return VarRaw?.name;
         }
     }
 }
