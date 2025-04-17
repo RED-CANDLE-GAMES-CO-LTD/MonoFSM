@@ -1,0 +1,29 @@
+name: Run buildmanifest.py and upload manifest artifact
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  run-buildmanifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run buildmanifest.py
+        run: python3 MonoFSM_Core/buildmanifest.py
+
+      - name: Upload manifest as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MonoFSM_Core_manifest
+          path: .ai/MonoFSM_Core_manifest.json
