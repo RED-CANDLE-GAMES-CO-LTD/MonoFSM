@@ -1,0 +1,3949 @@
+{
+  "manifestVersion": "1.0.0",
+  "description": "MonoFSM API and file manifest for tooling and automation.",
+  "intendedFor": [
+    "AI",
+    "IDE",
+    "DocsGen"
+  ],
+  "customData": {},
+  "Editor": {
+    "CustomDrawer": {
+      "AttributeProcessor": [
+        {
+          "filename": "ShowInPlayModeAttributeProcessor.cs",
+          "meta_guid": "58ac4fa6b2884c9daff14c18bd27bb92",
+          "summary": {
+            "class": "ShowInPlayModeAttributeProcessor",
+            "base": "OdinAttributeProcessor"
+          },
+          "id": "1e8d1ed4-4bd5-5afb-b42f-20987ff82c43"
+        }
+      ],
+      "DropDownAsset": [
+        {
+          "filename": "DropDownAssetDrawer.cs",
+          "meta_guid": "f8c4d904d3ff49ebba12915e0b84d9bf",
+          "summary": {
+            "class": "DropDownAssetDrawer",
+            "base": "OdinAttributeDrawer"
+          },
+          "id": "2812fc14-65ca-523c-8470-ab108e7cd424"
+        },
+        {
+          "filename": "DropDownAssetSelector.cs",
+          "meta_guid": "22605111ad3e45b58afa6f820bebb2f0",
+          "summary": {
+            "class": "DropDownAssetSelector",
+            "base": "OdinSelector"
+          },
+          "id": "c49a3456-f9fa-5891-9ffd-3dcbd167e3a9"
+        }
+      ],
+      "DropDownRef": [
+        {
+          "filename": "DropDownRefCompSelector.cs",
+          "meta_guid": "30f59a0e3e7c4f3894dddb0125987f3b",
+          "summary": {
+            "class": "DropDownRefCompSelector",
+            "base": "OdinSelector"
+          },
+          "id": "0bba4ebc-9c88-5df5-87ac-6c14ba66c556"
+        },
+        {
+          "filename": "DropDownRefDrawer.cs",
+          "meta_guid": "4b3e3654aa6b242bc9e04967db9f4c63",
+          "summary": {
+            "class": "DropDownRefAttributeDrawer",
+            "base": "OdinAttributeDrawer"
+          },
+          "id": "977e1e2b-9f1c-5c44-a8db-5017fd553bf1"
+        }
+      ],
+      "files": [
+        {
+          "filename": "AutoChildrenDrawer.cs",
+          "meta_guid": "7e12b25b3f60410a9d3ba8307b9e48de",
+          "summary": {
+            "class": "AutoChildrenDrawer",
+            "base": "AutoFamilyDrawer"
+          },
+          "id": "79acb83b-5d1d-57bb-9ea7-14f7d0a92de5"
+        },
+        {
+          "filename": "AutoDrawer.cs",
+          "meta_guid": "db9fa27c28c54d3c928ba89eb854cbd7",
+          "summary": {
+            "class": "AutoDrawer",
+            "base": "AutoFamilyDrawer"
+          },
+          "id": "63f7d9b1-d58f-5e77-8ef1-c14dc0fbdea8"
+        },
+        {
+          "filename": "AutoFamilyDrawer.cs",
+          "meta_guid": "459e0c013ff60425e99be6db4296e92e",
+          "summary": {
+            "class": "AutoUtils"
+          },
+          "id": "76d71ff2-5884-588d-b14e-469199ee9291"
+        },
+        {
+          "filename": "AutoParentDrawer.cs",
+          "meta_guid": "ed4b924049fa4dc5be7ee9210b9842d4",
+          "summary": {
+            "class": "AutoParentDrawer",
+            "base": "AutoFamilyDrawer"
+          },
+          "id": "14112c17-6049-5cdb-9c8c-331942e4a202"
+        },
+        {
+          "filename": "ComponentDrawer.cs",
+          "meta_guid": "f61a94f8410e34632a46ce60e6aa802d",
+          "summary": {
+            "class": "ComponentAttributeDrawer",
+            "base": "OdinAttributeDrawer"
+          },
+          "id": "28e0bb9e-bd47-5ccd-81d4-fd721ad33bae"
+        },
+        {
+          "filename": "ComponentTypeSelector.cs",
+          "meta_guid": "12c2ac38a2ea4040b72e2447cc7f3ee2",
+          "summary": {
+            "class": "ComponentTypeSelector",
+            "base": "OdinSelector"
+          },
+          "id": "8649cf3e-7c01-5e31-be49-b8eb3331305a"
+        },
+        {
+          "filename": "DataFieldDrawer.cs",
+          "meta_guid": "88c501a4588143689cf338791874ad4d",
+          "summary": {
+            "class": "DataFieldDrawer",
+            "base": "OdinValueDrawer"
+          },
+          "id": "ae462c21-0174-5bf9-a9ee-b23d925710b1"
+        },
+        {
+          "filename": "DoubleClickLabelAttributeDrawer.cs",
+          "meta_guid": "d4ea280c4500e4e209909e439adba3e6",
+          "summary": {
+            "class": "DoubleClickLabelAttributeDrawer"
+          },
+          "id": "60df3a7c-16d8-5db7-9cb8-a578055c46ac"
+        },
+        {
+          "filename": "GameStateAttributeDrawer.cs",
+          "meta_guid": "100972e4884a44b3a9d989104f909826",
+          "summary": {
+            "class": "GameStateAttributeDrawer",
+            "base": "OdinAttributeDrawer"
+          },
+          "id": "4413a6ca-ad85-53bc-a245-1c890223ff5f"
+        },
+        {
+          "filename": "SOConfigAttributeDrawer.cs",
+          "meta_guid": "2b498d736580409282dc0d9806ef9319",
+          "summary": {
+            "class": "SOConfigAttributeDrawer",
+            "base": "OdinAttributeDrawer"
+          },
+          "id": "a0ac8add-14a3-592b-a5f7-393991134d42"
+        },
+        {
+          "filename": "SerializeReferenceParentRefDrawer.cs",
+          "meta_guid": "6f26713ad13c475d8a7e0917fb8b3d99",
+          "summary": {
+            "class": "SerializeReferenceParentValidateDrawer",
+            "base": "OdinAttributeDrawer"
+          },
+          "id": "eabdfe06-330f-594d-9241-378542fc80a3"
+        },
+        {
+          "filename": "ValueProviderDrawer.cs",
+          "meta_guid": "ae64d724556b4a5187f3cd649e37db36",
+          "summary": {
+            "class": "VariableProviderDrawer",
+            "base": "OdinValueDrawer"
+          },
+          "id": "1be9f289-c435-5b0c-b3e1-d491a24531e9"
+        }
+      ]
+    },
+    "CustomToolbar": {
+      "Editor": {
+        "Scripts": {
+          "Setting": [
+            {
+              "filename": "CustomToolbarReordableList.cs",
+              "meta_guid": "cd02144600efda14c8eb7f550e4f61db",
+              "summary": {
+                "class": "CustomToolbarReordableList"
+              },
+              "id": "e0cc47d9-8edf-5d6c-aa9c-97818757e221"
+            },
+            {
+              "filename": "CustomToolbarSettingProvider.cs",
+              "meta_guid": "783cfd64ce4d41ee83fde43d6eb7469c",
+              "summary": {
+                "class": "CustomToolbarSettingProvider",
+                "base": "SettingsProvider"
+              },
+              "id": "1797a86e-ba4c-5a62-ad74-9e1997324883"
+            }
+          ],
+          "ToolbarElements": [
+            {
+              "filename": "BaseToolbarElement.cs",
+              "meta_guid": "0d58f7da1717cbb44a00ad12766aef2a",
+              "summary": {
+                "class": "BaseToolbarElement"
+              },
+              "id": "3a35e4df-eeb4-5861-8c93-be01aa573103"
+            },
+            {
+              "filename": "ToolbarClearPrefs.cs",
+              "meta_guid": "3cce194695f577b48aad043208fbf7c3",
+              "summary": {
+                "class": "ToolbarClearPrefs",
+                "base": "BaseToolbarElement"
+              },
+              "id": "0a585f60-f050-52f1-86d5-ac57e0a9c7e9"
+            },
+            {
+              "filename": "ToolbarEnterPlayMode.cs",
+              "meta_guid": "1538c0863a4240548acea2a2ab7c0e28",
+              "summary": {
+                "class": "ToolbarEnterPlayMode",
+                "base": "BaseToolbarElement"
+              },
+              "id": "a91eabd0-c171-5a42-82ad-f308b85275f6"
+            },
+            {
+              "filename": "ToolbarFPSSlider.cs",
+              "meta_guid": "8074a03c14be3ad4bb0bd9b34a63c7c1",
+              "summary": {
+                "class": "ToolbarFPSSlider",
+                "base": "BaseToolbarElement"
+              },
+              "id": "8b5c8c3b-95fc-5c3a-ae8a-5127c4771bfc"
+            },
+            {
+              "filename": "ToolbarRecompile.cs",
+              "meta_guid": "bd16a93b2ed92d548a78b818d99df569",
+              "summary": {
+                "class": "ToolbarRecompile",
+                "base": "BaseToolbarElement"
+              },
+              "id": "295c8b84-4f72-52d5-8348-351eed3103bc"
+            },
+            {
+              "filename": "ToolbarReloadScene.cs",
+              "meta_guid": "3bdbc1cc3f4b43e46b3985843866a63b",
+              "summary": {
+                "class": "ToolbarReloadScene",
+                "base": "BaseToolbarElement"
+              },
+              "id": "f53c6a7b-5626-584a-b5d5-306fd14bfc28"
+            },
+            {
+              "filename": "ToolbarReserializeAll.cs",
+              "meta_guid": "b410f3783b2b19642b8fb2193b405768",
+              "summary": {
+                "class": "ToolbarReserializeAll",
+                "base": "BaseToolbarElement"
+              },
+              "id": "ab3d0da0-0954-5442-83fa-bee4009c272c"
+            },
+            {
+              "filename": "ToolbarReserializeSelected.cs",
+              "meta_guid": "961ea56a9d095a44b99c7b891afcd702",
+              "summary": {
+                "class": "ToolbarReserializeSelected",
+                "base": "BaseToolbarElement"
+              },
+              "id": "73ece216-79c6-5bcb-8e8b-44533f773dde"
+            },
+            {
+              "filename": "ToolbarSavingPrefs.cs",
+              "meta_guid": "8a151fe426daa6d4f95d829b2ce57df1",
+              "summary": {
+                "class": "ToolbarSavingPrefs",
+                "base": "BaseToolbarElement"
+              },
+              "id": "fb5d91dd-25da-537f-9888-3f211b060ecf"
+            },
+            {
+              "filename": "ToolbarSceneSelection.cs",
+              "meta_guid": "8f375994796cfd643a99c53f2a6f9982",
+              "summary": {
+                "class": "ToolbarSceneSelection",
+                "base": "BaseToolbarElement"
+              },
+              "id": "7716a719-88b7-5b61-a46b-5cdea3770292"
+            },
+            {
+              "filename": "ToolbarSides.cs",
+              "meta_guid": "8b54348ad6b61154ead0efe08a04d694",
+              "summary": {
+                "class": "ToolbarSides",
+                "base": "BaseToolbarElement"
+              },
+              "id": "238b0e3a-fa30-54a0-826a-18e4fb04fe55"
+            },
+            {
+              "filename": "ToolbarSpace.cs",
+              "meta_guid": "95964663845a5094282b83a47ce1a233",
+              "summary": {
+                "class": "ToolbarSpace",
+                "base": "BaseToolbarElement"
+              },
+              "id": "ee75d999-9569-52e5-a0ff-11b8fea22350"
+            },
+            {
+              "filename": "ToolbarStartFromFirstScene.cs",
+              "meta_guid": "2059aad740c79544a8bfb084d08c3921",
+              "summary": {
+                "class": "ToolbarStartFromFirstScene",
+                "base": "BaseToolbarElement"
+              },
+              "id": "4ca57970-72f6-507b-9bd0-683631e7bc77"
+            },
+            {
+              "filename": "ToolbarTimeslider.cs",
+              "meta_guid": "24361652f3354c144901f4475694c88a",
+              "summary": {
+                "class": "ToolbarTimeslider",
+                "base": "BaseToolbarElement"
+              },
+              "id": "0bebaf1b-d903-5e8a-ac29-573ddd99654a"
+            },
+            {
+              "filename": "ToolbarWindowSelection.cs",
+              "meta_guid": "8d983f5158ce4f9b9e187f30dc6cf15e",
+              "summary": {
+                "class": "MySelector",
+                "base": "OdinSelector"
+              },
+              "id": "c28e34bc-f259-5afc-b016-d7eb904028be"
+            }
+          ],
+          "Utils": [
+            {
+              "filename": "ForceReserializeAssetsUtils.cs",
+              "meta_guid": "b2b151dcd3cea8248aadf5539102f588",
+              "summary": {
+                "class": "ForceReserializeAssetsUtils"
+              },
+              "id": "8b08ada1-450b-591a-b16a-8bd84d8b1faa"
+            }
+          ],
+          "files": [
+            {
+              "filename": "CustomToolbarInitializer.cs",
+              "meta_guid": "2827ae329f144023bf2d91204bf453c3",
+              "summary": {
+                "class": "CustomToolbarInitializer"
+              },
+              "id": "46345b43-364b-526c-b3ad-f9a9279f171f"
+            },
+            {
+              "filename": "CustomToolbarSetting.cs",
+              "meta_guid": "e2cba83c97554327b25238d32fd85c62",
+              "summary": {
+                "class": "CustomToolbarSetting",
+                "base": "ScriptableSingleton"
+              },
+              "id": "05ca6542-a11c-53fe-a7d4-7032feced69d"
+            },
+            {
+              "filename": "IToolbarWindow.cs",
+              "meta_guid": "94c8c04509024e2484d5742038d61c21",
+              "summary": null
+            },
+            {
+              "filename": "ToolbarCallback.cs",
+              "meta_guid": "6f186c28663ad814b98b580454c3c70b",
+              "summary": {
+                "class": "ToolbarCallback"
+              },
+              "id": "c3ba8e11-7590-500e-8b5d-7525caccd42b"
+            },
+            {
+              "filename": "ToolbarExtender.cs",
+              "meta_guid": "8501d047e031fef468587e11de32c6ad",
+              "summary": {
+                "class": "ToolbarExtender"
+              },
+              "id": "161c36e5-b84b-5fe2-bc0c-638d29fec523"
+            },
+            {
+              "filename": "ToolbarStyles.cs",
+              "meta_guid": "47ad6f372df56df46883727f1cefad85",
+              "summary": {
+                "class": "ToolbarStyles"
+              },
+              "id": "04377f78-1a2a-556f-b0d3-304f0c2ad243"
+            }
+          ]
+        }
+      }
+    },
+    "DebugSetting": [
+      {
+        "filename": "DebugWindowBase.cs",
+        "meta_guid": "6e4a07d5dcc7453db760ce1b27a63b61",
+        "summary": {
+          "class": "DebugWindowBase",
+          "base": "OdinEditorWindow",
+          "interfaces": [
+            "IToolbarWindow"
+          ]
+        },
+        "id": "50a2d4f4-fd62-5dd0-ae9c-1e04400bd95f"
+      },
+      {
+        "filename": "HierarchyData.cs",
+        "meta_guid": "444fe39edf2c44557b43f97b7b540c26",
+        "summary": {
+          "class": "HierarchyData",
+          "base": "ScriptableObject"
+        },
+        "id": "6a4c1347-f487-545e-a64b-f36b1ea44dd5"
+      },
+      {
+        "filename": "HierarchyDrawer.cs",
+        "meta_guid": "2b4bb037bd72246e1a89c354f351f46f",
+        "summary": {
+          "class": "HierarchyDrawer"
+        },
+        "id": "162a08de-890e-50d8-97e3-edc55b0fc780"
+      },
+      {
+        "filename": "PlayerLoopWindow.cs",
+        "meta_guid": "364e7876281b4b3a9b6e7c7ce2bf16c1",
+        "summary": {
+          "class": "PlayerLoopWindow",
+          "base": "EditorWindow"
+        },
+        "id": "305e0731-737a-5fde-8f80-87a733fb9e05"
+      }
+    ],
+    "Extension": [
+      {
+        "filename": "EditorMonoNodeExtension.cs",
+        "meta_guid": "e01e68aa8cda6954486ed48611fc3e40",
+        "summary": {
+          "class": "EditorMonoNodeExtension"
+        },
+        "id": "53c50263-716c-5198-864b-2f3717d68438"
+      }
+    ],
+    "UnityEditorWindow": [
+      {
+        "filename": "AnimationClipSearchWindow.cs",
+        "meta_guid": "6afa2cc7d064444c9a2b06931bc10ba0",
+        "summary": {
+          "class": "AnimationClipSearchWindow",
+          "base": "OdinEditorWindow",
+          "interfaces": [
+            "IToolbarWindow"
+          ]
+        },
+        "id": "b3a0fba7-a45f-5a5d-b25d-958152cf63e7"
+      },
+      {
+        "filename": "AnimatorInspector.cs",
+        "meta_guid": "ffdecd499e1c44b3ba000a83a28903df",
+        "summary": {
+          "class": "AnimatorInspector",
+          "base": "OdinEditor"
+        },
+        "id": "3b778901-8d6b-5f3d-b0eb-856a520591ca"
+      },
+      {
+        "filename": "CreateCustomAssetWindow.cs",
+        "meta_guid": "cdbf2b6e4335545d3ba3a3763745d815",
+        "summary": {
+          "class": "CreateCustomAssetWindow",
+          "base": "EditorWindow"
+        },
+        "id": "37cd61ab-46d0-5daf-a38c-f0ca680a1e99"
+      },
+      {
+        "filename": "EditStateAnimation.cs",
+        "meta_guid": "db2ed48600cd410ca5fb9fb10ad9ad8f",
+        "summary": {
+          "class": "ExtendedHotkeys",
+          "base": "ScriptableObject"
+        },
+        "id": "1c7ce17b-e79a-5d97-b3a8-12826c655c1e"
+      },
+      {
+        "filename": "MenuWrapper.cs",
+        "meta_guid": "80f2270c341f4d57b94b7d9bea853f73",
+        "summary": {
+          "class": "MenuWrapper",
+          "base": "NonPublicClassWrapper"
+        },
+        "id": "c2e2bdd2-3fe5-5753-b41c-f6cdfa9aaee4"
+      },
+      {
+        "filename": "ReflectionUtility.cs",
+        "meta_guid": "b4466302fe2e4b99944f47cce5fccdc3",
+        "summary": {
+          "class": "ReflectionUtil"
+        },
+        "id": "f3fc128b-f454-5713-b05c-ba57d8574e12"
+      },
+      {
+        "filename": "UnityEditorWrapper.cs",
+        "meta_guid": "5764e889fd2144b3b1d9ecc18701ea1e",
+        "summary": {
+          "class": "UnityEditorAssembly"
+        },
+        "id": "60607730-5079-5bdc-a9f5-fd8fe1297d99"
+      }
+    ],
+    "ViewWindow": {
+      "Editor": {
+        "Folder": [
+          {
+            "filename": "FolderWindow.cs",
+            "meta_guid": "ba554b4f4e0848d4a670b16da48c4497",
+            "summary": {
+              "class": "FolderWindow",
+              "base": "OdinEditorWindow"
+            },
+            "id": "2db2402d-32ee-5c93-a733-34ac391a2e16"
+          },
+          {
+            "filename": "ProjectLabel.cs",
+            "meta_guid": "d37b8f9a536d4e6880edf0b38c918e02",
+            "summary": {
+              "class": "ProjectLabel",
+              "base": "VisualElement"
+            },
+            "id": "a7680e09-990a-5d52-b8d2-e249ec2678a3"
+          }
+        ],
+        "files": [
+          {
+            "filename": "CloseWindow.cs",
+            "meta_guid": "bc8a53e5c8ab47829d03573f25f14938",
+            "summary": {
+              "class": "EditorCloseWindowTab",
+              "base": "EditorWindow"
+            },
+            "id": "f5c04993-8772-5e9e-8220-8338cdbdb8f1"
+          },
+          {
+            "filename": "DraggableLabel.cs",
+            "meta_guid": "3a94816903784e3d805e4b8e4dd0c588",
+            "summary": {
+              "class": "DraggableLabel",
+              "base": "Label"
+            },
+            "id": "aab05a03-81ac-5f27-abdc-5da0d9957eb7"
+          },
+          {
+            "filename": "FilterSearchUtility.cs",
+            "meta_guid": "5afde321da7d4048880e8b307683e008",
+            "summary": {
+              "class": "FilterSearchUtility"
+            },
+            "id": "955f9bbe-9b92-5b19-b80e-9d360c3b2222"
+          },
+          {
+            "filename": "IconUtility.cs",
+            "meta_guid": "5dec02a36f6846a7961d7800ea8d6c1d",
+            "summary": {
+              "class": "EditorIconUtility"
+            },
+            "id": "b266c82a-5e1e-5d7a-887d-d7d8a80e296f"
+          },
+          {
+            "filename": "MonoNodeWindow.cs",
+            "meta_guid": "908aaed7b11e449f3b374861858862dd",
+            "summary": {
+              "class": "MonoNodeManager"
+            },
+            "id": "733605cb-adc2-53f6-b399-a81a33be3067"
+          },
+          {
+            "filename": "ReferenceWindow.cs",
+            "meta_guid": "ec1a864e9a7b4b098a23eee34b77c455",
+            "summary": {
+              "class": "ReferenceWindow",
+              "base": "OdinEditorWindow"
+            },
+            "id": "4289b232-9f57-5d24-9de3-7fdeff7ee010"
+          }
+        ]
+      },
+      "HierarchyTab": [
+        {
+          "filename": "FindToolbarSearchField.cs",
+          "meta_guid": "9e7cd5a5a5ad408bb3497ac20078ce15",
+          "summary": {
+            "class": "FindToolbarSearchField",
+            "base": "ToolbarSearchField"
+          },
+          "id": "bd44fab5-0ce7-57cc-babf-017e88dff44a"
+        },
+        {
+          "filename": "TreeViewWindow.cs",
+          "meta_guid": "50c7680d9a2f41b2848d4f6703aea445",
+          "summary": {
+            "class": "TreeViewWindow",
+            "base": "OdinEditorWindow"
+          },
+          "id": "1ff204e9-387f-592b-8327-b62ae5f58406"
+        },
+        {
+          "filename": "WrappedEvent.cs",
+          "meta_guid": "93108e6e67764f6b9f0b0a67fba98759",
+          "summary": {
+            "class": "WrappedEvent"
+          },
+          "id": "8cc69f40-46b2-53d9-bf91-d278b9a562ef"
+        },
+        {
+          "filename": "WrapperUtil.cs",
+          "meta_guid": "feba2fedb1fa4bff8d5d32120b352e2f",
+          "summary": {
+            "class": "WrapperUtil"
+          },
+          "id": "68511c93-f3aa-56d9-8a30-c4bcd30238a0"
+        }
+      ]
+    }
+  },
+  "Runtime": {
+    "0_Foundation": [
+      {
+        "filename": "AbstractDescriptionBehaviour.cs",
+        "meta_guid": "8725dcbfb4e24382bbd0da5c5bfbc148",
+        "summary": {
+          "class": "AbstractDescriptionBehaviour",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IBeforePrefabSaveCallbackReceiver"
+          ]
+        },
+        "id": "6df96bee-0a51-5c21-9a3f-2f95f295a314"
+      }
+    ],
+    "0_Pattern": {
+      "DataProvider": {
+        "ComponentWrapper": [
+          {
+            "filename": "AbstractVariableProviderRef.cs",
+            "meta_guid": "ec980f4157e6434e9ae4cbe89d7d8617",
+            "summary": {
+              "class": "AbstractVariableProviderRef",
+              "base": "MonoBehaviour"
+            },
+            "id": "1234a11d-71a9-529e-8071-44a4a3d55754"
+          },
+          {
+            "filename": "FloatLiteralComp.cs",
+            "meta_guid": "e8b0c54189854f2182c731a3984cc93c",
+            "summary": {
+              "class": "FloatLiteralComp",
+              "base": "MonoBehaviour",
+              "interfaces": [
+                "IFloatProvider"
+              ],
+              "extractable_properties": [
+                {
+                  "type": "float",
+                  "name": "_literal"
+                }
+              ]
+            },
+            "id": "a8033123-e6eb-5b7d-9cce-16c69e37f04b"
+          },
+          {
+            "filename": "GetMonoComp.cs",
+            "meta_guid": "1571f43541164ab28b18c6d7d9ee41aa",
+            "summary": {
+              "class": "VariableProviderFromComp",
+              "interfaces": [
+                "IVariableProvider"
+              ]
+            },
+            "id": "05bacce0-6a82-5677-83b6-52c6ef7365a9"
+          },
+          {
+            "filename": "SelfRef.cs",
+            "meta_guid": "48c1544e3db8415faa966fec12d536c9",
+            "summary": {
+              "class": "SelfRef",
+              "base": "MonoBehaviour",
+              "interfaces": [
+                "IConfigVar"
+              ]
+            },
+            "id": "53e4601d-abc9-51d8-a65c-c091fc53cacc"
+          },
+          {
+            "filename": "SourceValueRef.cs",
+            "meta_guid": "a79752172d884aa69243ba2b1d2caad3",
+            "summary": {
+              "class": "SourceValueRef",
+              "base": "MonoBehaviour"
+            },
+            "id": "50d05d8b-43b8-5af2-9320-bd685a17f085"
+          },
+          {
+            "filename": "TargetVarRef.cs",
+            "meta_guid": "71eafb6c1a5745ef883fae7380fb0a15",
+            "summary": {
+              "class": "TargetVarRef",
+              "base": "MonoBehaviour",
+              "interfaces": [
+                "IVariableProvider"
+              ]
+            },
+            "id": "997fe133-596a-5c16-9f75-bf8e3c30ca97"
+          },
+          {
+            "filename": "VarBoolProviderRef.cs",
+            "meta_guid": "eed2c91854c941dd808d843329602765",
+            "summary": {
+              "class": "VarBoolProviderRef",
+              "base": "VariableProviderRef"
+            },
+            "id": "4d2c21f8-63c9-5400-8378-0b07a9a10a9b"
+          },
+          {
+            "filename": "VarFloatProviderRef.cs",
+            "meta_guid": "f620b04a7b6d4a8caf1c0c1d036217a5",
+            "summary": {
+              "class": "VarFloatProviderRef",
+              "base": "VariableProviderRef"
+            },
+            "id": "6a501b7c-e232-59ad-a6a1-53c6c776c48b"
+          },
+          {
+            "filename": "VarGameDataRef.cs",
+            "meta_guid": "e07b5a022c5549da9601d10de8bf62a7",
+            "summary": {
+              "class": "VarGameDataRef",
+              "base": "VariableProviderRef"
+            },
+            "id": "2592791a-7ad1-5960-b18a-8b801093185b"
+          },
+          {
+            "filename": "VarIntProviderRef.cs",
+            "meta_guid": "3407ebd46be144069908ced131ef60e6",
+            "summary": {
+              "class": "VarIntProviderRef",
+              "base": "VariableProviderRef"
+            },
+            "id": "3566b359-b80e-5ef5-866d-34f637cbd668"
+          },
+          {
+            "filename": "VarMonoRef.cs",
+            "meta_guid": "ecd9d400ff3e4e72bf65d60ac5fbf38f",
+            "summary": {
+              "class": "VarMonoRef",
+              "base": "VariableProviderRef"
+            },
+            "id": "042c1a1d-302e-56e5-a9d1-db25f5112247"
+          },
+          {
+            "filename": "VarStringProviderRef.cs",
+            "meta_guid": "92147fb9e78d472daca06720f9113b22",
+            "summary": {
+              "class": "VarStringProviderRef",
+              "base": "VariableProviderRef"
+            },
+            "id": "b6e3a372-6782-5676-8930-3950009e21bf"
+          },
+          {
+            "filename": "VariableProviderRef.cs",
+            "meta_guid": "490940a3121b44c488d9c0c396ba2333",
+            "summary": {
+              "class": "VariableProviderRef"
+            },
+            "id": "c5f4439e-978d-5b4f-b6a0-d8614bc50449"
+          }
+        ],
+        "Condition": [
+          {
+            "filename": "VarValueEqualCondition.cs",
+            "meta_guid": "e3c159d5de924835811b3ac55b752843",
+            "summary": {
+              "class": "VarValueEqualCondition",
+              "base": "AbstractConditionComp"
+            },
+            "id": "321b510d-30bf-5310-a018-c502c48fa664"
+          }
+        ],
+        "GameData": [
+          {
+            "filename": "GameDataProviderComp.cs",
+            "meta_guid": "c90611d117664cc9b97ffdd6d4450c99",
+            "summary": {
+              "class": "GameDataProviderComp",
+              "base": "MonoBehaviour"
+            },
+            "id": "b259b5fe-d496-5ca0-9347-f1528d6bc1ce"
+          },
+          {
+            "filename": "IGameDataProvider.cs",
+            "meta_guid": "18af3a9e235f476fa567ee9fd162580f",
+            "summary": {
+              "class": "SODataVarProvider",
+              "interfaces": [
+                "IVariableProvider",
+                "IGameDataProvider"
+              ]
+            },
+            "id": "adeca6d0-70e5-535d-86b9-092d58459cbc"
+          }
+        ],
+        "files": [
+          {
+            "filename": "AbstractFieldValueProvider.cs",
+            "meta_guid": "3fea35dcfe48e44008b9284855e17f6e",
+            "summary": {
+              "class": "AbstractFieldValueProvider",
+              "base": "MonoBehaviour"
+            },
+            "id": "426ce881-afe6-58e9-9e69-934aeb23012d"
+          },
+          {
+            "filename": "DataReflection.cs",
+            "meta_guid": "af9173500f774e4984be9b8a5025f34f",
+            "summary": {
+              "class": "DataReflection"
+            },
+            "id": "e74db86a-0b97-5a4b-b03b-f7ce28c1523b"
+          },
+          {
+            "filename": "FieldPathEntry.cs",
+            "meta_guid": "e9e280354d2d249feace0a65d2159fec",
+            "summary": {
+              "class": "FieldPathEntry"
+            },
+            "id": "887200e5-53f3-5066-8d31-77f7ce8b8aab"
+          },
+          {
+            "filename": "GameDataObjectFieldProvider.cs",
+            "meta_guid": "0e72b1d2f2c54e6cab25f5f1c4a3a487",
+            "summary": {
+              "class": "GameDataObjectFieldProvider",
+              "base": "AbstractFieldValueProvider"
+            },
+            "id": "28ca56e0-95f6-5630-9e4c-9a9a3ffca831"
+          },
+          {
+            "filename": "IFloatProvider.cs",
+            "meta_guid": "99f6431438234aa4a318c9137c4fc509",
+            "summary": {
+              "class": "FloatProviderLiteral",
+              "interfaces": [
+                "IFloatProvider"
+              ]
+            },
+            "id": "4550ef77-5768-5581-91ef-f2cf4f32f2c1"
+          },
+          {
+            "filename": "IMonoDescriptableProvider.cs",
+            "meta_guid": "6d3fb473a79241fca9102883b9a7fef7",
+            "summary": {
+              "class": "MonoDescriptableProvider"
+            },
+            "id": "2b7fdc48-75ed-5ae1-aa8a-d3ff8084c4a2"
+          },
+          {
+            "filename": "ISpriteProvider.cs",
+            "meta_guid": "ec10a3be2a524c109f810b3d402bad8d",
+            "summary": {
+              "class": "SpriteProviderFromDescriptableData",
+              "base": "AbstractDescriptablePropertyProvider",
+              "interfaces": [
+                "ISpriteProvider"
+              ]
+            },
+            "id": "7b04bef4-de13-5dbc-9ede-41769e4bbe4a"
+          },
+          {
+            "filename": "IStringProvider.cs",
+            "meta_guid": "98b638a7439841bea05da1c1945d519a",
+            "summary": {
+              "class": "StringProviderLiteral",
+              "interfaces": [
+                "IStringProvider"
+              ]
+            },
+            "id": "21262129-ee2e-5499-9286-cdc08cde0478"
+          },
+          {
+            "filename": "ITypeRestrict.cs",
+            "meta_guid": "c4ae1191abf5a4227b902a9162ae4bd5",
+            "summary": null
+          },
+          {
+            "filename": "IVariableProvider.cs",
+            "meta_guid": "96175eb61ca248e4932aecde72d623ac",
+            "summary": {
+              "class": "VariableMonoDescriptableProvider",
+              "base": "VariableProvider"
+            },
+            "id": "4d3e5414-cd16-5843-9ca4-7cd39cffabc5"
+          },
+          {
+            "filename": "IndexInjector.cs",
+            "meta_guid": "61e4b71f2268437ca8d75f5305440365",
+            "summary": {
+              "class": "IndexInjector",
+              "base": "MonoBehaviour",
+              "interfaces": [
+                "IIndexInjector"
+              ]
+            },
+            "id": "3db81b9c-7551-5e17-9753-aaa83acc35ec"
+          },
+          {
+            "filename": "ObjectOfVariableFieldValueProvider.cs",
+            "meta_guid": "a3ff81be88d040518684636136640ca6",
+            "summary": {
+              "class": "ObjectOfVariableFieldValueProvider",
+              "base": "AbstractFieldValueProvider"
+            },
+            "id": "25664bf7-0cca-5abf-a8fc-b6648b8623c5"
+          },
+          {
+            "filename": "VariableFieldProvider.cs",
+            "meta_guid": "c7005068e46342e5819fde8087486797",
+            "summary": {
+              "class": "VariableFieldValueProvider",
+              "base": "AbstractFieldValueProvider"
+            },
+            "id": "7cc7d02b-3f2c-517d-a248-63ccb7d7a6c6"
+          }
+        ]
+      },
+      "Primitive": {
+        "Editor": [
+          {
+            "filename": "SerializedDateTimeDrawer.cs",
+            "meta_guid": "4049567afff642748a928ff2caaca674",
+            "summary": {
+              "class": "SerializedDateTimeDrawer",
+              "base": "OdinValueDrawer"
+            },
+            "id": "0a555f5d-1f9b-5f0d-adc9-85e65bfed373"
+          }
+        ],
+        "files": [
+          {
+            "filename": "DictionaryUtility.cs",
+            "meta_guid": "bd4a42bcaf8942b58b359baa986d3626",
+            "summary": {
+              "class": "DictionaryUtility"
+            },
+            "id": "f3e4f306-7e68-55a3-9aed-c4852bb5e91a"
+          },
+          {
+            "filename": "SerializedDateTime.cs",
+            "meta_guid": "d2f6e751a64d4a23a61b7b780e8bd1a8",
+            "summary": null
+          },
+          {
+            "filename": "SerializedDictionary.cs",
+            "meta_guid": "712727d0874d4c56895a632e7f6647c3",
+            "summary": {
+              "class": "SerializedDictionary"
+            },
+            "id": "482bdb39-2acf-5a23-b08a-22f2297d3d5f"
+          }
+        ]
+      },
+      "files": [
+        {
+          "filename": "Cache.cs",
+          "meta_guid": "0d890093e70a447bb099b7c58d86fc60",
+          "summary": {
+            "class": "Cache"
+          },
+          "id": "d4247cf8-e8df-537d-8433-e677eef06feb"
+        },
+        {
+          "filename": "ChildrenInterfaceMonoRef.cs",
+          "meta_guid": "230b99673f0849afbb5cc2d91f593421",
+          "summary": {
+            "class": "ChildrenInterfaceMonoRef"
+          },
+          "id": "5cdc9607-d0f9-5561-99b2-1098929c77cf"
+        },
+        {
+          "filename": "ConfigVar.cs",
+          "meta_guid": "33818f9afe284c328de2e8d16e5c0a5e",
+          "summary": {
+            "class": "FloatConfig",
+            "interfaces": [
+              "IConfigVar",
+              "IFloatValueProvider"
+            ]
+          },
+          "id": "ebc76dea-4b12-5435-b463-8700b982e15b"
+        },
+        {
+          "filename": "FloatValueInstance.cs",
+          "meta_guid": "fafa7ce48f0e49e8bc72eeea94d558f2",
+          "summary": {
+            "class": "FloatValueInstance",
+            "base": "ValueInstance"
+          },
+          "id": "cf192b93-77dc-52b3-9a22-d5660870fef9"
+        },
+        {
+          "filename": "InterfaceRef.cs",
+          "meta_guid": "b392a3656e6147f3a015eb7fa3111b3b",
+          "summary": {
+            "class": "InterfaceMonoRef"
+          },
+          "id": "b1feb102-06dd-5051-ab9d-c841139a0125"
+        },
+        {
+          "filename": "MonoDict.cs",
+          "meta_guid": "9ef8c5a4379d487eb59d628457215bd0",
+          "summary": {
+            "class": "MonoDict"
+          },
+          "id": "ddeefe4a-1de7-527d-9aa2-cc9725baf204"
+        },
+        {
+          "filename": "SingletonBehaviour.cs",
+          "meta_guid": "452f22064ebbe4774af93154fd8659c5",
+          "summary": {
+            "class": "SingletonBehaviour"
+          },
+          "id": "c1289828-f927-5f58-95fa-81fe70680844"
+        },
+        {
+          "filename": "ValueInstance.cs",
+          "meta_guid": "bf987c97241d4bdda6ee14408862aa4d",
+          "summary": {
+            "class": "StringHolder",
+            "interfaces": [
+              "IValueHolder"
+            ]
+          },
+          "id": "95a58ae6-9be5-5253-8f7f-8b42df808743"
+        }
+      ]
+    },
+    "1_Conditions": {
+      "Activator": [
+        {
+          "filename": "AbstractConditionActivateTarget.cs",
+          "meta_guid": "adb1d3258d8d47fa9293a96fbf69a41e",
+          "summary": {
+            "class": "AbstractConditionActivateTarget",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "ISubmitHandler"
+            ]
+          },
+          "id": "3c1bb37e-8a2b-524a-b567-9fa63fc1379a"
+        },
+        {
+          "filename": "ConditionActivateCheckProvider.cs",
+          "meta_guid": "b5e0352e3934450bb9668082e31dcd52",
+          "summary": {
+            "class": "ConditionActivateCheckProvider",
+            "base": "MonoBehaviour"
+          },
+          "id": "8ca426c9-7d58-5ca4-9c11-e6096f0def34"
+        },
+        {
+          "filename": "ConditionEnableTarget.cs",
+          "meta_guid": "40bd771ad38f4e82815deda494edc7aa",
+          "summary": {
+            "class": "ConditionEnableTarget",
+            "base": "AbstractConditionActivateTarget"
+          },
+          "id": "fa9fe26c-3b12-5e8d-8a65-80d99f0b5b83"
+        },
+        {
+          "filename": "DepthOneConditionActivateTarget.cs",
+          "meta_guid": "c036f4df869ef4e799eec32d0c7433ce",
+          "summary": {
+            "class": "DepthOneConditionActivateTarget",
+            "base": "AbstractConditionActivateTarget"
+          },
+          "id": "66ccbc89-e71e-54ed-9e42-a58c584812db"
+        }
+      ],
+      "files": [
+        {
+          "filename": "AbstractConditionComp.cs",
+          "meta_guid": "e7715808e651d59458477832b837df26",
+          "summary": {
+            "class": "ConditionHelper"
+          },
+          "id": "1d4df275-d020-50d6-81ca-a114723b649f"
+        },
+        {
+          "filename": "AnimationDoneCondition.cs",
+          "meta_guid": "26e7e83b1b2741b886d2ea9457d0f683",
+          "summary": {
+            "class": "AnimationDoneCondition",
+            "base": "AbstractConditionComp"
+          },
+          "id": "0811d7ca-3c55-53aa-ae15-65cf6eed2dcc"
+        },
+        {
+          "filename": "AnimatorPlayingStateCondition.cs",
+          "meta_guid": "5de1b3cbe4044b09aebfb0e745cb7c61",
+          "summary": {
+            "class": "AnimatorPlayingStateCondition",
+            "base": "AbstractConditionComp"
+          },
+          "id": "43d137be-95ca-52a2-8097-75114d041a07"
+        },
+        {
+          "filename": "ConditionActivator.cs",
+          "meta_guid": "5c1e4ab4a3954ddead9fef873dd74e10",
+          "summary": {
+            "class": "ConditionActivator",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IUIBehavior",
+              "ISelfValidator",
+              "IResetter"
+            ]
+          },
+          "id": "6d1a8b7b-bdcb-5cc4-a048-8576241f2c6a"
+        },
+        {
+          "filename": "ConditionFolder.cs",
+          "meta_guid": "8d989ca430424413955c4d05a7bdbaed",
+          "summary": {
+            "class": "ConditionFolder",
+            "base": "AbstractConditionComp"
+          },
+          "id": "15acd8f4-ccba-5762-af70-46ec66c50bca"
+        },
+        {
+          "filename": "ConditionNodeActivator.cs",
+          "meta_guid": "b2bb7a0e0b264c1aaea5445f66ebfac5",
+          "summary": {
+            "class": "ConditionNodeActivator",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IResetter"
+            ]
+          },
+          "id": "9836ad4d-f30c-56dc-810a-4e12c332da80"
+        },
+        {
+          "filename": "ConditionWrapper.cs",
+          "meta_guid": "f1de9258b3fe49c68cbb5d1492c052bd",
+          "summary": {
+            "class": "ConditionWrapper",
+            "base": "AbstractConditionComp"
+          },
+          "id": "56d8c74e-bfca-58ed-b605-2a4643644474"
+        },
+        {
+          "filename": "GameFlagPropertyCondition.cs",
+          "meta_guid": "01350228d40047b08fe684fc83fa5f70",
+          "summary": {
+            "class": "GameFlagPropertyCondition",
+            "base": "AbstractConditionComp"
+          },
+          "id": "35e907b7-b7b3-52e2-9951-754adb57aade"
+        },
+        {
+          "filename": "IsStateCondition.cs",
+          "meta_guid": "17b08f26a65c4819ad839c5129f9dbe2",
+          "summary": {
+            "class": "IsStateCondition",
+            "base": "AbstractConditionComp"
+          },
+          "id": "685702f9-68cf-5050-ac2c-092a7dca9e48"
+        },
+        {
+          "filename": "StateTimeUpCondition.cs",
+          "meta_guid": "10f732b2adc34742a0018507e72b0386",
+          "summary": {
+            "class": "StateTimeUpCondition",
+            "base": "AbstractConditionComp"
+          },
+          "id": "25cde92b-e932-5c01-b311-df0a0783728c"
+        }
+      ]
+    },
+    "1_States": [
+      {
+        "filename": "AbstractState.cs",
+        "meta_guid": "44200e6d7213e4dd8b0199675e08cb7e",
+        "summary": {
+          "class": "AbstractState"
+        },
+        "id": "fcf4e8d8-6f82-5fd3-943e-c5e44de95fc3"
+      },
+      {
+        "filename": "GeneralState.cs",
+        "meta_guid": "88d42bb89d3c54ee5bb15d2fd2014077",
+        "summary": {
+          "class": "GeneralState",
+          "base": "AbstractState"
+        },
+        "id": "d8b8988c-17f9-5208-98d0-d191bad26d36"
+      },
+      {
+        "filename": "RCGFSMAnyState.cs",
+        "meta_guid": "07dd058d9affb4c11aadc348494e7081",
+        "summary": {
+          "class": "RCGFSMAnyState",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IState"
+          ]
+        },
+        "id": "d9900653-dbfa-551a-b0d2-e00a616d273e"
+      }
+    ],
+    "2_Transitions": [
+      {
+        "filename": "StateTransition.cs",
+        "meta_guid": "b799c9a280adf49b2bfa4a32f9ba7eae",
+        "summary": {
+          "class": "StateTransition",
+          "base": "AbstractDescriptionBehaviour",
+          "interfaces": [
+            "IGuidEntity",
+            "IDefaultSerializable",
+            "IResetStateRestore",
+            "IBeforePrefabSaveCallbackReceiver",
+            "IConditionChangeListener",
+            "IOverrideHierarchyIcon"
+          ],
+          "extractable_properties": [
+            {
+              "type": "GeneralState",
+              "name": "_target"
+            }
+          ]
+        },
+        "id": "d09b874d-7087-5c9b-bf55-bd19423616cc"
+      },
+      {
+        "filename": "StateTransitionSkippable.cs",
+        "meta_guid": "493ae6b24a134308b509d98d6b2f3fb0",
+        "summary": {
+          "class": "StateTransitionSkippable",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "ISkippableAnimationTransition"
+          ]
+        },
+        "id": "7fe7288f-3eb3-5b55-9c11-5546977dec45"
+      },
+      {
+        "filename": "VarBoolTransition.cs",
+        "meta_guid": "5626e13dae674be7a0cfafd156610a6b",
+        "summary": {
+          "class": "VarBoolTransition",
+          "base": "StateTransition",
+          "interfaces": [
+            "IResetStart"
+          ]
+        },
+        "id": "516ffdcd-2991-5cf8-ace7-06f6e71dade5"
+      },
+      {
+        "filename": "VarIntTransition.cs",
+        "meta_guid": "829ae57f16ca4d0ea9da1aafcf737cac",
+        "summary": {
+          "class": "VarIntTransition",
+          "base": "StateTransition"
+        },
+        "id": "8ad88dd6-b6f6-55bd-a54c-c147c402103c"
+      },
+      {
+        "filename": "VariableVoteTransition.cs",
+        "meta_guid": "1c61151be4c14cc5832a2ac44a053187",
+        "summary": {
+          "class": "VariableVoteTransition",
+          "base": "StateTransition"
+        },
+        "id": "191015f7-f051-5701-a402-260b1ec91da0"
+      }
+    ],
+    "2_Variable": {
+      "4_Stats": {
+        "StatEffects": [
+          {
+            "filename": "StatModifierData.cs",
+            "meta_guid": "159bac4dfd7240f6995c937bd2509ffa",
+            "summary": {
+              "class": "StatModifierData",
+              "base": "DescriptableData"
+            },
+            "id": "f9125f67-3465-50d3-8e65-9e777e0db385"
+          },
+          {
+            "filename": "StatModifierEntry.cs",
+            "meta_guid": "d634fbdf6bbdb4d359a53670b67b3f26",
+            "summary": {
+              "class": "StatModifierEntry"
+            },
+            "id": "3a61a724-b88c-566d-8983-600224936b53"
+          }
+        ],
+        "files": [
+          {
+            "filename": "CharacterStat.cs",
+            "meta_guid": "884cdbc2e02f21c4f81b064ab299a8a4",
+            "summary": {
+              "class": "CharacterStat"
+            },
+            "id": "07e1a2d9-3846-5e2d-a553-98e6d33367d3"
+          },
+          {
+            "filename": "SetStatDataAction.cs",
+            "meta_guid": "a113972ad59f4412b806377b36c28371",
+            "summary": {
+              "class": "SetStatDataAction",
+              "base": "AbstractStateAction"
+            },
+            "id": "eef1c6f0-ed0f-5928-b70d-ee9b4f9a4c47"
+          },
+          {
+            "filename": "StatData.cs",
+            "meta_guid": "e93ca5c7dbc5c1a4cad14beb35f89656",
+            "summary": {
+              "class": "AbstractStatData",
+              "base": "ScriptableObject"
+            },
+            "id": "27aef4cc-d59d-5864-8d7a-e10a3b906312"
+          },
+          {
+            "filename": "StatDataPercentageToBase.cs",
+            "meta_guid": "1c0a8859164c4a49ac12797f8ed036b6",
+            "summary": {
+              "class": "StatDataPercentageToBase",
+              "base": "StatData"
+            },
+            "id": "1e02fe50-2912-55b0-8fde-122eb78f96b3"
+          },
+          {
+            "filename": "StatDataRef.cs",
+            "meta_guid": "78bfbf2b2c40940fa8246e340272f738",
+            "summary": {
+              "class": "StatDataRef",
+              "base": "AbstractStatData"
+            },
+            "id": "0d8d7eb5-fd07-5ef1-a7e9-0c151e80fa8e"
+          },
+          {
+            "filename": "StatModifier.cs",
+            "meta_guid": "b898d97ebf376c84ebd1267a8db6d494",
+            "summary": {
+              "class": "StatModifierPro",
+              "interfaces": [
+                "IStatModifer"
+              ]
+            },
+            "id": "04e452ca-a66a-5307-93a5-848e9f1f6758"
+          },
+          {
+            "filename": "StringData.cs",
+            "meta_guid": "7478c6cf328947e38122750fca5020d7",
+            "summary": {
+              "class": "StringData",
+              "base": "ScriptableObject"
+            },
+            "id": "5fb55bef-0a60-5604-a932-7df8ab4489e0"
+          }
+        ]
+      },
+      "Condition": {
+        "PropertyOfObject": [
+          {
+            "filename": "BoolMonoBehaviorPropertyCondition.cs",
+            "meta_guid": "1fe0ea47b6d5417396f65768c33d65c1",
+            "summary": {
+              "class": "BoolMonoBehaviorPropertyCondition",
+              "base": "AbstractFieldConditionComp"
+            },
+            "id": "108066df-b613-50a6-8a8d-2350d74ae61e"
+          },
+          {
+            "filename": "IntPropertyCondition.cs",
+            "meta_guid": "3379906d5a41447a85abad074060742b",
+            "summary": {
+              "class": "IntPropertyCondition",
+              "base": "AbstractFieldConditionComp"
+            },
+            "id": "45cfd433-aaf9-5f3a-8562-24607f6c61e1"
+          }
+        ],
+        "files": [
+          {
+            "filename": "BoolPropertyOfGameFlagCondition.cs",
+            "meta_guid": "327e9b6d1ef6482e9e83b5f3c28262ab",
+            "summary": {
+              "class": "BoolPropertyOfGameFlagCondition",
+              "base": "AbstractFieldConditionComp"
+            },
+            "id": "461cef63-f091-58e4-9bd5-6f5257e9feb5"
+          },
+          {
+            "filename": "ComparisonOperator.cs",
+            "meta_guid": "4f5df83b9014a4205ba2416139c81d70",
+            "summary": null
+          },
+          {
+            "filename": "FloatCompareCondition.cs",
+            "meta_guid": "afe1d7c76c904de3b341eff224488bfd",
+            "summary": {
+              "class": "FloatCompareCondition",
+              "base": "AbstractConditionComp"
+            },
+            "id": "6d2f9ae9-5348-580a-9fb9-8194bb025e4f"
+          },
+          {
+            "filename": "IntCompareCondition.cs",
+            "meta_guid": "5f2e02b603014e3791c64899aa3d64d3",
+            "summary": {
+              "class": "IntCompareCondition",
+              "base": "AbstractConditionComp"
+            },
+            "id": "2d714131-9c61-53a4-a352-4d86955bd3b0"
+          },
+          {
+            "filename": "IsUnityObjectVariableNullCondition.cs",
+            "meta_guid": "17b304dece79444393ad8739059a1e98",
+            "summary": {
+              "class": "IsUnityObjectVariableNullCondition",
+              "base": "AbstractConditionComp"
+            },
+            "id": "aa48cd9e-1c4f-5388-bae6-d1ea435da42d"
+          },
+          {
+            "filename": "VarBoolValueCondition.cs",
+            "meta_guid": "20652729ee734c8fb742043ee0610cab",
+            "summary": {
+              "class": "VarBoolValueCondition",
+              "base": "AbstractConditionComp",
+              "interfaces": [
+                "IResetStart",
+                "ITransitionCheckInvoker"
+              ]
+            },
+            "id": "7c780be0-c4b6-5042-83eb-6a61430876c8"
+          },
+          {
+            "filename": "VariableFloatLastValueCompareCondition.cs",
+            "meta_guid": "268cb0ce40774b119b7a1122fe963942",
+            "summary": {
+              "class": "VariableFloatLastValueCompareCondition",
+              "base": "AbstractConditionComp"
+            },
+            "id": "f55f04b8-242b-55d0-b7c7-57be17e6ec0f"
+          },
+          {
+            "filename": "VariableFloatValueCondition.cs",
+            "meta_guid": "13bf017d58a14658ab1624dae1969e2b",
+            "summary": {
+              "class": "VariableFloatValueCondition",
+              "base": "AbstractConditionComp"
+            },
+            "id": "d5cf743a-aa99-5aa1-8ebd-d833fb1902b5"
+          }
+        ]
+      },
+      "DesignTag": [
+        {
+          "filename": "AutoGenGameState.cs",
+          "meta_guid": "a2bd41a57efed4fcc8f6d897c12e06ee",
+          "summary": {
+            "class": "AutoGenGameState",
+            "base": "GuidComponent",
+            "interfaces": [
+              "ISceneSavingCallbackReceiver"
+            ]
+          },
+          "id": "fcebafc9-fe78-5f2c-8d6f-4e57a8922de3"
+        },
+        {
+          "filename": "GameStateRequireAtPrefabKind.cs",
+          "meta_guid": "7bb75113b98a4e63b1f2226d1837dbd7",
+          "summary": {
+            "class": "GameStateRequireAtPrefabKind",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IEditorOnly"
+            ]
+          },
+          "id": "79833123-53af-5323-8daa-cac19238c7eb"
+        }
+      ],
+      "Relay": [
+        {
+          "filename": "VarBoolRelay.cs",
+          "meta_guid": "ccf30848b68e43cdb4db9a230d5e48b4",
+          "summary": {
+            "class": "VarBoolRelay",
+            "base": "AbstractDescriptionBehaviour",
+            "interfaces": [
+              "IResetStart"
+            ]
+          },
+          "id": "b1370346-3200-5627-a375-6c1c4b844a8f"
+        },
+        {
+          "filename": "VariableRelayBinder.cs",
+          "meta_guid": "55693c95bdd341408955795a6b96dd29",
+          "summary": {
+            "class": "VariableRelayBinder",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IVariableOwner"
+            ]
+          },
+          "id": "23a0e6b0-3d48-5049-929e-3080714e909c"
+        }
+      ],
+      "Value Provider": {
+        "String Provider": [
+          {
+            "filename": "ConditionStringProvider.cs",
+            "meta_guid": "f70b9e830e0d457c95357b0627912ec2",
+            "summary": {
+              "class": "ConditionStringProvider",
+              "base": "AbstractStringProvider"
+            },
+            "id": "f85691ca-873c-5b00-aa42-28eb712bab1f"
+          }
+        ],
+        "files": [
+          {
+            "filename": "AbstractStringProvider.cs",
+            "meta_guid": "de6a77d15b208435cb155f321005141d",
+            "summary": {
+              "class": "AbstractStringProvider",
+              "base": "MonoBehaviour"
+            },
+            "id": "e8cd2dd6-763c-5129-a06d-d7492240e7ea"
+          },
+          {
+            "filename": "AnimatorProvider.cs",
+            "meta_guid": "7e1cb1cd89dfb4670bee1e809f32793f",
+            "summary": {
+              "class": "AnimatorProvider",
+              "base": "MonoBehaviour",
+              "interfaces": [
+                "IAnimatorProvider"
+              ]
+            },
+            "id": "a0cae6c4-6477-54b0-98cc-098da09b9b63"
+          }
+        ]
+      },
+      "VariableBinder": [
+        {
+          "filename": "AbstractVariableBindingEntry.cs",
+          "meta_guid": "38ae654c316e43c99dc7f1c406304dbb",
+          "summary": {
+            "class": "VariableBindingEntry"
+          },
+          "id": "dcf177c8-0684-56f5-b5ac-2a88035aecfc"
+        },
+        {
+          "filename": "VariableBoolRebindEntry.cs",
+          "meta_guid": "a68aaa727033445ca5f088e5a2a371ec",
+          "summary": {
+            "class": "VariableBoolRebindEntry",
+            "base": "VariableBindingEntry"
+          },
+          "id": "aa10b7a2-4777-56a3-aef1-3d6a4f509b3a"
+        }
+      ],
+      "VariableModifier": [
+        {
+          "filename": "CriticalHitDamageOperation.cs",
+          "meta_guid": "a7906931485742bc8ce7baee563ed1dd",
+          "summary": {
+            "class": "CriticalHitDamageOperation",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IVariableFloatOperation"
+            ]
+          },
+          "id": "47ef2b89-81c0-502c-aea9-06ae84b329ab"
+        },
+        {
+          "filename": "FindStatToModifierAction.cs",
+          "meta_guid": "3531c73d28714a66a41fb010451290fc",
+          "summary": {
+            "class": "FindStatToModifierAction",
+            "base": "AbstractStateAction"
+          },
+          "id": "bba7cb77-d024-5d76-bc19-2ecb73143ceb"
+        },
+        {
+          "filename": "VarStat.cs",
+          "meta_guid": "60d1db70646f4307988c7a78e88e335b",
+          "summary": {
+            "class": "VarStat",
+            "base": "VarFloat"
+          },
+          "id": "330e742a-8f7d-5ee5-bcd5-b091de584cfe"
+        },
+        {
+          "filename": "VariableFloatArithmeticOperation.cs",
+          "meta_guid": "5d4a300d7a6449bf96fdc2c4e59ea605",
+          "summary": {
+            "class": "VariableFloatArithmeticOperation",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IVariableFloatOperation"
+            ]
+          },
+          "id": "4891d9a6-158b-532b-9b12-17696d7a4553"
+        },
+        {
+          "filename": "VariableFloatBoundModifier.cs",
+          "meta_guid": "8bfb0d80aff8f4655a7ad47345d367e2",
+          "summary": {
+            "class": "VariableFloatBoundModifier",
+            "base": "MonoBehaviour"
+          },
+          "id": "e51db33c-4fe6-5695-82ee-c71e273aab61"
+        },
+        {
+          "filename": "VariableStatModifier.cs",
+          "meta_guid": "30e7203880e9408eb6f8922dc70a3024",
+          "summary": {
+            "class": "VariableStatModifier",
+            "base": "MonoBehaviour"
+          },
+          "id": "b85629fa-7acd-5ddd-bbb5-1dd04c3cf40c"
+        },
+        {
+          "filename": "VariableStatOwner.cs",
+          "meta_guid": "64b37698c049424a91da29b84eb5b783",
+          "summary": {
+            "class": "VariableStatOwner",
+            "base": "MonoBehaviour"
+          },
+          "id": "92ce5078-e046-5bfa-ac92-b64c18222a7a"
+        }
+      ],
+      "VirutalizeVariable": [
+        {
+          "filename": "EffectValue.cs",
+          "meta_guid": "0e536c487cf64098809437d68989e691",
+          "summary": {
+            "class": "EffectValue",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IFloatValueProvider"
+            ]
+          },
+          "id": "5dad2988-3884-5708-8aea-7d2a75b8b912"
+        }
+      ],
+      "files": [
+        {
+          "filename": "ComponentVariable.cs",
+          "meta_guid": "93f6e86a5bcf2495a8efd02b27340992",
+          "summary": {
+            "class": "ComponentVariable",
+            "base": "GenericUnityObjectVariable"
+          },
+          "id": "9e19b453-3987-50be-9c6a-231be5ea1a75"
+        },
+        {
+          "filename": "DynamicVariableBinder.cs",
+          "meta_guid": "96f7d70ab3914fd7b2d114cb47f9847d",
+          "summary": {
+            "class": "DynamicVariableBinder",
+            "base": "AbstractFolder",
+            "interfaces": [
+              "IResetStart",
+              "IBinder"
+            ]
+          },
+          "id": "f1535354-1bd1-56c6-a42f-0a83d548ee25"
+        },
+        {
+          "filename": "FlagField.cs",
+          "meta_guid": "bce9bd14f49c2496787d58744b66fc12",
+          "summary": {
+            "class": "FlagFieldString",
+            "base": "FlagField",
+            "extractable_properties": [
+              {
+                "type": "T",
+                "name": "ProductionValue"
+              }
+            ]
+          },
+          "id": "fef4ecd2-4cea-5c16-92ee-f6fee468660c"
+        },
+        {
+          "filename": "FloatValueSource.cs",
+          "meta_guid": "5b78cb65e56c46c2b798f44d3818bdd5",
+          "summary": {
+            "class": "FloatValueSource",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IFloatProvider"
+            ]
+          },
+          "id": "2efd857c-c018-58ab-883b-4c6bc10c7d66"
+        },
+        {
+          "filename": "GenericObjectVariable.cs",
+          "meta_guid": "e6ef0cbdd2e043568759419cecb843f2",
+          "summary": {
+            "class": "AbstractObjectVariable",
+            "base": "AbstractMonoVariable"
+          },
+          "id": "0d0e203f-d2b4-5237-99f4-aadbf38be6b3"
+        },
+        {
+          "filename": "GenericVariable.cs",
+          "meta_guid": "be648fa95fd1749ceb15d228b29576b1",
+          "summary": {
+            "class": "GenericMonoVariable",
+            "extractable_properties": [
+              {
+                "type": "TField",
+                "name": "_localField"
+              },
+              {
+                "type": "TType",
+                "name": "Value"
+              },
+              {
+                "type": "VariableTag",
+                "name": "_varTag"
+              }
+            ]
+          },
+          "id": "662a703b-4f49-5eab-a254-08fa09fe74dd"
+        },
+        {
+          "filename": "RCGVariableFolder.cs",
+          "meta_guid": "7d801bf8312e64aceb0942c2b6044bc9",
+          "summary": {
+            "class": "AbstractFolder",
+            "base": "MonoBehaviour"
+          },
+          "id": "560379ba-b8ab-5ce8-ad89-249b1871f1f4"
+        },
+        {
+          "filename": "ValueChangeListener.cs",
+          "meta_guid": "cf1f60f0c8454cd595deadf9275149d4",
+          "summary": {
+            "class": "ValueChangedListener"
+          },
+          "id": "59de2d27-a62d-5f16-8df4-5b0a06d52c58"
+        },
+        {
+          "filename": "VarBool.cs",
+          "meta_guid": "a0c0febcd3eb0a243b407df35c92898b",
+          "summary": {
+            "class": "VarBool",
+            "base": "GenericMonoVariable"
+          },
+          "id": "88e354b3-22c5-591e-ac71-204adbcbe17c"
+        },
+        {
+          "filename": "VarFloat.cs",
+          "meta_guid": "431cfe4d1754c2f4d8d9921bdec1cad4",
+          "summary": {
+            "class": "VariableFloatProvider",
+            "interfaces": [
+              "IFloatValueProvider"
+            ]
+          },
+          "id": "20d9788e-8081-570a-be3f-1bbf0a13be44"
+        },
+        {
+          "filename": "VarGameData.cs",
+          "meta_guid": "156caeb38fd34b3890b98990a84d2f2a",
+          "summary": {
+            "class": "VarGameData",
+            "base": "GenericUnityObjectVariable"
+          },
+          "id": "172593bc-6655-5aa7-a3a2-eac0e5671d39"
+        },
+        {
+          "filename": "VarInt.cs",
+          "meta_guid": "1b937d712fdb0f9409c03bbf034b72cc",
+          "summary": {
+            "class": "VarInt",
+            "base": "GenericMonoVariable"
+          },
+          "id": "d41a5ca9-9a6a-55b7-8666-29ef58d8abf1"
+        },
+        {
+          "filename": "VarString.cs",
+          "meta_guid": "090ca051a07d498493ed52bbd079a407",
+          "summary": {
+            "class": "VarString",
+            "base": "GenericMonoVariable"
+          },
+          "id": "16f395df-7174-5182-ba41-825d577626c7"
+        },
+        {
+          "filename": "VariableDictionary.cs",
+          "meta_guid": "b6f997b9ff104997bf5a391abe710f7b",
+          "summary": {
+            "class": "VariableDictionary",
+            "base": "MonoDict"
+          },
+          "id": "a73eda1b-0bff-59c1-a334-ae8bf9194a86"
+        },
+        {
+          "filename": "VariableFloatConsumer.cs",
+          "meta_guid": "5d2ed943fb01f49929526c6d4c04bb0c",
+          "summary": {
+            "class": "VariableFloatConsumer",
+            "base": "AbstractVariableConsumer"
+          },
+          "id": "28ca6214-7df0-5516-a741-7694b9626f74"
+        },
+        {
+          "filename": "VariableFloatVirtual.cs",
+          "meta_guid": "75d82b1d10054038a65c13d1e42eeeec",
+          "summary": {
+            "class": "MonoVarFloatVirtual",
+            "base": "VarFloat"
+          },
+          "id": "8b83abbd-5d47-502d-be33-ce8750b3f58f"
+        },
+        {
+          "filename": "VariableTag.cs",
+          "meta_guid": "c04251230671b427c952ae00fb192c5e",
+          "summary": {
+            "class": "MySerializedType",
+            "base": "MySerializedType"
+          },
+          "id": "a0f0101b-c02f-5f73-ab45-9783b48fb08d"
+        },
+        {
+          "filename": "VirtualBool.cs",
+          "meta_guid": "08b1144791ea4e9db6451f6dbd49d5f4",
+          "summary": {
+            "class": "VirtualBool",
+            "base": "VarBool"
+          },
+          "id": "b0ce6d1c-502e-54e3-9c9c-40df424b4ae7"
+        }
+      ]
+    },
+    "3_FlagData": {
+      "Collection": {
+        "GameFlagCollection": [
+          {
+            "filename": "AbstractGameFlagCollection.cs",
+            "meta_guid": "d2df0ce0ca0514567bba3f1dcd5b4a4d",
+            "summary": {
+              "class": "AbstractGameFlagCollection",
+              "base": "DescriptableData",
+              "interfaces": [
+                "IHasNewItem"
+              ]
+            },
+            "id": "adaacb09-d551-54f4-8da0-fd033f9a12fe"
+          },
+          {
+            "filename": "CurrentItemCollectionCondition.cs",
+            "meta_guid": "baa19958002746c68ad48438da48afb3",
+            "summary": {
+              "class": "CurrentItemCollectionCondition",
+              "base": "AbstractConditionComp"
+            },
+            "id": "46a754a7-bae7-5eba-8b62-adc14ccdda9c"
+          },
+          {
+            "filename": "GameFlagBaseCollection.cs",
+            "meta_guid": "428d404915d814a8da132011037695a0",
+            "summary": {
+              "class": "GameFlagBaseCollection"
+            },
+            "id": "3d19e5b2-efcd-54c8-bab8-e8ea89a1dffd"
+          },
+          {
+            "filename": "ItemCollection.cs",
+            "meta_guid": "5a90fb4e6c734d4daa59bc7c612986d0",
+            "summary": {
+              "class": "ItemCollection",
+              "base": "GameFlagBaseCollection"
+            },
+            "id": "50181354-58b1-5aa7-9e35-c65a0db2d36d"
+          },
+          {
+            "filename": "MultipleChooseOneCollection.cs",
+            "meta_guid": "eea5fcbc0d92f45abb5024efc3f5f684",
+            "summary": {
+              "class": "MultipleChooseOneCollection"
+            },
+            "id": "a158524f-cf38-5fdf-a27f-0a20798295f3"
+          }
+        ]
+      },
+      "Config": [
+        {
+          "filename": "AddressableSOSingleton.cs",
+          "meta_guid": "d9d37159a3e34cf099966b86f42b5383",
+          "summary": {
+            "class": "AddressableSOSingleton"
+          },
+          "id": "278bad96-1cb0-5039-9c16-76646028ddd2"
+        },
+        {
+          "filename": "InstanceConsumer.cs",
+          "meta_guid": "8964d8400531d4f92a09dbfea2f778c3",
+          "summary": {
+            "class": "InstanceConsumer",
+            "base": "MonoBehaviour"
+          },
+          "id": "fd609e20-6b28-5933-b0c6-7d2db07f3f66"
+        },
+        {
+          "filename": "InstanceProvider.cs",
+          "meta_guid": "741dd7524f2c4d3bada38676b3d46b49",
+          "summary": {
+            "class": "InstanceProvider",
+            "base": "MonoBehaviour"
+          },
+          "id": "6d0cbd33-dd47-5911-8b8c-18b048685921"
+        },
+        {
+          "filename": "InstanceReferenceData.cs",
+          "meta_guid": "f408e827856d4a06bbf9025ea2b99258",
+          "summary": {
+            "class": "InstanceReferenceData",
+            "base": "GameFlagBase"
+          },
+          "id": "9aae9ca9-886f-5917-9029-47a469273f1c"
+        },
+        {
+          "filename": "ScriptableCollection.cs",
+          "meta_guid": "39e3cb1c8a504e0dac591a4e0c7ac9d8",
+          "summary": {
+            "class": "ScriptableCollection"
+          },
+          "id": "fd49e494-a5c9-521c-8891-a2169ef43ca8"
+        },
+        {
+          "filename": "ScriptableObjectSingleton.cs",
+          "meta_guid": "f1bd7811b3cd54ddabc16ab0cbc76c34",
+          "summary": {
+            "class": "ScriptableObjectConfig"
+          },
+          "id": "97f7893f-e887-5688-8218-98c8dab91c7d"
+        },
+        {
+          "filename": "SerializedInterfaceObjectReference.cs",
+          "meta_guid": "ef559e5051dd44c12ad1e8c02962c214",
+          "summary": {
+            "class": "SerializedInterfaceObjectReference"
+          },
+          "id": "c8fe507c-9263-575f-9ffa-44889355a11d"
+        },
+        {
+          "filename": "TestModeGameFlag.cs",
+          "meta_guid": "ecd46ee96b495a9488c29fbfd85ecded",
+          "summary": {
+            "class": "TestModeGameFlag",
+            "base": "ScriptableObjectSingleton"
+          },
+          "id": "5bb97d51-d97f-52ce-affb-e2937f9670c0"
+        },
+        {
+          "filename": "UIAssetConfig.cs",
+          "meta_guid": "9bb922065e0d4ab69758c1fdc0aef61e",
+          "summary": {
+            "class": "UIAssetConfig",
+            "base": "AddressableSOSingleton"
+          },
+          "id": "cb605663-9328-5ffc-82a3-be22e169b4c9"
+        }
+      ],
+      "GamePlay": [
+        {
+          "filename": "CharacterData.cs",
+          "meta_guid": "085d14debcb449ca8c6e99750ded63d7",
+          "summary": {
+            "class": "CharacterData",
+            "base": "DescriptableData"
+          },
+          "id": "d9e09dd1-f4d1-5da3-99f0-5e24c5809427"
+        }
+      ],
+      "files": [
+        {
+          "filename": "DescriptableData.cs",
+          "meta_guid": "f675c87b485624ff59259e549640398a",
+          "summary": {
+            "class": "Descriptable"
+          },
+          "id": "26dd8e9a-64d5-507a-a51d-133d859b83ed"
+        },
+        {
+          "filename": "FSMGameFlagFetcher.cs",
+          "meta_guid": "5c11092d5e67438abb1f16eb2d3508b6",
+          "summary": {
+            "class": "FSMGameFlagFetcher",
+            "base": "MonoBehaviour"
+          },
+          "id": "ca8c4bf4-af9c-5fc9-b3a4-5ffdc1bc1a28"
+        },
+        {
+          "filename": "FlagFieldEntry.cs",
+          "meta_guid": "bf62c50e89a0404fab76da01171299fd",
+          "summary": {
+            "class": "FlagFieldBoolEntry",
+            "base": "FlagFieldEntry"
+          },
+          "id": "b44c706e-c0f5-5d1b-8d4d-344f8bf400cf"
+        },
+        {
+          "filename": "FlagTypeScriptable.cs",
+          "meta_guid": "17a4dd80bb3bf4f45b8999aaf583dc3d",
+          "summary": {
+            "class": "FlagTypeScriptable",
+            "base": "ScriptableObject"
+          },
+          "id": "bf90cb9b-e8b4-50e2-abf9-7d8cdca0e084"
+        },
+        {
+          "filename": "GameFlagBase.cs",
+          "meta_guid": "d44d2fda97c4c48819695839d4a76105",
+          "summary": {
+            "class": "AbstractScriptableData"
+          },
+          "id": "6840c3e4-c8f8-5df1-b8de-82e442556235"
+        },
+        {
+          "filename": "GameFlagCollection.cs",
+          "meta_guid": "252b273f67fbe43a1a7f158367363329",
+          "summary": {
+            "class": "GameFlagCollection",
+            "base": "ScriptableObject",
+            "interfaces": [
+              "ISelfValidator"
+            ]
+          },
+          "id": "b1a3cbe3-fb03-58ba-8664-c189006ee55f"
+        },
+        {
+          "filename": "GameFlagInt.cs",
+          "meta_guid": "16283a12867e29b43881e9e233d074ca",
+          "summary": {
+            "class": "GameFlagInt",
+            "base": "AbstractScriptableData"
+          },
+          "id": "9ae16a7c-a230-5468-bb06-fb615e9991fa"
+        },
+        {
+          "filename": "GameFlagString.cs",
+          "meta_guid": "79440bbdbaf8d8d46a6d98c8639e7d7f",
+          "summary": {
+            "class": "GameFlagString",
+            "base": "AbstractScriptableData"
+          },
+          "id": "002e82e2-aa59-5743-bb76-5df5a1fa6fe6"
+        },
+        {
+          "filename": "GameStateStringOverrider.cs",
+          "meta_guid": "d43a11b8055f040819919e6140c9413b",
+          "summary": {
+            "class": "GameStateStringOverrider",
+            "base": "GameStateOverrider"
+          },
+          "id": "0617825d-eda6-54a5-9819-6b76cd895874"
+        },
+        {
+          "filename": "ItemData.cs",
+          "meta_guid": "ea7312a82cc34e4cad5683d2963f9ba2",
+          "summary": {
+            "class": "ItemData",
+            "base": "DescriptableData",
+            "interfaces": [
+              "IItem"
+            ]
+          },
+          "id": "4634a011-c006-5177-a8cc-2cdc7d09428a"
+        },
+        {
+          "filename": "ScriptableDataBool.cs",
+          "meta_guid": "2a6c3bddafe9d4cc793717b890e99806",
+          "summary": {
+            "class": "DataBoolModifyEntryTest",
+            "base": "DataModifyEntry"
+          },
+          "id": "9d3061ea-466a-5be2-af91-b4686304f3a4"
+        },
+        {
+          "filename": "ScriptableDataFloat.cs",
+          "meta_guid": "4bc05f1a115274ac18642c18175bfb42",
+          "summary": {
+            "class": "DataFloatModifyEntry",
+            "base": "DataModifyEntry"
+          },
+          "id": "e110f22c-b957-5e29-b16e-a05facc0cc33"
+        },
+        {
+          "filename": "ScriptableObjectUtility.cs",
+          "meta_guid": "e3c8b123b9974e52a9449ffdeb9b1b1e",
+          "summary": {
+            "class": "ScriptableHelper"
+          },
+          "id": "e685204f-074f-5144-84f1-99325521db54"
+        }
+      ]
+    },
+    "4_Event": [
+      {
+        "filename": "IEventHandler.cs",
+        "meta_guid": "6363ca8e9ce8c44b5bbd73377e97c6f1",
+        "summary": {
+          "class": "AbstractEventHandler",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IEventHandler",
+            "IActionParent"
+          ]
+        },
+        "id": "b19c6913-fd8b-51d6-ad83-647c87f3939a"
+      },
+      {
+        "filename": "OnStateEnterHandler.cs",
+        "meta_guid": "7a815adb3a3649818ed6df7feb54e248",
+        "summary": {
+          "class": "OnStateEnterHandler",
+          "base": "AbstractEventHandler"
+        },
+        "id": "b509392a-0453-5b32-b622-8b6b528a6145"
+      },
+      {
+        "filename": "OnStateExitHandler.cs",
+        "meta_guid": "3f5b3ea8273b400fb5fe7940ad4f5c4d",
+        "summary": {
+          "class": "OnStateExitHandler",
+          "base": "AbstractEventHandler"
+        },
+        "id": "9aaedf10-a324-5c5c-89b7-9c2ec3395f54"
+      }
+    ],
+    "Action": {
+      "AnimatorActions": {
+        "AnimatorPlayActionModule": [
+          {
+            "filename": "AnimatorPlayActionModule.cs",
+            "meta_guid": "f53ca140af4641b7a8ed5e1791e94fb6",
+            "summary": {
+              "class": "AnimatorPlayActionModule",
+              "base": "MonoBehaviour"
+            },
+            "id": "6caf6d48-6e23-5d07-b9bf-5a6b29bcf689"
+          },
+          {
+            "filename": "AnimatorRandomStateModule.cs",
+            "meta_guid": "d4ed8b17814848ec9e01d93e961b960d",
+            "summary": {
+              "class": "AnimatorRandomStateModule",
+              "base": "AnimatorPlayActionModule",
+              "interfaces": [
+                "ISceneSavingCallbackReceiver"
+              ]
+            },
+            "id": "82980a11-68a8-5fa6-a1e8-0b68ff904499"
+          },
+          {
+            "filename": "AnimatorStateStringListProvider.cs",
+            "meta_guid": "986945473ff414727b9cf7b292ecb609",
+            "summary": {
+              "class": "AnimatorStateStringListProvider",
+              "base": "AbstractStringProvider"
+            },
+            "id": "7de465ca-0654-5aaa-ade2-539fe1d0ffac"
+          }
+        ],
+        "files": [
+          {
+            "filename": "AnimatorHelpler.cs",
+            "meta_guid": "a6e455a7454543a096789eed0153503e",
+            "summary": {
+              "class": "AnimatorHelpler"
+            },
+            "id": "7b1aa039-70bc-54ad-99fd-fb56f202117e"
+          },
+          {
+            "filename": "AnimatorParameterSetValueAction.cs",
+            "meta_guid": "ab3691158a074175b8608f6376ca779b",
+            "summary": {
+              "class": "AnimatorParameterSetValueAction",
+              "base": "AbstractStateAction"
+            },
+            "id": "73abcf52-f269-5975-883b-92cb216d201f"
+          },
+          {
+            "filename": "AnimatorPlayAction.cs",
+            "meta_guid": "a019087ac59a24dc1bd8aff64729c641",
+            "summary": {
+              "class": "AnimatorPlayAction",
+              "base": "AbstractStateAction",
+              "interfaces": [
+                "IRCGArgEventReceiver",
+                "IAnimatorPlayAction",
+                "ISceneSavingCallbackReceiver",
+                "ISelfValidator",
+                "ISerializableComponent",
+                "ITransitionCheckInvoker"
+              ]
+            },
+            "id": "3f647b8f-1839-5c08-a24b-3fde4b24de53"
+          },
+          {
+            "filename": "BindSkinMeshRenderer.cs",
+            "meta_guid": "c46fdca3b1224bce93477fb4b3b506dd",
+            "summary": {
+              "class": "ReplaceBones",
+              "base": "MonoBehaviour"
+            },
+            "id": "b5becc82-6c23-5678-a997-27218da752c0"
+          }
+        ]
+      },
+      "DebugAction": [
+        {
+          "filename": "LogAction.cs",
+          "meta_guid": "eeae58ceab5c4e95b34847ea4839dfd2",
+          "summary": {
+            "class": "LogAction",
+            "base": "AbstractStateAction"
+          },
+          "id": "5dddc957-6ba7-52d1-84cf-83c2b7e76ad6"
+        }
+      ],
+      "PhysicsAction": [
+        {
+          "filename": "PauseTimeScaleAction.cs",
+          "meta_guid": "a7949a8e4dd0444e9b986227b2378cb3",
+          "summary": {
+            "class": "PauseTimeScaleAction",
+            "base": "AbstractStateAction"
+          },
+          "id": "a351a392-ac86-5efb-a9d3-8799cb772a48"
+        }
+      ],
+      "VariableAction": [
+        {
+          "filename": "AssignValueAction.cs",
+          "meta_guid": "685094f3e11b42729691b5cd9394aa28",
+          "summary": {
+            "class": "AssignValueAction",
+            "base": "AbstractStateAction"
+          },
+          "id": "f3e16bac-f4f1-59ab-8456-60a7f27972fe"
+        },
+        {
+          "filename": "SetVarBoolAction.cs",
+          "meta_guid": "030c08acca9c148b09523a3baade3587",
+          "summary": {
+            "class": "SetVarBoolAction",
+            "base": "AbstractStateAction",
+            "interfaces": [
+              "IRCGArgEventReceiver"
+            ]
+          },
+          "id": "d519c075-fe43-54d7-ab19-920294240fc9"
+        },
+        {
+          "filename": "SetVariableFloatAction.cs",
+          "meta_guid": "58895cfe9f7b94669bd987b243fe90fe",
+          "summary": {
+            "class": "SetVariableFloatAction",
+            "base": "AbstractStateAction"
+          },
+          "id": "3eaed193-2ba2-5752-a44b-62f8e3b5b437"
+        },
+        {
+          "filename": "SetVariableIntAction.cs",
+          "meta_guid": "f6a88bbf42aac824fb9c6d5f186e7328",
+          "summary": {
+            "class": "SetVariableIntAction",
+            "base": "AbstractStateAction"
+          },
+          "id": "b63e46c0-3550-56d5-8f9c-c03080f1128e"
+        },
+        {
+          "filename": "VariableFloatArithmeticAction.cs",
+          "meta_guid": "aec8fd9b036045cbab5ed988fe630b7b",
+          "summary": {
+            "class": "VariableFloatArithmeticAction",
+            "base": "AbstractStateAction",
+            "interfaces": [
+              "IRCGArgEventReceiver"
+            ]
+          },
+          "id": "973dec7c-1032-5027-bab7-ca82ff88b6ea"
+        },
+        {
+          "filename": "VariableIntArithmeticAction.cs",
+          "meta_guid": "4971fdf63480848d1addd15c83e94d6f",
+          "summary": {
+            "class": "IntValueWrapper",
+            "extractable_properties": [
+              {
+                "type": "VarInt",
+                "name": "target"
+              },
+              {
+                "type": "ArithmeticOperator",
+                "name": "Arithmetic"
+              },
+              {
+                "type": "int",
+                "name": "Value"
+              }
+            ]
+          },
+          "id": "dc90967d-d164-5711-9fa1-34facef89968"
+        }
+      ],
+      "files": [
+        {
+          "filename": "AbstractAnimatorPlayAction.cs",
+          "meta_guid": "68b5dd821eef48c9985bb5db6b92a927",
+          "summary": {
+            "class": "AbstractAnimatorPlayAction",
+            "base": "AbstractStateAction",
+            "interfaces": [
+              "IAnimatorPlayAction",
+              "ISceneSavingCallbackReceiver",
+              "ITransitionCheckInvoker"
+            ]
+          },
+          "id": "3619876f-74c4-5457-9e3e-021e12e0a5a2"
+        },
+        {
+          "filename": "AbstractStateAction.cs",
+          "meta_guid": "9ca4c824e69a34f0a88e5025c7fcda9c",
+          "summary": {
+            "class": "AbstractStateAction",
+            "base": "AbstractDescriptionBehaviour",
+            "interfaces": [
+              "IVoteChild",
+              "IGuidEntity",
+              "IDefaultSerializable",
+              "IRCGArgEventReceiver",
+              "IRCGArgEventReceiver"
+            ]
+          },
+          "id": "d504c2d9-1302-577f-a996-a41bb60ea032"
+        },
+        {
+          "filename": "AnimationPlayAction.cs",
+          "meta_guid": "c999b077935b46c782204f1502436cdf",
+          "summary": {
+            "class": "AnimationPlayAction",
+            "base": "AbstractStateAction",
+            "interfaces": [
+              "IAnimatorStateProvider",
+              "IAnimatorPlayAction"
+            ]
+          },
+          "id": "da21537f-5cd7-52fc-a0de-dc2db02df2fc"
+        },
+        {
+          "filename": "AnimatorReferencePlayAction.cs",
+          "meta_guid": "b460ef9004214243b05bf9ef00a0c765",
+          "summary": {
+            "class": "AnimatorReferencePlayAction",
+            "base": "AbstractAnimatorPlayAction",
+            "interfaces": [
+              "IResetter"
+            ]
+          },
+          "id": "d87f3d63-0a53-5cbf-a8b7-18fbf0a66d27"
+        },
+        {
+          "filename": "DelayActionModifier.cs",
+          "meta_guid": "9682aa5a570fd794f9d28141a7ca58ac",
+          "summary": {
+            "class": "DelayActionModifier",
+            "base": "MonoBehaviour"
+          },
+          "id": "aba84717-4e26-514d-88d5-e09590890133"
+        },
+        {
+          "filename": "IAnimatorPlayAction.cs",
+          "meta_guid": "0c50317c09d0461ab3f6cc6c119fdaf3",
+          "summary": null
+        },
+        {
+          "filename": "SetBoolFieldOfGameFlagAction.cs",
+          "meta_guid": "bd5d2c18e38b48a3a992c0944d4e6f8b",
+          "summary": {
+            "class": "SetBoolFieldOfGameFlagAction",
+            "base": "AbstractStateAction"
+          },
+          "id": "de6bdfdd-0cca-5727-8fbe-ebdaa9a2e6df"
+        },
+        {
+          "filename": "SetBoolFieldOfGameFlagDataAction.cs",
+          "meta_guid": "f028d7d11b404a8c80947b56ac06ae18",
+          "summary": {
+            "class": "SetBoolFieldOfVariableAction",
+            "base": "AbstractStateAction"
+          },
+          "id": "5970bf0a-81ab-56c3-a46d-2462b7ce3b88"
+        },
+        {
+          "filename": "StateUpdateTransitionAction.cs",
+          "meta_guid": "447800c24624043c6a51b3cbee57d36f",
+          "summary": {
+            "class": "StateUpdateTransitionAction",
+            "base": "AbstractStateAction",
+            "interfaces": [
+              "ITransitionCheckInvoker"
+            ]
+          },
+          "id": "3a56a76b-7f2f-57ec-afed-97f22236b1b8"
+        }
+      ]
+    },
+    "Attributes": [
+      {
+        "filename": "CompRefAttribute.cs",
+        "meta_guid": "ccdbca3f4f0e4e269695d547fb5d4d69",
+        "summary": {
+          "class": "CompRefAttribute",
+          "base": "Attribute"
+        },
+        "id": "626d869c-c107-5e1e-9fcf-37ed6961de2f"
+      },
+      {
+        "filename": "ComponentAttribute.cs",
+        "meta_guid": "e5cb6d5a9e65d4c86ae2d91f3757a640",
+        "summary": {
+          "class": "GenericMenuExample",
+          "base": "MonoBehaviour"
+        },
+        "id": "ca5a8561-6dc5-5b51-8e1f-c8f59ffff4df"
+      },
+      {
+        "filename": "DoubleClickLabelAttribute.cs",
+        "meta_guid": "7e3ed1b15165b4b4b8f3bee2a810ef03",
+        "summary": {
+          "class": "DoubleClickLabelAttribute",
+          "base": "ShowInInspectorAttribute"
+        },
+        "id": "a9608645-5132-5434-872b-1a7a2fb20d55"
+      },
+      {
+        "filename": "DropDownAssetAttribute.cs",
+        "meta_guid": "37b661cabcc142c78ba2b5b764c2b559",
+        "summary": {
+          "class": "DropDownAssetAttribute",
+          "base": "Attribute"
+        },
+        "id": "3ed1c4c3-8694-5c90-9a93-a0b9c8ea5ab5"
+      },
+      {
+        "filename": "DropDownRefAttribute.cs",
+        "meta_guid": "ba4eab92c9274588b750b6608f73ea38",
+        "summary": {
+          "class": "DropDownRefAttribute",
+          "base": "Attribute"
+        },
+        "id": "3c412cbe-5b06-5f47-a172-f21fcaf42fee"
+      },
+      {
+        "filename": "EditorOnlyAttribute.cs",
+        "meta_guid": "61a19c9d6efe45c298e1fead269ed74d",
+        "summary": {
+          "class": "EditorOnlyAttribute",
+          "base": "Attribute"
+        },
+        "id": "b43b2479-4a55-5a5b-ad61-d330fb1c33c5"
+      },
+      {
+        "filename": "GameFlagAttribute.cs",
+        "meta_guid": "7fe7e4cf74cea408eabfc0646c07c92a",
+        "summary": {
+          "class": "GameFlagAttribute",
+          "base": "PropertyAttribute"
+        },
+        "id": "a17f7d33-2c77-59ae-82b5-372941300a7c"
+      },
+      {
+        "filename": "GameStateAttribute.cs",
+        "meta_guid": "03bc92740d264fee914304f237535310",
+        "summary": {
+          "class": "GameStateAttribute",
+          "base": "Attribute"
+        },
+        "id": "2197dfac-4ffb-534f-a963-d1af8eed8cac"
+      },
+      {
+        "filename": "InlineFieldAttribute.cs",
+        "meta_guid": "ab0cf0e64eee42f59da7108b7e546b83",
+        "summary": {
+          "class": "InlineFieldAttribute",
+          "base": "Attribute"
+        },
+        "id": "76f03f4e-a397-5727-ba1a-c009d2ffbe21"
+      },
+      {
+        "filename": "PreviewInInspectorAttribute.cs",
+        "meta_guid": "ead1979baaa54d17849caf86b735ed9f",
+        "summary": {
+          "class": "PreviewInInspectorAttribute",
+          "base": "Attribute"
+        },
+        "id": "708f7758-bbdf-508e-ac23-9ee13a23d910"
+      },
+      {
+        "filename": "SOConfigAttribute.cs",
+        "meta_guid": "1d950e6717384b3f8c392629ecd8bc2a",
+        "summary": {
+          "class": "SOConfigAttribute",
+          "base": "Attribute"
+        },
+        "id": "6452fe84-9866-5dbb-9bce-be6da36be76b"
+      },
+      {
+        "filename": "SerializeReferenceParentValidate.cs",
+        "meta_guid": "d0ad84a14f614e7090eac5fde2a42ec6",
+        "summary": {
+          "class": "SerializeReferenceParentValidateAttribute",
+          "base": "Attribute"
+        },
+        "id": "7666a2e5-037d-5472-8acc-11e3376687a9"
+      },
+      {
+        "filename": "ShowInDebugMode.cs",
+        "meta_guid": "f7319f40086f43349509596967c5e0a0",
+        "summary": {
+          "class": "ShowInDebugMode",
+          "base": "Attribute"
+        },
+        "id": "eb819156-c01c-5bcc-86f8-ed4c1673212d"
+      },
+      {
+        "filename": "ShowInPlayModeAttribute.cs",
+        "meta_guid": "1295c776e02542c0af9c67f44f8c2d89",
+        "summary": {
+          "class": "ShowInPlayModeAttribute",
+          "base": "Attribute"
+        },
+        "id": "3f26e955-00ea-5edb-8845-d7646a0356bb"
+      }
+    ],
+    "Debug": {
+      "Debug": [
+        {
+          "filename": "RCGDebugSettingsProvider.cs",
+          "meta_guid": "b09259ca53a542679c9e99fdc3258f35",
+          "summary": {
+            "class": "DebugSetting"
+          },
+          "id": "a9a3a8b7-9367-5a7b-a30b-25834e442f5f"
+        },
+        {
+          "filename": "ScriptingDefineUtility.cs",
+          "meta_guid": "66d5f51dc4e54c379d1dfc20feca8ba9",
+          "summary": {
+            "class": "ScriptingDefineUtility"
+          },
+          "id": "5a559296-264a-58da-b0db-3f80a2ea5167"
+        }
+      ],
+      "DebugSetting": [
+        {
+          "filename": "DebugModuleSuggestor.cs",
+          "meta_guid": "cb82725c0b064247a867f9fa882b9bc1",
+          "summary": {
+            "class": "DebugModuleAttribute",
+            "base": "SuggestorTagAttribute"
+          },
+          "id": "1a5f5a32-741c-57cc-b2e0-2011ce44cb0e"
+        }
+      ],
+      "files": [
+        {
+          "filename": "DebugConditionResultOverrider.cs",
+          "meta_guid": "f200ae5eded749e59645a718b313ca16",
+          "summary": {
+            "class": "DebugConditionResultOverrider",
+            "base": "MonoBehaviour"
+          },
+          "id": "e3cd99f9-d1f5-54ab-9063-72a0fbb60da5"
+        },
+        {
+          "filename": "DebugModeActivator.cs",
+          "meta_guid": "e78c41a7eb6b9404e8460ad228fd79e6",
+          "summary": {
+            "class": "DebugModeActivator",
+            "base": "MonoBehaviour"
+          },
+          "id": "dfa5707a-12cf-55a7-8296-cfb6eb4a42c0"
+        },
+        {
+          "filename": "DebugProvider.cs",
+          "meta_guid": "4bf7bf97a6cac4c51abbcbf3da26769a",
+          "summary": {
+            "class": "DebugProvider",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IEditorOnly"
+            ]
+          },
+          "id": "6b86be13-58e6-585a-b995-e6e416623b6a"
+        },
+        {
+          "filename": "DebugSetting.cs",
+          "meta_guid": "1db5df0e7717347caa03c06f8bd19a3b",
+          "summary": {
+            "class": "DebugSetting"
+          },
+          "id": "258c824e-a1a2-526d-af23-5f3cdee9ed9f"
+        },
+        {
+          "filename": "DebugSettingActivator.cs",
+          "meta_guid": "4a86f9540a214793aac5e176877d108f",
+          "summary": {
+            "class": "DebugSettingActivator",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IResetter"
+            ]
+          },
+          "id": "e7376204-84a9-5707-b942-a5582258cc6b"
+        },
+        {
+          "filename": "IHierarchyItemDisplay.cs",
+          "meta_guid": "ca8fb9826ff8345e49d01721251f728d",
+          "summary": null
+        },
+        {
+          "filename": "OnEnableDisableLogger.cs",
+          "meta_guid": "eaf9f0743f294257984076ba89dbb7bc",
+          "summary": {
+            "class": "OnEnableDisableLogger",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IEditorOnly"
+            ]
+          },
+          "id": "642fd5f2-79a5-5851-b2d6-004840d2b71c"
+        },
+        {
+          "filename": "RCGBreakPoint.cs",
+          "meta_guid": "db7700e4a8e84e2890a115fac841b15f",
+          "summary": {
+            "class": "RCGBreakPoint",
+            "base": "MonoBehaviour"
+          },
+          "id": "3bfb8671-2c50-5241-8f09-54ee8b551a00"
+        },
+        {
+          "filename": "RCGTime.cs",
+          "meta_guid": "e3bc74e22b664a2b9870a15c3a171ef4",
+          "summary": {
+            "class": "RCGTime"
+          },
+          "id": "30cd2ab8-015d-5991-b588-ae4012c384ad"
+        }
+      ]
+    },
+    "EditorTool": {
+      "Addressable": [
+        {
+          "filename": "AddressableAnimator.cs",
+          "meta_guid": "9fa44638be4f4510b0ee013652655b10",
+          "summary": {
+            "class": "AddressableAnimator",
+            "base": "MonoBehaviour"
+          },
+          "id": "7693d112-2202-5e1f-884c-604b048aa189"
+        },
+        {
+          "filename": "AddressablePrefabLoader.cs",
+          "meta_guid": "06751062581a4ea8813ed7180298975a",
+          "summary": {
+            "class": "AddressablePrefabLoader",
+            "base": "MonoBehaviour"
+          },
+          "id": "beda74da-6c3e-505a-8e9a-9faa0ae97ea6"
+        },
+        {
+          "filename": "RCGAssetReference.cs",
+          "meta_guid": "d2b00266c582a4f458f787df8e26ca94",
+          "summary": {
+            "class": "RCGAssetReference"
+          },
+          "id": "1937991e-71b8-5f3e-9fd4-7c18296ca8e4"
+        }
+      ],
+      "AnimatorRefactorTool": [
+        {
+          "filename": "AnimatorControllerGenerator.cs",
+          "meta_guid": "26a7572d805c485082b0c3c1a9a78663",
+          "summary": {
+            "class": "AnimatorControllerGenerator"
+          },
+          "id": "c9a83299-ef17-52bf-98ae-a3ad983cc87c"
+        },
+        {
+          "filename": "AnimatorRefactor.cs",
+          "meta_guid": "8a2f830c0382649e298649833f0a7078",
+          "summary": {
+            "class": "AnimatorRefactor"
+          },
+          "id": "6702c29f-276f-5e85-bfbd-12ca7aa78665"
+        },
+        {
+          "filename": "RefactorNode.cs",
+          "meta_guid": "36483c5bb06f4385b77dcebe4af8c819",
+          "summary": {
+            "class": "RefactorNode",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "ISceneSavingCallbackReceiver",
+              "IBeforePrefabSaveCallbackReceiver"
+            ]
+          },
+          "id": "d83a7214-f4a1-5b89-a998-18f3f47a542f"
+        }
+      ],
+      "files": [
+        {
+          "filename": "ISceneSavingCallbackReceiver.cs",
+          "meta_guid": "29c267175dd3415c948b3c8c59071405",
+          "summary": null
+        },
+        {
+          "filename": "SearchExtension.cs",
+          "meta_guid": "1543784d3c8e4f34962cd7b27fba7e93",
+          "summary": {
+            "class": "SearchExtension"
+          },
+          "id": "c7007f6b-3dbc-521d-ab16-7ebba3a14301"
+        }
+      ]
+    },
+    "EditorUtility": [
+      {
+        "filename": "AssetDatabaseUtility.cs",
+        "meta_guid": "01e900aaea2f4791847a660da6ceb1d7",
+        "summary": {
+          "class": "AssetDatabaseUtility"
+        },
+        "id": "afe18082-3991-517f-957f-73585e4adf16"
+      },
+      {
+        "filename": "SceneViewUtility.cs",
+        "meta_guid": "105441d3855d446fac85ce1a6b4b251c",
+        "summary": {
+          "class": "SceneViewUtility"
+        },
+        "id": "4da48dc0-f2fd-5705-a244-2b720a7a0463"
+      }
+    ],
+    "Entity": [
+      {
+        "filename": "ComponentNote.cs",
+        "meta_guid": "189dfaaf93abe43039a6a89df355d21e",
+        "summary": {
+          "class": "ComponentNote",
+          "base": "MonoBehaviour"
+        },
+        "id": "6e648936-9ee8-57ab-81cd-ceb3d629efea"
+      },
+      {
+        "filename": "FilterPreset.cs",
+        "meta_guid": "1abf6d98644fe40bf8b57629c97ef712",
+        "summary": {
+          "class": "FilterPreset",
+          "base": "SerializedScriptableObject"
+        },
+        "id": "422aa2d4-b49b-5e12-aa28-44398c233bba"
+      },
+      {
+        "filename": "GameObjectInitialActivator.cs",
+        "meta_guid": "5ac8b74ccaa6a42458430ffaa230f54a",
+        "summary": {
+          "class": "ReadOnlyActivator",
+          "base": "MonoBehaviour"
+        },
+        "id": "f4fad8d4-c4e7-501a-b5e1-24a46ca15cfc"
+      },
+      {
+        "filename": "IResetter.cs",
+        "meta_guid": "b9a594f09be2d48cd9b406a32cb51a46",
+        "summary": null
+      },
+      {
+        "filename": "UpdateList.cs",
+        "meta_guid": "4a9b9655c10b4e2ca8dfaed4c92678fe",
+        "summary": {
+          "class": "UpdateList"
+        },
+        "id": "2d466eb3-1737-538a-8602-9854fd580164"
+      },
+      {
+        "filename": "UpdateLoopManager.cs",
+        "meta_guid": "e2de880e98a34c79916626667c08127a",
+        "summary": {
+          "class": "UpdateLoopManager",
+          "base": "SingletonBehaviour"
+        },
+        "id": "ea1bf8b7-15ff-5908-8b35-c6b2c73c7db6"
+      }
+    ],
+    "EventBinding": [
+      {
+        "filename": "IRCGEventReceiver.cs",
+        "meta_guid": "8cf1d54029d249f7bb65466ffa40a193",
+        "summary": null
+      }
+    ],
+    "Extension": [
+      {
+        "filename": "ContextMenuItemForMonoScript.cs",
+        "meta_guid": "c030dde4ea50400e8995712d52188ddb",
+        "summary": {
+          "class": "ContextMenuItemForMonoScript"
+        },
+        "id": "69b083cc-6a27-5e18-8853-aa698ced12a3"
+      },
+      {
+        "filename": "ListExtension.cs",
+        "meta_guid": "27c7bb7c08554b959b59d33cd6b9b479",
+        "summary": {
+          "class": "ListExtensions"
+        },
+        "id": "13f7d7bf-cb8e-5448-bf1f-c88370e60575"
+      },
+      {
+        "filename": "MonoExtensionLogger.cs",
+        "meta_guid": "2013d348263d4dd89818f43fa67fb85e",
+        "summary": {
+          "class": "MonoExtensionLogger"
+        },
+        "id": "8e9235a0-165a-5142-a246-d88ac70bfb86"
+      },
+      {
+        "filename": "MonoLifeTimeExtension.cs",
+        "meta_guid": "0143fda17a4649948e4dcc3e983a6a33",
+        "summary": {
+          "class": "MonoLifeTimeExtension"
+        },
+        "id": "03f9d14e-4191-5888-861d-0e2802c44f86"
+      },
+      {
+        "filename": "MonoNodeExtension.cs",
+        "meta_guid": "834a4531b3ee547399725c397ef7de10",
+        "summary": {
+          "class": "ZString"
+        },
+        "id": "e134f1f0-1c00-57d1-85d4-d6dec35a239c"
+      },
+      {
+        "filename": "ObjectExtensions.cs",
+        "meta_guid": "0be09fdf8d8b48f4833a56d989d9f3e1",
+        "summary": {
+          "class": "ObjectExtensions"
+        },
+        "id": "f766d160-d388-52c0-9573-32793611fb3e"
+      },
+      {
+        "filename": "PrefabExtension.cs",
+        "meta_guid": "a910d6dfd1e6450db6991b9d56424cf1",
+        "summary": {
+          "class": "PrefabKindExt"
+        },
+        "id": "a99fd77f-08b9-583d-8dc7-c5beadf1a83b"
+      },
+      {
+        "filename": "ScriptableObjectExtension.cs",
+        "meta_guid": "f9e514ba860848039f2379c44c10a421",
+        "summary": {
+          "class": "ScriptableObjectExtension"
+        },
+        "id": "25085911-07bf-5473-bdf3-13389a97c576"
+      },
+      {
+        "filename": "StringExtension.cs",
+        "meta_guid": "394c29a7760c4a999f9b04fd1dee77b5",
+        "summary": {
+          "class": "StringExtension"
+        },
+        "id": "307866e0-c5c0-5762-903f-b30a1f36ac81"
+      },
+      {
+        "filename": "TransformConstraintExtension.cs",
+        "meta_guid": "aa13d0c9a89f4b31a704932d426878e2",
+        "summary": {
+          "class": "TransformConstraintExtension"
+        },
+        "id": "07ee5ae4-0d40-58e9-8628-31f4c84927d9"
+      },
+      {
+        "filename": "TransformExtension.cs",
+        "meta_guid": "a248b02fc2e3415b83df414ff9357946",
+        "summary": {
+          "class": "TransformExtension"
+        },
+        "id": "82aa1ee0-91de-527c-9d31-2319e017cc5b"
+      }
+    ],
+    "Gizmo": [
+      {
+        "filename": "GizmoMarker.cs",
+        "meta_guid": "6c2cfdbeecef2224186cf08dfed57132",
+        "summary": {
+          "class": "GizmoMarker",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IDrawHierarchyBackGround",
+            "IEditorOnly"
+          ]
+        },
+        "id": "43a99128-e5af-5a4f-ad62-4c20e949f253"
+      },
+      {
+        "filename": "GizmoRectPainter.cs",
+        "meta_guid": "3057695f488ff488ba4851cb1d1e6490",
+        "summary": {
+          "class": "GizmoRectPainter",
+          "base": "MonoBehaviour"
+        },
+        "id": "19538c89-1737-5392-a8c6-c019935b558e"
+      },
+      {
+        "filename": "LineGizmoNode.cs",
+        "meta_guid": "0b240f1bc2a24cfe930b030aee009f87",
+        "summary": {
+          "class": "LineGizmoNode",
+          "base": "MonoBehaviour"
+        },
+        "id": "90fd739e-22da-540c-95c0-11819e548330"
+      }
+    ],
+    "InlineFavorite": [
+      {
+        "filename": "DropZoneAttribute.cs",
+        "meta_guid": "d199e734826f47158e7508e875122f4c",
+        "summary": {
+          "class": "DropZoneAttribute",
+          "base": "Attribute"
+        },
+        "id": "14cd5a96-d066-5d49-9798-d5e03a68ce60"
+      },
+      {
+        "filename": "InlineFavoriteComponent.cs",
+        "meta_guid": "820e8c21347c142ff8a0eb972b926007",
+        "summary": {
+          "class": "InlineFavoriteComponent",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IEditorOnly"
+          ]
+        },
+        "id": "7e7e42d7-8d2d-5a8d-a67c-b988632f4179"
+      },
+      {
+        "filename": "InlineFavoriteTag.cs",
+        "meta_guid": "c389bcdac2e8e432c9d7911a6a09882e",
+        "summary": {
+          "class": "InlineFavoriteTag",
+          "base": "MonoBehaviour"
+        },
+        "id": "3aaefb71-8600-5c7c-8bf8-402392f07174"
+      }
+    ],
+    "Interact": {
+      "EffectHit": {
+        "Condition": [
+          {
+            "filename": "IsEffectTypeInMonoDescriptableCondition.cs",
+            "meta_guid": "833e600650cd4508adf3a4c29c95a3b1",
+            "summary": {
+              "class": "IsEffectTypeInMonoDescriptableCondition",
+              "base": "AbstractConditionComp"
+            },
+            "id": "e589e1da-5c9a-52f8-895a-f1ede31d87ed"
+          }
+        ],
+        "Resolver": {
+          "ApplyEffect": [
+            {
+              "filename": "EffectHitFloatArithmeticAction.cs",
+              "meta_guid": "d3584610e6d34d54ba8099f08d00efad",
+              "summary": {
+                "class": "AbstractEffectHitAction",
+                "base": "MonoBehaviour",
+                "interfaces": [
+                  "IRCGArgEventReceiver"
+                ]
+              },
+              "id": "cc7951aa-e127-5b3e-a488-276ecdbe8e8c"
+            }
+          ],
+          "files": [
+            {
+              "filename": "EffectHitFloatValueCompareCondition.cs",
+              "meta_guid": "6d9c4e9512b744419feb9b3fda4a20df",
+              "summary": {
+                "class": "AbstractEffectHitCondition",
+                "base": "MonoBehaviour"
+              },
+              "id": "ac6e7626-bddb-5230-b76e-34c2bdb34013"
+            },
+            {
+              "filename": "EffectReceivedEventInvoker.cs",
+              "meta_guid": "f0a30b5ce24744828c9c6be0b94db5b4",
+              "summary": {
+                "class": "EffectReceivedEventInvoker",
+                "base": "MonoBehaviour",
+                "interfaces": [
+                  "IEffectReceivedProcessor"
+                ]
+              },
+              "id": "d58e7ae3-3a2d-55c2-bb13-ebd4cc96c749"
+            },
+            {
+              "filename": "EffectResolver.cs",
+              "meta_guid": "643976d679024dc1b733439dd41b32c6",
+              "summary": {
+                "class": "EffectResolver",
+                "base": "MonoBehaviour",
+                "interfaces": [
+                  "IDefaultSerializable"
+                ],
+                "extractable_properties": [
+                  {
+                    "type": "GeneralEffectType",
+                    "name": "EffectType"
+                  }
+                ]
+              },
+              "id": "ef25be75-3cce-5801-a60c-edb59bd4041b"
+            },
+            {
+              "filename": "GeneralEffectDealer.cs",
+              "meta_guid": "788128e4eeab4d919bfc3a6cec2e5567",
+              "summary": {
+                "class": "ProxySource"
+              },
+              "id": "7c968710-bf3e-5a33-b62c-6df5ae5487b9"
+            },
+            {
+              "filename": "GeneralEffectReceiver.cs",
+              "meta_guid": "7e704c2b151c4bc7b91eb14b8decbd58",
+              "summary": {
+                "class": "GeneralEffectReceiver",
+                "base": "EffectResolver",
+                "interfaces": [
+                  "IEffectReceiver"
+                ]
+              },
+              "id": "8549d9d4-2216-59db-b629-83d0545d34e8"
+            },
+            {
+              "filename": "IEffectDealer.cs",
+              "meta_guid": "5b07dbea0ac704395aa92a88ac85cac1",
+              "summary": {
+                "class": "EffectHitEvent",
+                "base": "UnityEvent"
+              },
+              "id": "83c6a0e4-5f32-5e0a-aa53-b72a7f4a63f6"
+            }
+          ]
+        },
+        "files": [
+          {
+            "filename": "EffectEnterNode.cs",
+            "meta_guid": "64e706c50c724392be5b38e2319bc997",
+            "summary": {
+              "class": "AbstractEffectNode",
+              "base": "AbstractEventHandler",
+              "interfaces": [
+                "IDefaultSerializable",
+                "IActionParent"
+              ]
+            },
+            "id": "e652b998-f274-5303-88bb-79bcdaff91d1"
+          },
+          {
+            "filename": "EffectExitNode.cs",
+            "meta_guid": "fa82abf85eb6445da5e22aebfe5e620e",
+            "summary": {
+              "class": "EffectExitNode",
+              "base": "AbstractEventHandler"
+            },
+            "id": "35edd009-ee21-5db2-a845-5b10b8cec00c"
+          },
+          {
+            "filename": "EffectHitFailNode.cs",
+            "meta_guid": "4be29887c4a44558a7a3934194f6a113",
+            "summary": {
+              "class": "EffectHitFailNode",
+              "base": "AbstractEffectNode"
+            },
+            "id": "c0267fb0-4cc3-58db-8ff6-22dd658ae35b"
+          },
+          {
+            "filename": "EventNode.cs",
+            "meta_guid": "eaac2b1705b042a9bf6fea11236f2a28",
+            "summary": {
+              "class": "EventNode",
+              "base": "MonoBehaviour"
+            },
+            "id": "a97498c5-6d0f-5ff3-91b1-234cbac9d8b5"
+          },
+          {
+            "filename": "GeneralEffectHitData.cs",
+            "meta_guid": "4a2b48cd1d3243d7a50bdfb7274d1bc4",
+            "summary": null
+          },
+          {
+            "filename": "GeneralEffectType.cs",
+            "meta_guid": "0dd95d420d0f4628875cbf5008b05a70",
+            "summary": {
+              "class": "GeneralEffectType",
+              "base": "ScriptableObject",
+              "interfaces": [
+                "IEffectType"
+              ]
+            },
+            "id": "9197c64c-553d-56c8-b215-de3794ec9f6f"
+          },
+          {
+            "filename": "IEffectReceiverProvider.cs",
+            "meta_guid": "d5827478cf5141249eb6122199cf9bfa",
+            "summary": null
+          }
+        ]
+      },
+      "SpatialDetection": {
+        "MouseDown": [
+          {
+            "filename": "MouseDetector.cs",
+            "meta_guid": "40110bc39b5f4150b6ea8f1e15623676",
+            "summary": {
+              "class": "IConditionProvider"
+            },
+            "id": "32e1bb9b-0d2d-559b-9831-c1d8643bf108"
+          },
+          {
+            "filename": "MouseDownDetectable.cs",
+            "meta_guid": "773b0e5ae7aa4e7db16c2e66c5b396fc",
+            "summary": {
+              "class": "MouseDownDetectable",
+              "base": "EffectDetectable"
+            },
+            "id": "676e63f8-0836-55a2-9c77-415eaef1dd4a"
+          },
+          {
+            "filename": "MouseEventDetectable.cs",
+            "meta_guid": "9fd17852a3fc47c0beb06ffd2968706b",
+            "summary": {
+              "class": "MouseEventDetectable",
+              "base": "MonoBehaviour"
+            },
+            "id": "90776aa5-7d2e-5b7f-b886-0fc47bd051ec"
+          },
+          {
+            "filename": "MouseOverDetectable.cs",
+            "meta_guid": "f32aef90ceb84323a9f095644efb17d0",
+            "summary": {
+              "class": "MouseOverDetectable",
+              "base": "EffectDetectable"
+            },
+            "id": "eed82692-4dce-5249-a646-9db54d24d365"
+          }
+        ],
+        "files": [
+          {
+            "filename": "AbstractDetector.cs",
+            "meta_guid": "e87349a89f8f4018ae67f58fda6a64dc",
+            "summary": {
+              "class": "AbstractDetector",
+              "base": "MonoBehaviour",
+              "interfaces": [
+                "IDefaultSerializable"
+              ]
+            },
+            "id": "f095ccf8-c0f3-55ee-b8ef-5b48b495f6bd"
+          },
+          {
+            "filename": "CollisionSpatialDetector.cs",
+            "meta_guid": "ba00521c44eb46e8ab70250f37a1c483",
+            "summary": {
+              "class": "CollisionSpatialDetector",
+              "base": "AbstractDetector"
+            },
+            "id": "ed0e4f70-b7cd-5316-846a-706ac5b10a10"
+          },
+          {
+            "filename": "EffectDetectable.cs",
+            "meta_guid": "da001379065748ad8f35741f44a2ecbb",
+            "summary": {
+              "class": "EffectDetectable",
+              "base": "MonoBehaviour",
+              "interfaces": [
+                "IDefaultSerializable"
+              ]
+            },
+            "id": "acec6337-8b6e-54ee-a765-902b115f46ae"
+          },
+          {
+            "filename": "ReliableOnTriggerExit.cs",
+            "meta_guid": "29dacb8178334f96a9bd6a6fd9dfdd64",
+            "summary": {
+              "class": "ReliableOnTriggerExit",
+              "base": "MonoBehaviour"
+            },
+            "id": "3ba06885-5c48-509d-84f1-5c6d79dfdfa4"
+          },
+          {
+            "filename": "TriggerSpatialDetector.cs",
+            "meta_guid": "7eb67c483d4c4d629abd2b71e070f59e",
+            "summary": {
+              "class": "TriggerSpatialDetector",
+              "base": "AbstractDetector"
+            },
+            "id": "3acdc898-ea87-5ecc-b3bb-f40328ea1b88"
+          },
+          {
+            "filename": "TriggerSpatialDetector2D.cs",
+            "meta_guid": "4e19cda5739a45b9ad0ecebe66112beb",
+            "summary": {
+              "class": "TriggerSpatialDetector2D",
+              "base": "AbstractDetector"
+            },
+            "id": "fdcff130-dc28-5515-9d0f-670502082010"
+          }
+        ]
+      },
+      "Updater": [
+        {
+          "filename": "RealtimeUpdateRunner.cs",
+          "meta_guid": "ffca3dd5889546e490806d321ffca644",
+          "summary": {
+            "class": "RealtimeUpdateRunner",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IUpdateRunner"
+            ]
+          },
+          "id": "32486c65-c42d-5a59-9842-da42d4821113"
+        },
+        {
+          "filename": "ResetTimerAction.cs",
+          "meta_guid": "59aeb572b41e4b318370b1f179998624",
+          "summary": {
+            "class": "ResetTimerAction",
+            "base": "AbstractStateAction"
+          },
+          "id": "0174abb9-beaf-5721-b9c1-d244e7e084c1"
+        },
+        {
+          "filename": "StaminaTimer.cs",
+          "meta_guid": "0644a7c94dcea49129e397142271c21c",
+          "summary": {
+            "class": "StaminaTimer",
+            "base": "MonoBehaviour"
+          },
+          "id": "599c326b-842f-5029-ae3f-b5a5e13be156"
+        },
+        {
+          "filename": "VarFloatCountDownTimer.cs",
+          "meta_guid": "b2090433eb8e46989f421c7ac7f31af9",
+          "summary": {
+            "class": "VarFloatCountDownTimer",
+            "base": "MonoBehaviour"
+          },
+          "id": "226e93cb-12d9-5aa5-ae0f-6e0a50afd810"
+        }
+      ],
+      "files": [
+        {
+          "filename": "EffectHitExtension.cs",
+          "meta_guid": "8d73c7ce12f34b53b5e8e779da0d96a4",
+          "summary": {
+            "class": "EffectHitExtension"
+          },
+          "id": "68fc24fd-4804-5669-8d7a-c2f7f2e196c5"
+        }
+      ]
+    },
+    "LifeCycle": [
+      {
+        "filename": "DestroyAllGameObjects.cs",
+        "meta_guid": "05a5d6a7da6a6b74bba769aa2f65f4cc",
+        "summary": {
+          "class": "RCGLifeCycle"
+        },
+        "id": "fc770b19-e38e-518b-96c8-3a766cf9dfdc"
+      },
+      {
+        "filename": "RCGDontDestroyForever.cs",
+        "meta_guid": "64d153190903401ebeb64e153803136c",
+        "summary": {
+          "class": "RCGDontDestroyForever",
+          "base": "MonoBehaviour"
+        },
+        "id": "92fe367d-5c53-50e8-b43a-be12210e4987"
+      }
+    ],
+    "Localization": [
+      {
+        "filename": "ILocalizationManager.cs",
+        "meta_guid": "5a3a0b0ebe2f4c2faf6fedbe148d0a9d",
+        "summary": null
+      },
+      {
+        "filename": "LocalizedString.cs",
+        "meta_guid": "20dccbdc903d4b6ba791baced4106c1e",
+        "summary": null
+      }
+    ],
+    "Module": {
+      "Animator": [
+        {
+          "filename": "AnimatorExtension.cs",
+          "meta_guid": "f1813a6b65704f5da7c07efeb9a66c46",
+          "summary": {
+            "class": "AnimatorHelper"
+          },
+          "id": "c0511941-5b9d-5204-983f-f6a7ea1c1363"
+        },
+        {
+          "filename": "AutoDisableAnimator.cs",
+          "meta_guid": "dc2fafdc504e4fa6ba4038e90c81408d",
+          "summary": {
+            "class": "AutoDisableAnimator",
+            "base": "MonoBehaviour"
+          },
+          "id": "ddaff151-0b62-5ce7-8c76-fdfd86fd32bc"
+        }
+      ],
+      "Invoker": [
+        {
+          "filename": "OnEnableHierarchyInvoker.cs",
+          "meta_guid": "e211c4d87434046418e27c75d8cfd88f",
+          "summary": {
+            "class": "OnEnableHierarchyInvoker",
+            "base": "MonoBehaviour"
+          },
+          "id": "90f143e2-3e69-5704-b5c3-eace6d7b1865"
+        }
+      ],
+      "files": [
+        {
+          "filename": "EnableModule.cs",
+          "meta_guid": "02dcb9fb834f40c4a2723dc037afefdf",
+          "summary": {
+            "class": "EnableModule",
+            "base": "MonoBehaviour"
+          },
+          "id": "8afbd483-2f3b-59e5-a29b-5f2a478de65c"
+        },
+        {
+          "filename": "OnEnableInvoker.cs",
+          "meta_guid": "d186b12363a8c854cbb545c2399136eb",
+          "summary": {
+            "class": "TransformEvent",
+            "base": "UnityEvent"
+          },
+          "id": "0351052d-7f12-5c93-acb1-b76a0fc58868"
+        }
+      ]
+    },
+    "MonoData": [
+      {
+        "filename": "MonoDescriptable.cs",
+        "meta_guid": "8fdaea9a50c9419b9e6f82ed28c91b37",
+        "summary": {
+          "class": "MonoDescriptable",
+          "base": "AbstractMonoDescriptable"
+        },
+        "id": "0e7caaae-908a-581f-a103-43e23d7312c7"
+      },
+      {
+        "filename": "MonoDescriptableBinder.cs",
+        "meta_guid": "08bb47e618e749f68d878f1646cb82cd",
+        "summary": {
+          "class": "MonoDescriptableBinder",
+          "base": "MonoDict"
+        },
+        "id": "8e88fba1-3860-57ee-a986-072054e27f3a"
+      },
+      {
+        "filename": "MonoDescriptableCollection.cs",
+        "meta_guid": "840e223120894842a554dc4aaf7fb00b",
+        "summary": {
+          "class": "MonoDescriptableCollection",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IMonoDescriptableCollection"
+          ]
+        },
+        "id": "4fc814b8-3767-5098-bf50-8bc114a75338"
+      },
+      {
+        "filename": "MonoDescriptableCollectionBinder.cs",
+        "meta_guid": "bd9606c5219243b49b082985b289999f",
+        "summary": {
+          "class": "MonoDescriptableCollectionBinder",
+          "base": "MonoDict"
+        },
+        "id": "8e60867b-31d6-5b31-a1e1-789d8e5715c9"
+      },
+      {
+        "filename": "MonoDescriptableCollectionConverter.cs",
+        "meta_guid": "c1aabfdaf7714099a899641dd28e1b9e",
+        "summary": {
+          "class": "MonoDescriptableCollectionConverter"
+        },
+        "id": "9e59fa6c-644a-5cc9-8e2e-86ebcb05dfa1"
+      },
+      {
+        "filename": "MonoDescriptableFromCollection.cs",
+        "meta_guid": "6ad81b4162b9436788edf186cc58ed46",
+        "summary": {
+          "class": "MonoDescriptableFromCollection",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IMonoDescriptable"
+          ]
+        },
+        "id": "5d465a02-24c3-5201-9b8f-3e7c4a7dd951"
+      },
+      {
+        "filename": "MonoDescriptableFromVariable.cs",
+        "meta_guid": "d64863aee7024495888b799a8c4650c3",
+        "summary": {
+          "class": "MonoDescriptableFromVariable",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IMonoDescriptable"
+          ]
+        },
+        "id": "78d54f5d-599c-5ff7-b77e-007b7ad87fb2"
+      },
+      {
+        "filename": "MonoDescriptableTag.cs",
+        "meta_guid": "8e71863d6a014827a715566dd5c5af2f",
+        "summary": {
+          "class": "MonoDescriptableTag",
+          "base": "ScriptableObject",
+          "interfaces": [
+            "IStringKey"
+          ]
+        },
+        "id": "b57afd29-9ab6-56a7-9b73-ebacf8b674af"
+      },
+      {
+        "filename": "MonoRefFromVariableOfMonoDescriptableProvider.cs",
+        "meta_guid": "5bb4d3ee08274edba8de9b32c70d1328",
+        "summary": {
+          "class": "MonoRefFromVariableOfMonoDescriptableProvider",
+          "base": "UIMonoDescriptableProvider"
+        },
+        "id": "0824bb99-0e79-5409-8ef0-946a78d70fb6"
+      },
+      {
+        "filename": "UIMonoDescriptableCollectionProvider.cs",
+        "meta_guid": "bd7efa690dcd40c4892c4cd7c72ef7a9",
+        "summary": {
+          "class": "UIMonoDescriptableCollectionProvider",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IResetStart"
+          ]
+        },
+        "id": "a61b59dc-c791-5bcd-8f3f-afc9ab411173"
+      },
+      {
+        "filename": "UIMonoDescriptableProvider.cs",
+        "meta_guid": "7702e1f60dd7e463b8a415891e1d0c1e",
+        "summary": {
+          "class": "UIMonoDescriptableProvider",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IDescriptableProvider",
+            "IResetStart"
+          ]
+        },
+        "id": "55caa8da-bdce-5b6e-908f-128a8dcfdf3b"
+      },
+      {
+        "filename": "VarMono.cs",
+        "meta_guid": "4ca1f421dbd84eab9de983e488c78d3e",
+        "summary": {
+          "class": "VarMono",
+          "base": "GenericUnityObjectVariable"
+        },
+        "id": "c955ada0-f2f8-5dd4-9c58-4d15c4baed1d"
+      }
+    ],
+    "Note": {
+      "Scripts": {
+        "OverView Graph": [
+          {
+            "filename": "DirectionRotater.cs",
+            "meta_guid": "a5adffdc7df244a4bb5a171b17796320",
+            "summary": {
+              "class": "DirectionRotater",
+              "base": "MonoBehaviour"
+            },
+            "id": "7785f8f7-e63c-5b09-b928-fb7d7010a796"
+          },
+          {
+            "filename": "PortalLinkGizmo.cs",
+            "meta_guid": "78179d5da409b4541aa3b02b4a483ef3",
+            "summary": {
+              "class": "PortalLinkGizmo",
+              "base": "MonoBehaviour"
+            },
+            "id": "6c56b9ca-bcc6-5a22-bf36-8f245da1f0a6"
+          }
+        ],
+        "files": [
+          {
+            "filename": "AreaMarker.cs",
+            "meta_guid": "2a539b35abccd45df875e6547a7d8453",
+            "summary": {
+              "class": "AreaMarker",
+              "base": "MonoBehaviour",
+              "interfaces": [
+                "IEditorOnly"
+              ]
+            },
+            "id": "596e2912-3c2d-5978-84de-73f955eb7ef8"
+          },
+          {
+            "filename": "GamePlayAttributeSO.cs",
+            "meta_guid": "45523944e1bb44af48b7c5d086de50de",
+            "summary": {
+              "class": "GamePlayAttributeSO",
+              "base": "ScriptableObject"
+            },
+            "id": "8c6b71ec-10a4-527c-9bce-a08f9da60789"
+          },
+          {
+            "filename": "GamePlayAttributeTypeSO.cs",
+            "meta_guid": "2689415c3253a483b95b5e17d5518a80",
+            "summary": {
+              "class": "GamePlayAttributeTypeSO",
+              "base": "ScriptableObject"
+            },
+            "id": "f4ad8f16-0015-5173-8295-662f68fe5efc"
+          },
+          {
+            "filename": "GamePlayDesignToolManager.cs",
+            "meta_guid": "1dfc3289131374f0c89ecdaa4557245a",
+            "summary": {
+              "class": "GamePlayDesignToolManager",
+              "base": "SerializedMonoBehaviour"
+            },
+            "id": "1af44987-0168-5bac-b000-565e6ca73f51"
+          },
+          {
+            "filename": "GamePlayElementTag.cs",
+            "meta_guid": "bd7b41ee5af5a44b380928f0e351aca1",
+            "summary": {
+              "class": "GamePlayElementTag",
+              "base": "AbstractMapTag"
+            },
+            "id": "461877f6-b10b-5c63-80da-eb7d79360b29"
+          },
+          {
+            "filename": "GamePlayTag.cs",
+            "meta_guid": "1009ffcf9929f44babc6ff480ae1fa41",
+            "summary": {
+              "class": "GamePlayTag",
+              "base": "AbstractMapTag",
+              "interfaces": [
+                "IGizmoColorProvider"
+              ]
+            },
+            "id": "ba73c7bf-8f3b-5d4d-b3a9-3906feb24fb4"
+          },
+          {
+            "filename": "GamePlayTypeSO.cs",
+            "meta_guid": "2b173255ed50c4e868ff58f45f5fa3b7",
+            "summary": {
+              "class": "GamePlayTypeSO",
+              "base": "ScriptableObject"
+            },
+            "id": "ace2ad29-6e58-5f0a-8221-41706a477bef"
+          },
+          {
+            "filename": "GamePlayerDesignPoint.cs",
+            "meta_guid": "5abf3becf83214eb9aafe5d8d4a9fb78",
+            "summary": {
+              "class": "GamePlayerDesignPoint",
+              "base": "MonoBehaviour"
+            },
+            "id": "1dce8475-9d66-50fa-9287-4bbb2298d447"
+          },
+          {
+            "filename": "ObjectTagSO.cs",
+            "meta_guid": "7eb16bdc2cd7b48508102ba3e013d256",
+            "summary": {
+              "class": "ObjectTagSO",
+              "base": "ScriptableObject"
+            },
+            "id": "038dc701-48c2-5a7f-99d7-687cfd2a47eb"
+          },
+          {
+            "filename": "PersonSO.cs",
+            "meta_guid": "8787948ee45f4444e8fb8305800444cc",
+            "summary": {
+              "class": "PersonSO",
+              "base": "ScriptableObject"
+            },
+            "id": "41a4136c-581f-5c20-a6bd-030f36298a73"
+          }
+        ]
+      },
+      "files": [
+        {
+          "filename": "Comment.cs",
+          "meta_guid": "99d691592c2974097930245589735ed2",
+          "summary": {
+            "class": "Comment",
+            "base": "AbstractMapTag",
+            "interfaces": [
+              "IEditorOnly"
+            ]
+          },
+          "id": "28ba5fe0-0eef-5727-857f-3a848c43a4fc"
+        },
+        {
+          "filename": "Issue.cs",
+          "meta_guid": "9784c019b83294b56b754989e8267560",
+          "summary": {
+            "class": "IssuePrefs"
+          },
+          "id": "65fa203a-94c0-5217-abb8-4d2888036f65"
+        },
+        {
+          "filename": "IssueList.cs",
+          "meta_guid": "d26740fc350e14e45a01e9c44e443664",
+          "summary": {
+            "class": "IssueList",
+            "base": "MonoBehaviour"
+          },
+          "id": "8119086d-a1bf-5d19-83a8-13b3d0f54bef"
+        },
+        {
+          "filename": "IssueResolved.cs",
+          "meta_guid": "d922d478430b24cfdb17e9ec2220a700",
+          "summary": {
+            "class": "IssueResolved",
+            "base": "MonoBehaviour"
+          },
+          "id": "ae55e688-cc40-5fb3-b174-b1c9309969ab"
+        },
+        {
+          "filename": "Note.cs",
+          "meta_guid": "da00e78b230681a4996b6835aab48404",
+          "summary": {
+            "class": "Note",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IEditorOnly"
+            ]
+          },
+          "id": "7f63f661-f059-5f6a-a435-cce394b4d191"
+        }
+      ]
+    },
+    "PoolObject": {
+      "Action": {
+        "EffectAction": [
+          {
+            "filename": "EmitPoolObjectAction.cs",
+            "meta_guid": "ae36b7e527974e05bad3bd940de5b0d5",
+            "summary": {
+              "class": "EmitPoolObjectAction",
+              "base": "AbstractStateAction"
+            },
+            "id": "72e2b0be-6b43-5e63-afc0-7e0b6d72461e"
+          }
+        ],
+        "InstantiateAction": [
+          {
+            "filename": "InstantiateAction.cs",
+            "meta_guid": "e9fbaeedac274c83a50da94f08802935",
+            "summary": {
+              "class": "InstantiateAction",
+              "base": "AbstractStateAction"
+            },
+            "id": "0c00e04d-83ec-592e-b2f6-225353a99e01"
+          }
+        ],
+        "files": [
+          {
+            "filename": "ReturnToPoolAction.cs",
+            "meta_guid": "87d94ae1375741a39240dff682de9d24",
+            "summary": {
+              "class": "ReturnToPoolAction",
+              "base": "AbstractStateAction"
+            },
+            "id": "d49f862c-32f6-5678-b4e9-9cf4bbb5dedb"
+          }
+        ]
+      },
+      "files": [
+        {
+          "filename": "AnimatorResetter.cs",
+          "meta_guid": "b47c66796a15458180bf19fa9e4faa42",
+          "summary": {
+            "class": "AnimatorResetter"
+          },
+          "id": "5086ade7-8bf5-5ee4-8e97-8c3252ebacaf"
+        },
+        {
+          "filename": "OnReturnToPoolTrigger.cs",
+          "meta_guid": "9396eecb495445e5bb2c0ec697afe133",
+          "summary": {
+            "class": "OnReturnToPoolTrigger",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IPoolObject"
+            ]
+          },
+          "id": "39b0e5ba-86b7-5762-b7e8-61a2198fa2d2"
+        },
+        {
+          "filename": "PoolManager.cs",
+          "meta_guid": "c6f125a10aed33243b2e957b7403ec44",
+          "summary": {
+            "class": "PoolNativeObjectManager"
+          },
+          "id": "89082da5-7e40-57b0-8ace-839cb2e6518c"
+        },
+        {
+          "filename": "PoolObject.cs",
+          "meta_guid": "e90d5ccf0fef7e34a908e8509ca60b4d",
+          "summary": {
+            "class": "PoolObject",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "ISceneAwake",
+              "IResetStateRestore"
+            ]
+          },
+          "id": "13fa533f-1df1-5fc5-ad73-d5e384759491"
+        },
+        {
+          "filename": "PoolObjectExtension.cs",
+          "meta_guid": "42dc7a1d10dd459ca3b411f75f92a792",
+          "summary": {
+            "class": "PoolObjectExtension"
+          },
+          "id": "ae04ae46-1e7a-5c25-81f2-1739ab192c92"
+        },
+        {
+          "filename": "PoolObjectUtility.cs",
+          "meta_guid": "db589181013946ccb52f1d4b936bacca",
+          "summary": {
+            "class": "PoolObjectUtility"
+          },
+          "id": "c721e599-3cff-5c61-8134-abff745f7ba5"
+        },
+        {
+          "filename": "PoolPrewarmData.cs",
+          "meta_guid": "f5710530397603548bfa40a998f30e77",
+          "summary": {
+            "class": "PoolPrewarmData",
+            "base": "ScriptableObject"
+          },
+          "id": "2056b5d0-45cb-5801-9a45-947d4f79bd01"
+        },
+        {
+          "filename": "PoolRequest.cs",
+          "meta_guid": "d5bb12185237c9f4e96f69d162ace13d",
+          "summary": {
+            "class": "PoolRequest",
+            "base": "MonoBehaviour"
+          },
+          "id": "f8ab15bf-4ca9-5c9d-a30d-fa6d5fe4bb9e"
+        },
+        {
+          "filename": "PrefabSerializeCache.cs",
+          "meta_guid": "de5f1786820a480b903ebcf740c17c33",
+          "summary": {
+            "class": "PrefabSerializeCache",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IEditorOnly",
+              "IBeforePrefabSaveCallbackReceiver"
+            ]
+          },
+          "id": "2a3ffbac-b0ce-55c8-aa64-6d64b5c4d159"
+        },
+        {
+          "filename": "TransformResetter.cs",
+          "meta_guid": "a265b69650814a28846d86897cf275e8",
+          "summary": {
+            "class": "TransformResetter",
+            "base": "MonoBehaviour",
+            "interfaces": [
+              "IResetter"
+            ]
+          },
+          "id": "6a9e2f56-aac3-5f23-a1cf-d28d0ce76978"
+        }
+      ]
+    },
+    "RuntimeConditionVote": [
+      {
+        "filename": "RuntimeConditionVote.cs",
+        "meta_guid": "f9aa0a37efcce43eaaeb1730f2eabbf1",
+        "summary": {
+          "class": "RuntimeConditionVote",
+          "interfaces": [
+            "IRuntimeConditionImplementation"
+          ]
+        },
+        "id": "bd7f273c-6c07-5cc3-8597-4906d03cbc1f"
+      },
+      {
+        "filename": "VariableVote.cs",
+        "meta_guid": "75c3c27714e649abbb06d2d1f63bc5f1",
+        "summary": {
+          "class": "MonoVariableVote",
+          "base": "AbstractMonoVariable"
+        },
+        "id": "605a00d1-2542-512e-b912-8920fd7ab620"
+      },
+      {
+        "filename": "VoteAction.cs",
+        "meta_guid": "d51d6ac3bf884459b9c5ac5d186814f4",
+        "summary": {
+          "class": "VoteAction",
+          "base": "AbstractStateAction",
+          "interfaces": [
+            "IResetStateRestore"
+          ]
+        },
+        "id": "4aa05bc4-e75b-593e-b4d8-2209be349180"
+      }
+    ],
+    "Tracking": [
+      {
+        "filename": "UserDataTracker.cs",
+        "meta_guid": "f0d76d0f2c154ffb95f7aa0b5a19dd88",
+        "summary": {
+          "class": "UserDataTracker"
+        },
+        "id": "ab9453f0-54db-5f47-a378-61c1727afe9a"
+      }
+    ],
+    "files": [
+      {
+        "filename": "GeneralFSMContext.cs",
+        "meta_guid": "6309a6469f45a4e92b2f86172c7456df",
+        "summary": {
+          "class": "GeneralFSMContext",
+          "base": "StateMachineContext"
+        },
+        "id": "7f91ee2e-f389-5eee-9a5a-48ee89e722b1"
+      },
+      {
+        "filename": "LevelRunner.cs",
+        "meta_guid": "0ac5c16102b54ac098c3e91c766c1969",
+        "summary": {
+          "class": "is"
+        },
+        "id": "339f7cd9-13ed-5a04-9787-a6e333736485"
+      },
+      {
+        "filename": "RcgModuleFolder.cs",
+        "meta_guid": "0f6919c6d0d14233a67b7dfca690227d",
+        "summary": {
+          "class": "RcgModuleFolder",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IModuleOwner"
+          ]
+        },
+        "id": "a3bb2254-49c2-59b6-8773-191a533102e6"
+      },
+      {
+        "filename": "StateMachine.cs",
+        "meta_guid": "73af5b36d1e704156be6c0903b33a656",
+        "summary": {
+          "class": "StateMachine"
+        },
+        "id": "127fa5fd-fee1-528e-81c0-d0a11d6e5aea"
+      },
+      {
+        "filename": "StateMachineContext.cs",
+        "meta_guid": "0066fe16ff426417c9404662adc1e9ea",
+        "summary": {
+          "class": "StateMachineContext"
+        },
+        "id": "ff403aa7-b250-5d9d-a62c-b1cfc4a9efd1"
+      },
+      {
+        "filename": "StateMachineManager.cs",
+        "meta_guid": "ce8397bc901b453789df2a00ba880e51",
+        "summary": {
+          "class": "StateMachineManager",
+          "base": "SingletonBehaviour"
+        },
+        "id": "520934f1-24ad-5c63-ad14-e4945f424a29"
+      },
+      {
+        "filename": "StateMachineOwner.cs",
+        "meta_guid": "43ebb324ffeb44e90af9e7b03c97510e",
+        "summary": {
+          "class": "HideFromFSMExportAttribute",
+          "base": "PropertyAttribute"
+        },
+        "id": "fdbfa6ec-fecf-51a0-9250-9a5e0f06daaf"
+      },
+      {
+        "filename": "StateMachineRunner.cs",
+        "meta_guid": "fd928b888dd2a4dd0a531dc2f948505e",
+        "summary": {
+          "class": "StateMachineRunner",
+          "base": "MonoBehaviour"
+        },
+        "id": "c5a0f06f-0c88-5128-9762-34f0ee67fdf9"
+      },
+      {
+        "filename": "VariableOwner.cs",
+        "meta_guid": "6e137ac4ad3a4097b139574838acd352",
+        "summary": {
+          "class": "VariableOwner",
+          "base": "MonoBehaviour",
+          "interfaces": [
+            "IVariableOwner"
+          ]
+        },
+        "id": "399339ca-3be9-56d8-bcc7-02bc1729024f"
+      }
+    ]
+  }
+}
