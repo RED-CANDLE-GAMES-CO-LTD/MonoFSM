@@ -45,10 +45,12 @@ public interface IDefaultSerializable
 {
 }
 
+public interface IReferenceTarget
+{
+}
 
 [Searchable]
-public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity,
-    IDefaultSerializable, IDrawHierarchyBackGround, IDrawDetail, IActionParent
+public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity, IReferenceTarget, IDefaultSerializable, IDrawHierarchyBackGround, IDrawDetail, IActionParent
 {
     public Color BackgroundColor => HierarchyResource.CurrentStateColor;
     public bool IsFullRect => false;

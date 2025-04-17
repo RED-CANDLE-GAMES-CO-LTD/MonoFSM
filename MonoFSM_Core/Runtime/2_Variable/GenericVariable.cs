@@ -28,7 +28,7 @@ using Object = UnityEngine.Object;
 [Searchable]
 public abstract class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable,
     IBeforePrefabSaveCallbackReceiver, ISettable<TType>,
-    IGameStateOwner, IDefaultSerializable, IResetStateRestore
+    IGameStateOwner, IDefaultSerializable, IResetStateRestore, IReferenceTarget
     where TScriptableData : AbstractScriptableData<TField, TType>
     where TField : FlagField<TType>, new()
     where TType : IEquatable<TType>
@@ -214,7 +214,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [TabGroup("Data")]
     [Header("存檔")]
     [GameState]
-    [InlineEditor()]
+    [InlineEditor]
     [EnableIf(nameof(PrefabKindMatchTagCheck))]
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, nameof(IsGameStateSaveIDNotMatch))]
     [InfoBox("GameState的類型不對", InfoMessageType.Error, nameof(IsGameStateTypeNotMatch))]

@@ -3,10 +3,10 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public interface IReferenceTarget
-{
-    public MonoBehaviour RefOwner { get; set; }
-}
+// public interface IReferenceTarget
+// {
+//     public MonoBehaviour RefOwner { get; set; }
+// }
 
 [EditorOnly]
 [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = true)]
