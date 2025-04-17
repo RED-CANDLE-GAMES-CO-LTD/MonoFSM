@@ -8,21 +8,15 @@
     "fsm"
   ],
   "dependencies": {
-    "com.unity.addressables": "2.4.3",
-    "com.unity.inputsystem": "1.14.0",
-    "com.unity.mathematics": "1.3.2",
+	"com.unity.addressables": "2.4.3",
+	"com.unity.inputsystem": "1.14.0",
+	"com.unity.mathematics": "1.3.2",
     "com.unity.ugui": "2.0.0",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.physics": "1.0.0",
-    "com.unity.modules.physics2d": "1.0.0"
+	"com.unity.modules.physics2d": "1.0.0"
   },
-  "samples": [
-    {
-      "displayName": "Sample Prefab",
-      "description": "Sample assembled finite state machine prefab",
-      "path": "Samples~"
-    }
-  ],
+  "samples": [],
   "author": {
     "name": "Red Candle Games",
     "email": "jerryee@redcandlegames.com",
