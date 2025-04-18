@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using jerryee.UnityMCP;
+using MonoFSM.Variable;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using Sirenix.OdinInspector;
 using UnityEngine;

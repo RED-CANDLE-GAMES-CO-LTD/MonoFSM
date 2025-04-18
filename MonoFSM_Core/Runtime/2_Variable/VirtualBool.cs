@@ -1,3 +1,4 @@
+using MonoFSM.Variable;
 using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable

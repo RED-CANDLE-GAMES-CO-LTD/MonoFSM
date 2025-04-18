@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using jerryee.UnityMCP;
-using MonoFSM_Core.Runtime.Attributes;
+using MonoFSM.Variable.Attributes;
 using MonoFSM.Foundation;
 using RCGExtension;
 using RCGMaker.Core;

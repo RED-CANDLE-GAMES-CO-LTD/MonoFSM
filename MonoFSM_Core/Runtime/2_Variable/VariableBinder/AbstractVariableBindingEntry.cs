@@ -1,3 +1,4 @@
+using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -15,7 +16,7 @@ namespace MonoFSM.Variable.VariableBinder
         // [FormerlySerializedAs("bindingSource")]
         // [FormerlySerializedAs("variableSource")]
         // [FormerlySerializedAs("boolSource1")]
-        
+
         // T[] GetAllVariables()
         // {
         //     return this.GetComponentsInBinder<T>();
@@ -31,7 +32,7 @@ namespace MonoFSM.Variable.VariableBinder
         public T dependentVariable;
 
         [Button]
-        void Rename()
+        private void Rename()
         {
             name = $"When {WatchSource.Name} changed, set {dependentVariable.Name}";
         }

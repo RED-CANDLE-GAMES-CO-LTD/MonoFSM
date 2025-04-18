@@ -2,7 +2,7 @@ using System;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 
-namespace MonoFSM_Core.Runtime.Attributes
+namespace MonoFSM.Variable.Attributes
 {
     [Component]
     // [AutoChildren] //AutoAttribute沒辦法看懂ChildComp...

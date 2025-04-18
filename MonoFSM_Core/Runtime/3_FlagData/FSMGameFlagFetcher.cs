@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

@@ -3,7 +3,7 @@ using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime;
 using UnityEngine;
 
-namespace MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
+namespace MonoFSM.Ref
 {
     public class SelfRef : MonoBehaviour, IConfigVar
     {

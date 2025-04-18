@@ -1,4 +1,4 @@
-using MonoFSM_Core.Runtime.Attributes;
+using MonoFSM.Variable.Attributes;
 using UnityEngine;
 
 namespace MonoFSM.Core

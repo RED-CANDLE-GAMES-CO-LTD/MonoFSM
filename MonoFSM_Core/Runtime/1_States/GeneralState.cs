@@ -4,7 +4,7 @@ using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using MonoFSM_Core.Runtime.Attributes;
+using MonoFSM.Variable.Attributes;
 using MonoFSM.Core;
 using RCGExtension;
 using UnityEngine.Scripting.APIUpdating;
@@ -50,7 +50,8 @@ public interface IReferenceTarget
 }
 
 [Searchable]
-public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity, IReferenceTarget, IDefaultSerializable, IDrawHierarchyBackGround, IDrawDetail, IActionParent
+public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity,
+    IReferenceTarget, IDefaultSerializable, IDrawHierarchyBackGround, IDrawDetail, IActionParent
 {
     public Color BackgroundColor => HierarchyResource.CurrentStateColor;
     public bool IsFullRect => false;

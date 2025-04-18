@@ -14,10 +14,10 @@ public class StaminaTimer : MonoBehaviour
     [DropDownRef] public VarStat decreaseSpeedStat; //consume //兩個可以不一樣快...但如果單純用timer就跟著時間就好了，default 1?
     [DropDownRef] public VarFloat currentTime;
     [DropDownRef] public VarStat TimeToRegen;
-    [PreviewInInspector] float pauseTimeCounter;
+    [PreviewInInspector] private float pauseTimeCounter;
 
-    float IncreaseSpeed => increaseSpeedStat ? increaseSpeedStat.FinalValue : 1;
-    float DecreaseSpeed => decreaseSpeedStat ? decreaseSpeedStat.FinalValue : 1;
+    private float IncreaseSpeed => increaseSpeedStat ? increaseSpeedStat.FinalValue : 1;
+    private float DecreaseSpeed => decreaseSpeedStat ? decreaseSpeedStat.FinalValue : 1;
 
     public enum CountType
     {
@@ -50,13 +50,9 @@ public class StaminaTimer : MonoBehaviour
         {
             pauseTimeCounter += Time.deltaTime;
             if (pauseTimeCounter >= TimeToRegen.FinalValue)
-            {
                 countType = CountType.Increase;
-            }
             else
-            {
                 countType = CountType.Pause;
-            }
         }
 
         switch (countType)
