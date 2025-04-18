@@ -32,19 +32,36 @@ def extract_cs_summary(filepath):
         if base_class in ('MonoBehaviour', 'AbstractDescriptionBehaviour'):
             summary['isComponent'] = True
 
-        # 擷取 AutoParent/AutoChildren/Auto 欄位，使用 regex
+        # 清除單行和區塊註解，避免匹配到註解內的 attribute
+        code_clean = re.sub(r'//.*', '', code)
+        code_clean = re.sub(r'/\*[\s\S]*?\*/', '', code_clean)
+        # 擷取帶 AutoParent/AutoChildren/Auto/MCPExtractable attributes 的欄位/屬性宣告
         auto_refs = []
+        mcp_props = []
         field_pattern = re.compile(
-            r'\[(AutoParent|AutoChildren|Auto)[^\]]*\](?:\s*\[[^\]]*\])*\s*(?:public|protected|private|internal)?\s*(?:static\s+)?(?:readonly\s+)?([\w<>\[\], ]+)\s+(\w+)\s*(?:;|=)',
+            r'\[(AutoParent|AutoChildren|Auto|MCPExtractable)\b[^\]]*\]'   # 主 attribute
+            r'(?:\s*\[[^\]]*\])*\s*'                                      # 其他 attribute
+            r'(?:public|protected|private|internal)?\s*'                    # 修飾詞
+            r'(?:static\s+)?(?:readonly\s+)?'                               # static/readonly
+            r'([A-Za-z0-9_<>,\[\] ]+?)\s+'                                  # 型別 (non-greedy)
+            r'([A-Za-z0-9_]+)\s*(?:;|\{|=)',                                 # 名稱 結尾
             re.MULTILINE
         )
-        for m in field_pattern.finditer(code):
+        for m in field_pattern.finditer(code_clean):
             attr = m.group(1)
             typ = m.group(2).strip()
             name = m.group(3)
-            auto_refs.append({'attribute': attr, 'type': typ, 'name': name})
+           
+            if attr == 'MCPExtractable':
+                entry = {'type': typ, 'name': name}
+                mcp_props.append(entry)
+            else:
+                entry = {'attribute': attr, 'type': typ, 'name': name}
+                auto_refs.append(entry)
         if auto_refs:
             summary['autoReferences'] = auto_refs
+        if mcp_props:
+            summary['properties'] = mcp_props
 
         return summary
     except Exception as e:
@@ -129,27 +146,32 @@ def build_manifest_root(tree):
     }
 
 def generate_manifest(root_path):
-    """
-    產生該資料夾的的manifest。
-
-    Args:
-        root_path: 資料夾的root目錄。
-
-    產生manifest後，會將它存到root目錄下面的.AI/<root_folder_name>_manifest.json。
-    """
     tree = build_tree(root_path)
     tree = clean_tree(tree)
     add_ids(tree)
-    manifest = build_manifest_root(tree)
-
-    # 取得母資料夾名稱
+    # 準備輸出目錄與檔名
     abs_root = os.path.abspath(root_path)
     parent_folder = os.path.basename(abs_root.rstrip(os.sep))
     ai_dir = os.path.join(abs_root, '.AI')
     os.makedirs(ai_dir, exist_ok=True)
-    manifest_path = os.path.join(ai_dir, f'{parent_folder}_manifest.json')
-    with open(manifest_path, 'w', encoding='utf-8') as f:
-        json.dump(manifest, f, indent=2, ensure_ascii=False)
+    # 根據是否同時存在 Editor 和 Runtime 分別產生兩份 manifest
+    if isinstance(tree, dict) and 'Editor' in tree and 'Runtime' in tree:
+        # Editor manifest
+        manifest_editor = build_manifest_root(tree['Editor'])
+        editor_path = os.path.join(ai_dir, f'{parent_folder}_Editor_manifest.json')
+        with open(editor_path, 'w', encoding='utf-8') as f:
+            json.dump(manifest_editor, f, indent=2, ensure_ascii=False)
+        # Runtime manifest
+        manifest_runtime = build_manifest_root(tree['Runtime'])
+        runtime_path = os.path.join(ai_dir, f'{parent_folder}_Runtime_manifest.json')
+        with open(runtime_path, 'w', encoding='utf-8') as f:
+            json.dump(manifest_runtime, f, indent=2, ensure_ascii=False)
+    else:
+        # 單一 manifest
+        manifest = build_manifest_root(tree)
+        manifest_path = os.path.join(ai_dir, f'{parent_folder}_manifest.json')
+        with open(manifest_path, 'w', encoding='utf-8') as f:
+            json.dump(manifest, f, indent=2, ensure_ascii=False)
 
 if __name__ == '__main__':
     root_path = sys.argv[1] if len(sys.argv) > 1 else '.'
