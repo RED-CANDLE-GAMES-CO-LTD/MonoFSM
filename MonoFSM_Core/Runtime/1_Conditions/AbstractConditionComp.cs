@@ -49,12 +49,9 @@ public abstract class NotifyConditionComp : AbstractConditionComp, IResetStart, 
 
     private void Register()
     {
-    }
-
-    private void RegisterWithType<T>()
-    {
         listenField.AddListener(OnConditionChanged, this);
     }
+
 
     protected abstract IVariableField listenField { get; }
 

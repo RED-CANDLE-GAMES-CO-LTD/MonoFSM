@@ -479,8 +479,8 @@ public class
 
     private void OnChangeInvoke(T value)
     {
-        listener.OnChange(value, false);
-        listenerOnce.OnChange(value, true);
+        listener?.OnChange(value, false);
+        listenerOnce?.OnChange(value, true);
         _onChangeAction?.Invoke();
         // listenerDict?.OnValueChange(value);
     }
