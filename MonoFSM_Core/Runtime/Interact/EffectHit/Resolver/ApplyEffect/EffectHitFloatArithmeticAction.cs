@@ -9,6 +9,18 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 {
     public abstract class AbstractEffectHitAction : MonoBehaviour, IArgEventReceiver<GeneralEffectHitData>
     {
+        // [PreviewInInspector] [AutoParent] private GeneralEffectDealer _parentDealer;
+        // [PreviewInInspector] [AutoParent] private GeneralEffectReceiver _parentReceiver;
+
+        private bool IsParentDealer => _runtimeDealer != null;
+        private bool IsParentReceiver => _runtimeReceiver != null;
+
+        [InfoBox("parent不是dealer, Editor Dropdown抓不到", nameof(IsParentReceiver))]
+        public VariableFloatProvider dealerVariableProvider;
+
+        [InfoBox("parent不是receiver, Editor Dropdown抓不到", nameof(IsParentDealer))]
+        public VariableFloatProvider receiverVariableProvider;
+
         [Button]
         private void Rename()
         {
@@ -25,8 +37,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         }
 
         protected abstract void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver);
-        [PreviewInInspector] private GeneralEffectDealer _runtimeDealer;
-        [PreviewInInspector] private GeneralEffectReceiver _runtimeReceiver;
+        [AutoParent] [PreviewInInspector] private GeneralEffectDealer _runtimeDealer;
+        [AutoParent] [PreviewInInspector] private GeneralEffectReceiver _runtimeReceiver;
 
         public void EventReceived<T>(T arg)
         {
@@ -65,8 +77,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 
         private AbstractMonoVariable setterVariable =>
             _setter == OperandType.Dealer
-                ? dealerVariableProvider?.VarRaw
-                : receiverVariableProvider?.VarRaw;
+                ? dealerVariableProvider?.GetVarRaw()
+                : receiverVariableProvider?.GetVarRaw();
 
         private string ArithmeticString => Arithmetic switch
         {
@@ -86,8 +98,6 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 
         // [DropDownRef] public VariableFloat dealerVariable;
 
-        public VariableFloatProvider dealerVariableProvider;
-        public VariableFloatProvider receiverVariableProvider;
 
         //FIXME: target Variable會交換...有時候想處理的是Dealer，有時候想處理的是Receiver
 

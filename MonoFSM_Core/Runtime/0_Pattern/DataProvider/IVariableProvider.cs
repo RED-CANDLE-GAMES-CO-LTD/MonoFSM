@@ -35,7 +35,7 @@ namespace RCGMaker.Core.DataProvider
     {
         //目的：是要拿到Variable, value 是 MonoDescriptable
 
-        public VarMono GetVarMonoDescriptable => VarRaw as VarMono;
+        public VarMono GetVarMonoDescriptable => GetVarRaw() as VarMono;
 
         [PreviewInInspector]
         public DescriptableData SampleData =>
@@ -49,7 +49,7 @@ namespace RCGMaker.Core.DataProvider
     //FIXME: 壞處：沒有SampleData, 不能直接拿到property
     //FIXME: 好像應該要有個可以直接傳VarBool的Provider? VarBool是DirectRef
     //FIXME:好像還是要把常用的Property包掉，否則很難用
-    
+
     //Serializable至少都不會掉內容，不要用SerializeReference
     [Serializable]
     public class VariableProvider<TVarMonoType, TValueType> //: IVariableProvider, IVarTagProperty, IConfigVar
@@ -88,7 +88,7 @@ namespace RCGMaker.Core.DataProvider
             _currentTarget = target;
             FetchOwner(target);
             //FIXME:
-            return VarRaw;
+            return GetVarRaw();
         }
 
         public TValueType GetValueFrom(MonoBehaviour target)
@@ -128,30 +128,24 @@ namespace RCGMaker.Core.DataProvider
             _runtimeCachedOwner = null;
         }
 
-        IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
+        private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
         {
             var parents = CurrentTarget.GetComponentsInParent<VariableOwner>();
             var tags = new List<ValueDropdownItem<VariableTag>>();
             foreach (var parent in parents)
-            {
-                foreach (var variable in parent.VariableFolder.GetValues)
-                {
-                    if (variable is TVarMonoType)
-                        tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
-                }
-            }
+            foreach (var variable in parent.VariableFolder.GetValues)
+                if (variable is TVarMonoType)
+                    tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
 
             return tags;
         }
 
-        IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
+        private IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
         {
             var parents = CurrentTarget.GetComponentsInParent<MonoDescriptable>();
             var tags = new List<ValueDropdownItem<MonoDescriptableTag>>();
             foreach (var parent in parents)
-            {
                 tags.Add(new ValueDropdownItem<MonoDescriptableTag>(parent.Tag.name, parent.Tag));
-            }
 
             return tags;
         }
@@ -181,7 +175,7 @@ namespace RCGMaker.Core.DataProvider
             }
         }
 
-        VariableOwner FetchOwner(MonoBehaviour target)
+        private VariableOwner FetchOwner(MonoBehaviour target)
         {
             if (target == null)
             {
@@ -209,48 +203,81 @@ namespace RCGMaker.Core.DataProvider
 
         public void SetValue(TValueType value, MonoBehaviour byWho)
         {
-            VarRaw.SetValue(value, byWho);
+            GetVarRaw().SetValue(value, byWho);
         }
 
         public TMonoVar GetVar<TMonoVar>() where TMonoVar : AbstractMonoVariable
         {
-            return VarRaw as TMonoVar;
+            return GetVarRaw() as TMonoVar;
         }
+
 
         [GUIColor(0.8f, 1.0f, 0.8f)]
         [PreviewInInspector]
-        public TVarMonoType Variable => VarRaw as TVarMonoType;
+        public TVarMonoType Variable => GetVarRaw(false) as TVarMonoType; //這個如果沒抓到不要噴error，preview用的
 
         // [GUIColor(0.8f, 1.0f, 0.8f)]
         // [PreviewInInspector]
-        public AbstractMonoVariable VarRaw
+
+        public AbstractMonoVariable GetVarRaw(bool errorIfNotFound = true)
         {
-            get
+            if (owner == null)
             {
-                if (owner == null)
-                {
-                    if (Application.isPlaying)
-                        Debug.LogError("Owner is null", CurrentTarget);
-                    return null;
-                }
-
-                if (owner.VariableFolder == null)
-                {
-                    if (Application.isPlaying)
-                        Debug.LogError("VariableFolder is null", CurrentTarget);
-                    return null;
-                }
-
-                var variable = owner.GetVariable(_varTag);
-                if (variable == null)
-                    Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);
-                return variable;
+                if (Application.isPlaying)
+                    Debug.LogError("Owner is null", CurrentTarget);
+                return null;
             }
+
+            if (owner.VariableFolder == null)
+            {
+                if (Application.isPlaying)
+                    Debug.LogError("VariableFolder is null", CurrentTarget);
+                return null;
+            }
+
+            var variable = owner.GetVariable(_varTag);
+            //FIXME: 怎麼樣算正常？
+            //bool isNullOk
+
+            if (variable == null && errorIfNotFound)
+                Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);
+
+            return variable;
         }
+
+        // public AbstractMonoVariable VarRaw
+        // {
+        //     get
+        //     {
+        //         if (owner == null)
+        //         {
+        //             if (Application.isPlaying)
+        //                 Debug.LogError("Owner is null", CurrentTarget);
+        //             return null;
+        //         }
+        //
+        //         if (owner.VariableFolder == null)
+        //         {
+        //             if (Application.isPlaying)
+        //                 Debug.LogError("VariableFolder is null", CurrentTarget);
+        //             return null;
+        //         }
+        //
+        //         var variable = owner.GetVariable(_varTag);
+        //         //FIXME: 怎麼樣算正常？
+        //         //bool isNullOk
+        //         
+        //         if (variable == null)
+        //             Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);
+        //
+        //         return variable;
+        //     }
+        // }
 
         // [ShowInInspector]
         // RCGVariableFolder GetFolder =>  owner?.VariableFolder;
-        [PreviewInInspector] public TValueType Value => VarRaw == null ? default : VarRaw.GetValue<TValueType>();
+        [PreviewInInspector]
+        public TValueType Value => GetVarRaw(false) == null ? default : GetVarRaw(false).GetValue<TValueType>();
 
         public VariableTag varTag
         {
@@ -380,7 +407,7 @@ namespace RCGMaker.Core.DataProvider
             DirectRef,
             ParentMono, //已經有Instance了
             GlobalMonoInstance, //已經有Instance了
-            Variable, //還不一定有。可能是null
+            Variable //還不一定有。可能是null
         }
 
         [SerializeReferenceParentValidate] [SerializeField]
@@ -389,7 +416,7 @@ namespace RCGMaker.Core.DataProvider
         //從Variable拿？
 
 
-        [SerializeField] ProviderType providerType;
+        [SerializeField] private ProviderType providerType;
 
         public TValue _valueRef;
         [DropDownRef] public TValue _valueRefFromDropDown;
