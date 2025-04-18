@@ -56,7 +56,6 @@ public class FlagFieldLong : FlagField<long>
 [Serializable]
 public class FlagFieldFloat : FlagField<float>
 {
-
     public static bool operator ==(FlagFieldFloat j, float k)
     {
         return j.CurrentValue == k;
@@ -86,16 +85,13 @@ public class ValueChangedListener<T>
 
     private Dictionary<int, Tuple<Object, UnityAction<T>>> onChangeActionDict;
 
-    [PreviewInInspector] List<Object> ownersInDict => onChangeActionDict?.Values.Select(x => x.Item1).ToList();
+    [PreviewInInspector] private List<Object> ownersInDict => onChangeActionDict?.Values.Select(x => x.Item1).ToList();
 
-    [PreviewInInspector] private List<int> tempKeys = new List<int>();
+    [PreviewInInspector] private List<int> tempKeys = new();
 
     public void OnChange(T value, bool clearAll)
     {
-        if (onChangeActionDict == null)
-        {
-            return;
-        }
+        if (onChangeActionDict == null) return;
 
         CleanNullListener();
 
@@ -103,13 +99,9 @@ public class ValueChangedListener<T>
         tempKeys.Clear();
 
         var iterator = onChangeActionDict.GFIterator();
-        while (iterator.MoveNext())
-        {
-            tempKeys.Add(iterator.Current.Key);
-        }
+        while (iterator.MoveNext()) tempKeys.Add(iterator.Current.Key);
 
         foreach (var key in tempKeys) //這個keys怎麼可能變動？在別的地方add listener?
-        {
             if (onChangeActionDict.TryGetValue(key, out var value1))
             {
                 var action = value1.Item2;
@@ -120,7 +112,6 @@ public class ValueChangedListener<T>
             {
                 Debug.LogError("WTF?");
             }
-        }
 
         if (clearAll)
             onChangeActionDict.Clear();
@@ -135,23 +126,19 @@ public class ValueChangedListener<T>
         if (onChangeActionDict == null)
             onChangeActionDict = new Dictionary<int, Tuple<Object, UnityAction<T>>>();
         if (onChangeActionDict.ContainsKey(key))
-        {
             // Debug.Log("Already AddListener" + key);
             return;
-        }
 
         CleanNullListener();
         onChangeActionDict[key] = tuple;
     }
 
-    List<int> toRemove; //這個new list呢？
+    private List<int> toRemove; //這個new list呢？
 
-    void CleanNullListener()
+    private void CleanNullListener()
     {
         if (toRemove == null)
-        {
             toRemove = new List<int>();
-        }
         else
             toRemove.Clear();
 
@@ -173,10 +160,8 @@ public class ValueChangedListener<T>
 
 
         for (var i = 0; i < toRemove.Count; i++)
-        {
             //Debug.Log("Remove" + toRemove[i]);
             onChangeActionDict.Remove(toRemove[i]);
-        }
     }
 
     // public static bool IsNullOrDestroyed(this System.Object obj)
@@ -187,17 +172,11 @@ public class ValueChangedListener<T>
     // }
     public bool RemoveListenerDict(UnityAction<T> action, Object target)
     {
-        if (onChangeActionDict == null)
-        {
-            return true;
-        }
+        if (onChangeActionDict == null) return true;
 
         // var key = action.GetHashCode();
         var key = Tuple.Create(target, action).GetHashCode();
-        if (!onChangeActionDict.ContainsKey(key))
-        {
-            return false;
-        }
+        if (!onChangeActionDict.ContainsKey(key)) return false;
 
         onChangeActionDict.Remove(key);
         return true;
@@ -258,9 +237,15 @@ public abstract class FlagFieldBase
     public abstract void ResetToDefault();
 }
 
+public interface IVariableField
+{
+    public void AddListener(UnityAction action, Object owner);
+}
+
 [Serializable]
 public class
-    FlagField<T> : FlagFieldBase // where T : IComparable, IComparable<bool>, IConvertible, IEquatable<bool>
+    FlagField<T> : FlagFieldBase,
+    IVariableField // where T : IComparable, IComparable<bool>, IConvertible, IEquatable<bool>
 {
     [ShowInInspector] [ReadOnly]
     // private FlagFieldModifier<T> _modifier;
@@ -268,7 +253,7 @@ public class
 
     public FlagField()
     {
-        ProductionValue = default(T);
+        ProductionValue = default;
     }
 
     public FlagField(T defaultValue)
@@ -359,8 +344,10 @@ public class
         _lastValue = CurrentValue;
     }
 
-    [ShowInDebugMode] private ValueChangedListener<T> listener = new(); //好像可以把監聽對象丟出來看？
-    [ShowInDebugMode] private ValueChangedListener<T> listenerOnce = new();
+    [ShowInDebugMode] private ValueChangedListener<T> listener; //好像可以把監聽對象丟出來看？
+    [ShowInDebugMode] private ValueChangedListener<T> listenerOnce;
+
+    private UnityAction _onChangeAction;
     // private ValueChangedListener<object, object, T> listenerDict;
 
     // public void AddListener<TTarget, TParam>(TTarget target, TParam param, UnityAction<TTarget, TParam, T> callback)
@@ -390,15 +377,9 @@ public class
             // owner = mono;
         }
 
-        if (listener == null)
-        {
-            listener = new ValueChangedListener<T>();
-        }
+        if (listener == null) listener = new ValueChangedListener<T>();
 
-        if (owner is Component comp)
-        {
-            comp.Log("FlagField Add Listener", comp);
-        }
+        if (owner is Component comp) comp.Log("FlagField Add Listener", comp);
 
         listener.AddListenerDict(action, owner);
     }
@@ -427,10 +408,7 @@ public class
 
     public void AddListenerOnce(UnityAction<T> action, Object owner)
     {
-        if (listenerOnce == null)
-        {
-            listenerOnce = new ValueChangedListener<T>();
-        }
+        if (listenerOnce == null) listenerOnce = new ValueChangedListener<T>();
 
         listenerOnce.AddListenerDict(action, owner);
     }
@@ -503,6 +481,7 @@ public class
     {
         listener.OnChange(value, false);
         listenerOnce.OnChange(value, true);
+        _onChangeAction?.Invoke();
         // listenerDict?.OnValueChange(value);
     }
 
@@ -522,7 +501,7 @@ public class
         lastMode = mode;
         listener.Clear();
         listenerOnce.Clear();
-
+        _onChangeAction = null;
         if (_owner is Component comp)
             comp.Log("FlagField Init", comp);
         ResetToDefault();
@@ -564,6 +543,11 @@ public class
         // }
         // else
         CurrentValue = ProductionValue;
+    }
+
+    public void AddListener(UnityAction action, Object owner)
+    {
+        _onChangeAction += action;
     }
 }
 

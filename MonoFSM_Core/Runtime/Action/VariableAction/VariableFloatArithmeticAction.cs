@@ -13,7 +13,7 @@ namespace RCGFSM.Variable
         Div
     }
 
-    public class VariableFloatArithmeticAction : AbstractStateAction, IRCGArgEventReceiver<IEffectHitData>
+    public class VariableFloatArithmeticAction : AbstractStateAction, IArgEventReceiver<IEffectHitData>
     {
         //兩種情境，一種是從dealer來，一種是固定值觸發
         protected override string Description =>
@@ -47,7 +47,7 @@ namespace RCGFSM.Variable
 
         [FormerlySerializedAs("valueSource")] public ValueSourceType sourceType;
 
-        public override void EventReceived(IEffectHitData arg) //FIXME: runtime value source? 狀態接著？
+        public void ArgEventReceived(IEffectHitData arg) //FIXME: runtime value source? 狀態接著？
         {
             switch (sourceType)
             {

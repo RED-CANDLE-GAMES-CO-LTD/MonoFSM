@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 {
-    public abstract class AbstractEffectHitAction : MonoBehaviour, IRCGArgEventReceiver<IEffectHitData>
+    public abstract class AbstractEffectHitAction : MonoBehaviour, IArgEventReceiver<GeneralEffectHitData>
     {
         [Button]
         private void Rename()
@@ -16,7 +16,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         }
 
         // public abstract void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver);
-        public void EventReceived(IEffectHitData arg)
+        public void ArgEventReceived(GeneralEffectHitData arg)
         {
             _runtimeDealer = arg.Dealer as GeneralEffectDealer;
             _runtimeReceiver = arg.Receiver as GeneralEffectReceiver;
@@ -25,8 +25,21 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         }
 
         protected abstract void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver);
-        [PreviewInInspector] GeneralEffectDealer _runtimeDealer;
-        [PreviewInInspector] GeneralEffectReceiver _runtimeReceiver;
+        [PreviewInInspector] private GeneralEffectDealer _runtimeDealer;
+        [PreviewInInspector] private GeneralEffectReceiver _runtimeReceiver;
+
+        public void EventReceived<T>(T arg)
+        {
+            var data = arg as GeneralEffectHitData;
+            if (data == null) return;
+            ArgEventReceived(data);
+        }
+
+        public void EventReceived()
+        {
+            //沒參數？這樣算有問題？
+            throw new System.NotImplementedException();
+        }
     }
 
     public class EffectHitFloatArithmeticAction : AbstractEffectHitAction
@@ -34,7 +47,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         public enum OperandType
         {
             Dealer,
-            Receiver,
+
+            Receiver
             // Constant
         }
 
@@ -49,12 +63,12 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         private VariableTag op2 =>
             _operator2 == OperandType.Dealer ? dealerVariableProvider?._varTag : receiverVariableProvider?._varTag;
 
-        AbstractMonoVariable setterVariable =>
+        private AbstractMonoVariable setterVariable =>
             _setter == OperandType.Dealer
                 ? dealerVariableProvider?.VarRaw
                 : receiverVariableProvider?.VarRaw;
 
-        string ArithmeticString => Arithmetic switch
+        private string ArithmeticString => Arithmetic switch
         {
             ArithmeticType.Add => "+",
             ArithmeticType.Subtract => "-",
@@ -65,7 +79,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         };
 
         [PreviewInInspector]
-        string _description =>
+        private string _description =>
             $"{setterVariable?.name} = {_operator1}.{op1?.name} {ArithmeticString} {_operator2}.{op2?.name}";
         //要用entry?
 
@@ -83,7 +97,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
             Subtract,
             Multiply,
             Divide,
-            Modulo,
+            Modulo
         }
 
         protected override void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver)

@@ -7,8 +7,7 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable.Condition
 {
-    //分成simple和complex?
-    public class VarBoolValueCondition : AbstractConditionComp, IResetStart, ITransitionCheckInvoker
+    public class VarBoolValueCondition : NotifyConditionComp
     {
         protected override string Description => _monoVariableBool?.name + " == " + targetValue;
 
@@ -32,24 +31,25 @@ namespace MonoFSM.Variable.Condition
         public bool targetValue = true;
 
         //FIXME: 會有需求要比對其他東西嗎？
+        protected override IVariableField listenField => _monoVariableBool.Field;
         protected override bool IsValid => _monoVariableBool.CurrentValue == targetValue;
 
         //FIXME: condition本來就要實作狀態變化？必須listener? 會不會太強求？
-        private void OnValueChanged(bool value)
-        {
-            if (_parentConditionChangeListener == null)
-                // Debug.LogError("VarBoolValueCondition: No parent transition found", this);
-                return;
-            _parentConditionChangeListener.OnConditionChanged();
-        }
+        // private void OnValueChanged(bool value)
+        // {
+        //     if (_parentConditionChangeListener == null)
+        //         // Debug.LogError("VarBoolValueCondition: No parent transition found", this);
+        //         return;
+        //     _parentConditionChangeListener.OnConditionChanged();
+        // }
 
-        public void ResetStart()
-        {
-            Debug.Log("LevelResetPrepareRuntimeData", this);
-            if (_parentConditionChangeListener == null)
-                return;
-            _monoVariableBool.Field.AddListener(OnValueChanged, this);
-            //需要清掉嗎？還是leveldestroy就會自己把field的listener清掉？
-        }
+        // public void ResetStart()
+        // {
+        //     Debug.Log("LevelResetPrepareRuntimeData", this);
+        //     if (_parentConditionChangeListener == null)
+        //         return;
+        //     _monoVariableBool.Field.AddListener(OnValueChanged, this);
+        //     //需要清掉嗎？還是leveldestroy就會自己把field的listener清掉？
+        // }
     }
 }

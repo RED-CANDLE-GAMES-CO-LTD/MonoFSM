@@ -37,6 +37,36 @@ public interface IConditionChangeListener
     void OnConditionChanged();
 }
 
+public abstract class NotifyConditionComp : AbstractConditionComp, IResetStart, ITransitionCheckInvoker
+{
+    public virtual void ResetStart()
+    {
+        Register();
+    }
+
+    //要能實作OnConditionChanged?
+    [AutoParent] protected IConditionChangeListener _parentConditionChangeListener;
+
+    private void Register()
+    {
+    }
+
+    private void RegisterWithType<T>()
+    {
+        listenField.AddListener(OnConditionChanged, this);
+    }
+
+    protected abstract IVariableField listenField { get; }
+
+    private void OnConditionChanged()
+    {
+        if (_parentConditionChangeListener == null)
+            // Debug.LogError("VarBoolValueCondition: No parent transition found", this);
+            return;
+        _parentConditionChangeListener.OnConditionChanged();
+    }
+}
+
 //還是Condition要用Is開頭？
 public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoolProvider, IOverrideHierarchyIcon
 {
@@ -77,10 +107,7 @@ public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoo
 
     // protected override string Description => 
 
-    //要能實作OnConditionChanged?
-    //FIXME: 不一定有transition啊, 不該用transition, 監聽的介面, IXXListener?
-    // [AutoParent] protected StateTransition _parentTransition;
-    [AutoParent] protected IConditionChangeListener _parentConditionChangeListener;
+
     // protected virtual bool IsShowRenameButton => Description != "";
     //
     // //FIXME: AI 可以解釋性？

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using jerryee.UnityMCP;
+using MonoFSM_Core.Runtime.Attributes;
 using MonoFSM.Foundation;
 using RCGExtension;
 using RCGMaker.Core;
@@ -53,7 +54,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
 
     //TODO: 我需要保證附近有checker, 我應該和_checker註冊？
     //FIXME: 空transition就可以自動過去？
-    [InfoBox("No Checker", InfoMessageType.Error, nameof(NoChecker))]
+    [InfoBox("No Checker, 可能需要加StateUpdateAction", InfoMessageType.Error, nameof(NoChecker))]
     [PreviewInInspector]
     [AutoParent]
     [Component(AddComponentAt.Same)]
@@ -61,7 +62,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     private ITransitionCheckInvoker _checkInvoker; //AnimatorPlayAction動畫...有點鳥
 
     //要分同層級的嗎？
-    [Component] [PreviewInInspector] [AutoChildren]
+    [CompRef] [AutoChildren]
     private ITransitionCheckInvoker[] _childrenCheckers = Array.Empty<ITransitionCheckInvoker>();
 
     private bool NoChecker => !HasChecker();
@@ -72,16 +73,16 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     }
 
     //FIXME: 和abstract整合
-    [Button("依照Behaviour改名字")]
-    private void RenameByBehaviour()
-    {
-        gameObject.name = GetNameByBehaviour();
-    }
+    // [Button("依照Behaviour改名字")]
+    // private void RenameByBehaviour()
+    // {
+    //     gameObject.name = GetNameByBehaviour();
+    // }
 
-    protected virtual string GetNameByBehaviour()
-    {
-        return "[Transition] =>" + _target.stateType.name.Replace("[State]", "");
-    }
+    // protected virtual string GetNameByBehaviour()
+    // {
+    //     return 
+    // }
 
     private bool TransitionValidationResult()
     {
@@ -136,7 +137,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
 
     // [AutoParent()] private GeneralState bindingState;
 
-    [PreviewInInspector] [AutoParent()] private IState<GeneralState> _parentState;
+    [PreviewInInspector] [AutoParent] private IState<GeneralState> _parentState;
     public IState<GeneralState> ParentState => _parentState;
     [ShowInInspector] private bool IsSelfTransition => _parentState as GeneralState == _target;
 
@@ -275,10 +276,11 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     }
 
     //需要外部通知檢查Transition, Update / ValueChanged, 還有嗎？
-    public void OnBeforePrefabSave()
-    {
-        RenameByBehaviour();
-    }
+    // public void OnBeforePrefabSave()
+    // {
+    //     RenameByBehaviour();
+    // }
+    protected override string Description => "=>" + _target.stateType.name.Replace("[State]", "");
 
     protected override string DescriptionTag => "Transition";
 

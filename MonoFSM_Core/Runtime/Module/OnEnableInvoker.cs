@@ -19,8 +19,8 @@ public class OnEnableInvoker : MonoBehaviour, IUnityEventHolder
 {
     public UnityEvent OnEnableEvent;
     public UnityEvent OnDisableEvent;
-    [PreviewInInspector]
-    [AutoChildren] IRCGArgEventReceiver<bool>[] _eventReceivers;
+    [PreviewInInspector] [AutoChildren] private IArgEventReceiver<bool>[] _eventReceivers;
+
     private void Awake()
     {
         OnAwakeEvent?.Invoke();
@@ -29,12 +29,9 @@ public class OnEnableInvoker : MonoBehaviour, IUnityEventHolder
     private void OnEnable()
     {
         InvokeEvent();
-        if(_eventReceivers == null)
+        if (_eventReceivers == null)
             return;
-        foreach (var eventReceiver in _eventReceivers)
-        {
-            eventReceiver.EventReceived(true);
-        }
+        foreach (var eventReceiver in _eventReceivers) eventReceiver.ArgEventReceived(true);
     }
 
     public void InvokeEvent()
@@ -42,19 +39,14 @@ public class OnEnableInvoker : MonoBehaviour, IUnityEventHolder
         //這個都會GC?
         OnEnableEvent?.Invoke();
         OnEnableTransformEvent?.Invoke(transform);
-       
-        
     }
 
     private void OnDisable()
     {
         OnDisableEvent?.Invoke();
-        if(_eventReceivers == null)
+        if (_eventReceivers == null)
             return;
-        foreach (var eventReceiver in _eventReceivers)
-        {
-            eventReceiver.EventReceived(false);
-        }
+        foreach (var eventReceiver in _eventReceivers) eventReceiver.ArgEventReceived(false);
     }
 
     //FIXME: 還有在用這個嗎？沒有dependency checker很難用

@@ -9,7 +9,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
     }
 
     [Serializable]
-    public struct GeneralEffectHitData : IEffectHitData
+    public class GeneralEffectHitData : IEffectHitData
     {
         public static GeneralEffectHitData Borrow(IEffectDealer dealer, IEffectReceiver receiver)
         {

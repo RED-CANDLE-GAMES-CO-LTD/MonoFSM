@@ -19,7 +19,7 @@ namespace RCGFSM.Animation
 
     [HelpURL("https://www.notion.so/AnimatorPlayA-061be2a2d4e5414e88e84f1ed80d8ea2")]
     [Searchable]
-    public class AnimatorPlayAction : AbstractStateAction, IRCGArgEventReceiver, IAnimatorPlayAction,
+    public class AnimatorPlayAction : AbstractStateAction, IEventReceiver, IAnimatorPlayAction,
         ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent, ITransitionCheckInvoker
     {
         protected override string renamePostfix => " " + animator.gameObject.name + ": " + StateName;
@@ -677,7 +677,7 @@ namespace RCGFSM.Animation
         [HideIf(nameof(NoDoneEventTransition))] [TabGroup("Animator")] [PreviewInInspector] [Component] [AutoChildren]
         private StateTransition doneEventTransition; //寫成condition更好？
 
-        private IRCGArgEventReceiver _ircgArgEventReceiverImplementation;
+        private IEventReceiver _ircgArgEventReceiverImplementation;
 
 #if UNITY_EDITOR
         //不一定有，optional...

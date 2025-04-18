@@ -23,6 +23,19 @@ public interface IRebindable
     void SetBindingTarget(IRebindable rebindable);
 }
 
+/// <summary>
+/// A MonoBehaviour representation of a boolean variable that can be bound to scriptable data.
+/// This class provides functionality for boolean values that can be accessed, modified, and tracked
+/// across the application.
+/// </summary>
+/// <remarks>
+/// VarBool implements several interfaces:
+/// - ICondition: Allows it to be used in conditional operations
+/// - IBoolProvider: Provides boolean value accessor
+/// - IRebindable: Supports runtime rebinding of data sources
+/// - IDrawDetail: Supports custom drawing in the inspector
+/// - IOverrideHierarchyIcon: Allows custom hierarchy icon in the Unity editor
+/// </remarks>
 public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
     IBoolProvider, IRebindable, IDrawDetail, IOverrideHierarchyIcon
 {

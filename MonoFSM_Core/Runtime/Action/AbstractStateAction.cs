@@ -15,7 +15,7 @@ public interface IActionParent //給GameObject結構Validate用的
 
 [Searchable]
 public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable,
-    IRCGArgEventReceiver, IRCGArgEventReceiver<IEffectHitData>
+    IEventReceiver
 {
     protected override string DescriptionTag => "Action";
 
@@ -33,7 +33,7 @@ public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteC
 
 
     // [PreviewInInspector]
-    [AutoParent()] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true)// ;
+    [AutoParent] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true)// ;
 
     [Required] [PreviewInInspector] [AutoParent]
     protected IActionParent _actionParent;

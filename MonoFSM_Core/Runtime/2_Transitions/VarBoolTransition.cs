@@ -9,10 +9,7 @@ using UnityEngine.Serialization;
 [Obsolete]
 public class VarBoolTransition : StateTransition, IResetStart
 {
-    protected override string GetNameByBehaviour()
-    {
-        return "[Transition] =>" + Target.name + " when " + _monoVariableNode.name + " is " + TargetValue;
-    }
+    protected override string Description => Target.name + " when " + _monoVariableNode.name + " is " + TargetValue;
 
     [FormerlySerializedAs("variableNode")] [Required] [Header("When")] [PropertyOrder(-1)] [DropDownRef]
     public VarBool _monoVariableNode;
