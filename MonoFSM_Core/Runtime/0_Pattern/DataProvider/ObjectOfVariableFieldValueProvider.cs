@@ -1,4 +1,5 @@
 using System;
+using MonoFSM.Variable;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;

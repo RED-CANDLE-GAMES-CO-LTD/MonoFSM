@@ -19,19 +19,18 @@ namespace RCGMaker.Core.DataProvider
         //這個auto會太慢耶導致看的時候error?
         [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
         protected AbstractVariableProviderRef _variableProviderRef;
-        
-        [PreviewInInspector] [Auto] IDataChangedListener _dataChangedListener;
+
+        [PreviewInInspector] [Auto] private IDataChangedListener _dataChangedListener;
         protected abstract AbstractMonoVariable ListenToVariable { get; }
-        [PreviewInInspector] [Auto] ITypeRestrict _typeRestrict;
-        [PreviewInInspector]
-        public abstract Object targetObject { get; }
+        [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
+        [PreviewInInspector] public abstract Object targetObject { get; }
         public abstract Type targetType { get; }
-        [PreviewInInspector] [AutoParent] IIndexInjector _indexInjector;
+        [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
 
         /// <summary>
         /// 
         /// </summary>
-        void OnValueChanged()
+        private void OnValueChanged()
         {
             _dataChangedListener.OnDataChanged(targetObject);
         }
@@ -42,15 +41,15 @@ namespace RCGMaker.Core.DataProvider
             if (ListenToVariable)
                 ListenToVariable.OnValueChangedRaw += OnValueChanged;
             else
-            {
                 Debug.LogError("ListenToVariable is null", this);
-            }
         }
 
         private void OnDestroy()
         {
-            if (ListenToVariable)
-                ListenToVariable.OnValueChangedRaw -= OnValueChanged;
+            //FIXME: unity destroy噁心！
+            //好像不用？AbstractMonoVariable自己‘清就好？
+            // if (ListenToVariable)
+            //     ListenToVariable.OnValueChangedRaw -= OnValueChanged;
         }
 
         /// <summary>
@@ -82,10 +81,7 @@ namespace RCGMaker.Core.DataProvider
                     pathEntries[i]._supportedTypes = _typeRestrict.SupportedTypes;
 
                 //把index注入到pathEntries
-                if (_indexInjector != null && pathEntries[i].IsArray)
-                {
-                    pathEntries[i].index = _indexInjector.Index;
-                }
+                if (_indexInjector != null && pathEntries[i].IsArray) pathEntries[i].index = _indexInjector.Index;
 
                 if (currentType != null && !string.IsNullOrEmpty(pathEntries[i].fieldName))
                 {
@@ -162,7 +158,7 @@ namespace RCGMaker.Core.DataProvider
                     return "欄位名稱為空";
                 }
 
-                Func<object, object> getter = GetMemberGetter(type, entry.fieldName);
+                var getter = GetMemberGetter(type, entry.fieldName);
                 if (getter != null)
                 {
                     currentObj = getter(currentObj); //可能拿到陣列
@@ -219,18 +215,12 @@ namespace RCGMaker.Core.DataProvider
         public object GetFieldValue()
         {
 #if UNITY_EDITOR
-            if (Application.isPlaying == false)
-            {
-                AutoAttributeManager.AutoReference(this);
-            }
+            if (Application.isPlaying == false) AutoAttributeManager.AutoReference(this);
 #endif
             // 每次按下前先更新所有層級的 parentType
             var resultValue = GetFieldValueFromPath(targetObject, pathEntries);
 #if UNITY_EDITOR
-            if (resultValue == null && Application.isPlaying == false)
-            {
-                Debug.LogError("結果為 null"+targetObject, this);
-            }
+            if (resultValue == null && Application.isPlaying == false) Debug.LogError("結果為 null" + targetObject, this);
 #endif
             // Debug.Log("結果：" + (resultValue != null ? resultValue.ToString() : "null"));
             return resultValue;
@@ -262,20 +252,16 @@ namespace RCGMaker.Core.DataProvider
         #region 快取 Reflection Getter
 
         // 使用 ValueTuple 當作 Dictionary Key：Type 與成員名稱
-        private static Dictionary<(System.Type, string), Func<object, object>> getterCache =
-            new Dictionary<(System.Type, string), Func<object, object>>();
+        private static Dictionary<(Type, string), Func<object, object>> getterCache = new();
 
         /// <summary>
         /// 取得指定型別與成員名稱的 getter delegate。
         /// 如果已快取則直接回傳，否則建立一個並快取起來。
         /// </summary>
-        private static Func<object, object> GetMemberGetter(System.Type type, string memberName)
+        private static Func<object, object> GetMemberGetter(Type type, string memberName)
         {
             var key = (type, memberName);
-            if (getterCache.TryGetValue(key, out var getter))
-            {
-                return getter;
-            }
+            if (getterCache.TryGetValue(key, out var getter)) return getter;
 
             // 嘗試從 Field 取得
             // FieldInfo field = type.GetField(memberName,
@@ -303,7 +289,7 @@ namespace RCGMaker.Core.DataProvider
             // else
             //     return $"在 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性";
 
-            PropertyInfo prop = type.GetProperty(memberName,
+            var prop = type.GetProperty(memberName,
                 BindingFlags.Public | BindingFlags.Instance);
             if (prop != null)
             {

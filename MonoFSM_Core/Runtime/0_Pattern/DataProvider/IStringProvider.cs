@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -40,7 +41,7 @@ namespace RCGMaker.Core.DataProvider
         [FormerlySerializedAs("_variable")] [Required] [DropDownRef]
         public AbstractMonoVariable _monoVariable;
 
-        static List<Type> supportTypes = new List<Type>() { typeof(string), typeof(int), typeof(float) };
+        private static List<Type> supportTypes = new() { typeof(string), typeof(int), typeof(float) };
         private ValueDropdownList<string> GetPropertyNames => DataReflection.GetProperties(_monoVariable, supportTypes);
 
         [Required] [ValueDropdown(nameof(GetPropertyNames))]
@@ -57,7 +58,7 @@ namespace RCGMaker.Core.DataProvider
     public class StringProviderFromDescriptableProperty : IStringProvider
     {
         [SerializeReference] public IGameDataProvider dataProvider;
-        static List<Type> supportTypes = new List<Type>() { typeof(string), typeof(int), typeof(float) };
+        private static List<Type> supportTypes = new() { typeof(string), typeof(int), typeof(float) };
 
         private ValueDropdownList<string> GetPropertyNames =>
             dataProvider.GameData.GetProperties(supportTypes);
