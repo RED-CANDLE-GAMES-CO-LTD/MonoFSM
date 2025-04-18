@@ -21,15 +21,15 @@ namespace MonoFSM.Core
         public void EventHandle()
         {
             foreach (var eventReceiver in _eventReceivers)
-                if (ShouldHandleEvent(eventReceiver))
-                    eventReceiver.EventReceived();
+                // if (ShouldHandleEvent(eventReceiver))
+                eventReceiver.EventReceived();
         }
 
         public void EventHandle<T>(T arg)
         {
             foreach (var eventReceiver in _eventReceivers)
-                if (ShouldHandleEvent(eventReceiver))
-                    eventReceiver.EventReceived(arg);
+                // if (ShouldHandleEvent(eventReceiver))
+                eventReceiver.EventReceived(arg);
         }
 
         protected virtual bool ShouldHandleEvent(IEventReceiver eventReceiver)
