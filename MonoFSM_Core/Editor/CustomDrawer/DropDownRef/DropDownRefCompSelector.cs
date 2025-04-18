@@ -9,69 +9,65 @@ namespace RCGMaker.Core
     using Sirenix.OdinInspector.Editor;
     using Sirenix.Utilities.Editor;
     using UnityEngine;
+
     public class DropDownRefCompSelector : OdinSelector<MonoBehaviour>
     {
-     
         private Type _filterType;
-        Component _forComp;
-        Type _parentType;
+        private Component _forComp;
+        private Type _parentType;
+
         public DropDownRefCompSelector(Component forComp, Type filterType, Type parentType = null)
         {
-            if(forComp == null)
+            if (forComp == null)
                 throw new ArgumentNullException(nameof(forComp));
             _forComp = forComp;
             _filterType = filterType;
             DrawConfirmSelectionButton = true;
             _parentType = parentType;
-            
         }
 
         protected override void BuildSelectionTree(OdinMenuTree tree)
         {
             tree.Config.DrawSearchToolbar = true;
-     
+
             // tree.Selection.SupportsMultiSelect = this.supportsMultiSelect;
-            
+
             Component[] comps;
             _parentType ??= typeof(IVariableOwner);
-            
+
             //1. prefab裏直接找root下的所有_filterType component
             if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
                 //FIXME: 行為不一致！？
                 var root = PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot;
                 comps = root.GetComponentsInChildren(_filterType, true);
-                
             }
             //2. scene裏找所有 IVariableOwner parent 下的所有_filterType component
             else
-                comps =  _forComp.GetComponentsOfSiblingAll(_parentType,_filterType);
-        
+            {
+                comps = _forComp.GetComponentsOfSiblingAll(_parentType, _filterType);
+            }
+
             // var types = filterType.FilterSubClassOrImplementationFromDomain();
             foreach (var comp in comps)
             {
                 var ownerName = comp.GetComponentInParent<IVariableOwner>().name;
                 // tree.Add(comp.name+ " (" + comp.GetType().Name+")"+ownerName, comp);
-                tree.Add(comp.name+ " ("+ownerName, comp);
+                tree.Add(ownerName + "/" + comp.name, comp);
                 // Debug.Log("Add type " + type);
             }
 
             tree.Config.SelectMenuItemsOnMouseDown = true;
             tree.Config.ConfirmSelectionOnDoubleClick = true;
-            
         }
 
         [OnInspectorGUI]
         private void DrawInfoAboutSelectedItem() //單點後，額外顯示
         {
-            var selected = this.GetCurrentSelection().FirstOrDefault();
+            var selected = GetCurrentSelection().FirstOrDefault();
 
-            if (selected != null)
-            {
-                GUILayout.Label("Selected: " + selected.name);
-                
-                // GUILayout.Label("Data: " + selected.Data);
-            }
+            if (selected != null) GUILayout.Label("Selected: " + selected.name);
+            // GUILayout.Label("Data: " + selected.Data);
         }
 
         //FIXME: 單點選擇後，自動確認選擇...hack code
@@ -101,7 +97,6 @@ namespace RCGMaker.Core
             Event.current.Use();
         }
     }
-    
 }
 
 

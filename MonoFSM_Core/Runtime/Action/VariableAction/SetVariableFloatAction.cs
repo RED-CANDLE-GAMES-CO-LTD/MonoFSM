@@ -4,7 +4,7 @@ namespace RCGFSM.Variable
 {
     public class SetVariableFloatAction : AbstractStateAction
     {
-        public VarFloat targetFlag;
+        [DropDownRef] public VarFloat targetFlag;
         public float TargetValue;
 
         protected override void OnStateEnterImplement()

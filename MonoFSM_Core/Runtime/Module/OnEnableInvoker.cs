@@ -33,6 +33,7 @@ public class OnEnableInvoker : MonoBehaviour
 
     private void OnEnable()
     {
+        this.Log("OnEnable");
         _onEnableNode.EventHandle();
         // if (_eventReceivers == null)
         //     return;
@@ -50,6 +51,7 @@ public class OnEnableInvoker : MonoBehaviour
     private void OnDisable()
     {
         // OnDisableEvent?.Invoke();
+        this.Log("OnDisable");
         _onDisableNode.EventHandle();
 
         // if (_eventReceivers == null)
