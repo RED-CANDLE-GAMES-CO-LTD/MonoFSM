@@ -345,7 +345,7 @@ public class
     }
 
     [ShowInDebugMode] private ValueChangedListener<T> listener; //好像可以把監聽對象丟出來看？
-    [ShowInDebugMode] private ValueChangedListener<T> listenerOnce;
+    // [ShowInDebugMode] private ValueChangedListener<T> listenerOnce = new();
 
     private UnityAction _onChangeAction;
     // private ValueChangedListener<object, object, T> listenerDict;
@@ -406,20 +406,20 @@ public class
 
     //once是不是不太好？
 
-    public void AddListenerOnce(UnityAction<T> action, Object owner)
-    {
-        if (listenerOnce == null) listenerOnce = new ValueChangedListener<T>();
-
-        listenerOnce.AddListenerDict(action, owner);
-    }
+    // public void AddListenerOnce(UnityAction<T> action, Object owner)
+    // {
+    //     // if (listenerOnce == null) listenerOnce = new ValueChangedListener<T>();
+    //     //
+    //     // listenerOnce.AddListenerDict(action, owner);
+    // }
 
     public void RemoveListener(UnityAction<T> action, Object owner)
     {
         var result = false;
         if (listener != null)
             result |= listener.RemoveListenerDict(action, owner);
-        if (listenerOnce != null)
-            result |= listenerOnce.RemoveListenerDict(action, owner);
+        // if (listenerOnce != null)
+        //     result |= listenerOnce.RemoveListenerDict(action, owner);
         if (result == false)
             Debug.LogWarning("Remove Not Exist Listener");
         // else
@@ -479,8 +479,8 @@ public class
 
     private void OnChangeInvoke(T value)
     {
-        listener.OnChange(value, false);
-        listenerOnce.OnChange(value, true);
+        listener?.OnChange(value, false);
+        // listenerOnce.OnChange(value, true);
         _onChangeAction?.Invoke();
         // listenerDict?.OnValueChange(value);
     }
@@ -499,8 +499,8 @@ public class
         };
         _lastValue = _currentValue;
         lastMode = mode;
-        listener.Clear();
-        listenerOnce.Clear();
+        listener?.Clear();
+        // listenerOnce.Clear();
         _onChangeAction = null;
         if (_owner is Component comp)
             comp.Log("FlagField Init", comp);
