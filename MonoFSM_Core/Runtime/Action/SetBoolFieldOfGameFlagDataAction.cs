@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -70,10 +71,8 @@ namespace RCGFSM.Variable
             if (targetType == SetBoolType.Toggle)
                 flag.CurrentValue = !flag.CurrentValue;
             else
-            {
                 //FIXME: refactor: use switch
                 flag.CurrentValue = TargetValue;
-            }
         }
     }
 }

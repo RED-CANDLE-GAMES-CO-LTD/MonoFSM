@@ -1,3 +1,4 @@
+using MonoFSM.Variable;
 using RCGMaker.Core.Attributes;
 using RCGMakerFSM.VarRef;
 using UnityEngine;
@@ -11,15 +12,18 @@ namespace RCGMaker.Core.DataProvider.Condition
     {
         // [Component][PreviewInInspector] IVariableProvider _sourceVariableProvider;
         // [Component][PreviewInInspector] IVariableProvider _targetVariableProvider;
-        [AutoChildren] [Component][PreviewInInspector] private TargetVarRef _targetVarRef;
-        [AutoChildren] [Component][PreviewInInspector] private SourceValueRef _sourceValueRef;
-            
-        AbstractMonoVariable targetVariable => _targetVarRef?.VarRaw;
+        [AutoChildren] [Component] [PreviewInInspector]
+        private TargetVarRef _targetVarRef;
+
+        [AutoChildren] [Component] [PreviewInInspector]
+        private SourceValueRef _sourceValueRef;
+
+        private AbstractMonoVariable targetVariable => _targetVarRef?.VarRaw;
         // AbstractMonoVariable sourceVariable => _sourceValueRef?.VarRaw;
 
         protected override bool IsValid => false;
         // targetVariable?.objectValue != null &&
         //                                   _sourceValueRef?.GetValue() ==
-          //                                 targetVariable?.objectValue;
+        //                                 targetVariable?.objectValue;
     }
 }

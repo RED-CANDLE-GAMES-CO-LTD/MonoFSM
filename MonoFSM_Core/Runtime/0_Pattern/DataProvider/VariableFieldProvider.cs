@@ -1,4 +1,5 @@
 using System;
+using MonoFSM.Variable;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -9,7 +10,6 @@ namespace RCGMaker.Core.DataProvider
     //這什麼意思？只是給某個variable, 不是給他的Object?
     public class VariableFieldValueProvider : AbstractFieldValueProvider
     {
-        
         protected override AbstractMonoVariable ListenToVariable => _variableProviderRef.VarRaw;
         public override Object targetObject => _variableProviderRef?.VarRaw;
         public override Type targetType => _variableProviderRef.GetValueType;
