@@ -8,6 +8,27 @@ using UnityEngine.Serialization;
 
 namespace RCGFSM.Variable
 {
+    internal static class VariableExtension
+    {
+        public static IList<ValueDropdownItem<T>> GetVariableValueDropdownItems<T>(this MonoBehaviour self)
+            where T : AbstractMonoVariable
+        {
+            var items = new List<ValueDropdownItem<T>>();
+            var contexts = self.GetComponentsInParent<VariableOwner>(true);
+            foreach (var context in contexts)
+            {
+                var vars = context.GetComponentsInChildren<T>(true);
+                foreach (var var in vars)
+                {
+                    var owner = var.GetComponentInParent<VariableOwner>();
+                    items.Add(new ValueDropdownItem<T>(owner.name + "/" + var.name, var));
+                }
+            }
+
+            return items;
+        }
+    }
+
     //set flag, pick item...和GameFlag有關的要用一個interface才可以撈出來
     //FIXME: 需要雙向reference, debug用，要不然不知道誰在set? candidate
     public class SetVarBoolAction : AbstractStateAction, IArgEventReceiver<bool>
@@ -19,19 +40,20 @@ namespace RCGFSM.Variable
 
         private IList<ValueDropdownItem<VarBool>> GetVariables()
         {
-            var items = new List<ValueDropdownItem<VarBool>>();
-            var contexts = GetComponentsInParent<VariableOwner>(true);
-            foreach (var context in contexts)
-            {
-                var vars = context.GetComponentsInChildren<VarBool>(true);
-                foreach (var var in vars)
-                {
-                    var owner = var.GetComponentInParent<VariableOwner>();
-                    items.Add(new ValueDropdownItem<VarBool>(owner.name + "/" + var.name, var));
-                }
-            }
-
-            return items;
+            return this.GetVariableValueDropdownItems<VarBool>();
+            // var items = new List<ValueDropdownItem<VarBool>>();
+            // var contexts = GetComponentsInParent<VariableOwner>(true);
+            // foreach (var context in contexts)
+            // {
+            //     var vars = context.GetComponentsInChildren<VarBool>(true);
+            //     foreach (var var in vars)
+            //     {
+            //         var owner = var.GetComponentInParent<VariableOwner>();
+            //         items.Add(new ValueDropdownItem<VarBool>(owner.name + "/" + var.name, var));
+            //     }
+            // }
+            //
+            // return items;
         }
 
         [FormerlySerializedAs("_targetFlag")]

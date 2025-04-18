@@ -1,3 +1,5 @@
+using jerryee.UnityMCP;
+using MonoFSM.Condition;
 using MonoFSM.Variable;
 using MonoFSM.DataProvider;
 using RCGMaker.Core.DataProvider;
@@ -10,7 +12,7 @@ namespace MonoFSM.Variable.Condition
 {
     public class VarBoolValueCondition : NotifyConditionComp
     {
-        protected override string Description => _monoVariableBool?.name + " == " + targetValue;
+        protected override string Description => _varBool?.name + " == " + targetValue;
 
         /// <summary>
         /// Invoked when the bound variable changes.
@@ -21,19 +23,24 @@ namespace MonoFSM.Variable.Condition
         }
 
 
-        [OnValueChanged(nameof(OnVariableChanged))] [FormerlySerializedAs("variableBool")] [Required] [DropDownRef]
+        [FormerlySerializedAs("_monoVariableBool")]
+        [MCPExtractable]
+        [OnValueChanged(nameof(OnVariableChanged))]
+        [FormerlySerializedAs("variableBool")]
+        [Required]
+        [DropDownRef]
         // [ValueDropdown(nameof(GetBoolVariables))]
-        public VarBool _monoVariableBool;
+        public VarBool _varBool;
 
         //FIXME: 要用VarBoolProvider?
-        [Component] [Auto] public VarBoolProviderRef _varBoolProvider;
+        // [Component] [Auto] public VarBoolProviderRef _varBoolProvider;
 
         // [Component] [Auto] IBoolProvider _boolValue; //會再度抓到自己，...沒屁用
         public bool targetValue = true;
 
         //FIXME: 會有需求要比對其他東西嗎？
-        protected override IVariableField listenField => _monoVariableBool.Field;
-        protected override bool IsValid => _monoVariableBool.CurrentValue == targetValue;
+        protected override IVariableField listenField => _varBool.Field;
+        protected override bool IsValid => _varBool.CurrentValue == targetValue;
 
         //FIXME: condition本來就要實作狀態變化？必須listener? 會不會太強求？
         // private void OnValueChanged(bool value)

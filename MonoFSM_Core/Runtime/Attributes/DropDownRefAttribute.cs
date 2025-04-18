@@ -1,10 +1,12 @@
 using System;
+using jerryee.UnityMCP;
 using Sirenix.OdinInspector;
 using UnityEngine.Serialization;
 
 /// <summary>
 /// 
 /// </summary>
+/// FIXME: 想要包含[MCPExtractable]...還是讓python也處理？
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class DropDownRefAttribute : Attribute
 {

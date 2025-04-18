@@ -9,6 +9,9 @@ def extract_cs_summary(filepath):
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             code = f.read()
+        # 取得namespace
+        namespace_match = re.search(r'namespace\s+([\w\.]+)', code)
+        namespace = namespace_match.group(1) if namespace_match else None
         class_match = re.search(r'class\s+(\w+)(?:\s*:\s*([\w,\s]+))?', code)
         if not class_match:
             return None
@@ -17,16 +20,32 @@ def extract_cs_summary(filepath):
         bases = [b.strip() for b in base_and_interfaces.split(',')] if base_and_interfaces else []
         base_class = bases[0] if bases and not bases[0].startswith('I') else None
         interfaces = [b for b in bases if b.startswith('I')]
-        # 改良：允許多個 attribute、多行、分號/大括號
-        prop_pattern = re.compile(r'(\[MCPExtractable[^\]]*\](?:\s*\[[^\]]*\])*)\s*(?:\w+\s+)*([\w<>]+)\s+(\w+)\s*(?:[;{])', re.DOTALL)
-        props = prop_pattern.findall(code)
         summary['class'] = class_name
+        if namespace:
+            summary['namespace'] = namespace
         if base_class:
             summary['base'] = base_class
         if interfaces:
             summary['interfaces'] = interfaces
-        if props:
-            summary['properties'] = [{'type': t, 'name': n} for _, t, n in props]
+
+        # 判斷是否為Unity Component
+        if base_class in ('MonoBehaviour', 'AbstractDescriptionBehaviour'):
+            summary['isComponent'] = True
+
+        # 擷取 AutoParent/AutoChildren/Auto 欄位，使用 regex
+        auto_refs = []
+        field_pattern = re.compile(
+            r'\[(AutoParent|AutoChildren|Auto)[^\]]*\](?:\s*\[[^\]]*\])*\s*(?:public|protected|private|internal)?\s*(?:static\s+)?(?:readonly\s+)?([\w<>\[\], ]+)\s+(\w+)\s*(?:;|=)',
+            re.MULTILINE
+        )
+        for m in field_pattern.finditer(code):
+            attr = m.group(1)
+            typ = m.group(2).strip()
+            name = m.group(3)
+            auto_refs.append({'attribute': attr, 'type': typ, 'name': name})
+        if auto_refs:
+            summary['autoReferences'] = auto_refs
+
         return summary
     except Exception as e:
         return {'error': str(e)}
@@ -92,7 +111,7 @@ def add_ids(tree, parent_path=""):
             ):
                 # 用 meta_guid + class name 當 id
                 class_id = f"{entry['meta_guid']}#{entry['summary']['class']}"
-                entry['id'] = str(uuid.uuid5(uuid.NAMESPACE_URL, class_id))
+                # entry['id'] = str(uuid.uuid5(uuid.NAMESPACE_URL, class_id))
             for v in entry.values() if isinstance(entry, dict) else []:
                 add_ids(v, parent_path)
     elif isinstance(tree, dict):
@@ -109,8 +128,15 @@ def build_manifest_root(tree):
         **tree
     }
 
-if __name__ == '__main__':
-    root_path = sys.argv[1] if len(sys.argv) > 1 else '.'
+def generate_manifest(root_path):
+    """
+    產生該資料夾的的manifest。
+
+    Args:
+        root_path: 資料夾的root目錄。
+
+    產生manifest後，會將它存到root目錄下面的.AI/<root_folder_name>_manifest.json。
+    """
     tree = build_tree(root_path)
     tree = clean_tree(tree)
     add_ids(tree)
@@ -124,3 +150,7 @@ if __name__ == '__main__':
     manifest_path = os.path.join(ai_dir, f'{parent_folder}_manifest.json')
     with open(manifest_path, 'w', encoding='utf-8') as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+if __name__ == '__main__':
+    root_path = sys.argv[1] if len(sys.argv) > 1 else '.'
+    generate_manifest(root_path)

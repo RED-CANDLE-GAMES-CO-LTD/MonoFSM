@@ -1,10 +1,11 @@
+using jerryee.UnityMCP;
 using MonoFSM.Variable;
 
 namespace RCGFSM.Variable
 {
     public class SetVariableFloatAction : AbstractStateAction
     {
-        [DropDownRef] public VarFloat targetFlag;
+        [MCPExtractable] [DropDownRef] public VarFloat targetFlag;
         public float TargetValue;
 
         protected override void OnStateEnterImplement()

@@ -7,11 +7,11 @@ using UnityEngine;
 namespace MonoFSM.Variable
 {
     // public interface IVariableBoolProvider
-// {
-//     bool FlagValue { get; }
-//     public ScriptableDataBool ScriptableData { get; }
-// }
-
+    // {
+    //     bool FlagValue { get; }
+    //     public ScriptableDataBool ScriptableData { get; }
+    // }
+    //FIXME: 這個要做什麼？
     public interface IRebindable
     {
         void SetBindingSource(IRebindable rebindable);
@@ -28,8 +28,6 @@ namespace MonoFSM.Variable
     /// - ICondition: Allows it to be used in conditional operations
     /// - IBoolProvider: Provides boolean value accessor
     /// - IRebindable: Supports runtime rebinding of data sources
-    /// - IDrawDetail: Supports custom drawing in the inspector
-    /// - IOverrideHierarchyIcon: Allows custom hierarchy icon in the Unity editor
     /// </remarks>
     public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
         IBoolProvider, IRebindable, IDrawDetail, IOverrideHierarchyIcon
