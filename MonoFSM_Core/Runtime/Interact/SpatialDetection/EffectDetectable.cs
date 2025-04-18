@@ -8,7 +8,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
     [DisallowMultipleComponent]
     //空間中的物件，可以被偵測到, 基本上會有collider或是collider2D
     //從Detector過來
-    public abstract class EffectDetectable : MonoBehaviour, IDefaultSerializable //mousedown?
+    public class EffectDetectable : MonoBehaviour, IDefaultSerializable //mousedown?
     {
         [AutoParent] private StateMachineOwner owner;
 
