@@ -22,6 +22,7 @@ public class PrefabReferenceWindow : EditorWindow
     private static string _cachedPrefabAssetPath;
 
     private IReferenceTarget _searchTarget;
+    private bool _locked = false; 
     private Vector2 _scrollPos;
     private List<ReferenceInfo> _searchResults = new();
 
@@ -49,6 +50,7 @@ public class PrefabReferenceWindow : EditorWindow
 
     private void OnSelectionChanged()
     {
+        if (_locked) return; 
         IReferenceTarget target = null;
         if (Selection.activeGameObject)
             // 取第一個有 IReferenceTarget 的 component
@@ -122,6 +124,9 @@ public class PrefabReferenceWindow : EditorWindow
             return;
         }
 
+        EditorGUILayout.BeginHorizontal();
+        _locked = GUILayout.Toggle(_locked, "鎖定", "Button", GUILayout.Width(50));
+        EditorGUILayout.EndHorizontal();
         EditorGUI.BeginChangeCheck();
         _searchTarget = (IReferenceTarget)EditorGUILayout.ObjectField(
             "搜尋 Reference Target",
@@ -142,6 +147,7 @@ public class PrefabReferenceWindow : EditorWindow
         else
             foreach (var info in _searchResults)
             {
+                if ((Component)_searchTarget == info.component) continue;
                 EditorGUILayout.ObjectField("Component", info.component, typeof(Component), true);
                 EditorGUILayout.LabelField($"Field: {info.fieldInfo.Name}");
                 EditorGUILayout.Space();
