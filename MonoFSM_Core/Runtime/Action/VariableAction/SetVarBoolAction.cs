@@ -17,11 +17,21 @@ namespace RCGFSM.Variable
         // protected override string renamePostfix =>
         protected override string Description => _target ? _target.name + " to " + TargetValue : "null";
 
-        private IList<VarBool> GetVariables()
+        private IList<ValueDropdownItem<VarBool>> GetVariables()
         {
-            var context = GetComponentInParent<VariableOwner>(true);
-            var vars = context.GetComponentsInChildren<VarBool>(true);
-            return vars;
+            var items = new List<ValueDropdownItem<VarBool>>();
+            var contexts = GetComponentsInParent<VariableOwner>(true);
+            foreach (var context in contexts)
+            {
+                var vars = context.GetComponentsInChildren<VarBool>(true);
+                foreach (var var in vars)
+                {
+                    var owner = var.GetComponentInParent<VariableOwner>();
+                    items.Add(new ValueDropdownItem<VarBool>(owner.name + "/" + var.name, var));
+                }
+            }
+
+            return items;
         }
 
         [FormerlySerializedAs("_targetFlag")]
