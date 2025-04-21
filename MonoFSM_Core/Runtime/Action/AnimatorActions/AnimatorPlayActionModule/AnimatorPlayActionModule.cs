@@ -1,5 +1,6 @@
-using RCGFSM.Animation;
 using UnityEngine;
+
+using RCGFSM.Animation;
 
 namespace RCGFSM.AnimatorControl
 {

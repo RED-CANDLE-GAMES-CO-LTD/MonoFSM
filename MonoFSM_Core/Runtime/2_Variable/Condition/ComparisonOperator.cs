@@ -13,5 +13,4 @@ namespace MonoFSM.Variable.Condition
         LessThanOrEqual
     }
     //TODO: 符號化description
-    
 }

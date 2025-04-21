@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
-using MonoFSM.Variable;
+
+using UnityEngine;
+
 using RCGExtension;
 using RCGMaker.Core.Attributes;
-using UnityEngine;
 
 namespace MonoFSM.Variable
 {

@@ -2,16 +2,13 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using MonoFSM.Foundation;
-using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.Interact.EffectHit;
 using RCGMaker.Runtime.Vote;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public interface IActionParent //給GameObject結構Validate用的
-{
-}
+//給GameObject結構Validate用的
+public interface IActionParent { }
 
 [Searchable]
 public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteChild, IGuidEntity, IDefaultSerializable,
@@ -25,9 +22,8 @@ public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteC
         get
         {
             if (_delay) return false;
-            if (conditions.Length == 0)
-                return true;
-            return conditions.IsAllValid();
+            return conditions.Length == 0 || 
+                   conditions.IsAllValid();
         }
     }
 

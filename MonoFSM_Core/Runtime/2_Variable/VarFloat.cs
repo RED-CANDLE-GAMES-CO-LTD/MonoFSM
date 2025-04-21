@@ -1,5 +1,6 @@
-using RCGMaker.Core.Attributes;
 using UnityEngine;
+
+using RCGMaker.Core.Attributes;
 
 //CountdownTimer...直接掛在這個下面？
 namespace MonoFSM.Variable

@@ -1,32 +1,23 @@
-using System;
-using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
-using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace RCGMaker.Core
 {
     public class UpdateLoopManager : SingletonBehaviour<UpdateLoopManager>, ISceneAwake, IGameDestroy
     {
         [PreviewInInspector]
-        public readonly UpdateList<IProxyUpdate> UpdateList = new((t) => t.UpdateProxy());
+        public readonly UpdateList<IProxyUpdate> UpdateList = new(t => t.UpdateProxy());
 
         [PreviewInInspector]
-        public readonly UpdateList<IProxyLateUpdate> LateUpdateList = new((t) => t.LateUpdateProxy());
+        public readonly UpdateList<IProxyLateUpdate> LateUpdateList = new(t => t.LateUpdateProxy());
 
-        private void Update()
-        {
-            UpdateList.UpdateManual();
-        }
+        private void Update() 
+            => UpdateList.UpdateManual();
 
-        private void LateUpdate()
-        {
-            LateUpdateList.UpdateManual();
-        }
+        private void LateUpdate() 
+            => LateUpdateList.UpdateManual();
 
         public void EnterSceneAwake()
         {
-            // ClearReference();
             UpdateList.ClearNull();
             LateUpdateList.ClearNull();
         }
@@ -36,8 +27,6 @@ namespace RCGMaker.Core
         {
             UpdateList.ClearNull();
             LateUpdateList.ClearNull();
-            // UpdateList.ClearRef();
-            // LateUpdateList.ClearRef();
         }
     }
 }

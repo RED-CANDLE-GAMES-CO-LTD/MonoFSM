@@ -1,8 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
-using MonoFSM.Variable;
 using UnityEngine;
 
+using MonoFSM.Variable;
 
 //使用 VariableFloat 的人要用這個
 public class VariableFloatConsumer : AbstractVariableConsumer

@@ -1,10 +1,9 @@
 using System;
-using RCGMaker.Core;
+
+using UnityEngine;
+
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
-using MonoFSM.Variable.VariableBinder;
-using Sirenix.OdinInspector;
-using UnityEngine;
 
 namespace MonoFSM.Variable
 {

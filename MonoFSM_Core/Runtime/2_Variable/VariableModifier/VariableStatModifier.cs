@@ -1,8 +1,11 @@
-using UnityEngine;
 using System;
+
+using UnityEngine;
+
+using Sirenix.OdinInspector;
+
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
-using Sirenix.OdinInspector;
 
 namespace MonoFSM.Variable
 {
@@ -18,19 +21,14 @@ namespace MonoFSM.Variable
         // [Range(-10, 10)] public float _value; //定值，應該不需要再用variable了才對？
 
         [ShowInInspector]
-        string ValueDescription
-        {
-            get
+        private string ValueDescription 
+            => Type switch
             {
-                return Type switch
-                {
-                    StatModType.Flat => "+" + Value,
-                    StatModType.PercentAdd => $"+{Value * 100}%",
-                    StatModType.PercentMult => $"*{Value * 100}%",
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-            }
-        }
+                StatModType.Flat => "+" + Value,
+                StatModType.PercentAdd => $"+{Value * 100}%",
+                StatModType.PercentMult => $"*{Value * 100}%",
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
         public StatModType Type = StatModType.Flat;
         public int Order;
@@ -40,7 +38,7 @@ namespace MonoFSM.Variable
         public IStatModifierOwner Source => _source;
 
         [Button]
-        void Rename()
+        private void Rename()
         {
             name = "Stat Modifier " + ValueDescription;
         }

@@ -1,11 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+
+using UnityEngine;
+
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
-using UnityEngine;
-using Sirenix.OdinInspector;
 
 public abstract class AbstractFolder : MonoBehaviour
 {

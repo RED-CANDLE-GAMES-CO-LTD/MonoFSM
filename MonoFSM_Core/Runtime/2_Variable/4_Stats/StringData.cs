@@ -1,8 +1,6 @@
-// using I2.Loc;
+using UnityEngine;
 
 using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
-using UnityEngine;
 
 //目的：想要在一個字串裡面，插入變數，最後組出來
 [CreateAssetMenu(menuName = "ScriptableData/StringData")]
@@ -39,10 +37,8 @@ public class StringData : ScriptableObject
         return str;
     }
 
-    public override string ToString()
-    {
-        return Result;
-    }
+    public override string ToString() 
+        => Result;
 }
 
 public interface IStringData

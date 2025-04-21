@@ -41,9 +41,7 @@ public interface ISerializableComponent
     public void Deserialize(string data);
 }
 
-public interface IDefaultSerializable
-{
-}
+public interface IDefaultSerializable { }
 
 public interface IReferenceTarget
 {

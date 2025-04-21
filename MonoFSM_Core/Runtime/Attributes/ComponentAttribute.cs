@@ -1,46 +1,10 @@
 using System;
 using System.Diagnostics;
-using RCGMaker.Core.Attributes;
+
 using Sirenix.OdinInspector;
-using Sirenix.OdinInspector.Editor;
 
+using RCGMaker.Core.Attributes;
 
-// using UnityEngine;
-// using System.Collections.Generic;
-// using Sirenix.OdinInspector.Editor;
-// using Sirenix.Utilities.Editor;
-// using UnityEditor;
-// using System.Linq;
-// using Sirenix.OdinInspector;
-// using Sirenix.Utilities;
-
-// Example component demonstating how new generic context menus can be created with drawers.
-
-// public class GenericMenuExample : MonoBehaviour
-// {
-//     [ColorPicker]
-//     public Color Color;
-// }
-
-
-// [DontApplyToListElements]
-// public class MonoAttribute : PropertyAttribute
-// {
-//     public MonoAttribute(Type baseType, string name)
-//     {
-//         this.baseType = baseType;
-//         nameTag = name;
-//     }
-//     public Type baseType;
-//     public string nameTag;
-// }
-
-
-// The Color picker attribute.
-//AttributeTargets.Method | AttributeTargets.Field | AttributeTargets.Property
-
-// namespace RCGMaker.Core
-// {
 public enum AddComponentAt
 {
     Same,

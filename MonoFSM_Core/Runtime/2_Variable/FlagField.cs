@@ -1,75 +1,58 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using jerryee.UnityMCP;
-// using Mono.CSharp;
-using RCGMaker.Core.Attributes;
-using RCGSetting;
-// using RCGSetting;
-using Sirenix.OdinInspector;
-using Sirenix.Utilities;
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Profiling;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
-// using Newtonsoft.Json;
+using Sirenix.OdinInspector;
+using Sirenix.Utilities;
+
+using RCGMaker.Core.Attributes;
 
 [Serializable]
 public class FlagFieldString : FlagField<string>
 {
-    protected override bool IsCurrentValueEquals(string value)
-    {
-        return _currentValue == value;
-    }
+    protected override bool IsCurrentValueEquals(string value) 
+        => _currentValue == value;
 }
 
 [Serializable]
 public class FlagFieldEnum<T> : FlagField<T> where T : struct, IConvertible, IComparable
 {
-    protected override bool IsCurrentValueEquals(T value)
-    {
-        return _currentValue.Equals(value);
-    }
+    protected override bool IsCurrentValueEquals(T value) 
+        => _currentValue.Equals(value);
 }
 
 [Serializable]
 public class FlagFieldInt : FlagField<int>
 {
-    protected override bool IsCurrentValueEquals(int value)
-    {
-        return _currentValue == value;
-    }
+    protected override bool IsCurrentValueEquals(int value) 
+        => _currentValue == value;
 }
 
 [Serializable]
 public class FlagFieldLong : FlagField<long>
 {
-    protected override bool IsCurrentValueEquals(long value)
-    {
-        return _currentValue == value;
-    }
+    protected override bool IsCurrentValueEquals(long value) 
+        => _currentValue == value;
 }
 
 
 [Serializable]
 public class FlagFieldFloat : FlagField<float>
 {
-    public static bool operator ==(FlagFieldFloat j, float k)
-    {
-        return j.CurrentValue == k;
-    }
+    public static bool operator ==(FlagFieldFloat j, float k) 
+        => j.CurrentValue == k;
 
-    public static bool operator !=(FlagFieldFloat j, float k)
-    {
-        return j.CurrentValue != k;
-    }
+    public static bool operator !=(FlagFieldFloat j, float k) 
+        => j.CurrentValue != k;
 
-    protected override bool IsCurrentValueEquals(float value)
-    {
-        return _currentValue == value;
-    }
+    protected override bool IsCurrentValueEquals(float value) 
+        => _currentValue == value;
 }
 
 
@@ -85,7 +68,8 @@ public class ValueChangedListener<T>
 
     private Dictionary<int, Tuple<Object, UnityAction<T>>> onChangeActionDict;
 
-    [PreviewInInspector] private List<Object> ownersInDict => onChangeActionDict?.Values.Select(x => x.Item1).ToList();
+    [PreviewInInspector] private List<Object> ownersInDict 
+        => onChangeActionDict?.Values.Select(x => x.Item1).ToList();
 
     [PreviewInInspector] private List<int> tempKeys = new();
 
@@ -215,20 +199,14 @@ public class FlagFieldBool : FlagField<bool>
         // PlayTestValue = defaultValue;
     }
 
-    public static bool operator ==(FlagFieldBool j, bool k)
-    {
-        return j.CurrentValue == k;
-    }
+    public static bool operator ==(FlagFieldBool j, bool k) 
+        => j.CurrentValue == k;
 
-    public static bool operator !=(FlagFieldBool j, bool k)
-    {
-        return j.CurrentValue != k;
-    }
+    public static bool operator !=(FlagFieldBool j, bool k) 
+        => j.CurrentValue != k;
 
-    protected override bool IsCurrentValueEquals(bool value)
-    {
-        return _currentValue == value;
-    }
+    protected override bool IsCurrentValueEquals(bool value) 
+        => _currentValue == value;
 }
 
 [Serializable]

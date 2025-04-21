@@ -1,9 +1,13 @@
 using System;
-using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
+
 using UnityEngine;
 using UnityEngine.Events;
 using Object = UnityEngine.Object;
+
+using Sirenix.OdinInspector;
+
+using RCGMaker.Core.Attributes;
+
 
 namespace MonoFSM.Variable
 {

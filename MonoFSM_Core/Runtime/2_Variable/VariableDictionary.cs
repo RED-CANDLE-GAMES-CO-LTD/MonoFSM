@@ -1,21 +1,17 @@
 using System;
-using RCGMaker.Core;
-using Sirenix.OdinInspector;
-using UnityEngine;
+
 using UnityEngine.Serialization;
+
+using RCGMaker.Core;
 
 namespace MonoFSM.Variable
 {
     public class VariableDictionary : MonoDict<VariableTag, VarFloat>
     {
-        protected override void RemoveImplement(VarFloat item)
-        {
-        }
+        protected override void RemoveImplement(VarFloat item) { }
 
         protected override bool CanBeAdded(VarFloat item)
-        {
-            return item.isActiveAndEnabled;
-        }
+            => item.isActiveAndEnabled;
     }
 
     [Serializable]
@@ -27,6 +23,7 @@ namespace MonoFSM.Variable
         [FormerlySerializedAs("VariableTypeTag")] [FormerlySerializedAs("variableTag")]
         public VariableTag VariableTag;
 
-        public float FinalValue => injectedVariables[VariableTag].FinalValue;
+        public float FinalValue 
+            => injectedVariables[VariableTag].FinalValue;
     }
 }

@@ -1,24 +1,19 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
-// using I2.Loc;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
-using Sirenix.OdinInspector;
-// using TMPro;
+using System.Collections.Generic;
+
 using UnityEngine;
 
-//
-public abstract class AbstractStringProvider : MonoBehaviour //, IStringProvider
+using Sirenix.OdinInspector;
+
+using RCGMaker.Core.Attributes;
+using RCGMaker.Core.DataProvider;
+
+public abstract class AbstractStringProvider : MonoBehaviour
 {
     public abstract string StringValue { get; }
 
-    public string GetString()
-    {
-        return StringValue;
-    }
+    public string GetString() 
+        => StringValue;
 }
 
 public class StringFromDataProvider<TField> : AbstractStringProvider, IStringProvider
@@ -118,30 +113,6 @@ public class StringFromDataProvider<TField> : AbstractStringProvider, IStringPro
             return "";
         }
     }
-
-    // private void OnEnable()
-    // {
-    //     UpdateText();
-    //
-    //     if (_updateViewEventProvider != null)
-    //     {
-    //         _updateViewEventProvider.RegisterUpdate(UpdateText, this);
-    //     }
-    // }
-    //
-    // private void OnDisable()
-    // {
-    //     if (_updateViewEventProvider != null)
-    //     {
-    //         _updateViewEventProvider.UnRegisterUpdate(UpdateText, this);
-    //     }
-    // }
-
-    //FIXME: 註冊？
-    // public void UpdateNativeData(INativeData data)
-    // {
-    //     UpdateText();
-    // }
 
     public override string StringValue => PreviewValue;
 }

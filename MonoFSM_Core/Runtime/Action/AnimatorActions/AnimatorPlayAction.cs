@@ -19,10 +19,11 @@ namespace RCGFSM.Animation
 
     [HelpURL("https://www.notion.so/AnimatorPlayA-061be2a2d4e5414e88e84f1ed80d8ea2")]
     [Searchable]
-    public class AnimatorPlayAction : AbstractStateAction, IEventReceiver, IAnimatorPlayAction,
+    public class AnimatorPlayAction : AbstractStateAction, IAnimatorPlayAction,
         ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent, ITransitionCheckInvoker
     {
-        protected override string renamePostfix => " " + animator.gameObject.name + ": " + StateName;
+        protected override string renamePostfix 
+            => " " + animator.gameObject.name + ": " + StateName;
 
         protected override void Awake()
         {
@@ -30,23 +31,17 @@ namespace RCGFSM.Animation
             _stateNameHash = Animator.StringToHash(StateName);
         }
 
-        private bool IsStateNameProvider()
-        {
-            return GetComponent<AbstractStringProvider>() != null;
-        }
+        private bool IsStateNameProvider() 
+            => GetComponent<AbstractStringProvider>() != null;
 
-        public override void SimulationUpdate(float passedDuration)
-        {
-            animator.playbackTime = passedDuration;
-        }
+        public override void SimulationUpdate(float passedDuration) 
+            => animator.playbackTime = passedDuration;
 
-        //FIXME: 不能直接往下找？要從IFSMOwner下面往下找之類的？
+        // FIXME: 不能直接往下找？要從IFSMOwner下面往下找之類的？
         private IEnumerable<Animator> GetAnimatorsInChildren()
         {
             var provider = GetComponentInParent<IAnimatorProvider>();
-            if (provider == null)
-                return null;
-            return provider.ChildAnimators;
+            return provider?.ChildAnimators;
         }
 
         [TabGroup("Animator", false, 1)]
@@ -67,22 +62,18 @@ namespace RCGFSM.Animation
         public string stateName;
 
         [Auto(false)] private AbstractStringProvider stateNameProvider; //拿旁邊的，蓋掉要怎麼做...藏起來
-        public string StateName => stateNameProvider ? stateNameProvider.StringValue : stateName;
+        public string StateName 
+            => stateNameProvider 
+                ? stateNameProvider.StringValue 
+                : stateName;
 
-        private int StateHash
-        {
-            get
-            {
-                if (stateNameProvider && stateNameProvider is AnimatorStateStringListProvider listProvider)
-                    return listProvider.StateHashValue;
-                else
-                    return _stateNameHash;
-            }
-        }
+        private int StateHash 
+            => stateNameProvider && stateNameProvider is AnimatorStateStringListProvider listProvider
+                ? listProvider.StateHashValue
+                : _stateNameHash;
 
 #if UNITY_EDITOR
-
-        private Dictionary<int, string> _stateHashToName = new();
+        private readonly Dictionary<int, string> _stateHashToName = new();
 
         private void BuildStateHashToName()
         {

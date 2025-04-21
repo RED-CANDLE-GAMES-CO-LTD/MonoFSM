@@ -1,18 +1,20 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Sirenix.OdinInspector;
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.Serialization;
+
+using Sirenix.OdinInspector;
 
 namespace MonoFSM.Variable.Condition
 {
     //選到一個任何MonoBehavior的bool property
     public class BoolMonoBehaviorPropertyCondition : AbstractFieldConditionComp<bool, MonoBehaviour>
     {
-        protected override bool IsValid =>
-            SourceValue == TargetValue;
+        protected override bool IsValid 
+            => SourceValue == TargetValue;
     }
 
     public abstract class AbstractFieldConditionComp<TField, TSource> : AbstractConditionComp
@@ -20,11 +22,11 @@ namespace MonoFSM.Variable.Condition
     {
         [FormerlySerializedAs("target")] public TSource sourceObject;
 
-        private IEnumerable<string> GetBoolPropertyNames()
-        {
-            return sourceObject.GetType().GetProperties().Where(p => p.PropertyType == typeof(TField))
+        private IEnumerable<string> GetBoolPropertyNames() 
+            => sourceObject.GetType()
+                .GetProperties()
+                .Where(p => p.PropertyType == typeof(TField))
                 .Select(p => p.Name);
-        }
 
         [ValueDropdown(nameof(GetBoolPropertyNames))]
         public string propertyName;
@@ -44,8 +46,6 @@ namespace MonoFSM.Variable.Condition
             var propertyInfo = sourceObject.GetType()
                 .GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
 
-            // Debug.Log($"Property {propertyName} found in {sourceObject.GetType()}", sourceObject);
-
             if (propertyInfo == null)
             {
                 Debug.LogError($"Property {propertyName} not found in {sourceObject.GetType()}", sourceObject);
@@ -55,25 +55,7 @@ namespace MonoFSM.Variable.Condition
             _getMyProperty = (Func<TField>)Delegate.CreateDelegate(typeof(Func<TField>), sourceObject,
                 propertyInfo.GetGetMethod());
 
-            // var getMethod = propertyInfo.GetGetMethod();
-            // if (getMethod == null)
-            // {
-            //     Debug.LogError($"Property {propertyName} does not have a getter in {sourceObject.GetType()}",
-            //         sourceObject);
-            //     return null;
-            // }
-            //
-            // _getMyProperty =
-            //     (Func<TSource, TField>)Delegate.CreateDelegate(typeof(Func<TSource, TField>), sourceObject, getMethod);
-
-            // _getMyProperty = (source) => (TField)getMethod.Invoke(source, null);
-
             return _getMyProperty;
         }
-
-
-        // protected abstract bool isValid { get; }
-        // protected override bool isValid =>
-        //     (bool)target.GetType().GetProperty(propertyName).GetValue(target) == targetValue;
     }
 }

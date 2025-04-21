@@ -1,9 +1,10 @@
 using System;
+
+using Sirenix.OdinInspector;
+
 using MonoFSM.DataProvider;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
-using Sirenix.OdinInspector;
-using UnityEngine;
 
 namespace MonoFSM.Variable.Condition
 {
@@ -106,7 +107,5 @@ namespace MonoFSM.Variable.Condition
                 }
             }
         }
-
-       
     }
 }

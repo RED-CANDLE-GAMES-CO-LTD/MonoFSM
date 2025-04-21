@@ -1,10 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
+
 using UnityEngine;
-using UnityEngine.Serialization;
+
+using Sirenix.OdinInspector;
+
+using RCGMaker.Core.Attributes;
 
 //fixme: 介面看不太懂，要重新設計一下...
 [Serializable]
@@ -59,7 +59,6 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     [PreviewInInspector]
     public float AdditionalMultiplier = 1f;
 
-    // [ShowInInspector]
     [NonSerialized] protected StatModifier modifier;
     
     [TextArea] public string note;
@@ -69,33 +68,24 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     {
         if (modifier == null)
         {
-            // Debug.Log("[Apply StatModifierEntry]: new " + source, source as ScriptableObject);
             modifier = new StatModifier(Value * AdditionalMultiplier, modType, source)
             {
                 DurationType = DurationType
             };
-            //如果有ValueSource，就監聽他來更新
+            // 如果有ValueSource，就監聽他來更新
             if (ValueSource != null)
             {
-                // Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
                 ValueSource.field.AddListener(OnValueChange, source as ScriptableObject);
             }
         }
         else
         {
-            
-            // Debug.Log("[Apply StatModifierEntry]: exist " + this, source as ScriptableObject);
             modifier.Value = Value * AdditionalMultiplier;
             modifier.Type = modType;
             modifier.Source = source as ScriptableObject;
             modifier.DurationType = DurationType;
-
-          
-                
         }
 
-        // Debug.Log("[Apply StatModifierEntry]: " + this, source as ScriptableObject);
-        // statData.flagStat.AddModifier(modifier);
         TargetStat.AddModifier(modifier);
     }
 
@@ -105,19 +95,16 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
         {
             modifier.Value = Value * AdditionalMultiplier;
             TargetStat.AddModifier(modifier);
-            // Debug.Log("[StatModifierEntry] ValueSource OnValueChange" + arg0);
         }
     }
 
     //自己監聽？
     public void Remove(IStatModifierOwner source)
     {
-        // statData.flagStat.RemoveModifier(modifier);
         TargetStat.RemoveModifier(modifier);
 
         if (ValueSource != null)
         {
-            // Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
             ValueSource.field.RemoveListener(OnValueChange, source as ScriptableObject);
         }
 
@@ -136,48 +123,3 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
         modifier = null;
     }
 }
-//
-// //[]: 誰在用這個？
-// [CreateAssetMenu(fileName = "StatModifierData", menuName = "ScriptableObjects/StatModifierData", order = 1)]
-// public class StatModifierData : ScriptableObject, IStatModifierOwner
-// {
-//
-//     public float value = 1f;
-//     // public ActorStatType statType;
-//     public StatModType modType = StatModType.Flat;
-//     public StatData statData;
-//
-//     private void Awake()
-//     {
-//         modifier = new StatModifier(value, modType, 0, this);
-//     }
-//
-//     protected StatModifier modifier;
-//     public CharacterStat bindStat => statData.stat;
-//     // public CharacterStat bindStat
-//     // {
-//     //     get
-//     //     {
-//     //         return GameCore.Instance.player.statManager.FindStat(statType);
-//     //     }
-//     // }
-//
-//     public void Apply()
-//     {
-//         // if (bindStat == null)
-//         // {
-//         //     BindStat(player);
-//         // }
-//         // Debug.Log("add effect to stat" + +modifier.Value);
-//         bindStat.AddModifier(modifier);
-//     }
-//     public void Remove()
-//     {
-//         bindStat.RemoveModifier(modifier);
-//     }
-//     // public virtual void PlayAnimation()
-//     // {
-//
-//     // }
-//     public bool IsActivated => true;
-// }

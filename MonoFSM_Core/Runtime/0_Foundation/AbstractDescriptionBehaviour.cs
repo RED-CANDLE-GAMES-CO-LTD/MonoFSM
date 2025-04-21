@@ -1,7 +1,9 @@
+using UnityEngine;
+
+using Sirenix.OdinInspector;
+
 using RCGMaker.Core;
 using RCGMaker.Runtime;
-using Sirenix.OdinInspector;
-using UnityEngine;
 
 namespace MonoFSM.Foundation
 {
@@ -13,9 +15,7 @@ namespace MonoFSM.Foundation
         protected virtual string Description => $"{GetType().Name}";
 
         protected virtual string DescriptionPreprocess(string text)
-        {
-            return text;
-        }
+            => text;
 
         protected abstract string DescriptionTag { get; }
 

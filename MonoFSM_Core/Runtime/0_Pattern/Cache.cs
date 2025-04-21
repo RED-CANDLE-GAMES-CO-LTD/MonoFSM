@@ -6,14 +6,13 @@ using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core
 {
-    //應該是讓Cache有生命週期，level層的cache和application層的cache, 這樣level層的cache被刪掉的時候就整個一起刪掉
-
+    // 應該是讓 Cache 有生命週期，level 層的 cache 和 application 層的 cache, 這樣 level 層的 cache 被刪掉的時候就整個一起刪掉
     public interface ILevelProvider<K, V> where V : Component where K : Component
     {
         void RegisterCache(Cache<K, V> cache);
     }
 
-//把資料放在物件上，不要中心化就沒有反註冊這個問題了
+    // 把資料放在物件上，不要中心化就沒有反註冊這個問題了
     public class Cache<K, V> where V : Component where K : Component
     {
         private readonly Dictionary<K, List<V>> cache = new();
@@ -80,15 +79,11 @@ namespace RCGMaker.Core
         }
 
 
-        public List<V> Get(K key)
-        {
-            return cache.GetValueOrDefault(key);
-        }
+        public List<V> Get(K key) 
+            => cache.GetValueOrDefault(key);
 
-        public bool Has(K key)
-        {
-            return cache.ContainsKey(key);
-        }
+        public bool Has(K key) 
+            => cache.ContainsKey(key);
 
         public void Remove(K key, V value)
         {
@@ -99,11 +94,7 @@ namespace RCGMaker.Core
             }
         }
 
-        public void RemoveAll(K key)
-        {
-            // if (key == null) return;
-            
-            if (cache.ContainsKey(key)) cache.Remove(key);
-        }
+        public void RemoveAll(K key) 
+            => cache.Remove(key);
     }
 }

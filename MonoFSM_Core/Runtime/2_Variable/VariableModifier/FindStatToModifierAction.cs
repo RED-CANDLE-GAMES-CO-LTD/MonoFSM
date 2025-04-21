@@ -1,8 +1,7 @@
+using UnityEngine;
+
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
-using Sirenix.OdinInspector;
-using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable
 {
@@ -39,24 +38,6 @@ namespace MonoFSM.Variable
             {
                 varStat.AddModifier(modifier);
             }
-            // _foundStatOwner = GetComponentInParent<VariableStatOwner>();
-            // if (_foundStatOwner == null)
-            // {
-            //     Debug.LogError("No VariableStatOwner found in parent of " + gameObject.name, this);
-            //     return;
-            // }
-            //
-            // var variableStats = _foundStatOwner.VariableStats;
-            // foreach (var stat in variableStats)
-            // {
-            //     if (stat.varTag == TargetVariable)
-            //     {
-            //         foreach (var modifier in _modifiers)
-            //         {
-            //             stat.AddModifier(modifier);
-            //         }
-            //     }
-            // }
         }
 
         protected override void OnStateExitImplement()
@@ -66,19 +47,6 @@ namespace MonoFSM.Variable
             {
                 varStat.RemoveModifier(modifier);
             }
-            // var variableStats = _foundStatOwner.VariableStats;
-            // foreach (var stat in variableStats)
-            // {
-            //     if (stat.varTag == TargetVariable)
-            //     {
-            //         foreach (var modifier in _modifiers)
-            //         {
-            //             stat.RemoveModifier(modifier);
-            //         }
-            //     }
-            // }
-            //
-            // _foundStatOwner = null;
         }
     }
 }

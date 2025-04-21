@@ -1,13 +1,7 @@
-﻿#if UNITY_EDITOR
-using UnityEditor;
-#endif
+﻿using UnityEngine;
+
 using RCGExtension;
-using UnityEngine;
 
-
-// #if UNITY_EDITOR
-// [Multipl]
-// #endif
 public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround, IEditorOnly
 {
 #if UNITY_EDITOR
@@ -56,8 +50,6 @@ public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround, IEditorOnly
             return;
         }
 
-        // else
-        // {
         if (gizmoType == GizmoShapeType.Solid)
             Gizmos.DrawSphere(transform.position, size);
         else
@@ -66,17 +58,8 @@ public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround, IEditorOnly
 
     // FIXME:
     //  this.DrawText(transform.position, name);
-
 #endif
     
-    // private void OnEnable()
-    // {
-    //     SceneView.duringSceneGui += OnSceneGUI;
-    // }
-    // private void OnSceneGUI(SceneView sceneView)
-    // {
-    //     transform.position = Handles.PositionHandle(transform.position, transform.rotation);
-    // }
     public Color BackgroundColor
     {
         get

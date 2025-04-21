@@ -1,27 +1,22 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using jerryee.UnityMCP;
-using RCGMakerFSM.RCGMakerFSMCore.Tracking;
-#if MIXPANEL
-using mixpanel;
-#endif
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
-using MonoFSM.Variable;
-using MonoFSM.Variable.VariableBinder;
-using RCGExtension;
+using System.Collections.Generic;
+
+using UnityEngine;
+using UnityEngine.Profiling;
+using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
+
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
 #endif
 
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.Profiling;
-using UnityEngine.Serialization;
-using Object = UnityEngine.Object;
+using jerryee.UnityMCP;
+using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
+using RCGMakerFSM.RCGMakerFSMCore.Tracking;
+using MonoFSM.Variable;
 
 //FIXME: autoGen太複雜，可能需要再拆漂亮
 //TODO: 現在根本還沒做監聽，是用condition做polling
@@ -35,56 +30,11 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 {
     //想要直接選一個field就拿他的值，應該抽出去做成一個新東西不要放在GenericVariable裡面
     //VariableFloat應該獨立寫？這樣就一定可以有一個最好的abstract class
-    public void CommitValue()
-    {
-        Field.CommitValue();
-    }
+    public void CommitValue() 
+        => Field.CommitValue();
 
-    public void SetValue(object value, MonoBehaviour byWho = null)
-    {
-        SetValue((TType)value, byWho);
-    }
-
-    protected virtual void OnValidate()
-    {
-#if UNITY_EDITOR
-        // if (OdinPrefabUtility.GetPrefabKind(this) == PrefabKind.PrefabInstance)
-//             //檢查有沒有綁定data
-//             if (EditorUtility.IsPersistent(this)) return;
-//             if (MustGenButNotYet())
-//                 Debug.LogError("Instance需要生flag data", this);
-
-//         //好像也不用傳了？
-//        
-
-        // GenData();
-#endif
-    }
-
-//     private bool AutoGenCheck()
-//     {
-// #if UNITY_EDITOR
-//         if (PrefabKindMatchTagCheck() && IsAutoGen)
-//         {
-//             if (scriptableData == null)
-//             {
-//                 Debug.Log("Empty, About to Auto Gen" + myPrefabKind, this);
-//                 GenData();
-//                 if (scriptableData)
-//                     return true;
-//             }
-//             else if (IsGameStateSaveIDNotMatch())
-//             {
-//                 Debug.Log("SaveID NotMatch, About to Auto Gen" + myPrefabKind, this);
-//                 GenData();
-//                 if (scriptableData)
-//                     return true;
-//             }
-//         }
-// #endif
-//
-//         return true;
-//     }
+    public void SetValue(object value, MonoBehaviour byWho = null) 
+        => SetValue((TType)value, byWho);
 
     private bool PrefabKindMatchTagCheck()
     {
@@ -101,11 +51,6 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     private bool IsCheckingPrefabKind => GetComponent<GameStateRequireAtPrefabKind>() != null;
 
-    // [BoxGroup("GameState")]
-    // [EnableIf("PrefabKindMatchTagCheck")]
-    // // [DisableIf("@!IsAutoGenButNotYet()")] //FIXME: 用validate檢查
-    // [Button("Auto Gen Fix")]
-    // [EditorOnly]
     private void GenData()
     {
 #if UNITY_EDITOR
@@ -120,46 +65,26 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         //[]:已經在Auto那邊用OnBeforeSerialize全部做掉了
     }
 
-
     [TabGroup("GameState")]
     [LabelText("自動生成")]
     [ShowInInspector]
-    private bool IsAutoGen //TODO: IsAutoGen?
-    {
-        get
-        {
-            if (GetComponent<AutoGenGameState>() != null)
-                return true;
-            return false;
-        }
-    }
+    private bool IsAutoGen 
+        => GetComponent<AutoGenGameState>() != null; //TODO: IsAutoGen?
 
 #if UNITY_EDITOR
-    private bool IsAutoGenButNotYet()
-    {
-        if (!IsAutoGen) return false;
-        return _bindData == null;
-    }
+    private bool IsAutoGenButNotYet() 
+        => IsAutoGen && _bindData == null;
 
-    private bool IsGameStateRequiredButMissing()
-    {
+    private bool IsGameStateRequiredButMissing() 
         //FIXME: default不需要存檔，標記需要存檔的流程是什麼？
-        if (PrefabKindMatchTagCheck() && _bindData == null)
-            return true;
-        return false;
-    }
+        => PrefabKindMatchTagCheck() && _bindData == null;
 
-    private bool IsSuggestingAutoGen()
-    {
-        if (IsAutoGen) return false;
-        return _bindData == null;
-    }
+    private bool IsSuggestingAutoGen() 
+        => !IsAutoGen && _bindData == null;
 
-
-    private bool IsSuggestingDesignTag()
-    {
-        return gameObject.IsInPrefab() || myPrefabKind == PrefabKind.NonPrefabInstance;
-    }
+    private bool IsSuggestingDesignTag() 
+        => gameObject.IsInPrefab() || 
+           myPrefabKind == PrefabKind.NonPrefabInstance;
 #endif
 
     //TODO: 可以直接弄到drawer上？
@@ -168,19 +93,15 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [EnableIf("IsSuggestingDesignTag")]
     [HideIf("IsAutoGen")] //[]: 已經裝了的話要藏嗎？ 還是應該要透明
     [Button("[Prefab設計]Add AutoGen GameState")]
-    private void AddTag()
-    {
-        this.TryGetCompOrAdd<AutoGenGameState>();
-    }
+    private void AddTag() 
+        => this.TryGetCompOrAdd<AutoGenGameState>();
 
     [TabGroup("GameState")]
     [HideIf("IsCheckingPrefabKind")] //[]: 已經裝了的話要藏嗎？
     [EnableIf("IsSuggestingDesignTag")]
     [Button("[Prefab設計]Add GameState Require Tag")]
-    private void AddRequireInPrefab()
-    {
-        this.TryGetCompOrAdd<GameStateRequireAtPrefabKind>();
-    }
+    private void AddRequireInPrefab() 
+        => this.TryGetCompOrAdd<GameStateRequireAtPrefabKind>();
 
     //  MustGenScriptableDataTag mustGenTag; //提醒一定要gen flag
 #if UNITY_EDITOR
@@ -190,9 +111,6 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     private PrefabKind _myPrefabKind;
 
     [ShowInInspector] private PrefabKind myPrefabKind => OdinPrefabUtility.GetPrefabKind(this);
-    // private PrefabKind myPrefabKind => _myPrefabKind == PrefabKind.None
-    //     ? _myPrefabKind = OdinPrefabUtility.GetPrefabKind(this)
-    //     : _myPrefabKind;
 
     //FIXME: 這個可以cache嗎...
 #endif

@@ -32,7 +32,6 @@ namespace MonoFSM.Core
         public void EventHandle()
         {
             foreach (var eventReceiver in _eventReceivers)
-                // if (ShouldHandleEvent(eventReceiver))
                 eventReceiver.EventReceived();
         }
 
@@ -44,13 +43,7 @@ namespace MonoFSM.Core
         public void EventHandle<T>(T arg)
         {
             foreach (var eventReceiver in _eventReceivers)
-                // if (ShouldHandleEvent(eventReceiver))
                 eventReceiver.EventReceived(arg);
-        }
-
-        protected virtual bool ShouldHandleEvent(IEventReceiver eventReceiver)
-        {
-            return eventReceiver.isActiveAndEnabled;
         }
     }
 }

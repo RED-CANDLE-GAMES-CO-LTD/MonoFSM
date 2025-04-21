@@ -1,12 +1,12 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
-using MonoFSM.Variable;
-using Sirenix.OdinInspector;
+
 using UnityEngine;
 using UnityEngine.Events;
+
+using Sirenix.OdinInspector;
+
+using RCGMaker.Core.Attributes;
+using RCGMaker.Core.DataProvider;
 
 namespace MonoFSM.Variable
 {
@@ -80,14 +80,10 @@ namespace MonoFSM.Variable
             return value;
         }
 
-        public float BeforeSetValueModifyCheck(float value)
-        {
-            return SetOperation(value);
-        }
+        public float BeforeSetValueModifyCheck(float value) 
+            => SetOperation(value);
 
-        public float AfterGetValueModifyCheck(float value)
-        {
-            return value; //要再bound一次嗎？
-        }
+        public float AfterGetValueModifyCheck(float value) 
+            => value; //要再bound一次嗎？
     }
 }

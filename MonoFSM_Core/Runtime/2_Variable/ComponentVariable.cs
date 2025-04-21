@@ -1,13 +1,7 @@
 using System;
-using System.Collections.Generic;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
+
 using UnityEngine;
-using UnityEngine.Events;
-// using UnityEngine.ResourceManagement.Util;
 using UnityEngine.Serialization;
-using Object = UnityEngine.Object;
 
 namespace MonoFSM.Variable
 {

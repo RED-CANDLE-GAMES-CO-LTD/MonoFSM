@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using RCGMaker.Core;
 using Sirenix.OdinInspector;
@@ -37,7 +36,5 @@ namespace RCGFSM.AnimatorControl
         {
             RandomAssignStateFromPosition();
         }
-
     }
-
 }

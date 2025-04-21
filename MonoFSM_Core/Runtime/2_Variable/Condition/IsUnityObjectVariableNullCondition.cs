@@ -6,7 +6,7 @@ namespace MonoFSM.Variable.Condition
         [DropDownRef] public AbstractObjectVariable unityObjectVariable;
 
         //FIXME: Variable Tag？
-        protected override bool IsValid => unityObjectVariable.RawValue == null;
-        
+        protected override bool IsValid 
+            => unityObjectVariable.RawValue == null;
     }
 }

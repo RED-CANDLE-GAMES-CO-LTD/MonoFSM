@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
+
 using UnityEngine;
 using UnityEngine.Events;
+
+using RCGMaker.Core.Attributes;
 
 namespace MonoFSM.Variable
 {

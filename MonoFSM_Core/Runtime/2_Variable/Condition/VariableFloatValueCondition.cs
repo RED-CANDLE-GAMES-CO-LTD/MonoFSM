@@ -1,9 +1,8 @@
-using System;
-using MonoFSM.Condition;
-using RCGMaker.Core.DataProvider;
-using Sirenix.OdinInspector;
-using UnityEngine;
 using UnityEngine.Serialization;
+
+using Sirenix.OdinInspector;
+
+using MonoFSM.Condition;
 
 public enum Operator //FIXME: equality operator
 {
@@ -52,43 +51,19 @@ namespace MonoFSM.Variable.Condition
             {
                 var value = _monoVariableFloat.Value;
 
-                switch (op)
+                return op switch
                 {
-                    case Operator.Equals:
-                        return value == targetValue;
-                    case Operator.NotEqual:
-                        return value != targetValue;
-                    case Operator.GreaterThan:
-                        return value > targetValue;
-                    case Operator.LessThan:
-                        return value < targetValue;
-                    case Operator.GreaterThanOrEqual:
-                        return value >= targetValue;
-                    case Operator.LessThanOrEqual:
-                        return value <= targetValue;
-                }
-
-                return false;
+                    Operator.Equals => value == targetValue,
+                    Operator.NotEqual => value != targetValue,
+                    Operator.GreaterThan => value > targetValue,
+                    Operator.LessThan => value < targetValue,
+                    Operator.GreaterThanOrEqual => value >= targetValue,
+                    Operator.LessThanOrEqual => value <= targetValue,
+                    _ => false
+                };
             }
         }
 
-        //FIXME: condition本來就要實作狀態變化？必須listener? 會不會太強求？
-        // public void OnValueChanged(float value)
-        // {
-        //     if (_parentConditionChangeListener == null)
-        //         // Debug.LogError("VarBoolValueCondition: No parent transition found", this);
-        //         return;
-        //     _parentConditionChangeListener.OnConditionChanged();
-        // }
-        //
-        // public void ResetStart()
-        // {
-        //     Debug.Log("LevelResetPrepareRuntimeData", this);
-        //     if (_parentConditionChangeListener == null)
-        //         return;
-        //     _monoVariableFloat.Field.AddListener(OnValueChanged, this);
-        //     //需要清掉嗎？還是leveldestroy就會自己把field的listener清掉？
-        // }
         protected override IVariableField listenField => _monoVariableFloat.Field; //=
     }
 }

@@ -1,5 +1,6 @@
-using RCGMaker.Core.Attributes;
 using UnityEngine;
+
+using RCGMaker.Core.Attributes;
 
 namespace MonoFSM.Variable
 {

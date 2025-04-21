@@ -1,6 +1,4 @@
 namespace MonoFSM.Core
 {
-    public class OnStateEnterHandler : AbstractEventHandler
-    {
-    }
+    public class OnStateEnterHandler : AbstractEventHandler { }
 }
