@@ -6,11 +6,6 @@ using UnityEngine.Serialization;
 
 namespace RCGMaker.Core
 {
-    public interface IAnimatorGetter
-    {
-        Animator GetAnimator { get; }
-    }
-
     //從provider拿到animator
     public class AnimatorPlayingStateCondition : AbstractConditionComp
     {

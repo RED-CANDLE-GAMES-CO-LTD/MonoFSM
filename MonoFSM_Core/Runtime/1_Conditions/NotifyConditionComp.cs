@@ -1,3 +1,5 @@
+using MonoFSM.Condition;
+
 namespace MonoFSM.Condition
 {
     public abstract class NotifyConditionComp : AbstractConditionComp, IResetStart, ITransitionCheckInvoker

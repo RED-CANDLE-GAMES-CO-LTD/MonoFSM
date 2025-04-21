@@ -1,4 +1,4 @@
-using System;
+using MonoFSM.Condition;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -7,18 +7,13 @@ namespace RCGMaker.Core
 {
     //FIXME: 用AbstractConditionActivateTarget
 
-    public interface IUIBehavior
-    {
-        public void EnableCheck(); //UI Reset??
-    }
-
     //新規
     //可以直接放在該節點上
     //自動檢查條件，決定是否啟動節點
     //放在下面？
-    public class ConditionActivator : MonoBehaviour, IUIBehavior, ISelfValidator, IResetter
+    public class ConditionActivator : MonoBehaviour, IUIBehavior, ISelfValidator, IResetter, IConditionChangeListener
     {
-        [Title("自動檢查條件，決定開關節點")] [PreviewInInspector] [AutoChildren()]
+        [Title("自動檢查條件，決定開關節點")] [PreviewInInspector] [AutoChildren]
         private AbstractConditionComp[] conditions;
 
         [ReadOnly] [ShowInPlayMode] private bool IsActivate => conditions.IsAllValid();
@@ -57,6 +52,14 @@ namespace RCGMaker.Core
 
         //update check?
         public void Update() //關起來就不會update了...
+        {
+            EnableCheck();
+        }
+
+        /// <summary>
+        /// Condition改變時自動檢查條件
+        /// </summary>
+        public void OnConditionChanged()
         {
             EnableCheck();
         }

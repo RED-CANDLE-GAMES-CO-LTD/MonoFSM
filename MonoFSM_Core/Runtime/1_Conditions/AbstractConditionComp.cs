@@ -1,41 +1,10 @@
 ﻿using UnityEngine;
-
 using Sirenix.OdinInspector;
-
 using RCGMaker.Core.Attributes;
 using RCGExtension;
 using RCGSetting;
 using MonoFSM.Variable;
 using MonoFSM.Foundation;
-
-public interface ICondition
-{
-    bool IsValid { get; }
-}
-
-public static class ConditionHelper
-{
-    public static bool IsAllValid(this AbstractConditionComp[] conditions)
-    {
-        if (conditions == null || conditions.Length == 0)
-            return true;
-        foreach (var condition in conditions)
-        {
-            if (condition == null)
-                continue;
-            if (condition.gameObject.activeSelf == false) //只看自己，可能是parent有人關
-                continue;
-            if (condition.FinalResult == false) return false;
-        }
-
-        return true;
-    }
-}
-
-public interface IConditionChangeListener
-{
-    void OnConditionChanged();
-}
 
 
 //還是Condition要用Is開頭？
