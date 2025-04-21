@@ -1,5 +1,6 @@
-using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
+
+using RCGMaker.Core.Attributes;
 
 namespace MonoFSM.Variable
 {
@@ -11,9 +12,10 @@ namespace MonoFSM.Variable
         [SOConfig("10_Flags/GameData")]
         private DescriptableData CreateDefault
         {
-            set { _defaultValue = value; } //沒有serialized耶...
+            set => _defaultValue = value; //沒有serialized耶...
         }
 
-        public override GameFlagBase FinalData => Value;
+        public override GameFlagBase FinalData 
+            => Value;
     }
 }

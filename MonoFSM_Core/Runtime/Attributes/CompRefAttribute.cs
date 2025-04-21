@@ -1,5 +1,5 @@
 using System;
-using RCGMaker.Core.Attributes;
+
 using Sirenix.OdinInspector;
 
 namespace MonoFSM.Variable.Attributes
@@ -9,7 +9,5 @@ namespace MonoFSM.Variable.Attributes
     [ShowInInspector]
     [DisableIf("@true")]
     [IncludeMyAttributes]
-    public class CompRefAttribute : Attribute
-    {
-    }
+    public class CompRefAttribute : Attribute { }
 }

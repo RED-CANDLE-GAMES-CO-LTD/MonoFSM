@@ -1,5 +1,6 @@
-using Sirenix.OdinInspector;
 using UnityEngine;
+
+using Sirenix.OdinInspector;
 
 [CreateAssetMenu(fileName = "StatDataPercentageToBase", menuName = "ScriptableObjects/StatDataPercentageToBase",
     order = 1)]
@@ -8,5 +9,8 @@ using UnityEngine;
 public class StatDataPercentageToBase : StatData
 {
     public StatData refData;
-    [ShowInInspector] public override float Value => refData ? refData.Value / refData.Stat.BaseValue : 0;
+    [ShowInInspector] public override float Value 
+        => refData 
+            ? refData.Value / refData.Stat.BaseValue 
+            : 0;
 }

@@ -4,7 +4,5 @@ namespace MonoFSM.Core
     /// Event handler for GeneralState OnStateEnter.
     ///  <seealso cref="GeneralState"/>
     /// </summary>
-    public class OnStateEnterHandler : AbstractEventHandler
-    {
-    }
+    public class OnStateEnterHandler : AbstractEventHandler { }
 }

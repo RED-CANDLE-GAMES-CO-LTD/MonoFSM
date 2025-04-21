@@ -23,7 +23,6 @@ namespace RCGMaker.Core
     {
     }
 
-
     public interface IBeforePrefabSaveCallbackReceiver
     {
         void OnBeforePrefabSave();

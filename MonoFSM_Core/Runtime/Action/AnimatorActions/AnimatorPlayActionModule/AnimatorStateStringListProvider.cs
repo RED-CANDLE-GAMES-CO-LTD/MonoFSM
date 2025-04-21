@@ -1,8 +1,8 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
+
 using UnityEngine;
+
+using Sirenix.OdinInspector;
 
 //提供給動畫用的string list, 但是hash效率比較好，盡量用StateHashValue
 public class AnimatorStateStringListProvider : AbstractStringProvider
@@ -16,11 +16,16 @@ public class AnimatorStateStringListProvider : AbstractStringProvider
     [Required] public VarInt currentIndex;
 
     public override string StringValue =>
-        currentIndex.CurrentValue < 0 || currentIndex.CurrentValue >= list.Count ? "" : list[currentIndex.CurrentValue];
+        currentIndex.CurrentValue < 0 || 
+        currentIndex.CurrentValue >= list.Count 
+            ? string.Empty 
+            : list[currentIndex.CurrentValue];
 
-    public int StateHashValue => currentIndex.CurrentValue < 0 || currentIndex.CurrentValue >= hashList.Count
-        ? 0
-        : hashList[currentIndex.CurrentValue];
+    public int StateHashValue 
+        => currentIndex.CurrentValue < 0 || 
+           currentIndex.CurrentValue >= hashList.Count
+            ? 0
+            : hashList[currentIndex.CurrentValue];
 
     private void Awake()
     {
@@ -33,7 +38,9 @@ public class AnimatorStateStringListProvider : AbstractStringProvider
 
     int stateLayer => 0;
 
-    public bool HasCurrentAnimation => currentIndex.CurrentValue >= 0 && currentIndex.CurrentValue < list.Count;
+    public bool HasCurrentAnimation 
+        => 0 <= currentIndex.CurrentValue && 
+           currentIndex.CurrentValue < list.Count;
 
     //FIXME: 底下內容duplicate code
 #if UNITY_EDITOR
@@ -52,40 +59,7 @@ public class AnimatorStateStringListProvider : AbstractStringProvider
     }
 
     //拿動畫上的所有state name
-    private IEnumerable<string> GetAnimatorStateNames()
-    {
-        return AnimatorHelpler.GetAnimatorStateNames(animator, stateLayer);
-        // var ac =  GetAnimatorController(animator);
-        //
-        // if (ac == null)
-        //     return null;
-        //
-        // var names = new List<string>();
-        // foreach (var state in ac.layers[stateLayer].stateMachine.states)
-        // {
-        //     names.Add(state.state.name);
-        // }
-        // return names;
-    }
+    private IEnumerable<string> GetAnimatorStateNames() 
+        => AnimatorHelpler.GetAnimatorStateNames(animator, stateLayer);
 #endif
-
-
-    // private UnityEditor.Animations.AnimatorController GetAnimatorController(Animator animator)
-    // {
-    //     if (animator == null)
-    //     {
-    //         return null;
-    //     }
-    //
-    //     var runTimeAc = animator.runtimeAnimatorController;
-    //
-    //     if (runTimeAc is AnimatorOverrideController)
-    //     {
-    //         runTimeAc = (runTimeAc as AnimatorOverrideController).runtimeAnimatorController;
-    //     }
-    //
-    //     var ac = runTimeAc as UnityEditor.Animations.AnimatorController;
-    //
-    //     return ac;
-    // }
 }

@@ -1,5 +1,3 @@
-using System;
-using MonoFSM.Variable;
 using UnityEngine;
 
 namespace MonoFSM.Variable.VariableBinder

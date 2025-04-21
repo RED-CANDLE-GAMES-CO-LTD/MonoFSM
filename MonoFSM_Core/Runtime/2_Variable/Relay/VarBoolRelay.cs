@@ -1,7 +1,4 @@
-using MonoFSM.Variable;
 using MonoFSM.Foundation;
-using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable
 {
@@ -34,12 +31,13 @@ namespace MonoFSM.Variable
         /// </summary>
         public void ResetStart()
         {
-            _source.Field.AddListener((value) => { _target.Field.SetCurrentValue(value, this); }, this);
+            _source.Field.AddListener(value => { _target.Field.SetCurrentValue(value, this); }, this);
         }
 
-        protected override string Description =>
-            "when '$" + _source?._varTag?.name + "' changed, set '$" + _target?._varTag?.name + "'";
+        protected override string Description 
+            => "when '$" + _source?._varTag?.name + "' changed, set '$" + _target?._varTag?.name + "'";
 
-        protected override string DescriptionTag => "Relay";
+        protected override string DescriptionTag 
+            => "Relay";
     }
 }

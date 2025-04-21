@@ -2,10 +2,11 @@ using MonoFSM_Core.Runtime.Action;
 
 namespace RCGMaker.Runtime.FSM._4_Stats
 {
-    //在menu塞FSM  //用FSM調整難度，選難度的ACTION?
-    //還是應該在scriptable就data driven...嗎
-    //routing要condition，一定要有狀態cache比較好
-    //DataBool 劇情模式
+    // 在 menu 塞 FSM
+    // 用 FSM 調整難度，選難度的 ACTION?
+    // 還是應該在 scriptable 就 data driven...嗎
+    // routing 要 condition，一定要有狀態 cache 比較好
+    // DataBool 劇情模式
     public class SetStatDataAction : AbstractStateAction
     {
         public StatDataRef TargetStatData;

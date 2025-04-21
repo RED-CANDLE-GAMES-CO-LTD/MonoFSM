@@ -1,13 +1,12 @@
-using System;
-using RCGMaker.Core.Attributes;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.AddressableAssets;
-using UnityEditor.Animations;
-#endif
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.Serialization;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Animations;
+using UnityEditor.AddressableAssets;
+#endif
+
+using RCGMaker.Core.Attributes;
 
 //TODO:
 public class AddressableAnimator : MonoBehaviour

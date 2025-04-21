@@ -1,16 +1,15 @@
 using System;
 using System.IO;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.SceneManagement;
-using UnityEditor.VersionControl;
-#endif
 
 using UnityEngine;
 using Object = UnityEngine.Object;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.SceneManagement;
+#endif
+
+using Sirenix.OdinInspector;
+using RCGMaker.Core.Attributes;
 
 namespace RCGMaker.Core
 {

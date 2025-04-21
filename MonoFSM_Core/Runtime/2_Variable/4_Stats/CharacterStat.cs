@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
+
 using UnityEngine;
 using UnityEngine.Events;
+
+using RCGMaker.Core.Attributes;
 
 [Serializable]
 public class CharacterStat //這個改名會爛掉嗎?
@@ -24,7 +25,7 @@ public class CharacterStat //這個改名會爛掉嗎?
             {
                 //條件一變，值就變？dirty也是一路問，問每個statmodifier
                 CalValues();
-               if(listener != null)listener.OnChange(_value,false);
+                listener?.OnChange(_value,false);
             }
 
             return _value;
@@ -69,6 +70,7 @@ public class CharacterStat //這個改名會爛掉嗎?
     {
         BaseValue = baseValue;
     }
+    
     public void AddListener(UnityAction<float> action, MonoBehaviour owner)
     {
         if (owner == null)

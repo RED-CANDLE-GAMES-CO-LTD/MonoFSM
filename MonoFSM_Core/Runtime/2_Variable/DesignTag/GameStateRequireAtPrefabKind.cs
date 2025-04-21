@@ -1,7 +1,8 @@
-using MonoFSM.Variable;
-using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
 using UnityEngine;
+
+using MonoFSM.Variable;
+using Sirenix.OdinInspector;
+
 
 namespace RCGMaker.Core
 {

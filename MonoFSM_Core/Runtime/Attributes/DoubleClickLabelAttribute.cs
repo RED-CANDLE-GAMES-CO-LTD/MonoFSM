@@ -1,23 +1,17 @@
 using System;
-using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
-using UnityEngine;
 
-// public interface IReferenceTarget
-// {
-//     public MonoBehaviour RefOwner { get; set; }
-// }
+using Sirenix.OdinInspector;
+
+using RCGMaker.Core.Attributes;
 
 [EditorOnly]
-[AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = true)]
+[AttributeUsage(AttributeTargets.All)]
 public class DoubleClickLabelAttribute : ShowInInspectorAttribute
 {
     public readonly string ActionName;
 
-    public DoubleClickLabelAttribute(string actionName = "")
-    {
-        ActionName = actionName;
-    }
+    public DoubleClickLabelAttribute(string actionName = "") 
+        => ActionName = actionName;
 
     public bool InvokeOnUndoRedo { get; set; }
 }

@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public interface IResetter
 {
     //注意 
@@ -12,7 +8,6 @@ public interface IResetter
     void EnterLevelReset();
     void ExitLevelAndDestroy(); //目前沒有特別意義，只有換景會call，和OnDestroy差不多
 }
-
 
 //1. 先回狀態
 public interface IResetStateRestore //新規用這個，現在和上面都有call, exitLevelAndDestroy是為了換場景很煩可以拔掉
@@ -58,7 +53,6 @@ public interface ISceneStartReverse
     void EnterSceneStartReverse();
 }
 
-
 public interface ISceneDestroy 
 {
     void OnSceneDestroy();
@@ -73,8 +67,3 @@ public interface IGameDestroy
 {
     void OnGameDestroy();
 }
-// public interface IResetPriority
-// {
-//     int GetPriority();
-// }
-

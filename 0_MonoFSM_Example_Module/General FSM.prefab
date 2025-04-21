@@ -373,7 +373,7 @@ GameObject:
   - component: {fileID: 2722481800610883426}
   - component: {fileID: 4377014297404095105}
   m_Layer: 0
-  m_Name: '[state] init '
+  m_Name: '[State] init '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

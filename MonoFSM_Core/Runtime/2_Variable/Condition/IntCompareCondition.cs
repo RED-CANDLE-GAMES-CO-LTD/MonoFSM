@@ -1,5 +1,3 @@
-using UnityEngine.Serialization;
-
 namespace MonoFSM.Variable.Condition
 {
     public class IntCompareCondition: AbstractConditionComp
@@ -13,9 +11,8 @@ namespace MonoFSM.Variable.Condition
     
     public static class ArithmeticHelper
     {
-        public static bool CompareValues(float value1, float value2, Operator op)
-        {
-            return op switch
+        public static bool CompareValues(float value1, float value2, Operator op) 
+            => op switch
             {
                 Operator.Equals => value1 == value2,
                 Operator.NotEqual => value1 != value2,
@@ -25,25 +22,17 @@ namespace MonoFSM.Variable.Condition
                 Operator.LessThanOrEqual => value1 <= value2,
                 _ => false
             };
-        }
-        public static string OperatorDescription(Operator op)
-        {
-            switch (op)
+
+        public static string OperatorDescription(Operator op) 
+            => op switch
             {
-                case Operator.Equals:
-                    return "==";
-                case Operator.NotEqual:
-                    return "!=";
-                case Operator.GreaterThan:
-                    return ">";
-                case Operator.LessThan:
-                    return "<";
-                case Operator.GreaterThanOrEqual:
-                    return ">=";
-                case Operator.LessThanOrEqual:
-                    return "<=";
-            }
-            return "";
-        }
+                Operator.Equals => "==",
+                Operator.NotEqual => "!=",
+                Operator.GreaterThan => ">",
+                Operator.LessThan => "<",
+                Operator.GreaterThanOrEqual => ">=",
+                Operator.LessThanOrEqual => "<=",
+                _ => ""
+            };
     }
 }

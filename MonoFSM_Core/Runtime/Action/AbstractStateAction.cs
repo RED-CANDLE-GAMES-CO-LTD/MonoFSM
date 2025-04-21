@@ -31,9 +31,8 @@ namespace MonoFSM_Core.Runtime.Action
             get
             {
                 if (_delay) return false;
-                if (conditions.Length == 0)
-                    return true;
-                return conditions.IsAllValid();
+                return conditions.Length == 0 ||
+                       conditions.IsAllValid();
             }
         }
 
@@ -41,7 +40,9 @@ namespace MonoFSM_Core.Runtime.Action
         // [PreviewInInspector]
         [AutoParent] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true)// ;
 
-        [Required] [PreviewInInspector] [AutoParent]
+        [Required]
+        [PreviewInInspector]
+        [AutoParent]
         protected IActionParent _actionParent;
 
 

@@ -1,9 +1,10 @@
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
-using MonoFSM.Variable;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
+
+using Sirenix.OdinInspector;
+
+using RCGMaker.Core.DataProvider;
+using MonoFSM.Variable;
 
 public enum StatModType
 {
@@ -63,16 +64,10 @@ public class StatModifier //以前是給Characterstat用的
         Value = value;
         Type = type;
         Order = order;
-        // Source = source;
-        // Debug.Log("[StatModifier Source]" + Source, Source);
         Source = source as ScriptableObject; //TODO: 一定要有source嗎？
     }
 
     public StatModifier(float value, StatModType type, IStatModifierOwner source) : this(value, type, (int)type, source)
     {
     }
-
-    // public StatModifier(float value, StatModType type, int order) : this(value, type, order, null) { }
-
-    // public StatModifier(float value, StatModType type, object source) : this(value, type, (int)type, source) { }
 }

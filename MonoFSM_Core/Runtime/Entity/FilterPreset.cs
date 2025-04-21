@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using Sirenix.OdinInspector;
+
 using UnityEngine;
+
+using Sirenix.OdinInspector;
 
 namespace RCGMaker.Core
 {
@@ -12,11 +12,10 @@ namespace RCGMaker.Core
 #if UNITY_EDITOR
     public class FilterPreset : SerializedScriptableObject
 #else
-public class FilterPreset : ScriptableObject
+    public class FilterPreset : ScriptableObject
 #endif
     {
         public Type ModuleEntityType;
         public Type[] allowTypes;
     }
-    
 }

@@ -1,8 +1,3 @@
-using System;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
-using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable
@@ -15,17 +10,9 @@ namespace MonoFSM.Variable
         [FormerlySerializedAs("_monoVariableFloat")] [FormerlySerializedAs("variableFloat")]
         public VarFloat _monoVarFloat;
 
-        public override float FinalValue => _monoVarFloat ? _monoVarFloat.CurrentValue : 0; //用接過來的變數
-
-        // [PreviewInInspector] [Auto] private AbstractVariableModifier<float> modifier;
-
-        // [ShowInPlayMode]
-        // public float Value
-        // {
-        //     get => modifier.AfterGetValueModifyCheck(variableFloat.Value);
-        //     set => variableFloat.Value = modifier.BeforeSetValueModifyCheck(value);
-        // }
-        // [Component(typeof(AbstractVariableModifier<float>))]
-        // [PreviewInInspector] [Auto] private AbstractVariableModifier<float> modifier;
+        public override float FinalValue 
+            => _monoVarFloat 
+                ? _monoVarFloat.CurrentValue 
+                : 0; //用接過來的變數
     }
 }

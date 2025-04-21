@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
-using Sirenix.OdinInspector;
+
 using UnityEngine;
+
+using Sirenix.OdinInspector;
 
 public abstract class AbstractStatData : ScriptableObject
 {
@@ -14,12 +16,11 @@ public abstract class AbstractStatData : ScriptableObject
 [CreateAssetMenu(fileName = "StatData", menuName = "ScriptableObjects/StatData", order = 1)]
 public class StatData : AbstractStatData, IStringData, INativeData
 {
-//reset game的時候，要清除
+    //reset game的時候，要清除
 
     public void Clear() //重load時清除
     {
         stat.Clear();
-        // Debug.Log("Clear StatData: " + name, this);
     }
 
     [Header("能力值")]

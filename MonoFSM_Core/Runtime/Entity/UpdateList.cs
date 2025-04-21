@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using RCGMaker.Core.Attributes;
+using System.Collections.Generic;
+
 using UnityEngine;
-using UnityEngine.Profiling;
-using Object = UnityEngine.Object;
+
+using RCGMaker.Core.Attributes;
 
 namespace RCGMaker.Core
 {
@@ -27,10 +27,8 @@ namespace RCGMaker.Core
     {
         private Action<T> _updateAction;
 
-        public UpdateList(Action<T> updateAction)
-        {
-            _updateAction = updateAction;
-        }
+        public UpdateList(Action<T> updateAction) 
+            => _updateAction = updateAction;
 
         private HashSet<T> _updateSet = new();
         private HashSet<T> updateList = new();
@@ -43,36 +41,27 @@ namespace RCGMaker.Core
             updateList.Add(updateTarget);
             if (toUnregisterUpdateList.Contains(updateTarget))
             {
-                // Debug.LogError("Register same frame", updateTarget.gameObject);
                 toUnregisterUpdateList.Remove(updateTarget);
             }
         }
 
         public void Unregister(T updateTarget)
         {
-            // Debug.Log("Unregister", updateTarget.gameObject);
             toUnregisterUpdateList.Add(updateTarget);
             if (updateList.Contains(updateTarget))
             {
-                // Debug.LogError("Unregister same frame", updateTarget.gameObject);
                 updateList.Remove(updateTarget);
             }
         }
 
         public void ClearNull()
         {
-            //destroyed check, null check is not enough, 
-
+            // Destroyed check, null check is not enough, 
             _updateSet.RemoveWhere((t) => t.IsUnityNull());
             Debug.Break();
         }
 
-        public void ClearRef()
-        {
-            // _updateSet.Clear();
-            // updateList.Clear();
-            // toUnregisterUpdateList.Clear();
-        }
+        public void ClearRef() { }
 
         public void UpdateManual()
         {
@@ -81,8 +70,8 @@ namespace RCGMaker.Core
                 _updateSet.Remove(updateTarget);
             }
 
-//FIXME: 順序很重要，先進先出...如果
-            //同frame開關？
+            // FIXME: 順序很重要，先進先出...如果
+            // 同frame開關？
             foreach (var updateTarget in updateList)
             {
                 _updateSet.Add(updateTarget);
@@ -92,9 +81,7 @@ namespace RCGMaker.Core
             updateList.Clear();
             foreach (var updateTarget in _updateSet)
             {
-                // Profiler.BeginSample("updateTarget", updateTarget.gameObject);
                 _updateAction(updateTarget);
-                // Profiler.EndSample();
             }
         }
     }

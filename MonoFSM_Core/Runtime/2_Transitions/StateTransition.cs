@@ -1,45 +1,33 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using jerryee.UnityMCP;
+
+using UnityEngine;
+using UnityEngine.Serialization;
+
+using Sirenix.OdinInspector;
+
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Foundation;
 using RCGExtension;
-using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
-using Sirenix.OdinInspector;
-using UnityEngine;
-using UnityEngine.Serialization;
+using jerryee.UnityMCP;
 
 public interface IState<in TState>
 {
     GeneralFSMContext Context { get; }
-    bool TransitionCheck(TState toState, float timeOffset, StateTransition fromTransition = null);
-
+    
     bool TransitionCheck(TState toState);
-    // bool ForceTransition(GeneralState stateType);
-    // bool TransitionCheck(GeneralState stateType);
+    bool TransitionCheck(TState toState, float timeOffset, StateTransition fromTransition = null);
 }
 
 //FIXME:如果所有的condition都可以自行註冊，這個就不需要了，全部都用condition處理
-public interface ITransitionCheckInvoker //interface沒有意義？
-{
-    // void RegisterTransitionCheck(ITransitionCheckingTarget target);
-    // void UnRegisterTransitionCheck(ITransitionCheckingTarget target);
-    // ITransitionCheckingTarget TransitionTarget { get; }
-}
-
-// public interface ITransitionCheckingTarget
-// {
-//     bool OnTransitionCheck();
-// }
+public interface ITransitionCheckInvoker { } //interface沒有意義？
 
 //還是用IRCGEventReceiver?
 
 [Searchable]
-public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefaultSerializable, IResetStateRestore,
-    IBeforePrefabSaveCallbackReceiver, IConditionChangeListener, IOverrideHierarchyIcon
+public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefaultSerializable, IResetStateRestore, 
+    IConditionChangeListener, IOverrideHierarchyIcon
 {
 #if UNITY_EDITOR
     public string IconName { get; }
@@ -47,7 +35,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
 
     public Texture2D CustomIcon =>
         UnityEditor.EditorGUIUtility.ObjectContent(null, typeof(StateTransition)).image as Texture2D;
-    //UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");
+    
 #endif
     //現在event driven直接set也work, 要做成只有condition改變才會觸發transition?
     public bool IsTransitionCheckNeeded = false;
@@ -65,31 +53,16 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     [CompRef] [AutoChildren]
     private ITransitionCheckInvoker[] _childrenCheckers = Array.Empty<ITransitionCheckInvoker>();
 
-    private bool NoChecker => !HasChecker();
 
-    private bool HasChecker()
-    {
-        return _checkInvoker != null || _childrenCheckers is { Length: > 0 };
-    }
+    private bool HasChecker() 
+        => _checkInvoker != null || 
+           _childrenCheckers is { Length: > 0 };
+    
+    private bool NoChecker 
+        => !HasChecker();
 
-    //FIXME: 和abstract整合
-    // [Button("依照Behaviour改名字")]
-    // private void RenameByBehaviour()
-    // {
-    //     gameObject.name = GetNameByBehaviour();
-    // }
-
-    // protected virtual string GetNameByBehaviour()
-    // {
-    //     return 
-    // }
-
-    private bool TransitionValidationResult()
-    {
-        if (_target == _parentState as GeneralState)
-            return true;
-        return false;
-    }
+    private bool TransitionValidationResult() 
+        => _target == _parentState as GeneralState;
 
     //這個其實光是用名字就可以了耶？
     [FormerlySerializedAs("target")]
@@ -102,20 +75,10 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     [SerializeField]
     protected GeneralState _target;
 
-    // private void OnValidate()
-    // {
-    //     if (this.isActiveAndEnabled && target == null)
-    //         Debug.LogError("No Target! 選一個", gameObject);
-    // }
-
     [ReadOnly] [ShowInInspector] public GeneralState Target => _target;
 
-    private IEnumerable<GeneralState> FindStates()
-    {
-        return GetComponentInParent<GeneralFSMContext>(true).GetAllGeneralStates();
-        // return GetComponentInParent<GeneralFSMContext>().GetAllStates()
-        //     .Where(state => state != this.GetComponentInParent<GeneralState>());
-    }
+    private IEnumerable<GeneralState> FindStates() 
+        => GetComponentInParent<GeneralFSMContext>(true).GetAllGeneralStates();
 
     [PreviewInInspector] [AutoChildren(false)] [Component]
     private AbstractConditionComp[] conditions = Array.Empty<AbstractConditionComp>();
@@ -130,10 +93,8 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     //     bindingState = GetComponentInParent<GeneralState>();
     // }
     [Button("測試transition")]
-    private void TransitionTest()
-    {
-        TransitionCheck(0);
-    }
+    private void TransitionTest() 
+        => TransitionCheck();
 
     // [AutoParent()] private GeneralState bindingState;
 
@@ -142,7 +103,8 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     [ShowInInspector] private bool IsSelfTransition => _parentState as GeneralState == _target;
 
 
-    [AutoChildren(false)] private ISkippableAnimationTransition[] _skippableAnimationTransitions;
+    [AutoChildren] 
+    private ISkippableAnimationTransition[] _skippableAnimationTransitions;
 
     [ShowInInspector]
     public bool IsTransitionSkippable
@@ -162,19 +124,15 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
 
     [InfoBox("SelfTransition要勾才會過", InfoMessageType.Error, "IsSelfTransitionNotValid")]
     [ShowInInspector]
-    private bool IsSelfTransitionNotValid => _target != null && IsSelfTransition && !_target.CanSelfTransition;
+    private bool IsSelfTransitionNotValid 
+        => _target != null && 
+           IsSelfTransition && 
+           !_target.CanSelfTransition;
 
     [PreviewInInspector]
-    public bool TransitionConditionValid
-    {
-        get
-        {
-            if (conditions != null && conditions.IsAllValid() == false)
-                return false;
-
-            return true;
-        }
-    }
+    public bool TransitionConditionValid 
+        => conditions == null ||
+           conditions.IsAllValid();
 
     // [AutoParent] private RCGCullingGroup _cullingGroup;
 
@@ -229,63 +187,31 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
         }
 
         if (_parentState == null)
+        {
             Debug.LogError("Why no parent State" + _parentState, gameObject);
+        }
 
-        // if (parentState.TransitionCheck(target, timeOffset))
-        // {
-        //     
-        // }
-        //
-        // if (bindingState == null)
-        //     Debug.LogError("Why no parent State" + anyState, gameObject);
-
-
-        // this.Log("[Transition] Check3:" + target.stateType, gameObject);
-        //好像不該回頭做？可是要不然要怎麼辦...不能用事件接
-
-        // if (bindingState.TransitionCheck(target.stateType,timeOffset))
-        // {
-        //     bindingState.Context.lastTransition = this;
-        //     this.Log("[Transition] GoTo:", target.stateType, gameObject);
-        //     // #if UNITY_EDITOR
-        //     //             UnityEditor.EditorGUIUtility.PingObject(gameObject);
-        //     // #endif
-        //     return true;
-        // }
-        // else
-        // {
-        //     this.Log("[Transition] Fail:" + target.stateType, gameObject);
-        // }
         return false;
     }
 
-    public bool IsLastTransition
-    {
-        get
-        {
-            if (_parentState == null)
-                return false;
-            return _parentState.Context.LastTransition == this;
-        }
-    }
+    public bool IsLastTransition 
+        => _parentState != null && 
+           _parentState.Context.LastTransition == this;
 
     public void ResetStateRestore()
     {
         if (!HasChecker())
+        {
             Debug.LogError("No Checker", gameObject);
+        }
     }
 
-    //需要外部通知檢查Transition, Update / ValueChanged, 還有嗎？
-    // public void OnBeforePrefabSave()
-    // {
-    //     RenameByBehaviour();
-    // }
-    protected override string Description => "=>" + _target.stateType.name.Replace("[State]", "");
+    protected override string Description 
+        => "=>" + _target.stateType.name.Replace("[State]", "");
 
-    protected override string DescriptionTag => "Transition";
+    protected override string DescriptionTag 
+        => "Transition";
 
-    public void OnConditionChanged()
-    {
-        IsTransitionCheckNeeded = true;
-    }
+    public void OnConditionChanged() 
+        => IsTransitionCheckNeeded = true;
 }

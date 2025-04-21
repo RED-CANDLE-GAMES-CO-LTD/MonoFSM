@@ -4,6 +4,7 @@ namespace RCGMaker.Core
 {
     public class FloatValueInstance : ValueInstance<float>, IFloatValueProvider
     {
-        public float FinalValue => SourceValue;
+        public float FinalValue 
+            => SourceValue;
     }
 }

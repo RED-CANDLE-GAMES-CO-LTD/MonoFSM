@@ -1,7 +1,9 @@
-using RCGFSM.Variable;
-using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
+
+using Sirenix.OdinInspector;
+
+using RCGFSM.Variable;
 
 namespace MonoFSM.Variable
 {
@@ -10,17 +12,22 @@ namespace MonoFSM.Variable
     {
         [SerializeField] ArithmeticOperator Operator;
 
-        [SerializeField] [HideIf(nameof(_operandMonoVar))]
+        [SerializeField] 
+        [HideIf(nameof(_operandMonoVar))]
         float anotherValue;
 
-        [FormerlySerializedAs("_operandMonoVariable")] [FormerlySerializedAs("OperandVariable")] [SerializeField]
+        [FormerlySerializedAs("_operandMonoVariable")]
+        [FormerlySerializedAs("OperandVariable")] 
+        [SerializeField]
         VarFloat _operandMonoVar;
 
-        private float OperandValue => _operandMonoVar == null ? anotherValue : _operandMonoVar.CurrentValue;
+        private float OperandValue 
+            => _operandMonoVar == null 
+                ? anotherValue 
+                : _operandMonoVar.CurrentValue;
 
         public float ApplyOperation(float value)
-        {
-            return Operator switch
+            => Operator switch
             {
                 ArithmeticOperator.Add => value + OperandValue,
                 ArithmeticOperator.Sub => value - OperandValue,
@@ -28,6 +35,5 @@ namespace MonoFSM.Variable
                 ArithmeticOperator.Div => value / OperandValue,
                 _ => value
             };
-        }
     }
 }

@@ -1,6 +1,4 @@
-using System.Runtime.CompilerServices;
 using Sirenix.OdinInspector;
-using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable.Condition
 {
@@ -28,8 +26,6 @@ namespace MonoFSM.Variable.Condition
                     return false;
                 }
 
-//15 -> 10, Last 15, Current 10,
-                // this.Log("LastValue Compare: " , variableFloat.LastValue , " CalValue: " ,variableFloat.CurrentValue);
                 return op switch
                 {
                     Operator.Equals => _monoVarFloat.CurrentValue == _monoVarFloat.LastValue,

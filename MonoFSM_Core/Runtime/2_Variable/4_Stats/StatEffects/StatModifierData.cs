@@ -6,7 +6,5 @@ namespace RCGMaker.Stat
     {
         public List<StatModifierEntry> effectModifiers;
         public DescriptableData countProvider;
-        
-        
     }
 }

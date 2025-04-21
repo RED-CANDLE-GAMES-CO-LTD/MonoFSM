@@ -1,6 +1,6 @@
-using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
+
+using Sirenix.OdinInspector;
 
 namespace MonoFSM.Variable
 {
@@ -21,21 +21,13 @@ namespace MonoFSM.Variable
         //TODO preview/
 
         [Button]
-        float PreviewOperation(float value)
-        {
-            return ApplyOperation(value);
-        }
+        private float PreviewOperation(float value) 
+            => ApplyOperation(value);
 
-        public float ApplyOperation(float value)
-        {
+        public float ApplyOperation(float value) 
             //FIXME: get random state?
-            var random = Random.Range(0f, 1f);
-            if (random < CriticalRate.FinalValue)
-            {
-                return value * CriticalDamageRate.FinalValue;
-            }
-
-            return value;
-        }
+            => Random.Range(0f, 1f) < CriticalRate.FinalValue 
+                ? value * CriticalDamageRate.FinalValue 
+                : value;
     }
 }
