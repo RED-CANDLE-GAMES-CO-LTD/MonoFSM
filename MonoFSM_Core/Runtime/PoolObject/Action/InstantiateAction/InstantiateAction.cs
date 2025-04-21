@@ -1,4 +1,5 @@
 using System;
+using MonoFSM_Core.Runtime.Action;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action.InstantiateAction

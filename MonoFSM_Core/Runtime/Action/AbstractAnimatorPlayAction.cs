@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using MonoFSM_Core.Runtime.Action;
 using RCGMaker.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -13,15 +14,14 @@ namespace RCGMaker.Core
 {
     //[]: 先弄成abstract不會和原專案的class衝突
     public abstract class AbstractAnimatorPlayAction : AbstractStateAction, IAnimatorPlayAction,
-        ISceneSavingCallbackReceiver,ITransitionCheckInvoker
+        ISceneSavingCallbackReceiver, ITransitionCheckInvoker
     {
         private bool IsStateNameProvider()
         {
             return GetComponent<AbstractStringProvider>() != null;
         }
 
-        [ReadOnly]
-        [TabGroup("Animator", false, 1)] [Required]
+        [ReadOnly] [TabGroup("Animator", false, 1)] [Required]
         public Animator animator;
 
         [TabGroup("Animator")]
@@ -89,15 +89,13 @@ namespace RCGMaker.Core
             if (isActiveAndEnabled == false) //NOTE: 沒開的話不管
                 return false;
 
-            
+
             var names = GetAnimatorStateNames();
             if (names == null)
                 return true;
             foreach (var _name in names)
-            {
                 if (_name == name)
                     return false;
-            }
 #endif
             return true;
         }
@@ -138,14 +136,11 @@ namespace RCGMaker.Core
 
 #endif
 
-        
+
         protected override void OnStateEnterImplement()
         {
             // Debug.Log("Play Animation State");
-            if (animator == null || animator.runtimeAnimatorController == null)
-            {
-                return;
-            }
+            if (animator == null || animator.runtimeAnimatorController == null) return;
 
             this.Log("[AnimatorPlayAction]", gameObject.name, ":[", stateLayer, "]:", StateName);
 
@@ -163,7 +158,7 @@ namespace RCGMaker.Core
                 this.Log("[AnimatorPlayAction] Skip Animation:", StateName, "layer:", stateLayer);
                 return;
             }
-            
+
             if (animatorEnterCrossFade == 0)
             {
                 this.Log("[AnimatorPlayAction] Play Animation:", StateName, "layer:", stateLayer);
@@ -186,18 +181,12 @@ namespace RCGMaker.Core
         {
             var names = GetLayerNames();
 
-            if (names == null)
-            {
-                return 0;
-            }
+            if (names == null) return 0;
 
             var index = 0;
             foreach (var name in names)
             {
-                if (name == doneEventLayerName)
-                {
-                    return index;
-                }
+                if (name == doneEventLayerName) return index;
 
                 index++;
             }
@@ -216,14 +205,9 @@ namespace RCGMaker.Core
 
             if (animator.GetCurrentAnimatorStateInfo(layer).IsName(StateName) == false &&
                 animator.GetCurrentAnimatorStateInfo(layer).normalizedTime > 0)
-            {
                 Debug.LogError("AnimatorPlayAction 不該提早切走喔！！！ animator 裡面髒髒。", gameObject);
-            }
 
-            if (animator.GetCurrentAnimatorStateInfo(layer).normalizedTime <= 0)
-            {
-                return false;
-            }
+            if (animator.GetCurrentAnimatorStateInfo(layer).normalizedTime <= 0) return false;
 
             return animator.GetCurrentAnimatorStateInfo(layer).IsName(StateName);
         }
@@ -238,21 +222,17 @@ namespace RCGMaker.Core
                 return;
 
             if (IsPlayingCurrentClip() && animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime >= 1)
-            {
                 //TODO: AnimationDone
                 //Done;
                 // GetComponentInParent<GeneralState>().TransitionCheck();
                 if (doneEventTransition)
-                {
                     // Debug.Log("AnimatorPlayAction > 1" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime + "state:", gameObject);
                     AnimationDone();
-                }
-                // if (TryGetComponent<EventReceiveTransition>(out var transition))
-                // {
-                //     Debug.Log("AnimatorPlayAction > 1" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime + "state:", gameObject);
-                //     transition.EventReceived("AnimationDone");
-                // }
-            }
+            // if (TryGetComponent<EventReceiveTransition>(out var transition))
+            // {
+            //     Debug.Log("AnimatorPlayAction > 1" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime + "state:", gameObject);
+            //     transition.EventReceived("AnimationDone");
+            // }
         }
 
         private void AnimationDone()
@@ -362,6 +342,5 @@ namespace RCGMaker.Core
         }
 
         #endregion
-        
     }
 }

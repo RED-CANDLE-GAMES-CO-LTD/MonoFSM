@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
+
 //TODO: 用FlagFieldBool整合掉??
 //TODO: ScriptableDataBool
 [Serializable]
-public class DataBoolModifyEntryTest : DataModifyEntry<ScriptableDataBool, FlagFieldBool, bool>
+public class DataBoolModifyEntryTest : DataModifyEntry<GameDataBool, FlagFieldBool, bool>
 {
 }
 
@@ -39,11 +40,11 @@ public abstract class BaseDataModifyEntry //沒什麼用... 不利於refactor
 
 [CreateAssetMenu(fileName = "ScriptableDataBool", menuName = "ScriptableData/Bool", order = 1)]
 [Serializable]
-public class ScriptableDataBool : AbstractScriptableData<FlagFieldBool, bool> //, IInteractableCondition
+public class GameDataBool : AbstractScriptableData<FlagFieldBool, bool> //, IInteractableCondition
 {
     // public FlagFieldBool field;
     [Button("ToggleField")]
-    void ToggleField()
+    private void ToggleField()
     {
         field.CurrentValue = !field.CurrentValue;
     }
@@ -70,20 +71,17 @@ public class ScriptableDataBool : AbstractScriptableData<FlagFieldBool, bool> //
     public bool CurrentValue
     {
         //TODO: refactor with flag field
-        get
-        {
-            return field.CurrentValue;
-            // if (isTempDisabled)
-            //     return false;
-            // else if (GameFlagManager.Instance.TestModeFlag.TestMode == TestModeGameFlag.TestType.DeveloperStaticTest)
-            //     return TestValue;
-            // else
-            //     return _currentValue;
-        }
+        get => field.CurrentValue;
+        // if (isTempDisabled)
+        //     return false;
+        // else if (GameFlagManager.Instance.TestModeFlag.TestMode == TestModeGameFlag.TestType.DeveloperStaticTest)
+        //     return TestValue;
+        // else
+        //     return _currentValue;
         set
         {
             // _currentValue = value;
-            
+
             field.CurrentValue = value;
             if (flagValueChangeEvent != null)
                 flagValueChangeEvent.Invoke();

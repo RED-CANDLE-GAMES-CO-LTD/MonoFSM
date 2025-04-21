@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using MonoFSM_Core.Runtime.Action;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -7,8 +8,7 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action
 {
     public class SetBoolFieldOfGameFlagAction : AbstractStateAction
     {
-        [InlineEditor]
-        public GameFlagBase targetVariable;
+        [InlineEditor] public GameFlagBase targetVariable;
         public bool TargetValue = true;
         public SetBoolType targetType;
 
@@ -61,10 +61,8 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action
             if (targetType == SetBoolType.Toggle)
                 flag.CurrentValue = !flag.CurrentValue;
             else
-            {
                 //FIXME: refactor: use switch
                 flag.CurrentValue = TargetValue;
-            }
         }
     }
 }

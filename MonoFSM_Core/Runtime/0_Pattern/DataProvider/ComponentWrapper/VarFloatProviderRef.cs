@@ -5,8 +5,10 @@ using UnityEngine;
 
 namespace MonoFSM.DataProvider
 {
-    //VarFloatRef?
-    public class VarFloatProviderRef : VariableProviderRef<VarFloat, float>, IFloatProvider,IStringProvider
+    /// <summary>
+    /// Provide a reference to a VarFloat.
+    /// </summary>
+    public class VarFloatProviderRef : VariableProviderRef<VarFloat, float>, IFloatProvider
     {
         public float GetFloat()
         {

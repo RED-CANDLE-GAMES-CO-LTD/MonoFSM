@@ -1,3 +1,4 @@
+using MonoFSM_Core.Runtime.Action;
 using RCGMaker.Core.Attributes;
 using UnityEngine;
 
@@ -7,8 +8,8 @@ public class DelayActionModifier : MonoBehaviour
 {
     public float delayTime = 1;
 
-    [Component( AddComponentAt.Children, "[Action]")] [PreviewInInspector] [AutoChildren]
-    AbstractStateAction[] actions;
+    [Component(AddComponentAt.Children, "[Action]")] [PreviewInInspector] [AutoChildren]
+    private AbstractStateAction[] actions;
     // private void AddAction()
     // {
     // }

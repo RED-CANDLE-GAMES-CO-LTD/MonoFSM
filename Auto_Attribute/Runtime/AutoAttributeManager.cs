@@ -47,10 +47,7 @@ public class AutoAttributeManager : MonoBehaviour
 
     public static void BuildFieldCache(MonoBehaviour[] monos)
     {
-        foreach (var mono in monos)
-        {
-            GetFieldsWithAutoAndBuildCache(mono);
-        }
+        foreach (var mono in monos) GetFieldsWithAutoAndBuildCache(mono);
     }
 
     // [PropertyOrder(-1)]
@@ -85,7 +82,7 @@ public class AutoAttributeManager : MonoBehaviour
     // private List<MonoBehaviour> monoBehavioursInSceneWithAuto = new List<MonoBehaviour>();
 
     [ShowInInspector]
-    int GetAllGameObjectCount()
+    private int GetAllGameObjectCount()
     {
         var roots = SceneManager.GetActiveScene().GetRootGameObjects();
         return roots.SelectMany(go => go.GetComponentsInChildren<Transform>(true)).Count();
@@ -114,7 +111,7 @@ public class AutoAttributeManager : MonoBehaviour
     //async版本的auto
     public static async UniTask AsyncAutoReferenceAllChildren(GameObject targetGo)
     {
-        int startFrame = Time.frameCount;
+        var startFrame = Time.frameCount;
         var componentsInChildren = targetGo.GetComponentsInChildren<MonoBehaviour>(true);
         var stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -144,6 +141,10 @@ public class AutoAttributeManager : MonoBehaviour
         AutoReference(targetGo, out _, out _);
     }
 
+    /// <summary>
+    /// Assigns all Auto variables on the given MonoBehaviour
+    /// </summary>
+    /// <param name="mb">The MonoBehaviour to assign the Auto variables of</param>
     public static void AutoReference(MonoBehaviour mb)
     {
         AutoReference(mb, out _, out _);
@@ -152,10 +153,7 @@ public class AutoAttributeManager : MonoBehaviour
     public static void AutoReferenceAllChildren(GameObject targetGo) //把所有的children都綁看看
     {
         var monos = targetGo.GetComponentsInChildren<MonoBehaviour>(true);
-        foreach (var mono in monos)
-        {
-            AutoReference(mono);
-        }
+        foreach (var mono in monos) AutoReference(mono);
     }
 
     public static void AutoReference(GameObject targetGo, out int successfulAssigments, out int failedAssignments)
@@ -166,7 +164,7 @@ public class AutoAttributeManager : MonoBehaviour
         var comps = targetGo.GetComponents<MonoBehaviour>(true);
         foreach (var mb in comps)
         {
-            AutoReference(mb, out int successes, out int failures);
+            AutoReference(mb, out var successes, out var failures);
             successfulAssigments += successes;
             failedAssignments += failures;
         }
@@ -211,19 +209,15 @@ public class AutoAttributeManager : MonoBehaviour
             {
                 var result = autoAttribute.Execute(targetMb, field);
                 if (result)
-                {
                     successfullyAssignments++;
-                }
                 else
-                {
                     failedAssignments++;
-                }
             }
         }
     }
 
     [Button("Clear Cache")]
-    void Clear()
+    private void Clear()
     {
         FieldCache.Clear();
     }
@@ -278,8 +272,8 @@ public class AutoAttributeManager : MonoBehaviour
         // var autoCaches = GetAllAutoCaches();
         //TODO: 如果monoBehaviour已經在autoCaches裡就不需要跑了?
 
-        int autoVarialbesAssigned_count = 0;
-        int autoVarialbesNotAssigned_count = 0;
+        var autoVarialbesAssigned_count = 0;
+        var autoVarialbesNotAssigned_count = 0;
         // var dict = new Dictionary<Type, int>();
         foreach (var mb in monoBehaviours)
         {
@@ -290,7 +284,7 @@ public class AutoAttributeManager : MonoBehaviour
             // }
             // var stopwatch = new Stopwatch();
             // stopwatch.Start();
-            AutoReference(mb, out int succ, out int fail);
+            AutoReference(mb, out var succ, out var fail);
             autoVarialbesAssigned_count += succ;
             autoVarialbesNotAssigned_count += fail;
             // stopwatch.Stop();
@@ -344,7 +338,7 @@ public class AutoAttributeManager : MonoBehaviour
     public IEnumerable<MonoBehaviour> GetAllMonoBehavioursWithAuto() //(GameObject[] roots)
     {
 #if UNITY_EDITOR
-        Stopwatch sw = new Stopwatch();
+        var sw = new Stopwatch();
 #endif
         // sw.Start();
 
@@ -382,10 +376,8 @@ public class AutoAttributeManager : MonoBehaviour
 
         //一個type只需要做一次
         if (fieldDict.TryGetValue(t, out var auto))
-        {
             // Debug.Log("Cached Field");
             return auto;
-        }
 
         // ReflectionHelperMethods rhm = new ReflectionHelperMethods();
         // var list = mb.GetType()
@@ -410,12 +402,8 @@ public class AutoAttributeManager : MonoBehaviour
         var fieldsWithAuto = fields as FieldInfo[] ?? fields.ToArray();
         fieldDict.TryAdd(t, fieldsWithAuto.ToList());
         var fieldDictByName = FieldCache.fieldDictByName;
-        foreach (var field in fieldsWithAuto)
-        {
-            fieldDictByName.TryAdd((t, field.Name), field);
-            // Debug.Log("Add Field Tuple:" + t + field.Name);
-        }
-
+        foreach (var field in fieldsWithAuto) fieldDictByName.TryAdd((t, field.Name), field);
+        // Debug.Log("Add Field Tuple:" + t + field.Name);
         return fieldsWithAuto;
     }
 

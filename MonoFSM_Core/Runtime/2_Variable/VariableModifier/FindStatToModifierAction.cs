@@ -1,3 +1,4 @@
+using MonoFSM_Core.Runtime.Action;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
@@ -30,15 +31,12 @@ namespace MonoFSM.Variable
         //onstateenter時，找到parent的VariableStatOwner，然後找到相同type的VariableStat，然後加上modifier
         //onstateexit時，移除modifier
 
-        VariableStatOwner _foundStatOwner;
+        private VariableStatOwner _foundStatOwner;
 
         protected override void OnStateEnterImplement()
         {
             var varStat = _variableProvider.GetVar<VarStat>();
-            foreach (var modifier in _modifiers)
-            {
-                varStat.AddModifier(modifier);
-            }
+            foreach (var modifier in _modifiers) varStat.AddModifier(modifier);
             // _foundStatOwner = GetComponentInParent<VariableStatOwner>();
             // if (_foundStatOwner == null)
             // {
@@ -62,10 +60,7 @@ namespace MonoFSM.Variable
         protected override void OnStateExitImplement()
         {
             var varStat = _variableProvider.GetVar<VarStat>();
-            foreach (var modifier in _modifiers)
-            {
-                varStat.RemoveModifier(modifier);
-            }
+            foreach (var modifier in _modifiers) varStat.RemoveModifier(modifier);
             // var variableStats = _foundStatOwner.VariableStats;
             // foreach (var stat in variableStats)
             // {

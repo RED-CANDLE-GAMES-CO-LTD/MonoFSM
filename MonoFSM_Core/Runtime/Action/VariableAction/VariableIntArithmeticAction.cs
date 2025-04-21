@@ -1,5 +1,6 @@
 using System;
 using jerryee.UnityMCP;
+using MonoFSM_Core.Runtime.Action;
 using Sirenix.OdinInspector;
 
 namespace RCGFSM.Variable
@@ -13,23 +14,24 @@ namespace RCGFSM.Variable
             SimpleVar,
             Provider
         }
+
         public SelectMode _mode;
+
         //const, simple var, complex
         [ShowIf("@_mode == SelectMode.Const")] public int _value;
-        
-        [ShowIf("@_mode == SelectMode.SimpleVar")]
-        [DropDownRef]
+
+        [ShowIf("@_mode == SelectMode.SimpleVar")] [DropDownRef]
         public VarInt _variable;
     }
+
     public class VariableIntArithmeticAction : AbstractStateAction
     {
         protected override string Description => target?._varTag?.name + " " + Arithmetic + " " + Value;
-        [MCPExtractable]
-        [DropDownRef] public VarInt target;
-        [MCPExtractable]
-        public ArithmeticOperator Arithmetic;
-        [MCPExtractable]
-        public int Value; //FIXME: 需要DI? 
+        [MCPExtractable] [DropDownRef] public VarInt target;
+        [MCPExtractable] public ArithmeticOperator Arithmetic;
+
+        [MCPExtractable] public int Value; //FIXME: 需要DI? 
+
         // public IntValueWrapper operand2;
         protected override void OnStateEnterImplement()
         {

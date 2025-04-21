@@ -4,6 +4,7 @@ using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using MonoFSM_Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Core;
 using RCGExtension;
@@ -166,22 +167,19 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateUpdate()
     {
         base.OnStateUpdate();
-        //
-        if (actions == null) return;
+        if (_onStateUpdate != null)
+        {
+            _onStateUpdate.EventHandle();
+        }
+        else
+        {
+            if (actions == null) return;
 
-        //不明原因曾經是反過來叫的。
-        // for (var index = actions.Length - 1; index >= 0; index--)
-        // {
-        //     var action = actions[index];
-        //     if (action.isActiveAndEnabled)
-        //     // if (action.gameObject.activeSelf)
-        //         action.OnActionUpdate();
-        // }
-        //
+            foreach (var action in actions)
+                if (action.isActiveAndEnabled)
+                    action.OnActionUpdate();
+        }
 
-        foreach (var action in actions)
-            if (action.isActiveAndEnabled)
-                action.OnActionUpdate();
         foreach (var transition in transitions) transition.TransitionCheck();
     }
 
@@ -311,6 +309,9 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     [CompRef] [AutoChildren(DepthOneOnly = true)]
     private OnStateEnterHandler _onStateEnter;
+
+    [CompRef] [AutoChildren(DepthOneOnly = true)]
+    private OnStateUpdateHandler _onStateUpdate;
 
     [CompRef] [AutoChildren(DepthOneOnly = true)]
     private OnStateExitHandler _onStateExit;

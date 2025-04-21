@@ -4,6 +4,7 @@ import json
 import re
 import uuid
 
+
 def extract_cs_summary(filepath):
     summary = {}
     try:
@@ -12,25 +13,37 @@ def extract_cs_summary(filepath):
         # 取得namespace
         namespace_match = re.search(r'namespace\s+([\w\.]+)', code)
         namespace = namespace_match.group(1) if namespace_match else None
-        class_match = re.search(r'class\s+(\w+)(?:\s*:\s*([\w,\s]+))?', code)
-        if not class_match:
+        # 找到所有class定義
+        class_pattern = re.compile(r'class\s+(\w+)(?:\s*:\s*([\w,\s]+))?')
+        matches = list(class_pattern.finditer(code))
+        if not matches:
             return None
-        class_name = class_match.group(1)
-        base_and_interfaces = class_match.group(2) or ''
-        bases = [b.strip() for b in base_and_interfaces.split(',')] if base_and_interfaces else []
-        base_class = bases[0] if bases and not bases[0].startswith('I') else None
-        interfaces = [b for b in bases if b.startswith('I')]
-        summary['class'] = class_name
-        if namespace:
-            summary['namespace'] = namespace
-        if base_class:
-            summary['base'] = base_class
-        if interfaces:
-            summary['interfaces'] = interfaces
-
-        # 判斷是否為Unity Component
-        if base_class in ('MonoBehaviour', 'AbstractDescriptionBehaviour'):
-            summary['isComponent'] = True
+        summaries = []
+        for m in matches:
+            class_name = m.group(1)
+            base_and_interfaces = m.group(2) or ''
+            bases = [b.strip() for b in base_and_interfaces.split(',')] if base_and_interfaces else []
+            base_class = bases[0] if bases and not bases[0].startswith('I') else None
+            interfaces = [b for b in bases if b.startswith('I')]
+            entry = {'class': class_name}
+            if namespace:
+                entry['namespace'] = namespace
+            if base_class:
+                entry['base'] = base_class
+            if interfaces:
+                entry['interfaces'] = interfaces
+            # 是否為Unity組件
+            if base_class in ('MonoBehaviour', 'AbstractDescriptionBehaviour'):
+                entry['isComponent'] = True
+            summaries.append(entry)
+        # 如果有多個class，依檔名選擇主要 class
+        if len(summaries) > 1:
+            # 取檔名作為目標類別名稱
+            filename = os.path.splitext(os.path.basename(filepath))[0]
+            main = [e for e in summaries if e.get('class') == filename]
+            summary = main[0] if main else summaries[0]
+        else:
+            summary = summaries[0]
 
         # 清除單行和區塊註解，避免匹配到註解內的 attribute
         code_clean = re.sub(r'//.*', '', code)
@@ -39,19 +52,19 @@ def extract_cs_summary(filepath):
         auto_refs = []
         mcp_props = []
         field_pattern = re.compile(
-            r'\[(AutoParent|AutoChildren|Auto|MCPExtractable)\b[^\]]*\]'   # 主 attribute
-            r'(?:\s*\[[^\]]*\])*\s*'                                      # 其他 attribute
-            r'(?:public|protected|private|internal)?\s*'                    # 修飾詞
-            r'(?:static\s+)?(?:readonly\s+)?'                               # static/readonly
-            r'([A-Za-z0-9_<>,\[\] ]+?)\s+'                                  # 型別 (non-greedy)
-            r'([A-Za-z0-9_]+)\s*(?:;|\{|=)',                                 # 名稱 結尾
+            r'\[(AutoParent|AutoChildren|Auto|MCPExtractable)\b[^\]]*\]'  # 主 attribute
+            r'(?:\s*\[[^\]]*\])*\s*'  # 其他 attribute
+            r'(?:public|protected|private|internal)?\s*'  # 修飾詞
+            r'(?:static\s+)?(?:readonly\s+)?'  # static/readonly
+            r'([A-Za-z0-9_<>,\[\] ]+?)\s+'  # 型別 (non-greedy)
+            r'([A-Za-z0-9_]+)\s*(?:;|\{|=)',  # 名稱 結尾
             re.MULTILINE
         )
         for m in field_pattern.finditer(code_clean):
             attr = m.group(1)
             typ = m.group(2).strip()
             name = m.group(3)
-           
+
             if attr == 'MCPExtractable':
                 entry = {'type': typ, 'name': name}
                 mcp_props.append(entry)
@@ -63,9 +76,15 @@ def extract_cs_summary(filepath):
         if mcp_props:
             summary['properties'] = mcp_props
 
+        # 若 summary 為 list，再次挑選主要 class 確保為 dict
+        if isinstance(summary, list):
+            filename = os.path.splitext(os.path.basename(filepath))[0]
+            main = [e for e in summary if e.get('class') == filename]
+            summary = main[0] if main else summary[0]
         return summary
     except Exception as e:
         return {'error': str(e)}
+
 
 def get_meta_guid(cs_filepath):
     meta_path = cs_filepath + '.meta'
@@ -85,6 +104,7 @@ def get_meta_guid(cs_filepath):
         return None
     return None
 
+
 def build_tree(path):
     tree = {}
     files = []
@@ -102,6 +122,7 @@ def build_tree(path):
         tree['__filelist__'] = files  # 用 __filelist__ 暫存，後面 clean_tree 會處理
     return tree
 
+
 def clean_tree(tree):
     # 若只有 __filelist__，直接回傳 list
     if set(tree.keys()) == {'__filelist__'}:
@@ -115,16 +136,17 @@ def clean_tree(tree):
             result[k] = clean_tree(v) if isinstance(v, dict) else v
     return result
 
+
 def add_ids(tree, parent_path=""):
     if isinstance(tree, list):
         for entry in tree:
             if (
-                isinstance(entry, dict)
-                and 'summary' in entry
-                and entry['summary']
-                and isinstance(entry['summary'], dict)
-                and 'class' in entry['summary']
-                and 'meta_guid' in entry and entry['meta_guid']
+                    isinstance(entry, dict)
+                    and 'summary' in entry
+                    and entry['summary']
+                    and isinstance(entry['summary'], dict)
+                    and 'class' in entry['summary']
+                    and 'meta_guid' in entry and entry['meta_guid']
             ):
                 # 用 meta_guid + class name 當 id
                 class_id = f"{entry['meta_guid']}#{entry['summary']['class']}"
@@ -136,6 +158,7 @@ def add_ids(tree, parent_path=""):
             if isinstance(v, (dict, list)):
                 add_ids(v, parent_path + "/" + k if parent_path else k)
 
+
 def build_manifest_root(tree):
     return {
         "manifestVersion": "1.0.0",
@@ -144,6 +167,7 @@ def build_manifest_root(tree):
         "customData": {},
         **tree
     }
+
 
 def generate_manifest(root_path):
     tree = build_tree(root_path)
@@ -172,6 +196,7 @@ def generate_manifest(root_path):
         manifest_path = os.path.join(ai_dir, f'{parent_folder}_manifest.json')
         with open(manifest_path, 'w', encoding='utf-8') as f:
             json.dump(manifest, f, indent=2, ensure_ascii=False)
+
 
 if __name__ == '__main__':
     root_path = sys.argv[1] if len(sys.argv) > 1 else '.'

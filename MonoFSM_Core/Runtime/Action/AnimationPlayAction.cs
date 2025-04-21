@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using MonoFSM_Core.Runtime.Action;
 using Sirenix.OdinInspector;
 
 #if UNITY_EDITOR
@@ -22,15 +23,14 @@ namespace RCGMaker.Core
         public string StateName => Clip.name; //stateName;
 
         [TabGroup("Test")]
-        [Button()]
-        void TestPlay()
+        [Button]
+        private void TestPlay()
         {
             animator.Play(stateName, 0, 0);
         }
 
-        [TabGroup("Animator")]
-        public Animator animator;
-   
+        [TabGroup("Animator")] public Animator animator;
+
 
         [InfoBox("Not Sync", InfoMessageType.Warning, "IsClipNotSynced")] [SerializeField]
         private AnimationClip _clip;
@@ -44,9 +44,7 @@ namespace RCGMaker.Core
 
         public int layer = 0; //FIXME: 會需要layer嗎？
 
-    
 
-        
         protected override void OnStateEnterImplement()
         {
             animator.Play(StateName);
@@ -64,30 +62,31 @@ namespace RCGMaker.Core
         //         state.state.motion = Clip;
         // }
 
-       
+
 #if UNITY_EDITOR
-        IEnumerable<string> GetAllStateNames()
+        private IEnumerable<string> GetAllStateNames()
         {
             return animator.GetAnimatorStateNames(0);
         }
-        
+
         private AnimatorController controller;
 
         [TabGroup("Animator")]
         [ShowInInspector]
         private AnimatorController Controller =>
             controller == null ? controller = animator.GetAnimatorController() : controller; // as AnimatorController;
-        
+
         private bool IsClipNotSynced => !IsClipSynced;
-        bool IsClipSynced
+
+        private bool IsClipSynced
         {
             get
             {
                 if (Controller == null)
                     return false;
-                
-                AnimatorController editorController = Controller as AnimatorController;
-                
+
+                var editorController = Controller as AnimatorController;
+
                 var state = Controller.layers[0].stateMachine.states.FirstOrDefault(x => x.state.name == stateName);
 
                 if (state.state != null)
@@ -96,26 +95,27 @@ namespace RCGMaker.Core
                     return false;
             }
         }
-        
-        void FetchClipCheck() //inspector code
+
+        private void FetchClipCheck() //inspector code
         {
             //get clip from current state
             if (Controller == null)
                 return;
-            
-            AnimatorController editorController = Controller as AnimatorController;
-            
-            
-            var state = editorController.layers[layer].stateMachine.states.FirstOrDefault(x => x.state.name == stateName);
+
+            var editorController = Controller as AnimatorController;
+
+
+            var state = editorController.layers[layer].stateMachine.states
+                .FirstOrDefault(x => x.state.name == stateName);
             if (Clip == null || IsClipSynced)
                 _clip = state.state.motion as AnimationClip;
         }
 
-        
+
         [TabGroup("Animator")]
         [ShowIn(PrefabKind.PrefabAsset)]
         [Button("Generate Animation Controller")]
-        void GenerateAnimationController()
+        private void GenerateAnimationController()
         {
             if (Controller == null)
             {
@@ -133,7 +133,7 @@ namespace RCGMaker.Core
         }
 
         [Button]
-        void SaveClipToAnimatorController()
+        private void SaveClipToAnimatorController()
         {
             var animStateMachine = controller.layers[0].stateMachine;
 
@@ -152,7 +152,7 @@ namespace RCGMaker.Core
         }
 
 
-        void CreateNewClip()
+        private void CreateNewClip()
         {
             var stage = PrefabStageUtility.GetCurrentPrefabStage();
             var prefabPath = stage.assetPath;
@@ -160,12 +160,12 @@ namespace RCGMaker.Core
             var folderPath = prefabPath.FolderPath();
             var clip = new AnimationClip();
             AssetDatabase.CreateAsset(clip, $"{folderPath}/{stateName}.anim");
-            this._clip = clip;
+            _clip = clip;
         }
 
         [HideIf("Clip")]
         [Button("Create New Clip")]
-        void CreateClipAndSaveToAnimatorController()
+        private void CreateClipAndSaveToAnimatorController()
         {
             CreateNewClip();
             SaveClipToAnimatorController();
@@ -176,6 +176,6 @@ namespace RCGMaker.Core
         {
             AnimatorHelper.EditClip(animator, Clip);
         }
-        #endif
+#endif
     }
 }

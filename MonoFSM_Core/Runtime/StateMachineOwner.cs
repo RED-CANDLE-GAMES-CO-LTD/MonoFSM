@@ -19,7 +19,7 @@ public class CustomSerializableAttribute : PropertyAttribute
 public interface IVariableOwner
 {
     public string name { get; }
-    RCGVariableFolder VariableFolder { get; }
+    VariableFolder VariableFolder { get; }
     public AbstractMonoVariable GetVariable(VariableTag varTag);
 }
 
@@ -88,10 +88,7 @@ public static class StateMachineExtension
             return Array.Empty<Component>();
         }
 
-        foreach (var binder in parents)
-        {
-            list.AddRange(binder.GetComponentsInChildren(siblingType));
-        }
+        foreach (var binder in parents) list.AddRange(binder.GetComponentsInChildren(siblingType));
 
         return list.ToArray();
         // if (binder != null) return binder.GetComponentsInChildren(siblingType);
@@ -179,18 +176,12 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, IR
 
     public void PauseAll()
     {
-        foreach (var context in fsmContexts)
-        {
-            context.PauseFSM();
-        }
+        foreach (var context in fsmContexts) context.PauseFSM();
     }
 
     public void ResumeAll()
     {
-        foreach (var context in fsmContexts)
-        {
-            context.ResumeFSM();
-        }
+        foreach (var context in fsmContexts) context.ResumeFSM();
     }
 
     public Animator ChildAnimator => GetComponentInChildren<Animator>();
@@ -221,7 +212,7 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IResetter, IR
     }
 
     [Button]
-    void ExportSerializedData()
+    private void ExportSerializedData()
     {
     }
 

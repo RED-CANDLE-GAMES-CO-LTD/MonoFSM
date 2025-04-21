@@ -16,27 +16,15 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     {
         get
         {
-            if (TargetStat == null)
-            {
-                return -1;
-            }
+            if (TargetStat == null) return -1;
 
             //Preview用的所以只看BaseValue
             var baseValue = TargetStat.BaseValue;
-            if (modType == StatModType.Flat)
-            {
-                return baseValue + Value;
-            }
+            if (modType == StatModType.Flat) return baseValue + Value;
 
-            if (modType == StatModType.PercentAdd)
-            {
-                return baseValue * (1 + Value);
-            }
+            if (modType == StatModType.PercentAdd) return baseValue * (1 + Value);
 
-            if (modType == StatModType.PercentMult)
-            {
-                return baseValue * Value;
-            }
+            if (modType == StatModType.PercentMult) return baseValue * Value;
 
             return baseValue;
         }
@@ -47,11 +35,10 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     [HideIf("@ValueSource != null")] [Title("數值(簡易")]
     public float value;
 
-    [InlineEditor]
-    [Title("外部數值來源")] public ScriptableDataFloat ValueSource;
+    [InlineEditor] [Title("外部數值來源")] public GameDataFloat ValueSource;
     public StatModType modType = StatModType.Flat;
 
-    [InlineEditor()] public StatData statData;
+    [InlineEditor] public StatData statData;
     public StatModDurationType DurationType;
 
     [Header("額外要乘的值，可能因為數量")] //還是把數量當作一個modifier的providing value就好...有點難
@@ -61,7 +48,7 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
 
     // [ShowInInspector]
     [NonSerialized] protected StatModifier modifier;
-    
+
     [TextArea] public string note;
     public CharacterStat TargetStat => statData ? statData.Stat : null;
 
@@ -76,22 +63,16 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
             };
             //如果有ValueSource，就監聽他來更新
             if (ValueSource != null)
-            {
                 // Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
                 ValueSource.field.AddListener(OnValueChange, source as ScriptableObject);
-            }
         }
         else
         {
-            
             // Debug.Log("[Apply StatModifierEntry]: exist " + this, source as ScriptableObject);
             modifier.Value = Value * AdditionalMultiplier;
             modifier.Type = modType;
             modifier.Source = source as ScriptableObject;
             modifier.DurationType = DurationType;
-
-          
-                
         }
 
         // Debug.Log("[Apply StatModifierEntry]: " + this, source as ScriptableObject);
@@ -116,10 +97,8 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
         TargetStat.RemoveModifier(modifier);
 
         if (ValueSource != null)
-        {
             // Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
             ValueSource.field.RemoveListener(OnValueChange, source as ScriptableObject);
-        }
 
         modifier = null;
     }
@@ -128,10 +107,8 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
     {
         if (modifier == null) return;
         if (ValueSource != null)
-        {
             if (modifier.Source != null)
                 ValueSource.field.RemoveListener(OnValueChange, modifier.Source);
-        }
 
         modifier = null;
     }

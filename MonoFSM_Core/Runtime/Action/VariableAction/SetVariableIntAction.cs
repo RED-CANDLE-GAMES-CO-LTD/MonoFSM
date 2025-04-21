@@ -1,3 +1,5 @@
+using MonoFSM_Core.Runtime.Action;
+
 namespace RCGFSM.Variable
 {
     public class SetVariableIntAction : AbstractStateAction

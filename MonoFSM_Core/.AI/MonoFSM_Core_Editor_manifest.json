@@ -1,0 +1,572 @@
+{
+  "manifestVersion": "1.0.0",
+  "description": "MonoFSM API and file manifest for tooling and automation.",
+  "intendedFor": [
+    "AI",
+    "IDE",
+    "DocsGen"
+  ],
+  "customData": {},
+  "CustomDrawer": {
+    "AttributeProcessor": [
+      {
+        "filename": "ShowInPlayModeAttributeProcessor.cs",
+        "meta_guid": "58ac4fa6b2884c9daff14c18bd27bb92",
+        "summary": {
+          "class": "RCGMaker.Core.Attributes.Editor.ShowInPlayModeAttributeProcessor",
+          "base": "OdinAttributeProcessor"
+        }
+      }
+    ],
+    "DropDownAsset": [
+      {
+        "filename": "DropDownAssetDrawer.cs",
+        "meta_guid": "f8c4d904d3ff49ebba12915e0b84d9bf",
+        "summary": {
+          "class": "RCGMaker.Editor.CustomDrawer.DropDownAssetDrawer",
+          "base": "OdinAttributeDrawer"
+        }
+      },
+      {
+        "filename": "DropDownAssetSelector.cs",
+        "meta_guid": "22605111ad3e45b58afa6f820bebb2f0",
+        "summary": {
+          "class": "RCGMaker.Editor.CustomDrawer.DropDownRef.DropDownAssetSelector",
+          "base": "OdinSelector"
+        }
+      }
+    ],
+    "DropDownRef": [
+      {
+        "filename": "DropDownRefCompSelector.cs",
+        "meta_guid": "30f59a0e3e7c4f3894dddb0125987f3b",
+        "summary": {
+          "class": "RCGMaker.Core.DropDownRefCompSelector",
+          "base": "OdinSelector"
+        }
+      },
+      {
+        "filename": "DropDownRefDrawer.cs",
+        "meta_guid": "4b3e3654aa6b242bc9e04967db9f4c63",
+        "summary": {
+          "class": "DropDownRefAttributeDrawer",
+          "base": "OdinAttributeDrawer"
+        }
+      }
+    ],
+    "files": [
+      {
+        "filename": "AutoChildrenDrawer.cs",
+        "meta_guid": "7e12b25b3f60410a9d3ba8307b9e48de",
+        "summary": {
+          "class": "RCGMaker.Core.AutoChildrenDrawer",
+          "base": "AutoFamilyDrawer"
+        }
+      },
+      {
+        "filename": "AutoDrawer.cs",
+        "meta_guid": "db9fa27c28c54d3c928ba89eb854cbd7",
+        "summary": {
+          "class": "RCGMaker.Core.AutoDrawer",
+          "base": "AutoFamilyDrawer"
+        }
+      },
+      {
+        "filename": "AutoFamilyDrawer.cs",
+        "meta_guid": "459e0c013ff60425e99be6db4296e92e",
+        "summary": {
+          "class": "RCGMaker.Core.AutoUtils"
+        }
+      },
+      {
+        "filename": "AutoParentDrawer.cs",
+        "meta_guid": "ed4b924049fa4dc5be7ee9210b9842d4",
+        "summary": {
+          "class": "RCGMaker.Core.AutoParentDrawer",
+          "base": "AutoFamilyDrawer"
+        }
+      },
+      {
+        "filename": "ComponentDrawer.cs",
+        "meta_guid": "f61a94f8410e34632a46ce60e6aa802d",
+        "summary": {
+          "class": "ComponentAttributeDrawer",
+          "base": "OdinAttributeDrawer"
+        }
+      },
+      {
+        "filename": "ComponentTypeSelector.cs",
+        "meta_guid": "12c2ac38a2ea4040b72e2447cc7f3ee2",
+        "summary": {
+          "class": "RCGMaker.Core.ComponentTypeSelector",
+          "base": "OdinSelector"
+        }
+      },
+      {
+        "filename": "DataFieldDrawer.cs",
+        "meta_guid": "88c501a4588143689cf338791874ad4d",
+        "summary": {
+          "class": "RCGMaker.Core.DataFieldDrawer",
+          "base": "OdinValueDrawer"
+        }
+      },
+      {
+        "filename": "DoubleClickLabelAttributeDrawer.cs",
+        "meta_guid": "d4ea280c4500e4e209909e439adba3e6",
+        "summary": {
+          "class": "DoubleClickLabelAttributeDrawer"
+        }
+      },
+      {
+        "filename": "GameStateAttributeDrawer.cs",
+        "meta_guid": "100972e4884a44b3a9d989104f909826",
+        "summary": {
+          "class": "RCGMaker.Core.GameStateAttributeDrawer",
+          "base": "OdinAttributeDrawer"
+        }
+      },
+      {
+        "filename": "SOConfigAttributeDrawer.cs",
+        "meta_guid": "2b498d736580409282dc0d9806ef9319",
+        "summary": {
+          "class": "RCGMaker.Core.SOConfigAttributeDrawer",
+          "base": "OdinAttributeDrawer"
+        }
+      },
+      {
+        "filename": "SerializeReferenceParentRefDrawer.cs",
+        "meta_guid": "6f26713ad13c475d8a7e0917fb8b3d99",
+        "summary": {
+          "class": "RCGMaker.Core.SerializeReferenceParentValidateDrawer",
+          "base": "OdinAttributeDrawer"
+        }
+      },
+      {
+        "filename": "ValueProviderDrawer.cs",
+        "meta_guid": "ae64d724556b4a5187f3cd649e37db36",
+        "summary": {
+          "class": "RCGMaker.Core.VariableProviderDrawer",
+          "base": "OdinValueDrawer"
+        }
+      }
+    ]
+  },
+  "CustomToolbar": {
+    "Editor": {
+      "Scripts": {
+        "Setting": [
+          {
+            "filename": "CustomToolbarReordableList.cs",
+            "meta_guid": "cd02144600efda14c8eb7f550e4f61db",
+            "summary": {
+              "class": "CustomToolbarReordableList"
+            }
+          },
+          {
+            "filename": "CustomToolbarSettingProvider.cs",
+            "meta_guid": "783cfd64ce4d41ee83fde43d6eb7469c",
+            "summary": {
+              "class": "UnityToolbarExtender.CustomToolbarSettingProvider",
+              "base": "SettingsProvider"
+            }
+          }
+        ],
+        "ToolbarElements": [
+          {
+            "filename": "BaseToolbarElement.cs",
+            "meta_guid": "0d58f7da1717cbb44a00ad12766aef2a",
+            "summary": {
+              "class": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarClearPrefs.cs",
+            "meta_guid": "3cce194695f577b48aad043208fbf7c3",
+            "summary": {
+              "class": "ToolbarClearPrefs",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarEnterPlayMode.cs",
+            "meta_guid": "1538c0863a4240548acea2a2ab7c0e28",
+            "summary": {
+              "class": "ToolbarEnterPlayMode",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarFPSSlider.cs",
+            "meta_guid": "8074a03c14be3ad4bb0bd9b34a63c7c1",
+            "summary": {
+              "class": "ToolbarFPSSlider",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarRecompile.cs",
+            "meta_guid": "bd16a93b2ed92d548a78b818d99df569",
+            "summary": {
+              "class": "ToolbarRecompile",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarReloadScene.cs",
+            "meta_guid": "3bdbc1cc3f4b43e46b3985843866a63b",
+            "summary": {
+              "class": "ToolbarReloadScene",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarReserializeAll.cs",
+            "meta_guid": "b410f3783b2b19642b8fb2193b405768",
+            "summary": {
+              "class": "ToolbarReserializeAll",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarReserializeSelected.cs",
+            "meta_guid": "961ea56a9d095a44b99c7b891afcd702",
+            "summary": {
+              "class": "ToolbarReserializeSelected",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarSavingPrefs.cs",
+            "meta_guid": "8a151fe426daa6d4f95d829b2ce57df1",
+            "summary": {
+              "class": "ToolbarSavingPrefs",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarSceneSelection.cs",
+            "meta_guid": "8f375994796cfd643a99c53f2a6f9982",
+            "summary": {
+              "class": "ToolbarSceneSelection",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarSides.cs",
+            "meta_guid": "8b54348ad6b61154ead0efe08a04d694",
+            "summary": {
+              "class": "ToolbarSides",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarSpace.cs",
+            "meta_guid": "95964663845a5094282b83a47ce1a233",
+            "summary": {
+              "class": "ToolbarSpace",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarStartFromFirstScene.cs",
+            "meta_guid": "2059aad740c79544a8bfb084d08c3921",
+            "summary": {
+              "class": "ToolbarStartFromFirstScene",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarTimeslider.cs",
+            "meta_guid": "24361652f3354c144901f4475694c88a",
+            "summary": {
+              "class": "ToolbarTimeslider",
+              "base": "BaseToolbarElement"
+            }
+          },
+          {
+            "filename": "ToolbarWindowSelection.cs",
+            "meta_guid": "8d983f5158ce4f9b9e187f30dc6cf15e",
+            "summary": {
+              "class": "UnityToolbarExtender.ToolbarElements.MySelector",
+              "base": "OdinSelector"
+            }
+          }
+        ],
+        "Utils": [
+          {
+            "filename": "ForceReserializeAssetsUtils.cs",
+            "meta_guid": "b2b151dcd3cea8248aadf5539102f588",
+            "summary": {
+              "class": "UnityToolbarExtender.ForceReserializeAssetsUtils"
+            }
+          }
+        ],
+        "files": [
+          {
+            "filename": "CustomToolbarInitializer.cs",
+            "meta_guid": "2827ae329f144023bf2d91204bf453c3",
+            "summary": {
+              "class": "UnityToolbarExtender.CustomToolbarInitializer"
+            }
+          },
+          {
+            "filename": "CustomToolbarSetting.cs",
+            "meta_guid": "e2cba83c97554327b25238d32fd85c62",
+            "summary": {
+              "class": "UnityToolbarExtender.CustomToolbarSetting",
+              "base": "ScriptableSingleton"
+            }
+          },
+          {
+            "filename": "IToolbarWindow.cs",
+            "meta_guid": "94c8c04509024e2484d5742038d61c21",
+            "summary": null
+          },
+          {
+            "filename": "ToolbarCallback.cs",
+            "meta_guid": "6f186c28663ad814b98b580454c3c70b",
+            "summary": {
+              "class": "UnityToolbarExtender.ToolbarCallback"
+            }
+          },
+          {
+            "filename": "ToolbarExtender.cs",
+            "meta_guid": "8501d047e031fef468587e11de32c6ad",
+            "summary": {
+              "class": "UnityToolbarExtender.ToolbarExtender"
+            }
+          },
+          {
+            "filename": "ToolbarStyles.cs",
+            "meta_guid": "47ad6f372df56df46883727f1cefad85",
+            "summary": {
+              "class": "UnityToolbarExtender.ToolbarStyles"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "DebugSetting": [
+    {
+      "filename": "DebugWindowBase.cs",
+      "meta_guid": "6e4a07d5dcc7453db760ce1b27a63b61",
+      "summary": {
+        "class": "RCG.Core.DebugWindowBase",
+        "base": "OdinEditorWindow",
+        "interfaces": [
+          "IToolbarWindow"
+        ]
+      }
+    },
+    {
+      "filename": "HierarchyData.cs",
+      "meta_guid": "444fe39edf2c44557b43f97b7b540c26",
+      "summary": {
+        "class": "Febucci.HierarchyData.HierarchyData",
+        "base": "ScriptableObject"
+      }
+    },
+    {
+      "filename": "HierarchyDrawer.cs",
+      "meta_guid": "2b4bb037bd72246e1a89c354f351f46f",
+      "summary": {
+        "class": "Febucci.HierarchyData.HierarchyDrawer"
+      }
+    },
+    {
+      "filename": "PlayerLoopWindow.cs",
+      "meta_guid": "364e7876281b4b3a9b6e7c7ce2bf16c1",
+      "summary": {
+        "class": "RCGMaker.PlayerLoopWindow",
+        "base": "EditorWindow"
+      }
+    }
+  ],
+  "Extension": [
+    {
+      "filename": "EditorMonoNodeExtension.cs",
+      "meta_guid": "e01e68aa8cda6954486ed48611fc3e40",
+      "summary": {
+        "class": "EditorMonoNodeExtension"
+      }
+    }
+  ],
+  "PrefabReferenceWindow": [
+    {
+      "filename": "MonoBehaviourContextMenuExtensions.cs",
+      "meta_guid": "28e2ebde6adbc4416be5028ced56212c",
+      "summary": {
+        "class": "MonoBehaviourContextMenuExtensions"
+      }
+    },
+    {
+      "filename": "PrefabReferenceWindow.cs",
+      "meta_guid": "481f18f3a4a1f464580ca7eed7cc1415",
+      "summary": {
+        "class": "PrefabReferenceWindow",
+        "base": "EditorWindow"
+      }
+    }
+  ],
+  "UnityEditorWindow": [
+    {
+      "filename": "AnimationClipSearchWindow.cs",
+      "meta_guid": "6afa2cc7d064444c9a2b06931bc10ba0",
+      "summary": {
+        "class": "AnimationClipSearchWindow",
+        "base": "OdinEditorWindow",
+        "interfaces": [
+          "IToolbarWindow"
+        ]
+      }
+    },
+    {
+      "filename": "AnimatorInspector.cs",
+      "meta_guid": "ffdecd499e1c44b3ba000a83a28903df",
+      "summary": {
+        "class": "AnimatorInspector",
+        "base": "OdinEditor"
+      }
+    },
+    {
+      "filename": "CreateCustomAssetWindow.cs",
+      "meta_guid": "cdbf2b6e4335545d3ba3a3763745d815",
+      "summary": {
+        "class": "CreateCustomAssetWindow",
+        "base": "EditorWindow"
+      }
+    },
+    {
+      "filename": "EditStateAnimation.cs",
+      "meta_guid": "db2ed48600cd410ca5fb9fb10ad9ad8f",
+      "summary": {
+        "class": "RCGMaker.Editor.ExtendedHotkeys",
+        "base": "ScriptableObject"
+      }
+    },
+    {
+      "filename": "MenuWrapper.cs",
+      "meta_guid": "80f2270c341f4d57b94b7d9bea853f73",
+      "summary": {
+        "class": "RCGMaker.Editor.MenuWrapper",
+        "base": "NonPublicClassWrapper"
+      }
+    },
+    {
+      "filename": "ReflectionUtility.cs",
+      "meta_guid": "b4466302fe2e4b99944f47cce5fccdc3",
+      "summary": {
+        "class": "RCGMaker.Editor.ReflectionUtil"
+      }
+    },
+    {
+      "filename": "UnityEditorWrapper.cs",
+      "meta_guid": "5764e889fd2144b3b1d9ecc18701ea1e",
+      "summary": {
+        "class": "RCGMaker.Editor.UnityEditorAssembly"
+      }
+    }
+  ],
+  "ViewWindow": {
+    "Editor": {
+      "Folder": [
+        {
+          "filename": "FolderWindow.cs",
+          "meta_guid": "ba554b4f4e0848d4a670b16da48c4497",
+          "summary": {
+            "class": "FolderWindow",
+            "base": "OdinEditorWindow"
+          }
+        },
+        {
+          "filename": "ProjectLabel.cs",
+          "meta_guid": "d37b8f9a536d4e6880edf0b38c918e02",
+          "summary": {
+            "class": "FavouritesEd.Folder.ProjectLabel",
+            "base": "VisualElement"
+          }
+        }
+      ],
+      "files": [
+        {
+          "filename": "CloseWindow.cs",
+          "meta_guid": "bc8a53e5c8ab47829d03573f25f14938",
+          "summary": {
+            "class": "EditorCloseWindowTab",
+            "base": "EditorWindow"
+          }
+        },
+        {
+          "filename": "DraggableLabel.cs",
+          "meta_guid": "3a94816903784e3d805e4b8e4dd0c588",
+          "summary": {
+            "class": "DraggableLabel",
+            "base": "Label"
+          }
+        },
+        {
+          "filename": "FilterSearchUtility.cs",
+          "meta_guid": "5afde321da7d4048880e8b307683e008",
+          "summary": {
+            "class": "RCGMaker.Core.Editor.FilterSearchUtility"
+          }
+        },
+        {
+          "filename": "IconUtility.cs",
+          "meta_guid": "5dec02a36f6846a7961d7800ea8d6c1d",
+          "summary": {
+            "class": "EditorIconUtility"
+          }
+        },
+        {
+          "filename": "MonoNodeWindow.cs",
+          "meta_guid": "908aaed7b11e449f3b374861858862dd",
+          "summary": {
+            "class": "RCGMaker.Core.Editor.MonoNodeManager"
+          }
+        },
+        {
+          "filename": "ReferenceWindow.cs",
+          "meta_guid": "ec1a864e9a7b4b098a23eee34b77c455",
+          "summary": {
+            "class": "Reference.ReferenceWindow",
+            "base": "OdinEditorWindow"
+          }
+        }
+      ]
+    },
+    "HierarchyTab": [
+      {
+        "filename": "FindToolbarSearchField.cs",
+        "meta_guid": "9e7cd5a5a5ad408bb3497ac20078ce15",
+        "summary": {
+          "class": "RCGMakerFSMCore.Editor.ViewWindow.HierarchyTab.FindToolbarSearchField",
+          "base": "ToolbarSearchField"
+        }
+      },
+      {
+        "filename": "TreeViewWindow.cs",
+        "meta_guid": "50c7680d9a2f41b2848d4f6703aea445",
+        "summary": {
+          "class": "RCGMaker.Core.Editor.TreeViewWindow",
+          "base": "OdinEditorWindow"
+        }
+      },
+      {
+        "filename": "WrappedEvent.cs",
+        "meta_guid": "93108e6e67764f6b9f0b0a67fba98759",
+        "summary": {
+          "class": "RCGMaker.Editor.WrappedEvent"
+        }
+      },
+      {
+        "filename": "WrapperUtil.cs",
+        "meta_guid": "feba2fedb1fa4bff8d5d32120b352e2f",
+        "summary": {
+          "class": "RCGMaker.Core.Editor.WrapperUtil"
+        }
+      }
+    ]
+  }
+}

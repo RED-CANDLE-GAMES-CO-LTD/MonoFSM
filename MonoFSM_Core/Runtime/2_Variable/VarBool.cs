@@ -29,10 +29,10 @@ namespace MonoFSM.Variable
     /// - IBoolProvider: Provides boolean value accessor
     /// - IRebindable: Supports runtime rebinding of data sources
     /// </remarks>
-    public class VarBool : GenericMonoVariable<ScriptableDataBool, FlagFieldBool, bool>, ICondition,
+    public class VarBool : GenericMonoVariable<GameDataBool, FlagFieldBool, bool>, ICondition,
         IBoolProvider, IRebindable, IDrawDetail, IOverrideHierarchyIcon
     {
-        public override ScriptableDataBool BindData => _bindData;
+        public override GameDataBool BindData => _bindData;
 
         [ShowInPlayMode]
         public bool FlagValue

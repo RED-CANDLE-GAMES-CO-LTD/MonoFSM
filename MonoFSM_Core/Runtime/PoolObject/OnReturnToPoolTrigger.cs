@@ -1,3 +1,4 @@
+using MonoFSM_Core.Runtime.Action;
 using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Events;
@@ -19,7 +20,7 @@ namespace RCGMaker.Runtime
         {
         }
 
-        public void PoolOnPrepared(global::PoolObject poolObj)
+        public void PoolOnPrepared(PoolObject poolObj)
         {
         }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MonoFSM_Core.Runtime.Action;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -35,20 +36,14 @@ namespace RCGFSM.Animation
         private IEnumerable<string> GetParameterNames()
         {
             var parameters = animator.parameters;
-            foreach (var parameter in parameters)
-            {
-                yield return parameter.name;
-            }
+            foreach (var parameter in parameters) yield return parameter.name;
         }
 
-        void SetValue()
+        private void SetValue()
         {
             if (floatValueSource != null)
-            {
                 animator.SetFloat(ParameterName, floatValueSource.FinalValue);
-            }
             else
-            {
                 switch (valueType)
                 {
                     case ValueType.Bool:
@@ -61,7 +56,6 @@ namespace RCGFSM.Animation
                         animator.SetInteger(ParameterName, intValue);
                         break;
                 }
-            }
         }
 
         protected override void OnStateEnterImplement()
@@ -71,10 +65,7 @@ namespace RCGFSM.Animation
 
         protected override void OnStateUpdateImplement()
         {
-            if (IsUpdateSet)
-            {
-                SetValue();
-            }
+            if (IsUpdateSet) SetValue();
         }
     }
 }

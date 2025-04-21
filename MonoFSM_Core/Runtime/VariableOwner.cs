@@ -8,18 +8,16 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine
     {
         //FIXME: 可能有多個？ multiple folder
         [Component] [PreviewInInspector] [AutoChildren]
-        RCGVariableFolder _variableFolder;
+        private VariableFolder _variableFolder;
 
-        public RCGVariableFolder VariableFolder
+        public VariableFolder VariableFolder
         {
             get
             {
 #if UNITY_EDITOR
                 if (Application.isPlaying == false && _variableFolder == null)
-                {
-                    _variableFolder = GetComponentInChildren<RCGVariableFolder>();
-                    // Debug.Log("VariableFolder is null, try to find it in children", this);
-                }
+                    _variableFolder = GetComponentInChildren<VariableFolder>();
+                // Debug.Log("VariableFolder is null, try to find it in children", this);
 #endif
                 return _variableFolder;
             }

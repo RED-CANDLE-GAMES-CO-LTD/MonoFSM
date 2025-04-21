@@ -13,7 +13,7 @@ public abstract class AbstractFolder : MonoBehaviour
     public bool IsDrawingIcon => true;
 }
 
-public class RCGVariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
+public class VariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
 {
     protected override bool IsStringDictEnable => true;
     // [ReadOnly] [Component( AddComponentAt.Children, "[Variable]")]
@@ -49,12 +49,9 @@ public class RCGVariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
     public void CommitVariableValues()
     {
         // var variables = GetComponentsInChildren<AbstractVariable>(true);
-        foreach (var variable in _variables)
-        {
-            variable.CommitValue();
-        }
+        foreach (var variable in _variables) variable.CommitValue();
     }
-    
+
     // [PreviewInInspector]
     [PreviewInInspector] [Component] [AutoChildren]
     private ISettable[] _variables = Array.Empty<ISettable>();

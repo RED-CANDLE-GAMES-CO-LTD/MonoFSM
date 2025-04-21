@@ -1,3 +1,4 @@
+using MonoFSM_Core.Runtime.Action;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -12,7 +13,8 @@ namespace RCGFSM.Transition
     public class StateUpdateTransitionAction : AbstractStateAction, ITransitionCheckInvoker
     {
         //FIXME: array?
-        [PreviewInInspector] [Auto] StateTransition validTransition;
+        [PreviewInInspector] [Auto] private StateTransition validTransition;
+
         protected override void OnStateEnterImplement()
         {
             // Debug.Log("Action State 'Enter' Implement", gameObject);
@@ -37,11 +39,8 @@ namespace RCGFSM.Transition
             // Debug.Log("Action State 'Update' Implement", gameObject);
             if (validTransition == null)
                 return;
-            
-            validTransition.IsTransitionCheckNeeded = true;
-            
-        }
 
-     
+            validTransition.IsTransitionCheckNeeded = true;
+        }
     }
 }

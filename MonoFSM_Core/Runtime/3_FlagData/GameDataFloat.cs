@@ -3,21 +3,18 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 [Serializable]
-public class DataFloatModifyEntry : DataModifyEntry<ScriptableDataBool, FlagFieldBool, bool>
+public class DataFloatModifyEntry : DataModifyEntry<GameDataBool, FlagFieldBool, bool>
 {
 }
+
 [CreateAssetMenu(fileName = "NewFloatFlag", menuName = "GameFlag/Float", order = 1)]
-public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
+public class GameDataFloat : AbstractScriptableData<FlagFieldFloat, float>
 {
-    [InlineEditor()]
-    [SerializeField]
-    StatData MaxStat;
+    [InlineEditor] [SerializeField] private StatData MaxStat;
 
-    [ShowInInspector]
-    public float MaxValue => MaxStat ? MaxStat.Value : 99999;
+    [ShowInInspector] public float MaxValue => MaxStat ? MaxStat.Value : 99999;
 
-    [Header("過多會傳到這裡存起來")]
-    public ScriptableDataFloat ExternalRepository;
+    [Header("過多會傳到這裡存起來")] public GameDataFloat ExternalRepository;
 
     public void RestoreFromRepository()
     {
@@ -31,8 +28,8 @@ public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
             CurrentValue += toFull;
         }
     }
-    
-    const float minValue = 0;
+
+    private const float minValue = 0;
     // [InlineEditor()]
     // [SerializeField] private StatData AddValuePerMinute;
     // [InlineEditor()]
@@ -42,6 +39,7 @@ public class ScriptableDataFloat : AbstractScriptableData<FlagFieldFloat, float>
 
     public int ValueInt => (int)CurrentValue;
     public float Value => CurrentValue;
+
     public override float CurrentValue
     {
         get => base.CurrentValue;

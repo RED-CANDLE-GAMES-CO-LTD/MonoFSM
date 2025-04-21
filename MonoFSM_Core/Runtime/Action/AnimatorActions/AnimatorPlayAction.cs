@@ -6,6 +6,7 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
+using MonoFSM_Core.Runtime.Action;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;

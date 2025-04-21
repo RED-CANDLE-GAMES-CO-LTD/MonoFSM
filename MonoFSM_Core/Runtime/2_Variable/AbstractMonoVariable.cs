@@ -34,7 +34,7 @@ namespace MonoFSM.Variable
             _varTag._valueFilterType.SetType(ValueType);
             // Debug.Log("Tag Changed");
             //variable folder refresh
-            var variableFolder = GetComponentInParent<RCGVariableFolder>();
+            var variableFolder = GetComponentInParent<VariableFolder>();
             if (variableFolder)
                 variableFolder.Refresh();
 #if UNITY_EDITOR

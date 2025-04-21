@@ -1,4 +1,5 @@
 using System;
+using MonoFSM_Core.Runtime.Action;
 using Sirenix.OdinInspector;
 
 namespace RCGMaker.Runtime.Vote
@@ -46,7 +47,7 @@ namespace RCGMaker.Runtime.Vote
                 _voteVar.Vote.Revoke(this);
         }
 
-        bool _isPrepared = false;
+        private bool _isPrepared = false;
 
         public void ResetStateRestore()
         {

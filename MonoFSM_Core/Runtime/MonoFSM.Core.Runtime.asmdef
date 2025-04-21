@@ -1,0 +1,26 @@
+{
+  "name": "MonoFSM.Core.Runtime",
+  "rootNamespace": "",
+  "references": [
+    "GUID:c2f440c9fef6c8c40ac5c50eea18c599",
+    "GUID:5a99140e5b7ff4b43aa1f06887b3637d",
+    "GUID:f51ebe6a0ceec4240a699833d6309b23",
+    "GUID:33661e06c33d31b4c9223810bf503247",
+    "GUID:678282a48c1694e8eb9d6ffb51ff91a8",
+    "GUID:49818357e697641afb75d2f8acaf1861",
+    "GUID:80ecb87cae9c44d19824e70ea7229748",
+    "GUID:9e24947de15b9834991c9d8411ea37cf",
+    "GUID:69448af7b92c7f342b298e06a37122aa",
+    "GUID:84651a3751eca9349aac36a66bba901b",
+    "GUID:8bff5c03563749edb926ea99b5e4dea2"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

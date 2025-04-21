@@ -1,3 +1,5 @@
+using MonoFSM_Core.Runtime.Action;
+
 namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action.EffectAction
 {
     //FIXME: 重做FXPlayer

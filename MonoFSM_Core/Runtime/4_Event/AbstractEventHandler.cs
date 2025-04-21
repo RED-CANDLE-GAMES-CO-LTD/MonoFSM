@@ -1,3 +1,4 @@
+using MonoFSM_Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
 
@@ -22,8 +23,7 @@ namespace MonoFSM.Core
     /// <seealso cref="IActionParent"/>
     public abstract class AbstractEventHandler : MonoBehaviour, IActionParent
     {
-        [CompRef]
-        [AutoChildren(DepthOneOnly = true)]
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
         protected IEventReceiver[] _eventReceivers;
 
         /// <summary>

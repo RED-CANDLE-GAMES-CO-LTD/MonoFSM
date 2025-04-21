@@ -3,6 +3,7 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable
 {
+    //FIXME: obsolete?
     public class VirtualBool : VarBool
     {
         [FormerlySerializedAs("bindedVariable")]
