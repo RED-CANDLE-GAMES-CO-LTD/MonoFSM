@@ -2,12 +2,14 @@
     "name": "MonoFSM.Test.Runtime",
     "rootNamespace": "",
     "references": [
-        "GUID:2ce824e5d56f8495cb762ccff02f283b",
         "GUID:27619889b8ba8c24980f49ee34dbb44a",
+        "GUID:0acc523941302664db1f4e527237feb3",
         "GUID:c2f440c9fef6c8c40ac5c50eea18c599",
-        "GUID:0acc523941302664db1f4e527237feb3"
+        "GUID:2ce824e5d56f8495cb762ccff02f283b"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

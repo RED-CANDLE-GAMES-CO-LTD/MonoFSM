@@ -93,9 +93,9 @@ namespace RCGMaker.Runtime.Interact.EffectHit
                 }
             }
 
-            var id = UnityEditor.GlobalObjectId.GetGlobalObjectIdSlow(r);
-
-            this.Log("HitReceiver Success:", r.GetGlobalId());
+#if UNITY_EDITOR
+            this.Log("HitReceiver Success:", r.GetGlobalId()); 
+#endif
             Debug.Log("HitReceiver Success:", r);
             return true;
         }

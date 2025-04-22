@@ -1,7 +1,5 @@
-// using QFSW.QC;
-
 using System.Collections.Generic;
-// using QFSW.QC;
+
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -13,9 +11,6 @@ namespace RCGSetting
 #if UNITY_EDITOR
     [InitializeOnLoad]
 #endif
-    
-  
-    
     public static class DebugSetting
     {
         
@@ -227,9 +222,12 @@ get => false;
         
         public static bool IsDebugMode
         {
-            // get => false;
             //FIXME: 怎麼從這邊拿...
-            get =>  RCGDebugSetting.IsDebugMode;
+#if UNITY_EDITOR
+            get => RCGDebugSetting.IsDebugMode;
+#else
+            get => false;
+#endif
 //             //為什麼之前要註解掉editor if?
 //             
 // #if RCG_DEV

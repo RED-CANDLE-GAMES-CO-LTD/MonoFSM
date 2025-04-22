@@ -21,7 +21,14 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
         [BoxGroup("定義型別")]
         [PropertyOrder(-1)]
         [PreviewInInspector]
-        public DescriptableData SampleData => _MonoDescriptableTag ? _MonoDescriptableTag.SamepleData : null;
+        public DescriptableData SampleData 
+#if UNITY_EDITOR
+            => _MonoDescriptableTag 
+                ? _MonoDescriptableTag.SamepleData 
+                : null;
+#else
+            => null;
+#endif
 
         //FIXME: 要用T? VarComponent?
 

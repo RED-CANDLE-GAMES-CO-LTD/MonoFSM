@@ -1,8 +1,8 @@
 #if UNITY_EDITOR
-using UnityEditor;
-#endif
 using System;
+
 using UnityEngine;
+using UnityEditor;
 
 namespace RCGMaker.Core
 {
@@ -36,3 +36,4 @@ namespace RCGMaker.Core
         }
     }
 }
+#endif

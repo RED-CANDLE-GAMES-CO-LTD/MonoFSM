@@ -125,8 +125,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     //給非Auto的人看的，要綁，Auto自己就會生，就結束了
 
     [FormerlySerializedAs("scriptableData")]
-    [InlineButton(nameof(GenData), "Auto Gen Fix", ShowIf = nameof(IsGenDataRequired))]
-    [InfoBox("需要綁GameState!", InfoMessageType.Error, nameof(IsGameStateRequiredButMissing))]
+    
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
     // [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
     [TabGroup("Data")]
@@ -134,8 +133,12 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [GameState]
     [InlineEditor]
     [EnableIf(nameof(PrefabKindMatchTagCheck))]
+#if  UNITY_EDITOR
     [InfoBox("SaveID不一致, 清掉重綁", InfoMessageType.Error, nameof(IsGameStateSaveIDNotMatch))]
     [InfoBox("GameState的類型不對", InfoMessageType.Error, nameof(IsGameStateTypeNotMatch))]
+    [InfoBox("需要綁GameState!", InfoMessageType.Error, nameof(IsGameStateRequiredButMissing))]
+    [InlineButton(nameof(GenData), "Auto Gen Fix", ShowIf = nameof(IsGenDataRequired))]
+#endif
     // [ValidateInput("AutoGenCheck", "自動生成檢查失敗")]
     public TScriptableData _bindData;
 
@@ -148,8 +151,6 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         return autoComp.SaveID != _bindData.GetSaveID;
         // Debug.LogError("SaveID不一致", this);
     }
-#endif
-
 
     // <summary> 用來檢查是否有auto gen, 但是type不對 </summary>
     private bool IsGameStateTypeNotMatch()
@@ -170,7 +171,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
         return false;
     }
-
+#endif
 
     public virtual TScriptableData BindData => _bindData; //FIXME:
 
@@ -395,6 +396,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 // #endif
 //     }
 
+#if UNITY_EDITOR
     private bool IsGenDataRequired()
     {
         if (IsAutoGen)
@@ -406,7 +408,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
         return IsGameStateSaveIDNotMatch();
     }
-
+#endif
 
     // public override GameFlagBase FinalData => ScriptableData ? ScriptableData : Sampledata;
     // [TabGroup("再說")] public GameFlagBase mainData;

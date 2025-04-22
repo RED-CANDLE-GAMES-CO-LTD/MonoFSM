@@ -59,7 +59,11 @@ namespace RCGMaker.Core.DataProvider
 
                 var monoDescriptable = GetMonoDescriptable();
                 if (monoDescriptable == null) return null;
+#if UNITY_EDITOR
                 return monoDescriptable.Key?.SamepleData;
+#else
+                return null;
+#endif
             }
         }
 
