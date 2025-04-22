@@ -1,4 +1,4 @@
 namespace MonoFSM.Core
 {
-    public class OnStateExitHandler : AbstractEventHandler { }
+    public class OnStateExitHandler : AbstractEventHandler {}
 }

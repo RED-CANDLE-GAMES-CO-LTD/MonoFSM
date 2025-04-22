@@ -6,9 +6,10 @@ using Random = UnityEngine.Random;
 namespace RCGFSM.AnimatorControl
 {
     //想要隨機抽一個動畫來播，用位置來決定random seed
+    //Config Setter...
+    //Animator誰觸發啊？
     public class AnimatorRandomStateModule : AnimatorPlayActionModule, ISceneSavingCallbackReceiver
     {
-
         private void OnValidate()
         {
             RandomAssignStateFromPosition();
@@ -19,7 +20,7 @@ namespace RCGFSM.AnimatorControl
         private void RandomAssignStateFromPosition()
         {
 #if UNITY_EDITOR
-            var names = animatorPlayAction.GetAnimatorStateNames();
+            var names = _animatorPlayAction.GetAnimatorStateNames();
             if (names == null)
                 return;
 
@@ -28,8 +29,8 @@ namespace RCGFSM.AnimatorControl
 
             var enumerable = names.ToList();
             var index = Random.Range(0, enumerable.Count());
-            animatorPlayAction.stateName = enumerable.ElementAt(index);
-            #endif
+            _animatorPlayAction.stateName = enumerable.ElementAt(index);
+#endif
         }
 
         public void OnBeforeSceneSave()

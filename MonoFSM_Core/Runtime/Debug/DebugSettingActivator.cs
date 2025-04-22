@@ -7,6 +7,10 @@ using UnityEngine.Serialization;
 
 namespace RCGSetting
 {
+    /// <summary>
+    /// 應該用ConditionActivator配合IsDebugModeCondition?
+    /// </summary>
+    [Obsolete]
     public class DebugSettingActivator : MonoBehaviour, IResetter
     {
         public GameObject ChildNode;

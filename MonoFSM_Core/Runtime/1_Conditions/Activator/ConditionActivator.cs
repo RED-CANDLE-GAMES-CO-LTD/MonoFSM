@@ -1,4 +1,5 @@
 using MonoFSM.Condition;
+using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -13,10 +14,12 @@ namespace RCGMaker.Core
     //放在下面？
     public class ConditionActivator : MonoBehaviour, IUIBehavior, ISelfValidator, IResetter, IConditionChangeListener
     {
-        [Title("自動檢查條件，決定開關節點")] [PreviewInInspector] [AutoChildren]
+        [Title("自動檢查條件，決定開關節點")]
+        [CompRef]
+        [AutoChildren]
         private AbstractConditionComp[] conditions;
 
-        [ReadOnly] [ShowInPlayMode] private bool IsActivate => conditions.IsAllValid();
+        [ReadOnly][ShowInPlayMode] private bool IsActivate => conditions.IsAllValid();
 
         //[]: 要有蠻多時間點的，updateView就要做？
         //[]: 操作後也需要，牽涉狀態改變？
@@ -27,6 +30,9 @@ namespace RCGMaker.Core
 
         public void EnableCheck()
         {
+            //FIXME: 可以是不同side effect類型嗎？
+            //需要包一個proxy嗎？
+            //check if gameObject is control by animation or state?
             if (IsActivate)
                 // Debug.Log("IAdditionalChecker pass active true", gameObject);
                 gameObject.SetActive(true);
@@ -51,10 +57,10 @@ namespace RCGMaker.Core
         }
 
         //update check?
-        public void Update() //關起來就不會update了...
-        {
-            EnableCheck();
-        }
+        // public void Update() //關起來就不會update了...
+        // {
+        //     EnableCheck();
+        // }
 
         /// <summary>
         /// Condition改變時自動檢查條件
