@@ -1,14 +1,11 @@
-
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using RCGMaker.Core.Attributes;
+
 using UnityEngine;
 using UnityEngine.Profiling;
-using Object = System.Object;
+
+using RCGMaker.Core.Attributes;
 
 namespace RCGMaker.Core
 {
@@ -34,16 +31,13 @@ namespace RCGMaker.Core
             return fsm;
         }
 
-        private void OnEnable()
-        {
-            StateMachineManager.Instance.Register(this);
-        }
+        private void OnEnable() 
+            => StateMachineManager.Instance.Register(this);
 
         private void OnDisable()
         {
             if (StateMachineManager.IsAvailable())
                 StateMachineManager.Instance.Unregister(this);
-            
         }
 
         private void OnDestroy()
@@ -96,14 +90,7 @@ namespace RCGMaker.Core
                 if (!fsm.IsInTransition && fsm.Component.enabled)
                 {
                     fsm.CurrentStateMap.Update();
-
-#if UNITY_EDITOR
-                    // if (showCurrentState)
-                    //     currentState = fsm.CurrentStateMap.state.ToString();
-#endif
                 }
-
-
             }
 
             Profiler.EndSample();
@@ -117,7 +104,6 @@ namespace RCGMaker.Core
                 if (!fsm.IsInTransition && fsm.Component.enabled)
                 {
                     fsm.CurrentStateMap.SpriteUpdate();
-                    // fsm.CurrentStateMap.LateUpdate();
                 }
             }
 
@@ -125,20 +111,15 @@ namespace RCGMaker.Core
             {
                 Debug.LogError("No owner found",this);
             }
-            //late update 之後才能更新
-            owner.VariableFolder.CommitVariableValues();
+            else
+            {
+                //late update 之後才能更新
+                owner.VariableFolder.CommitVariableValues(); 
+            }
         }
         
         [PreviewInInspector]
         [AutoParent] StateMachineOwner owner;
-
-        //void OnCollisionEnter(Collision collision)
-        //{
-        //	if(currentState != null && !IsInTransition)
-        //	{
-        //		currentState.OnCollisionEnter(collision);
-        //	}
-        //}
 
         public static void DoNothing()
         {
