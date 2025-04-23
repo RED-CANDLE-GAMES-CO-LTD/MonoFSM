@@ -116,17 +116,17 @@ namespace EditorTool
             AssetDatabase.SaveAssets();
         }
 
-        [MenuItem("RCGs/檢查prewarm的Prefab有綁到Reference #_P")] //Shift + P
-        private static void AutoBindForAllPrefabs()
-        {
-            if (Application.isPlaying)
-                return;
-            // var prewarmData = Object.FindObjectOfType<PoolPrewarmData>();
-            // if (prewarmData != null)
-            // {
-            //     PoolObjectUtility.AutoBindForAllPrefabs(prewarmData);
-            // }
-        }
+        // [MenuItem("RCGs/檢查prewarm的Prefab有綁到Reference #_P")] //Shift + P
+        // private static void AutoBindForAllPrefabs()
+        // {
+        //     if (Application.isPlaying)
+        //         return;
+        //     // var prewarmData = Object.FindObjectOfType<PoolPrewarmData>();
+        //     // if (prewarmData != null)
+        //     // {
+        //     //     PoolObjectUtility.AutoBindForAllPrefabs(prewarmData);
+        //     // }
+        // }
 
         private static void OnPrefabSaving(GameObject prefab)
         {

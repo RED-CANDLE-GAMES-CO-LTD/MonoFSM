@@ -1,16 +1,21 @@
 using System;
 using UnityEngine;
 
-namespace RCGMakerFSMCore.Runtime.Localization
+namespace MonoFSM.Localization
 {
+    //介面怎麼呈現？先照著i2的規格？和i2的bridge還要放在package外
+    /// <summary>
+    /// 
+    /// </summary>
     [Serializable]
     public struct LocalizedString
     {
         [SerializeField] private string termKey;
-        [SerializeField] private bool ignoreRTLFix;
-        [SerializeField] private int maxRTLLineLength;
-        [SerializeField] private bool convertRTLNumbers;
-        [SerializeField] private bool dontLocalizeParameters;
+
+        // [SerializeField] private bool ignoreRTLFix;
+        // [SerializeField] private int maxRTLLineLength;
+        // [SerializeField] private bool convertRTLNumbers;
+        // [SerializeField] private bool dontLocalizeParameters;
         [SerializeField] private string fallbackText;
 
         // Static accessor for the localization manager (set via DI)
@@ -40,19 +45,19 @@ namespace RCGMakerFSMCore.Runtime.Localization
         {
             termKey = key;
             fallbackText = fallback;
-            ignoreRTLFix = false;
-            maxRTLLineLength = 0;
-            convertRTLNumbers = true;
-            dontLocalizeParameters = false;
+            // ignoreRTLFix = false;
+            // maxRTLLineLength = 0;
+            // convertRTLNumbers = true;
+            // dontLocalizeParameters = false;
         }
 
         public LocalizedString(LocalizedString other)
         {
             termKey = other.termKey;
-            ignoreRTLFix = other.ignoreRTLFix;
-            maxRTLLineLength = other.maxRTLLineLength;
-            convertRTLNumbers = other.convertRTLNumbers;
-            dontLocalizeParameters = other.dontLocalizeParameters;
+            // ignoreRTLFix = other.ignoreRTLFix;
+            // maxRTLLineLength = other.maxRTLLineLength;
+            // convertRTLNumbers = other.convertRTLNumbers;
+            // dontLocalizeParameters = other.dontLocalizeParameters;
             fallbackText = other.fallbackText;
         }
 
@@ -61,27 +66,36 @@ namespace RCGMakerFSMCore.Runtime.Localization
             if (string.IsNullOrEmpty(termKey) || termKey == "-")
                 return fallbackText;
 
+
             if (_localizationManager == null)
             {
                 Debug.LogWarning("LocalizationManager not set. Returning fallback text.");
                 return fallbackText;
             }
 
-            string translation = _localizationManager.GetTranslation(
-                termKey,
-                rtlFix: !ignoreRTLFix,
-                maxLineLength: maxRTLLineLength,
-                convertNumbers: !convertRTLNumbers
+            // var translation = _localizationManager.GetTranslation(
+            //     termKey,
+            //     !ignoreRTLFix,
+            //     maxRTLLineLength,
+            //     !convertRTLNumbers
+            // );
+            var translation = _localizationManager.GetTranslation(
+                termKey
+                // !ignoreRTLFix,
+                // maxRTLLineLength,
+                // !convertRTLNumbers
             );
+
 
             if (string.IsNullOrEmpty(translation))
                 return fallbackText;
 
-            if (!dontLocalizeParameters)
-                translation = _localizationManager.ApplyLocalizationParams(translation);
-
-            if (translation.Contains("$blank"))
+            if (translation.Contains("$blank")) //刻意留空
                 return "";
+
+            // if (!dontLocalizeParameters)
+            //     translation = _localizationManager.ApplyLocalizationParams(translation);
+
 
             return translation;
         }

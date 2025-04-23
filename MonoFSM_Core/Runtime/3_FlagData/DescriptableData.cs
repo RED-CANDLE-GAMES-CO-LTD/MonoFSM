@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using MonoFSM.Localization;
 // using I2.Loc;
 // using mixpanel;
 using RCGMaker.AddressableAssets;
@@ -9,7 +10,6 @@ using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
 using RCGMaker.Runtime.Item_BuildSystem;
 using RCGMaker.Runtime.Mono;
-using RCGMakerFSMCore.Runtime.Localization;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -179,7 +179,7 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
         return dropdownList;
     }
 
-    public static ValueDropdownList<string> GetProperties(List<System.Type> supportedTypes, DescriptableData sampleData)
+    public static ValueDropdownList<string> GetProperties(List<Type> supportedTypes, DescriptableData sampleData)
     {
         // AppDomain.CurrentDomain.GetAssemblies().
         var type = sampleData.GetType();
@@ -204,7 +204,7 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
 
     [BoxGroup("CopyFrom")]
     [Button]
-    void CopyFrom()
+    private void CopyFrom()
     {
         var source = toCopySource;
         Undo.RegisterCompleteObjectUndo(this, "CopyValue");
@@ -264,9 +264,9 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
 
     [SerializeField] [TextArea(2, 10)]
     // [HideInInspector]
-    string description;
+    private string description;
 
-    string summary;
+    private string summary;
 
 
     public virtual string ItemType => typeStr;
@@ -274,9 +274,9 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
     [PreviewInInspector] public virtual string Title => titleStr.ToString();
 
     public virtual string Description =>
-        descriptionStr.ToString().Length > 0 ? descriptionStr.ToString() : this.description;
+        descriptionStr.ToString().Length > 0 ? descriptionStr.ToString() : description;
 
-    public virtual string Summary => summaryStr.ToString().Length > 0 ? summaryStr.ToString() : this.summary;
+    public virtual string Summary => summaryStr.ToString().Length > 0 ? summaryStr.ToString() : summary;
 
     // [DisableIf("@true")]
     // [SerializeField]
@@ -324,10 +324,7 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
         {
             //沒有image, 單純load圖
             var result = await rcgAssetRef.GetAssetAsync<Sprite>();
-            if (result == null)
-            {
-                Debug.LogError("AssignToUIImage: rcgAssetRef = null", this);
-            }
+            if (result == null) Debug.LogError("AssignToUIImage: rcgAssetRef = null", this);
 
             return;
         }
@@ -338,10 +335,8 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
         {
             var newSprite = rcgAssetRef.GetAsset<Sprite>();
             if (image.sprite == newSprite)
-            {
                 // Debug.Log("AssignToUIImage loaded same" + rcgAssetRef, this);
                 return;
-            }
 
             image.color = loadedColor == default ? Color.white : loadedColor;
             // Debug.Log("AssignToUIImage already loaded:" + rcgAssetRef, this);
