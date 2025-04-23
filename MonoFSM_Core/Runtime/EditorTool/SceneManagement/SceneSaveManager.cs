@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System;
 using Cysharp.Threading.Tasks;
-using RCGInternal.BuildConfig;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
@@ -35,35 +34,35 @@ namespace EditorTool
             PrefabStage.prefabSaving += OnPrefabSaving;
         }
 
-        public static async UniTask ScanSceneAndBuildCache(RCGBuildConfig config, bool isTinyBuild = false)
-        {
-            var i = 0;
-            foreach (var sceneSetting in config.BuildScenes)
-            {
-                if (isTinyBuild && sceneSetting.IncludeInTinyBuild == false)
-                    continue;
-                i++;
-                await ScanScene(sceneSetting.SceneName, (float)i / config.BuildScenes.Count);
-            }
-
-            EditorUtility.ClearProgressBar();
-            AssetDatabase.SaveAssets();
-        }
-
-        public static async UniTask ScanSceneOfAreaInBuildConfig(RCGBuildConfig config, string areaName)
-        {
-            var validScenes = config.BuildScenes.FindAll(sceneSetting => FilterArea(areaName, sceneSetting.SceneName));
-            Debug.Log("Valid Scenes: " + areaName + " ,Count:" + validScenes.Count);
-            var i = 0;
-            foreach (var sceneSetting in validScenes)
-            {
-                i++;
-                await ScanScene(sceneSetting.SceneName, (float)i / validScenes.Count);
-            }
-
-            EditorUtility.ClearProgressBar();
-            AssetDatabase.SaveAssets();
-        }
+        // public static async UniTask ScanSceneAndBuildCache(RCGBuildConfig config, bool isTinyBuild = false)
+        // {
+        //     var i = 0;
+        //     foreach (var sceneSetting in config.BuildScenes)
+        //     {
+        //         if (isTinyBuild && sceneSetting.IncludeInTinyBuild == false)
+        //             continue;
+        //         i++;
+        //         await ScanScene(sceneSetting.SceneName, (float)i / config.BuildScenes.Count);
+        //     }
+        //
+        //     EditorUtility.ClearProgressBar();
+        //     AssetDatabase.SaveAssets();
+        // }
+        //
+        // public static async UniTask ScanSceneOfAreaInBuildConfig(RCGBuildConfig config, string areaName)
+        // {
+        //     var validScenes = config.BuildScenes.FindAll(sceneSetting => FilterArea(areaName, sceneSetting.SceneName));
+        //     Debug.Log("Valid Scenes: " + areaName + " ,Count:" + validScenes.Count);
+        //     var i = 0;
+        //     foreach (var sceneSetting in validScenes)
+        //     {
+        //         i++;
+        //         await ScanScene(sceneSetting.SceneName, (float)i / validScenes.Count);
+        //     }
+        //
+        //     EditorUtility.ClearProgressBar();
+        //     AssetDatabase.SaveAssets();
+        // }
 
 
         private static bool FilterArea(string areaName, string sceneName)
@@ -152,10 +151,9 @@ namespace EditorTool
             var rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
             foreach (var obj in rootGameObjects)
             {
-                IOnBuildSceneSavingCallbackReceiver[] receivers =
+                var receivers =
                     obj.GetComponentsInChildren<IOnBuildSceneSavingCallbackReceiver>(true);
                 foreach (var r in receivers)
-                {
                     try
                     {
                         r.OnBeforeBuildSceneSave();
@@ -163,7 +161,6 @@ namespace EditorTool
                     catch (Exception e)
                     {
                     }
-                }
             }
 
 
@@ -179,10 +176,7 @@ namespace EditorTool
         public static void StoreReferenceCacheOfScene()
         {
             var autoAttributeManager = Object.FindObjectOfType<AutoAttributeManager>();
-            if (autoAttributeManager != null)
-            {
-                autoAttributeManager.monoReferenceCache.SaveReferenceCache();
-            }
+            if (autoAttributeManager != null) autoAttributeManager.monoReferenceCache.SaveReferenceCache();
         }
 
         private static void FindSceneSavingAndProcess()
@@ -209,9 +203,7 @@ namespace EditorTool
                         i++;
                         if (EditorUtility.DisplayCancelableProgressBar("Scene Saving", "OnBeforeSceneSave" + i,
                                 (float)i / total))
-                        {
                             return;
-                        }
 
                         try
                         {
@@ -242,9 +234,7 @@ namespace EditorTool
                         i++;
                         if (EditorUtility.DisplayCancelableProgressBar("Scene Saving", "OnAfterSceneSave" + i,
                                 (float)i / total))
-                        {
                             return;
-                        }
 
                         try
                         {
