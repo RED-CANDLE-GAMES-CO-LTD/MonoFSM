@@ -10,6 +10,7 @@ public class MonoFSMCore_SceneProcess: IProcessSceneWithReport
     public int callbackOrder { get; }
     public void OnProcessScene(Scene scene, BuildReport report)
     {
+        Debug.Log("MonoFSMCore_SceneProcess_OnProcessScene");
         var buildProcesses = new List<IBeforeBuildProcess>();
         var rootobjs = scene.GetRootGameObjects();
 
