@@ -12,7 +12,15 @@ namespace MonoFSM.InternalBridge
 
     internal static class WindowDocker
     {
-        public static SceneHierarchyWindow GetSceneHierarchyWindow => (SceneHierarchyWindow)EditorWindow.GetWindow(typeof(SceneHierarchyWindow));
+        [MenuItem("Window/General/Maximize Game View %&#_2")]
+        public static void MaximizeGameView()
+        {
+            var gameView = EditorWindow.GetWindow<GameView>();
+            gameView.maximized = !gameView.maximized;
+        }
+
+        public static SceneHierarchyWindow GetSceneHierarchyWindow =>
+            (SceneHierarchyWindow)EditorWindow.GetWindow(typeof(SceneHierarchyWindow));
 
         public enum DockPosition
         {
@@ -24,22 +32,24 @@ namespace MonoFSM.InternalBridge
 
         private static Vector2 GetFakeMousePosition(EditorWindow wnd, DockPosition position)
         {
-            Vector2 mousePosition = Vector2.zero;
+            var mousePosition = Vector2.zero;
             var viewPos = wnd.position;
             // The 20 is required to make the docking work.
             // Smaller values might not work when faking the mouse position.
             var offset = 100;
-            switch(position)
+            switch (position)
             {
-                case DockPosition.Left: mousePosition = new Vector2(offset,viewPos.size.y / 2); break;
+                case DockPosition.Left: mousePosition = new Vector2(offset, viewPos.size.y / 2); break;
                 case DockPosition.Top: mousePosition = new Vector2(viewPos.size.x / 2, offset); break;
-                case DockPosition.Right: mousePosition = new Vector2(viewPos.size.x - offset, viewPos.size.y / 2); break;
-                case DockPosition.Bottom: mousePosition = new Vector2(viewPos.size.x / 2,viewPos.size.y - offset); break;
+                case DockPosition.Right:
+                    mousePosition = new Vector2(viewPos.size.x - offset, viewPos.size.y / 2); break;
+                case DockPosition.Bottom:
+                    mousePosition = new Vector2(viewPos.size.x / 2, viewPos.size.y - offset); break;
             }
 
             return new Vector2(viewPos.x + mousePosition.x, viewPos.y + mousePosition.y);
         }
-        
+
         /// <summary>
         /// Docks the second window to the first window as a tab
         /// </summary>
@@ -56,13 +66,12 @@ namespace MonoFSM.InternalBridge
             var mousePosition = GetFakeMousePosition(wnd, position);
             var dockArea = wnd.m_Parent as DockArea;
             var containerWindow = dockArea.window;
-            SplitView splitView = containerWindow.rootSplitView;
+            var splitView = containerWindow.rootSplitView;
             Debug.Log("Docking " + other + " to " + wnd + " at " + position);
             var dropInfo = splitView.DragOver(other, mousePosition);
             Debug.Log("DropInfo: " + dropInfo);
             DockArea.s_OriginalDragSource = (DockArea)other.m_Parent;
             splitView.PerformDrop(other, dropInfo, mousePosition);
-        
         }
         // public static void DockTo(this EditorWindow first, EditorWindow second, DockPosition position)
         // {
@@ -127,5 +136,4 @@ namespace MonoFSM.InternalBridge
         //     
         // }
     }
-    
 }
