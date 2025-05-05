@@ -5,7 +5,7 @@ using System.Linq;
 
 public class ReplaceSelectedWithPrefabTool
 {
-    [MenuItem("GameObject/關聯為 Prefab（儲存到 Prefabs 資料夾）", false, 10)]
+    [MenuItem("GameObject/Prefab/關聯為 Prefab（儲存到 Prefabs 資料夾）", false, 10)]
     static void ConvertSelectedToPrefab()
     {
         var selected = Selection.activeGameObject;
