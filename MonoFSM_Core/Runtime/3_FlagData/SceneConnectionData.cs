@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RCGMaker.Core;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -35,6 +36,7 @@ public class SceneConnectionData : ScriptableObject
 
        entry.sceneName = connection.gameObject.scene.name;
        entry.connectionPointPos = connection.transform.position;
+       this.SetDirty();
 #endif
     }
 
