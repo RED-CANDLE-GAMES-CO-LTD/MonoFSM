@@ -208,7 +208,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     }
 
     protected override string Description
-        => "=>" + _target.stateType.name.Replace("[State]", "");
+        => _target!=null&&_target.stateType!=null?"=>" + _target.stateType.name.Replace("[State]", ""):"";
 
     protected override string DescriptionTag
         => "Transition";
