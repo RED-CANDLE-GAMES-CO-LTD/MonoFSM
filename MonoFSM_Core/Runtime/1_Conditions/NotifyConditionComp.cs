@@ -1,4 +1,5 @@
 using MonoFSM.Condition;
+using RCGMaker.Core.Attributes;
 
 namespace MonoFSM.Condition
 {
@@ -10,6 +11,7 @@ namespace MonoFSM.Condition
         }
 
         //要能實作OnConditionChanged?
+        [PreviewInInspector]
         [AutoParent] protected IConditionChangeListener _parentConditionChangeListener;
 
         private void Register()

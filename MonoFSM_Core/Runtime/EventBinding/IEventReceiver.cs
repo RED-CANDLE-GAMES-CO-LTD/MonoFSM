@@ -11,6 +11,7 @@ public interface IEventReceiver : IAbstractEventReceiver //Data Receiver
     public void EventReceived();
 }
 
+//IArgEventListener?
 //EffectHitData會用有型別的
 public interface IArgEventReceiver<in T> : IEventReceiver //不行耶QQ，要Receiver也把Generic定義掉才行
 {

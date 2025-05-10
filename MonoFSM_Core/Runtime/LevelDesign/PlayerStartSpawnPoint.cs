@@ -1,9 +1,11 @@
+using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Variable.Attributes;
 using RCGMaker.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 //Editor Debug用
-public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess
+public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionParent,IResetStart
 {
     public Transform editorPlayerRef;
     public Transform oriSpawnRef;
@@ -18,12 +20,9 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess
             return;
         transform.position = oriSpawnRef.position;
     }
+    
 
-    private void Start()
-    {
-        _onPlayerSpawn.ArgEventReceived(transform.position);
-    }
-
+    [CompRef]
     [ShowInInspector] [AutoChildren] private IArgEventReceiver<Vector3> _onPlayerSpawn;
 
     [HideIf(nameof(oriSpawnRef))]
@@ -42,13 +41,15 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess
         ResetToOriPos();
     }
 
+    [SerializeField] Camera _camera;
     private void Update()
     {
         //Debug用，按`鍵，把player移到這個位置
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            Debug.Log("Alpha1 pRessed");
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            
+            var ray = _camera.ScreenPointToRay(Input.mousePosition);
+            Debug.Log("Alpha1 pRessed"+Input.mousePosition);
             if (Physics.Raycast(ray, out var hit)) _onPlayerSpawn.ArgEventReceived(hit.point);
 
             // var player = playerVar.Value;
@@ -62,5 +63,10 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess
     {
         // _onPlayerSpawn.EventReceived(arg);
         editorPlayerRef.position = arg;
+    }
+
+    public void ResetStart()
+    {
+        _onPlayerSpawn.ArgEventReceived(transform.position);
     }
 }

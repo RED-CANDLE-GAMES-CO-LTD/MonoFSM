@@ -81,22 +81,23 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
 //FIXME: 應該要先判這個嗎？
             //特殊的EffectCondition
-            foreach (var condition in _effectConditions)
-            {
-                var result = condition.IsEffectHitValid((GeneralEffectReceiver)receiver);
-                if (!result)
+            if(_effectConditions != null)
+                foreach (var condition in _effectConditions)
                 {
-                    var data = r.GenerateEffectHitData(this, receiver);
-                    OnEffectHitConditionFail(data);
-                    r.OnEffectHitConditionFail(data);
-                    return false;
+                    var result = condition.IsEffectHitValid((GeneralEffectReceiver)receiver);
+                    if (!result)
+                    {
+                        var data = r.GenerateEffectHitData(this, receiver);
+                        OnEffectHitConditionFail(data);
+                        r.OnEffectHitConditionFail(data);
+                        return false;
+                    }
                 }
-            }
 
 #if UNITY_EDITOR
             this.Log("HitReceiver Success:", r.GetGlobalId()); 
 #endif
-            Debug.Log("HitReceiver Success:", r);
+            // Debug.Log("HitReceiver Success:", r);
             return true;
         }
 

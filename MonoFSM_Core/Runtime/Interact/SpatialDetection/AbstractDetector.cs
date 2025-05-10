@@ -55,9 +55,9 @@ namespace RCGMaker.Core.Detection
 
         protected abstract void SetLayerOverride();
 
-        [PreviewInInspector] protected List<EffectDetectable> _detectedObjects = new();
+        [PreviewInInspector] protected HashSet<EffectDetectable> _detectedObjects = new();
 #if UNITY_EDITOR
-        [PreviewInInspector] protected List<EffectDetectable> _lastDetectedObjects = new();
+        [PreviewInInspector] protected HashSet<EffectDetectable> _lastDetectedObjects = new();
 
         [Button]
         private void ClearLastDetectedObjects()
@@ -74,8 +74,7 @@ namespace RCGMaker.Core.Detection
             //理論上不該打到別的東西，layer就擋掉了才對 (有分layer的話)
             if (!other.TryGetComponent<EffectDetectable>(out var spatialDetectable))
             {
-                Debug.LogError(other.name + " is not a EffectDetectable" + other.gameObject.layer, other);
-
+                // Debug.LogError(other.name + " is not a EffectDetectable" + other.gameObject.layer, other);
                 return;
             }
 
@@ -88,6 +87,12 @@ namespace RCGMaker.Core.Detection
             spatialDetectable._detectors.Add(this);
             // Debug.Log("OnSpatialEnter dealers:"+dealers.Length+" receivers:"+effectCollider.EffectReceivers.Length, this);
             //FIXME: 用update撈起來等等再判？
+            if (dealers == null)
+            {
+                Debug.LogError("Dealers is null", this);
+                return;
+            }
+                
             foreach (var dealer in dealers)
             {
                 if (!dealer.IsValid) continue;
@@ -114,7 +119,8 @@ namespace RCGMaker.Core.Detection
             _detectedObjects.Remove(spatialDetectable);
             spatialDetectable._detectors.Remove(this);
             //FIXME: 連點會有狀態問題耶...
-            foreach (var dealer in dealers)
+            if(dealers != null)
+                foreach (var dealer in dealers)
                 //FIXME: 點下去，可能就造成dealer的condition變了耶
                 // if (!dealer.IsValid) //有點討厭，這個很容易漏掉, 這個會讓
                 // {
@@ -122,17 +128,17 @@ namespace RCGMaker.Core.Detection
                 //     continue;
                 // }
                 //Dealer觸發後，造成條件變化了，這樣這邊會很難判定？
-            foreach (var receiver in spatialDetectable.EffectReceivers)
-            {
-                //對稱
-                if (!dealer.IsEnteredReceiver(receiver)) continue;
-                // if (!dealer.CanHitReceiver(receiver)) continue;
-                //FIXME: 這個是不是不該generate? 還是重新gen也還好
-                var hitData = receiver.GenerateEffectHitData(dealer, receiver);
+                foreach (var receiver in spatialDetectable.EffectReceivers)
+                {
+                    //對稱
+                    if (!dealer.IsEnteredReceiver(receiver)) continue;
+                    // if (!dealer.CanHitReceiver(receiver)) continue;
+                    //FIXME: 這個是不是不該generate? 還是重新gen也還好
+                    var hitData = receiver.GenerateEffectHitData(dealer, receiver);
 
-                dealer.OnHitExit(hitData);
-                receiver.OnEffectHitExit(hitData);
-            }
+                    dealer.OnHitExit(hitData);
+                    receiver.OnEffectHitExit(hitData);
+                }
         }
     }
 }

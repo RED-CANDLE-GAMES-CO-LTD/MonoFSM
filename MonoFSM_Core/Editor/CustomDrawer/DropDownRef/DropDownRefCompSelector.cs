@@ -45,6 +45,7 @@ namespace RCGMaker.Core
             //2. scene裏找所有 IVariableOwner parent 下的所有_filterType component
             else
             {
+                Debug.Log("ParentType is " + _parentType+" filterType is " + _filterType);
                 comps = _forComp.GetComponentsOfSiblingAll(_parentType, _filterType);
             }
 
@@ -53,10 +54,12 @@ namespace RCGMaker.Core
             {
                 var ownerName = comp.GetComponentInParent<IVariableOwner>().name;
                 // tree.Add(comp.name+ " (" + comp.GetType().Name+")"+ownerName, comp);
+                Debug.Log("Add type " + comp.name + " ownerName is " + ownerName);
                 tree.Add(ownerName + "/" + comp.name, comp);
                 // Debug.Log("Add type " + type);
             }
 
+            
             tree.Config.SelectMenuItemsOnMouseDown = true;
             tree.Config.ConfirmSelectionOnDoubleClick = true;
         }

@@ -9,6 +9,7 @@ using UnityEngine;
 
 namespace MonoFSM_Core.Runtime.Action
 {
+    //IEventInvoker?
     public interface IActionParent //給GameObject結構Validate用的
     {
     }
@@ -18,6 +19,8 @@ namespace MonoFSM_Core.Runtime.Action
     /// in the finite state machine (FSM) framework. Inherit from this class to implement
     /// custom state actions.
     /// </summary>
+    
+    //多餘？IStateEnter, IStateUpdate?
     [Searchable]
     public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteChild, IGuidEntity,
         IDefaultSerializable,

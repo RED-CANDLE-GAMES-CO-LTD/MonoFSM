@@ -88,7 +88,14 @@ public static class StateMachineExtension
             return Array.Empty<Component>();
         }
 
-        foreach (var binder in parents) list.AddRange(binder.GetComponentsInChildren(siblingType));
+
+        foreach (var binder in parents)
+        {
+            var comps = binder.GetComponentsInChildren(siblingType, true);
+            
+            list.AddRange(comps);
+        }
+            
 
         return list.ToArray();
         // if (binder != null) return binder.GetComponentsInChildren(siblingType);
