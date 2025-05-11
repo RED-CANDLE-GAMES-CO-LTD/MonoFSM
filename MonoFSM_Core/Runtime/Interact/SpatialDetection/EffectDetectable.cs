@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using RCGMaker.Core.Detection;
 using Sirenix.OdinInspector;
+using Sirenix.Utilities;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.Interact.EffectHit
@@ -23,11 +24,13 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public Collider MyCollider => _collider;
 
         //DebugOnly
-        public List<AbstractDetector> _detectors;
+        #if UNITY_EDITOR
+        public HashSet<AbstractDetector> _detectors = new();
+        #endif
 
 
         // List<SpatialDetector> fromDetectors;
-        private List<AbstractDetector> toRemoves = new();
+        private HashSet<AbstractDetector> toRemoves = new();
 
         private void OnDisable()
         {

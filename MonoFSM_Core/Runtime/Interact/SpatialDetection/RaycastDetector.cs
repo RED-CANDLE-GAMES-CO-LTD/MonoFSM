@@ -32,8 +32,11 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
             var ray = _rayProvider.GetRay();
             if (Physics.Raycast(ray, out var hit, Mathf.Infinity, HittingLayer))
             {
-                OnSpatialEnter(hit.collider.gameObject);
-                _thisFrameColliders.Add(hit.collider);
+                if (!_thisFrameColliders.Contains(hit.collider))
+                {
+                    OnSpatialEnter(hit.collider.gameObject);
+                    _thisFrameColliders.Add(hit.collider);    
+                }
             }
 
             foreach (var col in _lastFrameColliders)
