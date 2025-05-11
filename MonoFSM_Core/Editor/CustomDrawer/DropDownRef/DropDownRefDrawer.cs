@@ -88,7 +88,7 @@ public class DropDownRefAttributeDrawer : OdinAttributeDrawer<DropDownRefAttribu
         {
             // Debug.Log("Parent Value:" + baseMemberProperty.ParentValues[0]);
             // Debug.Log("BindComp:" + _bindComp+"type"+type);
-            var selector = new DropDownRefCompSelector(_bindComp, filterType, Attribute._parentType);
+            var selector = new DropDownRefCompSelector(_bindComp, filterType, Attribute);
             // selector.EnableSingleClickTselector.EnableSingleClickToConfirm();oSelect();
             // selector.SelectionChanged += col => { Debug.Log("SelectionChanged" + col.FirstOrDefault()); };
             

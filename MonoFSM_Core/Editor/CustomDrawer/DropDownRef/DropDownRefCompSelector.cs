@@ -14,16 +14,17 @@ namespace RCGMaker.Core
     {
         private Type _filterType;
         private Component _forComp;
-        private Type _parentType;
-
-        public DropDownRefCompSelector(Component forComp, Type filterType, Type parentType = null)
+        // private Type _parentType;
+        DropDownRefAttribute _attribute;
+        public DropDownRefCompSelector(Component forComp, Type filterType, DropDownRefAttribute attribute)
         {
             if (forComp == null)
                 throw new ArgumentNullException(nameof(forComp));
             _forComp = forComp;
             _filterType = filterType;
             DrawConfirmSelectionButton = true;
-            _parentType = parentType;
+            _attribute = attribute;
+            // _parentType = _attribute._parentType;
         }
 
         protected override void BuildSelectionTree(OdinMenuTree tree)
@@ -31,31 +32,42 @@ namespace RCGMaker.Core
             tree.Config.DrawSearchToolbar = true;
 
             // tree.Selection.SupportsMultiSelect = this.supportsMultiSelect;
-
+            var parentType = _attribute._parentType ?? typeof(IVariableOwner);
             Component[] comps;
-            _parentType ??= typeof(IVariableOwner);
+            // parentType ??= 
 
+            //只找當前parent下的所有_filterType component
+            if (_attribute._findFromParentTransform)
+            {
+                var parent = _forComp.transform.parent;
+                if (parent == null)
+                {
+                    Debug.LogError("Parent is null");
+                    return;
+                }
+                comps = parent.GetComponentsInChildren(_filterType, true);
+            }
             //1. prefab裏直接找root下的所有_filterType component
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            else if (PrefabStageUtility.GetCurrentPrefabStage() != null)
             {
                 //FIXME: 行為不一致！？
                 var root = PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot;
                 comps = root.GetComponentsInChildren(_filterType, true);
             }
-            //2. scene裏找所有 IVariableOwner parent 下的所有_filterType component
+            //2. scene裏找所有 _parentType(IVariableOwner) 下的所有_filterType component
             else
             {
-                Debug.Log("ParentType is " + _parentType+" filterType is " + _filterType);
-                comps = _forComp.GetComponentsOfSiblingAll(_parentType, _filterType);
+                Debug.Log("ParentType is " + parentType+" filterType is " + _filterType);
+                comps = _forComp.GetComponentsOfSiblingAll(parentType, _filterType);
             }
 
             // var types = filterType.FilterSubClassOrImplementationFromDomain();
             foreach (var comp in comps)
             {
                 var ownerName = comp.GetComponentInParent<IVariableOwner>().name;
-                // tree.Add(comp.name+ " (" + comp.GetType().Name+")"+ownerName, comp);
+                tree.Add(ownerName + "/" +comp.name+ " (" + comp.GetType().Name+")", comp);
                 Debug.Log("Add type " + comp.name + " ownerName is " + ownerName);
-                tree.Add(ownerName + "/" + comp.name, comp);
+                // tree.Add(ownerName + "/" + comp.name, comp);
                 // Debug.Log("Add type " + type);
             }
 
