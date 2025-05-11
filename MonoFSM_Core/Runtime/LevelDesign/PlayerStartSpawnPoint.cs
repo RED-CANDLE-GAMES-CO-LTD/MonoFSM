@@ -3,6 +3,7 @@ using MonoFSM.Variable.Attributes;
 using RCGMaker.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 //Editor Debug用
 public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionParent,IResetStart
@@ -42,15 +43,27 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionP
     }
 
     [SerializeField] Camera _camera;
+    [SerializeField] LayerMask _teleportHitLayerMask;
     private void Update()
     {
         //Debug用，按`鍵，把player移到這個位置
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            
-            var ray = _camera.ScreenPointToRay(Input.mousePosition);
-            Debug.Log("Alpha1 pRessed"+Input.mousePosition);
-            if (Physics.Raycast(ray, out var hit)) _onPlayerSpawn.ArgEventReceived(hit.point);
+            //第一人稱? 第三人稱？
+            Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
+            if (Cursor.lockState == CursorLockMode.Locked)
+            {
+                Vector3 screenCenter = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
+                // Create ray from camera through screen center
+                ray = _camera.ScreenPointToRay(screenCenter);
+                Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 10f);
+            }
+
+            if (Physics.Raycast(ray, out var hit,1000, _teleportHitLayerMask))
+            {
+                _onPlayerSpawn.ArgEventReceived(hit.point);
+                Debug.Log("Alpha1 Pressed"+hit.point+hit.collider,hit.collider);
+            }
 
             // var player = playerVar.Value;
             // Debug.Log(player,player);
@@ -62,7 +75,8 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionP
     public void EventReceived(Vector3 arg)
     {
         // _onPlayerSpawn.EventReceived(arg);
-        editorPlayerRef.position = arg;
+        if(editorPlayerRef)
+            editorPlayerRef.position = arg;
     }
 
     public void ResetStart()
