@@ -14,7 +14,7 @@ namespace RCGFSM.Variable
         Div
     }
 
-    public class VariableFloatArithmeticAction : AbstractStateAction, IArgEventReceiver<IEffectHitData>
+    public class VarFloatArithmeticAction : AbstractStateAction, IArgEventReceiver<IEffectHitData>
     {
         //兩種情境，一種是從dealer來，一種是固定值觸發
         protected override string Description =>

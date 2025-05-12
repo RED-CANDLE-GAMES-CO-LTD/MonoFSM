@@ -24,7 +24,7 @@ namespace RCGFSM.Variable
         public VarInt _variable;
     }
 
-    public class VariableIntArithmeticAction : AbstractStateAction
+    public class VarIntArithmeticAction : AbstractStateAction
     {
         protected override string Description => target?._varTag?.name + " " + Arithmetic + " " + Value;
         [MCPExtractable] [DropDownRef] public VarInt target;
