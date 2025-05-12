@@ -305,7 +305,7 @@ public class PoolObject : MonoBehaviour, ISceneAwake, IResetStateRestore
         CheckList();
         // ResetAnim();
         this.Log("[PoolObjectResetAndStart]", gameObject);
-        PoolManager.Instance.ResetReload(gameObject);
+        PoolManager.ResetReload(gameObject);
 
         foreach (var iBorrowOnEnable in IPoolBorrowedList)
         {
