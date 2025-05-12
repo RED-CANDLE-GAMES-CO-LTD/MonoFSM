@@ -94,7 +94,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
 
     //LevelReset, 重職關卡時，一換scene時
     //開放世界用不到？死掉復活？
-    public void ResetReload(GameObject root)
+    public  static void ResetReload(GameObject root)
     {
         //每次重置都要做的, LevelReset, LevelResetAfter?
         LevelResetChildrenReload(root);

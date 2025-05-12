@@ -39,7 +39,7 @@ namespace MonoFSM_Core.Runtime
 #endif
         public void ResetLevel()
         {
-            PoolManager.Instance.ResetReload(level);
+            PoolManager.ResetReload(level);
         }
         private GameObject level;
         public void OnLevelStart()
@@ -70,5 +70,6 @@ namespace MonoFSM_Core.Runtime
             ResetLevel(); //FIXME: network的時間點要在playerspawn之後?重新整理
             //EnterLevelReset
         }
+        
     }
 }
