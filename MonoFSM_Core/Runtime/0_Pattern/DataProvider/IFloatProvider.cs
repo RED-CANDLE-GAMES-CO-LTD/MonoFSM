@@ -69,6 +69,7 @@ namespace RCGMaker.Core.DataProvider
     //平常都該用這個宣告？封裝過的VarFloat, 又有tag, 但沒有global instance
     //serializeable class很噁心？
     // [Obsolete]
+    //FIXME: 不該再用這種？非component的
     [Serializable]
     public class VariableFloatProvider : VariableProvider<VarFloat, float> //, IFloatProvider 反而不要用provider?
     {

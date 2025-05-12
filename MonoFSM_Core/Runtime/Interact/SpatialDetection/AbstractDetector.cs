@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.Interact.EffectHit;
 using Sirenix.OdinInspector;
@@ -35,7 +36,7 @@ namespace RCGMaker.Core.Detection
 
         [AutoParent] private StateMachineOwner owner;
         public StateMachineOwner Owner => owner;
-        [PreviewInInspector] [AutoChildren] private GeneralEffectDealer[] dealers;
+        [CompRef] [AutoChildren] private GeneralEffectDealer[] dealers;
 
         //GameObject必定要在Detector的layer
         [FormerlySerializedAs("hittingLayer")]

@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 //Editor Debug用
 public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionParent,IResetStart
 {
-    public Transform editorPlayerRef;
+    public Transform editorPlayerRef; //如果player是放在場景上
     public Transform oriSpawnRef;
 #if UNITY_EDITOR
     public InstanceReferenceData playerRef; //效能問題...

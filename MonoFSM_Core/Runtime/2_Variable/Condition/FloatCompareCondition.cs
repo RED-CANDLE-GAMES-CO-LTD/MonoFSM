@@ -1,5 +1,6 @@
 using System;
-
+using jerryee.UnityMCP;
+using MonoFSM.Condition;
 using Sirenix.OdinInspector;
 
 using MonoFSM.DataProvider;
@@ -8,7 +9,7 @@ using RCGMaker.Core.DataProvider;
 
 namespace MonoFSM.Variable.Condition
 {
-    public class FloatCompareCondition : AbstractConditionComp
+    public class FloatCompareCondition : NotifyConditionComp //這個可以監聽嗎？leftvalue?
     {
         //每種表達都可以用op做到，不需要invert的功能
         public override bool IsInvertResultOptionAvailable => false;
@@ -25,19 +26,23 @@ namespace MonoFSM.Variable.Condition
         public ComparisonMode comparisonMode = ComparisonMode.Simple;
 
         // Simple mode properties
+        [MCPExtractable]
         [ShowIf(nameof(comparisonMode), ComparisonMode.Simple)]
         [BoxGroup("Simple Comparison")]
         [DropDownRef]
         public VarFloat leftValue; //varint被排擠...
 
         // [ShowIf(nameof(comparisonMode), ComparisonMode.Simple)]
+        [MCPExtractable]
         [BoxGroup("Simple Comparison")]
-        public Operator op;
+        public Operator op; //怎麼assign enum?
 
+        [MCPExtractable]
         [ShowIf(nameof(comparisonMode), ComparisonMode.Simple)]
         [BoxGroup("Simple Comparison")]
         public bool useConstantForRightValue = true;
 
+        [MCPExtractable]
         [ShowIf("@comparisonMode == ComparisonMode.Simple && useConstantForRightValue")]
         [BoxGroup("Simple Comparison")]
         public float rightConstantValue;
@@ -107,5 +112,7 @@ namespace MonoFSM.Variable.Condition
                 }
             }
         }
+
+        protected override IVariableField listenField => leftValue.Field;
     }
 }

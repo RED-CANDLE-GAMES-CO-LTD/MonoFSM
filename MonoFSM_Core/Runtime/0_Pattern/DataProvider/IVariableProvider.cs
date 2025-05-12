@@ -67,6 +67,7 @@ namespace RCGMaker.Core.DataProvider
             return GetVar<TVarMonoType>();
         }
 
+        [ShowInDebugMode]
         [FormerlySerializedAs("propertyParent")] [SerializeReferenceParentValidate] [SerializeField]
         private MonoBehaviour _propertyParent;
 
@@ -80,7 +81,7 @@ namespace RCGMaker.Core.DataProvider
             }
         }
 
-        [PreviewInInspector] private MonoBehaviour _currentTarget;
+        [ShowInDebugMode] private MonoBehaviour _currentTarget;
 
         //Dynamic Parent
         public AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target)
@@ -154,7 +155,7 @@ namespace RCGMaker.Core.DataProvider
         //FIXME: 1. 常常會空著
         public MonoDescriptableTag _parentMonoTag; //空的話就是自己
 
-        [PreviewInInspector] private Type variableValueType => typeof(TValueType);
+        [ShowInDebugMode]private Type variableValueType => typeof(TValueType);
         //FIXME:也可以用string拿？
         // MonoDescriptable parentDescriptable => propertyParent.GetComponentInParent<MonoDescriptable>();
 
@@ -162,7 +163,7 @@ namespace RCGMaker.Core.DataProvider
         //FIXME: 這個auto parent是不是不會跑到？是靠Inspector code才抓到的
         //FIXME: 這樣沒有辦法提早cache?
         // [AutoParent]
-        [PreviewInInspector]
+        [ShowInDebugMode]
         public VariableOwner owner
         {
             get
@@ -235,6 +236,7 @@ namespace RCGMaker.Core.DataProvider
                 return null;
             }
 
+            Debug.Log("GetVariable:" + _varTag+"owner:"+owner, owner);
             var variable = owner.GetVariable(_varTag);
             //FIXME: 怎麼樣算正常？
             //bool isNullOk
@@ -276,7 +278,7 @@ namespace RCGMaker.Core.DataProvider
 
         // [ShowInInspector]
         // RCGVariableFolder GetFolder =>  owner?.VariableFolder;
-        [PreviewInInspector]
+        [ShowInDebugMode]
         public TValueType Value => GetVarRaw(false) == null ? default : GetVarRaw(false).GetValue<TValueType>();
 
         public VariableTag varTag

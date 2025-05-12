@@ -28,12 +28,12 @@ public interface IResetStart //摸別人
 /// 4.LevelStartReverse
 /// </summary>
 //關著也能call
-public interface ISceneAwake //摸自己
+public interface ISceneAwake //摸自己, Prefab也需要(一次性
 {
     void EnterSceneAwake();
 }
 
-public interface ILevelConfig
+public interface ILevelConfig //應該不需要了？
 {
     void SetLevelConfig();
 }

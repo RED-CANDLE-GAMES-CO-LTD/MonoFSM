@@ -250,7 +250,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     [PreviewInInspector] private StateTransition _lastTransition;
 
-    public bool TransitionCheck(GeneralState toState)
+    public bool TransitionCheck(GeneralState toState) //去另一個state
     {
         var fsm = context.fsm;
         if (fsm.State != stateType) return false; //現在是我才能
@@ -258,6 +258,13 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         return true;
     }
 
+    public bool ForceGoToState()
+    {
+        var fsm = context.fsm;
+        if (fsm.State == stateType) return false; //已經是了
+        fsm.ChangeState(stateType, CanSelfTransition);
+        return true;
+    }
 
     // [Component(typeof(AbstractStateAction))]
     // private void AddAction()
