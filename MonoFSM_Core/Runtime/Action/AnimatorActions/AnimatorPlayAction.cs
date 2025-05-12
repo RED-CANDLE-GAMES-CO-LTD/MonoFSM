@@ -7,8 +7,10 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
 using MonoFSM_Core.Runtime.Action;
+using RCGMaker.Core.Editor;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
+using MonoFSM.EditorUtility;
 using UnityEditor;
 using UnityEditor.Animations;
 #endif
@@ -114,7 +116,28 @@ namespace RCGFSM.Animation
 
         [TabGroup("Animator")] public float animatorEnterCrossFade = 0;
 
-
+#if UNITY_EDITOR
+        [TabGroup("Animator")]
+        [Button]
+        void CreateAnimatorControllerAndClipForState()
+        {
+            // var controller = animator.runtimeAnimatorController as AnimatorOverrideController;
+            var controller = animator.GetAnimatorController();
+            if (controller == null)
+            {
+                // Debug.LogError("animator.runtimeAnimatorController is not AnimatorOverrideController");
+                controller = AnimatorControllerGenerator.CreateAnimatorControllerForAnimatorOfCurrentPrefab(animator);
+                Debug.Log("CreateAnimatorController"+controller, controller);
+            }
+            bindingState = GetComponentInParent<GeneralState>();
+            //哭了...怎麼reference?
+            var newStateName = bindingState.name.Replace("[State]","").Replace(" ", "");
+            AnimatorAssetUtility.AddStateAndCreateClipToLayerIndex(controller, stateLayer,newStateName);
+            stateName = newStateName;
+        }
+#endif
+        bool IsAnimatorNoControl => animator == null || animator.runtimeAnimatorController == null;
+        
         private void OnValidate()
         {
 #if UNITY_EDITOR

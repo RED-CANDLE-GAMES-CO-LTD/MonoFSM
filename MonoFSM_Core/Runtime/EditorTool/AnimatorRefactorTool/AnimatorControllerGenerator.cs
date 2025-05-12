@@ -12,6 +12,7 @@ namespace RCGMaker.Core.Editor
 #if UNITY_EDITOR
     public static class AnimatorControllerGenerator
     {
+        
         [MenuItem("CONTEXT/Animator/Duplicate Animator Override Controller")]
         public static void GenerateAnimatorOverrideController(MenuCommand command)
         {
@@ -77,7 +78,7 @@ namespace RCGMaker.Core.Editor
 
 
         //generate a new animator controller and assign it to the animator
-        [MenuItem("CONTEXT/Animator/Create Or Copy AnimatorController")]
+        [MenuItem("CONTEXT/Animator/Create Or Copy AnimatorController")] //給prefab用的
         public static void CreateOrCopyAnimatorController(MenuCommand command)
         {
             var animator = command.context as Animator;
@@ -87,6 +88,13 @@ namespace RCGMaker.Core.Editor
                 return;
             }
 
+            CreateAnimatorControllerForAnimatorOfCurrentPrefab(animator);
+
+            // Undo.FlushUndoRecordObjects();
+        }
+
+        public static AnimatorController CreateAnimatorControllerForAnimatorOfCurrentPrefab(Animator animator)
+        {
             var group = Undo.GetCurrentGroup();
             Undo.RecordObject(animator, "Override Animator Controller");
             // var folderPath = Path.GetDirectoryName(prefabPath);
@@ -100,7 +108,20 @@ namespace RCGMaker.Core.Editor
                 });
             animator.runtimeAnimatorController = newAsset;
             Undo.CollapseUndoOperations(group);
-            // Undo.FlushUndoRecordObjects();
+            return newAsset as AnimatorController;
+        }
+        public static void AddStateToAnimatorController(Animator animator, string stateName)
+        {
+            // var animatorController = animator.runtimeAnimatorController as AnimatorController;
+            // if (animatorController == null)
+            // {
+            //     Debug.LogError("Animator Controller is null");
+            //     return;
+            // }
+            //
+            // var newState = animatorController.AddMotion(new AnimationClip(), 0);
+            // newState.name = stateName;
+            // // Undo.CollapseUndoOperations(group);
         }
     }
     #endif
