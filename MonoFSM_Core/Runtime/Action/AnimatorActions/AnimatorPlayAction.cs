@@ -371,7 +371,8 @@ namespace RCGFSM.Animation
 
             runtimeStartNormalizedTimeOffset = startNormalizedTimeOffset;
             //FIXME: init skip to last frame是不是不好...該拆兩個狀態就拆兩個狀態吧？
-            if (CheckInitAndSkipAnimationToLastFrame()) runtimeStartNormalizedTimeOffset = 1;
+            if (CheckInitAndSkipAnimationToLastFrame()) 
+                runtimeStartNormalizedTimeOffset = 1;
 
             if (animatorEnterCrossFade == 0)
             {
