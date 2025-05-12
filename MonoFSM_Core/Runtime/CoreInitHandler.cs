@@ -17,7 +17,14 @@ public static class CoreInitHandler
         try
         {
             GameObject applicationCoreCandidate = Resources.Load<GameObject>("Configs/ApplicationCore");
+            applicationCoreCandidate.gameObject.SetActive(false);
             GameObject applicationCoreInstance = GameObject.Instantiate(applicationCoreCandidate);
+            
+            //Auto Reference & Awake
+            AutoAttributeManager.AutoReferenceAllChildren(applicationCoreInstance);
+            applicationCoreCandidate.gameObject.SetActive(true);
+            applicationCoreInstance.gameObject.SetActive(true);
+            
             GameObject.DontDestroyOnLoad(applicationCoreInstance);
             return applicationCoreInstance.GetComponent<ApplicationCore>();
         }
