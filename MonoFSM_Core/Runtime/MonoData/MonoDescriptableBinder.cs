@@ -10,23 +10,24 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
     /// </summary>
     public class MonoDescriptableBinder : MonoDict<MonoDescriptableTag, MonoDescriptable>
     {
-        protected override void Awake()
-        {
-            base.Awake();
-            Debug.Log("MonoDescriptableBinder Awake" + GetKeys.Count + ",collection:" + collections.Length, this);
-            foreach (var key in GetKeys)
-            {
-                Debug.Log("MonoDescriptableBinder " + key, this[key]);
-            }
-        }
+        // protected override void Awake()
+        // {
+        //     base.Awake();
+        //     Debug.Log("MonoDescriptableBinder Awake" + GetKeys.Count + ",collection:" + collections.Length, this);
+        //     foreach (var key in GetKeys)
+        //     {
+        //         Debug.Log("MonoDescriptableBinder " + key, this[key]);
+        //     }
+        // }
 
         protected override bool isLog => true;
 
-        private void Start()
+        //FIXME: 直接用MonoDescriptable就好？
+        protected override void AddImplement(MonoDescriptable item)
         {
+            // item.IsRegister = true;
         }
 
-        //FIXME: 直接用MonoDescriptable就好？
         protected override void RemoveImplement(MonoDescriptable item)
         {
         }
@@ -134,8 +135,9 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
             var descriptable = binder.Get(tag);
             if (descriptable == null)
             {
-                Debug.LogError("No MonoDescriptable found " + tag, mono);
-                Debug.LogError("No MonoDescriptable found of binder" + binder, binder);
+                Debug.LogError($"No MonoDescriptable found with tag: {tag} (MonoBehaviour: {mono?.name}, Binder: {binder?.name})", mono);
+                // Debug.LogError("No MonoDescriptable found tag:" + tag, mono);
+                // Debug.LogError("No MonoDescriptable found of tag: " + tag, binder);
             }
 
             // Debug.Log("GetGlobalInstance " + tag, descriptable);

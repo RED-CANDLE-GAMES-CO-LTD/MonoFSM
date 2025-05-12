@@ -87,7 +87,7 @@ namespace MonoFSM.Variable.Condition
         [ShowIf(nameof(comparisonMode), ComparisonMode.Simple)]
         [PreviewInInspector]
         [BoxGroup("Simple Comparison")]
-        private string SimplePreview => $"{(leftValue != null ? leftValue.ToString() : "null")} {op} {(useConstantForRightValue ? rightConstantValue.ToString() : (rightValue != null ? rightValue.ToString() : "null"))}";
+        private string SimplePreview => $"{(leftValue != null ? leftValue.name : "null")} {op} {(useConstantForRightValue ? rightConstantValue.ToString() : (rightValue != null ? rightValue.name : "null"))}";
 
         protected override string Description => comparisonMode == ComparisonMode.Simple
             ? SimplePreview

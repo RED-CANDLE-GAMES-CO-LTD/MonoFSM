@@ -46,7 +46,7 @@ namespace RCGMaker.Runtime.Mono
 
 
         //FIXME: Data Type Restriction?
-        public VariableTag[] containsVariableTypeTags = Array.Empty<VariableTag>();
+        public List<VariableTag> containsVariableTypeTags = new List<VariableTag>(); //VariableTag[] containsVariableTypeTags = Array.Empty<VariableTag>();
 
         //GameFlagDescriptable? Item?
         public bool IsCollectionTag; //還要繼承嗎？

@@ -26,6 +26,7 @@ namespace RCGMaker.Core.DataProvider
         IConfigVar, IVariableProvider, IStringProvider
         where TVarMonoType : AbstractMonoVariable
     {
+        public override Type GetVarType => typeof(TVarMonoType);
         public GetFromType _getFromType = GetFromType.VariableOwner;
 
         public override string ToString()
@@ -45,7 +46,7 @@ namespace RCGMaker.Core.DataProvider
             return GetVar<TVarMonoType>();
         }
 
-        [PreviewInInspector]
+        [ShowInDebugMode]
         private MonoBehaviour CurrentTarget
         {
             get
@@ -127,26 +128,33 @@ namespace RCGMaker.Core.DataProvider
         {
             _runtimeCachedOwner = null;
         }
+        
+        // IEnumerable<ValueDropdownItem<
+        
 
-        private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
+        private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags() //editor time?
         {
-            var tags = new List<ValueDropdownItem<VariableTag>>();
+            var tagDropdownItems = new List<ValueDropdownItem<VariableTag>>();
             switch (_getFromType)
             {
                 case GetFromType.GlobalInstance:
+                    
                     var instance = CurrentTarget.GetGlobalInstance(_parentMonoTag);
                     if (instance == null)
                     {
-#if UNITY_EDITOR
-                        if (PrefabStageUtility.GetCurrentPrefabStage() == null)
-                            Debug.LogError("GlobalInstance is null", CurrentTarget);
-#endif
-                        return tags;
+                        //從MonoDescriptableTag找到varTag (schema一定會一致嗎？不一定)
+                        var parentMonoVarTags = _parentMonoTag.containsVariableTypeTags;
+                        foreach (var parentVarTag in parentMonoVarTags)
+                        {
+                            tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(parentVarTag.name, parentVarTag));
+                        }
+                        return tagDropdownItems;
                     }
 
+                    //從instance直接找variable
                     foreach (var variable in instance.VariableFolder.GetValues)
                         if (variable is TVarMonoType)
-                            tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+                            tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
 
                     break;
                 case GetFromType.VariableOwner:
@@ -161,10 +169,10 @@ namespace RCGMaker.Core.DataProvider
 
                         foreach (var variable in parent.VariableFolder.GetValues)
                             if (variable is TVarMonoType)
-                                tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+                                tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
                     }
 
-                    if (tags.Count == 0)
+                    if (tagDropdownItems.Count == 0)
                     {
                         Debug.LogError("All Parent VariableFolder has no Variable", CurrentTarget);
                         foreach (var parent in parents) Debug.LogError("Parent  has no Variable?", parent);
@@ -175,7 +183,7 @@ namespace RCGMaker.Core.DataProvider
             }
 
 
-            return tags;
+            return tagDropdownItems;
         }
 
         private IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
@@ -197,7 +205,7 @@ namespace RCGMaker.Core.DataProvider
         //FIXME: 這個auto parent是不是不會跑到？是靠Inspector code才抓到的
         //FIXME: 這樣沒有辦法提早cache?
         // [AutoParent]
-        [PreviewInInspector]
+        [ShowInDebugMode]
         public VariableOwner owner
         {
             get

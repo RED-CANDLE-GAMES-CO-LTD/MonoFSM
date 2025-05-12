@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace RCGMaker.Core
 {
+    //單機用
     [RequireComponent(typeof(LevelReseter))]
     public class LevelRunner : MonoBehaviour // SingletonBehaviour<LevelRunner>
     {

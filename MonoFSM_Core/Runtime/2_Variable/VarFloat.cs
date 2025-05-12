@@ -1,6 +1,7 @@
 using UnityEngine;
 
 using RCGMaker.Core.Attributes;
+using Sirenix.OdinInspector;
 
 //CountdownTimer...直接掛在這個下面？
 namespace MonoFSM.Variable
@@ -27,6 +28,12 @@ namespace MonoFSM.Variable
         // [PreviewInInspector] [Component] [AutoChildren]
         // AbstractVariableModifier<float>[] _setOperations;
 
+        [Button]
+        void TestAdd(float value)
+        {
+            Value += value;
+        }
         // public float Value => CurrentValue;
+  
     }
 }

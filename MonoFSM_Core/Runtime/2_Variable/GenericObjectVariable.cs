@@ -152,7 +152,15 @@ namespace MonoFSM.Variable
         public void ResetStateRestore()
         {
             //這裡才做會不會太晚？
+            if (_isPreventReset)
+                return;
             SetValue(DefaultValue);
         }
+
+        [Header("避免關卡重置時清除資料")]
+        [SerializeField]
+        bool _isPreventReset = false;
+        //避免reset restore?
+
     }
 }

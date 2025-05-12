@@ -11,8 +11,8 @@ namespace RCGMaker.Core.DataProvider
     public class VariableFieldValueProvider : AbstractFieldValueProvider
     {
         protected override AbstractMonoVariable ListenToVariable => _variableProviderRef.VarRaw;
-        public override Object targetObject => _variableProviderRef?.VarRaw;
-        public override Type targetType => _variableProviderRef.GetValueType;
+        public override Object targetObject => _variableProviderRef?.VarRaw; //可能是null...怎麼處理
+        public override Type targetType => _variableProviderRef.GetVarType; //這個不對ㄅ
 
         // [Required] [InlineField] [PropertyOrder(-1)] [SerializeReference]
         // public IVariableProvider variableProvider;

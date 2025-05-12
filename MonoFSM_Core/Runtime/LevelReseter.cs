@@ -1,4 +1,5 @@
 using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 
 namespace MonoFSM_Core.Runtime
@@ -20,6 +21,14 @@ namespace MonoFSM_Core.Runtime
     [DefaultExecutionOrder(10000)]
     public class LevelReseter : MonoBehaviour
     {
+        static LevelReseter _currentLevelManager;
+        public static LevelReseter CurrentLevelManager => _currentLevelManager;
+        [PreviewInInspector]
+        LevelReseter prewViewLevelReseter=> _currentLevelManager;
+        private void Awake()
+        {
+            _currentLevelManager = this;
+        }
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("MonoFSM/ResetLevel %R")]
         public static void TestResetLevel()

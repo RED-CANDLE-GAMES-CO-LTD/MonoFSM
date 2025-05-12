@@ -156,7 +156,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>
         }
     }
 
-    public static void HandleGameLevelAwake(GameObject level)
+    public static void HandleGameLevelAwake(GameObject level) //FIXME: 不要放這？
     {
         var levelAwakes = new List<ISceneAwake>(level.GetComponentsInChildren<ISceneAwake>(true));
         // ILevelAwakes.Reverse();

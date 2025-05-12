@@ -182,6 +182,7 @@ public class PlayerStartSpawnPointEditor
             // Check for specific keycodes
             if (Event.current.keyCode == KeyCode.Alpha1)
             {
+                Selection.activeGameObject = GetTarget.gameObject;
                 Debug.Log("OnSceneGUI keycode:" + Event.current.keyCode + " pos:" + Event.current.mousePosition);
                 //FIXME: 2D遊戲用的...
                 if (obj.in2DMode)

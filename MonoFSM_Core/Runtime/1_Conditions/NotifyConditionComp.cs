@@ -3,9 +3,9 @@ using RCGMaker.Core.Attributes;
 
 namespace MonoFSM.Condition
 {
-    public abstract class NotifyConditionComp : AbstractConditionComp, IResetStart, ITransitionCheckInvoker
+    public abstract class NotifyConditionComp : AbstractConditionComp, IResetStart, ITransitionCheckInvoker,ISceneStart
     {
-        public virtual void ResetStart()
+        public virtual void ResetStart() //應該在這裡註冊嗎？還是sceneStart?
         {
             Register();
         }
@@ -28,6 +28,11 @@ namespace MonoFSM.Condition
                 // Debug.LogError("VarBoolValueCondition: No parent transition found", this);
                 return;
             _parentConditionChangeListener.OnConditionChanged();
+        }
+
+        public void EnterSceneStart()
+        {
+            Register();
         }
     }
 }

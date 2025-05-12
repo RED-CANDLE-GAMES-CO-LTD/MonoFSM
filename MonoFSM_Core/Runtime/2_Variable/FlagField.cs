@@ -336,6 +336,11 @@ public class
     //     listenerDict.AddListenerDict(target, param, callback as UnityAction<object, object, T>);
     // }
 
+    public void AddListener(UnityAction action, Object owner)
+    {
+        _onChangeAction += action;
+    }
+    
     /// fixme: 有可能做non gc 版本嗎？ 上面的看起來失敗了..
     /// <summary>
     /// 
@@ -464,7 +469,7 @@ public class
     }
 
 
-    public void Init(TestMode mode, Object _owner)
+    public void Init(TestMode mode, Object _owner) //這已經是reset了..
     {
         owner = _owner;
         _modifiers.Clear();
@@ -477,13 +482,24 @@ public class
         };
         _lastValue = _currentValue;
         lastMode = mode;
-        listener?.Clear();
+        //ClearListener();
+        Debug.Log("Listener Clear", owner);
+        //FIXME: 綁定清掉，這樣listener也要重綁耶
         // listenerOnce.Clear();
-        _onChangeAction = null;
+        
         if (_owner is Component comp)
             comp.Log("FlagField Init", comp);
+        
         ResetToDefault();
     }
+
+    void ClearListener()
+    {
+        listener?.Clear(); //綁定不清會怎麼樣嗎？
+        _onChangeAction = null;
+    }
+    
+    //TODO: 換scene清？也不對，有些不清
 
     private Object owner;
 
@@ -521,12 +537,10 @@ public class
         // }
         // else
         CurrentValue = ProductionValue;
+        //沒有register耶？
     }
 
-    public void AddListener(UnityAction action, Object owner)
-    {
-        _onChangeAction += action;
-    }
+
 }
 
 // public class OnChangedCallAttribute : PropertyAttribute

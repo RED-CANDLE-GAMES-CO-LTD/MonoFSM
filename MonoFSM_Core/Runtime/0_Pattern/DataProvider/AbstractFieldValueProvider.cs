@@ -14,7 +14,7 @@ namespace RCGMaker.Core.DataProvider
     /// <summary>
     /// 
     /// </summary>
-    public abstract class AbstractFieldValueProvider : MonoBehaviour
+    public abstract class AbstractFieldValueProvider : MonoBehaviour,IResetStart
     {
         //這個auto會太慢耶導致看的時候error?
         [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
@@ -34,15 +34,7 @@ namespace RCGMaker.Core.DataProvider
         {
             _dataChangedListener.OnDataChanged(targetObject);
         }
-
-        private void Start()
-        {
-            //這個variable已經準備好了嗎？
-            if (ListenToVariable)
-                ListenToVariable.OnValueChangedRaw += OnValueChanged;
-            else
-                Debug.LogError("ListenToVariable is null", this);
-        }
+        
 
         private void OnDestroy()
         {
@@ -63,6 +55,7 @@ namespace RCGMaker.Core.DataProvider
             if (_variableProviderRef == null)
                 return;
             var currentType = targetObject ? targetObject.GetType() : targetType;
+            // Debug.Log("UpdateParentTypes currentType"+currentType, this);
             for (var i = 0; i < pathEntries.Count; i++)
             {
                 pathEntries[i]._serializedType.SetType(currentType);
@@ -220,7 +213,7 @@ namespace RCGMaker.Core.DataProvider
             // 每次按下前先更新所有層級的 parentType
             var resultValue = GetFieldValueFromPath(targetObject, pathEntries);
 #if UNITY_EDITOR
-            if (resultValue == null && Application.isPlaying == false) Debug.LogError("結果為 null" + targetObject, this);
+            if (resultValue == null && Application.isPlaying == false) Debug.LogError("Editor 取得欄位結果為 null" + targetObject, this);
 #endif
             // Debug.Log("結果：" + (resultValue != null ? resultValue.ToString() : "null"));
             return resultValue;
@@ -328,5 +321,23 @@ namespace RCGMaker.Core.DataProvider
         }
 
         #endregion
+
+        public void EnterSceneStart() //這個variable可能還沒準備好嗎？
+        {
+          
+        }
+
+        public void ResetStart() //FIXME: 應該在這註冊？還是scene註冊一次就好？
+        {
+            //這個variable已經準備好了嗎？
+            if (ListenToVariable)
+            {
+                ListenToVariable.OnValueChangedRaw += OnValueChanged;
+                Debug.Log("Bind Variable", this);
+                _dataChangedListener.OnDataChanged(targetObject);
+            }
+            else
+                Debug.LogError("ListenToVariable is null", this);
+        }
     }
 }

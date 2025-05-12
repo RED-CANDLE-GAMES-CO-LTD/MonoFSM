@@ -8,6 +8,10 @@ namespace MonoFSM.Variable
 {
     public class VariableDictionary : MonoDict<VariableTag, VarFloat>
     {
+        protected override void AddImplement(VarFloat item)
+        {
+        }
+
         protected override void RemoveImplement(VarFloat item) { }
 
         protected override bool CanBeAdded(VarFloat item)

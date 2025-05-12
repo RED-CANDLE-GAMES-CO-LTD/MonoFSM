@@ -21,6 +21,11 @@ public interface IResetStart //摸別人
     void ResetStart();
 }
 
+public interface IInstantiated
+{
+    void OnInstantiated();
+}
+
 /// <summary>
 /// 1.LevelAwake,
 /// 2.LevelAwakeReverse

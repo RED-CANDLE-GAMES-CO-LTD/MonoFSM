@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using MonoFSM_Core.Runtime;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
@@ -17,9 +18,18 @@ using UnityEngine;
 namespace RCGMaker.Runtime
 {
     [Searchable]
-    public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData> //這樣data也要一直繼承，好ㄇ...
+    public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData> ,IInstantiated,IBeforePrefabSaveCallbackReceiver//這樣data也要一直繼承，好ㄇ...
     {
         public VarFloat this[string statName] => GetVariable(statName) as VarFloat;
+        public void OnInstantiated()
+        {
+            LevelReseter.CurrentLevelManager.GetComponent<MonoDescriptableBinder>().Add(DescriptableTag,this);
+        }
+
+        public void OnBeforePrefabSave()
+        {
+            FillVarTagsToMonoDescriptableTag();
+        }
     }
 
     //描述物件的monoNode, Entity? MonoEntity?
@@ -232,6 +242,7 @@ namespace RCGMaker.Runtime
         public void EnterSceneAwake()
         {
             // _receiverTypeSet = new HashSet<GeneralEffectType>();
+            Debug.Log("EnterSceneAwake: " +name,this); //跑兩次？
             if (_receivers != null)
                 foreach (var receiver in _receivers)
                     // _receiverTypeSet.Add(receiver.EffectType);
@@ -273,6 +284,21 @@ namespace RCGMaker.Runtime
         //繼承MonoDescriptable的class，可以透過這個方法來將所有的variable field mapping到VariableFolder
         private FieldInfo[] _variableFields;
 
+        [Button("撈出所有變數的tag塞到 DescriptableTag")]
+        protected void FillVarTagsToMonoDescriptableTag()
+        {
+            var variables = VariableFolder.GetValues;
+            foreach (var variable in variables)
+            {
+                if (!DescriptableTag.containsVariableTypeTags.Contains(variable._varTag))
+                    DescriptableTag.containsVariableTypeTags.Add(variable._varTag);    
+            }
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(DescriptableTag);
+#endif
+            
+        }
+        
         [Button]
         private void FieldMapping()
         {
@@ -311,5 +337,7 @@ namespace RCGMaker.Runtime
                 // }
             });
         }
+
+
     }
 }

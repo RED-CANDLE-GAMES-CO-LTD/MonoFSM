@@ -1,4 +1,6 @@
-﻿public interface IIntProvider
+﻿using UnityEngine;
+
+public interface IIntProvider
 {
     public int IntValue { get; }
 }

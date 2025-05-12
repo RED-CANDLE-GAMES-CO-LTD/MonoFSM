@@ -10,6 +10,11 @@ namespace RCGMaker.Runtime.Mono
         // }
 
 
+        protected override void AddImplement(IMonoDescriptableCollection item)
+        {
+            throw new System.NotImplementedException();
+        }
+
         protected override void RemoveImplement(IMonoDescriptableCollection item)
         {
             // throw new System.NotImplementedException();

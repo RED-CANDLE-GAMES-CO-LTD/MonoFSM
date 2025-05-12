@@ -17,6 +17,12 @@ namespace MonoFSM_Core.Runtime.Action.VariableAction
 
         public void ArgEventReceived(Transform arg)
         {
+            if (arg == null)
+            {
+                Debug.LogError("Arg is null", this);
+                return;
+            }
+                
             targetVar.SetValue(arg);
             //network? singleton...
         }

@@ -25,7 +25,7 @@ namespace MonoFSM.Variable
         //UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");
 #endif
 
-        public UnityAction OnValueChangedRaw; //任何數值改變就通知
+        public UnityAction OnValueChangedRaw; //任何數值改變就通知, UI有用到很重要 //override?
 
         [Button]
         private void UpdateTag()

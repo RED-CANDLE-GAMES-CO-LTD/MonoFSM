@@ -20,10 +20,11 @@ using MonoFSM.Variable;
 
 //FIXME: autoGen太複雜，可能需要再拆漂亮
 //TODO: 現在根本還沒做監聽，是用condition做polling
+//FIXME: fieldMONO?
 [Searchable]
 public abstract class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable,
     IBeforePrefabSaveCallbackReceiver, ISettable<TType>,
-    IGameStateOwner, IDefaultSerializable, IResetStateRestore, IReferenceTarget
+    IGameStateOwner, IDefaultSerializable, IResetStateRestore, IReferenceTarget,ISceneStart
     where TScriptableData : AbstractScriptableData<TField, TType>
     where TField : FlagField<TType>, new()
     where TType : IEquatable<TType>
@@ -124,6 +125,10 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [TabGroup("Data")] public TField Field => BindData != null ? BindData.field : _localField;
     //給非Auto的人看的，要綁，Auto自己就會生，就結束了
 
+    public void EnterSceneStart()
+    {
+        Field.AddListener((value)=>{OnValueChangedRaw?.Invoke();},this);
+    }
     [FormerlySerializedAs("scriptableData")]
     
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
@@ -443,7 +448,8 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     public void ResetStateRestore()
     {
-        _localField.Init(TestMode.EditorDevelopment, this);
+        //FIXME: #if UnityEditor? setting build mode?
+        _localField.Init(TestMode.Build, this);
     }
 
     public void OnBeforePrefabSave()

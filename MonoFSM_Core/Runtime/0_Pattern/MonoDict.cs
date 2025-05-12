@@ -11,16 +11,16 @@ using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core
 {
-    public abstract class MonoDict<T, TU> : MonoBehaviour, IResetStateRestore
+    public abstract class MonoDict<T, TU> : MonoBehaviour,ISceneAwake, IResetStateRestore
         where TU : IValueOfKey<T> where T : IStringKey
     {
         protected virtual bool isLog => false;
 
-        protected virtual void Awake()
-        {
-            _isPrepared = false;
-            PrepareDictCheck();
-        }
+        // protected virtual void Awake()
+        // {
+        //     _isPrepared = false;
+        //     PrepareDictCheck();
+        // }
 
         public void ResetStateRestore() //這會不會太晚？
         {
@@ -28,6 +28,8 @@ namespace RCGMaker.Core
             // PrepareDictCheck();
         }
 
+        //如果在autoReference 之前就不會進來...hmmm!?
+        //有點討厭：spawned, player spawned (自己做reference & sceneAwake?), SceneAwake, SceneStart (並沒有拿到player)
         [PreviewInInspector] [AutoChildren] protected TU[] collections; //disable也會被加進來
 
         protected virtual bool IsStringDictEnable => false;
@@ -91,7 +93,7 @@ namespace RCGMaker.Core
                 return;
             if (Contains(key))
             {
-                // Debug.LogError($"Key:{key} already exists in {this}", this);
+                Debug.LogError($"Key:{key} already exists in {this}", this);
                 return;
             }
 
@@ -108,6 +110,7 @@ namespace RCGMaker.Core
             _dict.Add(key, value);
             if (IsStringDictEnable)
                 _stringDict.TryAdd(value.Key.GetStringKey, value);
+            AddImplement(value);
             // enabled = true;
         }
 
@@ -136,7 +139,7 @@ namespace RCGMaker.Core
 
             if (_isPrepared == false && Application.isPlaying)
             {
-                Debug.LogError("Not prepared", this);
+                Debug.LogError("GetFrom Dict, Not prepared", this);
                 return default;
             }
 
@@ -187,6 +190,7 @@ namespace RCGMaker.Core
             _dict.Clear();
         }
 
+        protected abstract void AddImplement(TU item);
         protected abstract void RemoveImplement(TU item); //FIXME:為什麼需要這個？
 
         [ShowInInspector] public List<string> GetStringKeys => new(_stringDict.Keys);
@@ -258,6 +262,15 @@ namespace RCGMaker.Core
         }
 
         protected abstract bool CanBeAdded(TU item);
+        public void EnterSceneAwake()
+        {
+            PrepareDictCheck();
+            Debug.Log("EnterSceneAwake Dict", this);
+            foreach (var key in _dict.Keys)
+            {
+                Debug.Log(key+" "+_dict[key],_dict[key] as Object);
+            }
+        }
     }
 
     public interface IValueOfKey<out T>

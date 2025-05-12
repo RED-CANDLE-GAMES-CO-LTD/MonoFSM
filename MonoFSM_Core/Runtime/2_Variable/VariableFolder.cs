@@ -70,6 +70,11 @@ public class VariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
         return varBool;
     }
 #endif
+    protected override void AddImplement(AbstractMonoVariable item)
+    {
+        
+    }
+
     protected override void RemoveImplement(AbstractMonoVariable item)
     {
     }
