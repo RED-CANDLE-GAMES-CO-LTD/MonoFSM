@@ -18,6 +18,7 @@ public static class CoreInitHandler
         {
             GameObject applicationCoreCandidate = Resources.Load<GameObject>("Configs/ApplicationCore");
             GameObject applicationCoreInstance = GameObject.Instantiate(applicationCoreCandidate);
+            GameObject.DontDestroyOnLoad(applicationCoreInstance);
             return applicationCoreInstance.GetComponent<ApplicationCore>();
         }
         catch (Exception e)
