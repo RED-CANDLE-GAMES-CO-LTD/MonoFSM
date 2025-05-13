@@ -287,6 +287,8 @@ namespace RCGMaker.Runtime
         [Button("撈出所有變數的tag塞到 DescriptableTag")]
         protected void FillVarTagsToMonoDescriptableTag()
         {
+            if (VariableFolder == null)
+                return;
             var variables = VariableFolder.GetValues;
             foreach (var variable in variables)
             {
