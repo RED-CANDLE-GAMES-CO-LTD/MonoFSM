@@ -143,7 +143,8 @@ namespace MonoFSM.EditorUtility
             AssetDatabase.CreateAsset(clip, path);
             return clip;
         }
+#endif
     }
-    #endif
+
    
 }
