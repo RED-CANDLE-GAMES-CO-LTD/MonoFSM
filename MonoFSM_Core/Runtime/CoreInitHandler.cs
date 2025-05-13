@@ -13,10 +13,15 @@ public static class CoreInitHandler
     {
         if (ApplicationCore.IsAvailable())
             return ApplicationCore.Instance;
-
+        GameObject applicationCoreCandidate = Resources.Load<GameObject>("Configs/ApplicationCore");
         try
         {
-            GameObject applicationCoreCandidate = Resources.Load<GameObject>("Configs/ApplicationCore");
+           
+            if(applicationCoreCandidate == null)
+            {
+                Debug.LogError("Can't found: Configs/ApplicationCore.prefab, make sure you have it in the Resources folder");
+                return null;
+            }
             applicationCoreCandidate.gameObject.SetActive(false);
             GameObject applicationCoreInstance = GameObject.Instantiate(applicationCoreCandidate);
             
@@ -30,7 +35,7 @@ public static class CoreInitHandler
         }
         catch (Exception e)
         {
-            Debug.LogError("Can't found: Configs/ApplicationCore.prefab");
+            Debug.LogError("Something wrong: Configs/ApplicationCore.prefab",applicationCoreCandidate);
             return null;
         }
     }

@@ -37,6 +37,7 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
                     OnSpatialEnter(hit.collider.gameObject);
                     _thisFrameColliders.Add(hit.collider);    
                 }
+                _cacehdHit = hit;
             }
 
             foreach (var col in _lastFrameColliders)
@@ -47,6 +48,8 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
                 }
             }
         }
+        RaycastHit _cacehdHit;
+        public RaycastHit CachedHit => _cacehdHit;
 
         private readonly HashSet<Collider> _thisFrameColliders = new();
         private readonly HashSet<Collider> _lastFrameColliders = new();
@@ -69,6 +72,17 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
             if (_mainCamera == null) _mainCamera = Camera.main;
             // Create ray from camera through screen center
             var ray = _mainCamera.ScreenPointToRay(screenCenter);
+            return ray;
+        }
+    }
+    
+    public class TransformForwardRayProvider:IRayProvider
+    {
+        [SerializeField] Transform _transform;
+        public Ray GetRay()
+        {
+            // Create ray from camera through screen center
+            var ray = new Ray(_transform.position, _transform.forward);
             return ray;
         }
     }

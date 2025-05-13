@@ -82,6 +82,6 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionP
     public void ResetStart()
     {
         //Network player都還沒生成
-        _onPlayerSpawn.ArgEventReceived(transform.position);
+        _onPlayerSpawn?.ArgEventReceived(transform.position);
     }
 }
