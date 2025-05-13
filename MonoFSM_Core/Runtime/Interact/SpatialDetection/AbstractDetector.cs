@@ -85,7 +85,9 @@ namespace RCGMaker.Core.Detection
 #if UNITY_EDITOR
             _lastDetectedObjects.Add(spatialDetectable);
 #endif
+#if UNITY_EDITOR
             spatialDetectable._detectors.Add(this);
+#endif
             // Debug.Log("OnSpatialEnter dealers:"+dealers.Length+" receivers:"+effectCollider.EffectReceivers.Length, this);
             //FIXME: 用update撈起來等等再判？
             if (dealers == null)
@@ -118,7 +120,9 @@ namespace RCGMaker.Core.Detection
                 return;
 
             _detectedObjects.Remove(spatialDetectable);
+#if UNITY_EDITOR
             spatialDetectable._detectors.Remove(this);
+#endif
             //FIXME: 連點會有狀態問題耶...
             if(dealers != null)
                 foreach (var dealer in dealers)

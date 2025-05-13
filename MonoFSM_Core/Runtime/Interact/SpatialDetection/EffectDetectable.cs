@@ -37,7 +37,9 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             //FIXME: 標記狀態改變，不要在這裡執行OnSpatialExit?
             if (!Application.isPlaying)
                 return;
+#if UNITY_EDITOR
             toRemoves.AddRange(_detectors);
+            #endif
             foreach (var toRemove in toRemoves)
             {
                 Debug.Log("OnDisable of Detectable", this);
