@@ -3,7 +3,7 @@ using UnityEngine;
 
 
 [CreateAssetMenu(menuName = "RCG/Input/InputPromptUIData", fileName = "InputPromptUIData", order = 0)]
-public class InputPromptUIData : ScriptableObject
+public class InputPromptUIData : GameFlagBase
 {
     public InputActionData input;
     public LocalizedString prompt_prefix;
