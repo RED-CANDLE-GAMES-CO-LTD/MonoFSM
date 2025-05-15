@@ -24,7 +24,7 @@ namespace MonoFSM_Core.Runtime
         static LevelReseter _currentLevelManager;
         public static LevelReseter CurrentLevelManager => _currentLevelManager;
         [PreviewInInspector]
-        LevelReseter prewViewLevelReseter=> _currentLevelManager;
+        LevelReseter PreviewLevelReseter=> _currentLevelManager;
         private void Awake()
         {
             _currentLevelManager = this;

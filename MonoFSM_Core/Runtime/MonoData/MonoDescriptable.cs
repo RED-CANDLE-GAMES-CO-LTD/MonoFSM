@@ -17,13 +17,19 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime
 {
+    public interface IMonoAddToBinderChecker   //network想要看authority來決定要不要加到字典裡...這個性質是什麼
+    {
+        bool IsAddValid();
+    }
+    
     [Searchable]
     public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData> ,IInstantiated,IBeforePrefabSaveCallbackReceiver//這樣data也要一直繼承，好ㄇ...
     {
         public VarFloat this[string statName] => GetVariable(statName) as VarFloat;
         public void OnInstantiated()
         {
-            LevelReseter.CurrentLevelManager.GetComponent<MonoDescriptableBinder>().Add(DescriptableTag,this);
+            //network要看authoring... network版的？啥？ NetworkMonoDescriptableBinder?
+            LevelReseter.CurrentLevelManager?.GetComponent<MonoDescriptableBinder>().Add(DescriptableTag,this);
         }
 
         public void OnBeforePrefabSave()

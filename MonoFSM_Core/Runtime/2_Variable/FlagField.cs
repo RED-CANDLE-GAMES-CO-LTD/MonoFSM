@@ -483,7 +483,7 @@ public class
         _lastValue = _currentValue;
         lastMode = mode;
         //ClearListener();
-        Debug.Log("Listener Clear", owner);
+        // Debug.Log("Listener Clear", owner);
         //FIXME: 綁定清掉，這樣listener也要重綁耶
         // listenerOnce.Clear();
         

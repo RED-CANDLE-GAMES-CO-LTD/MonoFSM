@@ -8,7 +8,7 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
 {
     public class RaycastDetector:AbstractDetector
     {
-        
+        public float _distance = 30; 
         protected override void SetLayerOverride()
         {
             
@@ -30,7 +30,7 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
         {
             //rayProvider?
             var ray = _rayProvider.GetRay();
-            if (Physics.Raycast(ray, out var hit, Mathf.Infinity, HittingLayer))
+            if (Physics.Raycast(ray, out var hit, _distance, HittingLayer))
             {
                 if (!_thisFrameColliders.Contains(hit.collider))
                 {

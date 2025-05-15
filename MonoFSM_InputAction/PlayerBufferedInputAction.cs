@@ -48,6 +48,7 @@ namespace PlayerActionControl
 
         private void Update()
         {
+            //FIXME: 檢查前叫就好
             UpdateAction();
         }
         [PreviewInInspector]

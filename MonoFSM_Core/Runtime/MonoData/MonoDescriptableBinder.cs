@@ -19,6 +19,22 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
         //         Debug.Log("MonoDescriptableBinder " + key, this[key]);
         //     }
         // }
+        
+        //network想要看authority來決定要不要加到字典裡...這個性質是什麼
+        
+        protected override bool IsAddValid(MonoDescriptable item)
+        {
+            if (item.TryGetComponent<IMonoAddToBinderChecker>(out var checker))
+            {
+                return checker.IsAddValid();
+            }
+            else
+            {
+                // Debug.Log("MonoDescriptableBinder IsAddValid " + item.name, item);
+                return true;
+            }
+        }
+        
 
         protected override bool isLog => true;
 
@@ -126,7 +142,8 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
                 if (prefabStage != null)
                     return null;
 #endif
-                Debug.LogError("No MonoDescriptableBinder found " + tag, mono);
+                if(Application.isPlaying)
+                    Debug.LogError("No MonoDescriptableBinder found " + tag, mono);
                 return null;
             }
 
@@ -159,5 +176,7 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
             var descriptable = binder.Get(tag);
             return descriptable;
         }
+        
+       
     }
 }

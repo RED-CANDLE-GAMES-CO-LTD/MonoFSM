@@ -86,16 +86,26 @@ namespace RCGMaker.Core
         }
 
         //add不行用string?
+        protected virtual bool IsAddValid(TU value)
+        {
+            return true;
+        } 
 
         public virtual void Add(T key, TU value)
         {
             if (key == null)
                 return;
-            if (Contains(key))
+            if(IsAddValid(value) == false)
             {
-                Debug.LogError($"Key:{key} already exists in {this}", this);
+                // Debug.LogError($"Key:{key} can't be added in {this}", this);
                 return;
             }
+            if (Contains(key))
+            {
+                Debug.LogError($"Key:{key} already exists in {this}", value as Object);
+                return;
+            }
+
 
             if (value is IGlobalInstance) //
             {
@@ -265,7 +275,7 @@ namespace RCGMaker.Core
         public void EnterSceneAwake()
         {
             PrepareDictCheck();
-            Debug.Log("EnterSceneAwake Dict", this);
+            // Debug.Log("EnterSceneAwake Dict", this);
             foreach (var key in _dict.Keys)
             {
                 Debug.Log(key+" "+_dict[key],_dict[key] as Object);
