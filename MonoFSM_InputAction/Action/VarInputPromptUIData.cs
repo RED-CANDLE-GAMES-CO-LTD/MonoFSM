@@ -1,3 +1,4 @@
+using InputAction;
 using MonoFSM.Variable;
 using UnityEngine;
 
