@@ -7,7 +7,7 @@ using UnityEngine;
 namespace RCGMaker.Runtime.Interact.EffectHit
 {
     //FIXME: 應該要怎麼轉接比較好，我會有好幾種事件類型，幫每種事件類型定義類別，再讓下面的action去做事
-    public class GeneralEffectReceiver : EffectResolver, IEffectReceiver
+    public class GeneralEffectReceiver : EffectResolver, IEffectReceiver,IHitDataProvider
     {
         private void OnValidate()
         {
@@ -53,5 +53,9 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         //EffectExit也要呢
         protected override string TypeTag => "Receiver";
+        public IEffectHitData GetHitData()
+        {
+            return _currentHitData;
+        }
     }
 }

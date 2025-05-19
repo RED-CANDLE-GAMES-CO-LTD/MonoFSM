@@ -4,7 +4,7 @@ using RCGMaker.Core.Attributes;
 
 namespace MonoFSM.Variable
 {
-    public class VarScriptableData : GenericUnityObjectVariable<DescriptableData>
+    public class VarDescriptableData : GenericUnityObjectVariable<DescriptableData>
     {
         // public MySerializedType type; //typewrapper, 提供給filter functio?
         //defaultvalue可以給 
@@ -18,4 +18,5 @@ namespace MonoFSM.Variable
         public override GameFlagBase FinalData 
             => Value;
     }
+    
 }

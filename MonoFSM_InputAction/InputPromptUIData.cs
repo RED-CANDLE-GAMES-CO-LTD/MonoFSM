@@ -5,7 +5,7 @@ using UnityEngine;
 namespace RCGInputAction
 {
     [CreateAssetMenu(menuName = "RCG/Input/InputPromptUIData", fileName = "InputPromptUIData", order = 0)]
-    public class InputPromptUIData : GameFlagBase
+    public class InputPromptUIData : DescriptableData
     {
         public InputActionData input;
         public LocalizedString prompt_prefix;

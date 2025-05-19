@@ -12,7 +12,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
     {
     }
 
-    public class GeneralEffectDealer : EffectResolver, IEffectDealer
+    public class GeneralEffectDealer : EffectResolver, IEffectDealer,IHitDataProvider
     {
         [PreviewInInspector] [Component] [AutoChildren]
         private AbstractEffectHitCondition[] _effectConditions;
@@ -109,12 +109,15 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         public void OnHitEnter(IEffectHitData data)
         {
+            _currentHitData = data;
             if (_proxyProvider != null) proxyDealer.OnHitEnter(data);
             //兩邊可能都要做事，都判
             _enterNode?.EventHandle(data);
             _receivers.Add(data.Receiver);
             _lastReceiver = data.Receiver as GeneralEffectReceiver;
         }
+
+        private IEffectHitData _currentHitData;
 
         public void OnHitExit(IEffectHitData data)
         {
@@ -126,5 +129,9 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         }
 
         protected override string TypeTag => "Dealer";
+        public IEffectHitData GetHitData()
+        {
+            return _currentHitData;
+        }
     }
 }

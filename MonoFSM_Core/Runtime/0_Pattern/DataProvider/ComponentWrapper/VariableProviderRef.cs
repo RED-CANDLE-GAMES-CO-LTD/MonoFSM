@@ -18,7 +18,8 @@ namespace RCGMaker.Core.DataProvider
     public enum GetFromType
     {
         VariableOwner,
-        GlobalInstance
+        GlobalInstance,
+        VariableOwnerProvider,
     }
 
     //TODO: FIXME: drag drop reference後，自動填入tag/monoTag
@@ -130,7 +131,9 @@ namespace RCGMaker.Core.DataProvider
         }
         
         // IEnumerable<ValueDropdownItem<
-        
+
+        [ShowIf(nameof(_getFromType), GetFromType.VariableOwnerProvider)]  [Component(AddComponentAt.Same)][Auto]
+        public IVariableOwnerProvider variableOwnerProvider;
 
         private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags() //editor time?
         {
@@ -138,6 +141,16 @@ namespace RCGMaker.Core.DataProvider
             var tagDropdownItems = new List<ValueDropdownItem<VariableTag>>();
             switch (_getFromType)
             {
+                case GetFromType.VariableOwnerProvider:
+
+                    if (variableOwnerProvider == null)
+                        return tagDropdownItems;
+                    
+                    foreach (var variable in variableOwnerProvider.GetVariableOwner().VariableFolder.GetValues)
+                        if (variable is TVarMonoType)
+                            tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+                    break;
+                    
                 case GetFromType.GlobalInstance:
                     
                     var instance = CurrentTarget.GetGlobalInstance(_parentMonoTag);
@@ -283,11 +296,24 @@ namespace RCGMaker.Core.DataProvider
         {
             get
             {
+
                 if (_getFromType == GetFromType.GlobalInstance)
                 {
                     var descriptable = CurrentTarget.GetGlobalInstance(_parentMonoTag);
                     if (descriptable == null) return null;
                     return descriptable.GetVariable(_varTag);
+                }
+                
+                if (_getFromType == GetFromType.VariableOwnerProvider)
+                {
+                    if (Application.isPlaying == false)
+                        return null;
+                    
+                    Debug.Log("_getFromType == GetFromType.VariableOwnerProvider",this);
+                    
+                    if (this.variableOwnerProvider == null)
+                        return null;
+                    return this.variableOwnerProvider.GetVariableOwner().GetVariable(_varTag);
                 }
 
                 if (owner == null)
@@ -303,7 +329,10 @@ namespace RCGMaker.Core.DataProvider
                         Debug.LogError("VariableFolder is null", CurrentTarget);
                     return null;
                 }
-
+                
+                
+        
+                
                 var variable = owner.GetVariable(_varTag);
                 if (Application.isPlaying)
                     if (variable == null)

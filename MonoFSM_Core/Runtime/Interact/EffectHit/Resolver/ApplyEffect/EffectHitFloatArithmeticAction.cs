@@ -32,6 +32,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         {
             _runtimeDealer = arg.Dealer as GeneralEffectDealer;
             _runtimeReceiver = arg.Receiver as GeneralEffectReceiver;
+            
             // Debug.Log("EffectHitAction EventReceived", this);
             ApplyEffect(arg.Dealer as GeneralEffectDealer, arg.Receiver as GeneralEffectReceiver);
         }
