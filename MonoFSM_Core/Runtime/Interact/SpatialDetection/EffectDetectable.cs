@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using RCGMaker.Core.Detection;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
@@ -25,11 +26,13 @@ namespace RCGMaker.Runtime.Interact.EffectHit
 
         //DebugOnly
         #if UNITY_EDITOR
+        [PreviewInInspector]
         public HashSet<AbstractDetector> _detectors = new();
         #endif
 
 
         // List<SpatialDetector> fromDetectors;
+        [PreviewInInspector]
         private HashSet<AbstractDetector> toRemoves = new();
 
         private void OnDisable()

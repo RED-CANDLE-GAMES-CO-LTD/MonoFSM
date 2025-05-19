@@ -78,6 +78,7 @@ namespace PlayerActionControl
         //FIXME: 要開出來調嗎？
         private const float InputBufferTime = 0.1f;
 
+        //從network來？
         private void UpdateAction()
         {
             for (var i = 0; i < _bufferedQueue.Count; i++)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.Interact.EffectHit;
@@ -58,6 +59,7 @@ namespace RCGMaker.Core.Detection
 
         [PreviewInInspector] protected HashSet<EffectDetectable> _detectedObjects = new();
 #if UNITY_EDITOR
+        // [PreviewInInspector] private List<EffectDetectable> currentDetectedObjects => _detectedObjects.ToList();
         [PreviewInInspector] protected HashSet<EffectDetectable> _lastDetectedObjects = new();
 
         [Button]
@@ -84,8 +86,6 @@ namespace RCGMaker.Core.Detection
             _detectedObjects.Add(spatialDetectable);
 #if UNITY_EDITOR
             _lastDetectedObjects.Add(spatialDetectable);
-#endif
-#if UNITY_EDITOR
             spatialDetectable._detectors.Add(this);
 #endif
             // Debug.Log("OnSpatialEnter dealers:"+dealers.Length+" receivers:"+effectCollider.EffectReceivers.Length, this);

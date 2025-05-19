@@ -115,7 +115,7 @@ namespace MonoFSM.Variable
         //怎麼那麼多種...
         protected override void SetValueInternal<T1>(T1 value, Object byWho = null)
         {
-            Debug.Log("Set value to " + value, this);
+            // Debug.Log("Set value to " + value, this);
             _currentValue = value as TValueType;
             OnValueChanged?.Invoke(_currentValue); //多一個參數的版本
         }

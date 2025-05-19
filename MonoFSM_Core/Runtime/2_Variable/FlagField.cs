@@ -218,6 +218,7 @@ public abstract class FlagFieldBase
 public interface IVariableField
 {
     public void AddListener(UnityAction action, Object owner);
+    public void RemoveListener(UnityAction action, Object owner);
 }
 
 [Serializable]
@@ -324,7 +325,7 @@ public class
 
     [ShowInDebugMode] private ValueChangedListener<T> listener; //好像可以把監聽對象丟出來看？
     // [ShowInDebugMode] private ValueChangedListener<T> listenerOnce = new();
-
+    [ShowInDebugMode]
     private UnityAction _onChangeAction;
     // private ValueChangedListener<object, object, T> listenerDict;
 
@@ -340,7 +341,13 @@ public class
     {
         _onChangeAction += action;
     }
-    
+
+    public void RemoveListener(UnityAction action, Object owner)
+    {
+        if (_onChangeAction == null) return;
+        _onChangeAction -= action;
+    }
+
     /// fixme: 有可能做non gc 版本嗎？ 上面的看起來失敗了..
     /// <summary>
     /// 
@@ -493,11 +500,11 @@ public class
         ResetToDefault();
     }
 
-    void ClearListener()
-    {
-        listener?.Clear(); //綁定不清會怎麼樣嗎？
-        _onChangeAction = null;
-    }
+    // void ClearListener()
+    // {
+    //     listener?.Clear(); //綁定不清會怎麼樣嗎？
+    //     _onChangeAction = null;
+    // }
     
     //TODO: 換scene清？也不對，有些不清
 

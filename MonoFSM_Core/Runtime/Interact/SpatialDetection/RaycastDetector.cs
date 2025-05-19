@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using RCGMaker.Core.Detection;
 using Sirenix.Utilities;
@@ -8,7 +7,18 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
 {
     public class RaycastDetector:AbstractDetector
     {
-        public float _distance = 30; 
+        public enum RaycastMode
+        {
+            Single,
+            All
+        }
+
+        [SerializeField] private RaycastMode _raycastMode = RaycastMode.Single;
+        public float _distance = 30;
+        private readonly List<RaycastHit> _cachedHits = new();
+        public IReadOnlyList<RaycastHit> CachedHits => _cachedHits;
+        public RaycastHit CachedHit => _cachedHits.Count > 0 ? _cachedHits[0] : default;
+
         protected override void SetLayerOverride()
         {
             
@@ -21,35 +31,59 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
 
         public void PhysicsUpdate() //network?
         {
-            TryCast();
-            _lastFrameColliders.AddRange(_thisFrameColliders);
             _thisFrameColliders.Clear();
+            TryCast();
+            foreach (var col in _thisFrameColliders)
+                if (!_lastFrameColliders.Contains(col))
+                    // Debug.Log("enter" + col.name, col.gameObject);
+                    OnSpatialEnter(col.gameObject);
+
+
+            foreach (var col in _lastFrameColliders)
+                if (!_thisFrameColliders.Contains(col))
+                    OnSpatialExit(col.gameObject);
+
+            _lastFrameColliders.Clear();
+            _lastFrameColliders.AddRange(_thisFrameColliders);
+            
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(_rayProvider.GetRay().origin, _rayProvider.GetRay().direction * _distance);
+            // if (_cacehdHit.collider != null)
+            // {
+            //     Gizmos.color = Color.green;
+            //     Gizmos.DrawSphere(_cacehdHit.point, 0.1f);
+            // }
         }
 
         void TryCast()
         {
-            //rayProvider?
             var ray = _rayProvider.GetRay();
-            if (Physics.Raycast(ray, out var hit, _distance, HittingLayer))
+            _cachedHits.Clear();
+            _thisFrameColliders.Clear();
+            if (_raycastMode == RaycastMode.Single)
             {
-                if (!_thisFrameColliders.Contains(hit.collider))
+                if (Physics.Raycast(ray, out var hit, _distance, HittingLayer))
                 {
-                    OnSpatialEnter(hit.collider.gameObject);
-                    _thisFrameColliders.Add(hit.collider);    
+                    _cachedHits.Add(hit);
+                    _thisFrameColliders.Add(hit.collider);
+                    // Debug.Log("hit" + hit.collider.name, hit.collider);
                 }
-                _cacehdHit = hit;
             }
-
-            foreach (var col in _lastFrameColliders)
+            else
             {
-                if (!_thisFrameColliders.Contains(col))
+                var hits = Physics.RaycastAll(ray, _distance, HittingLayer);
+                foreach (var h in hits)
                 {
-                    OnSpatialExit(col.gameObject);
+                    _cachedHits.Add(h);
+                    _thisFrameColliders.Add(h.collider);
+                    Debug.Log("hit" + h.collider.name, h.collider);
                 }
             }
         }
-        RaycastHit _cacehdHit;
-        public RaycastHit CachedHit => _cacehdHit;
 
         private readonly HashSet<Collider> _thisFrameColliders = new();
         private readonly HashSet<Collider> _lastFrameColliders = new();
@@ -87,3 +121,4 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
         }
     }
 }
+

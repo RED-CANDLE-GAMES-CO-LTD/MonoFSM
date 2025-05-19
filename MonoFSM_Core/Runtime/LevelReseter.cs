@@ -51,7 +51,8 @@ namespace MonoFSM_Core.Runtime
             PoolManager.ResetReload(level);
         }
         private GameObject level;
-        public void OnLevelStart()
+
+        public void OnLevelStart() //怎麼警告沒有start？
         {
             // Application.targetFrameRate = 60;
             // Debug.Log("OnSceneLoaded" + arg0.name);
