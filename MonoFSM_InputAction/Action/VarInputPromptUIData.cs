@@ -1,4 +1,4 @@
-using InputAction;
+using RCGInputAction;
 using MonoFSM.Variable;
 using UnityEngine;
 

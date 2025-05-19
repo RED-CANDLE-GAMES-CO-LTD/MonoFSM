@@ -2,7 +2,7 @@ using MonoFSM.Localization;
 using UnityEngine;
 
 
-namespace InputAction
+namespace RCGInputAction
 {
     [CreateAssetMenu(menuName = "RCG/Input/InputPromptUIData", fileName = "InputPromptUIData", order = 0)]
     public class InputPromptUIData : GameFlagBase
