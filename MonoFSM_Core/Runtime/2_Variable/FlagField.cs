@@ -249,6 +249,8 @@ public class
 
     //FIXME: Nested好像很不好assign...
     // [MCPExtractable]
+    public T DefaultValue => ProductionValue;
+    
     [FormerlySerializedAs("DefaultValue")] public T ProductionValue;
 
     // public T PlayTestValue;

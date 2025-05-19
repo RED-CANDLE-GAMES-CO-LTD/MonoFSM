@@ -1,6 +1,9 @@
 using System;
+using Sirenix.OdinInspector;
 
 /// FIXME: 想要包含[MCPExtractable]...還是讓python也處理？
+[Required] //沒道理要選結果沒選到東西？
+[IncludeMyAttributes]
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class DropDownRefAttribute : Attribute
 {

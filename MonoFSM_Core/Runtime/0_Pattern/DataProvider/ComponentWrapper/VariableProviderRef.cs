@@ -134,6 +134,7 @@ namespace RCGMaker.Core.DataProvider
 
         private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags() //editor time?
         {
+            
             var tagDropdownItems = new List<ValueDropdownItem<VariableTag>>();
             switch (_getFromType)
             {

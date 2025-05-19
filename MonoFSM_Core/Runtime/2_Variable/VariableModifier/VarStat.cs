@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 using RCGMaker.Core.Attributes;
+using Sirenix.OdinInspector;
 
 namespace MonoFSM.Variable
 {
@@ -12,22 +13,26 @@ namespace MonoFSM.Variable
     //FIXME: 不需要狀態？應該要是一個Getter, IFloatProvider
     public sealed class VarStat : VarFloat
     {
-        private float BaseValue => CurrentValue;
-        private bool isDirty = true;
-        private float lastBaseValue;
+        private float BaseValue => Field.ProductionValue;
+        private bool _isDirty = true; //set dirty?
+        private float _lastBaseValue;
         private float _value;
+
+        //FIXME: 有可能用ScriptableObject? 混用？還是monobehaviour比較好
         [PreviewInInspector] [AutoChildren] VariableStatModifier[] LocalStatModifiers; //原本就放在下面..這是不是反而不會有太多用處
 
         ValueChangedListener<float> listener;
-        [PreviewInInspector] List<VariableStatModifier> statModifiers = new();
+        // [PreviewInInspector] List<VariableStatModifier> statModifiers = new();
 
-        private List<IStatModifer> _statModifiers;
+        [ShowInInspector] private List<IStatModifer> _statModifiers = new();
 
         protected override void Awake()
         {
             base.Awake();
             if (LocalStatModifiers != null)
-                statModifiers.AddRange(LocalStatModifiers);
+            {
+                foreach (var statModifier in LocalStatModifiers) _statModifiers.Add(statModifier);
+            }
         }
 
         [ShowInPlayMode]
@@ -35,7 +40,7 @@ namespace MonoFSM.Variable
         {
             get
             {
-                if (isDirty || lastBaseValue != BaseValue)
+                if (_isDirty || _lastBaseValue != BaseValue)
                 {
                     //條件一變，值就變？dirty也是一路問，問每個statmodifier
                     CalValues();
@@ -46,59 +51,72 @@ namespace MonoFSM.Variable
             }
         }
 
-
-        private void CalValues()
+        public override float CurrentValue
         {
-            lastBaseValue = BaseValue;
-            _value = CalculateFinalValue();
-            isDirty = false;
+            get
+            {
+                //FIXME: bound還要管嗎？
+                if (_isDirty) CalValues();
+                return _value;
+            }
+            //FIXME: 要可以set嗎？
+            set => _lastBaseValue = value; //hmm???
         }
 
-        private float CalValueAfterModifier(IReadOnlyList<VariableStatModifier> statModifiers)
+        private float _lastValue;
+
+        private float CalValues()
+        {
+            _lastValue = _value;
+            _lastBaseValue = BaseValue;
+            var tempValue = CalculateFinalValue();
+            if (_modifiers != null)
+                foreach (var modifier in _modifiers)
+                    tempValue = modifier.AfterGetValueModifyCheck(tempValue);
+            _value = tempValue;
+            _isDirty = false;
+            if (_lastValue != _value) OnValueChangedRaw.Invoke();
+            return _value;
+        }
+
+        private float CalValueAfterModifier(IReadOnlyList<IStatModifer> statModifiers)
         {
             if (statModifiers == null)
                 return BaseValue;
             var finalValue = BaseValue;
             float sumPercentAdd = 0;
-
-            //FIXME: mod必須要先把Owner灌進去？這樣才能拿到正確的targetStat和value
-            // foreach (var mod in _statModifiers)
-            // {
-            //     if (mod.GetModType == StatModType.Flat)
-            //         finalValue += mod.GetValue;
-            //     else if (mod.GetModType == StatModType.PercentAdd)
-            //     {
-            //         sumPercentAdd += mod.GetValue;
-            //         finalValue *= 1 + sumPercentAdd;
-            //         sumPercentAdd = 0;
-            //     }
-            //     else if (mod.GetModType == StatModType.PercentMult)
-            //         finalValue *= mod.GetValue;
-            // }
-
             for (var i = 0; i < statModifiers.Count; i++)
             {
                 var mod = statModifiers[i];
-                if (mod.IsValid == false) continue;
-                if (mod.Type == StatModType.Flat)
+                //會有valid? condition?
+                // if (mod.IsValid == false) continue;
+                switch (mod.GetModType)
                 {
-                    finalValue += mod.Value;
-                }
-                else if (mod.Type == StatModType.PercentAdd) //大部分都是這個才對
-                {
-                    sumPercentAdd += mod.Value;
-
-                    if (i + 1 >= statModifiers.Count || statModifiers[i + 1].Type != StatModType.PercentAdd)
+                    case StatModType.Flat:
+                        finalValue += mod.GetValue;
+                        break;
+                    //大部分都是這個才對
+                    case StatModType.PercentAdd:
                     {
-                        finalValue *= 1 + sumPercentAdd;
-                        sumPercentAdd = 0;
+                        sumPercentAdd += mod.GetValue;
+
+                        if (i + 1 >= statModifiers.Count || statModifiers[i + 1].GetModType != StatModType.PercentAdd)
+                        {
+                            finalValue *= 1 + sumPercentAdd;
+                            sumPercentAdd = 0;
+                        }
+
+                        break;
                     }
-                }
-                else if (mod.Type == StatModType.PercentMult) //用得到嗎？
-                {
-                    //TODO: 直接乘比較好懂???
-                    // finalValue *= mod.Value;
-                    finalValue *= mod.Value;
+                    //用得到嗎？
+                    case StatModType.PercentMult:
+                        //TODO: 直接乘比較好懂???
+                        // finalValue *= mod.Value;
+                        finalValue *= mod.GetValue;
+                        break;
+                    case StatModType.Overwrite:
+                        finalValue = mod.GetValue;
+                        break;
                 }
             }
 
@@ -115,8 +133,8 @@ namespace MonoFSM.Variable
                 return CalValueAfterModifier(LocalStatModifiers);
             }
 
-            statModifiers?.Sort(_modifierOrder);
-            return CalValueAfterModifier(statModifiers);
+            _statModifiers?.Sort(_modifierOrder);
+            return CalValueAfterModifier(_statModifiers);
         }
 
         public void AddListener(UnityAction<float> action, MonoBehaviour owner)
@@ -146,7 +164,7 @@ namespace MonoFSM.Variable
             //FIXME: 真的可以這樣新增嗎？
             if (!_statModifiers.Contains(mod))
             {
-                isDirty = true;
+                _isDirty = true;
                 _statModifiers.Add(mod);
                 var value = CurrentValue; //modifier改變，更新一下值
             }
@@ -159,10 +177,10 @@ namespace MonoFSM.Variable
         public void AddModifier(VariableStatModifier mod) //fixme: 可以用StatModifier就好嗎？
         {
             // Debug.Log("Add Stat modifier" + this);
-            if (!statModifiers.Contains(mod))
+            if (!_statModifiers.Contains(mod))
             {
-                isDirty = true;
-                statModifiers.Add(mod);
+                _isDirty = true;
+                _statModifiers.Add(mod);
                 var value = CurrentValue; //modifier改變，更新一下值
                 // Debug.Log("Character Stat Add Modifier" + mod.Value + mod.Type + ",result:" + value);
             }
@@ -172,11 +190,22 @@ namespace MonoFSM.Variable
             }
         }
 
+        public bool RemoveModifier(IStatModifer mod)
+        {
+            if (_statModifiers.Remove(mod))
+            {
+                _isDirty = true;
+                var value = CurrentValue; //modifier改變，更新一下值
+                return true;
+            }
+
+            return false;
+        }
         public bool RemoveModifier(VariableStatModifier mod)
         {
-            if (statModifiers.Remove(mod))
+            if (_statModifiers.Remove(mod))
             {
-                isDirty = true;
+                _isDirty = true;
                 var value = CurrentValue; //modifier改變，更新一下值
                 return true;
             }
@@ -186,32 +215,32 @@ namespace MonoFSM.Variable
 
         public void Clear()
         {
-            statModifiers.Clear();
+            _statModifiers.Clear();
             _value = BaseValue;
-            isDirty = true;
+            _isDirty = true;
         }
 
         public bool RemoveAllModifiersFromSource(IStatModifierOwner source)
         {
             //check remove from back to front of statModifiers
-            for (var i = statModifiers.Count - 1; i >= 0; i--)
+            for (var i = _statModifiers.Count - 1; i >= 0; i--)
             {
-                if (statModifiers[i].Source == source)
+                if (_statModifiers[i].Source == source)
                 {
-                    statModifiers.RemoveAt(i);
-                    isDirty = true;
+                    _statModifiers.RemoveAt(i);
+                    _isDirty = true;
                 }
             }
 
-            return isDirty;
+            return _isDirty;
         }
 
         public void SetDirty()
         {
-            isDirty = true;
+            _isDirty = true;
         }
 
-        private Comparison<VariableStatModifier> _modifierOrder =
-            (a, b) => a.Order < b.Order ? -1 : a.Order > b.Order ? 1 : 0;
+        private readonly Comparison<IStatModifer> _modifierOrder =
+            (a, b) => a.GetOrder < b.GetOrder ? -1 : a.GetOrder > b.GetOrder ? 1 : 0;
     }
 }

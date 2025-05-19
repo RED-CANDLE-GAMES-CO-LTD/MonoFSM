@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using RCGMaker.Core.Attributes;
+using Object = UnityEngine.Object;
 
 //fixme: 介面看不太懂，要重新設計一下...
 [Serializable]
@@ -60,14 +61,14 @@ public class StatModifierEntry //有點醜ㄇ，PlayerStatModifier比較醜？
             if (ValueSource != null)
             {
                 // Debug.Log("[StatModifierEntry]: ValueSource " + ValueSource, source as ScriptableObject);
-                ValueSource.field.AddListener(OnValueChange, source as ScriptableObject);
+                ValueSource.field.AddListener(OnValueChange, source as Object);
             }
             else
             {
                 // Debug.Log("[Apply StatModifierEntry]: exist " + this, source as ScriptableObject);
                 modifier.Value = Value * AdditionalMultiplier;
-                modifier.Type = modType;
-                modifier.Source = source as ScriptableObject;
+                modifier._statModType = modType;
+                modifier.SetSource(source as Object);
                 modifier.DurationType = DurationType;
             }
 

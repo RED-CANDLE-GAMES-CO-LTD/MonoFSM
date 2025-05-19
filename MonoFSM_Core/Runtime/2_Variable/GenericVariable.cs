@@ -223,7 +223,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     }
 
     [ShowInPlayMode]
-    public TType CurrentValue //FIXME: 改成Value?
+    public virtual TType CurrentValue //FIXME: 改成Value?
     {
         get
         {

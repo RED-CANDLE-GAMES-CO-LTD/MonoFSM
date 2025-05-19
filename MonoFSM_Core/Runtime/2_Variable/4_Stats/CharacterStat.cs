@@ -117,7 +117,7 @@ public class CharacterStat //這個改名會爛掉嗎?
             // statModifiers.Remove(mod);
             isDirty = true;
             var value = Value; //modifier改變時，更新一下值
-            Debug.Log("Character Stat Already Has Modifier" + mod.Value + mod.Type);
+            Debug.Log("Character Stat Already Has Modifier" + mod.Value + mod._statModType);
         }
 
     }
@@ -176,21 +176,21 @@ public class CharacterStat //這個改名會爛掉嗎?
         {
             var mod = statModifiers[i];
 
-            if (mod.Type == StatModType.Flat)
+            if (mod._statModType == StatModType.Flat)
             {
                 finalValue += mod.Value;
             }
-            else if (mod.Type == StatModType.PercentAdd)
+            else if (mod._statModType == StatModType.PercentAdd)
             {
                 sumPercentAdd += mod.Value;
 
-                if (i + 1 >= statModifiers.Count || statModifiers[i + 1].Type != StatModType.PercentAdd)
+                if (i + 1 >= statModifiers.Count || statModifiers[i + 1]._statModType != StatModType.PercentAdd)
                 {
                     finalValue *= 1 + sumPercentAdd;
                     sumPercentAdd = 0;
                 }
             }
-            else if (mod.Type == StatModType.PercentMult)
+            else if (mod._statModType == StatModType.PercentMult)
             {
                 //TODO: 直接乘比較好懂???
                 // finalValue *= mod.Value;

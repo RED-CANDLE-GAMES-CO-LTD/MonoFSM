@@ -8,9 +8,10 @@ using MonoFSM.Variable;
 
 public enum StatModType
 {
-    Flat = 100,
-    PercentAdd = 200,
-    PercentMult = 300,
+    Flat = 0,
+    PercentAdd = 1,
+    PercentMult = 2,
+    Overwrite = 3
 }
 
 public enum StatModDurationType
@@ -36,6 +37,7 @@ public class StatModifierPro : IStatModifer
     public int GetOrder => _order;
     public StatModType GetModType => _type;
     public float GetValue => _valueProvider.Value;
+    public Object Source => _targetProvider.Variable;
 }
 
 public interface IStatModifer
@@ -44,30 +46,41 @@ public interface IStatModifer
     public int GetOrder { get; }
     public StatModType GetModType { get; }
     public float GetValue { get; }
+    public Object Source { get; }
 }
 
 [System.Serializable]
-public class StatModifier //以前是給Characterstat用的
+public class StatModifier : IStatModifer //以前是給Characterstat用的
 {
     public VariableTag statTag;
     public float Value;
-    public StatModType Type;
-
-    [FormerlySerializedAs("Duration")] public StatModDurationType DurationType;
+    public StatModType _statModType;
+    public StatModDurationType DurationType; //FIXME: 重點是啥？
     public int Order;
     // public readonly object Source;
 
-    [ShowInInspector] public ScriptableObject Source;
+    [ShowInInspector] public Object _source;
+    public Object Source => _source;
+
+    public void SetSource(Object source)
+    {
+        _source = source;
+    }
 
     public StatModifier(float value, StatModType type, int order, IStatModifierOwner source)
     {
         Value = value;
-        Type = type;
+        _statModType = type;
         Order = order;
-        Source = source as ScriptableObject; //TODO: 一定要有source嗎？
+        _source = source as Object; //TODO: 一定要有source嗎？
     }
 
     public StatModifier(float value, StatModType type, IStatModifierOwner source) : this(value, type, (int)type, source)
     {
     }
+
+    public VariableTag targetStatTag => statTag;
+    public int GetOrder => Order;
+    public StatModType GetModType => _statModType;
+    public float GetValue => Value;
 }

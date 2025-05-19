@@ -1,23 +1,27 @@
 using System;
-
+using MonoFSM.DataProvider;
 using UnityEngine;
-
 using Sirenix.OdinInspector;
-
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
+using Object = UnityEngine.Object;
 
 namespace MonoFSM.Variable
 {
-    public class VariableStatModifier : MonoBehaviour //單一數值的modify...不同層
+    public class VariableStatModifier : MonoBehaviour, IStatModifer //單一數值的modify...不同層
     {
         //還是用Variable比較好，可以被UI顯示？
-        [Header("Target Stat")] public VariableFloatProvider _targetStatProvider;
+        [BoxGroup("Target")] public VariableFloatProvider _targetStatProvider;
 
-        public VariableFloatProvider _valueProvider;
+        [BoxGroup("Modifier")] public float _constValue;
 
-        public float Value => _valueProvider.Value;
+        [BoxGroup("Modifier")] public VarFloatProviderRef _valueProvider;
 
+        [BoxGroup("Modifier")]
+        [PreviewInInspector]
+        public float Value => _valueProvider?.Value ?? _constValue;
+
+        // [SerializeField] private StatModifier _statModifier;
         // [Range(-10, 10)] public float _value; //定值，應該不需要再用variable了才對？
 
         [ShowInInspector]
@@ -30,12 +34,12 @@ namespace MonoFSM.Variable
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-        public StatModType Type = StatModType.Flat;
+        public StatModType Type = StatModType.Flat; //Const?
         public int Order;
 
         //FIXME: auto fetch, preview?
-        [PreviewInInspector] IStatModifierOwner _source; //原本的parent?可以用interface?
-        public IStatModifierOwner Source => _source;
+        // [PreviewInInspector] IStatModifierOwner _source; //原本的parent?可以用interface?
+        public Object Source => this;
 
         [Button]
         private void Rename()
@@ -53,16 +57,10 @@ namespace MonoFSM.Variable
         [AutoParent] VarStat _stat;
         private bool lastValid = false;
 
-        //FIXME: polling dirty?
-        // private void Update()
-        // {
-        //     if (IsValid != lastValid)
-        //     {
-        //         _stat.SetDirty();
-        //     }
-        //
-        //     lastValid = IsValid;
-        // }
+        public VariableTag targetStatTag { get; }
+        public int GetOrder => Order;
+        public StatModType GetModType => Type;
+        public float GetValue => Value;
     }
 
     //應該要是什麼關係...就是一個Stat? 但Variable和Stat要分開宣告嗎？ 還是就繼承？
