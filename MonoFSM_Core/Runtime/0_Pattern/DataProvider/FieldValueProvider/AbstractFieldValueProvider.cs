@@ -342,7 +342,10 @@ namespace RCGMaker.Core.DataProvider
                 _dataChangedListener.OnDataChanged(targetObject);
             }
             else
+            {
                 Debug.LogError("ListenToVariable is null", this);
+                Debug.Break();
+            }
         }
 
         public object GetValue()

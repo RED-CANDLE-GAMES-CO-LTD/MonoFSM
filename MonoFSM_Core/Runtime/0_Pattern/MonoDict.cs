@@ -30,7 +30,7 @@ namespace RCGMaker.Core
 
         //如果在autoReference 之前就不會進來...hmmm!?
         //有點討厭：spawned, player spawned (自己做reference & sceneAwake?), SceneAwake, SceneStart (並沒有拿到player)
-        [PreviewInInspector] [AutoChildren] protected TU[] collections; //disable也會被加進來
+        [PreviewInInspector] [AutoChildren] protected TU[] _collections; //disable也會被加進來
 
         protected virtual bool IsStringDictEnable => false;
 
@@ -241,12 +241,12 @@ namespace RCGMaker.Core
                 Clear();
                 // Debug.Log("PrepareDictCheck?", this);
                 _isPrepared = true;
-                collections = GetComponentsInChildren<TU>(true);
+                _collections = GetComponentsInChildren<TU>(true);
             }
 #endif
             _isPrepared = true;
             // Debug.Log("PrepareDictCheck" + name + collections.Length, this);
-            foreach (var item in collections)
+            foreach (var item in _collections)
             {
                 if (CanBeAdded(item) == false)
                 {
@@ -278,7 +278,7 @@ namespace RCGMaker.Core
             // Debug.Log("EnterSceneAwake Dict", this);
             foreach (var key in _dict.Keys)
             {
-                Debug.Log(key+" "+_dict[key],_dict[key] as Object);
+                Debug.Log("MonoDict Prepare" + key + " " + _dict[key], _dict[key] as Object);
             }
         }
     }

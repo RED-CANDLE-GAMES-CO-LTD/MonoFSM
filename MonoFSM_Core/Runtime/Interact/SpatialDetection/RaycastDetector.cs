@@ -36,6 +36,7 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
             PhysicsUpdate();
         }
 
+        private Ray _cachedRay;
         public void PhysicsUpdate() //network?
         {
             _thisFrameColliders.Clear();
@@ -58,7 +59,7 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawRay(_rayProvider.GetRay().origin, _rayProvider.GetRay().direction * _distance);
+            Gizmos.DrawRay(_cachedRay.origin, _cachedRay.direction * _distance);
             // if (_cacehdHit.collider != null)
             // {
             //     Gizmos.color = Color.green;
@@ -66,11 +67,77 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
             // }
         }
 
+        // CameraRayProvider
+        public bool _isEffectByCameraRotation;
+        [SerializeField] private float _minVerticalAngle = -45f; // Minimum vertical angle limit
+        [SerializeField] private float _maxVerticalAngle = 45f; // Maximum vertical angle limit
+        private Transform _characterTransform; // Reference to the character's transform
+
         void TryCast()
         {
             var ray = _rayProvider.GetRay();
+            _characterTransform = transform;
+            if (_isEffectByCameraRotation && _characterTransform != null)
+            {
+                var camera = Camera.main;
+                if (camera != null)
+                {
+                    // Get camera's pitch (vertical rotation)
+                    var cameraPitch = camera.transform.eulerAngles.x;
+                    // Normalize angle to -180 to 180 range
+                    if (cameraPitch > 180f) cameraPitch -= 360f;
+
+                    // Clamp the pitch within our limits
+                    var clampedPitch = Mathf.Clamp(cameraPitch, _minVerticalAngle, _maxVerticalAngle);
+
+                    // Use the character's forward direction as the base
+                    var characterForward = _characterTransform.forward;
+                    var horizontalForward = new Vector3(characterForward.x, 0, characterForward.z).normalized;
+
+                    // Create rotation from the character's Y rotation (yaw)
+                    var characterYawRotation = Quaternion.Euler(0, _characterTransform.eulerAngles.y, 0);
+
+                    // Apply pitch rotation around the local X axis
+                    var pitchRotation = Quaternion.Euler(clampedPitch, 0, 0);
+
+                    // First apply character's yaw, then apply the camera pitch
+                    var newDirection = characterYawRotation * (pitchRotation * Vector3.forward);
+
+                    // Create a new ray with the adjusted direction
+                    ray = new Ray(ray.origin, newDirection);
+                }
+            }
+            else if (_isEffectByCameraRotation)
+            {
+                var camera = Camera.main;
+                if (camera != null)
+                {
+                    // Get camera's pitch (vertical rotation)
+                    var cameraPitch = camera.transform.eulerAngles.x;
+                    // Normalize angle to -180 to 180 range
+                    if (cameraPitch > 180f) cameraPitch -= 360f;
+
+                    // Clamp the pitch within our limits
+                    var clampedPitch = Mathf.Clamp(cameraPitch, _minVerticalAngle, _maxVerticalAngle);
+
+                    // Default implementation when character transform is not set
+                    // Create a new direction that preserves horizontal direction but applies vertical angle
+                    var horizontalDir = new Vector3(camera.transform.forward.x, 0, camera.transform.forward.z)
+                        .normalized;
+
+                    // Apply pitch rotation to the horizontal direction
+                    var pitchRotation = Quaternion.Euler(clampedPitch, 0, 0);
+                    var newDirection = pitchRotation * Vector3.forward;
+
+                    // Create a new ray with the adjusted direction
+                    ray = new Ray(ray.origin, newDirection);
+                }
+            }
+            
             _cachedHits.Clear();
             _thisFrameColliders.Clear();
+
+            _cachedRay = ray;
             if (_raycastMode == RaycastMode.Single)
             {
                 if (Physics.Raycast(ray, out var hit, _distance, HittingLayer))
