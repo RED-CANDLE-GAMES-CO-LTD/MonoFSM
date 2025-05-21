@@ -7,6 +7,7 @@ using MonoFSM_Core.Runtime;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
+using RCGMaker.Core.DataProvider;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Interact.EffectHit;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
@@ -23,7 +24,8 @@ namespace RCGMaker.Runtime
     }
     
     [Searchable]
-    public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData> ,IInstantiated,IBeforePrefabSaveCallbackReceiver//這樣data也要一直繼承，好ㄇ...
+    public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData>, IInstantiated,
+        IBeforePrefabSaveCallbackReceiver, IGameDataProvider //這樣data也要一直繼承，好ㄇ...
     {
         public VarFloat this[string statName] => GetVariable(statName) as VarFloat;
         public void OnInstantiated()
@@ -36,6 +38,8 @@ namespace RCGMaker.Runtime
         {
             FillVarTagsToMonoDescriptableTag();
         }
+
+        public DescriptableData GameData => Data;
     }
 
     //描述物件的monoNode, Entity? MonoEntity?
@@ -104,11 +108,11 @@ namespace RCGMaker.Runtime
             return data as T;
         }
 
-        [ShowInInspector]
+        // [ShowInInspector]
         public TMonoDescriptable Data
         {
             get => data;
-            set => data = value;
+            // set => data = value;
         }
 
 
@@ -294,6 +298,8 @@ namespace RCGMaker.Runtime
         protected void FillVarTagsToMonoDescriptableTag()
         {
             if (VariableFolder == null)
+                return;
+            if (DescriptableTag == null)
                 return;
             var variables = VariableFolder.GetValues;
             foreach (var variable in variables)

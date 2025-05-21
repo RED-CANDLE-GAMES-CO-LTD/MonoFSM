@@ -14,7 +14,5 @@ namespace MonoFSM.DataProvider
         {
             return Value;
         }
-
-        public string Description => varTag?.name;
     }
 }

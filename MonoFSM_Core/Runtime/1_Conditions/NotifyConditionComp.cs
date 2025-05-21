@@ -26,7 +26,7 @@ namespace MonoFSM.Condition
         private void Register()
         {
             _isRegistered = true;
-            Debug.Log("Register: " + listenField, this);
+            // Debug.Log("Register: " + listenField, this);
             // Debug.Break();
             listenField.RemoveListener(OnConditionChanged, this);
             listenField.AddListener(OnConditionChanged, this);

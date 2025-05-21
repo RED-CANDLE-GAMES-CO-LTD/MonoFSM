@@ -15,7 +15,7 @@ namespace RCGMaker.Core.DataProvider
     //MonoObject
     //MonoVariable來源
     //SOData來源 
-    public interface IFloatProvider //用介面好處，但是會哭哭
+    public interface IFloatProvider : IConfigVar //用介面好處，但是會哭哭
     {
         public float GetFloat();
 
@@ -25,19 +25,36 @@ namespace RCGMaker.Core.DataProvider
         //string description name? provider description?
     }
 
-    [InlineProperty]
-    [Serializable]
-    public class FloatProviderLiteral : IFloatProvider
-    {
-        public float literal;
-
-        public float GetFloat()
-        {
-            return literal;
-        }
-
-        public string Description => literal.ToString();
-    }
+    // [InlineProperty]
+    // [Serializable]
+    // public class FloatProviderLiteral : IFloatProvider
+    // {
+    //     public float literal;
+    //
+    //     public float GetFloat()
+    //     {
+    //         return literal;
+    //     }
+    //
+    //     public string Description => literal.ToString();
+    //
+    //     public object GetValue()
+    //     {
+    //         return literal;
+    //     }
+    //
+    //     public T GetValue<T>()
+    //     {
+    //         if (typeof(T) == typeof(float)) return (T)(object)literal;
+    //
+    //         throw new InvalidCastException($"Cannot cast {typeof(float)} to {typeof(T)}");
+    //     }
+    //
+    //     public string GetDescription()
+    //     {
+    //         return literal.ToString();
+    //     }
+    // }
 
     [MovedFrom(false, null, "rcg.rcgmakercore.Runtime", "FloatProviderFromVariable")]
     [InlineProperty]
@@ -53,6 +70,23 @@ namespace RCGMaker.Core.DataProvider
         }
 
         public string Description => _monoVar?._varTag?.name;
+
+        public object GetValue()
+        {
+            return _monoVar?.FinalValue;
+        }
+
+        public T GetValue<T>()
+        {
+            if (typeof(T) == typeof(float)) return (T)(object)_monoVar?.FinalValue;
+
+            throw new InvalidCastException($"Cannot cast {typeof(float)} to {typeof(T)}");
+        }
+
+        public string GetDescription()
+        {
+            return _monoVar?.FinalValue.ToString();
+        }
     }
 
     [Serializable]
@@ -87,44 +121,44 @@ namespace RCGMaker.Core.DataProvider
         }
     }
 
-    [Serializable]
-    public class VariableIntProvider : VariableProvider<VarInt, int>, IFloatProvider
-    {
-        public int GetInt()
-        {
-            return Value;
-        }
-
-        public float GetFloat()
-        {
-            return Value;
-        }
-
-        public string Description => varTag?.name;
-
-        public VarInt GetVar()
-        {
-            return GetVar<VarInt>();
-        }
-    }
-
-    [Serializable]
-    public class VariableFloatFromGlobalInstance : VariableProviderFromGlobalInstance<VarFloat>, IFloatProvider
-    {
-        public float GetFloat()
-        {
-            return GetMonoVar().Value;
-        }
-
-        public string Description => monoDescriptableTag.name + "." + varTag.name;
-    }
-
-    [Serializable]
-    public class VarMonoFromGlobalInstance : VariableProviderFromGlobalInstance<VarMono>,
-        IVarMonoProvider
-    {
-        public string Description => monoDescriptableTag.name + "." + varTag.name;
-        public VarMono Variable => GetMonoVar();
-        public DescriptableData SampleData => Variable?.SampleData;
-    }
+    // [Serializable]
+    // public class VariableIntProvider : VariableProvider<VarInt, int>, IFloatProvider
+    // {
+    //     public int GetInt()
+    //     {
+    //         return Value;
+    //     }
+    //
+    //     public float GetFloat()
+    //     {
+    //         return Value;
+    //     }
+    //
+    //     public string Description => varTag?.name;
+    //
+    //     public VarInt GetVar()
+    //     {
+    //         return GetVar<VarInt>();
+    //     }
+    // }
+    //
+    // [Serializable]
+    // public class VariableFloatFromGlobalInstance : VariableProviderFromGlobalInstance<VarFloat>, IFloatProvider
+    // {
+    //     public float GetFloat()
+    //     {
+    //         return GetMonoVar().Value;
+    //     }
+    //
+    //     public string Description => monoDescriptableTag.name + "." + varTag.name;
+    // }
+    //
+    // [Serializable]
+    // public class VarMonoFromGlobalInstance : VariableProviderFromGlobalInstance<VarMono>,
+    //     IVarMonoProvider
+    // {
+    //     public string Description => monoDescriptableTag.name + "." + varTag.name;
+    //     public VarMono Variable => GetMonoVar();
+    //     public DescriptableData SampleData => Variable?.SampleData;
+    // }
 }

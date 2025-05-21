@@ -60,7 +60,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public float StateDuration;
 
     //還沒用到
-    [DropDownRef] public GeneralState NextState;
+    // [DropDownRef] public GeneralState NextState;
 
     public bool IsDrawGUIHierarchyBackground =>
         Application.isPlaying && context && context.currentStateType == stateType;

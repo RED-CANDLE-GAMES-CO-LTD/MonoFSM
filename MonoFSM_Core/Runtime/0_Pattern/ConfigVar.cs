@@ -5,5 +5,6 @@ namespace RCGMaker.Core
         object GetValue();
         T GetValue<T>();
         string GetDescription();
+        // string Description { get; }
     }
 }

@@ -53,7 +53,7 @@ namespace RCGMaker.Core.DataProvider
                     if (!prop.CanRead) continue;
 
                     var propType = prop.PropertyType;
-                    bool isSupportedType = _supportedTypes != null && _supportedTypes.Contains(propType);
+                    var isSupportedType = _supportedTypes == null ? true : _supportedTypes.Contains(propType);
 
                     // || typeof(DescriptableData).IsAssignableFrom(propType)
                     //propType.IsSerializable ||

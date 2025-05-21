@@ -1,4 +1,6 @@
+using System;
 using jerryee.UnityMCP;
+using RCGMaker.Core;
 using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -26,6 +28,23 @@ namespace MonoFSM.DataProvider
             UnityEditor.Undo.RecordObject(this, "Rename");
             name = "[Float]" + _literal;
 #endif
+        }
+
+        public object GetValue()
+        {
+            return _literal;
+        }
+
+        public T GetValue<T>()
+        {
+            if (typeof(T) == typeof(float)) return (T)(object)_literal;
+
+            throw new InvalidCastException($"Cannot cast {typeof(float)} to {typeof(T)}");
+        }
+
+        public string GetDescription()
+        {
+            return _literal.ToString();
         }
     }
 }

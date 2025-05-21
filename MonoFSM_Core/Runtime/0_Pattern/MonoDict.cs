@@ -207,7 +207,7 @@ namespace RCGMaker.Core
         [ShowInInspector] public List<T> GetKeys => new(_dict.Keys);
 
         [ShowInInspector]
-        public List<TU> GetValues
+        public List<TU> GetValues //FIXME: 效能不好
         {
             get
             {

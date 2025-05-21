@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace RCGMaker.Core.DataProvider
 {
+    //FIXME: 怪怪的
     [Serializable]
     public class GameDataObjectFieldProvider : AbstractFieldValueProvider
     {

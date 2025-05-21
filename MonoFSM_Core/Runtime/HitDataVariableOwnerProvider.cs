@@ -1,10 +1,13 @@
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
 using UnityEngine;
 
+/// <summary>
+/// 提供VariableOwner(可能會從一些奇怪的地方拿到), 必須要有HitDataProvider
+/// </summary>
 public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
 {
-    
-    [AutoParent]
+    [CompRef] [AutoParent]
     IHitDataProvider hitDataProvider;
 
 
@@ -37,5 +40,14 @@ public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
                 throw new System.NotImplementedException();
         }
         
+    }
+
+
+    public T GetComponentOfOwner<T>() //好像有點白痴
+    {
+        var owner = GetVariableOwner();
+        if (owner == null)
+            return default;
+        return owner.gameObject.GetComponent<T>();
     }
 }

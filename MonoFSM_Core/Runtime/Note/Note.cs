@@ -31,12 +31,13 @@ public class Note : MonoBehaviour, IEditorOnly //IOverrideHierarchyIcon
         TODO,
         FIXME
     }
-
+#if UNITY_EDITOR
+    [SerializeField] private NoteType _noteType = NoteType.NOTE;
     [TextArea(5,100)]
-    
     public string note;
 
-    [ColorPalette] public Color bgColor = Color.yellow;
+    [ColorPalette] public Color bgColor = Color.yellow; //fixme:color 應該直接照著類型，和IDE這個註解一樣
+#endif  
     public string IconName => "_Help";
     public bool IsDrawingIcon => false;
 }

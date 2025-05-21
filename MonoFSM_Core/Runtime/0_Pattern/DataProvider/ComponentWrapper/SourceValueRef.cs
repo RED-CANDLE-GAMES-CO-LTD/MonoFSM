@@ -13,7 +13,7 @@ namespace RCGMakerFSM.VarRef
 
     public abstract class AbstractSourceValueRef : MonoBehaviour
     {
-        [Component] [Auto] private IConfigVar _configVar;
+        [Component] [Auto] private IConfigVar _configVar; //什麼鬼命名，IValueProvider?
 
         public object GetValue()
         {

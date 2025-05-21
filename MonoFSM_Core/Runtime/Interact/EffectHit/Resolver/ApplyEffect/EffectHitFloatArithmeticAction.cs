@@ -1,6 +1,10 @@
+using MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper;
+using MonoFSM.DataProvider;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
+using RCGMakerFSM.VarRef;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -15,11 +19,12 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         private bool IsParentDealer => _runtimeDealer != null;
         private bool IsParentReceiver => _runtimeReceiver != null;
 
-        [InfoBox("parent不是dealer, Editor Dropdown抓不到", nameof(IsParentReceiver))]
-        public VariableFloatProvider dealerVariableProvider;
 
-        [InfoBox("parent不是receiver, Editor Dropdown抓不到", nameof(IsParentDealer))]
-        public VariableFloatProvider receiverVariableProvider;
+        // [InfoBox("parent不是dealer, Editor Dropdown抓不到", nameof(IsParentReceiver))]
+        // public VariableFloatProvider dealerVariableProvider;
+        //
+        // [InfoBox("parent不是receiver, Editor Dropdown抓不到", nameof(IsParentDealer))]
+        // public VariableFloatProvider receiverVariableProvider;
 
         [Button]
         private void Rename()
@@ -57,29 +62,47 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 
     public class EffectHitFloatArithmeticAction : AbstractEffectHitAction
     {
-        public enum OperandType
-        {
-            Dealer,
+        // public enum OperandType
+        // {
+        //     Dealer,
+        //
+        //     Receiver
+        //     // Constant
+        // }
 
-            Receiver
-            // Constant
+        [AutoChildren] [CompRef] private SourceValueRef _source1VariableProvider;
+
+        [ShowIf(nameof(IsSource2Needed))] [AutoChildren] [CompRef]
+        private SourceValue2Ref _source2VariableProvider;
+
+        [AutoChildren] [CompRef] private TargetVarRef _targetVariableProvider;
+
+        public ArithmeticType Arithmetic;
+
+        // private bool IsSource2NotNeeded()
+        // {
+        //     return Arithmetic == ArithmeticType.AdditionAssign || Arithmetic == ArithmeticType.SubtractionAssign;
+        // }
+
+        private bool IsSource2Needed()
+        {
+            return Arithmetic != ArithmeticType.AdditionAssign && Arithmetic != ArithmeticType.SubtractionAssign;
         }
 
-        public OperandType _setter;
-        public OperandType _operator1;
-        public ArithmeticType Arithmetic;
-        public OperandType _operator2;
+        // public OperandType _setter;
+        // public OperandType _operator1;
+        //
+        // public OperandType _operator2;
 
-        private VariableTag op1 =>
-            _operator1 == OperandType.Dealer ? dealerVariableProvider?._varTag : receiverVariableProvider?._varTag;
+        // private VariableTag op1 => _operator1 == OperandType.Dealer ? dealerVariableProvider?._varTag : receiverVariableProvider?._varTag;
 
-        private VariableTag op2 =>
-            _operator2 == OperandType.Dealer ? dealerVariableProvider?._varTag : receiverVariableProvider?._varTag;
+        // private VariableTag op2 =>
+        //     _operator2 == OperandType.Dealer ? dealerVariableProvider?._varTag : receiverVariableProvider?._varTag;
 
-        private AbstractMonoVariable setterVariable =>
-            _setter == OperandType.Dealer
-                ? dealerVariableProvider?.GetVarRaw()
-                : receiverVariableProvider?.GetVarRaw();
+        private AbstractMonoVariable setterVariable => _targetVariableProvider?.VarRaw;
+        // _setter == OperandType.Dealer
+        //     ? dealerVariableProvider?.GetVarRaw()
+        //     : receiverVariableProvider?.GetVarRaw();
 
         private string ArithmeticString => Arithmetic switch
         {
@@ -92,8 +115,23 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         };
 
         [PreviewInInspector]
-        private string _description =>
-            $"{setterVariable?.name} = {_operator1}.{op1?.name} {ArithmeticString} {_operator2}.{op2?.name}";
+        private string _description
+        {
+            get
+            {
+                switch (Arithmetic)
+                {
+                    case ArithmeticType.AdditionAssign:
+                        return $"{setterVariable?.name} += {_source1VariableProvider}";
+                    case ArithmeticType.SubtractionAssign:
+                        return $"{setterVariable?.name} -= {_source1VariableProvider}";
+                    default:
+                        return
+                            $"{setterVariable?.name} = {_source1VariableProvider?.ToString()} {ArithmeticString} {_source2VariableProvider}";
+                }
+            }
+        }
+        // $"{setterVariable?.name} = {_operator1}.{op1?.name} {ArithmeticString} {_operator2}.{op2?.name}";
         //要用entry?
 
 
@@ -108,36 +146,56 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
             Subtract,
             Multiply,
             Divide,
-            Modulo
+            Modulo,
+            AdditionAssign,
+
+            SubtractionAssign
+            //+=,-=?
         }
 
         protected override void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver)
         {
-            var dealerValue = dealerVariableProvider.GetValueFrom(dealer);
-            var receiverValue = receiverVariableProvider.GetValueFrom(receiver);
-            Debug.Log(
-                $"{_setter} = {dealerVariableProvider._varTag.name} dealerValue: {dealerValue}, {Arithmetic} {receiverVariableProvider._varTag.name} receiverValue: {receiverValue}",
-                this);
-            var value1 = _operator1 == OperandType.Dealer ? dealerValue : receiverValue;
-            var value2 = _operator2 == OperandType.Dealer ? dealerValue : receiverValue;
-            if (_setter == OperandType.Dealer)
-                dealerVariableProvider.SetValue(
-                    Calculate(value1, value2), this);
+            var targetValue = _targetVariableProvider.GetVar<VarFloat>().Value;
+            var value1 = _source1VariableProvider.GetValue<float>();
+            float result = 0;
+            if (Arithmetic == ArithmeticType.AdditionAssign)
+                result = targetValue + value1;
+            else if (Arithmetic == ArithmeticType.SubtractionAssign)
+                result = targetValue - value1;
             else
-                receiverVariableProvider.SetValue(
-                    Calculate(value1, value2), this);
+            {
+                var value2 = _source2VariableProvider.GetValue<float>();
+                result = Calculate(value1, value2);
+            }
+
+
+            _targetVariableProvider.VarRaw.SetValue(result, this);
+            // var dealerValue = dealerVariableProvider.GetValueFrom(dealer);
+            // var receiverValue = receiverVariableProvider.GetValueFrom(receiver);
+            // Debug.Log(
+            //     $"{_setter} = {dealerVariableProvider._varTag.name} dealerValue: {dealerValue}, {Arithmetic} {receiverVariableProvider._varTag.name} receiverValue: {receiverValue}",
+            //     this);
+            // var value1 = _operator1 == OperandType.Dealer ? dealerValue : receiverValue;
+            // var value2 = _operator2 == OperandType.Dealer ? dealerValue : receiverValue;
+            // if (_setter == OperandType.Dealer)
+            //     dealerVariableProvider.SetValue(
+            //         Calculate(value1, value2), this);
+            // else
+            //     receiverVariableProvider.SetValue(
+            //         Calculate(value1, value2), this);
         }
 
-        private float Calculate(float dealerVariableCurrentValue, float getValueFrom)
+        private float Calculate(float source1, float source2)
         {
             return Arithmetic switch
             {
-                ArithmeticType.Add => dealerVariableCurrentValue + getValueFrom,
-                ArithmeticType.Subtract => dealerVariableCurrentValue - getValueFrom,
-                ArithmeticType.Multiply => dealerVariableCurrentValue * getValueFrom,
-                ArithmeticType.Divide => dealerVariableCurrentValue / getValueFrom,
-                ArithmeticType.Modulo => dealerVariableCurrentValue % getValueFrom,
-                _ => dealerVariableCurrentValue
+                ArithmeticType.Add => source1 + source2,
+                ArithmeticType.Subtract => source1 - source2,
+                ArithmeticType.Multiply => source1 * source2,
+                ArithmeticType.Divide => source1 / source2,
+                ArithmeticType.Modulo => source1 % source2,
+
+                _ => source1
             };
         }
     }

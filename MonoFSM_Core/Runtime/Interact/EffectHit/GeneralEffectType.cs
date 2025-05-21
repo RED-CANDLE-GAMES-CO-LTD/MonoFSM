@@ -9,6 +9,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
     public class GeneralEffectType : ScriptableObject, IEffectType
     {
 #if UNITY_EDITOR
+        [TextArea] [SerializeField] private string _note; 
         [PreviewInInspector] GeneralEffectDealer[] _bindedDealers;
         [PreviewInInspector] GeneralEffectReceiver[] _bindedReceivers;
 

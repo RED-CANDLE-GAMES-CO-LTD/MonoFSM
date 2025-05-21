@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RCGMaker.Core.Attributes;
 using RCGMaker.Core.Detection;
 using Sirenix.Utilities;
 using UnityEngine;
@@ -15,7 +16,13 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
 
         [SerializeField] private RaycastMode _raycastMode = RaycastMode.Single;
         public float _distance = 30;
+        
         private readonly List<RaycastHit> _cachedHits = new();
+
+        [PreviewInInspector]
+        private Collider firstHitCollider => _cachedHits.Count > 0 ? _cachedHits[0].collider : null;
+
+        [PreviewInInspector]
         public IReadOnlyList<RaycastHit> CachedHits => _cachedHits;
         public RaycastHit CachedHit => _cachedHits.Count > 0 ? _cachedHits[0] : default;
 

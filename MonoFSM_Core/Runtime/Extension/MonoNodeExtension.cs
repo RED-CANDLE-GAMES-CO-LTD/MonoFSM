@@ -56,6 +56,13 @@ using Object = UnityEngine.Object;
 // }
 public static class MonoNodeExtension
 {
+    public static string GetPath(this Transform tr)
+    {
+        if (tr.parent == null)
+            return tr.name;
+        var parent = tr.parent;
+        return parent.GetPath() + "/" + tr.name;
+    }
     public static async UniTaskVoid LogException(this Component go, string e)
     {
         // Debug.LogError(e + go.gameObject.name);

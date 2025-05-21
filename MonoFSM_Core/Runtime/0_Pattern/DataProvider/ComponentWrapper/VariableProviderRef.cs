@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime;
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using RCGMaker.Runtime.Mono;
@@ -17,7 +18,7 @@ namespace RCGMaker.Core.DataProvider
 {
     public enum GetFromType
     {
-        VariableOwner,
+        ParentVarOwner,
         GlobalInstance,
         VariableOwnerProvider,
     }
@@ -27,8 +28,19 @@ namespace RCGMaker.Core.DataProvider
         IConfigVar, IVariableProvider, IStringProvider
         where TVarMonoType : AbstractMonoVariable
     {
+        private void OnValidate()
+        {
+            if (GetComponent<IVariableOwnerProvider>() != null)
+                _getFromType = GetFromType.VariableOwnerProvider;
+            else if (GetComponentInParent<VariableOwner>() != null)
+                _getFromType = GetFromType.ParentVarOwner;
+            else
+                _getFromType = GetFromType.GlobalInstance;
+        }
+
         public override Type GetVarType => typeof(TVarMonoType);
-        public GetFromType _getFromType = GetFromType.VariableOwner;
+
+        [TabGroup("Owner Setting")] public GetFromType _getFromType = GetFromType.ParentVarOwner;
 
         public override string ToString()
         {
@@ -86,9 +98,17 @@ namespace RCGMaker.Core.DataProvider
         //FIXME: 常常會空著?
         //globalTag
         //a(object).b(variable)
-        //VariableOwner的話就可以往parent找，不是的話可以從asset找？
+        //VariableOwner的話就可以往parent找，不是的話可以從asset找？ auto assign? 或是根本不需要
+        [TabGroup("Owner Setting")] [HideIf(nameof(IsFromParentOwner))]
         public MonoDescriptableTag _parentMonoTag; //空的話就是自己
 
+        private bool IsFromParentOwner()
+        {
+            if (_getFromType == GetFromType.ParentVarOwner)
+                return true;
+            return false;
+        }
+        
         [BoxGroup("varTag")]
         [ShowInInspector]
         [ValueDropdown(nameof(GetParentVariableTags))]
@@ -132,7 +152,11 @@ namespace RCGMaker.Core.DataProvider
         
         // IEnumerable<ValueDropdownItem<
 
-        [ShowIf(nameof(_getFromType), GetFromType.VariableOwnerProvider)]  [Component(AddComponentAt.Same)][Auto]
+        [ShowIf(nameof(_getFromType), GetFromType.VariableOwnerProvider)]
+        [CompRef]
+        // [Component(AddComponentAt.Same)]
+        [Auto]
+        [TabGroup("Owner Setting")]
         public IVariableOwnerProvider variableOwnerProvider;
 
         private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags() //editor time?
@@ -145,12 +169,26 @@ namespace RCGMaker.Core.DataProvider
 
                     if (variableOwnerProvider == null)
                         return tagDropdownItems;
-                    
-                    foreach (var variable in variableOwnerProvider.GetVariableOwner().VariableFolder.GetValues)
-                        if (variable is TVarMonoType)
-                            tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+                    if (Application.isPlaying)
+                    {
+                        var variables = variableOwnerProvider.GetVariableOwner().VariableFolder.GetValues;
+                        foreach (var variable in variables)
+                            if (variable is TVarMonoType)
+                                tagDropdownItems.Add(
+                                    new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+                    }
+                    else
+                    {
+#if UNITY_EDITOR
+                        var tags = _parentMonoTag.containsVariableTypeTags;
+                        foreach (var varTag in tags)
+                            tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(varTag.name, varTag));
+#endif
+                    }
+
                     break;
-                    
+
+
                 case GetFromType.GlobalInstance:
                     
                     var instance = CurrentTarget.GetGlobalInstance(_parentMonoTag);
@@ -171,7 +209,7 @@ namespace RCGMaker.Core.DataProvider
                             tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
 
                     break;
-                case GetFromType.VariableOwner:
+                case GetFromType.ParentVarOwner:
                 {
                     var parents = CurrentTarget.GetComponentsInParent<VariableOwner>();
 
@@ -211,6 +249,7 @@ namespace RCGMaker.Core.DataProvider
         }
 
 
+        [ShowInDebugMode]
         [PreviewInInspector] private Type variableValueType => typeof(TValueType);
         //FIXME:也可以用string拿？
         // MonoDescriptable parentDescriptable => propertyParent.GetComponentInParent<MonoDescriptable>();
@@ -344,6 +383,7 @@ namespace RCGMaker.Core.DataProvider
 
         // [ShowInInspector]
         // RCGVariableFolder GetFolder =>  owner?.VariableFolder;
+        [ShowInDebugMode]
         [PreviewInInspector] public TValueType Value => VarRaw == null ? default : VarRaw.GetValue<TValueType>();
 
         public override VariableTag varTag
@@ -374,7 +414,13 @@ namespace RCGMaker.Core.DataProvider
 
         public string GetDescription()
         {
-            return _varTag.name;
+            var str = string.Empty;
+            if (_parentMonoTag) str = _parentMonoTag.name + ".";
+            str += varTag?.name;
+            return str;
         }
+
+        public string Description => GetDescription();
+        
     }
 }

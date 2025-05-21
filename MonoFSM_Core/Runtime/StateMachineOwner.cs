@@ -21,6 +21,7 @@ public interface IVariableOwner
     public string name { get; }
     VariableFolder VariableFolder { get; }
     public AbstractMonoVariable GetVariable(VariableTag varTag);
+    GameObject gameObject { get; }
 }
 
 public static class StateMachineExtension

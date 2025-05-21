@@ -14,8 +14,11 @@ namespace RCGMaker.Core.DataProvider
     /// <summary>
     /// 
     /// </summary>
-    public abstract class AbstractFieldValueProvider : MonoBehaviour,IResetStart
+    public abstract class
+        AbstractFieldValueProvider : MonoBehaviour, IResetStart //打架了，這個有IConfigVar, 和VariableProviderRef衝突
     {
+        //FIXME: 要提前有schema可以參考？ EditorPlaceholder?
+        
         //這個auto會太慢耶導致看的時候error?
         [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
         protected AbstractVariableProviderRef _variableProviderRef;
@@ -24,6 +27,8 @@ namespace RCGMaker.Core.DataProvider
         protected abstract AbstractMonoVariable ListenToVariable { get; }
         [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
         [PreviewInInspector] public abstract Object targetObject { get; }
+
+        [PreviewInInspector]
         public abstract Type targetType { get; }
         [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
 
@@ -54,7 +59,7 @@ namespace RCGMaker.Core.DataProvider
         {
             if (_variableProviderRef == null)
                 return;
-            var currentType = targetObject ? targetObject.GetType() : targetType;
+            var currentType = targetObject != null ? targetObject.GetType() : targetType;
             // Debug.Log("UpdateParentTypes currentType"+currentType, this);
             for (var i = 0; i < pathEntries.Count; i++)
             {
@@ -338,6 +343,32 @@ namespace RCGMaker.Core.DataProvider
             }
             else
                 Debug.LogError("ListenToVariable is null", this);
+        }
+
+        public object GetValue()
+        {
+            return GetFieldValue();
+        }
+
+        public T GetValue<T>()
+        {
+            var value = GetFieldValue();
+            if (value is T tValue)
+                return tValue;
+            else
+                Debug.LogError($"GetValue<T> 轉型失敗: {value} 無法轉型為 {typeof(T)}", this);
+            return default;
+        }
+
+        public string GetDescription()
+        {
+            //FIXME: 這個要怎麼寫？
+            if (targetObject == null)
+                return "null";
+            if (targetObject is Object obj)
+                return obj.name;
+            else
+                return targetObject.ToString();
         }
     }
 }
