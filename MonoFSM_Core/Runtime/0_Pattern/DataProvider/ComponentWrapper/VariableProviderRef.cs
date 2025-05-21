@@ -357,6 +357,21 @@ namespace RCGMaker.Core.DataProvider
             return Value;
         }
 
+        public T GetValue<T>()
+        {
+            var value = GetValue();
+            switch (value)
+            {
+                case null:
+                    return default;
+                case T value1:
+                    return value1;
+                default:
+                    Debug.LogError($"Cannot cast {value} to {typeof(T)}", this);
+                    return default;
+            }
+        }
+
         public string GetDescription()
         {
             return _varTag.name;

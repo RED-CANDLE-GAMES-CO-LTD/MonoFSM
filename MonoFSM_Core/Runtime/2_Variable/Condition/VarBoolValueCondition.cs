@@ -24,7 +24,6 @@ namespace MonoFSM.Variable.Condition
         [MCPExtractable]
         [OnValueChanged(nameof(OnVariableChanged))]
         [FormerlySerializedAs("variableBool")]
-        [Required]
         [DropDownRef]
         // [ValueDropdown(nameof(GetBoolVariables))]
         public VarBool _varBool;

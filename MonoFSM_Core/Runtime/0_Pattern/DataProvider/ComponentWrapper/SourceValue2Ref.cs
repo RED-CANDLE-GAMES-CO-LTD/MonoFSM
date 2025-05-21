@@ -1,0 +1,9 @@
+using RCGMakerFSM.VarRef;
+
+namespace MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
+{
+    //就只是可以區分SourceValueRef跟SourceValue2Ref
+    public class SourceValue2Ref : AbstractSourceValueRef
+    {
+    }
+}

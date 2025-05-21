@@ -110,6 +110,22 @@ namespace RCGMaker.Core.DataProvider
             return CurrentInstance;
         }
 
+        public T GetValue<T>()
+        {
+            var value = GetValue();
+            if (value == null)
+                return default;
+            try
+            {
+                return (T)value;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Cannot cast {value} to {typeof(T)}");
+                return default;
+            }
+        }
+
         public string GetDescription()
         {
             return monoDescriptableTag.name;
@@ -118,51 +134,51 @@ namespace RCGMaker.Core.DataProvider
 
     //可以refactor
     // [MovedFrom(false, null, "rcg.rcgmakercore.Runtime", "MonoDescriptableSource")]
-    [Serializable]
-    public class MonoDescriptableDropdownRefProvider : IConfigVar, IMonoDescriptableProvider
-    {
-        // [InlineEditor]
-        [DropDownRef] public MonoDescriptable _monoDescriptable;
-
-        object IConfigVar.GetValue()
-        {
-            return _monoDescriptable;
-        }
-
-        public string GetDescription()
-        {
-            return _monoDescriptable.name;
-        }
-
-        public MonoDescriptable GetMonoDescriptable()
-        {
-            return _monoDescriptable;
-        }
-    }
-
-    [Serializable]
-    public class MonoDescriptableFromTag : IConfigVar, IMonoDescriptableProvider
-    {
-        [SerializeReferenceParentValidate] public MonoBehaviour propertyParent;
-        public MonoDescriptableTag monoDescriptableTag;
-
-        object IConfigVar.GetValue()
-        {
-            return GetMonoDescriptable();
-        }
-
-        public string GetDescription()
-        {
-            return monoDescriptableTag.name;
-        }
-
-        [GUIColor(0.8f, 1.0f, 0.8f)]
-        [PreviewInInspector]
-        private IMonoDescriptable currentInstance => GetMonoDescriptable();
-
-        public MonoDescriptable GetMonoDescriptable()
-        {
-            return propertyParent.GetMonoCompInParent(monoDescriptableTag);
-        }
-    }
+    // [Serializable]
+    // public class MonoDescriptableDropdownRefProvider : IConfigVar, IMonoDescriptableProvider
+    // {
+    //     // [InlineEditor]
+    //     [DropDownRef] public MonoDescriptable _monoDescriptable;
+    //
+    //     object IConfigVar.GetValue()
+    //     {
+    //         return _monoDescriptable;
+    //     }
+    //
+    //     public string GetDescription()
+    //     {
+    //         return _monoDescriptable.name;
+    //     }
+    //
+    //     public MonoDescriptable GetMonoDescriptable()
+    //     {
+    //         return _monoDescriptable;
+    //     }
+    // }
+    //
+    // [Serializable]
+    // public class MonoDescriptableFromTag : IConfigVar, IMonoDescriptableProvider
+    // {
+    //     [SerializeReferenceParentValidate] public MonoBehaviour propertyParent;
+    //     public MonoDescriptableTag monoDescriptableTag;
+    //
+    //     object IConfigVar.GetValue()
+    //     {
+    //         return GetMonoDescriptable();
+    //     }
+    //
+    //     public string GetDescription()
+    //     {
+    //         return monoDescriptableTag.name;
+    //     }
+    //
+    //     [GUIColor(0.8f, 1.0f, 0.8f)]
+    //     [PreviewInInspector]
+    //     private IMonoDescriptable currentInstance => GetMonoDescriptable();
+    //
+    //     public MonoDescriptable GetMonoDescriptable()
+    //     {
+    //         return propertyParent.GetMonoCompInParent(monoDescriptableTag);
+    //     }
+    // }
 }

@@ -6,13 +6,23 @@ namespace RCGMakerFSM.VarRef
     /// <summary>
     /// 放在Children可以直接被Component Reference
     /// </summary>
-    public class SourceValueRef : MonoBehaviour
+    public class SourceValueRef : AbstractSourceValueRef
+    {
+      
+    }
+
+    public abstract class AbstractSourceValueRef : MonoBehaviour
     {
         [Component] [Auto] private IConfigVar _configVar;
 
         public object GetValue()
         {
             return _configVar.GetValue();
+        }
+
+        public T GetValue<T>()
+        {
+            return _configVar.GetValue<T>();
         }
 
         public override string ToString()

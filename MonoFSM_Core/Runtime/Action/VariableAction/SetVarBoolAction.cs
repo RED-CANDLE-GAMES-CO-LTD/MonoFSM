@@ -63,7 +63,7 @@ namespace RCGFSM.Variable
         [DropDownRef]
         [ValueDropdown(nameof(GetVariables))]
         // [InlineEditor]
-        [Required]
+        // [Required]
         // [HideIf("Multiple")]
         public VarBool _target; //var?
         //ObjectReference還指不到耶？ 

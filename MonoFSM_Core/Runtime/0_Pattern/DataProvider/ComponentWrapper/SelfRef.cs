@@ -15,6 +15,14 @@ namespace MonoFSM.Ref
             return _descriptable;
         }
 
+        public T GetValue<T>()
+        {
+            if (_descriptable is T value) return value;
+
+            Debug.LogError($"SelfRef: Cannot cast to {typeof(T)}", this);
+            return default;
+        }
+
         public string GetDescription()
         {
             return "[Mono]Self";

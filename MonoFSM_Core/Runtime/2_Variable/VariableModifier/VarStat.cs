@@ -75,7 +75,7 @@ namespace MonoFSM.Variable
                     tempValue = modifier.AfterGetValueModifyCheck(tempValue);
             _value = tempValue;
             _isDirty = false;
-            if (_lastValue != _value) OnValueChangedRaw.Invoke();
+            if (_lastValue != _value) OnValueChangedRaw?.Invoke();
             return _value;
         }
 

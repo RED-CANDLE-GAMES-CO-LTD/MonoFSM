@@ -9,8 +9,8 @@ namespace RCGMakerFSM.VarRef
     {
         [Component] [Auto] private AbstractVariableProviderRef _providerRef;
 
-        public AbstractMonoVariable VarRaw => _providerRef.VarRaw;
-        public Type GetValueType => _providerRef.GetValueType;
+        public AbstractMonoVariable VarRaw => _providerRef?.VarRaw;
+        public Type GetValueType => _providerRef?.GetValueType;
 
         public TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable
         {
