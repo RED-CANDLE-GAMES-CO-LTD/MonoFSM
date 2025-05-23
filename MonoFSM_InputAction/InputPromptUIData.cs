@@ -7,6 +7,15 @@ namespace RCGInputAction
     [CreateAssetMenu(menuName = "RCG/Input/InputPromptUIData", fileName = "InputPromptUIData", order = 0)]
     public class InputPromptUIData : GameFlagBase
     {
+        private static IHintSpriteFinder _spriteFinder;
+        
+        //看專案定義
+        public static void SetSpriteFinder(IHintSpriteFinder finder)
+        {
+            _spriteFinder = finder;
+        } 
+        
+        
         public InputActionData input;
         public LocalizedString prompt_prefix;
         public LocalizedString prompt_postfix;
@@ -14,10 +23,15 @@ namespace RCGInputAction
 
         public Sprite GetIcon()
         {
-            Debug.LogError("要實作這個QQ");
-        
+            if (_spriteFinder != null)
+                return _spriteFinder.GetIcon(input);
             return placeHolderIcon;
         }
+    }
+
+    public interface IHintSpriteFinder
+    {
+        public Sprite GetIcon(InputActionData input);
     }
 
 }
