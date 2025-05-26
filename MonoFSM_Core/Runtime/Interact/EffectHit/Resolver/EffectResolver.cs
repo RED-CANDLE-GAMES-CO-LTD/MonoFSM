@@ -1,5 +1,6 @@
 using System;
 using jerryee.UnityMCP;
+using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
@@ -36,7 +37,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         [Required] [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
         protected EffectEnterNode _enterNode;
 
-        [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
+        [CompRef] [AutoChildren(DepthOneOnly = true)] 
         protected EffectHitFailNode _failNode;
 
         public void OnEffectHitConditionFail(IEffectHitData data)
@@ -44,11 +45,11 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             _failNode?.EventHandle(data);
         }
 
-        [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
         protected EffectExitNode _exitNode;
 
 
-        [Component] [PreviewInInspector] [AutoChildren]
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
 
         [PreviewInInspector]

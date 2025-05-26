@@ -1,3 +1,4 @@
+using RCGInputAction;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,6 +12,13 @@ public class InputActionData : ScriptableObject
    public bool WasPressed() => inputAction.action.WasPressedThisFrame();
    public bool IsPressed() => inputAction.action.IsPressed();
    public bool WasReleased() => inputAction.action.WasReleasedThisFrame();
+
+   public InputAction GetAction(PlayerInput playerInput)
+   {
+      if (inputAction == null)
+         return null;
+      return playerInput.GetAction(inputAction);
+   }
 }
 
 

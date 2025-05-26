@@ -37,6 +37,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     public void SetValue(object value, MonoBehaviour byWho = null) 
         => SetValue((TType)value, byWho);
 
+    [Auto] private IVarValueSettingProcessor<TType> _beforeSetProcessor;
     private bool PrefabKindMatchTagCheck()
     {
 #if UNITY_EDITOR
@@ -202,7 +203,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
             if (!Application.isPlaying)
                 EditorValue = value;
             else
-                CurrentValue = value;
+                SetValue(value);
         }
     }
 
@@ -249,44 +250,45 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
             return tempValue;
         }
 
-        set //FIXME: 拿掉，用SetValue(
-        {
-            var tempValue = value;
-            //先檢查會被修改
 
-            if (_modifiers != null)
-                foreach (var modifier in _modifiers)
-                    tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
-            // this.Log("[Variable] Set", value); 
-            if (BindData == null)
-            {
-                if (_localField.CurrentValue.Equals(tempValue)) return;
-                // if (localField == null)
-                //     localField = default(TField);
-                _localField.CurrentValue = tempValue;
-            }
-
-            else
-            {
-                if (BindData.CurrentValue.Equals(tempValue)) return;
-                if (FinalData == null) return;
-#if MIXPANEL
-                _trackValue.OnRecycle();
-                _trackValue["Data"] = FinalData ? FinalData.name : "null";
-                _trackValue["value"] = tempValue switch
-                {
-                    bool valueBool => valueBool,
-                    int valueInt => valueInt,
-                    float valueFloat => valueFloat,
-                    _ => _trackValue["value"]
-                };
-                this.Track("Variable Changed", _trackValue);
-#endif
-                // Debug.Log("Set Value" + tempValue);
-
-                BindData.CurrentValue = tempValue;
-            }
-        }
+//         set //FIXME: 拿掉，用SetValue(
+//         {
+//             var tempValue = value;
+//             //先檢查會被修改
+//
+//             if (_modifiers != null)
+//                 foreach (var modifier in _modifiers)
+//                     tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
+//             // this.Log("[Variable] Set", value); 
+//             if (BindData == null)
+//             {
+//                 if (_localField.CurrentValue.Equals(tempValue)) return;
+//                 // if (localField == null)
+//                 //     localField = default(TField);
+//                 _localField.CurrentValue = tempValue;
+//             }
+//
+//             else
+//             {
+//                 if (BindData.CurrentValue.Equals(tempValue)) return;
+//                 if (FinalData == null) return;
+// #if MIXPANEL
+//                 _trackValue.OnRecycle();
+//                 _trackValue["Data"] = FinalData ? FinalData.name : "null";
+//                 _trackValue["value"] = tempValue switch
+//                 {
+//                     bool valueBool => valueBool,
+//                     int valueInt => valueInt,
+//                     float valueFloat => valueFloat,
+//                     _ => _trackValue["value"]
+//                 };
+//                 this.Track("Variable Changed", _trackValue);
+// #endif
+//                 // Debug.Log("Set Value" + tempValue);
+//
+//                 BindData.CurrentValue = tempValue;
+//             }
+//         }
     }
 
     // private MonoBehaviour lastValueSetter;
@@ -296,11 +298,16 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     protected override void SetValueInternal<T>(T value, Object byWho = null)
     {
-        SetValue(value, byWho as MonoBehaviour);
+        if (value is TType type)
+            SetValue(type, byWho as MonoBehaviour);
+        else
+            Debug.LogError("SetValueInternal Type Error", this);
     }
 
     public void SetValue(TType value, MonoBehaviour byWho = null)
     {
+        if (_beforeSetProcessor != null)
+            _beforeSetProcessor.BeforeSetValue(value); //練線處理？
         // lastValueSetter = byWho;
         var tempValue = value;
         //先檢查會被修改
@@ -455,7 +462,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     public void OnBeforePrefabSave()
     {
         if (_varTag == null)
-            Debug.LogError("No VarTag", this);
+            Debug.LogError("No VarTag: " + this, this);
         else
             name = _varTag.name;
     }

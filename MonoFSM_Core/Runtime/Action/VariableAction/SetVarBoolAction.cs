@@ -78,11 +78,14 @@ namespace RCGFSM.Variable
 
         protected override void OnStateEnterImplement()
         {
+            if (!_conditions.IsAllValid())
+                return;
             SetValue();
         }
 
         public override void EventReceived<T>(T arg)
         {
+          
             // this.Log("EventReceived setVariableBoolAction");
             if (arg is bool b)
                 SetValue(b);
@@ -92,6 +95,8 @@ namespace RCGFSM.Variable
 
         private void SetValue(bool v)
         {
+            if (!_conditions.IsAllValid())
+                return;
             // if (Multiple)
             // {
             //     if (targetFlags == null)

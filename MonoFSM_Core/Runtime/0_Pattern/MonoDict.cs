@@ -102,7 +102,7 @@ namespace RCGMaker.Core
             }
             if (Contains(key))
             {
-                Debug.LogError($"Key:{key} already exists in {this}", value as Object);
+                Debug.LogError($"Key:{key} already exists in {this}", this);
                 return;
             }
 
@@ -225,6 +225,9 @@ namespace RCGMaker.Core
             PrepareDictCheck();
         }
 
+        private bool IsNotPrepared => _isPrepared == false;
+
+        [InfoBox("還沒準備好", nameof(IsNotPrepared), InfoMessageType = InfoMessageType.Error)]
         [NonSerialized] [PreviewInInspector] bool _isPrepared = false; //這個值 reload domain後，為什麼沒有清掉？
 
         private void PrepareDictCheck()
@@ -276,10 +279,10 @@ namespace RCGMaker.Core
         {
             PrepareDictCheck();
             // Debug.Log("EnterSceneAwake Dict", this);
-            foreach (var key in _dict.Keys)
-            {
-                Debug.Log("MonoDict Prepare" + key + " " + _dict[key], _dict[key] as Object);
-            }
+            // foreach (var key in _dict.Keys)
+            // {
+            //     Debug.Log("MonoDict Prepare" + key + " " + _dict[key], _dict[key] as Object);
+            // }
         }
     }
 

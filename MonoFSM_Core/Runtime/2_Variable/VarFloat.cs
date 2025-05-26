@@ -23,6 +23,9 @@ namespace MonoFSM.Variable
         public float Max => _boundModifier.MaxValue;
         public bool IsMax => CurrentValue >= Max;
 
+        public bool IsDecreasing => CurrentValue < LastValue;
+        public bool IsIncreasing => CurrentValue > LastValue;
+        
         [AutoChildren(false)] [PreviewInInspector]
         private VariableFloatBoundModifier _boundModifier;
         // [PreviewInInspector] [Component] [AutoChildren]

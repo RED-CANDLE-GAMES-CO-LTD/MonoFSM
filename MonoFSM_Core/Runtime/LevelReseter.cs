@@ -75,7 +75,7 @@ namespace MonoFSM_Core.Runtime
             PoolManager.HandleGameLevelStartReverse(level);
             PoolManager.HandleGameLevelStart(level);
 
-            Debug.Log("LevelRunner Start");
+            // Debug.Log("LevelRunner Start");
             //每次重置都要做的, LevelReset, LevelResetAfter?
             ResetLevel(); //FIXME: network的時間點要在playerspawn之後?重新整理
             //EnterLevelReset

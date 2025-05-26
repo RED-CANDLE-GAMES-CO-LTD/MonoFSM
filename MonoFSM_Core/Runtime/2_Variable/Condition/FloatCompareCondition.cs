@@ -113,6 +113,7 @@ namespace MonoFSM.Variable.Condition
             }
         }
 
+        //監聽
         protected override IVariableField listenField => leftValue.Field;
     }
 }

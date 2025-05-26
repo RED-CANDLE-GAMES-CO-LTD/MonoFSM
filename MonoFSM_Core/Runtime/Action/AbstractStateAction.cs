@@ -34,8 +34,8 @@ namespace MonoFSM_Core.Runtime.Action
             get
             {
                 if (_delay) return false;
-                return conditions.Length == 0 ||
-                       conditions.IsAllValid();
+                return _conditions.Length == 0 ||
+                       _conditions.IsAllValid();
             }
         }
 
@@ -58,8 +58,11 @@ namespace MonoFSM_Core.Runtime.Action
         [PreviewInInspector]
         // #endif
         [AutoChildren(false, DepthOneOnly = true)]
-        protected AbstractConditionComp[] conditions; //condition 成立，才能做事
+        protected AbstractConditionComp[] _conditions; //condition 成立，才能做事
 
+#if UNITY_EDITOR
+        [PreviewInInspector] private bool IsAllValid => _conditions.IsAllValid();
+#endif
 
         protected virtual string renamePostfix => "";
 

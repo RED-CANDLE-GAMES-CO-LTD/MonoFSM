@@ -1,14 +1,17 @@
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
+using RCGMaker.Core.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
+/// FIXME: 繼承下面的
 /// 提供VariableOwner(可能會從一些奇怪的地方拿到), 必須要有HitDataProvider
 /// </summary>
 public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
 {
-    [CompRef] [AutoParent]
-    IHitDataProvider hitDataProvider;
+    [CompRef] [AutoParent] private IHitDataProvider _hitDataProvider;
 
 
     public enum HitDataVariableOwner
@@ -18,9 +21,7 @@ public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
     }
 
     public HitDataVariableOwner ownerType;
-
-
-
+    
     public IVariableOwner GetVariableOwner()
     {
 
@@ -30,16 +31,15 @@ public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
         switch (ownerType)
         {
             case HitDataVariableOwner.DealerOwner:
-                
-                Debug.Log(" HitDataVariableOwner.DealerOwner",hitDataProvider.GetHitData().Dealer.transform);
-                return hitDataProvider.GetHitData().Dealer.transform.GetComponentInParent<IVariableOwner>();
+
+                Debug.Log(" HitDataVariableOwner.DealerOwner", _hitDataProvider.GetHitData().Dealer.transform);
+                return _hitDataProvider.GetHitData().Dealer.transform.GetComponentInParent<IVariableOwner>();
             case HitDataVariableOwner.ReceiverOwner:
-                Debug.Log(" HitDataVariableOwner.ReceiverOwner",hitDataProvider.GetHitData().Receiver.transform);
-                return hitDataProvider.GetHitData().Receiver.transform.GetComponentInParent<IVariableOwner>();
+                Debug.Log(" HitDataVariableOwner.ReceiverOwner", _hitDataProvider.GetHitData().Receiver.transform);
+                return _hitDataProvider.GetHitData().Receiver.transform.GetComponentInParent<IVariableOwner>();
             default:
                 throw new System.NotImplementedException();
         }
-        
     }
 
 
@@ -49,5 +49,59 @@ public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
         if (owner == null)
             return default;
         return owner.gameObject.GetComponent<T>();
+    }
+}
+
+namespace MonoFSM_Core.Runtime
+{
+    /// <summary>
+    /// 從HitDataProvider的Dealer或Receiver的Parent上取得Component
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public abstract class HitDataParentCompProvider<T> : MonoBehaviour
+    {
+        [Required] [CompRef] [AutoParent] private IHitDataProvider _hitDataProvider;
+
+        public enum HitDataTargetType
+        {
+            Dealer,
+            Receiver
+        }
+
+        [FormerlySerializedAs("ownerType")] public HitDataTargetType _targetType;
+
+#if UNITY_EDITOR
+        [PreviewInInspector] private IEffectHitData HitData => _hitDataProvider.GetHitData();
+#endif
+
+        // private T _cached;
+
+//FIXME: 事先cache?
+        //last hitData same才可以耶？dealer/receiver dictionary?
+        protected T GetParentComp()
+        {
+            if (Application.isPlaying == false)
+                return default;
+            var hitData = HitData;
+            if (hitData == null)
+                // Debug.LogError("HitData is null");
+                return default;
+            // if (_cached != null)
+            //     return _cached;
+
+            //第一次
+            switch (_targetType)
+            {
+                case HitDataTargetType.Dealer:
+
+                    Debug.Log(" HitDataVariableOwner.DealerOwner", hitData.Dealer.transform);
+                    return _hitDataProvider.GetHitData().Dealer.transform.GetComponentInParent<T>();
+                case HitDataTargetType.Receiver:
+                    Debug.Log(" HitDataVariableOwner.ReceiverOwner", hitData.Receiver.transform);
+                    return _hitDataProvider.GetHitData().Receiver.transform.GetComponentInParent<T>();
+                default:
+                    throw new System.NotImplementedException();
+            }
+        }
     }
 }

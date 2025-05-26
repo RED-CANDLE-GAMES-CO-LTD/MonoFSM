@@ -19,6 +19,11 @@ namespace MonoFSM.Variable
         void SetBindingTarget(IRebindable rebindable);
     }
 
+
+    public interface IVarValueSettingProcessor<in T>
+    {
+        public void BeforeSetValue(T value);
+    }
     /// <summary>
     /// A MonoBehaviour representation of a boolean variable that can be bound to scriptable data.
     /// This class provides functionality for boolean values that can be accessed, modified, and tracked

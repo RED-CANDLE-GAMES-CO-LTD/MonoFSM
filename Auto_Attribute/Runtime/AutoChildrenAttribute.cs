@@ -21,8 +21,12 @@ using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using JetBrains.Annotations;
+using Sirenix.OdinInspector;
 
 // [AttributeUsage(AttributeTargets.Field)]
+[IncludeMyAttributes]
+[MeansImplicitUse]
 [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
 public class AutoChildrenAttribute : AutoFamily
 {

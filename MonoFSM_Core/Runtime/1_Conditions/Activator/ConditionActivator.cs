@@ -1,3 +1,4 @@
+using System;
 using MonoFSM.Condition;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
@@ -12,6 +13,7 @@ namespace RCGMaker.Core
     //可以直接放在該節點上
     //自動檢查條件，決定是否啟動節點
     //放在下面？
+    [Obsolete]
     public class ConditionActivator : MonoBehaviour, IUIBehavior, ISelfValidator, IResetter, IConditionChangeListener
     {
         [Title("自動檢查條件，決定開關節點")]

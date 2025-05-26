@@ -23,6 +23,7 @@ namespace RCGMaker.Core.Detection
         //FIXME: Receiver的部分要怎麼處理？ 也會有開關的問題？還是沒差遇到再說
         private void OnDisable()
         {
+            
             if (!Application.isPlaying)
                 return;
             // Debug.Log("OnDisable of detector",this);

@@ -1,5 +1,5 @@
 using System;
-
+using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 
 namespace MonoFSM.Variable.Attributes
@@ -9,5 +9,6 @@ namespace MonoFSM.Variable.Attributes
     [ShowInInspector]
     [DisableIf("@true")]
     [IncludeMyAttributes]
+    [MeansImplicitUse]
     public class CompRefAttribute : Attribute { }
 }

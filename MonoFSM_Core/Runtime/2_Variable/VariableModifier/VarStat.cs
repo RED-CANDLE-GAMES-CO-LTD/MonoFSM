@@ -21,7 +21,7 @@ namespace MonoFSM.Variable
         //FIXME: 有可能用ScriptableObject? 混用？還是monobehaviour比較好
         [PreviewInInspector] [AutoChildren] VariableStatModifier[] LocalStatModifiers; //原本就放在下面..這是不是反而不會有太多用處
 
-        ValueChangedListener<float> listener;
+        // ValueChangedListener<float> listener;
         // [PreviewInInspector] List<VariableStatModifier> statModifiers = new();
 
         [ShowInInspector] private List<IStatModifer> _statModifiers = new();
@@ -44,7 +44,7 @@ namespace MonoFSM.Variable
                 {
                     //條件一變，值就變？dirty也是一路問，問每個statmodifier
                     CalValues();
-                    listener?.OnChange(_value, false);
+                    // listener?.OnChange(_value, false);
                 }
 
                 return _value;
@@ -60,7 +60,7 @@ namespace MonoFSM.Variable
                 return _value;
             }
             //FIXME: 要可以set嗎？
-            set => _lastBaseValue = value; //hmm???
+            // set => _lastBaseValue = value; //hmm???
         }
 
         private float _lastValue;
@@ -137,27 +137,27 @@ namespace MonoFSM.Variable
             return CalValueAfterModifier(_statModifiers);
         }
 
-        public void AddListener(UnityAction<float> action, MonoBehaviour owner)
-        {
-            if (owner == null)
-            {
-                // var mono = action.Target as MonoBehaviour;
-                // if (mono == null)
-                // {
-                Debug.LogError("PLZ FIX ME, Assign Owner for function block!!" + action.Target);
-                return;
-                // }
-                // owner = mono;
-            }
-
-
-            if (listener == null)
-            {
-                listener = new ValueChangedListener<float>();
-            }
-
-            listener.AddListenerDict(action, owner);
-        }
+        // public void AddListener(UnityAction<float> action, MonoBehaviour owner)
+        // {
+        //     if (owner == null)
+        //     {
+        //         // var mono = action.Target as MonoBehaviour;
+        //         // if (mono == null)
+        //         // {
+        //         Debug.LogError("PLZ FIX ME, Assign Owner for function block!!" + action.Target);
+        //         return;
+        //         // }
+        //         // owner = mono;
+        //     }
+        //
+        //     //
+        //     // if (listener == null)
+        //     // {
+        //     //     listener = new ValueChangedListener<float>();
+        //     // }
+        //     //
+        //     // listener.AddListenerDict(action, owner);
+        // }
 
         public void AddModifier(IStatModifer mod)
         {

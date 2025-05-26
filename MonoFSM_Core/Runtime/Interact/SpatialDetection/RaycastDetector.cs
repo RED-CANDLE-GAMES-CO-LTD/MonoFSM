@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ECM2;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.Detection;
 using Sirenix.Utilities;
@@ -25,7 +26,7 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
         [PreviewInInspector]
         public IReadOnlyList<RaycastHit> CachedHits => _cachedHits;
         public RaycastHit CachedHit => _cachedHits.Count > 0 ? _cachedHits[0] : default;
-
+        public Ray CachedRay => _cachedRay;
         protected override void SetLayerOverride()
         {
             
@@ -36,6 +37,7 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
             PhysicsUpdate();
         }
 
+        [Auto] private IRaycastProcessor _raycastProcessor;
         private Ray _cachedRay;
         public void PhysicsUpdate() //network?
         {
@@ -140,6 +142,17 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
             _cachedRay = ray;
             if (_raycastMode == RaycastMode.Single)
             {
+                if (_raycastProcessor != null)
+                {
+                    if (_raycastProcessor.Raycast(ray.origin, ray.direction, out var hitInfo, _distance, HittingLayer))
+                    {
+                        //FIXME: 操作 list好嗎？
+                        _cachedHits.Add(hitInfo);
+                        _thisFrameColliders.Add(hitInfo.collider);
+                        // Debug.Log("hit" + hit.collider.name, hit.collider);
+                    }
+                }
+                else
                 if (Physics.Raycast(ray, out var hit, _distance, HittingLayer))
                 {
                     _cachedHits.Add(hit);
@@ -147,16 +160,16 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
                     // Debug.Log("hit" + hit.collider.name, hit.collider);
                 }
             }
-            else
-            {
-                var hits = Physics.RaycastAll(ray, _distance, HittingLayer);
-                foreach (var h in hits)
-                {
-                    _cachedHits.Add(h);
-                    _thisFrameColliders.Add(h.collider);
-                    Debug.Log("hit" + h.collider.name, h.collider);
-                }
-            }
+            // else
+            // {
+            //     var hits = Physics.RaycastAll(ray, _distance, HittingLayer);
+            //     foreach (var h in hits)
+            //     {
+            //         _cachedHits.Add(h);
+            //         _thisFrameColliders.Add(h.collider);
+            //         Debug.Log("hit" + h.collider.name, h.collider);
+            //     }
+            // }
         }
 
         private readonly HashSet<Collider> _thisFrameColliders = new();

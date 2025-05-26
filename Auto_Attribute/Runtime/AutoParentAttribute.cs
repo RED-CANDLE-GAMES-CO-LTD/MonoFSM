@@ -17,8 +17,12 @@
  */
 
 using System;
+using JetBrains.Annotations;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
+[IncludeMyAttributes]
+[MeansImplicitUse]
 [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
 public class AutoParentAttribute : AutoFamily
 {

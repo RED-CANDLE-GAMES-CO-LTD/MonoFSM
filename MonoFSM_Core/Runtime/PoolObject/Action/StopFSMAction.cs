@@ -8,7 +8,7 @@ namespace RCGMaker.Runtime.ObjectPool
         [AutoParent] private StateMachineOwner _owner;
         protected override void OnStateEnterImplement()
         {
-            _owner.gameObject.SetActive(false);
+            _owner.gameObject.SetActive(false); //FIXME: fusion要怎麼處理這個？
         }
     }
 }
