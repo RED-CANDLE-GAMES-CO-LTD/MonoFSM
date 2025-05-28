@@ -55,7 +55,7 @@ public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
 namespace MonoFSM_Core.Runtime
 {
     /// <summary>
-    /// 從HitDataProvider的Dealer或Receiver的Parent上取得Component
+    /// 從HitDataProvider，從hitData 來拿到 Dealer/Receiver 的 Parent Component
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public abstract class HitDataParentCompProvider<T> : MonoBehaviour
@@ -76,7 +76,7 @@ namespace MonoFSM_Core.Runtime
 
         // private T _cached;
 
-//FIXME: 事先cache?
+        //FIXME: 事先cache?
         //last hitData same才可以耶？dealer/receiver dictionary?
         protected T GetParentComp()
         {

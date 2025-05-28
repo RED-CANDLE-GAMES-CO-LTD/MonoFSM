@@ -1,3 +1,4 @@
+using System;
 using MonoFSM_Core.Runtime.Action;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
@@ -14,10 +15,11 @@ namespace RCGFSM.Variable
         Div
     }
 
+    [Obsolete] //EffectHitFloatArithmeticAction
     public class VarFloatArithmeticAction : AbstractStateAction, IArgEventReceiver<IEffectHitData>
     {
         //兩種情境，一種是從dealer來，一種是固定值觸發
-        protected override string Description =>
+        public override string Description =>
             $"{targetFlag?._varTag?.name} {arithmeticSymbol}= {sourceType} {sourceType switch { ValueSourceType.Constant => ConstValue, _ => 0 }}";
 
         private string arithmeticSymbol => Arithmetic switch
@@ -48,6 +50,14 @@ namespace RCGFSM.Variable
 
         [FormerlySerializedAs("valueSource")] public ValueSourceType sourceType;
 
+        //FIXME: 
+        public override void EventReceived<T>(T arg)
+        {
+            //怎麼抽象化？ sourceValueProvider
+            if (arg is Collision collision) DoOperation(collision.impulse.magnitude);
+        }
+
+        [Obsolete]
         public void ArgEventReceived(IEffectHitData arg) //FIXME: runtime value source? 狀態接著？
         {
             switch (sourceType)

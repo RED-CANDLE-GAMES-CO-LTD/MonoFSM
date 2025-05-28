@@ -11,6 +11,6 @@ namespace RCGMaker.Core
         [DropDownRef]
         [SerializeField]GeneralState _targetState;
         protected override bool IsValid => _owner.FsmContext.currentStateType == _targetState;
-        protected override string Description => $"{GetType().Name}({_targetState.name})";
+        public override string Description => $"{GetType().Name}({_targetState.name})";
     }
 }

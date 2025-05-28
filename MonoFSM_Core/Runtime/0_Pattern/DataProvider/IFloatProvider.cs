@@ -15,7 +15,7 @@ namespace RCGMaker.Core.DataProvider
     //MonoObject
     //MonoVariable來源
     //SOData來源 
-    public interface IFloatProvider : IConfigVar //用介面好處，但是會哭哭
+    public interface IFloatProvider : IValueProvider //用介面好處，但是會哭哭
     {
         public float GetFloat();
 

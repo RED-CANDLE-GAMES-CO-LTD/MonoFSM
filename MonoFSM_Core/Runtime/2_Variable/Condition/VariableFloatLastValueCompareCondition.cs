@@ -13,7 +13,7 @@ namespace MonoFSM.Variable.Condition
 
         public Operator op;
 
-        protected override string Description => _monoVarFloat
+        public override string Description => _monoVarFloat
             ? name = "[Condition] " + _monoVarFloat.name + " LastValue " + op + " CurrentValue"
             : "[Condition] VariableFloatLastValueCompareCondition";
 

@@ -1,4 +1,5 @@
 using MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper;
+using MonoFSM_Core.Runtime.Action;
 using MonoFSM.DataProvider;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
@@ -16,8 +17,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         // [PreviewInInspector] [AutoParent] private GeneralEffectDealer _parentDealer;
         // [PreviewInInspector] [AutoParent] private GeneralEffectReceiver _parentReceiver;
 
-        private bool IsParentDealer => _runtimeDealer != null;
-        private bool IsParentReceiver => _runtimeReceiver != null;
+        // private bool IsParentDealer => _runtimeDealer != null;
+        // private bool IsParentReceiver => _runtimeReceiver != null;
 
 
         // [InfoBox("parent不是dealer, Editor Dropdown抓不到", nameof(IsParentReceiver))]
@@ -26,11 +27,11 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         // [InfoBox("parent不是receiver, Editor Dropdown抓不到", nameof(IsParentDealer))]
         // public VariableFloatProvider receiverVariableProvider;
 
-        [Button]
-        private void Rename()
-        {
-            name = "[EffectHitAction]" + GetType().Name;
-        }
+        // [Button]
+        // private void Rename()
+        // {
+        //     name = "[EffectHitAction]" + GetType().Name;
+        // }
 
         // public abstract void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver);
         public void ArgEventReceived(GeneralEffectHitData arg)
@@ -60,22 +61,24 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         }
     }
 
-    public class EffectHitFloatArithmeticAction : AbstractEffectHitAction
+    public class EffectHitFloatArithmeticAction : AbstractStateAction
     {
+        //FIXME: value overrider?
+        
         // public enum OperandType
         // {
         //     Dealer,
         //
         //     Receiver
         //     // Constant
-        // }
+        [AutoChildren] [CompRef] private TargetVarRef _targetVariableProvider; // }
 
         [AutoChildren] [CompRef] private SourceValueRef _source1VariableProvider;
 
         [ShowIf(nameof(IsSource2Needed))] [AutoChildren] [CompRef]
         private SourceValue2Ref _source2VariableProvider;
 
-        [AutoChildren] [CompRef] private TargetVarRef _targetVariableProvider;
+
 
         public ArithmeticType Arithmetic;
 
@@ -115,7 +118,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         };
 
         [PreviewInInspector]
-        private string _description
+        public override string Description
         {
             get
             {
@@ -148,13 +151,18 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
             Divide,
             Modulo,
             AdditionAssign,
-
             SubtractionAssign
             //+=,-=?
         }
 
-        protected override void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver)
+        // protected override void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver)
+        protected override void OnStateEnterImplement()
         {
+            if (_targetVariableProvider == null || _source1VariableProvider == null)
+            {
+                Debug.LogError("EffectHitFloatArithmeticAction: Target or Source1 variable provider is not set.", this);
+                return;
+            }
             var targetValue = _targetVariableProvider.GetVar<VarFloat>().Value;
             var value1 = _source1VariableProvider.GetValue<float>();
             float result = 0;

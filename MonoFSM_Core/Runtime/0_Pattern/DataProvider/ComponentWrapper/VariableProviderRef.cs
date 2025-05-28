@@ -25,18 +25,20 @@ namespace RCGMaker.Core.DataProvider
 
     //TODO: FIXME: drag drop reference後，自動填入tag/monoTag
     public abstract class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
-        IConfigVar, IVariableProvider, IStringProvider
+        IValueProvider, IVariableProvider, IStringProvider
         where TVarMonoType : AbstractMonoVariable
     {
-        private void OnValidate()
-        {
-            if (GetComponent<IVariableOwnerProvider>() != null)
-                _getFromType = GetFromType.VariableOwnerProvider;
-            else if (GetComponentInParent<VariableOwner>() != null)
-                _getFromType = GetFromType.ParentVarOwner;
-            else
-                _getFromType = GetFromType.GlobalInstance;
-        }
+        // private void OnValidate()
+        // {
+        //     if (Application.isPlaying) return;
+        //     if (GetComponent<IVariableOwnerProvider>() != null)
+        //         _getFromType = GetFromType.VariableOwnerProvider;
+        //     else if (GetComponentInParent<VariableOwner>() != null)
+        //         _getFromType = GetFromType.ParentVarOwner;
+        //     else
+        //         _getFromType = GetFromType.GlobalInstance;
+        //
+        // }
 
         public override Type GetVarType => typeof(TVarMonoType);
 

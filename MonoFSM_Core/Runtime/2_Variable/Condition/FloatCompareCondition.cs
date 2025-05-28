@@ -89,7 +89,7 @@ namespace MonoFSM.Variable.Condition
         [BoxGroup("Simple Comparison")]
         private string SimplePreview => $"{(leftValue != null ? leftValue.name : "null")} {op} {(useConstantForRightValue ? rightConstantValue.ToString() : (rightValue != null ? rightValue.name : "null"))}";
 
-        protected override string Description => comparisonMode == ComparisonMode.Simple
+        public override string Description => comparisonMode == ComparisonMode.Simple
             ? SimplePreview
             : $"{_floatValueSourceArray[0].Description} {op} {_floatValueSourceArray[1].Description}";
 

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace MonoFSM.Ref
 {
-    public class SelfRef : MonoBehaviour, IConfigVar
+    public class SelfRef : MonoBehaviour, IValueProvider
     {
         [PreviewInInspector] [AutoParent] private MonoDescriptable _descriptable;
 

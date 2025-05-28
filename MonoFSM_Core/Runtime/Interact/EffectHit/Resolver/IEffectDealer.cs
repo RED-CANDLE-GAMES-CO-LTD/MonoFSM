@@ -18,6 +18,16 @@ using UnityEngine.Pool;
 // {
 // }
 
+public class CollisionHitData : IEffectHitData //fixme:
+{
+    public IEffectDealer Dealer { get; }
+    public IEffectReceiver Receiver { get; }
+
+    public void Override(IEffectDealer dealer, IEffectReceiver receiver)
+    {
+    }
+}
+
 public interface IEffectHitData
 {
     IEffectDealer Dealer { get; }

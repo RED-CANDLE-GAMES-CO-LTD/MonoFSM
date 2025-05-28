@@ -34,7 +34,7 @@ namespace RCGMaker.Core
             {
                 // Debug.Log("Counting down" + currentTime.CurrentValue + " " + Time.deltaTime);
                 _lastTime = currentTime.CurrentValue;
-                currentTime.SetValue(currentTime.CurrentValue - Time.deltaTime);
+                currentTime.SetValue(currentTime.CurrentValue - Time.deltaTime); //TimeProvider
             }
         }
 

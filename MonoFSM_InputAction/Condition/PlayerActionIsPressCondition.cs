@@ -11,7 +11,7 @@ namespace RCGInputAction
   
         string IFloatProvider.Description => Description;
 
-        protected override string Description => _actionRef ? _actionRef.action.name + " Is Pressed" : "No ActionRef";
+        public override string Description => _actionRef ? _actionRef.action.name + " Is Pressed" : "No ActionRef";
 
         // [AutoParent] PlayerInputActionBufferManager _bufferManager;
         //FIXME: 要把was press, is press, was release分開做嗎？

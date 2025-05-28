@@ -252,7 +252,7 @@ namespace RCGMaker.Runtime
         public void EnterSceneAwake()
         {
             // _receiverTypeSet = new HashSet<GeneralEffectType>();
-            Debug.Log("EnterSceneAwake: " +name,this); //跑兩次？
+            // Debug.Log("EnterSceneAwake: " +name,this); //跑兩次？
             if (_receivers != null)
                 foreach (var receiver in _receivers)
                     // _receiverTypeSet.Add(receiver.EffectType);

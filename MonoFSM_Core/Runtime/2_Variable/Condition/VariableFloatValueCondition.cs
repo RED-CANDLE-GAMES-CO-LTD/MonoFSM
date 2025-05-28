@@ -21,7 +21,7 @@ namespace MonoFSM.Variable.Condition
     /// </summary>
     public class VariableFloatValueCondition : NotifyConditionComp, ITransitionCheckInvoker
     {
-        protected override string Description => _monoVariableFloat != null
+        public override string Description => _monoVariableFloat != null
             ? name = "[Condition] " + _monoVariableFloat + " " + op + " " + targetValue
             : name = "[Condition]";
 

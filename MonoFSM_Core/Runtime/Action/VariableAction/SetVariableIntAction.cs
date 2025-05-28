@@ -7,7 +7,7 @@ namespace RCGFSM.Variable
         [DropDownRef] public VarInt targetFlag;
         public int TargetValue;
 
-        protected override string Description => $"Set {targetFlag.name} to {TargetValue}";
+        public override string Description => $"Set {targetFlag.name} to {TargetValue}";
 
         protected override void OnStateEnterImplement()
         {

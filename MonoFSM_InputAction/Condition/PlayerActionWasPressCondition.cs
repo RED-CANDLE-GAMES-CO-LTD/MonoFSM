@@ -10,7 +10,7 @@ namespace PlayerActionControl
     //有buffering
     public class PlayerActionWasPressCondition : AbstractConditionComp
     {
-        protected override string Description =>
+        public override string Description =>
             actionOfRef != null ? actionOfRef.name + "Was Press Buffer" : "No ActionRef";
 
         // [AutoParent] PlayerInputActionBufferManager _bufferManager;

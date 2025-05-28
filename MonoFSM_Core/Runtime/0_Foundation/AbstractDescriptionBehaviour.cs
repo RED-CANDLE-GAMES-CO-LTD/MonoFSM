@@ -12,7 +12,7 @@ namespace MonoFSM.Foundation
         [AutoParent] protected MonoDescriptable _self;
 
         //介面上也顯示？textarea?
-        protected virtual string Description => $"{GetType().Name}";
+        public virtual string Description => $"{GetType().Name}";
 
         protected virtual string DescriptionPreprocess(string text)
             => text;

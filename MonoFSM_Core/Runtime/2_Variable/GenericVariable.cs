@@ -459,7 +459,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         _localField.Init(TestMode.Build, this);
     }
 
-    public void OnBeforePrefabSave()
+    public virtual void OnBeforePrefabSave()
     {
         if (_varTag == null)
             Debug.LogError("No VarTag: " + this, this);

@@ -1,6 +1,6 @@
 namespace RCGMaker.Core
 {
-    public interface IConfigVar
+    public interface IValueProvider
     {
         object GetValue();
         T GetValue<T>();

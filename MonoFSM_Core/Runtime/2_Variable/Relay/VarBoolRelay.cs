@@ -34,7 +34,7 @@ namespace MonoFSM.Variable
             _source.Field.AddListener(value => { _target.Field.SetCurrentValue(value, this); }, this);
         }
 
-        protected override string Description 
+        public override string Description 
             => "when '$" + _source?._varTag?.name + "' changed, set '$" + _target?._varTag?.name + "'";
 
         protected override string DescriptionTag 

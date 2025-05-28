@@ -9,7 +9,7 @@ namespace MonoFSM.Variable.Condition
 {
     public class VarBoolValueCondition : NotifyConditionComp
     {
-        protected override string Description => _varBool?.name + " == " + targetValue;
+        public override string Description => _varBool?.name + " == " + targetValue;
 
         /// <summary>
         /// Invoked when the bound variable changes.

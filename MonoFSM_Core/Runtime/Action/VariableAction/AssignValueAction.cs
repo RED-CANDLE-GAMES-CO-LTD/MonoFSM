@@ -26,7 +26,7 @@ namespace RCGMaker.Runtime.Backpack.Actions
         // [AutoChildren] IVariableProvider TargetVariable;
         [PreviewInInspector] private IEffectReceiver _lastReceiver;
 
-        protected override string Description => $"Assign value from {_sourceValueRef} to {_targetVarRef}";
+        public override string Description => $"Assign value from {_sourceValueRef} to {_targetVarRef}";
 
         protected override void OnStateEnterImplement()
         {

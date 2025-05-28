@@ -5,7 +5,7 @@ namespace MonoFSM.Variable.Condition
     //選一個game flag 的int property
     public class IntPropertyCondition : AbstractFieldConditionComp<int, ScriptableObject>
     {
-        protected override string Description =>
+        public override string Description =>
             sourceObject.name + "." + propertyName + " " + Op + " " + TargetValue;
 
         public Operator Op;

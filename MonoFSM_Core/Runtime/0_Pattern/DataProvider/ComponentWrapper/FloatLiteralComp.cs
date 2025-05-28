@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using jerryee.UnityMCP;
+using MonoFSM.Foundation;
 using RCGMaker.Core;
 using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
@@ -9,7 +11,7 @@ using UnityEngine.Serialization;
 namespace MonoFSM.DataProvider
 {
     //FloatConstant?
-    public class FloatLiteralComp : MonoBehaviour, IFloatProvider
+    public class FloatLiteralComp : AbstractDescriptionBehaviour, IFloatProvider
     {
         [MCPExtractable]
         [FormerlySerializedAs("literal")] public float _literal;
@@ -19,16 +21,18 @@ namespace MonoFSM.DataProvider
             return _literal;
         }
 
-        public string Description => _literal.ToString();
+        public override string Description => _literal.ToString(CultureInfo.CurrentCulture);
 
-        [Button("Rename")]
-        void Rename() //FIXME: rename可以包起來大家用？
-        {
-#if UNITY_EDITOR
-            UnityEditor.Undo.RecordObject(this, "Rename");
-            name = "[Float]" + _literal;
-#endif
-        }
+        protected override string DescriptionTag => "Float";
+
+//         [Button("Rename")]
+//         void Rename() //FIXME: rename可以包起來大家用？
+//         {
+// #if UNITY_EDITOR
+//             UnityEditor.Undo.RecordObject(this, "Rename");
+//             name = "[Float]" + _literal;
+// #endif
+//         }
 
         public object GetValue()
         {
@@ -44,7 +48,7 @@ namespace MonoFSM.DataProvider
 
         public string GetDescription()
         {
-            return _literal.ToString();
+            return Description;
         }
     }
 }

@@ -51,6 +51,8 @@ namespace MonoFSM.Variable
         [PreviewInInspector] [Component] IFloatProvider _minValueProvider => _floatProviderArray.Length > 0 ? _floatProviderArray[0] : null;
         [PreviewInInspector] [Component] IFloatProvider _maxValueProvider => _floatProviderArray.Length > 1 ? _floatProviderArray[1] : null;
 
+        //FIXME: Editor time沒有...哭了
+        
         [ShowInInspector]
         public float MinValue =>
             _minValueProvider?.Value ?? Mathf.NegativeInfinity; //MaxVar != null ? MaxVar.CurrentValue : max;
@@ -78,6 +80,19 @@ namespace MonoFSM.Variable
             }
 
             return value;
+        }
+
+        public void EditorBoundCheck(ref float value)
+        {
+            if (_floatProviderArray == null || _floatProviderArray.Length == 0)
+            {
+                _floatProviderArray = GetComponents<IFloatProvider>(); //FIXME 好煩喔，editor code還是需要自己寫
+                return;
+            }
+
+            if (value < MinValue) value = MinValue;
+
+            if (value > MaxValue) value = MaxValue;
         }
 
         public float BeforeSetValueModifyCheck(float value) 

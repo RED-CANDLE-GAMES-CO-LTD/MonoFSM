@@ -207,7 +207,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
         if (!HasChecker()) Debug.LogError("No Checker", gameObject);
     }
 
-    protected override string Description
+    public override string Description
         => _target!=null&&_target.stateType!=null?"=>" + _target.stateType.name.Replace("[State]", ""):"";
 
     protected override string DescriptionTag

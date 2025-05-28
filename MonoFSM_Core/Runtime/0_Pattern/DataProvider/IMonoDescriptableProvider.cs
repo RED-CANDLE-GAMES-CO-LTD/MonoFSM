@@ -26,7 +26,7 @@ namespace RCGMaker.Core.DataProvider
 
     //FIXME: TMonoDescriptable是不是不好？不要再inherit MonoDescriptable
     [Serializable]
-    public class MonoDescriptableProvider<TMonoDescriptable> : IMonoDescriptableProvider, IConfigVar
+    public class MonoDescriptableProvider<TMonoDescriptable> : IMonoDescriptableProvider, IValueProvider
         where TMonoDescriptable : MonoDescriptable
     {
         [SerializeReferenceParentValidate] [SerializeField]

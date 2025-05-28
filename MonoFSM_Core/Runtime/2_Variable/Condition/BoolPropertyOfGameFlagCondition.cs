@@ -6,7 +6,7 @@ namespace MonoFSM.Variable.Condition
         protected override bool IsValid 
             => SourceValue == TargetValue;
 
-        protected override string Description 
+        public override string Description 
             => $"{sourceObject.name} {propertyName} is {TargetValue}";
     }
 }

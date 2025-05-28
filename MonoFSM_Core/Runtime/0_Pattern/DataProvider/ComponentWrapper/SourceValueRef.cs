@@ -1,4 +1,5 @@
 using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
 using UnityEngine;
 
 namespace RCGMakerFSM.VarRef
@@ -13,25 +14,38 @@ namespace RCGMakerFSM.VarRef
 
     public abstract class AbstractSourceValueRef : MonoBehaviour
     {
-        [Component] [Auto] private IConfigVar _configVar; //什麼鬼命名，IValueProvider?
+        //如果有多個？避免？
+        [Component] [Auto] private IValueProvider _valueProvider; //什麼鬼命名，IValueProvider?
 
+        [PreviewInInspector] private object _previewLastValue;
+        
+        
         public object GetValue()
         {
-            return _configVar.GetValue();
+            var value = _valueProvider.GetValue();
+            //value processor?
+#if UNITY_EDITOR
+            _previewLastValue = value;
+#endif
+            return value;
         }
 
         public T GetValue<T>()
         {
-            return _configVar.GetValue<T>();
+            var value = _valueProvider.GetValue<T>();
+#if UNITY_EDITOR
+            _previewLastValue = value;
+#endif
+            return value;
         }
 
         public override string ToString()
         {
 #if UNITY_EDITOR
-            _configVar = GetComponent<IConfigVar>();
-            if (_configVar == null) return "";
+            _valueProvider = GetComponent<IValueProvider>();
+            if (_valueProvider == null) return "";
 #endif
-            return _configVar.GetDescription();
+            return _valueProvider.GetDescription();
         }
     }
 }

@@ -21,6 +21,21 @@ namespace MonoFSM.Variable
         public float Percentage => (CurrentValue - Min) / (Max - Min);
         public float Min => _boundModifier.MinValue;
         public float Max => _boundModifier.MaxValue;
+
+        public override void OnBeforePrefabSave()
+        {
+            base.OnBeforePrefabSave();
+            if (_boundModifier != null)
+            {
+                _boundModifier.EditorBoundCheck(ref Field.ProductionValue);
+                _boundModifier.EditorBoundCheck(ref Field.DevValue);
+                Debug.Log($"VarFloat OnBeforePrefabSave: Min={Min}, Max={Max}, CurrentValue={CurrentValue}", this);
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.SetDirty(this);
+#endif
+            }
+        }
+
         public bool IsMax => CurrentValue >= Max;
 
         public bool IsDecreasing => CurrentValue < LastValue;
