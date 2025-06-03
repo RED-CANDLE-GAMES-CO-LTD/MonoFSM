@@ -16,6 +16,8 @@ public class InputActionData : ScriptableObject
    public bool WasPressed() => inputAction.action.WasPressedThisFrame();
    public bool IsPressed() => inputAction.action.IsPressed();
    public bool WasReleased() => inputAction.action.WasReleasedThisFrame();
+   
+   
 
    public InputAction GetAction(PlayerInput playerInput)
    {

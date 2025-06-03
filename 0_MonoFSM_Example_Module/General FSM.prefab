@@ -136,7 +136,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd928b888dd2a4dd0a531dc2f948505e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showCurrentState: 0
 --- !u!1 &3801494400675193616
 GameObject:
   m_ObjectHideFlags: 0
@@ -262,6 +261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da00e78b230681a4996b6835aab48404, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _noteType: 0
   note: 
   bgColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &4619145615866190664
@@ -345,7 +345,6 @@ MonoBehaviour:
   statusTimer: 0
   StateCoolDown: 0
   StateDuration: 0
-  NextState: {fileID: 0}
   EnterTimeOffset: 0
   CanSelfTransition: 0
 --- !u!1 &5003566578831232648
@@ -397,7 +396,6 @@ MonoBehaviour:
   statusTimer: 0
   StateCoolDown: 0
   StateDuration: 0
-  NextState: {fileID: 0}
   EnterTimeOffset: 0
   CanSelfTransition: 0
 --- !u!1 &5103236229753245273
@@ -501,7 +499,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 4470819081602396570}
-  stateName: 
+  stateName: Idle
   stateLayer: 0
   startNormalizedTimeOffset: 0
   animatorEnterCrossFade: 0

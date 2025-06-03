@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using Sirenix.Utilities;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -79,26 +80,36 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
             if (term == lastSearchToken)
                 return;
 
+            Debug.Log("SearchToken:" + term);
             if (!term.StartsWith("t:")) return;
             term = term.Substring(2).Replace(" ", "");
-            var t = AssemblyUtilities.GetTypeByCachedFullName(term); 
-           
+            var t = TypeFinderUtility.FindMonoBehaviourType(term, true);
+            // var t = AssemblyUtilities.GetTypeByCachedFullName(term); 
+            Debug.Log("Type:" + t);
             if (t == null)
             {
-                // Debug.LogError("no type match");
+                
                 return;
             }
 
+            Debug.Log("Searching for type: " + t.FullName);
             // Debug.Log(t);
             //FIXME: 一打開就要cache?
-            
+            FindAllComponentsInPrefab();
             var filteredComps = SearchForComponentType(currentPrefabComps, t);
+            if (filteredComps == null)
+            {
+                Debug.LogError("Null: Searching for type: " + t.FullName);
+                return;
+            }
+                
             //get all gameobjects that have this component
             var filteredGObjs = filteredComps.Select((comp) => comp.gameObject);
+            Debug.Log(filteredGObjs.Count().ToString());
             _highlightedObjects.AddRange(filteredGObjs);
         }
 
-        public static void FindAllComponents()
+        public static void FindAllComponentsInPrefab()
         {
             
             if(PrefabStageUtility.GetCurrentPrefabStage() == null)
@@ -111,17 +122,22 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
             }
             
             //fetch all components in the prefab
+            // if (currentPrefabComps == null)
+            // {
             if (currentPrefabComps == null)
-            {
-                currentPrefabComps = PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot
-                    .GetComponentsInChildren<Component>(true);
-            }
+                currentPrefabComps = new List<Component>();
+            currentPrefabComps.Clear();
+            PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot
+                .GetComponentsInChildren(true, currentPrefabComps);
+            Debug.Log("Length: " + currentPrefabComps.Count);
+            // }
         }
 
         private static GameObject currentPrefab;
-        
-        private static Component[] currentPrefabComps;
-        public static IList<Component> SearchForComponentType(Component[] comps, System.Type type)
+
+        private static List<Component> currentPrefabComps = new();
+
+        public static IList<Component> SearchForComponentType(List<Component> comps, System.Type type)
         {
             // Filter the list by checking if the object's name contains the search string entered by the user
             var filteredObjects = new List<Component>(); //FIXME: 可以避免GC
@@ -130,6 +146,8 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
             {
                 // Debug.Log("lower:" + obj.name.ToLower());
                 //see if type is obj or inherit
+                if (obj == null)
+                    continue;
                 var objT = obj.GetType();
                 if (objT == type || objT.IsSubclassOf(type))
                 {
@@ -165,6 +183,8 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
                     // Debug.Log("found object" + obj.gameObject);
                 }
             }
+
+            FilterObjectsPattern(token);
 
             currentIndex = 0;
             var firstOrDefault = _highlightedObjects.FirstOrDefault();
