@@ -48,6 +48,9 @@ public interface ISceneAwakeReverse
     void EnterSceneAwakeReverse();
 }
 
+/// <summary>
+/// 摸別人，進入場景後一次性
+/// </summary>
 public interface ISceneStart
 {
     void EnterSceneStart();

@@ -414,15 +414,21 @@ namespace RCGMaker.Core.DataProvider
             }
         }
 
-        public string GetDescription()
-        {
-            var str = string.Empty;
-            if (_parentMonoTag) str = _parentMonoTag.name + ".";
-            str += varTag?.name;
-            return str;
-        }
+        // public string GetDescription()
+        // {
+        //     
+        // }
 
-        public string Description => GetDescription();
+        public virtual string Description
+        {
+            get
+            {
+                var str = string.Empty;
+                if (_parentMonoTag) str = _parentMonoTag.name + ".";
+                str += varTag?.name;
+                return str;
+            }
+        }
         
     }
 }

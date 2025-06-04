@@ -69,6 +69,9 @@ namespace RCGMaker.Core
         
         protected override void Initialize()
         {
+            //play的時候不要抓
+            if (Application.isPlaying)
+                return;
             var mb = GetMB;
             if (mb == null)
             {

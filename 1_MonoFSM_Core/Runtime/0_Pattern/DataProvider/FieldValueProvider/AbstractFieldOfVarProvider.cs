@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using RCGMaker.Core.Attributes;
@@ -12,19 +13,19 @@ namespace RCGMaker.Core.DataProvider
 {
     // 監聽變數的變化，然後更新UI
     /// <summary>
-    /// 
+    /// 拿Var的Field
     /// </summary>
     public abstract class
-        AbstractFieldValueProvider : MonoBehaviour, IResetStart //打架了，這個有IConfigVar, 和VariableProviderRef衝突
+        AbstractFieldOfVarProvider : MonoBehaviour //打架了，這個有IConfigVar, 和VariableProviderRef衝突
     {
         //FIXME: 要提前有schema可以參考？ EditorPlaceholder?
         
         //這個auto會太慢耶導致看的時候error?
         [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
-        protected AbstractVariableProviderRef _variableProviderRef;
+        protected AbstractVariableProviderRef _variableProviderRef; //FIXME: 有可能會無窮迴圈？應該要單向
 
-        [PreviewInInspector] [Auto] private IDataChangedListener _dataChangedListener;
-        protected abstract AbstractMonoVariable ListenToVariable { get; }
+        
+        
         [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
         [PreviewInInspector] public abstract Object targetObject { get; }
 
@@ -32,13 +33,7 @@ namespace RCGMaker.Core.DataProvider
         public abstract Type targetType { get; }
         [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        private void OnValueChanged()
-        {
-            _dataChangedListener.OnDataChanged(targetObject);
-        }
+
         
 
         private void OnDestroy()
@@ -124,6 +119,7 @@ namespace RCGMaker.Core.DataProvider
         ///     根據 pathEntries 依序利用反射從 obj 取得最終欄位值
         ///     支援若欄位為陣列時，根據 index 取得對應元素
         /// </summary>
+        /// FIXME: 用PropertyBag? reflection 會不會太慢？
         private object GetFieldValueFromPath(object obj, List<FieldPathEntry> entries)
         {
             //第一次是obj是DescriptableData
@@ -208,6 +204,17 @@ namespace RCGMaker.Core.DataProvider
         [OnValueChanged("GetFieldValue")] [ListDrawerSettings(ShowFoldout = false)] [BoxGroup("Field")]
         public List<FieldPathEntry> pathEntries;
 
+        public string GetPathString()
+        {
+            // 生成 pathEntries 的字串表示
+            if (targetObject == null)
+            {
+                Debug.LogError("targetObject 為 null，無法生成路徑字串", this);
+                return "null";
+            }
+
+            return targetObject.name + "." + string.Join(".", pathEntries.Select(e => e.fieldName));
+        }
 
         [Button("Runtime 取得欄位值")]
         public object GetFieldValue()
@@ -332,21 +339,7 @@ namespace RCGMaker.Core.DataProvider
           
         }
 
-        public void ResetStart() //FIXME: 應該在這註冊？還是scene註冊一次就好？
-        {
-            //這個variable已經準備好了嗎？
-            if (ListenToVariable)
-            {
-                ListenToVariable.OnValueChangedRaw += OnValueChanged;
-                Debug.Log("Bind Variable", this);
-                _dataChangedListener.OnDataChanged(targetObject);
-            }
-            else
-            {
-                Debug.LogError("ListenToVariable is null", this);
-                Debug.Break();
-            }
-        }
+       
 
         public object GetValue()
         {

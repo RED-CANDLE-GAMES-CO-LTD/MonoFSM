@@ -30,11 +30,11 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     IConditionChangeListener, IOverrideHierarchyIcon, IDrawHierarchyBackGround
 {
 #if UNITY_EDITOR
-    public string IconName { get; }
+    public string IconName => "CollabMoved Icon";
     public bool IsDrawingIcon => true;
 
-    public Texture2D CustomIcon =>
-        UnityEditor.EditorGUIUtility.ObjectContent(null, typeof(StateTransition)).image as Texture2D;
+    public Texture2D CustomIcon => null;
+    // UnityEditor.EditorGUIUtility.ObjectContent(null, typeof(StateTransition)).image as Texture2D;
 
 #endif
     //現在event driven直接set也work, 要做成只有condition改變才會觸發transition?
@@ -242,5 +242,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     }
 
     public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
-    public bool IsDrawGUIHierarchyBackground => HasError(); 
+
+    public bool IsDrawGUIHierarchyBackground => HasError();
+    //FIXME: highlight related component ex: target state, 偷改他狀態？ 怎麼做標記？ 我被選到的話
 }

@@ -1,14 +1,18 @@
 using System;
+using MonoFSM_Core.Network;
 using MonoFSM.Variable;
 using RCGMaker.Core.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace RCGMaker.Core
 {
     //0表示valid
 
-    public class VarFloatCountDownTimer : MonoBehaviour
+    public class VarFloatCountDownTimer : MonoBehaviour, IUpdateSimulate
     {
+        [InfoBox(
+            "This timer counts down from a specified value to zero. It can be reset to a maximum value or a specific value. It is used to control the timing of events in the game.")]
         [DropDownRef] public VarFloat currentTime;
 
         public void ResetTimer()
@@ -25,7 +29,14 @@ namespace RCGMaker.Core
 
         [PreviewInInspector] float _lastTime;
 
-        private void Update()
+        // private void Update()
+        // {
+        //   
+        // }
+
+        [PreviewInInspector] [AutoChildren] AbstractConditionComp[] _conditions;
+
+        public void Simulate(float deltaTime)
         {
             //FIXME: 還要有condition?
             if (!_conditions.IsAllValid())
@@ -34,10 +45,12 @@ namespace RCGMaker.Core
             {
                 // Debug.Log("Counting down" + currentTime.CurrentValue + " " + Time.deltaTime);
                 _lastTime = currentTime.CurrentValue;
-                currentTime.SetValue(currentTime.CurrentValue - Time.deltaTime); //TimeProvider
+                currentTime.SetValue(currentTime.CurrentValue - deltaTime); //TimeProvider
             }
         }
 
-        [PreviewInInspector] [AutoChildren] AbstractConditionComp[] _conditions;
+        public void AfterUpdate()
+        {
+        }
     }
 }

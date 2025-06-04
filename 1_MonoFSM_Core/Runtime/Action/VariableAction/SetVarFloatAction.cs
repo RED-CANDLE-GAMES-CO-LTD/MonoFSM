@@ -2,14 +2,15 @@ using jerryee.UnityMCP;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.DataProvider;
-using UnityEngine;
+using Sirenix.OdinInspector;
 
 namespace MonoFSM_Core.Runtime.Action.VariableAction
 {
     public class SetVarFloatAction : AbstractStateAction
     {
         [MCPExtractable] [DropDownRef] public VarFloat _targetVar;
-        [CompRef] [Auto] private IFloatProvider _valueProvider;
+
+        [Required] [CompRef] [Auto] private IFloatProvider _valueProvider; //如果要拿到VarFloat的Max怎麼設計比較好？
 
         protected override void OnStateEnterImplement()
         {
@@ -17,5 +18,8 @@ namespace MonoFSM_Core.Runtime.Action.VariableAction
             _targetVar.SetValue(value, this);
 
         }
+
+        //自動產生語意
+        public override string Description => $"Set {_targetVar.name} to {_valueProvider.Description}";
     }
 }

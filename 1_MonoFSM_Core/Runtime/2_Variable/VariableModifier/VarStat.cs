@@ -41,7 +41,7 @@ namespace MonoFSM.Variable
                 if (_isDirty || _lastBaseValue != BaseValue)
                 {
                     //條件一變，值就變？dirty也是一路問，問每個statmodifier
-                    CalValues();
+                    ForceCalValues();
                     // listener?.OnChange(_value, false);
                 }
 
@@ -54,7 +54,7 @@ namespace MonoFSM.Variable
             get
             {
                 //FIXME: bound還要管嗎？
-                if (_isDirty) CalValues();
+                if (_isDirty) ForceCalValues();
                 return _value;
             }
             //FIXME: 要可以set嗎？
@@ -63,16 +63,26 @@ namespace MonoFSM.Variable
 
         private float _lastValue;
 
-        private float CalValues()
+        private float ValueAfterApplyModifier()
         {
+            // Debug.Log("Cal Value:" + BaseValue + "," + statModifiers.Count);
+            if (Application.isPlaying == false) return CalValueAfterModifier(_localStatModifiers);
+
+            _statModifiers?.Sort(_modifierOrder);
+            return CalValueAfterModifier(_statModifiers);
+        }
+
+        ///最重要的！
+        private float ForceCalValues() 
+        {
+            _isDirty = false;
             _lastValue = _value;
             _lastBaseValue = BaseValue;
-            var tempValue = CalculateFinalValue();
+            var tempValue = ValueAfterApplyModifier();
             if (_modifiers != null)
                 foreach (var modifier in _modifiers)
                     tempValue = modifier.AfterGetValueModifyCheck(tempValue);
             _value = tempValue;
-            _isDirty = false;
             if (_lastValue != _value) OnValueChangedRaw?.Invoke();
             return _value;
         }
@@ -86,6 +96,7 @@ namespace MonoFSM.Variable
             for (var i = 0; i < statModifiers.Count; i++)
             {
                 var mod = statModifiers[i];
+                Debug.Log("Stat Modifier:" + mod.GetValue + mod.GetModType + " mod.IsValid:" + mod.IsValid);
                 if (mod.IsValid == false) continue;
                 switch (mod.GetModType)
                 {
@@ -122,17 +133,7 @@ namespace MonoFSM.Variable
         }
 
 
-        private float CalculateFinalValue()
-        {
-            // Debug.Log("Cal Value:" + BaseValue + "," + statModifiers.Count);
-            if (Application.isPlaying == false)
-            {
-                return CalValueAfterModifier(_localStatModifiers);
-            }
 
-            _statModifiers?.Sort(_modifierOrder);
-            return CalValueAfterModifier(_statModifiers);
-        }
 
         // public void AddListener(UnityAction<float> action, MonoBehaviour owner)
         // {
@@ -243,7 +244,8 @@ namespace MonoFSM.Variable
         public void OnConditionChanged()
         {
             SetDirty();
-            CalculateFinalValue();
+            var currentVal = ForceCalValues();
+            Debug.Log("VarStat.OnConditionChanged() " + currentVal, this);
         }
     }
 }

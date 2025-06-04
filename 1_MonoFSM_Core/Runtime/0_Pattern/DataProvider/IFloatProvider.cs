@@ -21,7 +21,7 @@ namespace RCGMaker.Core.DataProvider
 
         public float Value => GetFloat();
 
-        string Description { get; }
+        // string Description { get; }
         //string description name? provider description?
     }
 

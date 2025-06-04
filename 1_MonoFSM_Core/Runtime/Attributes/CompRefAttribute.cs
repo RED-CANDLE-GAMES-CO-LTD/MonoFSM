@@ -10,5 +10,6 @@ namespace MonoFSM.Variable.Attributes
     [DisableIf("@true")]
     [IncludeMyAttributes]
     [MeansImplicitUse]
+    
     public class CompRefAttribute : Attribute { }
 }

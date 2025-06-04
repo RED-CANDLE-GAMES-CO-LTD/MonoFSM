@@ -1,3 +1,4 @@
+using System;
 using RCGExtension;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ namespace MonoFSM.Variable
         public int IntValue => Mathf.CeilToInt(CurrentValue);
         public float Percentage => (CurrentValue - Min) / (Max - Min);
         public float Min => _boundModifier.MinValue;
-        public float Max => _boundModifier.MaxValue;
+        public float Max => _boundModifier.MaxValue; //FIXME: Editor Time拿不到
 
         public override void OnBeforePrefabSave()
         {
@@ -40,11 +41,15 @@ namespace MonoFSM.Variable
 
         public bool IsMax => CurrentValue >= Max;
 
+        [PreviewInInspector]
         public bool IsDecreasing => CurrentValue < LastValue;
+
+        [PreviewInInspector]
         public bool IsIncreasing => CurrentValue > LastValue;
-        
-        [AutoChildren(false)] [PreviewInInspector]
-        private VariableFloatBoundModifier _boundModifier;
+
+        [AutoChildren(false)] //[PreviewInInspector]
+        [SerializeField]
+        private VariableFloatBoundModifier _boundModifier; //FIXME: Nested Prefab時會有髒髒狀態？ 還是要Editor都寫GetComponent...?
         // [PreviewInInspector] [Component] [AutoChildren]
         // AbstractVariableModifier<float>[] _setOperations;
 
@@ -57,5 +62,6 @@ namespace MonoFSM.Variable
 
         public string ValueInfo => CurrentValue.ToString();
         public bool IsDrawingValueInfo => true;
+
     }
 }

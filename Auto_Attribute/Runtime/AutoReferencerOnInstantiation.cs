@@ -12,7 +12,7 @@ public class AutoReferencerOnInstantiation : MonoBehaviour
 
     public bool alsoReferenceChildren = true;
 
-    void Awake()
+    private void Awake() //hmm...
     {
         AutoAttributeManager.AutoReference(this.gameObject);
 

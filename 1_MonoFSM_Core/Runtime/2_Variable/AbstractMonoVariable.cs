@@ -18,10 +18,10 @@ namespace MonoFSM.Variable
         IOverrideHierarchyIcon
     {
         public string IconName { get; }
-        public bool IsDrawingIcon => true;
+        public bool IsDrawingIcon => CustomIcon != null;
 #if UNITY_EDITOR
         public Texture2D CustomIcon =>
-            UnityEditor.EditorGUIUtility.ObjectContent(null, GetType()).image as Texture2D;
+            UnityEditor.EditorGUIUtility.ObjectContent(null, GetType()).image as Texture2D; //雞掰！
         //UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");
 #endif
 

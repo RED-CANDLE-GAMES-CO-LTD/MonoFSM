@@ -1,5 +1,6 @@
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
+using RCGMaker.Core;
 using RCGMaker.Core.DataProvider;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -8,8 +9,7 @@ namespace RCGInputAction
 {
     public class PlayerActionIsPressCondition : AbstractConditionComp,IFloatProvider
     {
-  
-        string IFloatProvider.Description => Description;
+        // string IValueProvider.Description => Description;
 
         public override string Description => _actionRef ? _actionRef.action.name + " Is Pressed" : "No ActionRef";
 

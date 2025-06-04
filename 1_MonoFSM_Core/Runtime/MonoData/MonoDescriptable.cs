@@ -31,7 +31,7 @@ namespace RCGMaker.Runtime
         public void OnInstantiated()
         {
             //network要看authoring... network版的？啥？ NetworkMonoDescriptableBinder?
-            LevelReseter.CurrentLevelManager?.GetComponent<MonoDescriptableBinder>().Add(DescriptableTag,this);
+            WorldReseter.CurrentWorldManager?.GetComponent<MonoDescriptableBinder>().Add(DescriptableTag, this);
         }
 
         public void OnBeforePrefabSave()
@@ -269,7 +269,7 @@ namespace RCGMaker.Runtime
 
             foreach (var dealer in _dealers)
                 if (_dealerTypeMap.TryAdd(dealer.EffectType, dealer) == false)
-                    Debug.LogError($"Dealer {dealer.EffectType} already exists", this);
+                    Debug.LogError($"Dealer {dealer.EffectType} already exists", dealer);
 
             // _dealerTypeMap = _dealers.ToDictionary(dealer => dealer.EffectType);
 

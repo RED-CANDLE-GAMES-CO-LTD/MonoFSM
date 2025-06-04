@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 namespace RCGMaker.Core.DataProvider
 {
     //FIXME: 刪掉？
-    public class FieldOfGameDataProvider : AbstractFieldValueProvider
+    public class FieldOfGameDataProvider : AbstractFieldOfVarProvider
     {
         [CompRef] [Auto] private IVariableOwnerProvider _variableOwnerProvider; //用這個owner去和旁邊要IGameDataProvider？
         [CompRef] [Auto] private IGameDataProvider _monoDescriptableProvider;
@@ -15,7 +15,7 @@ namespace RCGMaker.Core.DataProvider
             ? _monoDescriptableProvider?.GameData
             : _variableOwnerProvider?.GetComponentOfOwner<IGameDataProvider>()?.GameData; //太瞎了吧XD
 
-        protected override AbstractMonoVariable ListenToVariable { get; } //不一定是variable啊... 還是乾脆都用？ static
+        // protected override AbstractMonoVariable ListenToVariable { get; } //不一定是variable啊... 還是乾脆都用？ static
         public override Object targetObject => GetData;
         public override Type targetType => GetData?.GetType();
     }

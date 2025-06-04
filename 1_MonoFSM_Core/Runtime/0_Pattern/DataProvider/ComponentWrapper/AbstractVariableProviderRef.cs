@@ -1,5 +1,6 @@
 using System;
 using MonoFSM.Variable;
+using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -14,15 +15,24 @@ namespace RCGMaker.Core.DataProvider
         public abstract VariableTag varTag { get; set; }
         public abstract TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable;
 
-        [Button]
-        private void Rename()
-        {
-            name = "[Ref]" + VarRaw?.name;
-        }
+        // [Button]
+        // private void Rename()
+        // {
+        //     name = "[Ref]" + VarRaw?.name;
+        // }
 
         public override string ToString()
         {
             return VarRaw?.name;
         }
+
+        // public virtual string Description
+        // {
+        //     get
+        //     {
+        //         if (VarRaw == null) return "Null";
+        //         return $"{VarRaw.name}";
+        //     }
+        // }
     }
 }

@@ -2,7 +2,7 @@
 
 using RCGExtension;
 
-public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround, IEditorOnly
+public class GizmoMarker : MonoBehaviour, IEditorOnly //,IDrawHierarchyBackGround
 {
 #if UNITY_EDITOR
     public enum GizmoShapeType
@@ -17,7 +17,7 @@ public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround, IEditorOnly
     // public bool useHandle = false;
     public GizmoShapeType gizmoType = GizmoShapeType.Solid;
     public Color color = Color.yellow;
-    public float size = 20;
+    public float size = 1;
 
     // public bool IsForceShow = false;
     private void OnValidate()
@@ -36,6 +36,19 @@ public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround, IEditorOnly
     {
         if (disable || gizmoType == GizmoShapeType.HandleDot || gizmoType == GizmoShapeType.HandleSphere)
             return;
+
+        // 距離判斷：超過 20 單位不畫 Gizmo
+        // Debug.Log("Distance too far, not drawing Gizmo: ");
+        var sceneView = UnityEditor.SceneView.lastActiveSceneView;
+        if (sceneView != null && sceneView.camera != null)
+        {
+            var dist = Vector3.Distance(sceneView.camera.transform.position, transform.position);
+            if (dist > 100f) // 你可以調整這個距離
+                // Debug.Log("Distance too far, not drawing Gizmo: " + dist);
+                return;
+        }
+
+
         // Draw a yellow sphere at the transform's position
         Gizmos.color = color;
         // transform.position = Handles.PositionHandle(transform.position, transform.rotation);
@@ -86,7 +99,7 @@ public class GizmoMarker : MonoBehaviour, IDrawHierarchyBackGround, IEditorOnly
         }
     }
 
-    public bool IsDrawGUIHierarchyBackground => true;
+    public bool IsDrawGUIHierarchyBackground => false;
 
 }
 

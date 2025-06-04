@@ -19,15 +19,15 @@ namespace MonoFSM_Core.Runtime
     /// In the editor, it adds a menu item for resetting the level with a keyboard shortcut (CMD+Shift+R).
     /// </remarks>
     [DefaultExecutionOrder(10000)]
-    public class LevelReseter : MonoBehaviour
+    public class WorldReseter : MonoBehaviour //current world?
     {
-        static LevelReseter _currentLevelManager;
-        public static LevelReseter CurrentLevelManager => _currentLevelManager;
-        [PreviewInInspector]
-        LevelReseter PreviewLevelReseter=> _currentLevelManager;
+        //FIXME: 不可用staitc? local runner用
+        private static WorldReseter _currentWorldManager;
+        public static WorldReseter CurrentWorldManager => _currentWorldManager;
+        [PreviewInInspector] private WorldReseter PreviewWorldReseter => _currentWorldManager;
         private void Awake()
         {
-            _currentLevelManager = this;
+            _currentWorldManager = this; 
         }
 #if UNITY_EDITOR
         [UnityEditor.MenuItem("MonoFSM/ResetLevel %R")]
@@ -36,7 +36,7 @@ namespace MonoFSM_Core.Runtime
             if (Application.isPlaying)
             {
                 Debug.Log("ResetLevel CMD+Shift+R");
-                FindFirstObjectByType<LevelReseter>().ResetLevel();
+                FindFirstObjectByType<WorldReseter>().ResetLevel();
             }
             else
             {

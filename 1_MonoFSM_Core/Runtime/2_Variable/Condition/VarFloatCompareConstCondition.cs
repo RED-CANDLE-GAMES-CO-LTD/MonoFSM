@@ -19,10 +19,10 @@ namespace MonoFSM.Variable.Condition
     /// <summary>
     /// 和FloatCompareCondition重複？還是這個要做成簡單版？
     /// </summary>
-    public class VariableFloatValueCondition : NotifyConditionComp, ITransitionCheckInvoker
+    public class VarFloatCompareConstCondition : NotifyConditionComp, ITransitionCheckInvoker
     {
         public override string Description => _monoVariableFloat != null
-            ? name = "[Condition] " + _monoVariableFloat + " " + op + " " + targetValue
+            ? name = "[Condition] " + _monoVariableFloat.name + " " + GetOpString() + " " + targetValue
             : name = "[Condition]";
 
         private void OnVariableChanged()
@@ -34,6 +34,19 @@ namespace MonoFSM.Variable.Condition
         // public VarFloat _monoVarFloat;
         public Operator op;
 
+        private string GetOpString()
+        {
+            return op switch
+            {
+                Operator.Equals => "==",
+                Operator.NotEqual => "!=",
+                Operator.GreaterThan => ">",
+                Operator.LessThan => "<",
+                Operator.GreaterThanOrEqual => ">=",
+                Operator.LessThanOrEqual => "<=",
+                _ => ""
+            };
+        }
 
         [OnValueChanged(nameof(OnVariableChanged))] [FormerlySerializedAs("variableBool")] [Required] [DropDownRef]
         // [ValueDropdown(nameof(GetBoolVariables))]

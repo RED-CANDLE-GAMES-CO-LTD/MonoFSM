@@ -10,7 +10,7 @@ namespace RCGMaker.Core.DataProvider
 {
     //FIXME: 怪怪的
     [Serializable]
-    public class GameDataObjectFieldProvider : AbstractFieldValueProvider
+    public class GameDataObjectFieldProvider : AbstractFieldOfVarProvider
     {
         // [BoxGroup("Instance")] [PreviewInInspector] [AutoParent]
         // public IDescriptableProvider _descriptableProvider;
@@ -34,7 +34,7 @@ namespace RCGMaker.Core.DataProvider
 
         //不一定需要instance, 有type就好了？
 
-        protected override AbstractMonoVariable ListenToVariable => _variableProviderRef?.VarRaw;
+        // protected override AbstractMonoVariable ListenToVariable => _variableProviderRef?.VarRaw;
 
         //_descriptableProvider?.variableProvider.Variable;
         // VarMono varMono => _variableProvider?.GetVar<VarMono>();

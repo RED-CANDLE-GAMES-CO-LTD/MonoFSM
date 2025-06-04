@@ -4,7 +4,7 @@ using MonoFSM.Variable;
 
 namespace RCGFSM.Variable
 {
-    public class SetVariableFloatAction : AbstractStateAction
+    public class SetVarFloatConstAction : AbstractStateAction
     {
         [MCPExtractable] [DropDownRef] public VarFloat targetFlag;
         public float TargetValue;

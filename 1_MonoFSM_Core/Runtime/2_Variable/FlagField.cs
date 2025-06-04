@@ -326,6 +326,9 @@ public class
 
     public void CommitValue() //state update之後，要commit
     {
+        if (owner is MonoBehaviour mono)
+            mono.Log("FlagField CommitValue: ", CurrentValue);
+        // Debug.Log("FlagField CommitValue: " + CurrentValue, owner);
         _lastValue = CurrentValue;
     }
 
@@ -514,6 +517,7 @@ public class
     
     //TODO: 換scene清？也不對，有些不清
 
+    [ShowInDebugMode]
     private Object owner;
 
     private void Log(object msg)

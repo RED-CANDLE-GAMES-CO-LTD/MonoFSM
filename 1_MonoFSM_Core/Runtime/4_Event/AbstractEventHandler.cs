@@ -31,6 +31,8 @@ namespace MonoFSM.Core
         /// </summary>
         public void EventHandle()
         {
+            if (!isActiveAndEnabled)
+                return;
             foreach (var eventReceiver in _eventReceivers)
                 eventReceiver.EventReceived();
         }

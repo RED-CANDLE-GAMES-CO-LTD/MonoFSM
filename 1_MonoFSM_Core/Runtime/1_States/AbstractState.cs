@@ -70,6 +70,15 @@ namespace RCGMaker.Core
             _currentFrameCount++;
         }
 
+        /// <summary>
+        /// FIXME: 怎麼處理這個？network用
+        /// </summary>
+        /// <param name="deltaTime"></param>
+        public virtual void OnStateSimulate(float deltaTime)
+        {
+            statusTimer += deltaTime;
+            // _currentFrameCount++;
+        }
 
         // public virtual void OnStateLateUpdate()
         // {

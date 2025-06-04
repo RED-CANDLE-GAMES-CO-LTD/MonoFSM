@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
+using MonoFSM_Core.Network;
 using UnityEngine;
 using UnityEngine.Profiling;
-
 using RCGMaker.Core.Attributes;
 
 namespace RCGMaker.Core
@@ -13,7 +12,7 @@ namespace RCGMaker.Core
     {
         // public bool showCurrentState = false;
         public object currentState => stateMachineList[0].CurrentStateMap.state;
-        private List<IStateMachine> stateMachineList = new List<IStateMachine>();
+        private List<IStateMachine> stateMachineList = new();
         
         /// <summary>
         /// Creates a stateMachine token object which is used to managed to the state of a monobehaviour. 
@@ -31,6 +30,7 @@ namespace RCGMaker.Core
             return fsm;
         }
 
+        private StateMachineManager _manager => StateMachineManager.Instance;
         private void OnEnable() 
             => StateMachineManager.Instance.Register(this);
 
@@ -67,14 +67,32 @@ namespace RCGMaker.Core
         }
 
         //應該沒人在用吧
-        void FixedUpdate()
+        public void FixedUpdateFromManager()
         {
             for (int i = 0; i < stateMachineList.Count; i++)
             {
                 var fsm = stateMachineList[i];
-                if (!fsm.IsInTransition && fsm.Component.enabled) fsm.CurrentStateMap.FixedUpdate();
+                if (!fsm.IsInTransition && fsm.IsEnabled) fsm.CurrentStateMap.FixedUpdate();
             }
         }
+
+        //從network runner來simulate?才是真正的同步？
+        public void Simulate(float deltaTime) //FIXME: 給simulator跑就好了？
+        {
+            Profiler.BeginSample("StateMachineRunner.Simulate", this);
+
+            for (var i = stateMachineList.Count - 1; i >= 0; i--)
+            {
+                var fsm = stateMachineList[i];
+                if (fsm.isPaused) continue;
+                fsm.SetLastActiveTime(Time.time);
+                //暫停不跑
+                if (!fsm.IsInTransition && fsm.IsEnabled) fsm.CurrentStateMap.Simulate(deltaTime);
+            }
+
+            Profiler.EndSample();
+        }
+      
 
         public void UpdateFromManager()
         {
@@ -86,8 +104,8 @@ namespace RCGMaker.Core
                 if (fsm.isPaused) continue;
                 fsm.SetLastActiveTime(Time.time);
                 //暫停不跑
-                
-                if (!fsm.IsInTransition && fsm.Component.enabled)
+
+                if (!fsm.IsInTransition && fsm.IsEnabled)
                 {
                     fsm.CurrentStateMap.Update();
                 }
@@ -101,7 +119,7 @@ namespace RCGMaker.Core
             foreach (var fsm in stateMachineList)
             {
                 if (fsm.isPaused) continue;
-                if (!fsm.IsInTransition && fsm.Component.enabled)
+                if (!fsm.IsInTransition && fsm.IsEnabled)
                 {
                     fsm.CurrentStateMap.SpriteUpdate();
                 }
@@ -113,6 +131,7 @@ namespace RCGMaker.Core
             }
             else
             {
+                //aftertick?
                 //late update 之後才能更新
                 owner.VariableFolder.CommitVariableValues(); 
             }
@@ -155,6 +174,7 @@ namespace RCGMaker.Core
         public Action Update = StateMachineRunner.DoNothing;
         public Action SpriteUpdate = StateMachineRunner.DoNothing;
         public Action LateUpdate = StateMachineRunner.DoNothing;
+        public Action<float> Simulate;
         public Action FixedUpdate = StateMachineRunner.DoNothing;
         public Action<Collision> OnCollisionEnter = StateMachineRunner.DoNothingCollision;
 
@@ -177,7 +197,6 @@ namespace RCGMaker.Core
             FixedUpdate = null;
             OnCollisionEnter = null;
         }
-
     }
 }
 

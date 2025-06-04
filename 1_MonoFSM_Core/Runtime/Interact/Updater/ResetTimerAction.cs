@@ -7,6 +7,8 @@ namespace RCGMaker.Core
     public class ResetTimerAction : AbstractStateAction
     {
         [DropDownRef] public VarFloatCountDownTimer timer;
+
+        //FIXME: 這啥？ 指定到一個特定時間？
         [Component] [Auto] public IFloatProvider timeProvider;
 
         protected override void OnStateEnterImplement()

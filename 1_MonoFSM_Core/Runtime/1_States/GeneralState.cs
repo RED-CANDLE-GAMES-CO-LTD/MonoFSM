@@ -21,11 +21,13 @@ public interface INodeModel
     public Vector2 position { get; set; }
 }
 
+[Obsolete]
 public interface IStateEnter
 {
     void OnStateEnter();
 }
 
+[Obsolete]
 public interface IStateExit
 {
     void OnStateExit();
@@ -66,6 +68,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         Application.isPlaying && context && context.currentStateType == stateType;
     // [HideInInspector] [Required] public new GeneralState stateType => this;
 
+    //FIXME: 不好用
     [AutoChildren(false)] private IStateEnter[] _stateEnters;
     [AutoChildren(false)] private IStateExit[] _stateExits;
 
@@ -128,24 +131,18 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateEnter()
     {
         base.OnStateEnter();
-
-
+        
         //FIXME:拔掉這個
         foreach (var e in _stateEnters) e.OnStateEnter();
 
         //最新規
-        if (_onStateEnter)
-        {
-            _onStateEnter.EventHandle();
-        }
-        else
-        {
-            //FIXME: 拔掉？用_onStateEnter替代?
-            if (actions == null) return;
+        _onStateEnter?.EventHandle();
+        //FIXME: 拔掉？用_onStateEnter替代?
+        if (actions != null)
             foreach (var action in actions)
                 // if (action.gameObject.activeSelf)
                 action.OnActionEnter();
-        }
+        
 
         // foreach (var transition in transitions)
         // {
@@ -165,23 +162,32 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateUpdate()
     {
         base.OnStateUpdate();
-        if (_onStateUpdate != null)
-        {
-            _onStateUpdate.EventHandle();
-        }
-        else
-        {
-            if (actions == null) return;
-
+        //FIXME: 和下面duplicated
+        _onStateUpdate?.EventHandle();
+        if (actions != null)
             foreach (var action in actions)
                 if (action.isActiveAndEnabled)
                     action.OnActionUpdate();
-        }
 
         foreach (var transition in transitions) transition.TransitionCheck();
     }
 
-    public override void OnSpriteUpdate()
+    public override void OnStateSimulate(float deltaTime)
+    {
+        base.OnStateSimulate(deltaTime);
+        _onStateUpdate?.EventHandle();
+        if (actions != null)
+            foreach (var action in actions)
+                if (action.isActiveAndEnabled)
+                    action.OnActionUpdate();
+        
+
+        foreach (var transition in transitions) transition.TransitionCheck();
+        //FIXME: 這個怎麼處理？
+        OnSpriteUpdate();
+    }
+
+    public override void OnSpriteUpdate() //render update, network怎麼處理？
     {
         base.OnSpriteUpdate();
         if (actions == null) return;
@@ -194,11 +200,12 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     public override void OnStateExit()
     {
         base.OnStateExit();
+        
         _onStateExit?.EventHandle(); //新規？
         foreach (var e in _stateExits) e.OnStateExit();
 
-        if (actions == null) return;
-        foreach (var action in actions)
+        if (actions != null)
+            foreach (var action in actions)
             // if (action.gameObject.activeSelf)
             if (action.isActiveAndEnabled)
                 action.OnActionExit();

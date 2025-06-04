@@ -21,7 +21,8 @@ namespace RCGMaker.Core
 
     public interface IStateMachine
     {
-        MonoBehaviour Component { get; }
+        // MonoBehaviour Component { get; } //蛤？這不就強迫綁定了...
+        bool IsEnabled { get; }
         StateMapping CurrentStateMap { get; }
         bool IsInTransition { get; }
         bool isPaused { get; }
@@ -30,6 +31,11 @@ namespace RCGMaker.Core
         float LastActiveTime { get; }
     }
 
+
+    /// <summary>
+    /// 這個已經確定是monobehaviour的狀態機，會有一個runner來管理
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class StateMachine<T> : IStateMachine where T : class //這個弄死了
     {
         public event Action<T> Changed;
@@ -159,6 +165,7 @@ namespace RCGMaker.Core
 
 
                         targetState.Update = stateBehavior.ResolveProxy().OnStateUpdate;
+                        targetState.Simulate = stateBehavior.ResolveProxy().OnStateSimulate;
                         targetState.SpriteUpdate = () => stateBehavior.ResolveProxy().OnSpriteUpdate();
 
                         targetState.LateUpdate = () =>
@@ -423,20 +430,14 @@ namespace RCGMaker.Core
             get { return (T)currentState.state; }
         }
 
-        public bool IsInTransition
-        {
-            get { return isInTransition; }
-        }
+        public bool IsInTransition => isInTransition;
 
-        public StateMapping CurrentStateMap
-        {
-            get { return currentState; }
-        }
 
-        public MonoBehaviour Component
-        {
-            get { return component; }
-        }
+        public bool IsEnabled => component.enabled;
+
+        public StateMapping CurrentStateMap => currentState;
+
+        public MonoBehaviour Component => component;
 
         //Static Methods
 

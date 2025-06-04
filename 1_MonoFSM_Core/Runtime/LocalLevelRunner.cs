@@ -11,13 +11,13 @@ namespace RCGMaker.Core
     //怎麼檢查...
     
     //單機用
-    [RequireComponent(typeof(LevelReseter))]
-    public class LevelRunner : MonoBehaviour // SingletonBehaviour<LevelRunner>
+    [RequireComponent(typeof(WorldReseter))]
+    public class LocalLevelRunner : MonoBehaviour // SingletonBehaviour<LevelRunner>
     {
-        [Auto] LevelReseter _levelReseter;
+        [Auto] private WorldReseter _worldReseter;
         private void Start()
         {
-            _levelReseter.OnLevelStart();
+            _worldReseter.OnLevelStart();
         }
 
         // [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

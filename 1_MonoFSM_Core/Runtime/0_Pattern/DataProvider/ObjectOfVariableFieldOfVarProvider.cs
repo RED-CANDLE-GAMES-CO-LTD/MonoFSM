@@ -16,9 +16,9 @@ namespace RCGMaker.Core.DataProvider
     /// <summary>
     /// FIXME: VarMonoFieldValueProvider?
     /// </summary>
-    public class ObjectOfVariableFieldValueProvider : AbstractFieldValueProvider
+    public class ObjectOfVariableFieldOfVarProvider : AbstractFieldOfVarProvider
     {
-        protected override AbstractMonoVariable ListenToVariable => _variableProviderRef?.VarRaw;
+        // protected override AbstractMonoVariable ListenToVariable => _variableProviderRef?.VarRaw;
         public override Object targetObject => _variableProviderRef?.GetVar<VarMono>()?.Value;
         public override Type targetType => _variableProviderRef.GetValueType;
 

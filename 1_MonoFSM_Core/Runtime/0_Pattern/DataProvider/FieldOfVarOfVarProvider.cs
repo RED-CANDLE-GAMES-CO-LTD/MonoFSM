@@ -6,11 +6,11 @@ namespace RCGMaker.Core.DataProvider
 {
     //這什麼意思？只是給某個variable, 不是給他的Object?
     //這個和VarFloatProviderRef好像很像...
-    public class FieldValueOfVarProvider : AbstractFieldValueProvider
+    public class FieldOfVarOfVarProvider : AbstractFieldOfVarProvider
     {
-        protected override AbstractMonoVariable ListenToVariable => _variableProviderRef.VarRaw;
+        // protected override AbstractMonoVariable ListenToVariable => _variableProviderRef.VarRaw;
         public override Object targetObject => _variableProviderRef?.VarRaw; //可能是null...怎麼處理
-        public override Type targetType => _variableProviderRef.GetVarType; //這個不對ㄅ
+        public override Type targetType => _variableProviderRef.GetVarType; //FIXME: 這個不對ㄅ
 
         
         // [Required] [InlineField] [PropertyOrder(-1)] [SerializeReference]

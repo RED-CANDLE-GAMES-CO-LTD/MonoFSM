@@ -20,7 +20,9 @@ namespace RCGMaker.Core
         private void Update()
         {
             if (IsValid == _lastIsValid) return;
-            if (IsValid) _parentConditionChangeListener.OnConditionChanged();
+            Debug.Log($"Cheat Condition Activated: {_keyCode} {IsValid}", this);
+            _parentConditionChangeListener.OnConditionChanged();
+
             _lastIsValid = IsValid;
         }
     }
