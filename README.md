@@ -1,6 +1,6 @@
 ## Overview
 
-RCGMakerFSM is a comprehensive Finite State Machine (FSM) framework for Unity, designed to simplify the implementation of complex game behaviors and logic. The framework provides a visual and modular approach to designing state machines, making it easier to create, debug, and maintain game systems.
+MonoFSM is a comprehensive Finite State Machine (FSM) framework for Unity, designed to simplify the implementation of complex game behaviors and logic. The framework provides a visual and modular approach to designing state machines, making it easier to create, debug, and maintain game systems.
 [Nine Sols](https://store.steampowered.com/app/1809540/Nine_Sols/) is the first project to use this framework, and it has been developed and tested in the context of that game.
 ## Pre-requirement Dependencies
 ### Paid Tools
@@ -22,7 +22,7 @@ RCGMakerFSM is a comprehensive Finite State Machine (FSM) framework for Unity, d
 * Just use: Install through Unity Package Manager with git url
 * To Contribute: use "git submodule" to include this module into your project, and add as local package through Unity package manager
 
-## Why Use RCGMakerFSM?
+## Why Use MonoFSM?
 
 ## Core Features
 
@@ -68,7 +68,7 @@ RCGMakerFSM is a comprehensive Finite State Machine (FSM) framework for Unity, d
 
 ## Getting Started
 
-1. Add the RCGMakerFSM as a submodule or package to your Unity project
+1. Add the MonoFSM as a submodule or package to your Unity project
 2. Create a new GameObject and add the `StateMachineOwner` component
 3. Add a `GeneralFSMContext` to the GameObject
 4. Create states by clicking "Add State" in the FSM Context inspector
@@ -88,7 +88,7 @@ RCGMakerFSM is a comprehensive Finite State Machine (FSM) framework for Unity, d
 
 ## Integration with Other Systems
 
-RCGMakerFSM can be integrated with:
+MonoFSM can be integrated with:
 - Addressable Asset system for content loading
 - Unity Animation system for character animations
 - Unity UI system for user interfaces
