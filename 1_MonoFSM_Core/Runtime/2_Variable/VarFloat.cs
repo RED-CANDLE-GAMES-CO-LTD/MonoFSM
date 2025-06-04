@@ -1,3 +1,4 @@
+using RCGExtension;
 using UnityEngine;
 
 using RCGMaker.Core.Attributes;
@@ -11,7 +12,8 @@ namespace MonoFSM.Variable
     /// This class provides functionality for float values that can be accessed, modified, and tracked
     /// across the application.
     /// </summary>
-    public class VarFloat : GenericMonoVariable<GameDataFloat, FlagFieldFloat, float>, ISerializedFloatValue
+    public class VarFloat : GenericMonoVariable<GameDataFloat, FlagFieldFloat, float>, ISerializedFloatValue,
+        IHierarchyValueInfo
     {
         //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 
         public override GameFlagBase FinalData => BindData;
@@ -52,6 +54,8 @@ namespace MonoFSM.Variable
             Value += value;
         }
         // public float Value => CurrentValue;
-  
+
+        public string ValueInfo => CurrentValue.ToString();
+        public bool IsDrawingValueInfo => true;
     }
 }

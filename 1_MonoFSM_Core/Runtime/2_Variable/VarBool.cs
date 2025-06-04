@@ -36,8 +36,13 @@ namespace MonoFSM.Variable
     /// - IRebindable: Supports runtime rebinding of data sources
     /// </remarks>
     public class VarBool : GenericMonoVariable<GameDataBool, FlagFieldBool, bool>, ICondition,
-        IBoolProvider, IRebindable, IDrawDetail, IOverrideHierarchyIcon
+        IBoolProvider, IRebindable, IDrawDetail, IOverrideHierarchyIcon, IHierarchyValueInfo
     {
+        public static implicit operator bool(VarBool v)
+        {
+            return v.Value;
+        }
+
         public override GameDataBool BindData => _bindData;
 
         [ShowInPlayMode]
@@ -90,5 +95,7 @@ namespace MonoFSM.Variable
         public string IconName => "Toggle Icon"; //  "d_Toggle Icon"
         public bool IsDrawingIcon => true;
         public Texture2D CustomIcon => null;
+        public string ValueInfo => CurrentValue.ToString();
+        public bool IsDrawingValueInfo => true;
     }
 }

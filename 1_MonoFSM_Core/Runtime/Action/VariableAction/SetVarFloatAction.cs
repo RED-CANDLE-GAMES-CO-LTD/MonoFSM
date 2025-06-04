@@ -2,6 +2,7 @@ using jerryee.UnityMCP;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.DataProvider;
+using UnityEngine;
 
 namespace MonoFSM_Core.Runtime.Action.VariableAction
 {
@@ -14,6 +15,7 @@ namespace MonoFSM_Core.Runtime.Action.VariableAction
         {
             var value = _valueProvider.GetFloat();
             _targetVar.SetValue(value, this);
+
         }
     }
 }

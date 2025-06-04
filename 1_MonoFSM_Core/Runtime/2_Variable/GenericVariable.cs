@@ -242,9 +242,9 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
             Profiler.EndSample();
             Profiler.BeginSample("AfterGetValueModifyCheck");
             //FIXME: 這個是不是有點貴？有需要在這層做嗎？應該在set時就做掉了？不需要ㄅ
-            if (_modifiers != null)
-                foreach (var modifier in _modifiers)
-                    tempValue = modifier.AfterGetValueModifyCheck(tempValue);
+            // if (_modifiers != null)
+            //     foreach (var modifier in _modifiers)
+            //         tempValue = modifier.AfterGetValueModifyCheck(tempValue);
             Profiler.EndSample();
             // this.Log("[Variable] Get", tempValue);
             return tempValue;
@@ -319,6 +319,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         // Debug.Log("[Variable] Set" + value + "tempValue:" + tempValue + ", Value:" + CurrentValue, byWho);
         if (tempValue.Equals(CurrentValue)) return;
         byWho.Log("[Variable] Set", name, value);
+        this.Log("[Variable] Set", tempValue, "byWho", byWho);
         byWhoHashSet.Add(byWho);
 
         Field.SetCurrentValue(tempValue, byWho);

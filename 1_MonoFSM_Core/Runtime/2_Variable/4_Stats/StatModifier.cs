@@ -38,6 +38,7 @@ public class StatModifierPro : IStatModifer
     public StatModType GetModType => _type;
     public float GetValue => _valueProvider.Value;
     public Object Source => _targetProvider.Variable;
+    public bool IsValid => true;
 }
 
 public interface IStatModifer
@@ -47,6 +48,7 @@ public interface IStatModifer
     public StatModType GetModType { get; }
     public float GetValue { get; }
     public Object Source { get; }
+    bool IsValid { get; }
 }
 
 [System.Serializable]
@@ -61,6 +63,7 @@ public class StatModifier : IStatModifer //以前是給Characterstat用的
 
     [ShowInInspector] public Object _source;
     public Object Source => _source;
+    public bool IsValid => true;
 
     public void SetSource(Object source)
     {

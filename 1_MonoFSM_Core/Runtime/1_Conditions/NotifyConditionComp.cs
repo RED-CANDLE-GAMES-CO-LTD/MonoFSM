@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace MonoFSM.Condition
 {
+    /// <summary>
+    /// 當field值改變時，會通知父級的IConditionChangeListener。
+    /// </summary>
     public abstract class NotifyConditionComp : AbstractConditionComp, IResetStart, ITransitionCheckInvoker,ISceneStart,ISceneDestroy
     {
         public virtual void ResetStart() //應該在這裡註冊嗎？還是sceneStart?
@@ -64,8 +67,6 @@ namespace MonoFSM.Condition
             // Debug.Log("OnConditionChanged: " + listenField, this);
             _parentConditionChangeListener.OnConditionChanged();
         }
-
-
 
     }
 }

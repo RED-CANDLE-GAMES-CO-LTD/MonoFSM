@@ -9,7 +9,7 @@ namespace MonoFSM.Foundation
 {
     public abstract class AbstractDescriptionBehaviour : MonoBehaviour, IBeforePrefabSaveCallbackReceiver
     {
-        [AutoParent] protected MonoDescriptable _self;
+        // [AutoParent] protected MonoDescriptable _self;
 
         //介面上也顯示？textarea?
         public virtual string Description => $"{GetType().Name}";

@@ -91,6 +91,7 @@ public class DebugProvider : MonoBehaviour, IEditorOnly
     public string IconName => "console.infoicon@2x";
     public bool IsDrawingIcon => IsLogInChildren && DebugSetting.IsDebugMode;
     public Texture2D CustomIcon => null;
+    public bool IsPosAtHead => true;
 }
 
 [Serializable]
@@ -108,8 +109,8 @@ public class LogEntry
         StackTrace stackTrace = new StackTrace(true);
         var frame = stackTrace.GetFrame(4);
 
-        this.fileName = frame.GetFileName();
-        this.lineNumber = frame.GetFileLineNumber();
+        fileName = frame.GetFileName();
+        lineNumber = frame.GetFileLineNumber();
 
         // Debug.Log("fileName:"+fileName+" lineNumber:"+lineNumber);
         // Application.OpenURL("jetbrains://idea/navigate/reference?project=Assets&path=Assets/3_Script/MonsterStates/AttackStateTrick/LinkMove/LinkNextMoveStateWeight.cs");

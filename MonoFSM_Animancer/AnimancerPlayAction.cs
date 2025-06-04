@@ -6,6 +6,7 @@ namespace MonoFSM_Animancer
 {
     public class AnimancerPlayAction : AbstractStateAction
     {
+        [DropDownRef]
         [SerializeField] private AnimancerComponent _animancer;
         [SerializeField] private AnimationClip _animation;
 

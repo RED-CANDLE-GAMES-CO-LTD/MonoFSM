@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using MonoFSM.Condition;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -11,7 +11,7 @@ namespace MonoFSM.Variable
 {
     // Gameplay Attributes
     //FIXME: 不需要狀態？應該要是一個Getter, IFloatProvider
-    public sealed class VarStat : VarFloat
+    public sealed class VarStat : VarFloat, IConditionChangeListener
     {
         private float BaseValue => Field.ProductionValue;
         private bool _isDirty = true; //set dirty?
@@ -19,7 +19,7 @@ namespace MonoFSM.Variable
         private float _value;
 
         //FIXME: 有可能用ScriptableObject? 混用？還是monobehaviour比較好
-        [PreviewInInspector] [AutoChildren] VariableStatModifier[] LocalStatModifiers; //原本就放在下面..這是不是反而不會有太多用處
+        [PreviewInInspector] [AutoChildren] private VariableStatModifier[] _localStatModifiers; //原本就放在下面..這是不是反而不會有太多用處
 
         // ValueChangedListener<float> listener;
         // [PreviewInInspector] List<VariableStatModifier> statModifiers = new();
@@ -29,10 +29,8 @@ namespace MonoFSM.Variable
         protected override void Awake()
         {
             base.Awake();
-            if (LocalStatModifiers != null)
-            {
-                foreach (var statModifier in LocalStatModifiers) _statModifiers.Add(statModifier);
-            }
+            if (_localStatModifiers == null) return;
+            foreach (var statModifier in _localStatModifiers) _statModifiers.Add(statModifier);
         }
 
         [ShowInPlayMode]
@@ -88,8 +86,7 @@ namespace MonoFSM.Variable
             for (var i = 0; i < statModifiers.Count; i++)
             {
                 var mod = statModifiers[i];
-                //會有valid? condition?
-                // if (mod.IsValid == false) continue;
+                if (mod.IsValid == false) continue;
                 switch (mod.GetModType)
                 {
                     case StatModType.Flat:
@@ -130,7 +127,7 @@ namespace MonoFSM.Variable
             // Debug.Log("Cal Value:" + BaseValue + "," + statModifiers.Count);
             if (Application.isPlaying == false)
             {
-                return CalValueAfterModifier(LocalStatModifiers);
+                return CalValueAfterModifier(_localStatModifiers);
             }
 
             _statModifiers?.Sort(_modifierOrder);
@@ -186,7 +183,7 @@ namespace MonoFSM.Variable
             }
             else
             {
-                Debug.Log("Character Stat Already Has Modifier" + mod.Value + mod.Type);
+                Debug.Log("Character Stat Already Has Modifier" + mod.Value + mod._type);
             }
         }
 
@@ -242,5 +239,11 @@ namespace MonoFSM.Variable
 
         private readonly Comparison<IStatModifer> _modifierOrder =
             (a, b) => a.GetOrder < b.GetOrder ? -1 : a.GetOrder > b.GetOrder ? 1 : 0;
+
+        public void OnConditionChanged()
+        {
+            SetDirty();
+            CalculateFinalValue();
+        }
     }
 }

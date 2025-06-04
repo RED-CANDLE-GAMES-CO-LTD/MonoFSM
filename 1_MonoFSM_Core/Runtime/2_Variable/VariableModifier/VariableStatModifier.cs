@@ -1,9 +1,11 @@
 using System;
+using MonoFSM.Condition;
 using MonoFSM.DataProvider;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace MonoFSM.Variable
@@ -25,8 +27,8 @@ namespace MonoFSM.Variable
         // [Range(-10, 10)] public float _value; //定值，應該不需要再用variable了才對？
 
         [ShowInInspector]
-        private string ValueDescription 
-            => Type switch
+        private string ValueDescription
+            => _type switch
             {
                 StatModType.Flat => "+" + Value,
                 StatModType.PercentAdd => $"+{Value * 100}%",
@@ -34,8 +36,8 @@ namespace MonoFSM.Variable
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-        public StatModType Type = StatModType.Flat; //Const?
-        public int Order;
+        [FormerlySerializedAs("Type")] public StatModType _type = StatModType.Flat; //Const?
+        [FormerlySerializedAs("Order")] public int _order;
 
         //FIXME: auto fetch, preview?
         // [PreviewInInspector] IStatModifierOwner _source; //原本的parent?可以用interface?
@@ -55,12 +57,13 @@ namespace MonoFSM.Variable
         //bool condition?
         //update檢查valid...hmmm 這裡又polling
         [AutoParent] VarStat _stat;
-        private bool lastValid = false;
+        private bool _lastValid = false;
 
         public VariableTag targetStatTag { get; }
-        public int GetOrder => Order;
-        public StatModType GetModType => Type;
+        public int GetOrder => _order;
+        public StatModType GetModType => _type;
         public float GetValue => Value;
+
     }
 
     //應該要是什麼關係...就是一個Stat? 但Variable和Stat要分開宣告嗎？ 還是就繼承？

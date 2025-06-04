@@ -295,6 +295,7 @@ public class
 
     [PreviewInInspector] protected T _currentValue; //真正拿來存的值
 
+    [PropertyOrder(-1)]
     [GUIColor(0, 1, 0.5f, 1)]
     [ShowInInspector]
     public virtual T CurrentValue

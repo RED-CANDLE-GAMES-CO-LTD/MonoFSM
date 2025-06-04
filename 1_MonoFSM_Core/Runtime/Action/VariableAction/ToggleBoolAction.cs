@@ -9,6 +9,7 @@ namespace MonoFSM_Core.Runtime.Action.VariableAction
 
         protected override void OnStateEnterImplement()
         {
+            // Debug.Log($"ToggleBoolAction: Toggling value of {_target}", this);
             _target.SetValue(!_target.Value);
         }
     }
