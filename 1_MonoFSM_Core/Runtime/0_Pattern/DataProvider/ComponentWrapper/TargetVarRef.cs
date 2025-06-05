@@ -3,7 +3,7 @@ using MonoFSM.Variable;
 using RCGMaker.Core.DataProvider;
 using UnityEngine;
 
-namespace RCGMakerFSM.VarRef
+namespace MonoFSM.VarRef
 {
     public class TargetVarRef : MonoBehaviour, IVariableProvider
     {

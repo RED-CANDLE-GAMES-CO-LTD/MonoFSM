@@ -97,5 +97,10 @@ namespace MonoFSM.Variable
         public Texture2D CustomIcon => null;
         public string ValueInfo => CurrentValue.ToString();
         public bool IsDrawingValueInfo => true;
+
+        public void Toggle()
+        {
+            SetValue(!CurrentValue);
+        }
     }
 }

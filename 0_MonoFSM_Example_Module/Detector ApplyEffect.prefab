@@ -234,7 +234,7 @@ GameObject:
   - component: {fileID: 132712730237896497}
   - component: {fileID: 5511886650532563756}
   - component: {fileID: 3294223703854636169}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Detector ApplyEffect
   m_TagString: Untagged
   m_Icon: {fileID: 0}

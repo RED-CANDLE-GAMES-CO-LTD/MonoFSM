@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace MonoFSM.Ref
 {
+    //const? IValueProvider如果有varKey?
     public class SelfRef : MonoBehaviour, IValueProvider
     {
         [PreviewInInspector] [AutoParent] private MonoDescriptable _descriptable;

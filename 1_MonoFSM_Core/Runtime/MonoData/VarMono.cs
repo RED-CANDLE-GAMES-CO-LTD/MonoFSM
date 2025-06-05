@@ -32,6 +32,7 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
 
         //FIXME: 要用T? VarComponent?
 
+        //FIXME: 什麼意四？
         [Header("預設值")] [SerializeField] [DropDownRef(null, nameof(SiblingValueFilter))]
         private MonoDescriptable _siblingDefaultValue;
 

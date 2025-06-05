@@ -23,6 +23,7 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine
             }
         }
 
+        //多包一層歐，好蠢
         public AbstractMonoVariable GetVariable(VariableTag varTag)
         {
             return VariableFolder.GetVariable(varTag);
@@ -31,6 +32,16 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine
         public AbstractMonoVariable GetVariable(string varTagName)
         {
             return VariableFolder.GetVariable(varTagName);
+        }
+
+        public T GetVariable<T>(VariableTag varTag) where T : AbstractMonoVariable
+        {
+            return VariableFolder.GetVariable<T>(varTag);
+        }
+
+        public T GetVariable<T>(string varTagName) where T : AbstractMonoVariable
+        {
+            return GetVariable(varTagName) as T;
         }
     }
 }

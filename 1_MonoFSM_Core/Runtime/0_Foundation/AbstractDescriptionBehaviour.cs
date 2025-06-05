@@ -46,5 +46,15 @@ namespace MonoFSM.Foundation
             Rename();
 #endif
         }
+
+        //FIXME: Required error? 用reflection找？DropDownRef也是？ cached field會OK嗎？每個type做一次ㄋ
+        private bool HasError()
+        {
+            return false;
+        }
+
+        public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
+
+        public bool IsDrawGUIHierarchyBackground => HasError(); //還是用icon? 
     }
 }

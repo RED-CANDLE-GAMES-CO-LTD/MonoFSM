@@ -8,13 +8,13 @@ namespace RCGMaker.Core
     {
         [DropDownRef] public VarFloatCountDownTimer timer;
 
-        //FIXME: 這啥？ 指定到一個特定時間？
+        //指定到一個特定時間？
         [Component] [Auto] public IFloatProvider timeProvider;
 
         protected override void OnStateEnterImplement()
         {
             if (timeProvider != null)
-                timer.ResetTimer(timeProvider.Value);
+                timer.SetTimer(timeProvider.Value);
             else
                 timer.ResetTimer();
         }

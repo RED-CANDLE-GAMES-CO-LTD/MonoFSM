@@ -49,7 +49,7 @@ namespace MonoFSM.Variable
         [PropertyOrder(-1)]
         [Required]
         [SOConfig("VariableType", nameof(CreateTagPostProcess))]
-        public VariableTag _varTag; //直接看當下是什麼就可以
+        public VariableTag _varTag; //直接看當下是什麼就可以 好像可以再往下抽？ ValueContainer? , readonly => Config, settable
 
         protected void CreateTagPostProcess()
         {

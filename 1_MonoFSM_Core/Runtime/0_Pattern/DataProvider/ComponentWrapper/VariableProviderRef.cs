@@ -46,7 +46,9 @@ namespace RCGMaker.Core.DataProvider
 
         public override string ToString()
         {
-            return varTag.name;
+            if (varTag)
+                return varTag.name;
+            return "no var tag";
         }
 
         public string GetString()
@@ -218,8 +220,11 @@ namespace RCGMaker.Core.DataProvider
                     foreach (var parent in parents)
                     {
                         if (parent.VariableFolder == null)
-                            // Debug.LogError("Parent VariableFolder is null", parent);
+                        {
+                            Debug.LogError("Parent VariableFolder is null", parent);
                             continue;
+                        }
+                            
 
                         foreach (var variable in parent.VariableFolder.GetValues)
                             if (variable is TVarMonoType)
@@ -229,7 +234,10 @@ namespace RCGMaker.Core.DataProvider
                     if (tagDropdownItems.Count == 0)
                     {
                         Debug.LogError("All Parent VariableFolder has no Variable", CurrentTarget);
-                        foreach (var parent in parents) Debug.LogError("Parent  has no Variable?", parent);
+                        foreach (var parent in parents)
+                            Debug.LogError(
+                                $"Parent {parent} has no Variable?" + parent.VariableFolder +
+                                parent.VariableFolder.GetValues.Count, parent);
                     }
 
                     break;

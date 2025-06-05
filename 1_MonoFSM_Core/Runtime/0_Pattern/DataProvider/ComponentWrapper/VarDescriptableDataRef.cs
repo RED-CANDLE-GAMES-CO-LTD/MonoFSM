@@ -1,7 +1,7 @@
 using RCGMaker.Core.DataProvider;
 using MonoFSM.Variable;
 
-namespace RCGMakerFSM.VarRef
+namespace MonoFSM.VarRef
 {
     /// <summary>
     /// 可以拿到一個VarGameData的MonoBehaviour

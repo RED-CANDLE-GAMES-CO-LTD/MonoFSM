@@ -15,7 +15,7 @@ using Sirenix.OdinInspector.Editor;
 using jerryee.UnityMCP;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
-using RCGMakerFSM.RCGMakerFSMCore.Tracking;
+using MonoFSM.RCGMakerFSMCore.Tracking;
 using MonoFSM.Variable;
 
 //FIXME: autoGen太複雜，可能需要再拆漂亮

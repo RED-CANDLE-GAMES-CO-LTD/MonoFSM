@@ -1,6 +1,6 @@
 using MonoFSM.Variable;
 using RCGMaker.Core.Attributes;
-using RCGMakerFSM.VarRef;
+using MonoFSM.VarRef;
 using UnityEngine;
 
 namespace RCGMaker.Core.DataProvider.Condition

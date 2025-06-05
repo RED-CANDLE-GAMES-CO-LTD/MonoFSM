@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
@@ -14,7 +15,7 @@ namespace RCGMaker.Core
     public abstract class MonoDict<T, TU> : MonoBehaviour,ISceneAwake, IResetStateRestore
         where TU : IValueOfKey<T> where T : IStringKey
     {
-        protected virtual bool isLog => false;
+        protected virtual bool isLog => true;
 
         // protected virtual void Awake()
         // {
@@ -30,6 +31,7 @@ namespace RCGMaker.Core
 
         //如果在autoReference 之前就不會進來...hmmm!?
         //有點討厭：spawned, player spawned (自己做reference & sceneAwake?), SceneAwake, SceneStart (並沒有拿到player)
+        [CompRef]
         [PreviewInInspector] [AutoChildren] protected TU[] _collections; //disable也會被加進來
 
         protected virtual bool IsStringDictEnable => false;
@@ -89,15 +91,15 @@ namespace RCGMaker.Core
         protected virtual bool IsAddValid(TU value)
         {
             return true;
-        } 
+        }
 
-        public virtual void Add(T key, TU value)
+        public void Add(T key, TU value)
         {
             if (key == null)
                 return;
-            if(IsAddValid(value) == false)
+            if (Application.isPlaying && IsAddValid(value) == false)
             {
-                // Debug.LogError($"Key:{key} can't be added in {this}", this);
+                Debug.LogError($"Key:{key} can't be added in {this}", this);
                 return;
             }
             if (Contains(key))
@@ -126,13 +128,13 @@ namespace RCGMaker.Core
 
         public TU Get(Type type)
         {
-            // EditorPrepareCheck();
+            EditorPrepareCheck();
             return _typeDict.GetValueOrDefault(type);
         }
 
         public TU Get(string key)
         {
-            // EditorPrepareCheck();
+            EditorPrepareCheck();
             if (Contains(key))
                 return _stringDict[key];
             return default;
@@ -203,6 +205,7 @@ namespace RCGMaker.Core
         protected abstract void AddImplement(TU item);
         protected abstract void RemoveImplement(TU item); //FIXME:為什麼需要這個？
 
+        [InfoBox("Variable 要有 varTag才會被加入到Dict中")]
         [ShowInInspector] public List<string> GetStringKeys => new(_stringDict.Keys);
         [ShowInInspector] public List<T> GetKeys => new(_dict.Keys);
 
@@ -265,8 +268,9 @@ namespace RCGMaker.Core
                 //         return;
                 //     Add(key, item);
                 // });
-
+                Debug.Log($"PrepareDictCheck Add key:{item.Key} item:{item}", item as Object);
                 Add(item.Key, item);
+                Debug.Log(_dict.Count);
                 // Debug.Log($"Add key:{item.Key} item:{item}",item as Object);
             }
 

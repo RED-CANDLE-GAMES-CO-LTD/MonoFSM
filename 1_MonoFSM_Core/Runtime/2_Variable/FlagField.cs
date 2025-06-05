@@ -257,6 +257,7 @@ public class
     [FormerlySerializedAs("DefaultValue")] public T ProductionValue;
 
     // public T PlayTestValue;
+    [HideInInspector]
     [FormerlySerializedAs("TestValue")]
     // [JsonIgnore]
     public T DevValue;
@@ -326,8 +327,8 @@ public class
 
     public void CommitValue() //state update之後，要commit
     {
-        if (owner is MonoBehaviour mono)
-            mono.Log("FlagField CommitValue: ", CurrentValue);
+        // if (owner is MonoBehaviour mono)
+        //     mono.Log("FlagField CommitValue: ", CurrentValue);
         // Debug.Log("FlagField CommitValue: " + CurrentValue, owner);
         _lastValue = CurrentValue;
     }

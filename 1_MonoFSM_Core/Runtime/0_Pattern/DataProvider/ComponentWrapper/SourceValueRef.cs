@@ -2,7 +2,7 @@ using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using UnityEngine;
 
-namespace RCGMakerFSM.VarRef
+namespace MonoFSM.VarRef
 {
     /// <summary>
     /// 放在Children可以直接被Component Reference

@@ -1,6 +1,6 @@
 //TODO: 抽象化 Mixpanel 的 Value，讓不同的追蹤系統可以接入
 
-namespace RCGMakerFSM.RCGMakerFSMCore.Tracking
+namespace MonoFSM.RCGMakerFSMCore.Tracking
 {
     /// <summary>
     /// Interface for trackable data containers that hold properties and values for analytics tracking.

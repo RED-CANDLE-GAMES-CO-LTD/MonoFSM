@@ -11,7 +11,7 @@ namespace MonoFSM_InputAction
         public abstract bool IsPressed();
 
         // public abstract bool WasPressBuffered();
-        public abstract bool WasPressed();
+        public abstract bool WasPressed(); //經過network處理過的按下事件
         public abstract bool WasReleased();
 
         //可以abstract
@@ -34,7 +34,7 @@ namespace MonoFSM_InputAction
 
         //這個是Uinput的
         // public InputActionReference _actionRef;
-        //FIXME: 再抽一層？
+        //FIXME: Unity input 再抽一層？
         [PreviewInInspector] [AutoParent] private PlayerInput _localPlayerInput;
 
         // private InputActionMap _inputActionMap;

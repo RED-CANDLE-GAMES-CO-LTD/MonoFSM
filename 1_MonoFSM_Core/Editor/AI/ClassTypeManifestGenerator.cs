@@ -11,10 +11,10 @@ namespace MonoFSM_Core.AI
 {
     public static class ClassTypeManifestGenerator
     {
-        [MenuItem("Tools/Generate Class Type Manifest")]
+        [MenuItem("Tools/MonoFSM/Generate Class Type Manifest")]
         private static void Generate()
         {
-            var filePath = "submodules/MonoFSM/MonoFSM_Core/.AI/MonoFSM_Core_Runtime_manifest.json";
+            var filePath = "submodules/MonoFSM/1_MonoFSM_Core/.AI/MonoFSM_Core_Runtime_manifest.json";
             // calculate absolute path to project root
             var projectRoot = Directory.GetParent(Application.dataPath).FullName;
             var fullPath = Path.Combine(projectRoot, filePath);
@@ -118,6 +118,7 @@ namespace MonoFSM_Core.AI
             manifest["types"] = typesList;
             // serialize and write to file
             var json = JsonConvert.SerializeObject(manifest, Formatting.Indented);
+            Debug.Log($"Generated MonoFSM Core Runtime manifest at {fullPath}");
             Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
             File.WriteAllText(fullPath, json);
             AssetDatabase.Refresh();

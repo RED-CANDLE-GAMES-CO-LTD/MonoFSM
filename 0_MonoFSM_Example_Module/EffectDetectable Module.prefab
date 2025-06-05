@@ -147,7 +147,7 @@ GameObject:
   - component: {fileID: 5285942459330704443}
   - component: {fileID: 897081488002820159}
   - component: {fileID: 613726383868202934}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: EffectDetectable Module
   m_TagString: Untagged
   m_Icon: {fileID: 0}

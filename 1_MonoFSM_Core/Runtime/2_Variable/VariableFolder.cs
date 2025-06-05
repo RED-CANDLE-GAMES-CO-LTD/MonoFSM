@@ -48,12 +48,16 @@ public class VariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
     public void CommitVariableValues()
     {
         // var variables = GetComponentsInChildren<AbstractVariable>(true);
-        foreach (var variable in _variables) variable.CommitValue();
+        //FIXME: 用
+
+        foreach (var variable in _collections)
+            if (variable is ISettable settableVariable)
+                settableVariable.CommitValue();
     }
 
     // [PreviewInInspector]
-    [PreviewInInspector] [Component] [AutoChildren]
-    private ISettable[] _variables = Array.Empty<ISettable>();
+    // [PreviewInInspector] [Component] [AutoChildren]
+    // private ISettable[] _variables = Array.Empty<ISettable>();
 
     // private void OnValidate()
     // {

@@ -9,6 +9,14 @@ namespace MonoFSM.InternalBridge
     //     public static float NiceDelta(Vector2 deviceDelta, float acceleration) => 
     //         NumericFieldDraggerUtility.NiceDelta(deviceDelta, acceleration);
     // }
+    internal static class SceneHierarchyUtility
+    {
+        public static void ExpandHierarchyItem(GameObject gObj)
+        {
+            WindowDocker.GetSceneHierarchyWindow.SetExpandedRecursive(gObj.GetInstanceID(), true);
+            Selection.activeGameObject = gObj;
+        }
+    }
 
     internal static class WindowDocker
     {
@@ -19,6 +27,8 @@ namespace MonoFSM.InternalBridge
             gameView.maximized = !gameView.maximized;
         }
 
+   
+        
         public static SceneHierarchyWindow GetSceneHierarchyWindow =>
             (SceneHierarchyWindow)EditorWindow.GetWindow(typeof(SceneHierarchyWindow));
 

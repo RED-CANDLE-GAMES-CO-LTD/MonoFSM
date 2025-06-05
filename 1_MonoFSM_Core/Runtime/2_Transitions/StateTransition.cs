@@ -243,6 +243,6 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
 
     public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
 
-    public bool IsDrawGUIHierarchyBackground => HasError();
+    public bool IsDrawGUIHierarchyBackground => HasError(); //還是用icon? 
     //FIXME: highlight related component ex: target state, 偷改他狀態？ 怎麼做標記？ 我被選到的話
 }

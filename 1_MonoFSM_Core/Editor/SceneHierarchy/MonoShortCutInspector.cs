@@ -1,0 +1,32 @@
+using MonoFSM.InternalBridge;
+using RCGMaker.Core;
+using Sirenix.OdinInspector.Editor;
+using UnityEditor;
+using UnityEngine;
+
+namespace _1_MonoFSM_Core.Editor.SceneHierarchy
+{
+    [CustomEditor(typeof(MonoShortCut))]
+    public class MonoShortCutInspector : OdinEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            // Draw the default inspector
+            DrawDefaultInspector();
+
+            var e = Event.current;
+
+            // Add a button to the inspector
+            if (e.keyCode == KeyCode.Return || GUILayout.Button("Open Mono Shortcuts"))
+            {
+                var shortCut = target as MonoShortCut;
+                if (Selection.activeGameObject == shortCut.gameObject && shortCut.targetGameObject != null)
+                {
+                    Selection.activeGameObject = shortCut.targetGameObject;
+                    SceneHierarchyUtility.ExpandHierarchyItem(shortCut.targetGameObject);
+                }
+            }
+        }
+        
+    }
+}

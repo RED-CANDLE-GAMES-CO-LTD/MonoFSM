@@ -6,15 +6,12 @@ namespace RCGMaker.Core
 {
     public class CheatManager : MonoBehaviour, IEditorOnly
     {
-        [SerializeField] private AbstractStateAction _action9WasPressed;
-        [SerializeField] private AbstractStateAction _action9WasReleased;
+        // [SerializeField] private AbstractStateAction _action9WasPressed;
+        // [SerializeField] private AbstractStateAction _action9WasReleased;
+        //FIXME: 用action + condition的方式來做?
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.P)) EditorApplication.isPaused = !EditorApplication.isPaused;
-            if (Input.GetKeyDown(KeyCode.Alpha0))
-                RCGTime.SetTimeScaleUnsafe(5);
-            else
-                RCGTime.SetTimeScaleUnsafe(1);
         }
     }
 }

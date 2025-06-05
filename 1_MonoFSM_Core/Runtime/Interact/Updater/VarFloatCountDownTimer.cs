@@ -8,8 +8,10 @@ using UnityEngine;
 namespace RCGMaker.Core
 {
     //0表示valid
-
-    public class VarFloatCountDownTimer : MonoBehaviour, IUpdateSimulate
+    /// <summary>
+    /// FIXME: fusion有 ticktimer
+    /// </summary>
+    public class VarFloatCountDownTimer : MonoBehaviour, IUpdateSimulate, ISceneStart
     {
         [InfoBox(
             "This timer counts down from a specified value to zero. It can be reset to a maximum value or a specific value. It is used to control the timing of events in the game.")]
@@ -18,10 +20,14 @@ namespace RCGMaker.Core
         public void ResetTimer()
         {
             //每一日可能還不依樣？
-            ResetTimer(currentTime.Max);
+            SetTimer(currentTime.Max);
         }
 
-        public void ResetTimer(float value)
+        /// <summary>
+        /// 特定
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetTimer(float value)
         {
             Debug.Log("ResetTimer:" + value, this);
             currentTime.SetValue(value, this);
@@ -51,6 +57,11 @@ namespace RCGMaker.Core
 
         public void AfterUpdate()
         {
+        }
+
+        public void EnterSceneStart()
+        {
+            ResetTimer();
         }
     }
 }

@@ -24,11 +24,22 @@ namespace RCGExtension
         }
     }
 
+
+    /// <summary>
+    /// FIXME: 要把這個撿回來做嗎？ 動畫編輯輔助
+    /// </summary>
     public interface IHierarchyGUIPainter
     {
         bool IsDrawComponent(Component comp);
         void IconClicked(Component comp);
         string IconName { get; }
+    }
+
+    public interface IHierarchyButton
+    {
+        bool IsDrawButton { get; }
+        string IconName { get; }
+        void OnClick();
     }
 
     public interface IDrawHierarchyBackGround

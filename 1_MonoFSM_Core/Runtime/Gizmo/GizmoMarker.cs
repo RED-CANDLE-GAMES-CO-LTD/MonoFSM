@@ -14,6 +14,7 @@ public class GizmoMarker : MonoBehaviour, IEditorOnly //,IDrawHierarchyBackGroun
         HandleSphere
     }
 
+    public bool _isAlwaysVisible = false;
     // public bool useHandle = false;
     public GizmoShapeType gizmoType = GizmoShapeType.Solid;
     public Color color = Color.yellow;
@@ -40,7 +41,7 @@ public class GizmoMarker : MonoBehaviour, IEditorOnly //,IDrawHierarchyBackGroun
         // 距離判斷：超過 20 單位不畫 Gizmo
         // Debug.Log("Distance too far, not drawing Gizmo: ");
         var sceneView = UnityEditor.SceneView.lastActiveSceneView;
-        if (sceneView != null && sceneView.camera != null)
+        if (!_isAlwaysVisible && sceneView != null && sceneView.camera != null)
         {
             var dist = Vector3.Distance(sceneView.camera.transform.position, transform.position);
             if (dist > 100f) // 你可以調整這個距離

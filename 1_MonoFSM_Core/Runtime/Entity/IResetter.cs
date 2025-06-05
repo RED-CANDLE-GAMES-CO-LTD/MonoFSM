@@ -16,7 +16,7 @@ public interface IResetStateRestore //新規用這個，現在和上面都有cal
 }
 
 //2. 在跑這個
-public interface IResetStart //摸別人
+public interface IResetStart //摸別人,set 變數之類的，要不然會reset掉
 {
     void ResetStart();
 }

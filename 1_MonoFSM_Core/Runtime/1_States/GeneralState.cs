@@ -176,15 +176,36 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
     {
         base.OnStateSimulate(deltaTime);
         _onStateUpdate?.EventHandle();
+        StateActionImplementation(deltaTime);
+        OnStateSimulateAction();
+        if (!StateTransitionImplementation(deltaTime))
+            OnStateSimulateTransitionCheck();
+
+
+        //FIXME: 這個怎麼處理？
+        // OnSpriteUpdate();
+    }
+
+    protected virtual void StateActionImplementation(float deltaTime)
+    {
+    }
+
+    protected virtual bool StateTransitionImplementation(float deltaTime)
+    {
+        return false;
+    }
+
+    protected void OnStateSimulateAction()
+    {
         if (actions != null)
             foreach (var action in actions)
                 if (action.isActiveAndEnabled)
                     action.OnActionUpdate();
-        
+    }
 
+    protected void OnStateSimulateTransitionCheck()
+    {
         foreach (var transition in transitions) transition.TransitionCheck();
-        //FIXME: 這個怎麼處理？
-        OnSpriteUpdate();
     }
 
     public override void OnSpriteUpdate() //render update, network怎麼處理？
@@ -245,7 +266,7 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         context.SetLastTransition(fromTransition);
         toState.SetLastTransition(fromTransition);
 
-        this.Log("[Transition] GoTo:", toState, gameObject);
+        context.Log("[Transition] GoTo:", toState, gameObject);
         fsm.ChangeState(toState);
         return true;
     }

@@ -5,7 +5,7 @@ using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
-using RCGMakerFSM.VarRef;
+using MonoFSM.VarRef;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;

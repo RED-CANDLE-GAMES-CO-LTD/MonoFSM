@@ -16,9 +16,11 @@ public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
 
     public enum HitDataVariableOwner
     {
-        DealerOwner,
+        DealerOwner, //rename?
         ReceiverOwner,
     }
+
+    string IVariableOwnerProvider.Description => $"{ownerType}";
 
     public HitDataVariableOwner ownerType;
     
