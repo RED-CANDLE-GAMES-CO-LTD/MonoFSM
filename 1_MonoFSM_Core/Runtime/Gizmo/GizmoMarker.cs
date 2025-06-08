@@ -30,12 +30,12 @@ public class GizmoMarker : MonoBehaviour, IEditorOnly //,IDrawHierarchyBackGroun
     [SerializeField] private BoxCollider2D boxCollider2D;
 
     [SerializeField] [Auto] private BoxCollider _boxCollider;
-    public bool disable = false;
+    // public bool disable = false;
     
 
     private void OnDrawGizmos()
     {
-        if (disable || gizmoType == GizmoShapeType.HandleDot || gizmoType == GizmoShapeType.HandleSphere)
+        if (gizmoType == GizmoShapeType.HandleDot || gizmoType == GizmoShapeType.HandleSphere)
             return;
 
         // 距離判斷：超過 20 單位不畫 Gizmo
@@ -78,10 +78,26 @@ public class GizmoMarker : MonoBehaviour, IEditorOnly //,IDrawHierarchyBackGroun
             return;
         }
 
-        if (gizmoType == GizmoShapeType.Solid)
-            Gizmos.DrawSphere(transform.position, size);
-        else
-            Gizmos.DrawWireSphere(transform.position, size);
+        if (gizmoType == GizmoShapeType.Solid || gizmoType == GizmoShapeType.Wire)
+        {
+            var sphereCollider = GetComponent<SphereCollider>();
+            if (sphereCollider != null)
+            {
+                var maxScale = Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+                var radius = sphereCollider.radius * maxScale;
+                if (gizmoType == GizmoShapeType.Solid)
+                    Gizmos.DrawSphere(transform.position, radius);
+                else
+                    Gizmos.DrawWireSphere(transform.position, radius);
+            }
+            else
+            {
+                if (gizmoType == GizmoShapeType.Solid)
+                    Gizmos.DrawSphere(transform.position, size);
+                else
+                    Gizmos.DrawWireSphere(transform.position, size);
+            }
+        }
     }
 
     // FIXME:
@@ -101,6 +117,5 @@ public class GizmoMarker : MonoBehaviour, IEditorOnly //,IDrawHierarchyBackGroun
     }
 
     public bool IsDrawGUIHierarchyBackground => false;
-
+//spline bound?
 }
-

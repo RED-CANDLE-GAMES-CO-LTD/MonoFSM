@@ -43,6 +43,11 @@ public class VariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
         return Get(type) as TVariable;
     }
 
+    public TVariable GetVariable<TVariable>(string varName) where TVariable : AbstractMonoVariable
+    {
+        return Get(varName) as TVariable;
+    }
+
     //GetConfig?
 
     public void CommitVariableValues()

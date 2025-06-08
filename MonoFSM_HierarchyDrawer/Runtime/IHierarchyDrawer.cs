@@ -44,8 +44,10 @@ namespace RCGExtension
 
     public interface IDrawHierarchyBackGround
     {
+#if UNITY_EDITOR
         Color BackgroundColor { get; }
         bool IsDrawGUIHierarchyBackground { get; }
+#endif
     }
 
     public struct DetailInfo

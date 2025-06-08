@@ -6,6 +6,7 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
+// using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM_Core.Runtime.Action;
 using RCGMaker.Core.Editor;
 using UnityEngine.Serialization;
@@ -20,10 +21,12 @@ namespace RCGFSM.Animation
     //小心從init routing來，會直接播結束的frame，要從transition上知道這件事
     //documentation要放哪？
 
+
+//FIXME: 把StateAction拔掉？
     [HelpURL("https://www.notion.so/AnimatorPlayA-061be2a2d4e5414e88e84f1ed80d8ea2")]
     [Searchable]
     public class AnimatorPlayAction : AbstractStateAction, IAnimatorPlayAction,
-        ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent, ITransitionCheckInvoker
+        ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent, ITransitionCheckInvoker, IRenderAction
     {
         public override string Description => " " + animator.gameObject.name + ": " + StateName;
 
@@ -33,7 +36,7 @@ namespace RCGFSM.Animation
             _stateNameHash = Animator.StringToHash(StateName);
         }
 
-        private bool IsStateNameProvider() 
+        p rivate bool IsStateNameProvider() 
             => GetComponent<AbstractStringProvider>() != null;
 
         public override void SimulationUpdate(float passedDuration) 
@@ -420,7 +423,7 @@ namespace RCGFSM.Animation
 
             // FIXME: 不要update 0就不會造成這個onenable了？
             // 是什麼情境一定要OnEnable?
-            animator?.Update(0);
+            animator.Update(0);
 
             // animator.Update(RCGTime.deltaTime);
             // Debug.Break();

@@ -7,6 +7,7 @@ using Object = UnityEngine.Object;
 using Sirenix.OdinInspector;
 
 using RCGMaker.Core.Attributes;
+using UnityEngine.Serialization;
 
 
 namespace MonoFSM.Variable
@@ -152,14 +153,16 @@ namespace MonoFSM.Variable
         public void ResetStateRestore()
         {
             //這裡才做會不會太晚？
-            if (_isPreventReset)
+            if (_isConst)
                 return;
             SetValue(DefaultValue);
         }
 
+        [FormerlySerializedAs("_isPreventReset")]
+        [PropertyOrder(-1)]
         [Header("避免關卡重置時清除資料")]
         [SerializeField]
-        bool _isPreventReset = false;
+        public bool _isConst = false;
         //避免reset restore?
 
     }

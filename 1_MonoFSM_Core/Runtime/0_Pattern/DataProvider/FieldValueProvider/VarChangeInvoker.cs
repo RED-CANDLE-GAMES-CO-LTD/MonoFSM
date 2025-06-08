@@ -31,7 +31,9 @@ namespace RCGMaker.Core.DataProvider
             else
             {
                 Debug.LogError("ListenToVariable is null", this);
-                Debug.Break();
+                if (isActiveAndEnabled)
+                    Debug.Break();
+                
             }
         }
 

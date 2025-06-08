@@ -23,8 +23,9 @@ namespace MonoFSM_Core.Network
                 return;
             }
 
-            foreach (var simulator in _simulators) simulator.Simulate(deltaTime);
-                
+            foreach (var simulator in _simulators)
+                if (simulator.isActiveAndEnabled)
+                    simulator.Simulate(deltaTime);
         }
 
         public void AfterUpdate()

@@ -21,6 +21,7 @@ public interface IState<in TState>
 //FIXME:如果所有的condition都可以自行註冊，這個就不需要了，全部都用condition處理
 public interface ITransitionCheckInvoker
 {
+    //FIXME: bool IsReadyToTransition?
 } //interface沒有意義？
 
 //還是用IRCGEventReceiver?
@@ -49,6 +50,8 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     //FIXME: 會有需要parent的情況嗎？ children也包括自己
     private ITransitionCheckInvoker _checkInvoker; //AnimatorPlayAction動畫...有點鳥
 
+
+    //conditionProvider? 網上問？
     //要分同層級的嗎？
     [CompRef] [AutoChildren]
     private ITransitionCheckInvoker[] _childrenCheckers = Array.Empty<ITransitionCheckInvoker>();
@@ -129,7 +132,7 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
 
     // [AutoParent()] private GeneralState bindingState;
 
-    [PreviewInInspector] [AutoParent] private IState<GeneralState> _parentState;
+    [PreviewInInspector] [AutoParent] private IState<GeneralState> _parentState; //FIXME: 錯了！
     public IState<GeneralState> ParentState => _parentState;
     [ShowInInspector] private bool IsSelfTransition => _parentState as GeneralState == _target;
 
@@ -169,14 +172,11 @@ public class StateTransition : AbstractDescriptionBehaviour, IGuidEntity, IDefau
     //FIXME: 不該空降call, 只能在系統特定時間點
     public bool TransitionCheck(float timeOffset = 0)
     {
-        if (IsTransitionCheckNeeded == false)
-            return false;
-        // this.Log("[Transition] Check1" + target.stateType, gameObject);
-        //Transition 被關了
-        //if (this.isActiveAndEnabled == false) 
-        IsTransitionCheckNeeded = false;
+        //FIXME: 有需要嗎？
+        // if (IsTransitionCheckNeeded == false)
+        //     return false;
+        // IsTransitionCheckNeeded = false;
         if (gameObject.activeSelf == false) //關著也想change state
-            // this.Log("[Transition] Check1 fail active false" + target.stateType, gameObject);
             return false;
 
         //整顆單位關著，表示config沒有想要打開

@@ -82,13 +82,13 @@ public class GuidManager
     [InitializeOnLoadMethod]
     private static void Init()
     {
-        Instance = new GuidManager();
-        EditorApplication.playModeStateChanged += (PlayModeStateChange state) =>
-        {
-            if (state == PlayModeStateChange.EnteredPlayMode)
-            {
-            }
-        };
+        // Instance = new GuidManager();
+        // EditorApplication.playModeStateChanged += (PlayModeStateChange state) =>
+        // {
+        //     if (state == PlayModeStateChange.EnteredPlayMode)
+        //     {
+        //     }
+        // };
     }
 #endif
 

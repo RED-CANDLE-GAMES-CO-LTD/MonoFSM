@@ -15,7 +15,7 @@ namespace RCGMaker.Core
     public abstract class MonoDict<T, TU> : MonoBehaviour,ISceneAwake, IResetStateRestore
         where TU : IValueOfKey<T> where T : IStringKey
     {
-        protected virtual bool isLog => true;
+        protected virtual bool isLog => false;
 
         // protected virtual void Awake()
         // {
@@ -104,7 +104,8 @@ namespace RCGMaker.Core
             }
             if (Contains(key))
             {
-                Debug.LogError($"Key:{key} already exists in {this}", this);
+                //FIXME: 不確定要怎麼處理, mono tag一定會撞ㄅ
+                Debug.LogWarning($"Key:{key} already exists in {this}", this);
                 return;
             }
 
@@ -268,9 +269,9 @@ namespace RCGMaker.Core
                 //         return;
                 //     Add(key, item);
                 // });
-                Debug.Log($"PrepareDictCheck Add key:{item.Key} item:{item}", item as Object);
+                // Debug.Log($"PrepareDictCheck Add key:{item.Key} item:{item}", item as Object);
                 Add(item.Key, item);
-                Debug.Log(_dict.Count);
+                // Debug.Log(_dict.Count);
                 // Debug.Log($"Add key:{item.Key} item:{item}",item as Object);
             }
 

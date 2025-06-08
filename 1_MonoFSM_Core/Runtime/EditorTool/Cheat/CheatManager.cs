@@ -1,5 +1,6 @@
-using MonoFSM_Core.Runtime.Action;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace RCGMaker.Core

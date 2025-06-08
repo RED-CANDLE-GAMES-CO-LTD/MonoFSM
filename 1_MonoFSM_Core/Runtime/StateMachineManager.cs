@@ -42,6 +42,7 @@ namespace RCGMaker.Core
             return this;
         }
 
+        
         private void Update()
         {
             if (!EnableUpdate) return;

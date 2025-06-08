@@ -50,12 +50,14 @@ public interface IReferenceTarget
 {
 }
 
+/// <summary>
+/// 這個如果當初有再包一層，就可以無痛轉換了？
+/// </summary>
 [Searchable]
 public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<GeneralState>, IGuidEntity,
     IReferenceTarget, IDefaultSerializable, IDrawHierarchyBackGround, IDrawDetail, IActionParent
 {
-    public Color BackgroundColor => HierarchyResource.CurrentStateColor;
-    public bool IsFullRect => false;
+   
     public string DrawCustomIcon => "";
 
     //FIXME: 想要culling進來後，直接空降到某個State的時間點，什麼情境？以前是
@@ -63,7 +65,8 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     //還沒用到
     // [DropDownRef] public GeneralState NextState;
-
+    public Color BackgroundColor => HierarchyResource.CurrentStateColor;
+    public bool IsFullRect => false;
     public bool IsDrawGUIHierarchyBackground =>
         Application.isPlaying && context && context.currentStateType == stateType;
     // [HideInInspector] [Required] public new GeneralState stateType => this;
@@ -208,9 +211,9 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
         foreach (var transition in transitions) transition.TransitionCheck();
     }
 
-    public override void OnSpriteUpdate() //render update, network怎麼處理？
+    public override void OnRenderUpdate() //render update, network怎麼處理？
     {
-        base.OnSpriteUpdate();
+        base.OnRenderUpdate();
         if (actions == null) return;
         foreach (var action in actions)
             // if (action.gameObject.activeSelf)
@@ -302,7 +305,6 @@ public class GeneralState : AbstractState<GeneralState>, INodeModel, IState<Gene
 
     [AutoChildren]
     [Component(AddComponentAt.Children, "[Transition]")]
-    // [InlineEditor()]
     [PreviewInInspector]
     private StateTransition[] transitions = Array.Empty<StateTransition>();
 

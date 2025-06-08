@@ -23,6 +23,7 @@ namespace RCGMaker.Core
     {
         // MonoBehaviour Component { get; } //蛤？這不就強迫綁定了...
         bool IsEnabled { get; }
+        
         StateMapping CurrentStateMap { get; }
         bool IsInTransition { get; }
         bool isPaused { get; }
@@ -74,12 +75,24 @@ namespace RCGMaker.Core
         private StateMachineRunner engine;
         private MonoBehaviour component;
 
+
+        #region Netcode minimal state machine variables
+
+        private int _activeStateId;
+        private int _previousStateId;
+        private int _defaultStateId;
+        private int _stateChangeTick;
+        private int _bitState;
+
+        #endregion
+       
+        
         private StateMapping lastState;
         private StateMapping currentState;
         private StateMapping destinationState;
 
         public Dictionary<object, StateMapping> stateLookup;
-        
+        // public StateMapping ActiveState      => _activeStateId >= 0 ? _states[_activeStateId] : null;
 
         private readonly string[] ignoredNames = new[] { "add", "remove", "get", "set" };
 
@@ -132,15 +145,8 @@ namespace RCGMaker.Core
                         var targetState = stateLookup[values[i]];
 
                         targetState.hasEnterRoutine = false;
-                        targetState.EnterCall = () =>
-                        {
-                            //TODO: 先後順序><
-                            // if (stateBehavior.ResolveProxy().stateEvents.StateEnterEvent != null)
-                            //     stateBehavior.ResolveProxy().stateEvents.StateEnterEvent.Invoke();
-                            stateBehavior.ResolveProxy().OnStateEnter();
-
-                        };
-
+                        targetState.EnterCall = stateBehavior.ResolveProxy().OnStateEnter;
+                        targetState.EnterRenderCall = stateBehavior.ResolveProxy().OnEnterStateRender; 
                         targetState.hasExitRoutine = false;
 
                         targetState.ExitCall = () =>
@@ -166,7 +172,7 @@ namespace RCGMaker.Core
 
                         targetState.Update = stateBehavior.ResolveProxy().OnStateUpdate;
                         targetState.Simulate = stateBehavior.ResolveProxy().OnStateSimulate;
-                        targetState.SpriteUpdate = () => stateBehavior.ResolveProxy().OnSpriteUpdate();
+                        targetState.RenderUpdate = () => stateBehavior.ResolveProxy().OnRenderUpdate();
 
                         targetState.LateUpdate = () =>
                         {

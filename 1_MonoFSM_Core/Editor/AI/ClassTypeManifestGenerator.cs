@@ -11,6 +11,27 @@ namespace MonoFSM_Core.AI
 {
     public static class ClassTypeManifestGenerator
     {
+        [MenuItem("Tools/MonoFSM/Open Persistent Data Folder")]
+        private static void OpenPersistentDataFolder()
+        {
+            var persistentDataPath = Application.persistentDataPath;
+            if (Directory.Exists(persistentDataPath))
+                EditorUtility.RevealInFinder(persistentDataPath);
+            else
+                Debug.LogError($"Persistent data folder does not exist: {persistentDataPath}");
+        }
+
+        //Application.temporaryCachePath
+        [MenuItem("Tools/MonoFSM/Open Temporary Cache Folder")]
+        private static void OpenTemporaryCacheFolder()
+        {
+            var tempCachePath = Application.temporaryCachePath;
+            if (Directory.Exists(tempCachePath))
+                EditorUtility.RevealInFinder(tempCachePath);
+            else
+                Debug.LogError($"Temporary cache folder does not exist: {tempCachePath}");
+        }
+        
         [MenuItem("Tools/MonoFSM/Generate Class Type Manifest")]
         private static void Generate()
         {

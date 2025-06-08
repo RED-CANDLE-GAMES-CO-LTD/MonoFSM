@@ -121,7 +121,7 @@ namespace RCGMaker.Core
                 if (fsm.isPaused) continue;
                 if (!fsm.IsInTransition && fsm.IsEnabled)
                 {
-                    fsm.CurrentStateMap.SpriteUpdate();
+                    fsm.CurrentStateMap.RenderUpdate();
                 }
             }
 
@@ -159,12 +159,13 @@ namespace RCGMaker.Core
     }
 
 
-    public class StateMapping
+    public class StateMapping //FIXME: 這層是不是多餘了
     {
         public object state;
 
         public bool hasEnterRoutine;
         public Action EnterCall = StateMachineRunner.DoNothing;
+        public Action EnterRenderCall = StateMachineRunner.DoNothing;
         public Func<IEnumerator> EnterRoutine = StateMachineRunner.DoNothingCoroutine;
 
         public bool hasExitRoutine;
@@ -172,7 +173,7 @@ namespace RCGMaker.Core
         public Func<IEnumerator> ExitRoutine = StateMachineRunner.DoNothingCoroutine;
         public Action Finally = StateMachineRunner.DoNothing;
         public Action Update = StateMachineRunner.DoNothing;
-        public Action SpriteUpdate = StateMachineRunner.DoNothing;
+        public Action RenderUpdate = StateMachineRunner.DoNothing;
         public Action LateUpdate = StateMachineRunner.DoNothing;
         public Action<float> Simulate;
         public Action FixedUpdate = StateMachineRunner.DoNothing;
@@ -192,7 +193,7 @@ namespace RCGMaker.Core
             ExitRoutine = null;
             Finally = null;
             Update = null;
-            SpriteUpdate = null;
+            RenderUpdate = null;
             LateUpdate = null;
             FixedUpdate = null;
             OnCollisionEnter = null;

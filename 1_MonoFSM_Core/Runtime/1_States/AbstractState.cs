@@ -51,6 +51,10 @@ namespace RCGMaker.Core
             _currentFrameCount = 0;
         }
 
+        public virtual void OnEnterStateRender()
+        {
+            //fixme: render timer?
+        }
 
         public virtual void OnStateExit()
         {
@@ -86,7 +90,7 @@ namespace RCGMaker.Core
         // }
 
 
-        public virtual void OnSpriteUpdate()
+        public virtual void OnRenderUpdate()
         {
         }
 

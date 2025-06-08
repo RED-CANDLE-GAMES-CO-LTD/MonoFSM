@@ -269,7 +269,7 @@ namespace RCGMaker.Runtime
 
             foreach (var dealer in _dealers)
                 if (_dealerTypeMap.TryAdd(dealer.EffectType, dealer) == false)
-                    Debug.LogError($"Dealer {dealer.EffectType} already exists", dealer);
+                    Debug.LogWarning($"Dealer {dealer.EffectType} already exists", dealer);
 
             // _dealerTypeMap = _dealers.ToDictionary(dealer => dealer.EffectType);
 

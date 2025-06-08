@@ -34,7 +34,11 @@ namespace MonoFSM.Core
             if (!isActiveAndEnabled)
                 return;
             foreach (var eventReceiver in _eventReceivers)
-                eventReceiver.EventReceived();
+            {
+                if (eventReceiver.isActiveAndEnabled)
+                    eventReceiver.EventReceived();
+            }
+                
         }
 
         /// <summary>
@@ -44,8 +48,14 @@ namespace MonoFSM.Core
         /// <param name="arg">The argument to pass to the event receivers.</param>
         public void EventHandle<T>(T arg)
         {
+            if (!isActiveAndEnabled)
+                return;
             foreach (var eventReceiver in _eventReceivers)
-                eventReceiver.EventReceived(arg);
+            {
+                if (eventReceiver.isActiveAndEnabled)
+                    eventReceiver.EventReceived(arg);
+            }
+                
         }
     }
 }

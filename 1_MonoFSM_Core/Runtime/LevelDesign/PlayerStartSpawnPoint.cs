@@ -1,3 +1,4 @@
+using ECM2;
 using MonoFSM_Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core;
@@ -21,10 +22,11 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionP
             return;
         transform.position = oriSpawnRef.position;
     }
-    
 
-    [CompRef]
-    [ShowInInspector] [AutoChildren] private IArgEventReceiver<Vector3> _onPlayerSpawn;
+
+    //基本上就是瞬移玩家位置，
+    [CompRef] [ShowInInspector] [AutoChildren]
+    private IArgEventReceiver<Vector3> _playerTeleporter;
 
     [HideIf(nameof(oriSpawnRef))]
     [Button]
@@ -49,6 +51,7 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionP
         //Debug用，按`鍵，把player移到這個位置
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
+            Debug.Log("Alpha1 Pressed", this);
             //第一人稱? 第三人稱？
             Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
             if (Cursor.lockState == CursorLockMode.Locked)
@@ -56,13 +59,20 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionP
                 Vector3 screenCenter = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
                 // Create ray from camera through screen center
                 ray = _camera.ScreenPointToRay(screenCenter);
-                Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 10f);
+
+                Debug.Log("Alpha1 Pressed at screen center", this);
             }
 
-            if (Physics.Raycast(ray, out var hit,1000, _teleportHitLayerMask))
+            Debug.DrawRay(ray.origin, ray.direction * 100f, Color.red, 10f);
+
+            if (_raycastProcessor.Raycast(ray.origin, ray.direction, out var hit, 1000, _teleportHitLayerMask))
             {
-                _onPlayerSpawn.ArgEventReceived(hit.point);
+                _playerTeleporter?.ArgEventReceived(hit.point);
                 Debug.Log("Alpha1 Pressed"+hit.point+hit.collider,hit.collider);
+            }
+            else
+            {
+                Debug.Log("No hit detected", this);
             }
 
             // var player = playerVar.Value;
@@ -72,6 +82,7 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionP
         }
     }
 
+    [CompRef] [Auto] private IRaycastProcessor _raycastProcessor;
     public void EventReceived(Vector3 arg)
     {
         // _onPlayerSpawn.EventReceived(arg);
@@ -82,6 +93,6 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionP
     public void ResetStart()
     {
         //Network player都還沒生成
-        _onPlayerSpawn?.ArgEventReceived(transform.position);
+        // _onPlayerSpawn?.ArgEventReceived(transform.position);
     }
 }

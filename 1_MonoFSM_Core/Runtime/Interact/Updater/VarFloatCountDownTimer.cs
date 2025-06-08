@@ -29,7 +29,7 @@ namespace RCGMaker.Core
         /// <param name="value"></param>
         public void SetTimer(float value)
         {
-            Debug.Log("ResetTimer:" + value, this);
+            // Debug.Log("ResetTimer:" + value, this);
             currentTime.SetValue(value, this);
         }
 

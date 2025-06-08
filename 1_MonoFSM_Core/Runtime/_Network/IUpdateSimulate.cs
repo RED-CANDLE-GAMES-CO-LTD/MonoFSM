@@ -6,6 +6,8 @@ namespace MonoFSM_Core.Network
         void Simulate(float deltaTime);
 
         void AfterUpdate();
+
+        bool isActiveAndEnabled { get; } //fixme: 這個要不要放在MonoBehaviour裡面？還是放在AbstractSimulator裡面？ 這樣就可以知道有沒有被disable了
         //last simulate time?
     }
 }

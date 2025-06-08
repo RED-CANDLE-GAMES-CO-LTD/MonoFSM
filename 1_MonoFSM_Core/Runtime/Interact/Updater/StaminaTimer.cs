@@ -80,8 +80,8 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
         // If stamina is being consumed, always pause recovery and reset the wait timer.
         if (_currentValue.IsDecreasing)
         {
-            Debug.Log(
-                $"Stamina is being consumed, pausing recovery. Current Stamina: {currentStamina}, Max Stamina: {maxStamina}");
+            // Debug.Log(
+            //     $"Stamina is being consumed, pausing recovery. Current Stamina: {currentStamina}, Max Stamina: {maxStamina}");
             countType = CountType.Pause;
             pauseTimeCounter = 0f;
             return; // Stop further processing for recovery this frame.
