@@ -43,7 +43,7 @@ public class DebugProvider : MonoBehaviour, IEditorOnly
     }
 
     [AutoChildren] StateMachineOwner _stateMachineOwner;
-    public GeneralState currentState => _stateMachineOwner?.FsmContext?.currentStateType;
+    // public GeneralState currentState => _stateMachineOwner?.FsmContext?.currentStateType;
 
     private bool IsNotDebugMode => !DebugSetting.IsDebugMode && IsLogInChildren;
 

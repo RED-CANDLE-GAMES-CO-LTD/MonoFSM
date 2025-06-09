@@ -1,10 +1,11 @@
+using MonoFSM_Core.Network;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
 using UnityEngine;
 
 namespace RCGMaker.Runtime.FSM.RCGStateMachine
 {
-    public class VariableOwner : MonoBehaviour, IVariableOwner
+    public class VariableOwner : MonoBehaviour, IVariableOwner, IUpdateSimulate
     {
         //FIXME: 可能有多個？ multiple folder
         [Component] [PreviewInInspector] [AutoChildren]
@@ -19,6 +20,10 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine
                     _variableFolder = GetComponentInChildren<VariableFolder>();
                 // Debug.Log("VariableFolder is null, try to find it in children", this);
 #endif
+                if (Application.isPlaying && _variableFolder == null)
+                    Debug.LogError(
+                        "VariableFolder is null, please ensure it is assigned in the inspector or added as a child component.",
+                        this);
                 return _variableFolder;
             }
         }
@@ -42,6 +47,16 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine
         public T GetVariable<T>(string varTagName) where T : AbstractMonoVariable
         {
             return GetVariable(varTagName) as T;
+        }
+
+        public void Simulate(float deltaTime)
+        {
+        }
+
+        public void AfterUpdate() //等Simulate都跑完後才CommitValue
+        {
+            //FIXME: 還是直接給variable folder做就好？
+            VariableFolder.CommitVariableValues();
         }
     }
 }

@@ -1,13 +1,16 @@
+using RCGExtension;
 using UnityEngine;
 
 using Sirenix.OdinInspector;
 
 using RCGMaker.Core;
+using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime;
 
 namespace MonoFSM.Foundation
 {
-    public abstract class AbstractDescriptionBehaviour : MonoBehaviour, IBeforePrefabSaveCallbackReceiver
+    public abstract class AbstractDescriptionBehaviour : MonoBehaviour, IBeforePrefabSaveCallbackReceiver,
+        IDrawHierarchyBackGround
     {
         // [AutoParent] protected MonoDescriptable _self;
 
@@ -48,13 +51,13 @@ namespace MonoFSM.Foundation
         }
 
         //FIXME: Required error? 用reflection找？DropDownRef也是？ cached field會OK嗎？每個type做一次ㄋ
-        private bool HasError()
+        protected virtual bool HasError()
         {
             return false;
         }
 
         public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
 
-        public bool IsDrawGUIHierarchyBackground => HasError(); //還是用icon? 
+        [ShowInDebugMode] public bool IsDrawGUIHierarchyBackground => !Application.isPlaying && HasError(); //還是用icon? 
     }
 }

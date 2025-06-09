@@ -16,6 +16,17 @@ namespace MonoFSM.InternalBridge
             WindowDocker.GetSceneHierarchyWindow.SetExpandedRecursive(gObj.GetInstanceID(), true);
             Selection.activeGameObject = gObj;
         }
+
+        public static void TryRepaintHierarchy()
+        {
+            if (SceneHierarchyWindow.lastInteractedHierarchyWindow.IsSelectedTab())
+            {
+                Debug.Log("Repainting Scene Hierarchy Window");
+                EditorApplication.RepaintHierarchyWindow();
+            }
+
+            // if (EditorWindow.HasOpenInstances<SceneHierarchyWindow>()) 
+        }
     }
 
     internal static class WindowDocker

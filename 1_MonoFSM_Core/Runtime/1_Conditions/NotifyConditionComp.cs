@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace MonoFSM.Condition
 {
+    //FIXME: 還是用polling就好了
     /// <summary>
     /// 當field值改變時，會通知父級的IConditionChangeListener。
     /// </summary>
@@ -41,8 +42,8 @@ namespace MonoFSM.Condition
             _isRegistered = true;
             // Debug.Log("Register: " + listenField, this);
             // Debug.Break();
-            listenField.RemoveListener(OnConditionChanged, this);
-            listenField.AddListener(OnConditionChanged, this);
+            // listenField.RemoveListener(OnConditionChanged, this);
+            // listenField.AddListener(OnConditionChanged, this);
         }
 
         private void UnRegister()

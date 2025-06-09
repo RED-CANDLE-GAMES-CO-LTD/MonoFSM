@@ -18,15 +18,16 @@ namespace RCGMaker.Core
         public bool TransitionCheck(GeneralState toState, float timeOffset = 0,
             global::StateTransition fromTransition = null)
         {
-            context.SetLastTransition(fromTransition);
+            // context.SetLastTransition(fromTransition);
             return TransitionCheck(toState);
         }
 
         public bool TransitionCheck(GeneralState toState)
         {
-            var fsm = context.fsm;
-            fsm.ChangeState(toState);
-            return true;
+            // var fsm = context.fsm;
+            // fsm.ChangeState(toState);
+
+            return toState.ForceGoToState();
         }
         // public bool ForceTransition(GeneralState toState)
         // {

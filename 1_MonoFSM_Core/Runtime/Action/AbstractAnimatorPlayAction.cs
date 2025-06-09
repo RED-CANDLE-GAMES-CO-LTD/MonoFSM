@@ -326,20 +326,20 @@ namespace RCGMaker.Core
 
         [AutoParent(false)] private StateMachineOwner _fsmowner;
 
-        private bool CheckInitAndSkipAnimationToLastFrame()
-        {
-            if (_fsmowner == null)
-            {
-                Debug.LogError("No _fsmowner?", this);
-                return false;
-            }
-
-            //state一樣
-            if (_fsmowner.FsmContext.fsm.LastState == _fsmowner.FsmContext.startState)
-                return true;
-
-            return false;
-        }
+        // private bool CheckInitAndSkipAnimationToLastFrame()
+        // {
+        //     if (_fsmowner == null)
+        //     {
+        //         Debug.LogError("No _fsmowner?", this);
+        //         return false;
+        //     }
+        //
+        //     //state一樣
+        //     if (_fsmowner.FsmContext.fsm.LastState == _fsmowner.FsmContext.startState)
+        //         return true;
+        //
+        //     return false;
+        // }
 
         #endregion
     }

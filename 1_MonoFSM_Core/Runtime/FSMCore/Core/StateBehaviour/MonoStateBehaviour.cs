@@ -13,6 +13,6 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         public bool IsDrawGUIHierarchyBackground =>
             Application.isPlaying && _context && _context.IsCurrentState(this);
 
-        [AutoParent] private StateMachineLogic _context;
+        [AutoParent] protected StateMachineLogic _context;
     }
 }

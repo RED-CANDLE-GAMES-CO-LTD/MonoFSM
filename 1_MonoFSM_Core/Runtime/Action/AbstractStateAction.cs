@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using MonoFSM.Foundation;
+using RCGExtension;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.Vote;
 using Sirenix.OdinInspector;
@@ -26,6 +27,11 @@ namespace MonoFSM_Core.Runtime.Action
         IDefaultSerializable,
         IEventReceiver
     {
+        protected override bool HasError()
+        {
+            return GetComponentInParent<IActionParent>() == null;
+        }
+
         protected override string DescriptionTag => "Action";
 
         //怎麼知道誰用Enter, 誰用Update

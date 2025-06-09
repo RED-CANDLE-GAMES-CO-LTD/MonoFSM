@@ -6,8 +6,9 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
-// using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Foundation;
 using RCGMaker.Core.Editor;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
@@ -25,10 +26,11 @@ namespace RCGFSM.Animation
 //FIXME: 把StateAction拔掉？
     [HelpURL("https://www.notion.so/AnimatorPlayA-061be2a2d4e5414e88e84f1ed80d8ea2")]
     [Searchable]
-    public class AnimatorPlayAction : AbstractStateAction, IAnimatorPlayAction,
+    public class AnimatorPlayAction : AbstractDescriptionBehaviour, IAnimatorPlayAction,
         ISceneSavingCallbackReceiver, ISelfValidator, ISerializableComponent, ITransitionCheckInvoker, IRenderAction
     {
         public override string Description => " " + animator.gameObject.name + ": " + StateName;
+        protected override string DescriptionTag => "Anim";
 
         protected override void Awake()
         {
@@ -36,10 +38,10 @@ namespace RCGFSM.Animation
             _stateNameHash = Animator.StringToHash(StateName);
         }
 
-        p rivate bool IsStateNameProvider() 
+        private bool IsStateNameProvider() 
             => GetComponent<AbstractStringProvider>() != null;
 
-        public override void SimulationUpdate(float passedDuration) 
+        public void SimulationUpdate(float passedDuration) 
             => animator.playbackTime = passedDuration;
 
         // FIXME: 不能直接往下找？要從IFSMOwner下面往下找之類的？
@@ -131,13 +133,15 @@ namespace RCGFSM.Animation
                 controller = AnimatorControllerGenerator.CreateAnimatorControllerForAnimatorOfCurrentPrefab(animator);
                 Debug.Log("CreateAnimatorController"+controller, controller);
             }
-            bindingState = GetComponentInParent<GeneralState>();
+
+            var bindingState = GetComponentInParent<GeneralState>();
             //哭了...怎麼reference?
             var newStateName = bindingState.name.Replace("[State]","").Replace(" ", "");
             AnimatorAssetUtility.AddStateAndCreateClipToLayerIndex(controller, stateLayer,newStateName);
             stateName = newStateName;
         }
 #endif
+        // private GeneralState bindingState;
         bool IsAnimatorNoControl => animator == null || animator.runtimeAnimatorController == null;
         
         private void OnValidate()
@@ -366,68 +370,10 @@ namespace RCGFSM.Animation
 //如果animator沒開，就不要強迫開啟
         public bool IsDontPlayWhenAnimatorDisabled = false;
 
-        protected override void OnStateEnterImplement()
-        {
-            // Debug.Log("Play Animation State");
-            HasAnimationPlaySuccess = false;
-            if (animator == null)
-            {
-                Debug.LogError("animator is null" + _fsmOwner.name, this);
-                return;
-            }
-
-            if (animator.runtimeAnimatorController == null)
-                // Debug.Log(animator);
-                // Debug.Log(animator.runtimeAnimatorController);
-                // Debug.LogError("animator.runtimeAnimatorController == null? "+this._fsmOwner.name,this);
-                return;
-
-            //FIXME: 這個感覺有點危險
-            // animator.keepAnimatorStateOnDisable = true;
-            if (IsDontPlayWhenAnimatorDisabled == false)
-                animator.enabled = true;
-
-            if (animator.isActiveAndEnabled == false)
-                // Debug.LogError("animator.isActiveAndEnabled == false "+this._fsmOwner.name,this);
-                return;
-
-            this.Log("[AnimatorPlayAction]", gameObject, ":[", stateLayer, "]:", StateName);
-
-
-            runtimeStartNormalizedTimeOffset = startNormalizedTimeOffset;
-            //FIXME: init skip to last frame是不是不好...該拆兩個狀態就拆兩個狀態吧？
-            if (CheckInitAndSkipAnimationToLastFrame()) 
-                runtimeStartNormalizedTimeOffset = 1;
-
-            if (animatorEnterCrossFade == 0)
-            {
-                this.Log("Play Animation:", StateName, "layer:", stateLayer);
-                // Debug.Log("Play Animation:" + StateName + "layer:" + stateLayer, this);
-                animator.enabled = true;
-#if UNITY_EDITOR
-                if (!animator.HasState(stateLayer, StateHash))
-                    Debug.LogError("AnimatorPlayAction: 沒有這個state:" + StateName + ",hash:" + StateHash, gameObject);
-
-                OnClipPlay?.Invoke(CurrentClip);
-#endif
-                //如果是init state過來的，就直接跳到最後一幀
-                animator.Play(StateHash, stateLayer, runtimeStartNormalizedTimeOffset);
-
-
-                _onStateNameChange?.Invoke(StateName);
-            }
-            else
-            {
-                animator.CrossFade(StateHash, animatorEnterCrossFade, stateLayer, runtimeStartNormalizedTimeOffset);
-            }
-
-            // FIXME: 不要update 0就不會造成這個onenable了？
-            // 是什麼情境一定要OnEnable?
-            animator.Update(0);
-
-            // animator.Update(RCGTime.deltaTime);
-            // Debug.Break();
-        }
+        // protected override void OnStateEnterImplement()
+        // {
+        //     OnEnterRender();
+        // }
 
         public Action<AnimationClip> OnClipPlay;
         private Action<string> _onStateNameChange;
@@ -507,7 +453,7 @@ namespace RCGFSM.Animation
         }
 
 
-        public override void SetPlaybackTime(float time)
+        public void SetPlaybackTime(float time)
         {
             var normalizedTime = time / ClipLength;
             animator.Play(StateHash, stateLayer, normalizedTime);
@@ -516,12 +462,12 @@ namespace RCGFSM.Animation
 
 
 #endif
-        public override void Pause()
+        public void Pause()
         {
             animator.speed = 0;
         }
 
-        public override void Resume()
+        public void Resume()
         {
             animator.speed = 1;
         }
@@ -530,7 +476,7 @@ namespace RCGFSM.Animation
         private float CurrentPlayingNormalizedTime =>
             animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime;
 
-        public bool IsDone => CurrentPlayingNormalizedTime >= 1;
+        public bool IsDone => CurrentPlayingNormalizedTime >= 1; // && IsPlayingCurrentClip();
 
         private bool IsStatePlaying(int layer)
         {
@@ -584,17 +530,17 @@ namespace RCGFSM.Animation
 
                     else if (HasAnimationPlaySuccess)
                     {
-#if UNITY_EDITOR
-                        EditorUtility.DisplayDialog("AnimatorPlayAction",
-                            "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
-                            shouldPlayStateName +
-                            ", playing: " + playingStateName + ", time:" + stateInfo.normalizedTime, "OK");
-#endif
+// #if UNITY_EDITOR
+//                         EditorUtility.DisplayDialog("AnimatorPlayAction",
+//                             "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
+//                             shouldPlayStateName +
+//                             ", playing: " + playingStateName + ", time:" + stateInfo.normalizedTime, "OK");
+// #endif
                         Debug.LogError(
                             "AnimatorPlayAction 不該提早切走喔！(應該是animator controller裡面有transition) should play: " +
                             shouldPlayStateName +
                             ", playing: " + playingStateName + ", time:" + stateInfo.normalizedTime, gameObject);
-                        Debug.Break();
+                        // Debug.Break();
                     }
 
 #else
@@ -616,60 +562,10 @@ namespace RCGFSM.Animation
         public bool IsPlayDone => IsPlayingCurrentClip() && CurrentPlayingNormalizedTime >= 1;
 
         //TODO:
-        protected override void OnSpriteUpdateImplement()
-        {
-            // Debug.Log("time:" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
-
-            if (doneEventTransition == null)
-                return;
-
-
-#if UNITY_EDITOR
-            if (animator == null) Debug.LogError("animator == null", this);
-#endif
-            if (animator.runtimeAnimatorController == null)
-            {
-                enabled = false;
-                return;
-            }
-
-            //FIXME: 完全知道動畫多久，可以預判播完的時間然後去下一個state，就可以functional?
-            //包子 Cross Fade 不能一直跑 （議會小電梯）    
-            if (animator.isActiveAndEnabled && animatorEnterCrossFade <= 0)
-                animator.Play(StateHash, stateLayer);
-
-
-            var info = animator.GetCurrentAnimatorStateInfo(doneEventLayer);
-
-            // if (!IsPlayingCurrentClip())
-            // {
-            //     animator.Play(StateHash, stateLayer, runtimeStartNormalizedTimeOffset);
-            //     animator.Update(0);
-            // }
-
-            //FIXME: 要animator.Update(0)?
-            // UnityEngine.Debug.Log("Current Animator State length:" + info.length + ",normalizedTime:" +
-            //                       info.normalizedTime + "," +
-            //                       info.shortNameHash);
-            if (IsPlayingCurrentClip() && CurrentPlayingNormalizedTime >= 1)
-                //TODO: AnimationDone
-                //Done;
-                // GetComponentInParent<GeneralState>().TransitionCheck();
-                if (doneEventTransition)
-                {
-                    this.Log(
-                        "AnimatorPlayAction > 1:" + CurrentPlayingNormalizedTime + "state:" +
-                        StateName,
-                        gameObject);
-                    // Debug.Break();
-                    AnimationDone();
-                }
-            // if (TryGetComponent<EventReceiveTransition>(out var transition))
-            // {
-            //     Debug.Log("AnimatorPlayAction > 1" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime + "state:", gameObject);
-            //     transition.EventReceived("AnimationDone");
-            // }
-        }
+        // protected override void OnSpriteUpdateImplement()
+        // {
+        //     OnRender();
+        // }
 
         public Action OnAnimationDone;
 
@@ -774,27 +670,27 @@ namespace RCGFSM.Animation
 
         [AutoParent(false)] private StateMachineOwner _fsmOwner; //monster也可以，應該抽成interface
 
-        private bool CheckInitAndSkipAnimationToLastFrame()
-        {
-            if (_fsmOwner == null)
-                // Debug.LogError("No _fsmowner?", this);
-                return false;
-
-            //只有在init的時候才會跳過
-            var context = _fsmOwner.FsmContext;
-            if (context.LastState != context.startState)
-                // this.Log("Not InitAndAutoSkipToLastFrame", context.LastState, ",",
-                //     context.startState);
-                return false;
-
-            if (context.LastTransition && context.LastTransition.IsTransitionSkippable == false) return false;
-
-
-            this.Log("InitAndAutoSkipToLastFrame", context.LastState, ",",
-                context.LastTransition);
-            // this.Break();
-            return true;
-        }
+        // private bool CheckInitAndSkipAnimationToLastFrame()
+        // {
+        //     if (_fsmOwner == null)
+        //         // Debug.LogError("No _fsmowner?", this);
+        //         return false;
+        //
+        //     //只有在init的時候才會跳過
+        //     var context = _fsmOwner.FsmContext;
+        //     if (context.LastState != context.startState)
+        //         // this.Log("Not InitAndAutoSkipToLastFrame", context.LastState, ",",
+        //         //     context.startState);
+        //         return false;
+        //
+        //     if (context.LastTransition && context.LastTransition.IsTransitionSkippable == false) return false;
+        //
+        //
+        //     this.Log("InitAndAutoSkipToLastFrame", context.LastState, ",",
+        //         context.LastTransition);
+        //     // this.Break();
+        //     return true;
+        // }
 
         #endregion
 
@@ -828,5 +724,121 @@ namespace RCGFSM.Animation
         //     
         // }
         // public ITransitionCheckingTarget ValueChangedTarget => doneEventTransition;
+        public void OnEnterRender()
+        {
+            // Debug.Log("Play Animation State");
+            HasAnimationPlaySuccess = false;
+            if (animator == null)
+            {
+                Debug.LogError("animator is null" + _fsmOwner.name, this);
+                return;
+            }
+
+            if (animator.runtimeAnimatorController == null)
+                // Debug.Log(animator);
+                // Debug.Log(animator.runtimeAnimatorController);
+                // Debug.LogError("animator.runtimeAnimatorController == null? "+this._fsmOwner.name,this);
+                return;
+
+            //FIXME: 這個感覺有點危險
+            // animator.keepAnimatorStateOnDisable = true;
+            if (IsDontPlayWhenAnimatorDisabled == false)
+                animator.enabled = true;
+
+            if (animator.isActiveAndEnabled == false)
+                // Debug.LogError("animator.isActiveAndEnabled == false "+this._fsmOwner.name,this);
+                return;
+
+            this.Log("[AnimatorPlayAction]", gameObject, ":[", stateLayer, "]:", StateName);
+
+
+            runtimeStartNormalizedTimeOffset = startNormalizedTimeOffset;
+            //FIXME: init skip to last frame是不是不好...該拆兩個狀態就拆兩個狀態吧？
+            // if (CheckInitAndSkipAnimationToLastFrame())
+            //     runtimeStartNormalizedTimeOffset = 1;
+
+            if (animatorEnterCrossFade == 0)
+            {
+                this.Log("Play Animation:", StateName, "layer:", stateLayer);
+                // Debug.Log("Play Animation:" + StateName + "layer:" + stateLayer, this);
+                animator.enabled = true;
+#if UNITY_EDITOR
+                if (!animator.HasState(stateLayer, StateHash))
+                    Debug.LogError("AnimatorPlayAction: 沒有這個state:" + StateName + ",hash:" + StateHash, gameObject);
+
+                OnClipPlay?.Invoke(CurrentClip);
+#endif
+                //如果是init state過來的，就直接跳到最後一幀
+                animator.Play(StateHash, stateLayer, runtimeStartNormalizedTimeOffset);
+
+
+                _onStateNameChange?.Invoke(StateName);
+            }
+            else
+            {
+                animator.CrossFade(StateHash, animatorEnterCrossFade, stateLayer, runtimeStartNormalizedTimeOffset);
+            }
+
+            // FIXME: 不要update 0就不會造成這個onenable了？
+            // 是什麼情境一定要OnEnable?
+            animator.Update(0);
+            // animator.Update(RCGTime.deltaTime);
+            // Debug.Break();
+        }
+
+        public void OnRender()
+        {
+            // Debug.Log("time:" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
+
+            if (doneEventTransition == null)
+                return;
+
+
+#if UNITY_EDITOR
+            if (animator == null) Debug.LogError("animator == null", this);
+#endif
+            if (animator.runtimeAnimatorController == null)
+            {
+                enabled = false;
+                return;
+            }
+
+            //FIXME: 完全知道動畫多久，可以預判播完的時間然後去下一個state，就可以functional?
+            //包子 Cross Fade 不能一直跑 （議會小電梯）    
+            if (animator.isActiveAndEnabled && animatorEnterCrossFade <= 0)
+                animator.Play(StateHash, stateLayer);
+
+
+            var info = animator.GetCurrentAnimatorStateInfo(doneEventLayer);
+
+            // if (!IsPlayingCurrentClip())
+            // {
+            //     animator.Play(StateHash, stateLayer, runtimeStartNormalizedTimeOffset);
+            //     animator.Update(0);
+            // }
+
+            //FIXME: 要animator.Update(0)?
+            // UnityEngine.Debug.Log("Current Animator State length:" + info.length + ",normalizedTime:" +
+            //                       info.normalizedTime + "," +
+            //                       info.shortNameHash);
+            if (IsPlayingCurrentClip() && CurrentPlayingNormalizedTime >= 1)
+                //TODO: AnimationDone
+                //Done;
+                // GetComponentInParent<GeneralState>().TransitionCheck();
+                if (doneEventTransition)
+                {
+                    this.Log(
+                        "AnimatorPlayAction > 1:" + CurrentPlayingNormalizedTime + "state:" +
+                        StateName,
+                        gameObject);
+                    // Debug.Break();
+                    AnimationDone();
+                }
+            // if (TryGetComponent<EventReceiveTransition>(out var transition))
+            // {
+            //     Debug.Log("AnimatorPlayAction > 1" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime + "state:", gameObject);
+            //     transition.EventReceived("AnimationDone");
+            // }
+        }
     }
 }

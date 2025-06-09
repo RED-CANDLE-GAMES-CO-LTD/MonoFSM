@@ -54,8 +54,11 @@ namespace Fusion.Addons.FSM
         private float _interpolationTick;
 
         // private NetworkStateMachineController _controller;
+        public StateMachineLogic Logic => _logic;
+        
         private StateMachineLogic _logic;
         private ITickProvider _tickProvider;
+        public ITickProvider TickProvider => _tickProvider;
 
         // CONSTRUCTORS
 

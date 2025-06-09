@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
 using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Editor;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace MonoFSM.Core
@@ -150,6 +152,9 @@ namespace MonoFSM.Core
 
         void IState.OnEnterState()
         {
+#if UNITY_EDITOR
+            EditorFsmEventManager.NotifyStateChanged(Machine.Logic);
+#endif
             OnEnterState();
             _onStateEnter?.EventHandle();
         }

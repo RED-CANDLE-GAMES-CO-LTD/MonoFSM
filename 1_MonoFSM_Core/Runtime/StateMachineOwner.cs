@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fusion.Addons.FSM;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
@@ -156,6 +157,8 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IDefaultSeria
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext[] fsmContexts;
 
+    [AutoChildren] public StateMachineLogic fsmLogic;
+    
     public GeneralFSMContext FsmContext =>
         fsmContext ? fsmContext : fsmContext = GetComponentInChildren<GeneralFSMContext>();
 
@@ -165,34 +168,34 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IDefaultSeria
     [DisallowModificationsIn(PrefabKind.NonPrefabInstance)]
     public List<Component> quickFindLinks;
 
-    public void ResetFSM()
-    {
-        if (fsmContext == null)
-            Debug.LogError("fsmContext is null", gameObject);
-
-        if (fsmContext.fsm == null)
-        {
-            Debug.LogError("fsmContext.fsm is null", gameObject);
-            return;
-        }
-
-        // fsmContext.ChangeState(fsmContext.startState);
-        if (fsmContext.fsm.HasState(fsmContext.startState))
-            fsmContext.ChangeState(fsmContext.startState);
-        else
-            Debug.LogError("fsmContext.startState not found?", gameObject);
-        _hasReset = true;
-    }
-
-    public void PauseAll()
-    {
-        foreach (var context in fsmContexts) context.PauseFSM();
-    }
-
-    public void ResumeAll()
-    {
-        foreach (var context in fsmContexts) context.ResumeFSM();
-    }
+    // public void ResetFSM()
+    // {
+    //     if (fsmContext == null)
+    //         Debug.LogError("fsmContext is null", gameObject);
+    //
+    //     if (fsmContext.fsm == null)
+    //     {
+    //         Debug.LogError("fsmContext.fsm is null", gameObject);
+    //         return;
+    //     }
+    //
+    //     // fsmContext.ChangeState(fsmContext.startState);
+    //     if (fsmContext.fsm.HasState(fsmContext.startState))
+    //         fsmContext.ChangeState(fsmContext.startState);
+    //     else
+    //         Debug.LogError("fsmContext.startState not found?", gameObject);
+    //     _hasReset = true;
+    // }
+    //
+    // public void PauseAll()
+    // {
+    //     foreach (var context in fsmContexts) context.PauseFSM();
+    // }
+    //
+    // public void ResumeAll()
+    // {
+    //     foreach (var context in fsmContexts) context.ResumeFSM();
+    // }
 
     public Animator ChildAnimator => GetComponentInChildren<Animator>();
 
@@ -240,6 +243,6 @@ public class StateMachineOwner : VariableOwner, IAnimatorProvider, IDefaultSeria
     // }
     public void EnterSceneStart()
     {
-        ResetFSM();
+        // ResetFSM();
     }
 }

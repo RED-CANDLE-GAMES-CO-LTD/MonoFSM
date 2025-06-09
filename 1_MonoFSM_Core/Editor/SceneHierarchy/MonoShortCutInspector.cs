@@ -23,7 +23,9 @@ namespace _1_MonoFSM_Core.Editor.SceneHierarchy
                 if (Selection.activeGameObject == shortCut.gameObject && shortCut.targetGameObject != null)
                 {
                     Selection.activeGameObject = shortCut.targetGameObject;
-                    SceneHierarchyUtility.ExpandHierarchyItem(shortCut.targetGameObject);
+                    EditorGUIUtility.PingObject(shortCut.targetGameObject);
+                    //FIXME: 好像沒什麼屁用
+                    // SceneHierarchyUtility.ExpandHierarchyItem(shortCut.targetGameObject);
                 }
             }
         }

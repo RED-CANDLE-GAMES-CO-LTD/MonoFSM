@@ -65,6 +65,7 @@ namespace RCGFSM.Animation
             SetValue();
         }
 
+        //FIXME: 拔掉！
         protected override void OnStateUpdateImplement()
         {
             if (IsUpdateSet) SetValue();

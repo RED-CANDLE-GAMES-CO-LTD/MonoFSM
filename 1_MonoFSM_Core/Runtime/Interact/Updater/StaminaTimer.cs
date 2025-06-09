@@ -6,6 +6,7 @@ using UnityEngine;
 
 // 耐力條，體幹..應該都可以用這個套？ (Stamina bar, posture... should be usable with this?)
 // Refactored to handle stamina recovery with pause on external consumption.
+//FIXME: timer?TickTimer
 public class StaminaTimer : MonoBehaviour, IUpdateSimulate 
 {
     [Header("Stamina Properties")]
@@ -63,8 +64,8 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
 
     public void Simulate(float deltaTime)
     {
-        // Debug.Log(
-        //     $"Simulating StaminaTimer with deltaTime: {deltaTime}, CurrentValue: {_currentValue.CurrentValue}, CountType: {countType}");
+        Debug.Log(
+            $"Simulating StaminaTimer with deltaTime: {deltaTime}, CurrentValue: {_currentValue.CurrentValue}, CountType: {countType}");
         //FIXME: 不要用varfloat, 直接知道？ value modifying order (才知道誰先誰後< 自動恢復應該最早)
         // var isConsumingNow = _isConsuming.CurrentValue;
         var currentStamina = _currentValue.CurrentValue;
@@ -80,8 +81,8 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
         // If stamina is being consumed, always pause recovery and reset the wait timer.
         if (_currentValue.IsDecreasing)
         {
-            // Debug.Log(
-            //     $"Stamina is being consumed, pausing recovery. Current Stamina: {currentStamina}, Max Stamina: {maxStamina}");
+            Debug.Log(
+                $"Stamina is being consumed, pausing recovery. Current Stamina: {currentStamina}, Max Stamina: {maxStamina}");
             countType = CountType.Pause;
             pauseTimeCounter = 0f;
             return; // Stop further processing for recovery this frame.

@@ -1,15 +1,20 @@
 using System;
+using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM_Core.Network
 {
     //fixme: 還是要中心化註冊？怎麼做比較好？ cal
-
+    public interface ISimulateRunner
+    {
+    }
     public class UpdateSimulator : MonoBehaviour //fixme: 不能用繼承的...
     {
         [PreviewInInspector] [AutoChildren] private IUpdateSimulate[] _simulators;
 
+        [Required] [CompRef] [Auto] private ISimulateRunner _simulateRunner;
 
         /// <summary>
         /// 需要依照環境決定怎麼simulate
@@ -24,7 +29,7 @@ namespace MonoFSM_Core.Network
             }
 
             foreach (var simulator in _simulators)
-                if (simulator.isActiveAndEnabled)
+                if (simulator is { isActiveAndEnabled: true })
                     simulator.Simulate(deltaTime);
         }
 
@@ -37,7 +42,7 @@ namespace MonoFSM_Core.Network
             }
 
             foreach (var simulator in _simulators)
-                if (simulator != null)
+                if (simulator is { isActiveAndEnabled: true })
                     simulator.AfterUpdate();
                 else
                     Debug.LogWarning("A simulator is null and cannot be simulated in LateUpdate.");

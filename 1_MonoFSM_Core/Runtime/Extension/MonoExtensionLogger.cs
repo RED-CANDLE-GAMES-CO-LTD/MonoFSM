@@ -294,12 +294,12 @@ public static class MonoExtensionLogger
         switch (type)
         {
             case LogType.Log:
-                if (provider.currentState)
-                {
-                    //多餘？
-                    message = ZString.Concat(message,"\n at state:", provider.currentState, ",frame:",
-                        provider.currentState.CurrentFrameCount);
-                }
+                // if (provider.currentState)
+                // {
+                //     //多餘？
+                //     message = ZString.Concat(message,"\n at state:", provider.currentState, ",frame:",
+                //         provider.currentState.CurrentFrameCount);
+                // }
 
                 Debug.Log(message, go);
                 break;

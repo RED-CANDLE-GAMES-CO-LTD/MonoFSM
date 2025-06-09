@@ -4,7 +4,7 @@ using UnityEngine;
 namespace MonoFSM_Core.Network
 {
     [RequireComponent(typeof(UpdateSimulator))]
-    public class LocalSimulator : MonoBehaviour
+    public class LocalSimulator : MonoBehaviour, ISimulateRunner
     {
         [Auto] private UpdateSimulator _simulator;
 

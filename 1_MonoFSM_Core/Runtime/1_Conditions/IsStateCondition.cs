@@ -10,7 +10,10 @@ namespace RCGMaker.Core
         [AutoParent] StateMachineOwner _owner;
         [DropDownRef]
         [SerializeField]GeneralState _targetState;
-        protected override bool IsValid => _owner.FsmContext.currentStateType == _targetState;
+
+        protected override bool IsValid => _owner.fsmLogic.IsCurrentState(_targetState);
+
+        //_owner.FsmContext.currentStateType == _targetState;
         public override string Description => $"{GetType().Name}({_targetState.name})";
     }
 }

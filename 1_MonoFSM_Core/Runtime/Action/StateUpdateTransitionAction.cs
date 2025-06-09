@@ -23,6 +23,7 @@ namespace RCGFSM.Transition
 
 
             validTransition.IsTransitionCheckNeeded = true;
+            
             // if (TransitionTarget.OnTransitionCheck())
             // {
             //     // Debug.Break();
