@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace MonoFSM_Core.Network
 {
     //FIXME: 如果有兩個 simulator會出問題耶
@@ -7,7 +9,8 @@ namespace MonoFSM_Core.Network
 
         void AfterUpdate();
 
-        bool isActiveAndEnabled { get; } //fixme: 這個要不要放在MonoBehaviour裡面？還是放在AbstractSimulator裡面？ 這樣就可以知道有沒有被disable了
-        //last simulate time?
+        bool isActiveAndEnabled { get; }
+
+        GameObject gameObject { get; } 
     }
 }

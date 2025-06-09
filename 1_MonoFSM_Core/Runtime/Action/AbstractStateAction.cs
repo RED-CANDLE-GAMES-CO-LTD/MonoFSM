@@ -123,15 +123,16 @@ namespace MonoFSM_Core.Runtime.Action
 
         protected abstract void OnStateEnterImplement(); //FIXME: 沒參數的?
 
-        public void OnActionUpdate()
-        {
-            if (IsValid)
-                OnStateUpdateImplement();
-        }
+        // public void OnActionUpdate()
+        // {
+        //     if (IsValid)
+        //         OnStateUpdateImplement();
+        // }
 
-        protected virtual void OnStateUpdateImplement()
-        {
-        }
+        //FIXME: 拔掉
+        // protected virtual void OnStateUpdateImplement()
+        // {
+        // }
 
         public void OnActionSpriteUpdate()
         {

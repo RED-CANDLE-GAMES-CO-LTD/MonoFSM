@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ECM2;
+using MonoFSM_Core.Network;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.Detection;
 using Sirenix.Utilities;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
 {
-    public class RaycastDetector:AbstractDetector
+    public class RaycastDetector : AbstractDetector, IUpdateSimulate
     {
         public enum RaycastMode
         {
@@ -29,13 +30,11 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
         public Ray CachedRay => _cachedRay;
         protected override void SetLayerOverride()
         {
-            
         }
-
-        private void Update()
-        {
-            PhysicsUpdate();
-        }
+        // private void Update()
+        // {
+        //     PhysicsUpdate();
+        // }
 
         [Auto] private IRaycastProcessor _raycastProcessor;
         private Ray _cachedRay;
@@ -177,6 +176,15 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
         [SerializeReference] public IRayProvider _rayProvider;
         
         //update?
+        public void Simulate(float deltaTime)
+        {
+            PhysicsUpdate();
+        }
+
+        public void AfterUpdate()
+        {
+            // throw new System.NotImplementedException();
+        }
     }
 
     public interface IRayProvider

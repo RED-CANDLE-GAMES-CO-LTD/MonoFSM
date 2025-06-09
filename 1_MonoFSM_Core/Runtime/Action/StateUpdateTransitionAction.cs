@@ -1,3 +1,4 @@
+using System;
 using MonoFSM_Core.Runtime.Action;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
@@ -9,6 +10,7 @@ namespace RCGFSM.Transition
     //讓transition下面有condition不就結束了？ 單層condition
     //FIXME: 被動的？不用action而是監聽的transition?
     //StateEnter, Update的時候，檢查能不能去某個state
+    [Obsolete]
     [RequireComponent(typeof(StateTransition))]
     public class StateUpdateTransitionAction : AbstractStateAction, ITransitionCheckInvoker
     {
@@ -32,16 +34,16 @@ namespace RCGFSM.Transition
             // }
         }
 
-        protected override void OnStateUpdateImplement()
-        {
-            // if (validTransition == null)
-            //     validTransition = this.GetComponent<AbstractStateTransition>();
-
-            // Debug.Log("Action State 'Update' Implement", gameObject);
-            if (validTransition == null)
-                return;
-
-            validTransition.IsTransitionCheckNeeded = true;
-        }
+        // protected override void OnStateUpdateImplement()
+        // {
+        //     // if (validTransition == null)
+        //     //     validTransition = this.GetComponent<AbstractStateTransition>();
+        //
+        //     // Debug.Log("Action State 'Update' Implement", gameObject);
+        //     if (validTransition == null)
+        //         return;
+        //
+        //     validTransition.IsTransitionCheckNeeded = true;
+        // }
     }
 }

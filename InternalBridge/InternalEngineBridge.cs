@@ -19,7 +19,8 @@ namespace MonoFSM.InternalBridge
 
         public static void TryRepaintHierarchy()
         {
-            if (SceneHierarchyWindow.lastInteractedHierarchyWindow.IsSelectedTab())
+            if (SceneHierarchyWindow.lastInteractedHierarchyWindow &&
+                SceneHierarchyWindow.lastInteractedHierarchyWindow.IsSelectedTab())
             {
                 Debug.Log("Repainting Scene Hierarchy Window");
                 EditorApplication.RepaintHierarchyWindow();

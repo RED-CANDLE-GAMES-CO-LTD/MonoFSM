@@ -37,7 +37,7 @@ namespace RCGFSM.Variable
         //FIXME: 用selection dropdown來篩選
         //這個還可以化簡嗎？整個description就代表含義了..但沒有Reference可能還是不夠用
         // protected override string renamePostfix =>
-        public override string Description => _target != null ? _target.name + " to " + TargetValue : "null target";
+        public override string Description => _target != null ? _target.name + " = " + TargetValue : "null target";
 
         private IList<ValueDropdownItem<VarBool>> GetVariables()
         {
