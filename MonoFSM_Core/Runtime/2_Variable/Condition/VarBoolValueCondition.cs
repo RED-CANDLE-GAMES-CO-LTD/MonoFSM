@@ -31,6 +31,12 @@ namespace MonoFSM.Variable.Condition
         //FIXME: 要用VarBoolProvider?
         // [Component] [Auto] public VarBoolProviderRef _varBoolProvider;
 
+        public override void CheatComplete()
+        {
+            base.CheatComplete();
+            _varBool.CurrentValue = targetValue;
+        }
+
         // [Component] [Auto] IBoolProvider _boolValue; //會再度抓到自己，...沒屁用
         public bool targetValue = true;
 
