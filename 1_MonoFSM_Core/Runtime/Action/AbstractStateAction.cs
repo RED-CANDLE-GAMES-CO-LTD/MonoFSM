@@ -46,6 +46,7 @@ namespace MonoFSM_Core.Runtime.Action
 
 
         // [PreviewInInspector]
+        //FIXME: 不一定會有bindingState? 還是乾脆拿logic的就好了？
         [AutoParent] protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true)// ;
 
         [Required]

@@ -124,5 +124,7 @@ namespace Fusion.Addons.FSM
                 Profiler.EndSample();
             }
         }
+
+        public float DeltaTime => Time.deltaTime;
     }
 }

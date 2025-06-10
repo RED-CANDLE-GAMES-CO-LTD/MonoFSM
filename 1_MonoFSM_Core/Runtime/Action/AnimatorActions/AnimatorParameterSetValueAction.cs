@@ -27,8 +27,20 @@ namespace RCGFSM.Animation
         [ValueDropdown(nameof(GetParameterNames))]
         public string ParameterName;
 
+        //每種datatype拆開？
+        [SerializeField] private float interpolate = 0; 
+        
+        
         public bool boolvalue;
+
+        #region Float
+
+        private float _lastValue = 0;
         public float floatValue;
+
+        #endregion
+        
+        
         public int intValue;
 
         [Auto] [PreviewInInspector] public IFloatProvider _floatValueSource;
@@ -44,7 +56,16 @@ namespace RCGFSM.Animation
         private void SetValue()
         {
             if (_floatValueSource != null)
-                animator.SetFloat(ParameterName, _floatValueSource.Value);
+            {
+                if (interpolate == 0)
+                    _lastValue = _floatValueSource.Value;
+                else
+                    _lastValue = Mathf.MoveTowards(_lastValue, _floatValueSource.Value,
+                        interpolate * bindingState.DeltaTime); //FIXME: 不一定會有bindingState? 還是乾脆拿logic的就好了？
+
+                animator.SetFloat(ParameterName, _lastValue);
+            }
+                
             else
                 switch (valueType)
                 {
@@ -62,8 +83,11 @@ namespace RCGFSM.Animation
 
         protected override void OnStateEnterImplement()
         {
+            
             SetValue();
         }
+
+
 
         //FIXME: 拔掉！
         // protected override void OnStateUpdateImplement()

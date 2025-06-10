@@ -250,5 +250,7 @@ namespace Fusion.Addons.FSM
 
             return buffersValid;
         }
+
+        public float DeltaTime => Runner.DeltaTime; // Expose Runner's DeltaTime for use in state machines
     }
 }

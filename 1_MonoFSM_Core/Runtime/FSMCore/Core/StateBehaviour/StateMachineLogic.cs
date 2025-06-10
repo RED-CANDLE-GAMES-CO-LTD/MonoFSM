@@ -11,6 +11,7 @@ namespace Fusion.Addons.FSM
 {
     public interface IStateMachineController
     {
+        public float DeltaTime { get; }
     }
 
     public interface IStateMachineOwner
@@ -21,6 +22,7 @@ namespace Fusion.Addons.FSM
     [DisallowMultipleComponent]
     public class StateMachineLogic : MonoBehaviour
     {
+        public float DeltaTime => _stateMachineController.DeltaTime;
 #if UNITY_EDITOR
         /// <summary>
         /// 確保有controller才會執行
