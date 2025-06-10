@@ -14,7 +14,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             transform.localPosition = Vector3.zero;
         }
 
-        [PreviewInInspector] [Component(AddComponentAt.Parent)] [Required] [AutoParent]
+        [Component(AddComponentAt.Parent)] [Required] [AutoParent]
         private EffectDetectable _detectable; //不一定是，IEffectDetectable?
 
         // [PropertyOrder(-1)]
@@ -38,9 +38,15 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             this.Log("OnEffectHitEnter");
             _currentHitData = data;
             _enterNode?.EventHandle(data);
+#if UNITY_EDITOR
+            _lastHitData = data;
+#endif
         }
 
-        [PreviewInInspector] private IEffectHitData _currentHitData;
+        [ShowInDebugMode] private IEffectHitData _currentHitData;
+#if UNITY_EDITOR
+        [ShowInDebugMode] private IEffectHitData _lastHitData;
+#endif
 
         public void OnEffectHitExit(IEffectHitData data)
         {

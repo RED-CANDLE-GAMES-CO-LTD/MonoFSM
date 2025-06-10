@@ -17,6 +17,7 @@ using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using MonoFSM.RCGMakerFSMCore.Tracking;
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
 
 //FIXME: autoGen太複雜，可能需要再拆漂亮
 //TODO: 現在根本還沒做監聽，是用condition做polling
@@ -37,6 +38,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     public void SetValue(object value, MonoBehaviour byWho = null) 
         => SetValue((TType)value, byWho);
 
+    [CompRef]
     [Auto] private IVarValueSettingProcessor<TType> _beforeSetProcessor;
     private bool PrefabKindMatchTagCheck()
     {
@@ -294,7 +296,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     // private MonoBehaviour lastValueSetter;
 
     private HashSet<MonoBehaviour> byWhoHashSet = new();
-    [PreviewInInspector] public List<MonoBehaviour> byWhoList => byWhoHashSet.ToList();
+    [ShowInDebugMode] public List<MonoBehaviour> byWhoList => byWhoHashSet.ToList();
 
     protected override void SetValueInternal<T>(T value, Object byWho = null)
     {

@@ -444,7 +444,7 @@ public class
 
     private Object _lastByWho;
 
-    [ShowInInspector] public Object LastByWho => _lastByWho;
+    [ShowInDebugMode] public Object LastByWho => _lastByWho;
 
     //NOTE: public是為了，propertyDrawer
     public void SetCurrentValue(T value, Object byWho = null) //FIXME: 可能會memory leak

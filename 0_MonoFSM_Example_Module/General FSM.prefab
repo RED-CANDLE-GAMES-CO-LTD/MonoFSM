@@ -86,7 +86,7 @@ GameObject:
   - component: {fileID: 4778143190040884346}
   - component: {fileID: 2054098507518886308}
   - component: {fileID: 1973556432026734445}
-  - component: {fileID: 5424673211719874727}
+  - component: {fileID: 4988702094416698374}
   m_Layer: 0
   m_Name: States
   m_TagString: Untagged
@@ -138,7 +138,7 @@ MonoBehaviour:
   _states:
   - {fileID: 4377014297404095105}
   - {fileID: 4920970186908325163}
---- !u!114 &5424673211719874727
+--- !u!114 &4988702094416698374
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -489,7 +489,7 @@ GameObject:
   - component: {fileID: 5849249115696725527}
   - component: {fileID: 5010657810671805049}
   m_Layer: 0
-  m_Name: '[Action]  Animator: Idle'
+  m_Name: '[Anim]  Animator: Idle'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -540,7 +540,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2335869562734533029}
   - component: {fileID: 3763308402822794965}
-  - component: {fileID: 8035099416309375965}
   m_Layer: 0
   m_Name: '[Transition] => idle'
   m_TagString: Untagged
@@ -578,15 +577,3 @@ MonoBehaviour:
   _target: {fileID: 4920970186908325163}
   _conditions: []
   IsTransitionCheckNeeded: 0
---- !u!114 &8035099416309375965
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9020763545861940387}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 447800c24624043c6a51b3cbee57d36f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

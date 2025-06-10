@@ -26,13 +26,14 @@ namespace Fusion.Addons.FSM
         {
         }
 
+        //FIXME: remove netcode
         // Custom network data section
-
         public int GetWordCount()
         {
             return 0;
         }
 
+    
         public unsafe void Read(int* ptr)
         {
         }
@@ -41,7 +42,7 @@ namespace Fusion.Addons.FSM
         {
         }
 
-        public void Interpolate(InterpolationData interpolationData)
+        public void Interpolate(InterpolationData interpolationData) //沒有人用，可砍？
         {
         }
     }

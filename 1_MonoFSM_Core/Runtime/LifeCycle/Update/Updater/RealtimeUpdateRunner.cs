@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 
+//FIXME: refactor
 namespace RCGMaker.Core
 {
     public interface IUpdatable

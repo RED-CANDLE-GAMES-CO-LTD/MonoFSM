@@ -78,7 +78,7 @@ namespace MonoFSM_Core.Runtime
 
         // private T _cached;
 
-        //FIXME: 事先cache?
+        //FIXME: 效能不好 事先cache?
         //last hitData same才可以耶？dealer/receiver dictionary?
         protected T GetParentComp()
         {

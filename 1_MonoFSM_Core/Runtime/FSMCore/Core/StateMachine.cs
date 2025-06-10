@@ -211,19 +211,20 @@ namespace Fusion.Addons.FSM
             }
         }
 
-        void IStateMachine.FixedUpdateNetwork()
+        void IStateMachine.FixedUpdateNetwork() //FIXME: rename
         {
             if (IsPaused == true)
                 return;
 
             if (_activeStateId < 0) ChangeState(_defaultStateId);
 
+            // Active state could be changed in state's fixed update
+            // Do not update its child machines in that case
             var updateStateId = _activeStateId;
 
             ActiveState.OnFixedUpdate();
 
-            // Active state could be changed in state's fixed update
-            // Do not update its child machines in that case
+          
             // if (updateStateId == _activeStateId)
             //     for (var i = 0; i < ActiveState.ChildMachines.Length; i++)
             //         ActiveState.ChildMachines[i].FixedUpdateNetwork();

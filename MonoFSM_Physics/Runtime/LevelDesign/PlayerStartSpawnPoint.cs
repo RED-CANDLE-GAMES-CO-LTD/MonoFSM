@@ -1,10 +1,9 @@
-using ECM2;
 using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Physics;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 //Editor Debug用
 public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionParent,IResetStart

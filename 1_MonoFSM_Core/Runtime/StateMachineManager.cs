@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using MonoFSM_Core.Network;
+using MonoFSM_Core.Simulate;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -9,6 +9,7 @@ namespace RCGMaker.Core
     /// <summary>
     /// FIXME: 要做成singleton嗎？
     /// </summary>
+    [Obsolete]
     public class StateMachineManager : MonoBehaviour, IUpdateSimulate //, IBackToMenuDestroy
     {
         public static StateMachineManager Instance => _instance;

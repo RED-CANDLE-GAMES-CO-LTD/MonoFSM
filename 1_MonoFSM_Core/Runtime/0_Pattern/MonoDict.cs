@@ -99,7 +99,7 @@ namespace RCGMaker.Core
                 return;
             if (Application.isPlaying && IsAddValid(value) == false)
             {
-                Debug.LogError($"Key:{key} can't be added in {this}", this);
+                Debug.LogWarning($"Key:{key} can't be added in {this}", this);
                 return;
             }
             if (Contains(key))

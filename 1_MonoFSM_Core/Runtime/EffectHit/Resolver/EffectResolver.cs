@@ -1,6 +1,7 @@
 using System;
 using jerryee.UnityMCP;
 using MonoFSM.Variable.Attributes;
+using RCGExtension;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
@@ -10,7 +11,7 @@ using UnityEngine;
 
 namespace RCGMaker.Runtime.Interact.EffectHit
 {
-    public abstract class EffectResolver : MonoBehaviour, IDefaultSerializable
+    public abstract class EffectResolver : MonoBehaviour, IDefaultSerializable, IHierarchyValueInfo
     {
 #if UNITY_EDITOR
         private GlobalObjectId _globalId;
@@ -56,5 +57,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid(); //condition 可以burst?感覺不會比較快，這個數量級
 
         public IActor Owner => GetComponentInParent<IActor>();
+        public string ValueInfo => IsValid ? "Valid" : "Invalid";
+        public bool IsDrawingValueInfo => Application.isPlaying && isActiveAndEnabled;
     }
 }

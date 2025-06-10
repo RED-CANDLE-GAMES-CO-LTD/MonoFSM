@@ -1,5 +1,7 @@
+using MonoFSM.Variable.Attributes;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
+using RCGMaker.Runtime.FSM.RCGStateMachine.Action.InstantiateAction;
 using UnityEngine;
 
 namespace MonoFSM_Core.Runtime
@@ -21,6 +23,13 @@ namespace MonoFSM_Core.Runtime
     [DefaultExecutionOrder(10000)]
     public class WorldReseter : MonoBehaviour //current world?
     {
+        [CompRef] [Auto] private ISpawnProcessor _spawnProcessor;
+
+        public static GameObject Spawn(GameObject spawnFrom, GameObject obj, Vector3 position, Quaternion rotation)
+        {
+            return spawnFrom.GetComponentInParent<WorldReseter>()._spawnProcessor.Spawn(obj, position, rotation);
+        }
+
         //FIXME: 不可用staitc? local runner用
         private static WorldReseter _currentWorldManager;
         public static WorldReseter CurrentWorldManager => _currentWorldManager;

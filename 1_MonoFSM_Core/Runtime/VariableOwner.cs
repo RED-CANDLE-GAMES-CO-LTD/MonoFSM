@@ -1,4 +1,4 @@
-using MonoFSM_Core.Network;
+using MonoFSM_Core.Simulate;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
 using UnityEngine;
@@ -51,6 +51,7 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine
 
         public void Simulate(float deltaTime)
         {
+            
         }
 
         public void AfterUpdate() //等Simulate都跑完後才CommitValue

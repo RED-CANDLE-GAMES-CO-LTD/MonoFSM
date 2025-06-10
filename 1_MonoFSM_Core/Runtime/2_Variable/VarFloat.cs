@@ -41,10 +41,10 @@ namespace MonoFSM.Variable
 
         public bool IsMax => CurrentValue >= Max;
 
-        [PreviewInInspector]
+        [ShowInDebugMode]
         public bool IsDecreasing => CurrentValue < LastValue;
 
-        [PreviewInInspector]
+        [ShowInDebugMode]
         public bool IsIncreasing => CurrentValue > LastValue;
 
         [AutoChildren(false)] //[PreviewInInspector]
@@ -53,11 +53,11 @@ namespace MonoFSM.Variable
         // [PreviewInInspector] [Component] [AutoChildren]
         // AbstractVariableModifier<float>[] _setOperations;
 
-        [Button]
-        void TestAdd(float value)
-        {
-            Value += value;
-        }
+        // [Button]
+        // void TestAdd(float value)
+        // {
+        //     Value += value;
+        // }
         // public float Value => CurrentValue;
 
         public string ValueInfo => CurrentValue.ToString();

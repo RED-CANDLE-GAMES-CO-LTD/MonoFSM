@@ -8,7 +8,8 @@ using MonoFSM.Foundation;
 
 
 //還是Condition要用Is開頭？
-public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoolProvider, IOverrideHierarchyIcon
+public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoolProvider, IOverrideHierarchyIcon,
+    IHierarchyValueInfo
 {
 #if UNITY_EDITOR
     public string IconName { get; }
@@ -116,4 +117,6 @@ public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoo
     }
 
     public bool IsTrue => FinalResult;
+    public string ValueInfo => FinalResult.ToString();
+    public bool IsDrawingValueInfo => Application.isPlaying && isActiveAndEnabled;
 }

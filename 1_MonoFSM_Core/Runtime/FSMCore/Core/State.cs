@@ -90,6 +90,7 @@ namespace Fusion.Addons.FSM
         {
         }
 
+        //FIXME: netcode想拔掉
         protected virtual int GetNetworkDataWordCount()
         {
             return 0;

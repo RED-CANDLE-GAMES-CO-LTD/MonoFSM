@@ -259,7 +259,7 @@ namespace RCGMaker.Runtime
                     // _receiverTypeSet.Add(receiver.EffectType);
                     if (_receiverTypeMap.ContainsKey(receiver.EffectType))
                     {
-                        Debug.LogError("Receiver type already exists" + receiver.EffectType, receiver);
+                        Debug.Log("Receiver type already exists" + receiver.EffectType, receiver);
                         continue;
                     }
                         

@@ -1,11 +1,11 @@
 using System;
-using MonoFSM_Core.Network;
+using MonoFSM_Core.Simulate;
 using MonoFSM.Variable;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM_Core.Simulate
 {
     //0表示valid
     /// <summary>

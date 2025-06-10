@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
-using ECM2;
-using MonoFSM_Core.Network;
+using MonoFSM_Core.Simulate;
+using MonoFSM.Physics;
+using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.Detection;
+using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
 
@@ -173,7 +176,7 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
 
         private readonly HashSet<Collider> _thisFrameColliders = new();
         private readonly HashSet<Collider> _lastFrameColliders = new();
-        [SerializeReference] public IRayProvider _rayProvider;
+        [Required] [Auto] [CompRef] private IRayProvider _rayProvider;
         
         //update?
         public void Simulate(float deltaTime)
@@ -191,29 +194,6 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
     {
         Ray GetRay();
     }
-    
-    public class CameraRayProvider:IRayProvider
-    {
-        [SerializeField] Camera _mainCamera;
-        public Ray GetRay()
-        {
-            var screenCenter = new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
-            if (_mainCamera == null) _mainCamera = Camera.main;
-            // Create ray from camera through screen center
-            var ray = _mainCamera.ScreenPointToRay(screenCenter);
-            return ray;
-        }
-    }
-    
-    public class TransformForwardRayProvider:IRayProvider
-    {
-        [SerializeField] Transform _transform;
-        public Ray GetRay()
-        {
-            // Create ray from camera through screen center
-            var ray = new Ray(_transform.position, _transform.forward);
-            return ray;
-        }
-    }
+   
 }
 
