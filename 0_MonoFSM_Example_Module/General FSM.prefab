@@ -232,7 +232,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43ebb324ffeb44e90af9e7b03c97510e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fsmLogic: {fileID: 0}
+  fsmLogic: {fileID: 2054098507518886308}
   quickFindLinks: []
 --- !u!114 &3443555521515398386
 MonoBehaviour:

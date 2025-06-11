@@ -2,7 +2,7 @@ using MonoFSM.Variable.Attributes;
 using RCGMaker.Core;
 using UnityEngine;
 
-namespace MonoFSM_Core.Runtime
+namespace MonoFSM.Core.Runtime
 {
     public class ValueFromOwner<T> : MonoBehaviour, IValueProvider
     {

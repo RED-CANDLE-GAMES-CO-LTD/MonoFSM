@@ -1,7 +1,7 @@
 using PrimeTween;
 using UnityEngine;
 
-namespace MonoFSM_Core.Runtime.Action.PrimeTweenAction
+namespace MonoFSM.Core.Runtime.Action.PrimeTweenAction
 {
     public class ShakeLocalPosAction : AbstractStateAction
     {

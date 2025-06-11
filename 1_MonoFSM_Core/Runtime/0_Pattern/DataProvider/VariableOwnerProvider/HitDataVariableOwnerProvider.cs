@@ -29,21 +29,32 @@ public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
 
         if (Application.isPlaying == false)
             return null;
-        
+        if (_hitDataProvider == null)
+        {
+            Debug.LogError("HitDataProvider is null in HitDataVariableOwnerProvider", this);
+            return null;
+        }
+
+        var hitData = _hitDataProvider.GetHitData();
+        if (hitData == null)
+            // Debug.LogError("HitData is null in HitDataVariableOwnerProvider", this);
+            return null;
         switch (ownerType)
         {
             case HitDataVariableOwner.DealerOwner:
 
-                Debug.Log(" HitDataVariableOwner.DealerOwner", _hitDataProvider.GetHitData().Dealer.transform);
-                return _hitDataProvider.GetHitData().Dealer.transform.GetComponentInParent<IVariableOwner>();
+                Debug.Log(" HitDataVariableOwner.DealerOwner", hitData.Dealer.transform);
+                return hitData.Dealer.transform.GetComponentInParent<IVariableOwner>();
             case HitDataVariableOwner.ReceiverOwner:
-                Debug.Log(" HitDataVariableOwner.ReceiverOwner", _hitDataProvider.GetHitData().Receiver.transform);
-                return _hitDataProvider.GetHitData().Receiver.transform.GetComponentInParent<IVariableOwner>();
+                Debug.Log(" HitDataVariableOwner.ReceiverOwner", hitData.Receiver.transform);
+                return hitData.Receiver.transform.GetComponentInParent<IVariableOwner>();
             default:
                 throw new System.NotImplementedException();
         }
     }
 
+    [ShowInDebugMode] private IEffectHitData currentHitData => _hitDataProvider?.GetHitData();
+    
 
     public T GetComponentOfOwner<T>() //好像有點白痴
     {
@@ -54,7 +65,7 @@ public class HitDataVariableOwnerProvider : MonoBehaviour,IVariableOwnerProvider
     }
 }
 
-namespace MonoFSM_Core.Runtime
+namespace MonoFSM.Core.Runtime
 {
     /// <summary>
     /// 從HitDataProvider，從hitData 來拿到 Dealer/Receiver 的 Parent Component

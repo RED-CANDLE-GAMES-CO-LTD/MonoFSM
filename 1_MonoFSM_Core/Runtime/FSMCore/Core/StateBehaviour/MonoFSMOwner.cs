@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 {
+    /// <summary>
+    /// FIXME: 好像可以和 StateMachineLogic 合併成一個 MonoBehaviour
+    /// </summary>
     [RequireComponent(typeof(StateMachineLogic))]
     public class MonoFSMOwner : MonoBehaviour, IStateMachineOwner
     {

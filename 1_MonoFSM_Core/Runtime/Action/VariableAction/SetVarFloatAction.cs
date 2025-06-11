@@ -4,7 +4,7 @@ using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.DataProvider;
 using Sirenix.OdinInspector;
 
-namespace MonoFSM_Core.Runtime.Action.VariableAction
+namespace MonoFSM.Core.Runtime.Action.VariableAction
 {
     public class SetVarFloatAction : AbstractStateAction
     {

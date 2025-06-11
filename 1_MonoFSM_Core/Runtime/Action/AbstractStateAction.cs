@@ -8,7 +8,7 @@ using RCGMaker.Runtime.Vote;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace MonoFSM_Core.Runtime.Action
+namespace MonoFSM.Core.Runtime.Action
 {
     //IEventInvoker?
     public interface IActionParent //給GameObject結構Validate用的

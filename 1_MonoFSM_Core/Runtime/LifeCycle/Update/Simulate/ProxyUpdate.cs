@@ -1,8 +1,8 @@
 using System;
-using MonoFSM_Core.Simulate;
+using MonoFSM.Core.Simulate;
 using UnityEngine;
 
-namespace MonoFSM_Core.Update
+namespace MonoFSM.Core.Update
 {
     // UI, local端的
     public class ProxyUpdate : MonoBehaviour //會和local simulator衝突嗎？

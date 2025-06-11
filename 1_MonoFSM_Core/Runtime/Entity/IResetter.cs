@@ -1,3 +1,5 @@
+using MonoFSM.Core.Simulate;
+
 public interface IResetter
 {
     //注意 
@@ -9,34 +11,6 @@ public interface IResetter
     void ExitLevelAndDestroy(); //目前沒有特別意義，只有換景會call，和OnDestroy差不多
 }
 
-//1. 先回狀態
-public interface IResetStateRestore //新規用這個，現在和上面都有call, exitLevelAndDestroy是為了換場景很煩可以拔掉
-{
-    void ResetStateRestore();
-}
-
-//2. 在跑這個
-public interface IResetStart //摸別人,set 變數之類的，要不然會reset掉
-{
-    void ResetStart();
-}
-
-public interface IInstantiated
-{
-    void OnInstantiated();
-}
-
-/// <summary>
-/// 1.LevelAwake,
-/// 2.LevelAwakeReverse
-/// 3.LevelStart,
-/// 4.LevelStartReverse
-/// </summary>
-//關著也能call
-public interface ISceneAwake //摸自己, Prefab也需要(一次性
-{
-    void EnterSceneAwake();
-}
 
 public interface ILevelConfig //應該不需要了？
 {

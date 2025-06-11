@@ -1,4 +1,4 @@
-using MonoFSM_Core.Simulate;
+using MonoFSM.Core.Simulate;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
 using UnityEngine;

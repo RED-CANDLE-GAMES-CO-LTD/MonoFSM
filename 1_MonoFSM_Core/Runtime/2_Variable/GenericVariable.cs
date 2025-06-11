@@ -18,6 +18,7 @@ using RCGMaker.Core.Attributes;
 using MonoFSM.RCGMakerFSMCore.Tracking;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
+using MonoFSMCore.Runtime.LifeCycle;
 
 //FIXME: autoGen太複雜，可能需要再拆漂亮
 //TODO: 現在根本還沒做監聽，是用condition做polling

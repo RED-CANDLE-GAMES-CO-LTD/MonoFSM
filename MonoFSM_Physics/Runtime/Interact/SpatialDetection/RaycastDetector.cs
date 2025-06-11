@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using MonoFSM_Core.Simulate;
+using MonoFSM.Core.Simulate;
 using MonoFSM.Physics;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
@@ -9,7 +9,7 @@ using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
 
-namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
+namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 {
     public class RaycastDetector : AbstractDetector, IUpdateSimulate
     {
@@ -155,7 +155,7 @@ namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
                     }
                 }
                 else
-                if (Physics.Raycast(ray, out var hit, _distance, HittingLayer))
+                if (UnityEngine.Physics.Raycast(ray, out var hit, _distance, HittingLayer))
                 {
                     _cachedHits.Add(hit);
                     _thisFrameColliders.Add(hit.collider);

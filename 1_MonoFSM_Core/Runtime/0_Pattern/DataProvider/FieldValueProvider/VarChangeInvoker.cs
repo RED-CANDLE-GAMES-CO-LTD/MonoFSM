@@ -1,5 +1,6 @@
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
+using MonoFSMCore.Runtime.LifeCycle;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -17,7 +18,7 @@ namespace RCGMaker.Core.DataProvider
         [Required] [CompRef] [Auto] private AbstractFieldOfVarProvider _fieldOfVarProvider; //用這個值
         [Required] [CompRef] [Auto] private IDataChangedListener _dataChangedListener; //給這個對象
 
-
+//Proxy updater要怎麼辦？沒有備注冊進去？
         public void ResetStart() //FIXME: 應該在這註冊？還是scene註冊一次就好？
         {
             var listenToVar = _variableProviderRef.VarRaw;

@@ -1,4 +1,5 @@
 using System;
+using MonoFSMCore.Runtime.LifeCycle;
 using RCGMaker.Core;
 using RCGMaker.Runtime.Mono;
 using UnityEngine;
@@ -105,7 +106,8 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
         public static T GetGlobalInstance<T>(this MonoBehaviour mono) where T : MonoDescriptable, IGlobalInstance
         {
             var type = typeof(T);
-            var binder = mono.GetComponentInParent<MonoDescriptableBinder>();
+            var monoObj = mono.GetComponentInParent<MonoPoolObj>();
+            var binder = monoObj.WorldUpdateSimulator.GetComponent<MonoDescriptableBinder>();
             if (binder == null)
             {
                 Debug.LogError("No MonoDescriptableBinder found " + type, mono);
@@ -134,7 +136,8 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
             }
 
             //FIXME: 這個是從Binder往下找，可能有多個，不太好？
-            var binder = mono.GetComponentInParent<MonoDescriptableBinder>();
+            var monoObj = mono.GetComponentInParent<MonoPoolObj>();
+            var binder = monoObj.WorldUpdateSimulator.GetComponent<MonoDescriptableBinder>();
             if (binder == null)
             {
 #if UNITY_EDITOR //如果在Prefab裡不要噴error
@@ -166,19 +169,19 @@ namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
         }
 
         //不需要provider?
-        public static MonoDescriptable GetMonoCompInParent(this MonoBehaviour mono, string tag)
-        {
-            //FIXME: 效能不好？怎麼cache binder? 在弄一個dict? 樹狀結構改變呢？
-            var binder = mono.GetComponentInParent<MonoDescriptableBinder>();
-            if (binder == null)
-            {
-                Debug.LogError("No MonoDescriptableBinder found " + tag, mono);
-                return null;
-            }
-
-            var descriptable = binder.Get(tag);
-            return descriptable;
-        }
+        // public static MonoDescriptable GetMonoCompInParent(this MonoBehaviour mono, string tag)
+        // {
+        //     //FIXME: 效能不好？怎麼cache binder? 在弄一個dict? 樹狀結構改變呢？
+        //     var binder = mono.GetComponentInParent<MonoDescriptableBinder>();
+        //     if (binder == null)
+        //     {
+        //         Debug.LogError("No MonoDescriptableBinder found " + tag, mono);
+        //         return null;
+        //     }
+        //
+        //     var descriptable = binder.Get(tag);
+        //     return descriptable;
+        // }
         
        
     }

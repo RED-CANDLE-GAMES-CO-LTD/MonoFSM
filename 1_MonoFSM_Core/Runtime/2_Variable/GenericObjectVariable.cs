@@ -1,5 +1,5 @@
 using System;
-
+using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine;
 using UnityEngine.Events;
 using Object = UnityEngine.Object;
@@ -119,7 +119,14 @@ namespace MonoFSM.Variable
             // Debug.Log("Set value to " + value, this);
             _currentValue = value as TValueType;
             OnValueChanged?.Invoke(_currentValue); //多一個參數的版本
+#if UNITY_EDITOR
+            _lastSetByWho = byWho;
+#endif
         }
+
+#if UNITY_EDITOR
+        [ShowInDebugMode] private Object _lastSetByWho;
+#endif
 
         public override void ClearValue()
         {

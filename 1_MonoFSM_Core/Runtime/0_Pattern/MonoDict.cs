@@ -4,6 +4,7 @@ using System.Diagnostics;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;

@@ -1,0 +1,167 @@
+using System.Collections.Generic;
+using System.Linq;
+using _1_MonoFSM_Core.Runtime.LifeCycle.Update.Simulate;
+using MonoFSM.Variable.Attributes;
+using RCGMaker.Core.Attributes;
+using MonoFSM.Core.LifeCycle;
+using MonoFSMCore.Runtime.LifeCycle;
+using Sirenix.OdinInspector;
+using Sirenix.Utilities;
+using UnityEngine;
+
+namespace MonoFSM.Core.Simulate
+{
+    //fixme: 還是要中心化註冊？怎麼做比較好？ cal
+    public interface ISimulateRunner
+    {
+    }
+
+    //要當作世界系統中心嗎？但如果是runner旁邊的話，就不在scene上喔
+
+    //NOTE: 放在runner上!
+    //場上可以有收集器？還是另外自己做掉?
+    [DefaultExecutionOrder(10000)] //確保在所有Update之後執行
+    public sealed class WorldUpdateSimulator : MonoBehaviour
+    {
+        //反綁？
+        //fsm reset?, simulate runner 
+        [Required] [CompRef] [Auto] private ISimulateRunner _simulateRunner;
+
+        //FIXME: Spawn要不要過我？
+        [Required] [CompRef] [Auto] private ISpawnProcessor _spawnProcessor;
+
+        private void Awake()
+        {
+            _spawnProcessor = GetComponent<ISpawnProcessor>();
+            _simulateRunner = GetComponent<ISimulateRunner>();
+            // _simulators.AddRange(_localSimulators); //不需要了？
+        }
+
+        public MonoPoolObj Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation)
+        {
+            return _spawnProcessor.Spawn(obj, position, rotation);
+        }
+
+        public void RegisterMonoObject(MonoPoolObj target)
+        {
+            _monoObjects.Add(target);
+            target.WorldUpdateSimulator = this;
+        }
+
+        public void UnregisterMonoObject(MonoPoolObj target)
+        {
+            _monoObjects.Remove(target);
+            target.WorldUpdateSimulator = null; //清除引用
+        }
+
+        private void SceneAwake()
+        {
+            //這個是用來做初始化的？
+            foreach (var monoObject in _monoObjects) monoObject.SceneAwake(this);
+            // Debug.Log($"MonoPoolObj {monoObject.name} has entered scene awake.");
+        }
+
+        private void SceneStart()
+        {
+            foreach (var monoObject in _monoObjects) monoObject.HandleSceneStart();
+        }
+
+        //從player進入？
+        public void ResetLevel()
+        {
+            foreach (var mono in _monoObjects) mono.ResetLevel();
+        }
+
+        public void ResetLevelStart()
+        {
+            foreach (var mono in _monoObjects) mono.ResetLevelStart();
+        }
+
+        public void WorldInit()
+        {
+            //SceneAwake可以自己做ㄅ？
+            IsReady = true;
+            SceneAwake();
+            SceneStart();
+            ResetLevel();
+            ResetLevelStart();
+        }
+
+        //FIXME: 可能會動態移除
+        // [PreviewInInspector] [AutoChildren] private IUpdateSimulate[] _localSimulators;
+
+        // private readonly HashSet<IUpdateSimulate> _simulators = new(); //HashSet?
+
+        // [PreviewInInspector] [AutoChildren] private IMonoObject[] _localMonoObjects; //FIXME這顆要掛在？
+        private readonly HashSet<MonoPoolObj> _monoObjects = new(); //這個是用來做reset的？還是要有一個MonoObjectRunner?
+
+#if UNITY_EDITOR
+        // [PreviewInInspector] private IUpdateSimulate[] PreviewSimulators => _simulators.ToArray();
+        [PreviewInInspector] private MonoPoolObj[] PreviewMonoObjects => _monoObjects.ToArray();
+        public bool IsReady { get; private set; } = false;
+
+#endif
+
+
+        /// <summary>
+        /// 需要依照環境決定怎麼simulate
+        /// </summary>
+        /// <param name="deltaTime"></param>
+        public void Simulate(float deltaTime)
+        {
+            if (!IsReady)
+                return;
+            // if (_simulators == null || _simulators.Count == 0)
+            // {
+            //     Debug.LogWarning("No simulators found to simulate.");
+            //     return;
+            // }
+
+            //FIXME: isProxy? 要ㄇ 跳過模擬，或是regiester要兩階段
+            foreach (var monoObject in _monoObjects)
+                if (monoObject is { isActiveAndEnabled: true })
+                    monoObject.Simulate(deltaTime);
+            // else
+            //     Debug.LogWarning("A mono object is null or not active and enabled, skipping simulation.");
+
+            // foreach (var simulator in _simulators)
+            //     if (simulator is { isActiveAndEnabled: true })
+            //         simulator.Simulate(deltaTime);
+        }
+
+        public void AfterUpdate()
+        {
+            if (!IsReady)
+                return;
+            foreach (var monoObject in _monoObjects)
+                if (monoObject is { isActiveAndEnabled: true })
+                    monoObject.AfterUpdate();
+            // else
+            //     Debug.LogWarning("A mono object is null or not active and enabled, skipping after update.");
+        }
+
+
+#if UNITY_EDITOR
+        [UnityEditor.MenuItem("MonoFSM/ResetLevel %R")]
+        public static void TestResetLevel()
+        {
+            if (Application.isPlaying)
+            {
+                Debug.Log("ResetLevel CMD+Shift+R");
+                var simulators = FindObjectsByType<WorldUpdateSimulator>(FindObjectsSortMode.None);
+                if (simulators.Length == 0)
+                    Debug.LogError(
+                        "No WorldUpdateSimulator found in the scene. Ensure it is present for proper reset.");
+                else
+                    foreach (var simulator in simulators)
+                        //這樣就可以reset了
+                        simulator.ResetLevel();
+            }
+            else
+            {
+                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+            }
+        }
+#endif
+    }
+}

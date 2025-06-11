@@ -1,3 +1,4 @@
+using MonoFSMCore.Runtime.LifeCycle;
 using RCGMaker.Core.Attributes;
 
 namespace RCGMaker.Core

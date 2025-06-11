@@ -1,5 +1,5 @@
 using System;
-using MonoFSM_Core.Runtime;
+using MonoFSM.Core.Runtime;
 using UnityEngine;
 
 namespace RCGMaker.Core
@@ -11,6 +11,7 @@ namespace RCGMaker.Core
     //怎麼檢查...
     
     //單機用
+    [Obsolete]
     [RequireComponent(typeof(WorldReseter))]
     public class LocalLevelRunner : MonoBehaviour // SingletonBehaviour<LevelRunner>
     {

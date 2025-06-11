@@ -1,5 +1,6 @@
 using RCGMaker.Core;
 #if UNITY_EDITOR
+using RCGExtension;
 using UnityEditor;
 // using UnityEditor.SettingsManagement;
 #endif
@@ -50,6 +51,7 @@ namespace RCGSetting
             {
                 // RCGDebugSetting.IsDebugMode.SetValue(!RCGDebugSetting.IsDebugMode.value);
                 RCGDebugSetting.IsDebugMode = !RCGDebugSetting.IsDebugMode;
+                HierarchyDebug.IsDebugMode = RCGDebugSetting.IsDebugMode;
                 EditorPrefs.SetBool("DebugSetting.IsDebugMode", RCGDebugSetting.IsDebugMode);
                 Debug.Log("ToggleDebugMode: "+ RCGDebugSetting.IsDebugMode + " " + EditorPrefs.GetBool("DebugSetting.IsDebugMode",false));
                 EditorApplication.RepaintHierarchyWindow();

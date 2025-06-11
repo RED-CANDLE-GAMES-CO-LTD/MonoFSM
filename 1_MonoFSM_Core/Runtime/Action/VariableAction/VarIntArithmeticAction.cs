@@ -1,6 +1,6 @@
 using System;
 using jerryee.UnityMCP;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using Sirenix.OdinInspector;
 
 namespace RCGFSM.Variable

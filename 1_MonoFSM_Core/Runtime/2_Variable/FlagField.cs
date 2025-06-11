@@ -180,6 +180,13 @@ public class FlagFieldBool : FlagField<bool>
 {
     public bool IsJustBecameTrue => _lastValue == false && _currentValue == true;
 
+    public bool Value
+    {
+        get => CurrentValue;
+
+        set => SetCurrentValue(value);
+    }
+
     public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj)) return false;

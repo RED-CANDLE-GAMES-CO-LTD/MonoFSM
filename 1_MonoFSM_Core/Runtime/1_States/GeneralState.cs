@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Core;
 using RCGExtension;

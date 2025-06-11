@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace MonoFSM_Core.AI
+namespace MonoFSM.Core.AI
 {
     public static class ClassTypeManifestGenerator
     {
@@ -16,7 +16,7 @@ namespace MonoFSM_Core.AI
         {
             var persistentDataPath = Application.persistentDataPath;
             if (Directory.Exists(persistentDataPath))
-                EditorUtility.RevealInFinder(persistentDataPath);
+                UnityEditor.EditorUtility.RevealInFinder(persistentDataPath);
             else
                 Debug.LogError($"Persistent data folder does not exist: {persistentDataPath}");
         }
@@ -27,7 +27,7 @@ namespace MonoFSM_Core.AI
         {
             var tempCachePath = Application.temporaryCachePath;
             if (Directory.Exists(tempCachePath))
-                EditorUtility.RevealInFinder(tempCachePath);
+                UnityEditor.EditorUtility.RevealInFinder(tempCachePath);
             else
                 Debug.LogError($"Temporary cache folder does not exist: {tempCachePath}");
         }

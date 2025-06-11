@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine.InputSystem;

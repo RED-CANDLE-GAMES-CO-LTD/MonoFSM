@@ -1,10 +1,13 @@
+using System;
+using System.Collections.Generic;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.FSM.RCGStateMachine.Action.InstantiateAction;
+using MonoFSM.Core.LifeCycle;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace MonoFSM_Core.Runtime
+namespace MonoFSM.Core.Runtime
 {
     //FIXME: network level runner...
     /// <summary>
@@ -20,15 +23,30 @@ namespace MonoFSM_Core.Runtime
     /// The class has a high execution order (10000) to ensure it runs after other components have initialized.
     /// In the editor, it adds a menu item for resetting the level with a keyboard shortcut (CMD+Shift+R).
     /// </remarks>
+    [Obsolete]
     [DefaultExecutionOrder(10000)]
-    public class WorldReseter : MonoBehaviour //current world?
+    public class WorldReseter : MonoBehaviour //current world? //這個才該放在Runner上？
     {
+        [Required]
         [CompRef] [Auto] private ISpawnProcessor _spawnProcessor;
 
-        public static GameObject Spawn(GameObject spawnFrom, GameObject obj, Vector3 position, Quaternion rotation)
-        {
-            return spawnFrom.GetComponentInParent<WorldReseter>()._spawnProcessor.Spawn(obj, position, rotation);
-        }
+        //FIXME: 感覺怪怪der
+        //如何找到一個「系統」
+        //
+        // public static GameObject Spawn(GameObject spawnFrom, GameObject obj, Vector3 position, Quaternion rotation)
+        // {
+        //     spawnFrom.scene.GetRootGameObjects(rootGameObjects);
+        //
+        //     //問題：要保證在worldReseter下面
+        //     return spawnFrom.GetComponentInParent<WorldReseter>()._spawnProcessor.Spawn(obj, position, rotation);
+        // }
+
+
+        /// <summary>
+        /// Cache? scene?
+        /// </summary>
+        /// 
+        private static List<GameObject> rootGameObjects = new();
 
         //FIXME: 不可用staitc? local runner用
         private static WorldReseter _currentWorldManager;
@@ -38,31 +56,13 @@ namespace MonoFSM_Core.Runtime
         {
             _currentWorldManager = this; 
         }
-#if UNITY_EDITOR
-        [UnityEditor.MenuItem("MonoFSM/ResetLevel %R")]
-        public static void TestResetLevel()
-        {
-            if (Application.isPlaying)
-            {
-                Debug.Log("ResetLevel CMD+Shift+R");
-                FindFirstObjectByType<WorldReseter>().ResetLevel();
-            }
-            else
-            {
-#if UNITY_EDITOR
-                UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
-#endif
-            }
-        }
-#endif
-        public void ResetLevel()
-        {
-            PoolManager.ResetReload(level);
-        }
+
         private GameObject level;
 
+        //FIXME: 讓PoolObject reset就好
         public void OnLevelStart() //怎麼警告沒有start？
         {
+            Debug.LogError("OnLevelStart is deprecated, use OnSceneLoaded instead.");
             // Application.targetFrameRate = 60;
             // Debug.Log("OnSceneLoaded" + arg0.name);
             var arg0 = gameObject.scene;
@@ -86,7 +86,7 @@ namespace MonoFSM_Core.Runtime
 
             // Debug.Log("LevelRunner Start");
             //每次重置都要做的, LevelReset, LevelResetAfter?
-            ResetLevel(); //FIXME: network的時間點要在playerspawn之後?重新整理
+            // ResetLevel(); //FIXME: network的時間點要在playerspawn之後?重新整理
             //EnterLevelReset
         }
         

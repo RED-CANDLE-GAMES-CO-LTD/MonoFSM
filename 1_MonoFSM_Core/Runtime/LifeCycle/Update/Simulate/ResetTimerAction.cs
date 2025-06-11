@@ -1,5 +1,5 @@
-using MonoFSM_Core.Runtime.Action;
-using MonoFSM_Core.Simulate;
+using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Core.Simulate;
 using RCGMaker.Core.DataProvider;
 using UnityEngine;
 

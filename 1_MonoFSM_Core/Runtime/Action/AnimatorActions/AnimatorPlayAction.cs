@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Foundation;
 using RCGMaker.Core.Editor;
 using UnityEngine.Serialization;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Editor;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
@@ -195,8 +195,17 @@ namespace MonoFSM.Core
 
         private bool TryTransition(ref TransitionData<TState> transition)
         {
-            if (transition.Transition(this as TState, transition.TargetState) == false)
+            try
+            {
+                if (transition.Transition(this as TState, transition.TargetState) == false)
+                    return false;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Transition failed from {Name} to {transition.TargetState.Name}: {e.Message}", this);
                 return false;
+            }
+            
 
             // if (transition.IsForced == true)
             //     return true;

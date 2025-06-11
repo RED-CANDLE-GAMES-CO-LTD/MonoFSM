@@ -1,4 +1,4 @@
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Events;

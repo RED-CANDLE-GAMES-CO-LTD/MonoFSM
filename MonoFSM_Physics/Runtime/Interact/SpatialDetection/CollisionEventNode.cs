@@ -2,7 +2,7 @@ using RCGMaker.Core.Attributes;
 using RCGMaker.Runtime.Interact.EffectHit;
 using UnityEngine;
 
-namespace MonoFSM_Core.Runtime.Interact.SpatialDetection
+namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 {
     public class CollisionEventNode : AbstractEffectNode, ICollisionDataProvider
     {

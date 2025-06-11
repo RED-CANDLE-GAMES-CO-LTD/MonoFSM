@@ -3,7 +3,7 @@ using jerryee.UnityMCP;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 
-namespace MonoFSM_Core.Runtime.Action.VariableAction
+namespace MonoFSM.Core.Runtime.Action.VariableAction
 {
     //FIXME: 不好，應該是value provider有個是max就好
     [Obsolete]

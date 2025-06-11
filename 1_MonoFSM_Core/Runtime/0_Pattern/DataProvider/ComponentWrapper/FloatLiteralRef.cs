@@ -2,7 +2,7 @@ using MonoFSM.DataProvider;
 using RCGMaker.Core.DataProvider;
 using UnityEngine;
 
-namespace MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
+namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
 {
     public class FloatLiteralRef : MonoBehaviour, IFloatProvider
     {

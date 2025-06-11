@@ -1,7 +1,7 @@
 using MonoFSM.Variable;
 using UnityEngine;
 
-namespace MonoFSM_Core.Runtime.Action.VariableAction
+namespace MonoFSM.Core.Runtime.Action.VariableAction
 {
     public class SetVarTransformAction: AbstractStateAction, IArgEventReceiver<Transform>
     {

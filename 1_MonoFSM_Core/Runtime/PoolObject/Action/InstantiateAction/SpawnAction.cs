@@ -1,17 +1,18 @@
 using System;
-using MonoFSM_Core.Runtime;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime;
+using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
+using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action.InstantiateAction
+namespace MonoFSM.Core.LifeCycle
 {
     //重寫FXPlayer
     public class SpawnAction : AbstractStateAction
     {
         //FIXME: 還是限定型別ㄅ
-        [FormerlySerializedAs("target")] public GameObject _target;
+        [FormerlySerializedAs("target")] public MonoPoolObj _target;
      
 
         protected override void OnStateEnterImplement()
@@ -22,14 +23,16 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action.InstantiateAction
             Spawn(_target, transform.position, transform.rotation);
         }
 
-        private GameObject Spawn(GameObject obj, Vector3 position, Quaternion rotation)
+
+        private MonoPoolObj Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation)
         {
+            var monoObj = GetComponentInParent<MonoPoolObj>();
+            return monoObj.WorldUpdateSimulator.Spawn(obj, position, rotation); //Runner.spawn?
             // if (_spawnProcessor != null)
             //     return _spawnProcessor.Spawn(obj, position, rotation);
-            return WorldReseter.Spawn(gameObject, _target, transform.position, transform.rotation);
             //FIXME: singleton是錯的！
             //內建的方法
-            return PoolManager.Instance.BorrowOrInstantiate(obj, position, rotation);
+            // return PoolManager.Instance.BorrowOrInstantiate(obj, position, rotation);
         }
 
         // private void OnEnable()
@@ -41,13 +44,13 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action.InstantiateAction
             // base.EventReceived(arg);
             //噴Receiver的位置?
             var t = arg.Receiver.transform;
-            Spawn(_target.gameObject, t.position, t.rotation);
+            Spawn(_target, t.position, t.rotation);
             // var newObj = PoolManager.Instance.BorrowOrInstantiate(target, t.position, t.rotation);
         }
     }
 
-    public interface ISpawnProcessor
+    public interface ISpawnProcessor //想找一個static的對象來生成物件 (但不能真的static，multi peer的話)
     {
-        GameObject Spawn(GameObject obj, Vector3 position, Quaternion rotation);
+        MonoPoolObj Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation);
     }
 }

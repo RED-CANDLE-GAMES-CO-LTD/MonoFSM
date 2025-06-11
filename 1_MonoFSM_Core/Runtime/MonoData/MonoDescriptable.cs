@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using MonoFSM_Core.Runtime;
+using MonoFSM.Core.Runtime;
+using MonoFSM.Core.Simulate;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
+using MonoFSMCore.Runtime.LifeCycle;
 using RCGMaker.Core.DataProvider;
 using RCGMaker.Runtime.FSM.RCGStateMachine;
 using RCGMaker.Runtime.Interact.EffectHit;
@@ -28,10 +30,19 @@ namespace RCGMaker.Runtime
         IBeforePrefabSaveCallbackReceiver, IGameDataProvider //這樣data也要一直繼承，好ㄇ...
     {
         public VarFloat this[string statName] => GetVariable(statName) as VarFloat;
-        public void OnInstantiated()
+
+        public void OnInstantiated(WorldUpdateSimulator world)
         {
             //network要看authoring... network版的？啥？ NetworkMonoDescriptableBinder?
-            WorldReseter.CurrentWorldManager?.GetComponent<MonoDescriptableBinder>().Add(DescriptableTag, this);
+            //想要註冊世界了，顆顆
+            //掉在外面就不能註冊了，binder是不是不好？
+            //從world去bind?
+            var worldBinder = world.GetComponent<MonoDescriptableBinder>();
+            if (worldBinder)
+                worldBinder.Add(DescriptableTag, this); //註冊法
+            else
+                Debug.LogError("MonoDescriptableBinder not found in parent, cannot register to world binder", this);
+            // GetComponent<MonoDescriptableBinder>().Add(DescriptableTag, this);
         }
 
         public void OnBeforePrefabSave()

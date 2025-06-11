@@ -1,7 +1,7 @@
 using RCGMaker.Core;
 using Sirenix.OdinInspector;
 
-namespace MonoFSM_Core.Runtime.LevelDesign._3DObject
+namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
 {
     using UnityEngine;
 

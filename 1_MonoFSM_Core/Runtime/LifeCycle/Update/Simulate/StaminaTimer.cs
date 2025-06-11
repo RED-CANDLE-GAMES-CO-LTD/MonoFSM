@@ -1,5 +1,5 @@
 using System;
-using MonoFSM_Core.Simulate;
+using MonoFSM.Core.Simulate;
 using RCGMaker.Core.Attributes; // For DropDownRef, PreviewInInspector
 using MonoFSM.Variable; // For VarFloat, VarStat, VarBool
 using UnityEngine;

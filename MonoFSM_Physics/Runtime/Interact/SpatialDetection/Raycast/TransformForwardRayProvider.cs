@@ -1,5 +1,5 @@
 using System;
-using MonoFSM_Core.Runtime.Interact.SpatialDetection;
+using MonoFSM.Core.Runtime.Interact.SpatialDetection;
 using UnityEngine;
 
 namespace MonoFSM.Physics

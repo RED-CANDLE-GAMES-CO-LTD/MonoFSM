@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace MonoFSM_Core.Tests.Runtime.ComponentTest
+namespace MonoFSM.Core.Tests.Runtime.ComponentTest
 {
     public class TestComp : MonoBehaviour
     {

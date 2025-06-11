@@ -1,4 +1,4 @@
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 
 namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
 {

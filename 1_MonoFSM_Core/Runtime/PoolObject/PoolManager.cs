@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Auto.Utils;
 using Cysharp.Threading.Tasks;
+using MonoFSMCore.Runtime.LifeCycle;
 using RCGMaker.AddressableAssets;
 using RCGMaker.Runtime;
 using UnityEngine;
@@ -48,6 +49,9 @@ public class PoolNativeObjectManager<T> where T : INativePool, new()
 
 public delegate void BeforeActiveHandler(PoolObject obj);
 
+/// <summary>
+/// FIXME: 重寫！
+/// </summary>
 public class PoolManager : SingletonBehaviour<PoolManager>
 {
     public static void PreparePoolObjectImplementation(PoolObject obj)

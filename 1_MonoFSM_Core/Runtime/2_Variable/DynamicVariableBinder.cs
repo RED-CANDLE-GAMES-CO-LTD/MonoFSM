@@ -1,4 +1,5 @@
 using MonoFSM.Variable.VariableBinder;
+using MonoFSMCore.Runtime.LifeCycle;
 
 namespace MonoFSM.Variable
 {

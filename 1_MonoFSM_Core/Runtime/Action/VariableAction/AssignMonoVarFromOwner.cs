@@ -1,4 +1,4 @@
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Runtime;
 using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
@@ -13,11 +13,12 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
 
         protected override void OnStateEnterImplement()
         {
+            Debug.Log($"AssignMonoVarFromOwner: Assigning {_ownerProvider.Description} to {_varMono.name}");
             var source = _ownerProvider.GetComponentOfOwner<MonoDescriptable>();
             _varMono.SetValue(source, this);
         }
 
         public override string Description =>
-            $"Assign {_ownerProvider.Description} to {_varMono.name}";
+            $"Assign {_ownerProvider?.Description} to {_varMono?.name}";
     }
 }

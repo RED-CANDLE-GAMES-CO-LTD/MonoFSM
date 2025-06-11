@@ -1,11 +1,11 @@
 using System;
-using MonoFSM_Core.Simulate;
+using MonoFSM.Core.Simulate;
 using MonoFSM.Variable;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace MonoFSM_Core.Simulate
+namespace MonoFSM.Core.Simulate
 {
     //0表示valid
     /// <summary>
@@ -13,6 +13,8 @@ namespace MonoFSM_Core.Simulate
     /// </summary>
     public class VarFloatCountDownTimer : MonoBehaviour, IUpdateSimulate, ISceneStart
     {
+        
+        
         [InfoBox(
             "This timer counts down from a specified value to zero. It can be reset to a maximum value or a specific value. It is used to control the timing of events in the game.")]
         [DropDownRef] public VarFloat currentTime;

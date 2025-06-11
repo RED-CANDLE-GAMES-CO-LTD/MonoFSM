@@ -1,5 +1,5 @@
-using MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper;
+using MonoFSM.Core.Runtime.Action;
 using MonoFSM.DataProvider;
 using RCGMaker.Core.Attributes;
 using RCGMaker.Core.DataProvider;

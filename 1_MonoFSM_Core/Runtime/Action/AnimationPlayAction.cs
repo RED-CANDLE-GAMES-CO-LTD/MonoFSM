@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using Sirenix.OdinInspector;
 
 #if UNITY_EDITOR

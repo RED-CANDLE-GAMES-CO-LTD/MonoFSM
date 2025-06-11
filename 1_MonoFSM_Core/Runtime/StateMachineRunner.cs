@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MonoFSM_Core.Simulate;
+using MonoFSM.Core.Simulate;
 using UnityEngine;
 using UnityEngine.Profiling;
 using RCGMaker.Core.Attributes;

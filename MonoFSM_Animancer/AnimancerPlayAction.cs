@@ -1,5 +1,5 @@
 using Animancer;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using UnityEngine;
 
 namespace MonoFSM_Animancer

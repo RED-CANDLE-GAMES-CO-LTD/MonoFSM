@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using MonoFSM_Core.Simulate;
+using MonoFSM.Core.Simulate;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

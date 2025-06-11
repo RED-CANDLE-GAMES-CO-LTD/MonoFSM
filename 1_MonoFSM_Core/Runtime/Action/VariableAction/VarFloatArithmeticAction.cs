@@ -1,5 +1,5 @@
 using System;
-using MonoFSM_Core.Runtime.Action;
+using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
