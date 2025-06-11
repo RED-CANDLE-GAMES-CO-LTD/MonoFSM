@@ -8,6 +8,36 @@
   ],
   "customData": {},
   "interfaceDefinitions": {
+    "IVariableOwnerProvider": {
+      "methods": [
+        "GetVariableOwner",
+        "GetComponentOfOwner",
+        "get_Description"
+      ],
+      "properties": [
+        "Description"
+      ]
+    },
+    "IHierarchyValueInfo": {
+      "methods": [
+        "get_ValueInfo",
+        "get_IsDrawingValueInfo"
+      ],
+      "properties": [
+        "ValueInfo",
+        "IsDrawingValueInfo"
+      ]
+    },
+    "IDrawHierarchyBackGround": {
+      "methods": [
+        "get_BackgroundColor",
+        "get_IsDrawGUIHierarchyBackground"
+      ],
+      "properties": [
+        "BackgroundColor",
+        "IsDrawGUIHierarchyBackground"
+      ]
+    },
     "IBeforePrefabSaveCallbackReceiver": {
       "methods": [
         "OnBeforePrefabSave"
@@ -25,34 +55,48 @@
       "methods": [
         "get_IconName",
         "get_IsDrawingIcon",
-        "get_CustomIcon"
+        "get_CustomIcon",
+        "get_IsPosAtHead"
       ],
       "properties": [
         "IconName",
         "IsDrawingIcon",
-        "CustomIcon"
+        "CustomIcon",
+        "IsPosAtHead"
       ]
     },
-    "IDefaultSerializable": {},
-    "IReferenceTarget": {},
-    "IDrawHierarchyBackGround": {
+    "IOwnedState`1": {
       "methods": [
-        "get_BackgroundColor",
-        "get_IsDrawGUIHierarchyBackground"
+        "get_Machine",
+        "set_Machine"
       ],
       "properties": [
-        "BackgroundColor",
-        "IsDrawGUIHierarchyBackground"
+        "Machine"
       ]
     },
-    "IState`1": {
+    "IState": {
       "methods": [
-        "get_Context",
-        "TransitionCheck",
-        "TransitionCheck"
+        "get_StateId",
+        "set_StateId",
+        "get_Name",
+        "Initialize",
+        "Deinitialize",
+        "CanEnterState",
+        "CanExitState",
+        "OnEnterState",
+        "OnFixedUpdate",
+        "OnExitState",
+        "OnEnterStateRender",
+        "OnRender",
+        "OnExitStateRender",
+        "GetWordCount",
+        "Read",
+        "Write",
+        "Interpolate"
       ],
       "properties": [
-        "Context"
+        "StateId",
+        "Name"
       ]
     },
     "IDrawDetail": {
@@ -61,27 +105,6 @@
       ],
       "properties": [
         "IsFullRect"
-      ]
-    },
-    "INodeModel": {
-      "methods": [
-        "get_position",
-        "set_position"
-      ],
-      "properties": [
-        "position"
-      ]
-    },
-    "IActionParent": {},
-    "IGuidEntity": {},
-    "IConditionChangeListener": {
-      "methods": [
-        "OnConditionChanged"
-      ]
-    },
-    "IResetStateRestore": {
-      "methods": [
-        "ResetStateRestore"
       ]
     },
     "ISkippableAnimationTransition": {
@@ -106,6 +129,7 @@
         "OnBeforeSceneSave"
       ]
     },
+    "IGuidEntity": {},
     "IValueOfKey`1": {
       "methods": [
         "get_Key"
@@ -114,7 +138,13 @@
         "Key"
       ]
     },
-    "IGameStateOwner": {},
+    "IDefaultSerializable": {},
+    "ISceneStart": {
+      "methods": [
+        "EnterSceneStart"
+      ]
+    },
+    "IReferenceTarget": {},
     "IName": {
       "methods": [
         "get_Name"
@@ -123,6 +153,7 @@
         "Name"
       ]
     },
+    "IGameStateOwner": {},
     "ISettable": {
       "methods": [
         "CommitValue",
@@ -132,6 +163,11 @@
     "ISettable`1": {
       "methods": [
         "SetValue"
+      ]
+    },
+    "IResetStateRestore": {
+      "methods": [
+        "ResetStateRestore"
       ]
     },
     "IStringProvider": {
@@ -149,6 +185,11 @@
         "ChildAnimators"
       ]
     },
+    "ISceneAwake": {
+      "methods": [
+        "EnterSceneAwake"
+      ]
+    },
     "IIntProvider": {
       "methods": [
         "get_IntValue"
@@ -157,12 +198,22 @@
         "IntValue"
       ]
     },
+    "IHasNewItem": {
+      "methods": [
+        "HasNewItem"
+      ]
+    },
     "IMonoDescriptable": {
       "methods": [
         "get_Descriptable"
       ],
       "properties": [
         "Descriptable"
+      ]
+    },
+    "ISelfValidator": {
+      "methods": [
+        "Validate"
       ]
     },
     "IDescriptableData": {
@@ -197,19 +248,9 @@
         "GetProperties"
       ]
     },
-    "ISelfValidator": {
-      "methods": [
-        "Validate"
-      ]
-    },
     "ISerializable": {
       "methods": [
         "GetObjectData"
-      ]
-    },
-    "IHasNewItem": {
-      "methods": [
-        "HasNewItem"
       ]
     },
     "ICollection": {
@@ -230,26 +271,45 @@
         "ExitLevelAndDestroy"
       ]
     },
+    "IOnBuildSceneSavingCallbackReceiver": {
+      "methods": [
+        "OnBeforeBuildSceneSave"
+      ]
+    },
     "IEditorOnly": {},
     "ILevelConfig": {
       "methods": [
         "SetLevelConfig"
       ]
     },
-    "ISceneAwake": {
+    "IClearReference": {
       "methods": [
-        "EnterSceneAwake"
+        "ClearReference"
+      ]
+    },
+    "IUpdateSimulate": {
+      "methods": [
+        "Simulate",
+        "AfterUpdate",
+        "get_isActiveAndEnabled",
+        "get_gameObject"
+      ],
+      "properties": [
+        "isActiveAndEnabled",
+        "gameObject"
       ]
     },
     "IVariableOwner": {
       "methods": [
         "get_name",
         "get_VariableFolder",
-        "GetVariable"
+        "GetVariable",
+        "get_gameObject"
       ],
       "properties": [
         "name",
-        "VariableFolder"
+        "VariableFolder",
+        "gameObject"
       ]
     },
     "IBinder": {},
@@ -271,6 +331,70 @@
         "CurrentInstance"
       ]
     },
+    "IMonoObject": {
+      "methods": [
+        "get_WorldUpdateSimulator",
+        "set_WorldUpdateSimulator",
+        "Simulate",
+        "ResetLevel",
+        "AfterUpdate",
+        "get_isActiveAndEnabled",
+        "get_gameObject"
+      ],
+      "properties": [
+        "WorldUpdateSimulator",
+        "isActiveAndEnabled",
+        "gameObject"
+      ]
+    },
+    "IStateMachineController": {
+      "methods": [
+        "get_DeltaTime"
+      ],
+      "properties": [
+        "DeltaTime"
+      ]
+    },
+    "IElementReaderWriter`1": {
+      "methods": [
+        "Read",
+        "Write",
+        "GetElementWordCount",
+        "ReadRef",
+        "GetElementHashCode"
+      ]
+    },
+    "IAfterTick": {
+      "methods": [
+        "AfterTick"
+      ]
+    },
+    "IBeforeAllTicks": {
+      "methods": [
+        "BeforeAllTicks"
+      ]
+    },
+    "IPublicFacingInterface": {},
+    "IDespawned": {
+      "methods": [
+        "Despawned"
+      ]
+    },
+    "ILogSource": {
+      "methods": [
+        "GetUnityObject"
+      ]
+    },
+    "ISpawned": {
+      "methods": [
+        "Spawned"
+      ]
+    },
+    "ILogDumpable": {
+      "methods": [
+        "Dump"
+      ]
+    },
     "IVoteChild": {
       "methods": [
         "get_VoteOwner"
@@ -279,7 +403,6 @@
         "VoteOwner"
       ]
     },
-    "ITransitionCheckInvoker": {},
     "IAbstractEventReceiver": {
       "methods": [
         "get_isActiveAndEnabled"
@@ -294,26 +417,9 @@
         "EventReceived"
       ]
     },
-    "IArgEventReceiver`1": {
+    "IStateMachineOwner": {
       "methods": [
-        "ArgEventReceived"
-      ]
-    },
-    "ISerializableComponent": {
-      "methods": [
-        "Serialize",
-        "Deserialize"
-      ]
-    },
-    "IAnimatorPlayAction": {
-      "methods": [
-        "EditClip",
-        "get_Clip",
-        "get_BindAnimator"
-      ],
-      "properties": [
-        "Clip",
-        "BindAnimator"
+        "CollectStateMachines"
       ]
     },
     "ISubmitHandler": {
@@ -335,41 +441,14 @@
         "GetValueType"
       ]
     },
-    "IConfigVar": {
+    "IValueProvider": {
       "methods": [
         "GetValue",
-        "GetDescription"
-      ]
-    },
-    "IGameDataProvider": {
-      "methods": [
-        "get_GameData"
-      ],
-      "properties": [
-        "GameData"
-      ]
-    },
-    "IFloatProvider": {
-      "methods": [
-        "GetFloat",
-        "get_Value",
+        "GetValue",
         "get_Description"
       ],
       "properties": [
-        "Value",
         "Description"
-      ]
-    },
-    "IVarMonoProvider": {
-      "methods": [
-        "get_Variable",
-        "get_SampleData",
-        "get_Value"
-      ],
-      "properties": [
-        "Variable",
-        "SampleData",
-        "Value"
       ]
     },
     "ISupportsPrefabSerialization": {
@@ -387,6 +466,24 @@
       ],
       "properties": [
         "GizmoColor"
+      ]
+    },
+    "IGameDataProvider": {
+      "methods": [
+        "get_GameData"
+      ],
+      "properties": [
+        "GameData"
+      ]
+    },
+    "IInstantiated": {
+      "methods": [
+        "OnInstantiated"
+      ]
+    },
+    "ISpawnProcessor": {
+      "methods": [
+        "Spawn"
       ]
     },
     "IPoolObject": {
@@ -414,6 +511,7 @@
         "GetStringKey"
       ]
     },
+    "IActionParent": {},
     "IEffectType": {},
     "IEffectDealer": {
       "methods": [
@@ -424,6 +522,11 @@
       "properties": [
         "transform",
         "FinalValue"
+      ]
+    },
+    "IHitDataProvider": {
+      "methods": [
+        "GetHitData"
       ]
     },
     "IEffectReceiver": {
@@ -441,6 +544,11 @@
     "IEffectReceivedProcessor": {
       "methods": [
         "EffectHitResult"
+      ]
+    },
+    "IArgEventReceiver`1": {
+      "methods": [
+        "ArgEventReceived"
       ]
     },
     "IItem": {
@@ -466,6 +574,33 @@
         "EnableCheck"
       ]
     },
+    "IConditionChangeListener": {
+      "methods": [
+        "OnConditionChanged"
+      ]
+    },
+    "IState`1": {
+      "methods": [
+        "get_Context",
+        "TransitionCheck",
+        "TransitionCheck"
+      ],
+      "properties": [
+        "Context"
+      ]
+    },
+    "ITransitionCheckInvoker": {},
+    "IAnimatorPlayAction": {
+      "methods": [
+        "EditClip",
+        "get_Clip",
+        "get_BindAnimator"
+      ],
+      "properties": [
+        "Clip",
+        "BindAnimator"
+      ]
+    },
     "IAnimatorStateProvider": {
       "methods": [
         "get_BindAnimator",
@@ -476,6 +611,17 @@
         "BindAnimator",
         "StateLayer",
         "StateName"
+      ]
+    },
+    "IHierarchyButton": {
+      "methods": [
+        "get_IsDrawButton",
+        "get_IconName",
+        "OnClick"
+      ],
+      "properties": [
+        "IsDrawButton",
+        "IconName"
       ]
     },
     "IGameDestroy": {
@@ -495,6 +641,18 @@
       ],
       "properties": [
         "Index"
+      ]
+    },
+    "ISerializableComponent": {
+      "methods": [
+        "Serialize",
+        "Deserialize"
+      ]
+    },
+    "IRenderAction": {
+      "methods": [
+        "OnEnterRender",
+        "OnRender"
       ]
     },
     "IRebindable": {
@@ -530,9 +688,64 @@
         "BeforeSetValueModifyCheck",
         "AfterGetValueModifyCheck"
       ]
-    }
+    },
+    "IStatModifer": {
+      "methods": [
+        "get_targetStatTag",
+        "get_GetOrder",
+        "get_GetModType",
+        "get_GetValue",
+        "get_Source",
+        "get_IsValid"
+      ],
+      "properties": [
+        "targetStatTag",
+        "GetOrder",
+        "GetModType",
+        "GetValue",
+        "Source",
+        "IsValid"
+      ]
+    },
+    "IFloatProvider": {
+      "methods": [
+        "GetFloat",
+        "get_Value"
+      ],
+      "properties": [
+        "Value"
+      ]
+    },
+    "IVarMonoProvider": {
+      "methods": [
+        "get_Variable",
+        "get_SampleData",
+        "get_Value"
+      ],
+      "properties": [
+        "Variable",
+        "SampleData",
+        "Value"
+      ]
+    },
+    "ISimulateRunner": {}
   },
   "types": [
+    {
+      "class": "HitDataVariableOwnerProvider",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IVariableOwnerProvider"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "IHitDataProvider",
+          "name": "_hitDataProvider"
+        }
+      ]
+    },
     {
       "class": "SingletonBehaviour`1",
       "base": "MonoBehaviour",
@@ -542,6 +755,32 @@
       "class": "AbstractConditionComp",
       "base": "AbstractDescriptionBehaviour",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "IsFromThisConnectionCondition",
+      "base": "AbstractConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -562,109 +801,36 @@
     },
     {
       "class": "GeneralState",
-      "base": "AbstractState`1",
+      "base": "MonoStateBehaviour",
       "interfaces": [
-        "IDefaultSerializable",
-        "IReferenceTarget",
+        "IOwnedState`1",
+        "IState",
         "IDrawHierarchyBackGround",
-        "IState`1",
-        "IDrawDetail",
-        "INodeModel",
-        "IActionParent",
-        "IGuidEntity"
+        "IDrawDetail"
       ],
       "isComponent": true,
       "autoReferences": [
         {
-          "attribute": "AutoChildren",
-          "type": "IStateEnter[]",
-          "name": "_stateEnters"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "IStateExit[]",
-          "name": "_stateExits"
-        },
-        {
           "attribute": "AutoParent",
-          "type": "GeneralFSMContext",
-          "name": "context"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "StateTransition[]",
-          "name": "transitions"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "OnStateEnterHandler",
-          "name": "_onStateEnter"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "OnStateUpdateHandler",
-          "name": "_onStateUpdate"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "OnStateExitHandler",
-          "name": "_onStateExit"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractStateAction[]",
-          "name": "actions"
+          "type": "StateMachineLogic",
+          "name": "_context"
         }
       ]
     },
     {
       "class": "StateTransition",
-      "base": "AbstractDescriptionBehaviour",
+      "base": "TransitionBehaviour",
       "interfaces": [
-        "IDefaultSerializable",
-        "IConditionChangeListener",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
-        "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
+        "IOverrideHierarchyIcon"
       ],
       "isComponent": true,
       "autoReferences": [
         {
           "attribute": "AutoParent",
-          "type": "ITransitionCheckInvoker",
-          "name": "_checkInvoker"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "ITransitionCheckInvoker[]",
-          "name": "_childrenCheckers"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IState`1",
-          "name": "_parentState"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "ISkippableAnimationTransition[]",
-          "name": "_skippableAnimationTransitions"
-        },
-        {
-          "attribute": "AutoParent",
           "type": "MonoDescriptable",
           "name": "_self"
-        }
-      ],
-      "properties": [
-        {
-          "type": "GeneralState",
-          "name": "_target"
         }
       ]
     },
@@ -680,12 +846,9 @@
       "class": "VarIntTransition",
       "base": "StateTransition",
       "interfaces": [
-        "IDefaultSerializable",
-        "IConditionChangeListener",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
-        "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
+        "IOverrideHierarchyIcon"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -693,12 +856,6 @@
           "attribute": "AutoParent",
           "type": "MonoDescriptable",
           "name": "_self"
-        }
-      ],
-      "properties": [
-        {
-          "type": "GeneralState",
-          "name": "_target"
         }
       ]
     },
@@ -748,20 +905,26 @@
       "class": "GenericMonoVariable`3",
       "base": "AbstractMonoVariable",
       "interfaces": [
-        "IDefaultSerializable",
-        "IReferenceTarget",
+        "IGuidEntity",
         "IValueOfKey`1",
-        "IGameStateOwner",
+        "IDefaultSerializable",
+        "ISceneStart",
+        "IReferenceTarget",
         "IName",
+        "IGameStateOwner",
         "ISettable",
         "IBeforePrefabSaveCallbackReceiver",
         "ISettable`1",
         "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
+        "IResetStateRestore"
       ],
       "isComponent": true,
       "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IVarValueSettingProcessor`1",
+          "name": "_beforeSetProcessor"
+        },
         {
           "attribute": "AutoChildren",
           "type": "AbstractVariableModifier`1[]",
@@ -834,19 +997,15 @@
       "class": "VariableFolder",
       "base": "MonoDict`2",
       "interfaces": [
+        "ISceneAwake",
         "IResetStateRestore"
       ],
       "isComponent": true,
       "autoReferences": [
         {
           "attribute": "AutoChildren",
-          "type": "ISettable[]",
-          "name": "_variables"
-        },
-        {
-          "attribute": "AutoChildren",
           "type": "AbstractMonoVariable[]",
-          "name": "collections"
+          "name": "_collections"
         }
       ]
     },
@@ -854,18 +1013,19 @@
       "class": "VarInt",
       "base": "GenericMonoVariable`3",
       "interfaces": [
-        "IDefaultSerializable",
-        "IReferenceTarget",
+        "IGuidEntity",
         "IValueOfKey`1",
-        "IGameStateOwner",
+        "IDefaultSerializable",
+        "ISceneStart",
+        "IReferenceTarget",
         "IName",
+        "IGameStateOwner",
         "ISettable",
         "IBeforePrefabSaveCallbackReceiver",
         "IIntProvider",
         "ISettable`1",
         "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
+        "IResetStateRestore"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -886,17 +1046,18 @@
       "class": "VarString",
       "base": "GenericMonoVariable`3",
       "interfaces": [
-        "IDefaultSerializable",
-        "IReferenceTarget",
+        "IGuidEntity",
         "IValueOfKey`1",
-        "IGameStateOwner",
+        "IDefaultSerializable",
+        "ISceneStart",
+        "IReferenceTarget",
         "IName",
+        "IGameStateOwner",
         "ISettable",
         "IBeforePrefabSaveCallbackReceiver",
         "ISettable`1",
         "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
+        "IResetStateRestore"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -917,14 +1078,14 @@
       "class": "AbstractGameFlagCollection",
       "base": "DescriptableData",
       "interfaces": [
-        "INativeData",
+        "IHasNewItem",
         "IValueOfKey`1",
+        "INativeData",
         "IMonoDescriptable",
+        "ISelfValidator",
         "IDescriptableData",
         "IProperty",
-        "ISelfValidator",
-        "ISerializable",
-        "IHasNewItem"
+        "ISerializable"
       ],
       "isScriptableObject": true
     },
@@ -932,6 +1093,8 @@
       "class": "CurrentItemCollectionCondition",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -954,14 +1117,14 @@
       "class": "GameFlagBaseCollection`1",
       "base": "AbstractGameFlagCollection",
       "interfaces": [
-        "INativeData",
+        "IHasNewItem",
         "IValueOfKey`1",
+        "INativeData",
         "IMonoDescriptable",
+        "ISelfValidator",
         "IDescriptableData",
         "IProperty",
-        "ISelfValidator",
-        "ISerializable",
-        "IHasNewItem"
+        "ISerializable"
       ],
       "isScriptableObject": true
     },
@@ -969,15 +1132,15 @@
       "class": "MultipleChooseOneCollection`1",
       "base": "GameFlagBaseCollection`1",
       "interfaces": [
-        "INativeData",
+        "ICollection",
+        "IHasNewItem",
         "IValueOfKey`1",
+        "INativeData",
         "IMonoDescriptable",
+        "ISelfValidator",
         "IDescriptableData",
         "IProperty",
-        "ISelfValidator",
-        "ICollection",
-        "ISerializable",
-        "IHasNewItem"
+        "ISerializable"
       ],
       "isScriptableObject": true
     },
@@ -1005,12 +1168,12 @@
       "class": "DescriptableData",
       "base": "GameFlagBase",
       "interfaces": [
-        "INativeData",
         "IValueOfKey`1",
+        "INativeData",
         "IMonoDescriptable",
+        "ISelfValidator",
         "IDescriptableData",
         "IProperty",
-        "ISelfValidator",
         "ISerializable"
       ],
       "isScriptableObject": true
@@ -1105,6 +1268,19 @@
       "isComponent": true
     },
     {
+      "class": "SceneConnection",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IOnBuildSceneSavingCallbackReceiver"
+      ],
+      "isComponent": true
+    },
+    {
+      "class": "SceneConnectionData",
+      "base": "ScriptableObject",
+      "isScriptableObject": true
+    },
+    {
       "class": "AnimatorStateStringListProvider",
       "base": "AbstractStringProvider",
       "isComponent": true
@@ -1120,6 +1296,11 @@
           "name": "actions"
         }
       ]
+    },
+    {
+      "class": "ApplicationCore",
+      "base": "SingletonBehaviour`1",
+      "isComponent": true
     },
     {
       "class": "DebugModeActivator",
@@ -1164,34 +1345,23 @@
     },
     {
       "class": "GeneralFSMContext",
-      "base": "StateMachineContext`2",
-      "interfaces": [
-        "IDefaultSerializable",
-        "ISceneSavingCallbackReceiver",
-        "ISceneAwake"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "StateMachineOwner",
-          "name": "fsmOwner"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "GeneralState[]",
-          "name": "states"
-        }
-      ]
+      "base": "MonoBehaviour",
+      "isComponent": true
     },
     {
       "class": "GizmoMarker",
       "base": "MonoBehaviour",
       "interfaces": [
-        "IEditorOnly",
-        "IDrawHierarchyBackGround"
+        "IEditorOnly"
       ],
-      "isComponent": true
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "BoxCollider",
+          "name": "_boxCollider"
+        }
+      ]
     },
     {
       "class": "GizmoRectPainter",
@@ -1212,13 +1382,39 @@
       "isComponent": true
     },
     {
-      "class": "StaminaTimer",
+      "class": "DestroyAllGameObjects",
       "base": "MonoBehaviour",
       "isComponent": true
     },
     {
-      "class": "DestroyAllGameObjects",
+      "class": "SkippableEntity",
       "base": "MonoBehaviour",
+      "interfaces": [
+        "IResetter"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "ISkippable",
+          "name": "_skippable"
+        }
+      ]
+    },
+    {
+      "class": "SkippableManager",
+      "base": "SingletonBehaviour`1",
+      "interfaces": [
+        "IClearReference"
+      ],
+      "isComponent": true
+    },
+    {
+      "class": "StaminaTimer",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IUpdateSimulate"
+      ],
       "isComponent": true
     },
     {
@@ -1317,8 +1513,8 @@
       "class": "PoolObject",
       "base": "MonoBehaviour",
       "interfaces": [
-        "IResetStateRestore",
-        "ISceneAwake"
+        "ISceneAwake",
+        "IResetStateRestore"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -1383,12 +1579,12 @@
       "class": "StateMachineOwner",
       "base": "VariableOwner",
       "interfaces": [
-        "IDefaultSerializable",
+        "IAnimatorProvider",
         "IVariableOwner",
+        "IDefaultSerializable",
+        "ISceneStart",
         "IBinder",
-        "IResetter",
-        "IResetStart",
-        "IAnimatorProvider"
+        "IUpdateSimulate"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -1401,6 +1597,11 @@
           "attribute": "AutoChildren",
           "type": "GeneralFSMContext[]",
           "name": "fsmContexts"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "StateMachineLogic",
+          "name": "fsmLogic"
         }
       ]
     },
@@ -1436,6 +1637,47 @@
       ]
     },
     {
+      "class": "MonoPoolObj",
+      "namespace": "MonoFSMCore.Runtime.LifeCycle",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IMonoObject"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "ISceneAwake[]",
+          "name": "_sceneAwakes"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "ISceneStart[]",
+          "name": "_sceneStarts"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "IResetStateRestore[]",
+          "name": "_resetStateRestores"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "IResetStart[]",
+          "name": "_resetStarts"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "IInstantiated[]",
+          "name": "_instantiateds"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "IUpdateSimulate[]",
+          "name": "_updateSimulates"
+        }
+      ]
+    },
+    {
       "class": "LineGizmoNode",
       "namespace": "Gizmo",
       "base": "MonoBehaviour",
@@ -1466,335 +1708,92 @@
       "isComponent": true
     },
     {
-      "class": "StateUpdateTransitionAction",
-      "namespace": "RCGFSM.Transition",
-      "base": "AbstractStateAction",
+      "class": "MonoStateMachineController",
+      "namespace": "Fusion.Addons.FSM",
+      "base": "MonoBehaviour",
       "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "ITransitionCheckInvoker",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IStateMachineController"
       ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "Auto",
-          "type": "StateTransition",
-          "name": "validTransition"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
+      "isComponent": true
     },
     {
-      "class": "SetBoolFieldOfVariableAction",
-      "namespace": "RCGFSM.Variable",
-      "base": "AbstractStateAction",
+      "class": "NetworkStateMachineController",
+      "namespace": "Fusion.Addons.FSM",
+      "base": "NetworkBehaviour",
       "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IElementReaderWriter`1",
+        "IElementReaderWriter`1",
+        "IStateMachineController",
+        "IAfterTick",
+        "IBeforeAllTicks",
+        "IPublicFacingInterface",
+        "IDespawned",
+        "ILogSource",
+        "ISpawned",
+        "ILogDumpable"
       ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
+      "isComponent": true
     },
     {
-      "class": "SetVarBoolAction",
-      "namespace": "RCGFSM.Variable",
-      "base": "AbstractStateAction",
+      "class": "NetworkStateBehaviour",
+      "namespace": "Fusion.Addons.FSM",
+      "base": "NetworkStateBehaviour`1",
       "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IArgEventReceiver`1",
-        "IGuidEntity"
+        "IElementReaderWriter`1",
+        "IElementReaderWriter`1",
+        "IOwnedState`1",
+        "IState",
+        "IPublicFacingInterface",
+        "IDespawned",
+        "ILogSource",
+        "ISpawned",
+        "ILogDumpable"
       ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ],
-      "properties": [
-        {
-          "type": "VarBool",
-          "name": "_target"
-        },
-        {
-          "type": "Boolean",
-          "name": "TargetValue"
-        }
-      ]
+      "isComponent": true
     },
     {
-      "class": "SetVariableFloatAction",
-      "namespace": "RCGFSM.Variable",
-      "base": "AbstractStateAction",
+      "class": "NetworkStateBehaviour`1",
+      "namespace": "Fusion.Addons.FSM",
+      "base": "NetworkBehaviour",
       "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IElementReaderWriter`1",
+        "IElementReaderWriter`1",
+        "IOwnedState`1",
+        "IState",
+        "IPublicFacingInterface",
+        "IDespawned",
+        "ILogSource",
+        "ISpawned",
+        "ILogDumpable"
       ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ],
-      "properties": [
-        {
-          "type": "VarFloat",
-          "name": "targetFlag"
-        }
-      ]
+      "isComponent": true
     },
     {
-      "class": "SetVariableIntAction",
-      "namespace": "RCGFSM.Variable",
-      "base": "AbstractStateAction",
-      "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "VariableFloatArithmeticAction",
-      "namespace": "RCGFSM.Variable",
-      "base": "AbstractStateAction",
-      "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IArgEventReceiver`1",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "VariableIntArithmeticAction",
-      "namespace": "RCGFSM.Variable",
-      "base": "AbstractStateAction",
-      "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ],
-      "properties": [
-        {
-          "type": "VarInt",
-          "name": "target"
-        },
-        {
-          "type": "ArithmeticOperator",
-          "name": "Arithmetic"
-        },
-        {
-          "type": "Int32",
-          "name": "Value"
-        }
-      ]
-    },
-    {
-      "class": "AnimatorPlayActionModule",
-      "namespace": "RCGFSM.AnimatorControl",
+      "class": "StateMachineLogic",
+      "namespace": "Fusion.Addons.FSM",
       "base": "MonoBehaviour",
       "isComponent": true,
       "autoReferences": [
         {
-          "attribute": "AutoParent",
-          "type": "AnimatorPlayAction",
-          "name": "animatorPlayAction"
+          "attribute": "Auto",
+          "type": "IStateMachineController",
+          "name": "_stateMachineController"
         }
       ]
     },
     {
-      "class": "AnimatorRandomStateModule",
-      "namespace": "RCGFSM.AnimatorControl",
-      "base": "AnimatorPlayActionModule",
-      "interfaces": [
-        "ISceneSavingCallbackReceiver"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "AnimatorPlayAction",
-          "name": "animatorPlayAction"
-        }
-      ]
-    },
-    {
-      "class": "AnimatorParameterSetValueAction",
-      "namespace": "RCGFSM.Animation",
+      "class": "PauseGameAction",
+      "namespace": "Fusion.Addons.KCC._0_MonoFSM_Network.Action",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IEditorOnly",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -1811,7 +1810,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -1821,43 +1820,99 @@
       ]
     },
     {
-      "class": "AnimatorPlayAction",
-      "namespace": "RCGFSM.Animation",
+      "class": "MonoFSMOwner",
+      "namespace": "_1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IStateMachineOwner"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "MonoStateBehaviour[]",
+          "name": "_states"
+        }
+      ]
+    },
+    {
+      "class": "MonoStateBehaviour",
+      "namespace": "_1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour",
+      "base": "AbstractStateBehaviour`1",
+      "interfaces": [
+        "IOwnedState`1",
+        "IState",
+        "IDrawHierarchyBackGround",
+        "IDrawDetail"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "StateMachineLogic",
+          "name": "_context"
+        }
+      ]
+    },
+    {
+      "class": "TransitionBehaviour",
+      "namespace": "_1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour",
+      "base": "TransitionBehaviour`1",
+      "interfaces": [
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "TransitionBehaviour`1",
+      "namespace": "_1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour",
+      "base": "AbstractDescriptionBehaviour",
+      "interfaces": [
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "AssignMonoVarFromOwner",
+      "namespace": "_1_MonoFSM_Core.Runtime.Action.VariableAction",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
-        "ISerializableComponent",
+        "IGuidEntity",
         "IDefaultSerializable",
-        "ISceneSavingCallbackReceiver",
-        "ITransitionCheckInvoker",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
-        "ISelfValidator",
         "IAbstractEventReceiver",
-        "IAnimatorPlayAction",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
         {
           "attribute": "Auto",
-          "type": "AbstractStringProvider",
-          "name": "stateNameProvider"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "StateTransition",
-          "name": "doneEventTransition"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "StateMachineOwner",
-          "name": "_fsmOwner"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AnimatorPlayActionModule[]",
-          "name": "_animatorPlayActionModule"
+          "type": "IVariableOwnerProvider",
+          "name": "_ownerProvider"
         },
         {
           "attribute": "AutoParent",
@@ -1872,7 +1927,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -1882,48 +1937,18 @@
       ]
     },
     {
-      "class": "AbstractStateAction",
-      "namespace": "MonoFSM_Core.Runtime.Action",
-      "base": "AbstractDescriptionBehaviour",
+      "class": "CustomUpdateAnimator",
+      "namespace": "_1_MonoFSM_Core.Runtime.Action.AnimatorActions",
+      "base": "MonoBehaviour",
       "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IUpdateSimulate"
       ],
       "isComponent": true,
       "autoReferences": [
         {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "DelayActionModifier",
-          "name": "delayActionModifier"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IBinder",
-          "name": "nearestBinder"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
+          "attribute": "Auto",
+          "type": "Animator",
+          "name": "_animator"
         }
       ]
     },
@@ -1994,12 +2019,13 @@
       "namespace": "RCGMakerFSMCore.Runtime.Action.DebugAction",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2016,7 +2042,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -2032,6 +2058,61 @@
       ]
     },
     {
+      "class": "LogValueRefAction",
+      "namespace": "RCGMakerFSMCore.Runtime.Action.DebugAction",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "IValueProvider",
+          "name": "_valueRef"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "VarValueChangeLogAction",
+      "namespace": "RCGMakerFSMCore.Runtime.Action.DebugAction",
+      "base": "MonoBehaviour",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "AbstractMonoVariable",
+          "name": "_var"
+        }
+      ]
+    },
+    {
       "class": "VarBoolProviderRef",
       "namespace": "RCGMakerFSMCore.Runtime._0_Pattern.DataProvider.ComponentWrapper",
       "base": "VariableProviderRef`2",
@@ -2039,9 +2120,16 @@
         "IVariableProvider",
         "IStringProvider",
         "IBoolProvider",
-        "IConfigVar"
+        "IValueProvider"
       ],
-      "isComponent": true
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IVariableOwnerProvider",
+          "name": "variableOwnerProvider"
+        }
+      ]
     },
     {
       "class": "VarStringProviderRef",
@@ -2050,75 +2138,16 @@
       "interfaces": [
         "IVariableProvider",
         "IStringProvider",
-        "IConfigVar"
-      ],
-      "isComponent": true
-    },
-    {
-      "class": "SourceValueRef",
-      "namespace": "RCGMakerFSM.VarRef",
-      "base": "MonoBehaviour",
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "Auto",
-          "type": "IConfigVar",
-          "name": "_configVar"
-        }
-      ]
-    },
-    {
-      "class": "TargetVarRef",
-      "namespace": "RCGMakerFSM.VarRef",
-      "base": "MonoBehaviour",
-      "interfaces": [
-        "IVariableProvider"
+        "IValueProvider"
       ],
       "isComponent": true,
       "autoReferences": [
         {
           "attribute": "Auto",
-          "type": "AbstractVariableProviderRef",
-          "name": "_providerRef"
+          "type": "IVariableOwnerProvider",
+          "name": "variableOwnerProvider"
         }
       ]
-    },
-    {
-      "class": "VarGameDataRef",
-      "namespace": "RCGMakerFSM.VarRef",
-      "base": "VariableProviderRef`2",
-      "interfaces": [
-        "IVariableProvider",
-        "IStringProvider",
-        "IGameDataProvider",
-        "IConfigVar"
-      ],
-      "isComponent": true
-    },
-    {
-      "class": "VarIntProviderRef",
-      "namespace": "RCGMakerFSM.VarRef",
-      "base": "VariableProviderRef`2",
-      "interfaces": [
-        "IFloatProvider",
-        "IVariableProvider",
-        "IIntProvider",
-        "IStringProvider",
-        "IConfigVar"
-      ],
-      "isComponent": true
-    },
-    {
-      "class": "VarMonoRef",
-      "namespace": "RCGMakerFSM.VarRef",
-      "base": "VariableProviderRef`2",
-      "interfaces": [
-        "IVarMonoProvider",
-        "IVariableProvider",
-        "IStringProvider",
-        "IConfigVar"
-      ],
-      "isComponent": true
     },
     {
       "class": "Comment",
@@ -2196,12 +2225,12 @@
       "namespace": "RCGMaker.Stat",
       "base": "DescriptableData",
       "interfaces": [
-        "INativeData",
         "IValueOfKey`1",
+        "INativeData",
         "IMonoDescriptable",
+        "ISelfValidator",
         "IDescriptableData",
         "IProperty",
-        "ISelfValidator",
         "ISerializable"
       ],
       "isScriptableObject": true
@@ -2224,10 +2253,14 @@
       "namespace": "RCGMaker.Runtime",
       "base": "AbstractMonoDescriptable`1",
       "interfaces": [
+        "IGameDataProvider",
+        "IInstantiated",
         "IVariableOwner",
+        "ISceneAwake",
         "IValueOfKey`1",
+        "IUpdateSimulate",
         "IMonoDescriptable",
-        "ISceneAwake"
+        "IBeforePrefabSaveCallbackReceiver"
       ],
       "isComponent": true
     },
@@ -2237,9 +2270,10 @@
       "base": "VariableOwner",
       "interfaces": [
         "IVariableOwner",
+        "ISceneAwake",
         "IValueOfKey`1",
-        "IMonoDescriptable",
-        "ISceneAwake"
+        "IUpdateSimulate",
+        "IMonoDescriptable"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2257,6 +2291,22 @@
           "attribute": "AutoChildren",
           "type": "GeneralEffectReceiver[]",
           "name": "_receivers"
+        }
+      ]
+    },
+    {
+      "class": "LocalSpawnManager",
+      "namespace": "RCGMaker.Runtime",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "ISpawnProcessor"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "WorldUpdateSimulator",
+          "name": "_worldUpdateSimulator"
         }
       ]
     },
@@ -2292,10 +2342,10 @@
       "namespace": "RCGMaker.Runtime.Vote",
       "base": "AbstractMonoVariable",
       "interfaces": [
+        "IGuidEntity",
         "IValueOfKey`1",
         "IName",
-        "IOverrideHierarchyIcon",
-        "IGuidEntity"
+        "IOverrideHierarchyIcon"
       ],
       "isComponent": true,
       "properties": [
@@ -2310,13 +2360,14 @@
       "namespace": "RCGMaker.Runtime.Vote",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
         "IEventReceiver",
-        "IResetStateRestore",
-        "IGuidEntity"
+        "IResetStateRestore"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2333,7 +2384,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -2347,12 +2398,13 @@
       "namespace": "RCGMaker.Runtime.ObjectPool",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2374,12 +2426,67 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
           "type": "MonoDescriptable",
           "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "StopFSMAction",
+      "namespace": "RCGMaker.Runtime.ObjectPool",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "StateMachineOwner",
+          "name": "_owner"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "BudgetUpdateAnimator",
+      "namespace": "RCGMaker.Runtime.Animation.Optimization",
+      "base": "MonoBehaviour",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "Animator",
+          "name": "animator"
         }
       ]
     },
@@ -2405,6 +2512,7 @@
       "namespace": "RCGMaker.Runtime.Mono",
       "base": "MonoDict`2",
       "interfaces": [
+        "ISceneAwake",
         "IResetStateRestore"
       ],
       "isComponent": true,
@@ -2412,7 +2520,7 @@
         {
           "attribute": "AutoChildren",
           "type": "IMonoDescriptableCollection[]",
-          "name": "collections"
+          "name": "_collections"
         }
       ]
     },
@@ -2457,6 +2565,7 @@
       "namespace": "RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables",
       "base": "MonoDict`2",
       "interfaces": [
+        "ISceneAwake",
         "IResetStateRestore"
       ],
       "isComponent": true,
@@ -2464,7 +2573,7 @@
         {
           "attribute": "AutoChildren",
           "type": "MonoDescriptable[]",
-          "name": "collections"
+          "name": "_collections"
         }
       ]
     },
@@ -2483,13 +2592,13 @@
       "namespace": "RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables",
       "base": "GenericUnityObjectVariable`1",
       "interfaces": [
+        "IGuidEntity",
         "IValueOfKey`1",
         "IName",
         "ISettable",
         "ISettable`1",
         "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
+        "IResetStateRestore"
       ],
       "isComponent": true,
       "properties": [
@@ -2506,75 +2615,44 @@
       "isComponent": true
     },
     {
-      "class": "MouseDetector",
-      "namespace": "RCGMaker.Runtime.Interact.SpatialDetection",
-      "base": "AbstractDetector",
-      "interfaces": [
-        "IDefaultSerializable"
-      ],
-      "isComponent": true
-    },
-    {
-      "class": "MouseDownDetectable",
-      "namespace": "RCGMaker.Runtime.Interact.SpatialDetection",
-      "base": "EffectDetectable",
-      "interfaces": [
-        "IDefaultSerializable"
-      ],
-      "isComponent": true
-    },
-    {
-      "class": "MouseEventDetectable",
-      "namespace": "RCGMaker.Runtime.Interact.SpatialDetection",
-      "base": "MonoBehaviour",
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "MouseDownDetectable",
-          "name": "_mouseDownDetectable"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "MouseOverDetectable",
-          "name": "_detectable"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "_conditions"
-        }
-      ]
-    },
-    {
-      "class": "MouseOverDetectable",
-      "namespace": "RCGMaker.Runtime.Interact.SpatialDetection",
-      "base": "EffectDetectable",
-      "interfaces": [
-        "IDefaultSerializable"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "_conditions"
-        }
-      ]
-    },
-    {
       "class": "ReliableOnTriggerExit",
       "namespace": "RCGMaker.Runtime.Interact.SpatialDetection",
       "base": "MonoBehaviour",
       "isComponent": true
     },
     {
+      "class": "EffectDetectable",
+      "namespace": "RCGMaker.Runtime.Interact.EffectHit",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IDefaultSerializable"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "StateMachineOwner",
+          "name": "owner"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "GeneralEffectReceiver[]",
+          "name": "_effectReceivers"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "Collider",
+          "name": "_collider"
+        }
+      ]
+    },
+    {
       "class": "AbstractEffectNode",
       "namespace": "RCGMaker.Runtime.Interact.EffectHit",
       "base": "AbstractEventHandler",
       "interfaces": [
-        "IDefaultSerializable",
-        "IActionParent"
+        "IActionParent",
+        "IDefaultSerializable"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2622,8 +2700,8 @@
       "namespace": "RCGMaker.Runtime.Interact.EffectHit",
       "base": "AbstractEffectNode",
       "interfaces": [
-        "IDefaultSerializable",
-        "IActionParent"
+        "IActionParent",
+        "IDefaultSerializable"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2654,6 +2732,7 @@
       "namespace": "RCGMaker.Runtime.Interact.EffectHit",
       "base": "MonoBehaviour",
       "interfaces": [
+        "IHierarchyValueInfo",
         "IDefaultSerializable"
       ],
       "isComponent": true,
@@ -2691,8 +2770,10 @@
       "namespace": "RCGMaker.Runtime.Interact.EffectHit",
       "base": "EffectResolver",
       "interfaces": [
+        "IHierarchyValueInfo",
         "IDefaultSerializable",
-        "IEffectDealer"
+        "IEffectDealer",
+        "IHitDataProvider"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2744,8 +2825,10 @@
       "namespace": "RCGMaker.Runtime.Interact.EffectHit",
       "base": "EffectResolver",
       "interfaces": [
+        "IHierarchyValueInfo",
         "IDefaultSerializable",
-        "IEffectReceiver"
+        "IEffectReceiver",
+        "IHitDataProvider"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2778,32 +2861,6 @@
       ]
     },
     {
-      "class": "EffectDetectable",
-      "namespace": "RCGMaker.Runtime.Interact.EffectHit",
-      "base": "MonoBehaviour",
-      "interfaces": [
-        "IDefaultSerializable"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "StateMachineOwner",
-          "name": "owner"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "GeneralEffectReceiver[]",
-          "name": "_effectReceivers"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "Collider",
-          "name": "_collider"
-        }
-      ]
-    },
-    {
       "class": "AbstractEffectHitCondition",
       "namespace": "RCGMaker.Runtime.Interact.EffectHit.Resolver",
       "base": "MonoBehaviour",
@@ -2829,9 +2886,9 @@
       "namespace": "RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect",
       "base": "MonoBehaviour",
       "interfaces": [
+        "IArgEventReceiver`1",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IArgEventReceiver`1"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2850,19 +2907,62 @@
     {
       "class": "EffectHitFloatArithmeticAction",
       "namespace": "RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect",
-      "base": "AbstractEffectHitAction",
+      "base": "AbstractStateAction",
       "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IArgEventReceiver`1"
+        "IEventReceiver"
       ],
-      "isComponent": true
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "TargetVarRef",
+          "name": "_targetVariableProvider"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "SourceValueRef",
+          "name": "_source1VariableProvider"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "SourceValue2Ref",
+          "name": "_source2VariableProvider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
     },
     {
       "class": "IsEffectTypeInMonoDescriptableCondition",
       "namespace": "RCGMaker.Runtime.Interact.EffectHit.Condition",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -2886,12 +2986,13 @@
       "namespace": "RCGMaker.Runtime.Backpack.Actions",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -2918,7 +3019,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -2938,14 +3039,14 @@
       "namespace": "RCGMaker.Runtime.FSM._3_FlagData",
       "base": "GameFlagBaseCollection`1",
       "interfaces": [
-        "INativeData",
+        "IHasNewItem",
         "IValueOfKey`1",
+        "INativeData",
         "IMonoDescriptable",
+        "ISelfValidator",
         "IDescriptableData",
         "IProperty",
-        "ISelfValidator",
-        "ISerializable",
-        "IHasNewItem"
+        "ISerializable"
       ],
       "isScriptableObject": true
     },
@@ -2954,12 +3055,12 @@
       "namespace": "RCGMaker.Runtime.FSM._3_FlagData",
       "base": "DescriptableData",
       "interfaces": [
-        "INativeData",
         "IValueOfKey`1",
+        "INativeData",
         "IMonoDescriptable",
+        "ISelfValidator",
         "IDescriptableData",
         "IProperty",
-        "ISelfValidator",
         "IItem",
         "ISerializable"
       ],
@@ -2970,12 +3071,12 @@
       "namespace": "RCGMaker.Runtime.FSM._3_FlagData.GamePlay",
       "base": "DescriptableData",
       "interfaces": [
-        "INativeData",
         "IValueOfKey`1",
+        "INativeData",
         "IMonoDescriptable",
+        "ISelfValidator",
         "IDescriptableData",
         "IProperty",
-        "ISelfValidator",
         "ISerializable"
       ],
       "isScriptableObject": true
@@ -2985,12 +3086,13 @@
       "namespace": "RCGMaker.Runtime.FSM._4_Stats",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3007,7 +3109,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -3037,7 +3139,8 @@
       "namespace": "RCGMaker.Runtime.FSM.RCGStateMachine",
       "base": "MonoBehaviour",
       "interfaces": [
-        "IVariableOwner"
+        "IVariableOwner",
+        "IUpdateSimulate"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3053,12 +3156,13 @@
       "namespace": "RCGMaker.Runtime.FSM.RCGStateMachine.Action",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3075,43 +3179,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "InstantiateAction",
-      "namespace": "RCGMaker.Runtime.FSM.RCGStateMachine.Action.InstantiateAction",
-      "base": "AbstractStateAction",
-      "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -3125,12 +3193,13 @@
       "namespace": "RCGMaker.Runtime.FSM.RCGStateMachine.Action.EffectAction",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3147,43 +3216,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "PauseTimeScaleAction",
-      "namespace": "RCGMaker.Runtime.FSM.RCGStateMachine.Action.PhysicsAction",
-      "base": "AbstractStateAction",
-      "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "GeneralState",
-          "name": "bindingState"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IActionParent",
-          "name": "_actionParent"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -3203,12 +3236,9 @@
       "namespace": "RCGMaker.Runtime.FSM.RCGStateMachine._2_Transitions",
       "base": "StateTransition",
       "interfaces": [
-        "IDefaultSerializable",
-        "IConditionChangeListener",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
-        "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
+        "IOverrideHierarchyIcon"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3216,12 +3246,6 @@
           "attribute": "AutoParent",
           "type": "MonoDescriptable",
           "name": "_self"
-        }
-      ],
-      "properties": [
-        {
-          "type": "GeneralState",
-          "name": "_target"
         }
       ]
     },
@@ -3239,6 +3263,7 @@
       "namespace": "RCGMaker.Core",
       "base": "MonoBehaviour",
       "interfaces": [
+        "ISceneAwake",
         "IResetStateRestore"
       ],
       "isComponent": true,
@@ -3246,7 +3271,7 @@
         {
           "attribute": "AutoChildren",
           "type": "TU[]",
-          "name": "collections"
+          "name": "_collections"
         }
       ]
     },
@@ -3257,10 +3282,31 @@
       "isComponent": true
     },
     {
+      "class": "ConditionActivator",
+      "namespace": "RCGMaker.Core",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IResetter",
+        "IUIBehavior",
+        "ISelfValidator",
+        "IConditionChangeListener"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "conditions"
+        }
+      ]
+    },
+    {
       "class": "AnimationDoneCondition",
       "namespace": "RCGMaker.Core",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -3270,7 +3316,7 @@
         {
           "attribute": "AutoParent",
           "type": "AnimatorPlayAction",
-          "name": "action"
+          "name": "_action"
         },
         {
           "attribute": "AutoChildren",
@@ -3289,6 +3335,8 @@
       "namespace": "RCGMaker.Core",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -3313,28 +3361,12 @@
       ]
     },
     {
-      "class": "ConditionActivator",
-      "namespace": "RCGMaker.Core",
-      "base": "MonoBehaviour",
-      "interfaces": [
-        "IResetter",
-        "ISelfValidator",
-        "IUIBehavior"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "conditions"
-        }
-      ]
-    },
-    {
       "class": "ConditionFolder",
       "namespace": "RCGMaker.Core",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -3379,6 +3411,8 @@
       "namespace": "RCGMaker.Core",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -3407,6 +3441,8 @@
       "namespace": "RCGMaker.Core",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -3430,6 +3466,8 @@
       "namespace": "RCGMaker.Core",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -3458,6 +3496,8 @@
       "namespace": "RCGMaker.Core",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -3564,15 +3604,16 @@
       "namespace": "RCGMaker.Core",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
         "ISceneSavingCallbackReceiver",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "ITransitionCheckInvoker",
         "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
         "IAnimatorPlayAction",
-        "IGuidEntity"
+        "IAbstractEventReceiver",
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3604,7 +3645,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -3618,14 +3659,15 @@
       "namespace": "RCGMaker.Core",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
         "IAnimatorPlayAction",
+        "IAbstractEventReceiver",
         "IAnimatorStateProvider",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3642,7 +3684,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -3656,16 +3698,17 @@
       "namespace": "RCGMaker.Core",
       "base": "AbstractAnimatorPlayAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
+        "IResetter",
         "IDefaultSerializable",
         "ISceneSavingCallbackReceiver",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "ITransitionCheckInvoker",
         "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IResetter",
-        "IEventReceiver",
         "IAnimatorPlayAction",
-        "IGuidEntity"
+        "IAbstractEventReceiver",
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3682,7 +3725,46 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "CheatManager",
+      "namespace": "RCGMaker.Core",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IEditorOnly"
+      ],
+      "isComponent": true
+    },
+    {
+      "class": "IsCheatCondition",
+      "namespace": "RCGMaker.Core",
+      "base": "AbstractConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "IConditionChangeListener",
+          "name": "_parentConditionChangeListener"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
         },
         {
           "attribute": "AutoParent",
@@ -3696,6 +3778,25 @@
       "namespace": "RCGMaker.Core",
       "base": "MonoBehaviour",
       "isComponent": true
+    },
+    {
+      "class": "MonoShortCut",
+      "namespace": "RCGMaker.Core",
+      "base": "AbstractDescriptionBehaviour",
+      "interfaces": [
+        "IEditorOnly",
+        "IHierarchyButton",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
     },
     {
       "class": "ComponentNote",
@@ -3717,38 +3818,23 @@
       "namespace": "RCGMaker.Core",
       "base": "SingletonBehaviour`1",
       "interfaces": [
-        "IGameDestroy",
-        "ISceneAwake"
+        "ISceneAwake",
+        "IGameDestroy"
       ],
       "isComponent": true
-    },
-    {
-      "class": "RealtimeUpdateRunner",
-      "namespace": "RCGMaker.Core",
-      "base": "MonoBehaviour",
-      "interfaces": [
-        "IUpdateRunner"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "IUpdatable[]",
-          "name": "_updatables"
-        }
-      ]
     },
     {
       "class": "ResetTimerAction",
       "namespace": "RCGMaker.Core",
       "base": "AbstractStateAction",
       "interfaces": [
-        "IVoteChild",
+        "IGuidEntity",
         "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3770,7 +3856,7 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
@@ -3780,31 +3866,41 @@
       ]
     },
     {
-      "class": "VarFloatCountDownTimer",
+      "class": "RealtimeUpdateRunner",
+      "namespace": "RCGMaker.Core",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IUpdateRunner"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "IUpdatable[]",
+          "name": "_updatables"
+        }
+      ]
+    },
+    {
+      "class": "LocalLevelRunner",
       "namespace": "RCGMaker.Core",
       "base": "MonoBehaviour",
       "isComponent": true,
       "autoReferences": [
         {
-          "attribute": "AutoChildren",
-          "type": "AbstractConditionComp[]",
-          "name": "_conditions"
+          "attribute": "Auto",
+          "type": "WorldReseter",
+          "name": "_worldReseter"
         }
       ]
-    },
-    {
-      "class": "LevelRunner",
-      "namespace": "RCGMaker.Core",
-      "base": "MonoBehaviour",
-      "isComponent": true
     },
     {
       "class": "StateMachineContext`2",
       "namespace": "RCGMaker.Core",
       "base": "MonoBehaviour",
       "interfaces": [
-        "ISceneSavingCallbackReceiver",
-        "ISceneAwake"
+        "ISceneAwake",
+        "ISceneSavingCallbackReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
@@ -3818,7 +3914,10 @@
     {
       "class": "StateMachineManager",
       "namespace": "RCGMaker.Core",
-      "base": "SingletonBehaviour`1",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IUpdateSimulate"
+      ],
       "isComponent": true
     },
     {
@@ -3899,47 +3998,6 @@
       ]
     },
     {
-      "class": "CollisionSpatialDetector",
-      "namespace": "RCGMaker.Core.Detection",
-      "base": "AbstractDetector",
-      "interfaces": [
-        "IDefaultSerializable"
-      ],
-      "isComponent": true
-    },
-    {
-      "class": "TriggerSpatialDetector",
-      "namespace": "RCGMaker.Core.Detection",
-      "base": "AbstractDetector",
-      "interfaces": [
-        "IDefaultSerializable"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "Auto",
-          "type": "Collider",
-          "name": "_collider"
-        }
-      ]
-    },
-    {
-      "class": "TriggerSpatialDetector2D",
-      "namespace": "RCGMaker.Core.Detection",
-      "base": "AbstractDetector",
-      "interfaces": [
-        "IDefaultSerializable"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "Auto",
-          "type": "Collider2D",
-          "name": "_collider"
-        }
-      ]
-    },
-    {
       "class": "RefactorNode",
       "namespace": "RCGMaker.Core.Editor",
       "base": "MonoBehaviour",
@@ -3948,34 +4006,6 @@
         "IBeforePrefabSaveCallbackReceiver"
       ],
       "isComponent": true
-    },
-    {
-      "class": "AbstractFieldValueProvider",
-      "namespace": "RCGMaker.Core.DataProvider",
-      "base": "MonoBehaviour",
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "Auto",
-          "type": "AbstractVariableProviderRef",
-          "name": "_variableProviderRef"
-        },
-        {
-          "attribute": "Auto",
-          "type": "IDataChangedListener",
-          "name": "_dataChangedListener"
-        },
-        {
-          "attribute": "Auto",
-          "type": "ITypeRestrict",
-          "name": "_typeRestrict"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "IIndexInjector",
-          "name": "_indexInjector"
-        }
-      ]
     },
     {
       "class": "AbstractVariableProviderRef",
@@ -3990,22 +4020,108 @@
       "interfaces": [
         "IVariableProvider",
         "IStringProvider",
-        "IConfigVar"
+        "IValueProvider"
       ],
-      "isComponent": true
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IVariableOwnerProvider",
+          "name": "variableOwnerProvider"
+        }
+      ]
     },
     {
-      "class": "GameDataProviderComp",
+      "class": "FieldOfVarOfVarProvider",
+      "namespace": "RCGMaker.Core.DataProvider",
+      "base": "AbstractFieldOfVarProvider",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "AbstractVariableProviderRef",
+          "name": "_variableProviderRef"
+        }
+      ]
+    },
+    {
+      "class": "AbstractFieldOfVarProvider",
       "namespace": "RCGMaker.Core.DataProvider",
       "base": "MonoBehaviour",
-      "isComponent": true
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "AbstractVariableProviderRef",
+          "name": "_variableProviderRef"
+        },
+        {
+          "attribute": "Auto",
+          "type": "ITypeRestrict",
+          "name": "_typeRestrict"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IIndexInjector",
+          "name": "_indexInjector"
+        }
+      ]
     },
     {
       "class": "GameDataObjectFieldProvider",
       "namespace": "RCGMaker.Core.DataProvider",
-      "base": "AbstractFieldValueProvider",
+      "base": "AbstractFieldOfVarProvider",
       "isComponent": true,
       "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "AbstractVariableProviderRef",
+          "name": "_variableProviderRef"
+        }
+      ]
+    },
+    {
+      "class": "VarChangeInvoker",
+      "namespace": "RCGMaker.Core.DataProvider",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IResetStart"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "AbstractVariableProviderRef",
+          "name": "_variableProviderRef"
+        },
+        {
+          "attribute": "Auto",
+          "type": "AbstractFieldOfVarProvider",
+          "name": "_fieldOfVarProvider"
+        },
+        {
+          "attribute": "Auto",
+          "type": "IDataChangedListener",
+          "name": "_dataChangedListener"
+        }
+      ]
+    },
+    {
+      "class": "FieldOfGameDataProvider",
+      "namespace": "RCGMaker.Core.DataProvider",
+      "base": "AbstractFieldOfVarProvider",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IVariableOwnerProvider",
+          "name": "_variableOwnerProvider"
+        },
+        {
+          "attribute": "Auto",
+          "type": "IGameDataProvider",
+          "name": "_monoDescriptableProvider"
+        },
         {
           "attribute": "Auto",
           "type": "AbstractVariableProviderRef",
@@ -4023,22 +4139,9 @@
       "isComponent": true
     },
     {
-      "class": "ObjectOfVariableFieldValueProvider",
+      "class": "ObjectOfVariableFieldOfVarProvider",
       "namespace": "RCGMaker.Core.DataProvider",
-      "base": "AbstractFieldValueProvider",
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "Auto",
-          "type": "AbstractVariableProviderRef",
-          "name": "_variableProviderRef"
-        }
-      ]
-    },
-    {
-      "class": "VariableFieldValueProvider",
-      "namespace": "RCGMaker.Core.DataProvider",
-      "base": "AbstractFieldValueProvider",
+      "base": "AbstractFieldOfVarProvider",
       "isComponent": true,
       "autoReferences": [
         {
@@ -4053,6 +4156,8 @@
       "namespace": "RCGMaker.Core.DataProvider.Condition",
       "base": "AbstractConditionComp",
       "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
         "IBoolProvider",
         "IOverrideHierarchyIcon"
@@ -4078,6 +4183,1369 @@
           "attribute": "AutoParent",
           "type": "MonoDescriptable",
           "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "StateUpdateTransitionAction",
+      "namespace": "MonoFSM.Transition",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "ITransitionCheckInvoker",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "StateTransition",
+          "name": "validTransition"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "AnimatorPlayActionModule",
+      "namespace": "MonoFSM.AnimatorControl",
+      "base": "MonoBehaviour",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "AnimatorPlayAction",
+          "name": "_animatorPlayAction"
+        }
+      ]
+    },
+    {
+      "class": "AnimatorRandomStateModule",
+      "namespace": "MonoFSM.AnimatorControl",
+      "base": "AnimatorPlayActionModule",
+      "interfaces": [
+        "ISceneSavingCallbackReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "AnimatorPlayAction",
+          "name": "_animatorPlayAction"
+        }
+      ]
+    },
+    {
+      "class": "AnimatorParameterSetValueAction",
+      "namespace": "MonoFSM.Animation",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IFloatProvider",
+          "name": "_floatValueSource"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "AnimatorPlayAction",
+      "namespace": "MonoFSM.Animation",
+      "base": "AbstractDescriptionBehaviour",
+      "interfaces": [
+        "ISerializableComponent",
+        "IRenderAction",
+        "ISceneSavingCallbackReceiver",
+        "IDrawHierarchyBackGround",
+        "ITransitionCheckInvoker",
+        "ISelfValidator",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAnimatorPlayAction"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "AbstractStringProvider",
+          "name": "stateNameProvider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoStateBehaviour",
+          "name": "_stateBehaviour"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "StateTransition",
+          "name": "doneEventTransition"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "StateMachineOwner",
+          "name": "_fsmOwner"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AnimatorPlayActionModule[]",
+          "name": "_animatorPlayActionModule"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "AbstractMonoVariable",
+      "namespace": "MonoFSM.Variable",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IGuidEntity",
+        "IValueOfKey`1",
+        "IName",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "ComponentVariable",
+      "namespace": "MonoFSM.Variable",
+      "base": "GenericUnityObjectVariable`1",
+      "interfaces": [
+        "IGuidEntity",
+        "IValueOfKey`1",
+        "IName",
+        "ISettable",
+        "ISettable`1",
+        "IOverrideHierarchyIcon",
+        "IResetStateRestore"
+      ],
+      "isComponent": true,
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "DynamicVariableBinder",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractFolder",
+      "interfaces": [
+        "IResetStart",
+        "IBinder"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractVariableBindingEntry[]",
+          "name": "entries"
+        }
+      ]
+    },
+    {
+      "class": "AbstractObjectVariable",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractMonoVariable",
+      "interfaces": [
+        "IGuidEntity",
+        "IValueOfKey`1",
+        "IName",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "GenericUnityObjectVariable`1",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractObjectVariable",
+      "interfaces": [
+        "IGuidEntity",
+        "IValueOfKey`1",
+        "IName",
+        "ISettable",
+        "ISettable`1",
+        "IOverrideHierarchyIcon",
+        "IResetStateRestore"
+      ],
+      "isComponent": true,
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "VarBoolRelay",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractDescriptionBehaviour",
+      "interfaces": [
+        "IResetStart",
+        "IUpdateSimulate",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "VariableRelayBinder",
+      "namespace": "MonoFSM.Variable",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IVariableOwner"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "VarBoolRelay[]",
+          "name": "_variableRelays"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "VariableFolder[]",
+          "name": "_variableFolders"
+        }
+      ]
+    },
+    {
+      "class": "VarBool",
+      "namespace": "MonoFSM.Variable",
+      "base": "GenericMonoVariable`3",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IGuidEntity",
+        "IRebindable",
+        "IValueOfKey`1",
+        "IDefaultSerializable",
+        "ISceneStart",
+        "IReferenceTarget",
+        "IName",
+        "IGameStateOwner",
+        "ICondition",
+        "ISettable",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IDrawDetail",
+        "IBoolProvider",
+        "ISettable`1",
+        "IResetStateRestore",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractVariableModifier`1[]",
+          "name": "_modifiers"
+        }
+      ],
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "VarDescriptableData",
+      "namespace": "MonoFSM.Variable",
+      "base": "GenericUnityObjectVariable`1",
+      "interfaces": [
+        "IGuidEntity",
+        "IValueOfKey`1",
+        "IName",
+        "ISettable",
+        "ISettable`1",
+        "IOverrideHierarchyIcon",
+        "IResetStateRestore"
+      ],
+      "isComponent": true,
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "VarFloat",
+      "namespace": "MonoFSM.Variable",
+      "base": "GenericMonoVariable`3",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IGuidEntity",
+        "IValueOfKey`1",
+        "IDefaultSerializable",
+        "ISceneStart",
+        "IReferenceTarget",
+        "IName",
+        "IGameStateOwner",
+        "ISerializedFloatValue",
+        "ISettable",
+        "IBeforePrefabSaveCallbackReceiver",
+        "ISettable`1",
+        "IOverrideHierarchyIcon",
+        "IResetStateRestore"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "VariableFloatBoundModifier",
+          "name": "_boundModifier"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractVariableModifier`1[]",
+          "name": "_modifiers"
+        }
+      ],
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "VariableDictionary",
+      "namespace": "MonoFSM.Variable",
+      "base": "MonoDict`2",
+      "interfaces": [
+        "ISceneAwake",
+        "IResetStateRestore"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "VarFloat[]",
+          "name": "_collections"
+        }
+      ]
+    },
+    {
+      "class": "MonoVarFloatVirtual",
+      "namespace": "MonoFSM.Variable",
+      "base": "VarFloat",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IGuidEntity",
+        "IValueOfKey`1",
+        "IDefaultSerializable",
+        "ISceneStart",
+        "IReferenceTarget",
+        "IName",
+        "IGameStateOwner",
+        "ISerializedFloatValue",
+        "ISettable",
+        "IBeforePrefabSaveCallbackReceiver",
+        "ISettable`1",
+        "IOverrideHierarchyIcon",
+        "IResetStateRestore"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractVariableModifier`1[]",
+          "name": "_modifiers"
+        }
+      ],
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "ApplyModifierAction",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "VariableStatModifier[]",
+          "name": "_modifiers"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "CriticalHitDamageOperation",
+      "namespace": "MonoFSM.Variable",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IVariableFloatOperation"
+      ],
+      "isComponent": true
+    },
+    {
+      "class": "VariableFloatArithmeticOperation",
+      "namespace": "MonoFSM.Variable",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IVariableFloatOperation"
+      ],
+      "isComponent": true
+    },
+    {
+      "class": "VariableFloatBoundModifier",
+      "namespace": "MonoFSM.Variable",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "AbstractVariableModifier`1"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "VarFloat",
+          "name": "_monoVar"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "IFloatProvider[]",
+          "name": "_floatProviderArray"
+        }
+      ]
+    },
+    {
+      "class": "VariableStatModifier",
+      "namespace": "MonoFSM.Variable",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IStatModifer"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "VarStat",
+          "name": "_stat"
+        }
+      ]
+    },
+    {
+      "class": "VariableStatOwner",
+      "namespace": "MonoFSM.Variable",
+      "base": "MonoBehaviour",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "VarStat[]",
+          "name": "_variableStats"
+        }
+      ]
+    },
+    {
+      "class": "VarStat",
+      "namespace": "MonoFSM.Variable",
+      "base": "VarFloat",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IGuidEntity",
+        "IValueOfKey`1",
+        "IDefaultSerializable",
+        "ISceneStart",
+        "IReferenceTarget",
+        "IName",
+        "IGameStateOwner",
+        "ISerializedFloatValue",
+        "ISettable",
+        "IBeforePrefabSaveCallbackReceiver",
+        "ISettable`1",
+        "IOverrideHierarchyIcon",
+        "IResetStateRestore",
+        "IConditionChangeListener"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "VariableStatModifier[]",
+          "name": "_localStatModifiers"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractVariableModifier`1[]",
+          "name": "_modifiers"
+        }
+      ],
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "VariableTag",
+      "namespace": "MonoFSM.Variable",
+      "base": "ScriptableObject",
+      "interfaces": [
+        "IStringKey"
+      ],
+      "isScriptableObject": true
+    },
+    {
+      "class": "VarTransform",
+      "namespace": "MonoFSM.Variable",
+      "base": "GenericUnityObjectVariable`1",
+      "interfaces": [
+        "IGuidEntity",
+        "IValueOfKey`1",
+        "IName",
+        "ISettable",
+        "ISettable`1",
+        "IOverrideHierarchyIcon",
+        "IResetStateRestore"
+      ],
+      "isComponent": true,
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "VirtualBool",
+      "namespace": "MonoFSM.Variable",
+      "base": "VarBool",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IGuidEntity",
+        "IRebindable",
+        "IValueOfKey`1",
+        "IDefaultSerializable",
+        "ISceneStart",
+        "IReferenceTarget",
+        "IName",
+        "IGameStateOwner",
+        "ICondition",
+        "ISettable",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IDrawDetail",
+        "IBoolProvider",
+        "ISettable`1",
+        "IResetStateRestore",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractVariableModifier`1[]",
+          "name": "_modifiers"
+        }
+      ],
+      "properties": [
+        {
+          "type": "VariableTag",
+          "name": "_varTag"
+        }
+      ]
+    },
+    {
+      "class": "SetBoolFieldOfVariableAction",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "SetVarBoolAction",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IArgEventReceiver`1",
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ],
+      "properties": [
+        {
+          "type": "VarBool",
+          "name": "_target"
+        },
+        {
+          "type": "Boolean",
+          "name": "TargetValue"
+        }
+      ]
+    },
+    {
+      "class": "SetVarFloatConstAction",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ],
+      "properties": [
+        {
+          "type": "VarFloat",
+          "name": "targetFlag"
+        }
+      ]
+    },
+    {
+      "class": "SetVariableIntAction",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "VarFloatArithmeticAction",
+      "namespace": "MonoFSM.Variable",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IArgEventReceiver`1",
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "EffectValue",
+      "namespace": "MonoFSM.Variable.VirutalizeVariable",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IFloatValueProvider"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "IVariableFloatOperation[]",
+          "name": "modifiers"
+        }
+      ]
+    },
+    {
+      "class": "VariableBindingEntry`1",
+      "namespace": "MonoFSM.Variable.VariableBinder",
+      "base": "AbstractVariableBindingEntry",
+      "interfaces": [
+        "IGuidEntity"
+      ],
+      "isComponent": true
+    },
+    {
+      "class": "AbstractVariableBindingEntry",
+      "namespace": "MonoFSM.Variable.VariableBinder",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IGuidEntity"
+      ],
+      "isComponent": true
+    },
+    {
+      "class": "VariableBoolRebindEntry",
+      "namespace": "MonoFSM.Variable.VariableBinder",
+      "base": "VariableBindingEntry`1",
+      "interfaces": [
+        "IGuidEntity"
+      ],
+      "isComponent": true
+    },
+    {
+      "class": "BoolPropertyOfGameFlagCondition",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "AbstractFieldConditionComp`2",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "FloatCompareCondition",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "NotifyConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IResetStart",
+        "ISceneStart",
+        "IDrawHierarchyBackGround",
+        "ITransitionCheckInvoker",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "IFloatProvider[]",
+          "name": "_floatValueSourceArray"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IConditionChangeListener",
+          "name": "_parentConditionChangeListener"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ],
+      "properties": [
+        {
+          "type": "VarFloat",
+          "name": "leftValue"
+        },
+        {
+          "type": "Operator",
+          "name": "op"
+        },
+        {
+          "type": "Boolean",
+          "name": "useConstantForRightValue"
+        },
+        {
+          "type": "Single",
+          "name": "rightConstantValue"
+        }
+      ]
+    },
+    {
+      "class": "IntCompareCondition",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "AbstractConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "IsUnityObjectVariableNullCondition",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "AbstractConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "BoolMonoBehaviorPropertyCondition",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "AbstractFieldConditionComp`2",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "AbstractFieldConditionComp`2",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "AbstractConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "IntPropertyCondition",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "AbstractFieldConditionComp`2",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "VarBoolValueCondition",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "NotifyConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IResetStart",
+        "ISceneStart",
+        "IDrawHierarchyBackGround",
+        "ITransitionCheckInvoker",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "IConditionChangeListener",
+          "name": "_parentConditionChangeListener"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ],
+      "properties": [
+        {
+          "type": "VarBool",
+          "name": "_varBool"
+        }
+      ]
+    },
+    {
+      "class": "VarFloatCompareConstCondition",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "NotifyConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IResetStart",
+        "ISceneStart",
+        "IDrawHierarchyBackGround",
+        "ITransitionCheckInvoker",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "IConditionChangeListener",
+          "name": "_parentConditionChangeListener"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "VariableFloatLastValueCompareCondition",
+      "namespace": "MonoFSM.Variable.Condition",
+      "base": "AbstractConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "NotifyConditionComp",
+      "namespace": "MonoFSM.Condition",
+      "base": "AbstractConditionComp",
+      "interfaces": [
+        "IHierarchyValueInfo",
+        "IResetStart",
+        "ISceneStart",
+        "IDrawHierarchyBackGround",
+        "ITransitionCheckInvoker",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IBoolProvider",
+        "IOverrideHierarchyIcon"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "IConditionChangeListener",
+          "name": "_parentConditionChangeListener"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "DebugConditionResultOverrider",
+          "name": "_debugConditionResultOverrider"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "SourceValueRef",
+      "namespace": "MonoFSM.VarRef",
+      "base": "AbstractSourceValueRef",
+      "isComponent": true
+    },
+    {
+      "class": "AbstractSourceValueRef",
+      "namespace": "MonoFSM.VarRef",
+      "base": "MonoBehaviour",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IValueProvider",
+          "name": "_valueProvider"
+        }
+      ]
+    },
+    {
+      "class": "TargetVarRef",
+      "namespace": "MonoFSM.VarRef",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IVariableProvider"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "AbstractVariableProviderRef",
+          "name": "_providerRef"
+        }
+      ]
+    },
+    {
+      "class": "VarDescriptableDataRef",
+      "namespace": "MonoFSM.VarRef",
+      "base": "VariableProviderRef`2",
+      "interfaces": [
+        "IGameDataProvider",
+        "IVariableProvider",
+        "IStringProvider",
+        "IValueProvider"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IVariableOwnerProvider",
+          "name": "variableOwnerProvider"
+        }
+      ]
+    },
+    {
+      "class": "VarIntProviderRef",
+      "namespace": "MonoFSM.VarRef",
+      "base": "VariableProviderRef`2",
+      "interfaces": [
+        "IVariableProvider",
+        "IStringProvider",
+        "IFloatProvider",
+        "IIntProvider",
+        "IValueProvider"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IVariableOwnerProvider",
+          "name": "variableOwnerProvider"
+        }
+      ]
+    },
+    {
+      "class": "VarMonoRef",
+      "namespace": "MonoFSM.VarRef",
+      "base": "VariableProviderRef`2",
+      "interfaces": [
+        "IVariableProvider",
+        "IStringProvider",
+        "IVarMonoProvider",
+        "IValueProvider"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IVariableOwnerProvider",
+          "name": "variableOwnerProvider"
+        }
+      ]
+    },
+    {
+      "class": "SelfRef",
+      "namespace": "MonoFSM.Ref",
+      "base": "MonoBehaviour",
+      "interfaces": [
+        "IValueProvider"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_descriptable"
         }
       ]
     },
@@ -4146,119 +5614,72 @@
       ]
     },
     {
-      "class": "AbstractMonoVariable",
-      "namespace": "MonoFSM.Variable",
+      "class": "AbstractStateBehaviour`1",
+      "namespace": "MonoFSM.Core",
       "base": "MonoBehaviour",
       "interfaces": [
-        "IValueOfKey`1",
-        "IName",
-        "IOverrideHierarchyIcon",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "properties": [
-        {
-          "type": "VariableTag",
-          "name": "_varTag"
-        }
-      ]
-    },
-    {
-      "class": "ComponentVariable",
-      "namespace": "MonoFSM.Variable",
-      "base": "GenericUnityObjectVariable`1",
-      "interfaces": [
-        "IValueOfKey`1",
-        "IName",
-        "ISettable",
-        "ISettable`1",
-        "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "properties": [
-        {
-          "type": "VariableTag",
-          "name": "_varTag"
-        }
-      ]
-    },
-    {
-      "class": "DynamicVariableBinder",
-      "namespace": "MonoFSM.Variable",
-      "base": "AbstractFolder",
-      "interfaces": [
-        "IBinder",
-        "IResetStart"
+        "IOwnedState`1",
+        "IState"
       ],
       "isComponent": true,
       "autoReferences": [
         {
           "attribute": "AutoChildren",
-          "type": "AbstractVariableBindingEntry[]",
-          "name": "entries"
-        }
-      ]
-    },
-    {
-      "class": "FloatValueSource",
-      "namespace": "MonoFSM.Variable",
-      "base": "MonoBehaviour",
-      "interfaces": [
-        "IFloatProvider"
-      ],
-      "isComponent": true
-    },
-    {
-      "class": "AbstractObjectVariable",
-      "namespace": "MonoFSM.Variable",
-      "base": "AbstractMonoVariable",
-      "interfaces": [
-        "IValueOfKey`1",
-        "IName",
-        "IOverrideHierarchyIcon",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "properties": [
+          "type": "TransitionBehaviour`1[]",
+          "name": "_transitions"
+        },
         {
-          "type": "VariableTag",
-          "name": "_varTag"
-        }
-      ]
-    },
-    {
-      "class": "GenericUnityObjectVariable`1",
-      "namespace": "MonoFSM.Variable",
-      "base": "AbstractObjectVariable",
-      "interfaces": [
-        "IValueOfKey`1",
-        "IName",
-        "ISettable",
-        "ISettable`1",
-        "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "properties": [
+          "attribute": "AutoChildren",
+          "type": "IRenderAction[]",
+          "name": "_renderActions"
+        },
         {
-          "type": "VariableTag",
-          "name": "_varTag"
+          "attribute": "AutoChildren",
+          "type": "OnStateEnterHandler",
+          "name": "_onStateEnter"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "OnStateUpdateHandler",
+          "name": "_onStateUpdate"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "OnStateExitHandler",
+          "name": "_onStateExit"
         }
       ]
     },
     {
-      "class": "VarBoolRelay",
-      "namespace": "MonoFSM.Variable",
-      "base": "AbstractDescriptionBehaviour",
+      "class": "SpawnAction",
+      "namespace": "MonoFSM.Core.LifeCycle",
+      "base": "AbstractStateAction",
       "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
-        "IResetStart"
+        "IAbstractEventReceiver",
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
         {
           "attribute": "AutoParent",
           "type": "MonoDescriptable",
@@ -4267,197 +5688,186 @@
       ]
     },
     {
-      "class": "VariableRelayBinder",
-      "namespace": "MonoFSM.Variable",
+      "class": "ProxyUpdate",
+      "namespace": "MonoFSM.Core.Update",
+      "base": "MonoBehaviour",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IUpdateSimulate",
+          "name": "_updateSimulate"
+        }
+      ]
+    },
+    {
+      "class": "LocalSimulator",
+      "namespace": "MonoFSM.Core.Simulate",
       "base": "MonoBehaviour",
       "interfaces": [
-        "IVariableOwner"
+        "ISimulateRunner"
       ],
       "isComponent": true,
       "autoReferences": [
         {
-          "attribute": "AutoChildren",
-          "type": "VarBoolRelay[]",
-          "name": "_variableRelays"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "VariableFolder[]",
-          "name": "_variableFolders"
+          "attribute": "Auto",
+          "type": "WorldUpdateSimulator",
+          "name": "_world"
         }
       ]
     },
     {
-      "class": "VarBool",
-      "namespace": "MonoFSM.Variable",
-      "base": "GenericMonoVariable`3",
-      "interfaces": [
-        "IDefaultSerializable",
-        "IRebindable",
-        "IReferenceTarget",
-        "IValueOfKey`1",
-        "IGameStateOwner",
-        "ICondition",
-        "IName",
-        "ISettable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IDrawDetail",
-        "ISettable`1",
-        "IBoolProvider",
-        "IResetStateRestore",
-        "IOverrideHierarchyIcon",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractVariableModifier`1[]",
-          "name": "_modifiers"
-        }
-      ],
-      "properties": [
-        {
-          "type": "VariableTag",
-          "name": "_varTag"
-        }
-      ]
-    },
-    {
-      "class": "VarFloat",
-      "namespace": "MonoFSM.Variable",
-      "base": "GenericMonoVariable`3",
-      "interfaces": [
-        "IDefaultSerializable",
-        "IReferenceTarget",
-        "IValueOfKey`1",
-        "IGameStateOwner",
-        "IName",
-        "ISerializedFloatValue",
-        "ISettable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "ISettable`1",
-        "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "VariableFloatBoundModifier",
-          "name": "_boundModifier"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractVariableModifier`1[]",
-          "name": "_modifiers"
-        }
-      ],
-      "properties": [
-        {
-          "type": "VariableTag",
-          "name": "_varTag"
-        }
-      ]
-    },
-    {
-      "class": "VarGameData",
-      "namespace": "MonoFSM.Variable",
-      "base": "GenericUnityObjectVariable`1",
-      "interfaces": [
-        "IValueOfKey`1",
-        "IName",
-        "ISettable",
-        "ISettable`1",
-        "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "properties": [
-        {
-          "type": "VariableTag",
-          "name": "_varTag"
-        }
-      ]
-    },
-    {
-      "class": "VariableDictionary",
-      "namespace": "MonoFSM.Variable",
-      "base": "MonoDict`2",
-      "interfaces": [
-        "IResetStateRestore"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "VarFloat[]",
-          "name": "collections"
-        }
-      ]
-    },
-    {
-      "class": "MonoVarFloatVirtual",
-      "namespace": "MonoFSM.Variable",
-      "base": "VarFloat",
-      "interfaces": [
-        "IDefaultSerializable",
-        "IReferenceTarget",
-        "IValueOfKey`1",
-        "IGameStateOwner",
-        "IName",
-        "ISerializedFloatValue",
-        "ISettable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "ISettable`1",
-        "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "AbstractVariableModifier`1[]",
-          "name": "_modifiers"
-        }
-      ],
-      "properties": [
-        {
-          "type": "VariableTag",
-          "name": "_varTag"
-        }
-      ]
-    },
-    {
-      "class": "CriticalHitDamageOperation",
-      "namespace": "MonoFSM.Variable",
+      "class": "VarFloatCountDownTimer",
+      "namespace": "MonoFSM.Core.Simulate",
       "base": "MonoBehaviour",
       "interfaces": [
-        "IVariableFloatOperation"
+        "ISceneStart",
+        "IUpdateSimulate"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        }
+      ]
+    },
+    {
+      "class": "WorldUpdateSimulator",
+      "namespace": "MonoFSM.Core.Simulate",
+      "base": "MonoBehaviour",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "ISimulateRunner",
+          "name": "_simulateRunner"
+        },
+        {
+          "attribute": "Auto",
+          "type": "ISpawnProcessor",
+          "name": "_spawnProcessor"
+        }
+      ]
+    },
+    {
+      "class": "HitDataParentCompProvider`1",
+      "namespace": "MonoFSM.Core.Runtime",
+      "base": "MonoBehaviour",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "IHitDataProvider",
+          "name": "_hitDataProvider"
+        }
+      ]
+    },
+    {
+      "class": "MonoFromOwner",
+      "namespace": "MonoFSM.Core.Runtime",
+      "base": "ValueFromOwner`1",
+      "interfaces": [
+        "IValueProvider"
       ],
       "isComponent": true
     },
     {
-      "class": "FindStatToModifierAction",
-      "namespace": "MonoFSM.Variable",
-      "base": "AbstractStateAction",
+      "class": "ValueFromOwner`1",
+      "namespace": "MonoFSM.Core.Runtime",
+      "base": "MonoBehaviour",
       "interfaces": [
-        "IVoteChild",
-        "IDefaultSerializable",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IAbstractEventReceiver",
-        "IEventReceiver",
-        "IGuidEntity"
+        "IValueProvider"
       ],
       "isComponent": true,
       "autoReferences": [
         {
+          "attribute": "Auto",
+          "type": "IVariableOwnerProvider",
+          "name": "_ownerProvider"
+        }
+      ]
+    },
+    {
+      "class": "WorldReseter",
+      "namespace": "MonoFSM.Core.Runtime",
+      "base": "MonoBehaviour",
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "ISpawnProcessor",
+          "name": "_spawnProcessor"
+        }
+      ]
+    },
+    {
+      "class": "AbstractStateAction",
+      "namespace": "MonoFSM.Core.Runtime.Action",
+      "base": "AbstractDescriptionBehaviour",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
           "attribute": "AutoChildren",
-          "type": "VariableStatModifier[]",
-          "name": "_modifiers"
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "DelayActionModifier",
+          "name": "delayActionModifier"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IBinder",
+          "name": "nearestBinder"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "SetVarFloatAction",
+      "namespace": "MonoFSM.Core.Runtime.Action.VariableAction",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "IFloatProvider",
+          "name": "_valueProvider"
         },
         {
           "attribute": "AutoParent",
@@ -4472,51 +5882,46 @@
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
-          "name": "conditions"
+          "name": "_conditions"
         },
         {
           "attribute": "AutoParent",
           "type": "MonoDescriptable",
           "name": "_self"
         }
+      ],
+      "properties": [
+        {
+          "type": "VarFloat",
+          "name": "_targetVar"
+        }
       ]
     },
     {
-      "class": "VariableFloatArithmeticOperation",
-      "namespace": "MonoFSM.Variable",
-      "base": "MonoBehaviour",
+      "class": "SetVarFloatToBoundAction",
+      "namespace": "MonoFSM.Core.Runtime.Action.VariableAction",
+      "base": "AbstractStateAction",
       "interfaces": [
-        "IVariableFloatOperation"
-      ],
-      "isComponent": true
-    },
-    {
-      "class": "VariableFloatBoundModifier",
-      "namespace": "MonoFSM.Variable",
-      "base": "MonoBehaviour",
-      "interfaces": [
-        "AbstractVariableModifier`1"
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
         {
           "attribute": "AutoParent",
-          "type": "VarFloat",
-          "name": "_monoVar"
+          "type": "GeneralState",
+          "name": "bindingState"
         },
         {
-          "attribute": "AutoChildren",
-          "type": "IFloatProvider[]",
-          "name": "_floatProviderArray"
-        }
-      ]
-    },
-    {
-      "class": "VariableStatModifier",
-      "namespace": "MonoFSM.Variable",
-      "base": "MonoBehaviour",
-      "isComponent": true,
-      "autoReferences": [
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
         {
           "attribute": "AutoChildren",
           "type": "AbstractConditionComp[]",
@@ -4524,459 +5929,163 @@
         },
         {
           "attribute": "AutoParent",
-          "type": "VarStat",
-          "name": "_stat"
+          "type": "MonoDescriptable",
+          "name": "_self"
         }
-      ]
-    },
-    {
-      "class": "VariableStatOwner",
-      "namespace": "MonoFSM.Variable",
-      "base": "MonoBehaviour",
-      "isComponent": true,
-      "autoReferences": [
+      ],
+      "properties": [
         {
-          "attribute": "AutoChildren",
-          "type": "VarStat[]",
-          "name": "_variableStats"
+          "type": "VarFloat",
+          "name": "_targetVar"
         }
       ]
     },
     {
-      "class": "VarStat",
-      "namespace": "MonoFSM.Variable",
-      "base": "VarFloat",
+      "class": "SetVarTransformAction",
+      "namespace": "MonoFSM.Core.Runtime.Action.VariableAction",
+      "base": "AbstractStateAction",
       "interfaces": [
+        "IArgEventReceiver`1",
+        "IGuidEntity",
         "IDefaultSerializable",
-        "IReferenceTarget",
-        "IValueOfKey`1",
-        "IGameStateOwner",
-        "IName",
-        "ISerializedFloatValue",
-        "ISettable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
-        "ISettable`1",
-        "IOverrideHierarchyIcon",
-        "IResetStateRestore",
-        "IGuidEntity"
+        "IAbstractEventReceiver",
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
         {
-          "attribute": "AutoChildren",
-          "type": "VariableStatModifier[]",
-          "name": "LocalStatModifiers"
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
         },
         {
           "attribute": "AutoChildren",
-          "type": "AbstractVariableModifier`1[]",
-          "name": "_modifiers"
-        }
-      ],
-      "properties": [
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
         {
-          "type": "VariableTag",
-          "name": "_varTag"
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
         }
       ]
     },
     {
-      "class": "VariableTag",
-      "namespace": "MonoFSM.Variable",
-      "base": "ScriptableObject",
+      "class": "ToggleBoolAction",
+      "namespace": "MonoFSM.Core.Runtime.Action.VariableAction",
+      "base": "AbstractStateAction",
       "interfaces": [
-        "IStringKey"
-      ],
-      "isScriptableObject": true
-    },
-    {
-      "class": "VirtualBool",
-      "namespace": "MonoFSM.Variable",
-      "base": "VarBool",
-      "interfaces": [
+        "IGuidEntity",
         "IDefaultSerializable",
-        "IRebindable",
-        "IReferenceTarget",
-        "IValueOfKey`1",
-        "IGameStateOwner",
-        "ICondition",
-        "IName",
-        "ISettable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver",
-        "IDrawDetail",
-        "ISettable`1",
-        "IBoolProvider",
-        "IResetStateRestore",
-        "IOverrideHierarchyIcon",
-        "IGuidEntity"
+        "IAbstractEventReceiver",
+        "IEventReceiver"
       ],
       "isComponent": true,
       "autoReferences": [
         {
-          "attribute": "AutoChildren",
-          "type": "AbstractVariableModifier`1[]",
-          "name": "_modifiers"
-        }
-      ],
-      "properties": [
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
         {
-          "type": "VariableTag",
-          "name": "_varTag"
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
         }
       ]
     },
     {
-      "class": "EffectValue",
-      "namespace": "MonoFSM.Variable.VirutalizeVariable",
+      "class": "ShakeLocalPosAction",
+      "namespace": "MonoFSM.Core.Runtime.Action.PrimeTweenAction",
+      "base": "AbstractStateAction",
+      "interfaces": [
+        "IGuidEntity",
+        "IDefaultSerializable",
+        "IVoteChild",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IAbstractEventReceiver",
+        "IEventReceiver"
+      ],
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "GeneralState",
+          "name": "bindingState"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "IActionParent",
+          "name": "_actionParent"
+        },
+        {
+          "attribute": "AutoChildren",
+          "type": "AbstractConditionComp[]",
+          "name": "_conditions"
+        },
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ]
+    },
+    {
+      "class": "FloatLiteralRef",
+      "namespace": "MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper",
       "base": "MonoBehaviour",
       "interfaces": [
-        "IFloatValueProvider"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "IVariableFloatOperation[]",
-          "name": "modifiers"
-        }
-      ]
-    },
-    {
-      "class": "VariableBindingEntry`1",
-      "namespace": "MonoFSM.Variable.VariableBinder",
-      "base": "AbstractVariableBindingEntry",
-      "interfaces": [
-        "IGuidEntity"
+        "IFloatProvider",
+        "IValueProvider"
       ],
       "isComponent": true
     },
     {
-      "class": "AbstractVariableBindingEntry",
-      "namespace": "MonoFSM.Variable.VariableBinder",
-      "base": "MonoBehaviour",
-      "interfaces": [
-        "IGuidEntity"
-      ],
+      "class": "SourceValue2Ref",
+      "namespace": "MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper",
+      "base": "AbstractSourceValueRef",
       "isComponent": true
-    },
-    {
-      "class": "VariableBoolRebindEntry",
-      "namespace": "MonoFSM.Variable.VariableBinder",
-      "base": "VariableBindingEntry`1",
-      "interfaces": [
-        "IGuidEntity"
-      ],
-      "isComponent": true
-    },
-    {
-      "class": "BoolPropertyOfGameFlagCondition",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "AbstractFieldConditionComp`2",
-      "interfaces": [
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "FloatCompareCondition",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "AbstractConditionComp",
-      "interfaces": [
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "IFloatProvider[]",
-          "name": "_floatValueSourceArray"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "IntCompareCondition",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "AbstractConditionComp",
-      "interfaces": [
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "IsUnityObjectVariableNullCondition",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "AbstractConditionComp",
-      "interfaces": [
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "BoolMonoBehaviorPropertyCondition",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "AbstractFieldConditionComp`2",
-      "interfaces": [
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "AbstractFieldConditionComp`2",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "AbstractConditionComp",
-      "interfaces": [
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "IntPropertyCondition",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "AbstractFieldConditionComp`2",
-      "interfaces": [
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "VarBoolValueCondition",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "NotifyConditionComp",
-      "interfaces": [
-        "ITransitionCheckInvoker",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon",
-        "IResetStart"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "IConditionChangeListener",
-          "name": "_parentConditionChangeListener"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ],
-      "properties": [
-        {
-          "type": "VarBool",
-          "name": "_varBool"
-        }
-      ]
-    },
-    {
-      "class": "VariableFloatLastValueCompareCondition",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "AbstractConditionComp",
-      "interfaces": [
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "VariableFloatValueCondition",
-      "namespace": "MonoFSM.Variable.Condition",
-      "base": "NotifyConditionComp",
-      "interfaces": [
-        "ITransitionCheckInvoker",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon",
-        "IResetStart"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "IConditionChangeListener",
-          "name": "_parentConditionChangeListener"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "NotifyConditionComp",
-      "namespace": "MonoFSM.Condition",
-      "base": "AbstractConditionComp",
-      "interfaces": [
-        "ITransitionCheckInvoker",
-        "IBeforePrefabSaveCallbackReceiver",
-        "IBoolProvider",
-        "IOverrideHierarchyIcon",
-        "IResetStart"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "IConditionChangeListener",
-          "name": "_parentConditionChangeListener"
-        },
-        {
-          "attribute": "AutoChildren",
-          "type": "DebugConditionResultOverrider",
-          "name": "_debugConditionResultOverrider"
-        },
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_self"
-        }
-      ]
-    },
-    {
-      "class": "SelfRef",
-      "namespace": "MonoFSM.Ref",
-      "base": "MonoBehaviour",
-      "interfaces": [
-        "IConfigVar"
-      ],
-      "isComponent": true,
-      "autoReferences": [
-        {
-          "attribute": "AutoParent",
-          "type": "MonoDescriptable",
-          "name": "_descriptable"
-        }
-      ]
     },
     {
       "class": "FloatLiteralComp",
       "namespace": "MonoFSM.DataProvider",
-      "base": "MonoBehaviour",
+      "base": "AbstractDescriptionBehaviour",
       "interfaces": [
-        "IFloatProvider"
+        "IFloatProvider",
+        "IDrawHierarchyBackGround",
+        "IBeforePrefabSaveCallbackReceiver",
+        "IValueProvider"
       ],
       "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "AutoParent",
+          "type": "MonoDescriptable",
+          "name": "_self"
+        }
+      ],
       "properties": [
         {
           "type": "Single",
@@ -4989,18 +6098,31 @@
       "namespace": "MonoFSM.DataProvider",
       "base": "VariableProviderRef`2",
       "interfaces": [
-        "IFloatProvider",
         "IVariableProvider",
         "IStringProvider",
-        "IConfigVar"
+        "IFloatProvider",
+        "IValueProvider"
       ],
-      "isComponent": true
+      "isComponent": true,
+      "autoReferences": [
+        {
+          "attribute": "Auto",
+          "type": "AbstractFieldOfVarProvider",
+          "name": "_fieldValueProvider"
+        },
+        {
+          "attribute": "Auto",
+          "type": "IVariableOwnerProvider",
+          "name": "variableOwnerProvider"
+        }
+      ]
     },
     {
       "class": "AbstractDescriptionBehaviour",
       "namespace": "MonoFSM.Foundation",
       "base": "MonoBehaviour",
       "interfaces": [
+        "IDrawHierarchyBackGround",
         "IBeforePrefabSaveCallbackReceiver"
       ],
       "isComponent": true,
