@@ -3,7 +3,7 @@ using RCGMaker.Core;
 using Sirenix.OdinInspector;
 using Random = UnityEngine.Random;
 
-namespace RCGFSM.AnimatorControl
+namespace MonoFSM.AnimatorControl
 {
     //想要隨機抽一個動畫來播，用位置來決定random seed
     //Config Setter...

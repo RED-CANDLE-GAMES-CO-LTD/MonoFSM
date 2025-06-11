@@ -3,6 +3,7 @@ using MonoFSM.Editor;
 using MonoFSM.InternalBridge;
 using RCGMaker.Core;
 using UnityEditor;
+using UnityEngine;
 
 namespace _1_MonoFSM_Core.Editor.SceneHierarchy
 {
@@ -28,7 +29,8 @@ namespace _1_MonoFSM_Core.Editor.SceneHierarchy
 
         private static void OnFsmEventManagerOnOnStateChanged(StateMachineLogic stateMachine)
         {
-            // Debug.Log($"State changed from {from} to {to} in {stateMachine}");
+            // Debug.Log(
+            //     $"State changed from {stateMachine.StateMachines[0].PreviousState} to {stateMachine.StateMachines[0].ActiveState} in {stateMachine}");
             SceneHierarchyUtility.TryRepaintHierarchy();
         }
     }

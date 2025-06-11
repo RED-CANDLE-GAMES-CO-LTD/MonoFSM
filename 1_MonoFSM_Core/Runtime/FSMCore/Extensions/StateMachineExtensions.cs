@@ -1,5 +1,6 @@
 ﻿namespace Fusion.Addons.FSM
 {
+	//FIXME: 這邊是 fusion的assertion?
 	public static class StateMachineExtensions
 	{
 		public static bool TryActivateState(this IStateMachine stateMachine, IState state, bool allowReset = false)

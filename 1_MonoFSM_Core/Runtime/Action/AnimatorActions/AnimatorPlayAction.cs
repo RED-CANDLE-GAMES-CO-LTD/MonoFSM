@@ -1,23 +1,21 @@
 using System.Collections.Generic;
 using System.Linq;
-using RCGFSM.AnimatorControl;
 using RCGMaker.Core;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
-using MonoFSM.Core.Runtime.Action;
+using MonoFSM.AnimatorControl;
 using MonoFSM.Foundation;
 using RCGMaker.Core.Editor;
-using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using MonoFSM.EditorUtility;
 using UnityEditor;
 using UnityEditor.Animations;
 #endif
 
-namespace RCGFSM.Animation
+namespace MonoFSM.Animation
 {
     //小心從init routing來，會直接播結束的frame，要從transition上知道這件事
     //documentation要放哪？
@@ -392,7 +390,7 @@ namespace RCGFSM.Animation
         private int doneEventLayer;
 
 
-#if UNITY_EDITOR
+
         [TabGroup("Animator")]
         // [HideIf(nameof(NoDoneEventTransition))]
         [PreviewInInspector]
@@ -400,13 +398,21 @@ namespace RCGFSM.Animation
         {
             get
             {
-                var currentClip = CurrentClip;
-                if (currentClip == null)
-                    return -1;
-                return currentClip.length;
+                if (Mathf.Approximately(_cachedClipLength, -1))
+                {
+                    var currentClip = CurrentClip;
+                    if (currentClip == null)
+                        return -1;
+                    _cachedClipLength = currentClip.length;
+                }
+
+                return _cachedClipLength; 
             }
         }
 
+        [SerializeField] private float _cachedClipLength = -1;
+
+#if UNITY_EDITOR
         [TabGroup("Animator")]
         // [HideIf(nameof(NoDoneEventTransition))]
         [PreviewInInspector]
@@ -476,7 +482,14 @@ namespace RCGFSM.Animation
         private float CurrentPlayingNormalizedTime =>
             animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime;
 
-        public bool IsDone => CurrentPlayingNormalizedTime >= 1; // && IsPlayingCurrentClip();
+        [AutoParent] private MonoStateBehaviour _stateBehaviour; //這個是State的行為，還是要有個StateAction來做事情
+        public bool IsDone => _stateBehaviour.Machine.StateTime >= ClipLength; // && IsPlayingCurrentClip();
+//FIXME: 播歸播？狀態歸狀態？播完怎麼辦？
+
+        // [SerializeField] private float clipDuration;
+
+        //FIXME: 用邏輯時間
+        // public bool IsDone => CurrentPlayingNormalizedTime >= 1; // && IsPlayingCurrentClip();
 
         private bool IsStatePlaying(int layer)
         {
@@ -724,7 +737,7 @@ namespace RCGFSM.Animation
         //     
         // }
         // public ITransitionCheckingTarget ValueChangedTarget => doneEventTransition;
-        public void OnEnterRender()
+        public void OnEnterRender() //transition更早就判定？導致done錯了？
         {
             // Debug.Log("Play Animation State");
             HasAnimationPlaySuccess = false;

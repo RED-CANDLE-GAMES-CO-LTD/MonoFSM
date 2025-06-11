@@ -58,7 +58,7 @@ public class GeneralState : MonoStateBehaviour
 {
     public float statusTimer => Machine.StateTime;
 
-    public bool ForceGoToState()
+    public bool ForceGoToState() //FIXME: 拿掉這個
     {
         return Machine.TryActivateState(this);
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RCGMaker.Core.Attributes;
 using UnityEngine;
@@ -41,7 +42,13 @@ namespace MonoFSM_InputAction
         public InputAction myAction => _localPlayerInput.actions[_inputActionData.inputAction.name];
         // public InputAction myAction => _localPlayerInput.currentActionMap.FindAction(_inputActionData.inputAction.name);
 
-        public bool IsLocalPressed => myAction.IsPressed();
+        public bool IsLocalPressed => myAction.IsPressed() || myAction.WasPressedThisFrame();
+
+        // private void Update()
+        // {
+        //     if (IsLocalPressed)
+        //         Debug.Log("IsLocalPressed: " + name + " " + myAction.name + " " + myAction.triggered);
+        // }
         // [PreviewInInspector] private float _lastPressTime = -1;
         // private const float InputBufferTime = 0.25f;
         // [PreviewInInspector] private List<float> _bufferedQueue = new(); //玩家過去按下的時間 ex: 連按兩下

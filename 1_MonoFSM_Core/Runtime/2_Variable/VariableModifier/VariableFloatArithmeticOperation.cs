@@ -2,8 +2,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 using Sirenix.OdinInspector;
-
-using RCGFSM.Variable;
+using MonoFSM.Variable;
 
 namespace MonoFSM.Variable
 {

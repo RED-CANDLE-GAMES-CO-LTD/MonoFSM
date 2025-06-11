@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGFSM.Variable
+namespace MonoFSM.Variable
 {
     internal static class VariableExtension
     {

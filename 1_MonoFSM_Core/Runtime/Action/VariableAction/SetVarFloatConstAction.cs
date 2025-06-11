@@ -2,7 +2,7 @@ using jerryee.UnityMCP;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable;
 
-namespace RCGFSM.Variable
+namespace MonoFSM.Variable
 {
     public class SetVarFloatConstAction : AbstractStateAction
     {

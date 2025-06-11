@@ -1,4 +1,4 @@
-using RCGFSM.Animation;
+using MonoFSM.Animation;
 using RCGMaker.Core.Attributes;
 
 namespace RCGMaker.Core

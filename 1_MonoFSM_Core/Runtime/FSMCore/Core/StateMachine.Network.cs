@@ -1,5 +1,6 @@
 ﻿namespace Fusion.Addons.FSM
 {
+    //FIXME: 這段要留在這？需要fusion耶，應該要拆走
     public unsafe ref struct InterpolationData
     {
         public NetworkBehaviourBuffer FromBuffer;

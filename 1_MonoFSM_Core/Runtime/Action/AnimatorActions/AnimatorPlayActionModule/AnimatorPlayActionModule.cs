@@ -1,7 +1,7 @@
+using MonoFSM.Animation;
 using UnityEngine;
-using RCGFSM.Animation;
 
-namespace RCGFSM.AnimatorControl
+namespace MonoFSM.AnimatorControl
 {
     /// <summary>
     /// 就裝在AnimatorPlayAction的Child?

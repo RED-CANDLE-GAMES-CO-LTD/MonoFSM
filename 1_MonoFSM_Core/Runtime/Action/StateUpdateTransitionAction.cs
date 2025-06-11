@@ -4,7 +4,7 @@ using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGFSM.Transition
+namespace MonoFSM.Transition
 {
     //UpdateTransitionCheckAction?
     //讓transition下面有condition不就結束了？ 單層condition

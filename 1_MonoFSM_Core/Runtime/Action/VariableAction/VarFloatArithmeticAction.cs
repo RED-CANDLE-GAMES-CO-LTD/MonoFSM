@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGFSM.Variable
+namespace MonoFSM.Variable
 {
     public enum ArithmeticOperator
     {

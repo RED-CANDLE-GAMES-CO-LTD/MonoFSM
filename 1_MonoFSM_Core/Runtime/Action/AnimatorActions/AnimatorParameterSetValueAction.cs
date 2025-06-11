@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGFSM.Animation
+namespace MonoFSM.Animation
 {
     public class AnimatorParameterSetValueAction : AbstractStateAction
     {
