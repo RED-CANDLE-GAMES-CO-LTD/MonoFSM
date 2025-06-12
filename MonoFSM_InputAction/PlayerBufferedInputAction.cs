@@ -20,6 +20,7 @@ namespace PlayerActionControl
             PlayerBufferedInputAction._actionListenerDict.Clear();
         }
     }
+    [Obsolete]
     public class PlayerBufferedInputAction:MonoBehaviour
     {
         [PreviewInInspector]

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using _1_MonoFSM_Core.Runtime.LifeCycle.Update.Simulate;
+// using _1_MonoFSM_Core.Runtime.LifeCycle.Update.Simulate;
 using MonoFSM.Core.Simulate;
 using RCGMaker.Core.Attributes;
 using UnityEngine;
@@ -8,13 +8,13 @@ using UnityEngine.Serialization;
 
 namespace MonoFSMCore.Runtime.LifeCycle
 {
-//1. 先回狀態
+    //1. 先回狀態
     public interface IResetStateRestore //新規用這個，現在和上面都有call, exitLevelAndDestroy是為了換場景很煩可以拔掉
     {
         void ResetStateRestore();
     }
 
-//2. 在跑這個
+    //2. 在跑這個
     public interface IResetStart //摸別人,set 變數之類的，要不然會reset掉
     {
         void ResetStart();
@@ -37,30 +37,19 @@ namespace MonoFSMCore.Runtime.LifeCycle
         void EnterSceneAwake();
     }
 
-    public class MonoPoolObj : MonoBehaviour, IMonoObject
+    public sealed class MonoPoolObj : MonoBehaviour
     {
         //等世界準備好？
-
-        // public virtual void Spawned() { }
-        // public virtual void Despawned(NetworkRunner runner, bool hasState) { }
         [ShowInDebugMode] public WorldUpdateSimulator WorldUpdateSimulator { get; set; }
-
-        // }
-        //
-        // public partial class MonoPoolObj //共用部分
-        // {
-        // [PreviewInInspector] [AutoChildren()] private IResetter _resetters;
-        [PreviewInInspector] [AutoChildren] private ISceneAwake[] _sceneAwakes;
-        [PreviewInInspector] [AutoChildren] private ISceneStart[] _sceneStarts;
-        [PreviewInInspector] [AutoChildren] private IResetStateRestore[] _resetStateRestores;
-        [PreviewInInspector] [AutoChildren] private IResetStart[] _resetStarts;
-        [PreviewInInspector] [AutoChildren] private IInstantiated[] _instantiateds;
-        [PreviewInInspector] [AutoChildren] private IUpdateSimulate[] _updateSimulates;
+        [PreviewInInspector][AutoChildren] private ISceneAwake[] _sceneAwakes;
+        [PreviewInInspector][AutoChildren] private ISceneStart[] _sceneStarts;
+        [PreviewInInspector][AutoChildren] private IResetStateRestore[] _resetStateRestores;
+        [PreviewInInspector][AutoChildren] private IResetStart[] _resetStarts;
+        [PreviewInInspector][AutoChildren] private IInstantiated[] _instantiateds;
+        [PreviewInInspector][AutoChildren] private IUpdateSimulate[] _updateSimulates;
 
         private List<MonoPoolObj> _parentObjs = new(2); //會拿到自己？
         public bool HasParent => _parentObjs.Count > 1; //有_parentObj就表示是nested的pool object，不作用，交給parent處理
-
-        // private WorldUpdateSimulator _worldUpdateSimulator;
 
         private void Awake()
         {

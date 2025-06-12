@@ -20,8 +20,6 @@ namespace MonoFSM.Core.Runtime.Action
     /// in the finite state machine (FSM) framework. Inherit from this class to implement
     /// custom state actions.
     /// </summary>
-    ///FIXME: 不該叫StateAction了，Action? SideEffect?
-    //多餘？IStateEnter, IStateUpdate?
     [Searchable]
     public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteChild, IGuidEntity,
         IDefaultSerializable,
@@ -186,7 +184,7 @@ namespace MonoFSM.Core.Runtime.Action
             OnStateEnterImplement();
         }
 
-        
+
 
         public void EventReceived()
         {

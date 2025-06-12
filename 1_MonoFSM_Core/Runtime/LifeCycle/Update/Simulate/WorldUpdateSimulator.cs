@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using _1_MonoFSM_Core.Runtime.LifeCycle.Update.Simulate;
 using MonoFSM.Variable.Attributes;
 using RCGMaker.Core.Attributes;
 using MonoFSM.Core.LifeCycle;
@@ -11,7 +10,6 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Simulate
 {
-    //fixme: 還是要中心化註冊？怎麼做比較好？ cal
     public interface ISimulateRunner
     {
     }
@@ -25,10 +23,10 @@ namespace MonoFSM.Core.Simulate
     {
         //反綁？
         //fsm reset?, simulate runner 
-        [Required] [CompRef] [Auto] private ISimulateRunner _simulateRunner;
+        [Required][CompRef][Auto] private ISimulateRunner _simulateRunner;
 
         //FIXME: Spawn要不要過我？
-        [Required] [CompRef] [Auto] private ISpawnProcessor _spawnProcessor;
+        [Required][CompRef][Auto] private ISpawnProcessor _spawnProcessor;
 
         private void Awake()
         {

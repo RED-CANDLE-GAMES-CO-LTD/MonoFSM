@@ -256,7 +256,7 @@ public class
 
     //FIXME: Nested好像很不好assign...
     // [MCPExtractable]
-    public T DefaultValue => ProductionValue;
+    // public T DefaultValue => ProductionValue;
 
     //editor time value changed?
 

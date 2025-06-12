@@ -7,42 +7,26 @@ using UnityEngine.InputSystem;
 namespace MonoFSM_InputAction
 {
     //UnityMonoInputAction / RewireMonoInputAction
+    //FIXME:好像包的有點亂，這個又要polling local, 又要提供處理完的?
     public abstract class AbstractMonoInputAction : MonoBehaviour
     {
         public abstract bool IsPressed();
+        public abstract bool WasPressed(); //經過network處理過的按下事件
 
         // public abstract bool WasPressBuffered();
-        public abstract bool WasPressed(); //經過network處理過的按下事件
         public abstract bool WasReleased();
 
-        //可以abstract
-        // public void ManualUpdate(float time)
-        // {
-        //     //FIXME: unityinputsystem
-        //     if (myAction.WasPressedThisFrame())
-        //         // Debug.Log("Pressed this frame" + name);
-        //         if (_lastPressTime != time)
-        //         {
-        //             // _bufferedQueue.Add(time);
-        //             _lastPressTime = time;
-        //         }
-        // }
-
         [SOConfig("PlayerInputActionData")] [SerializeField]
-        private InputActionData _inputActionData;
+        protected InputActionData _inputActionData;
 
         public int InputActionId => _inputActionData.actionID; //還是monobehaviour自己assign就好？
+        public abstract bool IsLocalPressed { get; }
 
         //這個是Uinput的
         // public InputActionReference _actionRef;
         //FIXME: Unity input 再抽一層？
-        [PreviewInInspector] [AutoParent] private PlayerInput _localPlayerInput;
 
-        // private InputActionMap _inputActionMap;
-        public InputAction myAction => _localPlayerInput.actions[_inputActionData.inputAction.name];
-        // public InputAction myAction => _localPlayerInput.currentActionMap.FindAction(_inputActionData.inputAction.name);
-
-        public bool IsLocalPressed => myAction.IsPressed() || myAction.WasPressedThisFrame();
+        //要做local buffer queue嗎？
 
         // private void Update()
         // {
@@ -72,6 +56,7 @@ namespace MonoFSM_InputAction
         //         return false;
         // }
 
+        //FIXME: local還是可以做buffered input? 甚至就把buffered結果傳出去？
 
         //TODO: 也可以做成個別時間檢查不remove?
         // private void QueueCheck(float time)

@@ -3,7 +3,6 @@ using UnityEngine.Internal;
 
 namespace MonoFSM.Physics
 {
-    //FIXME: 移到 monofsm? monoFSM physics?
     public interface IAllInOneRaycastProcessor : IRaycastProcessor, ISphereCastProcessor, ICapsuleRaycastProcessor,
         IBoxCastProcessor, ICapsuleOverlapProcessor
     {
