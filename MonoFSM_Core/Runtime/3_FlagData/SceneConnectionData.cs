@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RCGMaker.Core;
 using UnityEngine;
@@ -17,13 +18,41 @@ public class SceneConnectionData : ScriptableObject
     public void ResolveTransitioning() => _isTransitioning = false;
     
     public bool IsTransitioning() => _isTransitioning;
-    
+
+    private void OnValidate()
+    {
+        if (allRegisterredEntries.Count > 2)
+        {
+            allRegisterredEntries.RemoveRange(2, allRegisterredEntries.Count - 2);
+        }
+    }
+
+    public bool IsValideBind(SceneConnection connection)
+    {
+        var entry = allRegisterredEntries.Find((e) => e.ConnectionGUID == connection.ConnectionGUID);
+        if (entry == null)
+        {
+            if (allRegisterredEntries.Count >= 2)
+            {
+                Debug.LogError("SceneConnection 不成對？");
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void UpdateConnectionData(SceneConnection connection)
     {
 #if UNITY_EDITOR
        var entry = allRegisterredEntries.Find((e) => e.ConnectionGUID == connection.ConnectionGUID);
        if (entry == null)
        {
+           if (allRegisterredEntries.Count >= 2)
+           {
+               Debug.LogError("SceneConnection 不成對？");
+               return;
+           }
+
            entry = new ConnectionRegisteredEntry();
            entry.ConnectionGUID = connection.ConnectionGUID;
            allRegisterredEntries.Add(entry);
@@ -43,7 +72,7 @@ public class SceneConnectionData : ScriptableObject
     public ConnectionRegisteredEntry FindConnectionDestinationData(SceneConnection from)
     {
         ConnectionRegisteredEntry destinationData =
-            allRegisterredEntries.FindLast((e) => e.ConnectionGUID != from.ConnectionGUID);
+            allRegisterredEntries.Find((e) => e.ConnectionGUID != from.ConnectionGUID);
         return destinationData;
     }
 
