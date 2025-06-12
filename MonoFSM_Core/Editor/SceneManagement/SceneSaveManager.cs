@@ -151,12 +151,26 @@ namespace EditorTool
             var rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
             foreach (var obj in rootGameObjects)
             {
+                
+                //TODO:IOnBuildSceneSavingCallbackReceiver 跟ISceneSavingCallbackReceiver 是不是沒差？
                 var receivers =
                     obj.GetComponentsInChildren<IOnBuildSceneSavingCallbackReceiver>(true);
                 foreach (var r in receivers)
                     try
                     {
                         r.OnBeforeBuildSceneSave();
+                    }
+                    catch (Exception e)
+                    {
+                        
+                    }
+                
+                var receiversold =
+                    obj.GetComponentsInChildren<ISceneSavingCallbackReceiver>(true);
+                foreach (var r in receiversold)
+                    try
+                    {
+                        r.OnBeforeSceneSave();
                     }
                     catch (Exception e)
                     {
