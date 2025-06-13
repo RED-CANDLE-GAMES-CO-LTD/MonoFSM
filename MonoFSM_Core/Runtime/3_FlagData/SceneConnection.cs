@@ -28,7 +28,7 @@ public class SceneConnection : MonoBehaviour,IOnBuildSceneSavingCallbackReceiver
 
     public ConnectionRegisteredEntry FindDestinationEntry () => connectionData.FindConnectionDestinationData(this);
 
-    public bool IsOnTransition =>  connectionData.IsTransitioning();
+    public bool IsOnTransition =>connectionData != null && connectionData.IsTransitioning();
     public void OnBeforeBuildSceneSave()
     {
         connectionData.UpdateConnectionData(this); 
