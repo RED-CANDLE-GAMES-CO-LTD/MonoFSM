@@ -4,7 +4,7 @@ using MonoFSM.Core;
 using MonoFSM.Foundation;
 using MonoFSM.Variable.Attributes;
 using RCGExtension;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour

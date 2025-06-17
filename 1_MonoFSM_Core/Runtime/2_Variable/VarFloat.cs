@@ -1,8 +1,7 @@
 using System;
 using RCGExtension;
 using UnityEngine;
-
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 
 //CountdownTimer...直接掛在這個下面？

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     /// <summary>
     ///     表示欄位路徑上單一層級的資料結構

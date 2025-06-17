@@ -1,4 +1,4 @@
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //放一個condition，檢查GameState的某個Property
     public class GameFlagPropertyCondition : AbstractConditionComp

@@ -1,6 +1,6 @@
 using MonoFSM.Core.Runtime.Action;
 
-namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action.PhysicsAction
+namespace MonoFSM.Runtime.FSM.RCGStateMachine.Action.PhysicsAction
 {
     public class PauseTimeScaleAction : AbstractStateAction
     {

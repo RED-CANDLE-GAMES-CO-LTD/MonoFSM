@@ -3,7 +3,7 @@ using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //[]: 失敗了
     //從GameData中撈出fields來選

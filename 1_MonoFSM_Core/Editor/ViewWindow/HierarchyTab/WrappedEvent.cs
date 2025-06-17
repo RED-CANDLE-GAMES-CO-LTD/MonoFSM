@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RCGMaker.Editor
+namespace MonoFSM.Editor
 {
     public class WrappedEvent
         {

@@ -1,9 +1,9 @@
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Core.Simulate;
-using RCGMaker.Core.DataProvider;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public class ResetTimerAction : AbstractStateAction
     {

@@ -1,9 +1,9 @@
-using RCGMaker.Core;
-using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
+using MonoFSM.Core;
+using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._3_FlagData
+namespace MonoFSM.Runtime.FSM._3_FlagData
 {
     [CreateAssetMenu(menuName = "RCG/ItemData")]
     public class ItemData : DescriptableData, IItem

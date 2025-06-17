@@ -10,8 +10,7 @@ using Object = UnityEngine.Object;
 
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
-
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 
 [Serializable]
 public class FlagFieldString : FlagField<string>
@@ -187,13 +186,13 @@ public class FlagFieldBool : FlagField<bool>
         set => SetCurrentValue(value);
     }
 
-    public override bool Equals(object obj)
-    {
-        if (ReferenceEquals(null, obj)) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        if (obj.GetType() != GetType()) return false;
-        return Equals((FlagFieldBool)obj);
-    }
+    // public override bool Equals(object obj)
+    // {
+    //     if (ReferenceEquals(null, obj)) return false;
+    //     if (ReferenceEquals(this, obj)) return true;
+    //     if (obj.GetType() != GetType()) return false;
+    //     return Equals((FlagFieldBool)obj);
+    // }
 
     public FlagFieldBool() : base()
     {
@@ -206,14 +205,14 @@ public class FlagFieldBool : FlagField<bool>
         // PlayTestValue = defaultValue;
     }
 
-    public static bool operator ==(FlagFieldBool j, bool k) 
-        => j.CurrentValue == k;
-
-    public static bool operator !=(FlagFieldBool j, bool k) 
-        => j.CurrentValue != k;
-
-    protected override bool IsCurrentValueEquals(bool value) 
-        => _currentValue == value;
+    // public static bool operator ==(FlagFieldBool j, bool k) 
+    //     => j.CurrentValue == k;
+    //
+    // public static bool operator !=(FlagFieldBool j, bool k) 
+    //     => j.CurrentValue != k;
+    //
+    // protected override bool IsCurrentValueEquals(bool value) 
+    //     => _currentValue == value;
 }
 
 [Serializable]

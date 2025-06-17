@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     // 監聽變數的變化，然後更新UI
     /// <summary>

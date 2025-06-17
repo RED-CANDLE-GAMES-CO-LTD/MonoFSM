@@ -3,7 +3,7 @@ using MonoFSM.Core.Runtime.Action;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Runtime.Vote
+namespace MonoFSM.Runtime.Vote
 {
     //Default: Vote
     public class VoteAction : AbstractStateAction, IResetStateRestore

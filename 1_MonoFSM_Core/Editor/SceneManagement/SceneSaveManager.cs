@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 using System.Collections.Generic;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;

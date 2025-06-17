@@ -1,18 +1,20 @@
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
-using RCGMaker.Core.Attributes;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.ObjectPool
+namespace MonoFSM.Runtime.ObjectPool
 {
+    //FIXME: Despawn action?
     public class ReturnToPoolAction : AbstractStateAction
     {
         [Required] [PreviewInInspector] [AutoParent]
-        private PoolObject _poolObject;
+        private MonoPoolObj _poolObject;
 
         protected override void OnStateEnterImplement()
         {
-            _poolObject.ReturnToPool();
+            _poolObject.Despawn();
         }
     }
 }

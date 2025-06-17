@@ -1,4 +1,5 @@
 using System;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
@@ -11,40 +12,57 @@ namespace MonoFSM.Core.LifeCycle
     //重寫FXPlayer
     public class SpawnAction : AbstractStateAction
     {
-        //FIXME: 還是限定型別ㄅ
         [FormerlySerializedAs("target")] public MonoPoolObj _target;
-     
 
+        [CompRef] [AutoChildren] private SpawnEventHandler _spawnEventHandler;
+
+//FIXME: preview scale & rotation
         protected override void OnStateEnterImplement()
         {
-            Debug.Log("InstantiateAction", this);
+            Debug.Log("SpawnAction OnStateEnterImplement", this);
             //FIXME: 時機點？FixedUpdateNetwork?
 
             Spawn(_target, transform.position, transform.rotation);
+
+            //on spawn要怎麼吃action?
+            
         }
 
+        [PreviewInInspector] private MonoPoolObj _lastSpawnedObj;
 
-        private MonoPoolObj Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation)
+        private void Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation)
         {
             var monoObj = GetComponentInParent<MonoPoolObj>();
-            return monoObj.WorldUpdateSimulator.Spawn(obj, position, rotation); //Runner.spawn?
-            // if (_spawnProcessor != null)
-            //     return _spawnProcessor.Spawn(obj, position, rotation);
-            //FIXME: singleton是錯的！
-            //內建的方法
-            // return PoolManager.Instance.BorrowOrInstantiate(obj, position, rotation);
+            var newObj = monoObj.WorldUpdateSimulator.Spawn(obj, position, rotation); //Runner.spawn?
+            //用目前這個action的transform的scale,fixme; 可能需要別種？物件本身的scale?還是應該避免
+            newObj.transform.localScale = transform.lossyScale;
+            _lastSpawnedObj = newObj;
         }
 
         // private void OnEnable()
         // {
         //     OnStateEnterImplement();
         // }
-        public override void EventReceived(IEffectHitData arg)
+
+
+        public override void ArgEventReceived(IEffectHitData arg)
         {
             // base.EventReceived(arg);
             //噴Receiver的位置?
-            var t = arg.Receiver.transform;
-            Spawn(_target, t.position, t.rotation);
+            var receiverTrans = arg.Receiver.transform;
+
+            var pos = arg.hitPoint ?? receiverTrans.position; //如果沒有hitPoint，就用Receiver的位置
+            Debug.Log("SpawnAction EventReceived, pos: " + pos + ", hitPoint: " + arg.hitPoint, this);
+
+            //FIXME: arg是EffectHitData...point和normal都放過來嗎？
+            var rotation = receiverTrans.rotation;
+            if (arg.hitNormal != null)
+            {
+                rotation = Quaternion.LookRotation(arg.hitNormal.Value, receiverTrans.up);
+                Debug.Log("hitNormal is not null, using it for rotation" + rotation, this);
+            }
+
+            Spawn(_target, pos, rotation);
             // var newObj = PoolManager.Instance.BorrowOrInstantiate(target, t.position, t.rotation);
         }
     }
@@ -52,5 +70,6 @@ namespace MonoFSM.Core.LifeCycle
     public interface ISpawnProcessor //想找一個static的對象來生成物件 (但不能真的static，multi peer的話)
     {
         MonoPoolObj Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation);
+        public void Despawn(MonoPoolObj obj);
     }
 }

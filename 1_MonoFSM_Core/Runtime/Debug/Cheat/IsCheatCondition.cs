@@ -3,7 +3,7 @@ using MonoFSM.Condition;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     /// <summary>
     /// Condition that checks if a specific key is pressed.

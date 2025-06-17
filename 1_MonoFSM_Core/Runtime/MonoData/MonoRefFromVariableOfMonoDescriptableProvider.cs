@@ -4,7 +4,7 @@ using UIValueBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
+namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
 {
     public class MonoRefFromVariableOfMonoDescriptableProvider:UIMonoDescriptableProvider
     {

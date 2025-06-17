@@ -1,13 +1,13 @@
 using System;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Mono;
 using RCGExtension;
-using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
-using RCGMaker.Runtime.Mono;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
+namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
 {
     //需要再定義更細的class嗎？還是MonoDescriptable就夠了
     //最常用的Variable? MonoDescriptable下也會有MonoDescriptable

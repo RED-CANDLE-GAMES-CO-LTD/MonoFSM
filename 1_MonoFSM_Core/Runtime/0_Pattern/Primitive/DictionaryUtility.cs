@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Primitive
+namespace MonoFSM.Runtime.Primitive
 {
     public static class DictionaryUtility
     {

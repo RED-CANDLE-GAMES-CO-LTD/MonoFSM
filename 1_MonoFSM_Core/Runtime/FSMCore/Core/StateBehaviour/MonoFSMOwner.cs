@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Fusion.Addons.FSM;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
@@ -19,7 +19,14 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 
         void IStateMachineOwner.CollectStateMachines(List<IStateMachine> stateMachines)
         {
-            _fsm = new StateMachine<MonoStateBehaviour>(name, _states);
+            var parent = GetComponentInParent<StateMachineOwner>(true);
+            if (parent == null)
+            {
+                Debug.LogError("MonoFSMOwner must be a child of StateMachineOwner.", this);
+                return;
+            }
+
+            _fsm = new StateMachine<MonoStateBehaviour>(parent.name, _states);
             stateMachines.Add(_fsm);
         }
     }

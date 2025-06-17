@@ -2,10 +2,9 @@ using RCGExtension;
 using UnityEngine;
 
 using Sirenix.OdinInspector;
-
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime;
 
 namespace MonoFSM.Foundation
 {
@@ -50,9 +49,10 @@ namespace MonoFSM.Foundation
 #endif
         }
 
-        //FIXME: Required error? 用reflection找？DropDownRef也是？ cached field會OK嗎？每個type做一次ㄋ
+       
         protected virtual bool HasError()
         {
+            //FIXME: Reference Required error? 用reflection找？DropDownRef也是？ cached field會OK嗎？每個type做一次ㄋ
             return false;
         }
 

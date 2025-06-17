@@ -1,5 +1,5 @@
 using MonoFSM.DataProvider;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.DataProvider;
 using UnityEngine;
 
 namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper

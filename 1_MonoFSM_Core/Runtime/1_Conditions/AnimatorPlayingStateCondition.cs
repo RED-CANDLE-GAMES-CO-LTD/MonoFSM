@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //從provider拿到animator
     public class AnimatorPlayingStateCondition : AbstractConditionComp

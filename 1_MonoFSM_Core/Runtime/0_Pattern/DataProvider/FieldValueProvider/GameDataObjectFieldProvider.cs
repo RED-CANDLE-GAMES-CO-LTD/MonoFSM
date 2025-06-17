@@ -1,12 +1,12 @@
 using System;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     //FIXME: 怪怪的
     [Serializable]
@@ -72,7 +72,8 @@ namespace RCGMaker.Core.DataProvider
                     return null;
                 }
 
-                return _variableProviderRef.FinalData;
+                //FIXME: ??
+                return _variableProviderRef.VarRaw.objectValue as Object; //這樣就可以了嗎？還是要用Data?
                 // return varMono.Value.Data; //_descriptableProvider?.CurrentInstance?.Descriptable as Object;
                 //一定要sample data?
             }

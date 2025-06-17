@@ -4,12 +4,12 @@ using System.Reflection;
 using MonoFSM.Localization;
 // using I2.Loc;
 // using mixpanel;
-using RCGMaker.AddressableAssets;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.AddressableAssets;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
-using RCGMaker.Runtime.Item_BuildSystem;
-using RCGMaker.Runtime.Mono;
+using MonoFSM.Runtime.Item_BuildSystem;
+using MonoFSM.Runtime.Mono;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;

@@ -1,8 +1,8 @@
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public class IsStateCondition: AbstractConditionComp
     {

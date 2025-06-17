@@ -13,7 +13,7 @@ using UnityEngine;
 
 //自動生成animator controller
 //把Clip塞到state上
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public class AnimationPlayAction : AbstractStateAction, IAnimatorStateProvider, IAnimatorPlayAction
     {
@@ -128,7 +128,7 @@ namespace RCGMaker.Core
                 // ac.AddLayer("");
                 controller = ac;
                 animator.runtimeAnimatorController = ac;
-                EditorUtility.SetDirty(animator);
+                UnityEditor.EditorUtility.SetDirty(animator);
             }
         }
 

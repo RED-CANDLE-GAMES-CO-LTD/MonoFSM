@@ -3,7 +3,7 @@ using System.Collections;
 using System.Reflection;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public static class ObjectExtensions
     {

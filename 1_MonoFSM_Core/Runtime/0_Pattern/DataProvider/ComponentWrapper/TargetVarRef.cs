@@ -1,6 +1,6 @@
 using System;
 using MonoFSM.Variable;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.DataProvider;
 using UnityEngine;
 
 namespace MonoFSM.VarRef

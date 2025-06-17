@@ -1,7 +1,7 @@
 using Fusion.Addons.FSM;
 using MonoFSM.Editor;
 using MonoFSM.InternalBridge;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using UnityEditor;
 using UnityEngine;
 

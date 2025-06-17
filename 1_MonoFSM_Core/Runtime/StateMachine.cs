@@ -4,14 +4,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using RCGMaker.Core.Attributes;
 using UnityEngine;
 using Object = System.Object;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core.Deprecated
 {
     public enum StateTransition
     {

@@ -1,6 +1,6 @@
 using MonoFSM.Variable;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 using UnityEngine;
 
 namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Scripts.Input

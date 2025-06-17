@@ -2,7 +2,7 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Primitive
+namespace MonoFSM.Runtime.Primitive
 {
     [Serializable]
     public struct SerializableDateTime : IComparable<SerializableDateTime>

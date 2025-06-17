@@ -1,11 +1,11 @@
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.Attributes;
 using MonoFSM.VarRef;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Backpack.Actions
+namespace MonoFSM.Runtime.Backpack.Actions
 {
     //從receiver那邊拿到變數，然後設定到自己的變數上 (有點像rebind了)
     //FIXME: 直接set?
@@ -43,7 +43,7 @@ namespace RCGMaker.Runtime.Backpack.Actions
             Debug.Log($"AssignValueAction: Set value {sourceValue} to {targetVar}", this);
         }
 
-        public override void EventReceived(IEffectHitData arg)
+        public override void ArgEventReceived(IEffectHitData arg)
         {
             // var receiver = arg.Receiver as MonoBehaviour;
             // _lastReceiver = arg.Receiver;

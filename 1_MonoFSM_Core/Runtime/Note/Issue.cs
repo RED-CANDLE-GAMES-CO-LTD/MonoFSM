@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 using Sirenix.OdinInspector;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -13,7 +13,7 @@ using UnityEngine.Networking;
 using UnityEngine.Serialization;
 
 // [RequireComponent(GizmoMarker)]
-namespace RCGMaker.Editor.DesignTool
+namespace MonoFSM.Editor.DesignTool
 {
     public enum IssueType
     {
@@ -153,7 +153,7 @@ namespace RCGMaker.Editor.DesignTool
             type = IssueType.Resolved;
             resolved.author = IssuePrefs.accountName;// UnityEditor.CloudProjectSettings.userName;
             gameObject.SetActive(false);
-            EditorUtility.SetDirty(gameObject);
+            UnityEditor.EditorUtility.SetDirty(gameObject);
         }
 
         private bool IsResolved => type == IssueType.Resolved;
@@ -163,7 +163,7 @@ namespace RCGMaker.Editor.DesignTool
         public void ReOpen()
         {
             type = IssueType.Fixme;
-            EditorUtility.SetDirty(gameObject);
+            UnityEditor.EditorUtility.SetDirty(gameObject);
             gameObject.SetActive(true);
             // resolved.author = UnityEditor.CloudProjectSettings.userName;
         }

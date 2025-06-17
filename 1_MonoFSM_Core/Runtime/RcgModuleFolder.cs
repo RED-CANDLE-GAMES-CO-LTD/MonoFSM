@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM.RCGStateMachine
+namespace MonoFSM.Runtime.FSM.RCGStateMachine
 {
     public interface IModuleOwner
     {

@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

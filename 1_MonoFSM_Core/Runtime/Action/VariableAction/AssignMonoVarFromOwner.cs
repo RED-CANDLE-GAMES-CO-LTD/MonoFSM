@@ -1,7 +1,7 @@
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Runtime;
-using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
+using MonoFSM.Runtime;
+using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.Action.VariableAction

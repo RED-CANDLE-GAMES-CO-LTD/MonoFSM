@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Runtime;
 using MonoFSM.Core.Simulate;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Interact.EffectHit;
+using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
+using MonoFSM.Runtime.Mono;
 using MonoFSM.Variable;
 using MonoFSMCore.Runtime.LifeCycle;
-using RCGMaker.Core.DataProvider;
-using RCGMaker.Runtime.FSM.RCGStateMachine;
-using RCGMaker.Runtime.Interact.EffectHit;
-using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
-using RCGMaker.Runtime.Mono;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
 
-namespace RCGMaker.Runtime
+namespace MonoFSM.Runtime
 {
     public interface IMonoAddToBinderChecker   //network想要看authority來決定要不要加到字典裡...這個性質是什麼
     {

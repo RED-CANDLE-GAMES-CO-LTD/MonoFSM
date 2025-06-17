@@ -2,7 +2,7 @@ using System;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Core.Attributes
+namespace MonoFSM.Core.Attributes
 {
     [MeansImplicitUse]
     [IncludeMyAttributes]

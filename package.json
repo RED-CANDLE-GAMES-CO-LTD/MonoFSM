@@ -1,5 +1,5 @@
 {
-  "name": "com.rcg.monofsm",
+  "name": "com.monofsm.core",
   "version": "0.0.1",
   "displayName": "MonoFSM",
   "description": "Core package for RCG MonoFSM",

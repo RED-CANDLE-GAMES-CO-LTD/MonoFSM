@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Runtime.Vote
+namespace MonoFSM.Runtime.Vote
 {
     public interface IRuntimeConditionImplementation //這個interface的目的是？
     {

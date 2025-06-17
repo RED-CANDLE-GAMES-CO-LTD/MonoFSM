@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.LifeCycle;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
@@ -37,7 +37,17 @@ namespace MonoFSM.Core.Simulate
 
         public MonoPoolObj Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation)
         {
+            //FIXME: 在這邊register?
             return _spawnProcessor.Spawn(obj, position, rotation);
+        }
+
+        public void Despawn(MonoPoolObj obj)
+        {
+            if (obj == null) return;
+            // Unregister the object from the world update simulator
+            UnregisterMonoObject(obj);
+            // Return the object to the pool
+            _spawnProcessor.Despawn(obj); //看實作
         }
 
         public void RegisterMonoObject(MonoPoolObj target)
@@ -99,7 +109,7 @@ namespace MonoFSM.Core.Simulate
         public bool IsReady { get; private set; } = false;
 
 #endif
-
+        private HashSet<MonoPoolObj> _currentUpdatingObjs = new();
 
         /// <summary>
         /// 需要依照環境決定怎麼simulate
@@ -114,11 +124,16 @@ namespace MonoFSM.Core.Simulate
             //     Debug.LogWarning("No simulators found to simulate.");
             //     return;
             // }
+            _currentUpdatingObjs.Clear();
+            _currentUpdatingObjs.AddRange(_monoObjects); 
+            
 
             //FIXME: isProxy? 要ㄇ 跳過模擬，或是regiester要兩階段
-            foreach (var monoObject in _monoObjects)
+            foreach (var monoObject in _currentUpdatingObjs)
                 if (monoObject is { isActiveAndEnabled: true })
                     monoObject.Simulate(deltaTime);
+            
+                    
             // else
             //     Debug.LogWarning("A mono object is null or not active and enabled, skipping simulation.");
 

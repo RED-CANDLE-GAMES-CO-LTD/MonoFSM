@@ -1,9 +1,9 @@
 using System;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
-using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
+using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     //FIXME: 改名？
     public interface IGameDataProvider //

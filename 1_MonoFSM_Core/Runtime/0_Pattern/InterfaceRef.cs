@@ -6,7 +6,7 @@ using MonoFSM.Variable.VariableBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     /// <summary>
     /// auto bind a TParent as parent to find components implementing 

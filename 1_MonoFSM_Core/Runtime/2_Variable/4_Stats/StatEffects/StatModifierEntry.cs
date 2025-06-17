@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using Sirenix.OdinInspector;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Object = UnityEngine.Object;
 
 //fixme: 介面看不太懂，要重新設計一下...

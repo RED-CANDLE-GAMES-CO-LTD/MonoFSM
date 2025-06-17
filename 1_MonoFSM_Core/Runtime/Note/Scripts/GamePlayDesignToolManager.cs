@@ -6,7 +6,7 @@ using UnityEditor;
 using Sirenix.Serialization;
 //統計用，買Asset畫圖表？
 
-namespace RCGMaker.Editor.DesignTool
+namespace MonoFSM.Editor.DesignTool
 {
     public class GamePlayDesignToolManager : SerializedMonoBehaviour
     {

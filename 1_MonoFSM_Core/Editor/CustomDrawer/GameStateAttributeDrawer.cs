@@ -1,4 +1,4 @@
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     [DrawerPriority(0, 1, 0.25)]
     public class GameStateAttributeDrawer : OdinAttributeDrawer<GameStateAttribute>

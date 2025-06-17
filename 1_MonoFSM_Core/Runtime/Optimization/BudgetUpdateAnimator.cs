@@ -2,7 +2,7 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Animation.Optimization
+namespace MonoFSM.Runtime.Animation.Optimization
 {
     public class BudgetUpdateAnimator : MonoBehaviour
     {

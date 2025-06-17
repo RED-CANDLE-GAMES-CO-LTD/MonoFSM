@@ -5,8 +5,8 @@ using System.Diagnostics;
 using Auto.Utils;
 using Cysharp.Threading.Tasks;
 using MonoFSMCore.Runtime.LifeCycle;
-using RCGMaker.AddressableAssets;
-using RCGMaker.Runtime;
+using MonoFSM.AddressableAssets;
+using MonoFSM.Runtime;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Profiling;
@@ -607,6 +607,13 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     public void ReturnToPool(PoolObject prefab)
     {
         PoolDictionary[prefab.OriginalPrefab].ReturnToPool(prefab);
+    }
+
+    //FIXME: 
+    public void ReturnToPool(MonoPoolObj obj)
+    {
+        // PoolDictionary[obj.OriginalPrefab].ReturnToPool(prefab);
+        throw new NotImplementedException("ReturnToPool for MonoPoolObj is not implemented yet.");
     }
 
     //FIXME: 有可能保留AG_S2的pool, 或是在特定scene不做清除之類的動作

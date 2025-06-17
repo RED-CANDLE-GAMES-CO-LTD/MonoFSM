@@ -15,8 +15,7 @@ using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 
 public interface INodeModel
 {
@@ -48,7 +47,7 @@ public interface ISerializableComponent
 
 public interface IDefaultSerializable { }
 
-public interface IReferenceTarget
+public interface IReferenceTarget //FIXME: 這樣只有我自己寫的型別可以用？
 {
 }
 

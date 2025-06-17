@@ -1,5 +1,5 @@
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.Interact.EffectHit;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Interact.EffectHit;
 using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Interact.SpatialDetection

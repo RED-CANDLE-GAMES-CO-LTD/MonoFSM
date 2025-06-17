@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Primitive
+namespace MonoFSM.Runtime.Primitive
 {
     [Searchable]
     [Serializable]

@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using UnityEngine;
 using Sirenix.OdinInspector;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 
 //大部分的Static Config用這個, 可以依照testMode來選擇不同組config
 public class ScriptableObjectConfig<T> : ScriptableObject where T : ScriptableObject

@@ -1,9 +1,9 @@
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
-using RCGMaker.Core.Attributes;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace RCGMaker.Runtime
+namespace MonoFSM.Runtime
 {
     //FIXME: 什麼時候會用到？
     public class OnReturnToPoolTrigger : MonoBehaviour, IPoolObject

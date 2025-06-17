@@ -1,7 +1,7 @@
-using RCGMaker.Editor;
+using MonoFSM.Editor;
 using UnityEngine;
 
-namespace RCGMaker.Core.Editor
+namespace MonoFSM.Core.Editor
 {
     public static class WrapperUtil
     {

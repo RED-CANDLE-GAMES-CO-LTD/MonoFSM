@@ -1,12 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
 using UnityEngine;
 using UnityEngine.Profiling;
-using RCGMaker.Core.Attributes;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core.Deprecated
 {
     public class StateMachineRunner : MonoBehaviour
     {

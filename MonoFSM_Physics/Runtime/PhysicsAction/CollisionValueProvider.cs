@@ -1,9 +1,9 @@
+using MonoFSM.Core;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core;
-using RCGMaker.Core.DataProvider;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action.PhysicsAction
+namespace MonoFSM.Runtime.FSM.RCGStateMachine.Action.PhysicsAction
 {
     //FIXME: 可能還需要經過一層運算...
     //運算要放在inspector上還是寫code? 支援寫數學式？

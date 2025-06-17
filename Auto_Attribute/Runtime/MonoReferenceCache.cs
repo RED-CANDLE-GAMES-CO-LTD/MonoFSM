@@ -249,9 +249,8 @@ namespace Auto_Attribute.Runtime
         
         [PropertyOrder(-1)]
         [Button]
-        public void SaveReferenceCache(GameObject rootObj = null) //Editor time
+        public void SaveReferenceCache() //Editor time
         {
-            RootObj = rootObj;
             monoValueCaches.Clear();
             if (RootObj != null)
             {

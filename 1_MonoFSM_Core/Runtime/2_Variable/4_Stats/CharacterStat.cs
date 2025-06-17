@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
 
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 
 [Serializable]
 public class CharacterStat //這個改名會爛掉嗎?

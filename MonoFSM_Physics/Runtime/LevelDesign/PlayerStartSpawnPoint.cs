@@ -2,7 +2,7 @@ using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Physics;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

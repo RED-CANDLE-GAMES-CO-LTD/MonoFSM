@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using UnityEngine;
 
 #if UNITY_EDITOR

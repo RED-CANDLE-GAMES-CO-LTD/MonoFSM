@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor.ValueResolvers;
 using Sirenix.Utilities;

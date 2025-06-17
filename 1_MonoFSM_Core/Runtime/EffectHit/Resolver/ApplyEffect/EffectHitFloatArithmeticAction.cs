@@ -1,8 +1,8 @@
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.DataProvider;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.VarRef;
@@ -10,30 +10,10 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
+namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 {
-    public abstract class AbstractEffectHitAction : MonoBehaviour, IArgEventReceiver<GeneralEffectHitData>
+    public abstract class AbstractEffectHitAction : AbstractStateAction, IArgEventReceiver<GeneralEffectHitData>
     {
-        // [PreviewInInspector] [AutoParent] private GeneralEffectDealer _parentDealer;
-        // [PreviewInInspector] [AutoParent] private GeneralEffectReceiver _parentReceiver;
-
-        // private bool IsParentDealer => _runtimeDealer != null;
-        // private bool IsParentReceiver => _runtimeReceiver != null;
-
-
-        // [InfoBox("parent不是dealer, Editor Dropdown抓不到", nameof(IsParentReceiver))]
-        // public VariableFloatProvider dealerVariableProvider;
-        //
-        // [InfoBox("parent不是receiver, Editor Dropdown抓不到", nameof(IsParentDealer))]
-        // public VariableFloatProvider receiverVariableProvider;
-
-        // [Button]
-        // private void Rename()
-        // {
-        //     name = "[EffectHitAction]" + GetType().Name;
-        // }
-
-        // public abstract void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver);
         public void ArgEventReceived(GeneralEffectHitData arg)
         {
             _runtimeDealer = arg.Dealer as GeneralEffectDealer;
@@ -47,20 +27,23 @@ namespace RCGMaker.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         [AutoParent] [PreviewInInspector] private GeneralEffectDealer _runtimeDealer;
         [AutoParent] [PreviewInInspector] private GeneralEffectReceiver _runtimeReceiver;
 
-        public void EventReceived<T>(T arg)
+        public override void EventReceived<T>(T arg)
         {
             var data = arg as GeneralEffectHitData;
             if (data == null) return;
             ArgEventReceived(data);
         }
 
-        public void EventReceived()
-        {
-            //沒參數？這樣算有問題？
-            throw new System.NotImplementedException();
-        }
+        // public void EventReceived()
+        // {
+        //     //沒參數？這樣算有問題？
+        //     throw new System.NotImplementedException();
+        // }
+
+        // public bool IsValid 
     }
 
+    //最完整的應該用這個
     public class EffectHitFloatArithmeticAction : AbstractStateAction
     {
         //FIXME: value overrider?

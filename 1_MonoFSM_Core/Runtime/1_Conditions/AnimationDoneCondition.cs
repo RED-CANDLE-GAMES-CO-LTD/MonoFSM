@@ -1,7 +1,7 @@
 using MonoFSM.Animation;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //FIXME: 不該用動畫來決定transition, 時間應該獨立計算，可以cache animation clip的時間
     public class AnimationDoneCondition : AbstractConditionComp

@@ -3,8 +3,8 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using MonoFSM.Foundation;
 using RCGExtension;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.Vote;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Vote;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -23,17 +23,17 @@ namespace MonoFSM.Core.Runtime.Action
     [Searchable]
     public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteChild, IGuidEntity,
         IDefaultSerializable,
-        IEventReceiver
+        IArgEventReceiver<IEffectHitData>
     {
         protected override bool HasError()
         {
-            return GetComponentInParent<IActionParent>() == null;
+            return GetComponentInParent<IActionParent>(true) == null;
         }
 
         protected override string DescriptionTag => "Action";
 
         //怎麼知道誰用Enter, 誰用Update
-        private bool IsValid //AND
+        public bool IsValid //AND
         {
             get
             {
@@ -61,7 +61,7 @@ namespace MonoFSM.Core.Runtime.Action
         [Component(AddComponentAt.Children, "[Condition]")]
         [PreviewInInspector]
         // #endif
-        [AutoChildren(false, DepthOneOnly = true)]
+        [AutoChildren(DepthOneOnly = true)]
         protected AbstractConditionComp[] _conditions; //condition 成立，才能做事
 
 #if UNITY_EDITOR
@@ -87,7 +87,7 @@ namespace MonoFSM.Core.Runtime.Action
 
         [AutoParent] private DelayActionModifier delayActionModifier;
 
-        private bool _delay = false;
+        private bool _delay = false; //FIXME: 
 
         //一定是AND的啦
         public async void OnActionEnter()
@@ -171,6 +171,13 @@ namespace MonoFSM.Core.Runtime.Action
         {
         }
 
+        public virtual void ArgEventReceived(IEffectHitData arg)
+        {
+            // Debug.Log("AbstractStateAction.EventReceived", this);
+            // Debug.Log("AbstractStateAction.EventReceived arg" + arg, this);
+            EventReceived(arg);
+        }
+
         public virtual void EventReceived<T>(T arg)
         {
             //FIXME: 這個會無窮迴圈..
@@ -195,9 +202,9 @@ namespace MonoFSM.Core.Runtime.Action
         {
         }
 
-        public virtual void EventReceived(IEffectHitData arg)
-        {
-            EventReceived<IEffectHitData>(arg);
-        }
+        // public virtual void EventReceived(IEffectHitData arg)
+        // {
+        //     EventReceived<IEffectHitData>(arg);
+        // }
     }
 }

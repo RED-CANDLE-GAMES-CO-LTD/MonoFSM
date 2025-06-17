@@ -4,7 +4,7 @@ using MonoFSM.Core.Simulate;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core.Deprecated
 {
     /// <summary>
     /// FIXME: 要做成singleton嗎？

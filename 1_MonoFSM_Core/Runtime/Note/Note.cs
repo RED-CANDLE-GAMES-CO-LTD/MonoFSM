@@ -1,5 +1,5 @@
-﻿using RCGMaker.Core.Attributes;
-using RCGMaker.Editor.DesignTool;
+﻿using MonoFSM.Core.Attributes;
+using MonoFSM.Editor.DesignTool;
 using UnityEngine;
 using Sirenix.OdinInspector;
 

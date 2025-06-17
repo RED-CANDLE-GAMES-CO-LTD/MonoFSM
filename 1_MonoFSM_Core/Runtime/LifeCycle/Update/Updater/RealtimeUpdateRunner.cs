@@ -1,13 +1,13 @@
 using System.Linq;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
-using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 //FIXME: refactor
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public interface IUpdatable
     {

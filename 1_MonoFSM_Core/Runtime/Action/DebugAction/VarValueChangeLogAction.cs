@@ -1,5 +1,5 @@
 using MonoFSM.Variable;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
 namespace RCGMakerFSMCore.Runtime.Action.DebugAction

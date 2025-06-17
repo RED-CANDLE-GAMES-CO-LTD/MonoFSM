@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using jerryee.UnityMCP;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable;
-using RCGMaker.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.FSM.RCGStateMachine;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;

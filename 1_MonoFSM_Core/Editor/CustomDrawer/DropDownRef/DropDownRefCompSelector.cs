@@ -1,6 +1,6 @@
 using UnityEditor.SceneManagement;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     using System;
     using System.Collections.Generic;

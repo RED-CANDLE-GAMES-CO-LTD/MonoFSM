@@ -1,6 +1,6 @@
 using MonoFSM.Variable;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public class FloatValueInstance : ValueInstance<float>, IFloatValueProvider
     {

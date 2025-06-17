@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;

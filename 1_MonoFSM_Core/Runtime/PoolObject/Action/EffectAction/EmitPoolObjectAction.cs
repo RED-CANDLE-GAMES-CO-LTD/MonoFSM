@@ -1,6 +1,6 @@
 using MonoFSM.Core.Runtime.Action;
 
-namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action.EffectAction
+namespace MonoFSM.Runtime.FSM.RCGStateMachine.Action.EffectAction
 {
     //FIXME: 重做FXPlayer
     //FIXME: 和InstantiateAction 重複了
@@ -13,7 +13,7 @@ namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action.EffectAction
             var newObj = PoolManager.Instance.BorrowOrInstantiate(poolObject, transform.position, transform.rotation);
         }
 
-        public override void EventReceived(IEffectHitData arg)
+        public override void ArgEventReceived(IEffectHitData arg)
         {
             // base.EventReceived(arg);
             //噴Receiver的位置?

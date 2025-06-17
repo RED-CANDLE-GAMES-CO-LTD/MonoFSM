@@ -4,9 +4,8 @@ using UnityEngine;
 using UnityEngine.Events;
 
 using Sirenix.OdinInspector;
-
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 
 namespace MonoFSM.Variable
 {

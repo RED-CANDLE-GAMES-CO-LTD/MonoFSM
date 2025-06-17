@@ -1,6 +1,6 @@
 using MonoFSM.Core;
 
-namespace RCGMaker.Core.Module
+namespace MonoFSM.Core.Module
 {
     public class OnEnableNode : AbstractEventHandler { }
 }

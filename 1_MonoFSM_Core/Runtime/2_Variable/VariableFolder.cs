@@ -1,9 +1,8 @@
 using System;
 
 using UnityEngine;
-
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 
 public abstract class AbstractFolder : MonoBehaviour

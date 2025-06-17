@@ -1,6 +1,6 @@
 using MonoFSM.Core.Runtime.Action;
 
-namespace RCGMaker.Runtime.FSM._4_Stats
+namespace MonoFSM.Runtime.FSM._4_Stats
 {
     // 在 menu 塞 FSM
     // 用 FSM 調整難度，選難度的 ACTION?

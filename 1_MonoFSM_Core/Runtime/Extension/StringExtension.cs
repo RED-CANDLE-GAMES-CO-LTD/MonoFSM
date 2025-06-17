@@ -1,6 +1,6 @@
 
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public static class StringExtension
     {

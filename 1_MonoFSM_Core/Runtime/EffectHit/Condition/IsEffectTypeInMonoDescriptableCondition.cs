@@ -1,10 +1,10 @@
+using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using MonoFSM.Variable;
-using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.Interact.EffectHit.Condition
+namespace MonoFSM.Runtime.Interact.EffectHit.Condition
 {
     //FIXME: 這個是MonoDescribable下面有Receiver有EffectType
     //可以被 xx Effect 作用

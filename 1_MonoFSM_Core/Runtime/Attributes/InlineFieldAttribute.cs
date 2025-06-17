@@ -1,7 +1,7 @@
 using System;
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Core.Attributes
+namespace MonoFSM.Core.Attributes
 {
     [IncludeMyAttributes]
     [InlineProperty]

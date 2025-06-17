@@ -1,9 +1,9 @@
 using System.Linq;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Interact.EffectHit
+namespace MonoFSM.Runtime.Interact.EffectHit
 {
     [CreateAssetMenu(fileName = "GeneralEffectType", menuName = "RCGMaker/GeneralEffectType", order = 0)]
     public class GeneralEffectType : ScriptableObject, IEffectType

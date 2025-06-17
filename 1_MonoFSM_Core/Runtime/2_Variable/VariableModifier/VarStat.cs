@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using MonoFSM.Condition;
 using UnityEngine;
 using UnityEngine.Events;
-
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 
 namespace MonoFSM.Variable

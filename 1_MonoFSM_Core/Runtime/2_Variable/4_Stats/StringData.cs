@@ -1,6 +1,5 @@
 using UnityEngine;
-
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 
 //目的：想要在一個字串裡面，插入變數，最後組出來
 [CreateAssetMenu(menuName = "ScriptableData/StringData")]

@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Foundation;
 using RCGExtension;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using jerryee.UnityMCP;
 using MonoFSM.Condition;
 

@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace RCGMaker.Editor
+namespace MonoFSM.Editor
 {
     using System;
     using System.Collections.Generic;

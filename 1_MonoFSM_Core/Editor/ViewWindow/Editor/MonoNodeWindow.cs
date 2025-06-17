@@ -15,7 +15,7 @@ using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
 // using Object = UnityEngine.Object;
-namespace RCGMaker.Core.Editor
+namespace MonoFSM.Core.Editor
 {
     [InitializeOnLoad]
     public static class MonoNodeManager

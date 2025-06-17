@@ -21,6 +21,7 @@ namespace MonoFSM.Core
     /// <seealso cref="IEventReceiver"/>
     /// <seealso cref="IEventReceiver{T}"/>
     /// <seealso cref="IActionParent"/>
+    /// FIXME: 應該要generic?
     public abstract class AbstractEventHandler : MonoBehaviour, IActionParent
     {
         [CompRef] [AutoChildren(DepthOneOnly = true)]
@@ -35,7 +36,7 @@ namespace MonoFSM.Core
                 return;
             foreach (var eventReceiver in _eventReceivers)
             {
-                if (eventReceiver.isActiveAndEnabled)
+                if (eventReceiver.IsValid)
                     eventReceiver.EventReceived();
             }
                 
@@ -52,7 +53,12 @@ namespace MonoFSM.Core
                 return;
             foreach (var eventReceiver in _eventReceivers)
             {
-                if (eventReceiver.isActiveAndEnabled)
+                if (eventReceiver is IArgEventReceiver<T> argEventReceiver)
+                {
+                    if (argEventReceiver.IsValid)
+                        argEventReceiver.ArgEventReceived(arg);
+                }
+                else if (eventReceiver.IsValid)
                     eventReceiver.EventReceived(arg);
             }
                 

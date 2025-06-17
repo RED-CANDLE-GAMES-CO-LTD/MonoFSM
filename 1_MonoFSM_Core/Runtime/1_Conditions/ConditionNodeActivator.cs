@@ -1,10 +1,10 @@
 using System;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //舊規，開Child
     //掛在上面，會被上面檢查？

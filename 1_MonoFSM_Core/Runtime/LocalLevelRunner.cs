@@ -2,7 +2,7 @@ using System;
 using MonoFSM.Core.Runtime;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public interface ILevelRunner
     {

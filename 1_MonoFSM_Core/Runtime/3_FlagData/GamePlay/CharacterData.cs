@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM._3_FlagData.GamePlay
+namespace MonoFSM.Runtime.FSM._3_FlagData.GamePlay
 {
     [CreateAssetMenu(menuName = "RCG/CharacterData")]
     public class CharacterData : DescriptableData

@@ -1,9 +1,9 @@
 using JetBrains.Annotations;
-using RCGMaker.Runtime.Attributes;
+using MonoFSM.Runtime.Attributes;
 using Sirenix.OdinInspector.Editor;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //自動把parent的MonoBehaviour值設定到這個field
     [UsedImplicitly]

@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Pool;
@@ -26,6 +26,9 @@ public class CollisionHitData : IEffectHitData //fixme:
     public void Override(IEffectDealer dealer, IEffectReceiver receiver)
     {
     }
+
+    public Vector3? hitPoint { get; set; }
+    public Vector3? hitNormal { get; set; }
 }
 
 public interface IEffectHitData
@@ -33,6 +36,8 @@ public interface IEffectHitData
     IEffectDealer Dealer { get; }
     IEffectReceiver Receiver { get; }
     void Override(IEffectDealer dealer, IEffectReceiver receiver);
+    Vector3? hitPoint { get; set; } //FIXME: 這個要不要放在這裡？還是放在EffectHitData裡面？
+    Vector3? hitNormal { get; set; } //FIXME: 這個要不要放在這裡？還是放在EffectHitData裡面？
 }
 
 // public interface IEffectReceivedHandler //FIXME:和下面整和吧
@@ -80,7 +85,7 @@ public interface IEffectReceiver //FIXME: 好像不需要interface
     bool IsValid { get; }
 }
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //假的
     public class TestEffectHitData : IEffectHitData
@@ -93,6 +98,11 @@ namespace RCGMaker.Core
             Dealer = dealer;
             Receiver = receiver;
         }
+
+        public Vector3? hitPoint { get; set; }
+
+        public Vector3? hitNormal { get; set; }
+
 
         private void Reset()
         {

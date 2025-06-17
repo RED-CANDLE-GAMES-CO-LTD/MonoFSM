@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using UnityEditor;
 
-namespace RCGMaker.Editor.DesignTool
+namespace MonoFSM.Editor.DesignTool
 {
 
     interface IGizmoColorProvider

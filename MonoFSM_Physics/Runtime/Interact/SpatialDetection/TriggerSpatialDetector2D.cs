@@ -1,8 +1,8 @@
 using System;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
-namespace RCGMaker.Core.Detection
+namespace MonoFSM.Core.Detection
 {
     public class TriggerSpatialDetector2D : AbstractDetector
     {
@@ -18,6 +18,10 @@ namespace RCGMaker.Core.Detection
             OnSpatialExit(other.gameObject);
         }
 
+
+        protected override void OnDisableImplement()
+        {
+        }
 
         protected override void SetLayerOverride()
         {

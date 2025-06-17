@@ -1,4 +1,4 @@
-namespace RCGMaker.Core.EffectHit
+namespace MonoFSM.Core.EffectHit
 {
     public interface IEffectDealerProvider
     {

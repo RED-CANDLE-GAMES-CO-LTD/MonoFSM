@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace RCGMaker.AddressableAssets
+namespace MonoFSM.AddressableAssets
 {
     //Serialize Reference是什麼去了？
     [System.Serializable]

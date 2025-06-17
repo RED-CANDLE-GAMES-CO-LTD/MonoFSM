@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 
-namespace RCGMaker.Core.Editor
+namespace MonoFSM.Core.Editor
 {
     #if UNITY_EDITOR
     [ExecuteInEditMode]
@@ -72,7 +72,7 @@ namespace RCGMaker.Core.Editor
         public void OnBeforeSceneSave()
         {
             Debug.LogError("NONONONO把我拔掉啦！！！");
-            EditorUtility.DisplayDialog("NONONONO把我拔掉啦！！！", this + " RefactorNode沒有拔掉", "OK");
+            UnityEditor.EditorUtility.DisplayDialog("NONONONO把我拔掉啦！！！", this + " RefactorNode沒有拔掉", "OK");
             DestroyImmediate(this);
             Selection.activeGameObject = gameObject;
         }
@@ -80,7 +80,7 @@ namespace RCGMaker.Core.Editor
         public void OnBeforePrefabSave()
         {
             Debug.LogError("NONONONO把我拔掉啦！！！");
-            EditorUtility.DisplayDialog("NONONONO把我拔掉啦！！！", this + " RefactorNode沒有拔掉", "OK");
+            UnityEditor.EditorUtility.DisplayDialog("NONONONO把我拔掉啦！！！", this + " RefactorNode沒有拔掉", "OK");
             DestroyImmediate(this);
             Selection.activeGameObject = gameObject;
         }

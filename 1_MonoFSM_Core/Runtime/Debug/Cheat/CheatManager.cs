@@ -3,7 +3,7 @@ using UnityEditor;
 #endif
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public class CheatManager : MonoBehaviour, IEditorOnly
     {

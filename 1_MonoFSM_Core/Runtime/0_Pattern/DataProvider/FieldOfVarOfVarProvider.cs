@@ -2,7 +2,7 @@ using System;
 using MonoFSM.Variable;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     //這什麼意思？只是給某個variable, 不是給他的Object?
     //這個和VarFloatProviderRef好像很像...

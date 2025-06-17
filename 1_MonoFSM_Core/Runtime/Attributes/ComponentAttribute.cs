@@ -2,8 +2,7 @@ using System;
 using System.Diagnostics;
 
 using Sirenix.OdinInspector;
-
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 
 public enum AddComponentAt
 {

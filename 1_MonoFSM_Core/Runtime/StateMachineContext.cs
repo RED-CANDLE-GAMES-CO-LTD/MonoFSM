@@ -1,11 +1,11 @@
 using System;
 using System.Collections;
+using MonoFSM.Core.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
-using RCGMaker.Core.Attributes;
 using UnityEngine;
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core.Deprecated
 {
     public abstract class StateMachineContext<T, TState> : MonoBehaviour, ISceneAwake, ISceneSavingCallbackReceiver
         where TState : AbstractState<T> where T : class 

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     public interface ITypeRestrict
     {

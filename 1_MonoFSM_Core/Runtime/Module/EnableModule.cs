@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RCGMaker.Core.Module
+namespace MonoFSM.Core.Module
 {
     //打開的時候才算有效，現在是直接從上面往下綁，給code判用的...可能只是暫時之計
     public class EnableModule : MonoBehaviour

@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.AnimatorControl;
 using MonoFSM.Foundation;
-using RCGMaker.Core.Editor;
+using MonoFSM.Core.Editor;
 #if UNITY_EDITOR
 using MonoFSM.EditorUtility;
 using UnityEditor;
@@ -408,6 +408,12 @@ namespace MonoFSM.Animation
 
                 return _cachedClipLength; 
             }
+        }
+
+        [Button]
+        private void CalculateClipLength()
+        {
+            _cachedClipLength = CurrentClip.length;
         }
 
         [SerializeField] private float _cachedClipLength = -1;

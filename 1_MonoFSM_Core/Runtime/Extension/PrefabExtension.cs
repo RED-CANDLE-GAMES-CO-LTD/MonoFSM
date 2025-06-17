@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 #endif
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public static class PrefabKindExt
     {

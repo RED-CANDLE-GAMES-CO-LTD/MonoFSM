@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public abstract class ScriptableCollection<T> : ScriptableObject where T : ScriptableObject
     {
@@ -18,14 +18,14 @@ namespace RCGMaker.Core
         public void Clear()
         {
             collection.Clear();
-            EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 #if UNITY_EDITOR
         [Button("Find Under Folder With OverrideTypeName")]
         public void FindUnderFolder()
         {
             collection = ScriptableHelper.FindAllSO<T>(this);
-            EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 #endif
 
@@ -54,7 +54,7 @@ namespace RCGMaker.Core
                     collection.Add(flag);
             }
 
-            EditorUtility.SetDirty(this);
+            UnityEditor.EditorUtility.SetDirty(this);
         }
 #endif
         [FormerlySerializedAs("data")] [FormerlySerializedAs("gameFlagDataList")] [InlineEditor()] [SerializeField]

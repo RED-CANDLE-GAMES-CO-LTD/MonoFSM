@@ -1,12 +1,12 @@
 using System;
 using MonoFSM.Variable;
-using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
+using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     //Float來源：直接給一個float, variable float, data的property
 

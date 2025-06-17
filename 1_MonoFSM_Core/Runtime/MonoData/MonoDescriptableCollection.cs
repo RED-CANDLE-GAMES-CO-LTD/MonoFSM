@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Mono
+namespace MonoFSM.Runtime.Mono
 {
     //直接從notion table讀取？
     //從scriptable collection => DescriptableData array

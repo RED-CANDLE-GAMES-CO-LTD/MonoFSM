@@ -1,9 +1,9 @@
 using System;
-using RCGMaker.Runtime.Vote;
+using MonoFSM.Runtime.Vote;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM.RCGStateMachine._2_Transitions
+namespace MonoFSM.Runtime.FSM.RCGStateMachine._2_Transitions
 {
     //FIXME: 用condition
     [Obsolete]

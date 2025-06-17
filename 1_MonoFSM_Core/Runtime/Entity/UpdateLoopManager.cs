@@ -1,7 +1,7 @@
+using MonoFSM.Core.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
-using RCGMaker.Core.Attributes;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public class UpdateLoopManager : SingletonBehaviour<UpdateLoopManager>, ISceneAwake, IGameDestroy
     {

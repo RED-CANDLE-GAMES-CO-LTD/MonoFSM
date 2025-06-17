@@ -1,6 +1,6 @@
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime;
 using UnityEngine;
 
 namespace MonoFSM.Ref

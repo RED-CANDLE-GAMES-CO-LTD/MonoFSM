@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public abstract class AbstractState<T> : MonoBehaviour
     {

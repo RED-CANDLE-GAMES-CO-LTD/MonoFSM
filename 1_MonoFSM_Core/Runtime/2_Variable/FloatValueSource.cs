@@ -1,9 +1,8 @@
 using System;
 
 using UnityEngine;
-
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 
 namespace MonoFSM.Variable
 {

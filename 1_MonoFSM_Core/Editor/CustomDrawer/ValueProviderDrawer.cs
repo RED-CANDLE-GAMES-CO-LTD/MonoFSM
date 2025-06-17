@@ -1,12 +1,12 @@
 using System.Linq;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     [DrawerPriority(1, 0, 0)]
     public class VariableProviderDrawer : OdinValueDrawer<IVarTagProperty>

@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEditor.Experimental.SceneManagement;
 
-public class PrefabReferenceWindow : EditorWindow
+public class MonoVarInPrefabReferenceWindow : EditorWindow
 {
     private class ReferenceInfo
     {
@@ -29,7 +29,7 @@ public class PrefabReferenceWindow : EditorWindow
     [MenuItem("Tools/Prefab Variable Reference Finder")]
     public static void ShowWindow()
     {
-        GetWindow<PrefabReferenceWindow>("Prefab Variable Reference Finder");
+        GetWindow<MonoVarInPrefabReferenceWindow>("Prefab Variable Reference Finder");
     }
 
     private void OnEnable()

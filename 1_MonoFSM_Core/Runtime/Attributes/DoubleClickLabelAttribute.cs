@@ -1,8 +1,7 @@
 using System;
 
 using Sirenix.OdinInspector;
-
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 
 [EditorOnly]
 [AttributeUsage(AttributeTargets.All)]

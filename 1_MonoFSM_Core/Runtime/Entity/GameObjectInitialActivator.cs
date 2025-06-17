@@ -1,6 +1,5 @@
 using UnityEngine;
-
-using RCGMaker.Core;
+using MonoFSM.Core;
 
 //存檔時，強迫設定這個物件的active狀態
 public class ReadOnlyActivator : MonoBehaviour

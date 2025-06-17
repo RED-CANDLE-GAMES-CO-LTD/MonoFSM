@@ -1,12 +1,12 @@
 using System;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Runtime.Interact.EffectHit.Resolver
+namespace MonoFSM.Runtime.Interact.EffectHit.Resolver
 {
     //連System也用組的？
     //System下要做哪些事，也可能依照情境調整

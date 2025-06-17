@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace RCGMaker.Utility
+namespace MonoFSM.Utility
 {
     public static class SceneViewUtility
     {

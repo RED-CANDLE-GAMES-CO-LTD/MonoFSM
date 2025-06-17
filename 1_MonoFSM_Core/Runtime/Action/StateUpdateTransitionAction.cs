@@ -1,6 +1,6 @@
 using System;
 using MonoFSM.Core.Runtime.Action;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

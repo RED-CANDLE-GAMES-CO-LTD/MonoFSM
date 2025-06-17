@@ -3,7 +3,7 @@ using System.Diagnostics;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Core.Attributes
+namespace MonoFSM.Core.Attributes
 {
     /// <summary> 用在Runtime的property上，會在playmode時顯示
     /// <seealso cref="T:RCGMaker.Core.Attributes.Editor.ShowInPlayModeAttributeProcessor" />
@@ -11,7 +11,7 @@ namespace RCGMaker.Core.Attributes
     [IncludeMyAttributes]
     [MeansImplicitUse]
     // [HideInPlayMode] //NOTE: 沒用，還是會call property, 用AttributeProcess處理的
-    [ReadOnly]
+    // [ReadOnly]
     // [DisableIf("@true")]
     // [ShowDrawerChain]
     [DisableInEditorMode]

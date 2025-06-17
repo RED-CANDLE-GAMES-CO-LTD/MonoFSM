@@ -1,6 +1,6 @@
-using RCGMaker.Runtime.Interact.EffectHit;
+using MonoFSM.Runtime.Interact.EffectHit;
 
-namespace RCGMaker.Runtime.Interact.SpatialDetection
+namespace MonoFSM.Runtime.Interact.SpatialDetection
 {
     public class MouseDownDetectable : EffectDetectable
     {

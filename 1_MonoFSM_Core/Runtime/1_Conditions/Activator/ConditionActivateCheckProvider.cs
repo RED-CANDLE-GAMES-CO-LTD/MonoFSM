@@ -1,5 +1,5 @@
 using System;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
 namespace _3_Script._0_RedCandleGamesUtilities.UICanvas.ActivateChecker

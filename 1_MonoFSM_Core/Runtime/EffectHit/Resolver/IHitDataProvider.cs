@@ -1,3 +1,4 @@
+using MonoFSM.Core.Detection;
 using UnityEngine;
 
 public interface IHitDataProvider
@@ -8,4 +9,9 @@ public interface IHitDataProvider
 public interface ICollisionDataProvider
 {
    public Collision GetCollision();
+}
+
+public interface IDetectDataProvider
+{
+   public DetectData? GetDetectData();
 }

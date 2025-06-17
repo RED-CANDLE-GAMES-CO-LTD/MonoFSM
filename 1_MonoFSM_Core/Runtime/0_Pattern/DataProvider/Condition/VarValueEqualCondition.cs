@@ -1,9 +1,9 @@
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
-using RCGMaker.Core.Attributes;
 using MonoFSM.VarRef;
 using UnityEngine;
 
-namespace RCGMaker.Core.DataProvider.Condition
+namespace MonoFSM.Core.DataProvider.Condition
 {
     //ex: FloatCompareCondition
     public class VarValueEqualCondition : AbstractConditionComp //

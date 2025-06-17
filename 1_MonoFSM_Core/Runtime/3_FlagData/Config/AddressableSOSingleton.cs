@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public class AddressableSOSingleton<T> : ScriptableObject where T : ScriptableObject
     {

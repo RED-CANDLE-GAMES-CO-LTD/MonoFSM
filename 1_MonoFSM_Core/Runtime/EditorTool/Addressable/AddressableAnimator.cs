@@ -6,7 +6,7 @@ using UnityEditor.Animations;
 using UnityEditor.AddressableAssets;
 #endif
 
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 
 //TODO:
 public class AddressableAnimator : MonoBehaviour

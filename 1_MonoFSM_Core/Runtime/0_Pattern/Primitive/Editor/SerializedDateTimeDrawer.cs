@@ -3,7 +3,7 @@ using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Primitive.Editor
+namespace MonoFSM.Runtime.Primitive.Editor
 {
     // public class SerializedDateTimeDrawer : OdinValueDrawer<SerializableDateTime>
     // {

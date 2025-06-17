@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.Detection;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Detection;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Interact.EffectHit
+namespace MonoFSM.Runtime.Interact.EffectHit
 {
     [DisallowMultipleComponent]
     //空間中的物件，可以被偵測到, 基本上會有collider或是collider2D
@@ -45,8 +45,8 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             #endif
             foreach (var toRemove in toRemoves)
             {
-                Debug.Log("OnDisable of Detectable", this);
-                Debug.Log("OnDisable of Detectable removef from" + toRemove, toRemove);
+                // Debug.Log("OnDisable of Detectable", this);
+                // Debug.Log("OnDisable of Detectable removef from" + toRemove, toRemove);
                 toRemove.OnSpatialExit(gameObject);
 
                 //copy _detectedObjects to toRemove

@@ -4,7 +4,7 @@ using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public class GameStateRequireAtPrefabKind : MonoBehaviour, IEditorOnly
     {

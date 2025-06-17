@@ -3,7 +3,7 @@ using MonoFSM.Core.Runtime.Interact.SpatialDetection;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
 
-namespace RCGMaker.Core.Detection
+namespace MonoFSM.Core.Detection
 {
     public class CollisionSpatialDetector : AbstractDetector
     {
@@ -21,6 +21,10 @@ namespace RCGMaker.Core.Detection
         }
 
         //FIXME:
+        protected override void OnDisableImplement()
+        {
+        }
+
         protected override void SetLayerOverride()
         {
             throw new System.NotImplementedException();

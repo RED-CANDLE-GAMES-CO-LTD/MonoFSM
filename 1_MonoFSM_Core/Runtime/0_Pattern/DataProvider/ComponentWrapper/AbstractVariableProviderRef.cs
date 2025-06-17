@@ -1,10 +1,10 @@
 using System;
 using MonoFSM.Variable;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     public abstract class AbstractVariableProviderRef : MonoBehaviour
     {

@@ -1,7 +1,7 @@
 using System;
 using MonoFSM.Condition;
 using MonoFSMCore.Runtime.LifeCycle;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

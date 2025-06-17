@@ -1,15 +1,15 @@
 using System;
 using jerryee.UnityMCP;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable.Attributes;
 using RCGExtension;
-using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Interact.EffectHit
+namespace MonoFSM.Runtime.Interact.EffectHit
 {
     public abstract class EffectResolver : MonoBehaviour, IDefaultSerializable, IHierarchyValueInfo
     {

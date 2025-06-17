@@ -2,7 +2,7 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Attributes
+namespace MonoFSM.Runtime.Attributes
 {
     
     /// <summary>

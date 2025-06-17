@@ -2,8 +2,8 @@ using System;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
 namespace RCGMakerFSMCore.Runtime.Action.DebugAction

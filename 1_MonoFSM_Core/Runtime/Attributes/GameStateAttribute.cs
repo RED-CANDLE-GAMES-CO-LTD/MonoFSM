@@ -2,7 +2,7 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core.Attributes
+namespace MonoFSM.Core.Attributes
 {
     //SavedFlagLink
     //GameStateSO

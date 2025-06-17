@@ -1,6 +1,6 @@
 using System;
 
-namespace RCGMaker.Runtime.Attributes
+namespace MonoFSM.Runtime.Attributes
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class DropDownAssetAttribute:Attribute

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor;
 using RCGExtension;
-using RCGMaker.Editor;
+using MonoFSM.Editor;
 using RCGMakerFSMCore.Editor.ViewWindow.HierarchyTab;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
@@ -16,8 +16,8 @@ using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
-using static RCGMaker.Core.Editor.WrapperUtil;
-namespace RCGMaker.Core.Editor
+using static MonoFSM.Core.Editor.WrapperUtil;
+namespace MonoFSM.Core.Editor
 {
    
     public class TreeViewWindow : OdinEditorWindow
@@ -262,7 +262,7 @@ namespace RCGMaker.Core.Editor
             // }
 
             //用instanceId
-            SubTreeRoot = EditorUtility.InstanceIDToObject(_instanceId) as GameObject;
+            SubTreeRoot = UnityEditor.EditorUtility.InstanceIDToObject(_instanceId) as GameObject;
             if (SubTreeRoot == null)
             {
                 Close();

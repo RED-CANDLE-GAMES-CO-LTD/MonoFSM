@@ -1,4 +1,4 @@
-namespace RCGMaker.Runtime.Interact.SpatialDetection
+namespace MonoFSM.Runtime.Interact.SpatialDetection
 {
 
     using System.Collections.Generic;

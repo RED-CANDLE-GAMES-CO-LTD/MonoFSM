@@ -7,10 +7,10 @@ using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 using UnityEngine;
 
-namespace RCGMaker.Core.Attributes.Editor
+namespace MonoFSM.Core.Attributes.Editor
 {
     /// <summary> 用在Runtime的property上，會在playmode時顯示
-    /// <seealso cref="T:RCGMaker.Core.Attributes.ShowInPlayModeAttribute" />
+    /// <seealso cref="T:MonoFSM.Core.Attributes.ShowInPlayModeAttribute" />
     /// </summary>
     public class ShowInPlayModeAttributeProcessor : OdinAttributeProcessor
     {

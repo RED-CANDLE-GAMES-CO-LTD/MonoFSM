@@ -1,10 +1,10 @@
 using System;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.Interact.EffectHit;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Interact.EffectHit;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.Interact.SpatialDetection
+namespace MonoFSM.Runtime.Interact.SpatialDetection
 {
     public class MouseEventDetectable : MonoBehaviour
     {

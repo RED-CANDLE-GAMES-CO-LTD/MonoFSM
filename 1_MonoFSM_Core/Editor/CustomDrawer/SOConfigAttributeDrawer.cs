@@ -1,5 +1,5 @@
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.Editor;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Editor;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
@@ -7,7 +7,7 @@ using Sirenix.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     [DrawerPriority(0, 1, 0.25)]
     public class SOConfigAttributeDrawer : OdinAttributeDrawer<SOConfigAttribute>

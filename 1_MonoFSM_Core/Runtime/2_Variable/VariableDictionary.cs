@@ -1,8 +1,7 @@
 using System;
 
 using UnityEngine.Serialization;
-
-using RCGMaker.Core;
+using MonoFSM.Core;
 
 namespace MonoFSM.Variable
 {

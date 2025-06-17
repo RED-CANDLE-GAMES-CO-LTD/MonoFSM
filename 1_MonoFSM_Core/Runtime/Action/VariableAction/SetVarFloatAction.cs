@@ -1,7 +1,7 @@
 using jerryee.UnityMCP;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.DataProvider;
 using Sirenix.OdinInspector;
 
 namespace MonoFSM.Core.Runtime.Action.VariableAction

@@ -5,7 +5,7 @@ using Fusion.Addons.FSM;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Editor;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -202,7 +202,8 @@ namespace MonoFSM.Core
             }
             catch (Exception e)
             {
-                Debug.LogError($"Transition failed from {Name} to {transition.TargetState.Name}: {e.Message}", this);
+                Debug.LogError(
+                    $"Transition failed from {Name} to {transition.TargetState.Name}: {e.Message}{e.StackTrace}", this);
                 return false;
             }
             

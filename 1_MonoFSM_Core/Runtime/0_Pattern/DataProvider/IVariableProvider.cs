@@ -1,21 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime;
-using RCGMaker.Runtime.Attributes;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime;
+using MonoFSM.Runtime.Attributes;
+using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
+using MonoFSM.Runtime.Mono;
 using MonoFSM.Variable;
-using RCGMaker.Runtime.FSM.RCGStateMachine;
-using RCGMaker.Runtime.Item_BuildSystem;
-using RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables;
-using RCGMaker.Runtime.Mono;
+using MonoFSM.Runtime.Item_BuildSystem;
 using UIValueBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     //重要，這個是最基本的拿到VarMono的Provider
     //FIXME: 怎麼Monobeheviour化
@@ -301,7 +301,7 @@ namespace RCGMaker.Core.DataProvider
 
     public interface IVariableProvider
     {
-        public GameFlagBase FinalData => VarRaw?.FinalData;
+        // public GameFlagBase FinalData => VarRaw?.FinalData;
         AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
         Type GetValueType { get; }
 

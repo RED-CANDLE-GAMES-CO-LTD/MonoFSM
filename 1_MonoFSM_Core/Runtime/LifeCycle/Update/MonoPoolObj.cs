@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-// using _1_MonoFSM_Core.Runtime.LifeCycle.Update.Simulate;
 using MonoFSM.Core.Simulate;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace MonoFSMCore.Runtime.LifeCycle
 {
@@ -37,8 +36,19 @@ namespace MonoFSMCore.Runtime.LifeCycle
         void EnterSceneAwake();
     }
 
-    public sealed class MonoPoolObj : MonoBehaviour
+    //FIXME: auto 怎麼處理？cache?
+    public sealed class MonoPoolObj : MonoBehaviour, IPrefabSerializeCacheOwner
     {
+        public void Despawn()
+        {
+            if (WorldUpdateSimulator == null)
+            {
+                Debug.LogError("WorldUpdateSimulator is not set. Cannot despawn MonoPoolObj.", this);
+                return;
+            }
+
+            WorldUpdateSimulator.Despawn(this);
+        }
         //等世界準備好？
         [ShowInDebugMode] public WorldUpdateSimulator WorldUpdateSimulator { get; set; }
         [PreviewInInspector][AutoChildren] private ISceneAwake[] _sceneAwakes;

@@ -4,8 +4,8 @@ using System.Reflection;
 using jerryee.UnityMCP;
 using MonoFSM.Variable.VariableBinder;
 using RCGExtension;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
@@ -62,7 +62,7 @@ namespace MonoFSM.Variable
 
         // public abstract void CommitValue();
         // public abstract void SetValue(object value, MonoBehaviour byWho = null); //一開始就預設要可以Set了
-        public abstract GameFlagBase FinalData { get; } //這是啥？
+        public abstract GameFlagBase FinalData { get; } //FIXME: 這是啥？可以拔掉嗎？
         public abstract Type FinalDataType { get; }
         public abstract Type ValueType { get; }
 

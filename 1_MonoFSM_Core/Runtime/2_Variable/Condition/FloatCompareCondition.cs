@@ -4,8 +4,8 @@ using MonoFSM.Condition;
 using Sirenix.OdinInspector;
 
 using MonoFSM.DataProvider;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 
 namespace MonoFSM.Variable.Condition
 {

@@ -1,6 +1,5 @@
 using Sirenix.OdinInspector;
-
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 
 namespace MonoFSM.Variable
 {

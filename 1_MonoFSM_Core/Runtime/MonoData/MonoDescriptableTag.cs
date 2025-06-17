@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
@@ -10,7 +10,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Runtime.Mono
+namespace MonoFSM.Runtime.Mono
 {
     //為了DI可以找到相對應的物件用的tag, 先宣告下面有什麼變數可以用
     //先設計schema, 但這樣物件那邊又要對應，是不是很麻煩？

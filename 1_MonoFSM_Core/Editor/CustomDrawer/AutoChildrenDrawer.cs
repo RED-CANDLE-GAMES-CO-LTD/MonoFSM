@@ -10,7 +10,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     [UsedImplicitly]
     [DrawerPriority(0, 100, 0)]

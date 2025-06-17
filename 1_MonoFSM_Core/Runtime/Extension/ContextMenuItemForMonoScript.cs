@@ -2,7 +2,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public static class ContextMenuItemForMonoScript
     {

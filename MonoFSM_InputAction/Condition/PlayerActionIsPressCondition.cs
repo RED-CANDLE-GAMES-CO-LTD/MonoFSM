@@ -1,7 +1,7 @@
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
-using RCGMaker.Core;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core;
+using MonoFSM.Core.DataProvider;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
 

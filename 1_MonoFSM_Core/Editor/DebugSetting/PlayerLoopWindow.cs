@@ -1,6 +1,6 @@
 using UnityEngine.LowLevel;
 
-namespace RCGMaker
+namespace MonoFSM
 {
     // Put this in an editor folder
     using System.Collections.Generic;

@@ -1,6 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
-using RCGMaker.Core.Module;
+using MonoFSM.Core.Module;
 using UnityEngine;
 using UnityEngine.TestTools;
 

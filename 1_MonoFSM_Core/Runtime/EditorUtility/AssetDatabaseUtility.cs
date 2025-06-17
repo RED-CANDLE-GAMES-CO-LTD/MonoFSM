@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 using Object = UnityEngine.Object;
 #if UNITY_EDITOR
@@ -9,9 +9,8 @@ using UnityEditor.SceneManagement;
 #endif
 
 using Sirenix.OdinInspector;
-using RCGMaker.Core.Attributes;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public static class AssetDatabaseUtility
     {
@@ -84,8 +83,8 @@ namespace RCGMaker.Core
 
         public static T CreateAsset<T>(string folderPath, string fileName) where T : ScriptableObject
         {
-            EditorUtility.ClearProgressBar();
-            EditorUtility.DisplayProgressBar("CreateAsset", fileName, 0.5f);
+            UnityEditor.EditorUtility.ClearProgressBar();
+            UnityEditor.EditorUtility.DisplayProgressBar("CreateAsset", fileName, 0.5f);
             CreateFolderIfNotExist(folderPath);
 
 
@@ -93,7 +92,7 @@ namespace RCGMaker.Core
             if (data != null)
             {
                 Debug.LogWarning("data already exist");
-                EditorUtility.ClearProgressBar();
+                UnityEditor.EditorUtility.ClearProgressBar();
                 return data;
             }
 
@@ -101,7 +100,7 @@ namespace RCGMaker.Core
             AssetDatabase.CreateAsset(asset, folderPath + "/" + fileName + ".asset");
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            EditorUtility.ClearProgressBar();
+            UnityEditor.EditorUtility.ClearProgressBar();
             return asset;
         }
 #endif
@@ -109,7 +108,7 @@ namespace RCGMaker.Core
         public static void SetDirty(this Object obj)
         {
 #if UNITY_EDITOR
-            EditorUtility.SetDirty(obj);
+            UnityEditor.EditorUtility.SetDirty(obj);
 #endif
         }
 

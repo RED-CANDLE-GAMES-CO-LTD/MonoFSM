@@ -1,10 +1,10 @@
 using System;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
-using RCGMaker.Core.Attributes;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Runtime.Vote
+namespace MonoFSM.Runtime.Vote
 {
     public class MonoVariableVote : AbstractMonoVariable
     {

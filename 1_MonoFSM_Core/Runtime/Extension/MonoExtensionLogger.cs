@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Cysharp.Text;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using RCGSetting;
 #if UNITY_EDITOR
 using UnityEditor;

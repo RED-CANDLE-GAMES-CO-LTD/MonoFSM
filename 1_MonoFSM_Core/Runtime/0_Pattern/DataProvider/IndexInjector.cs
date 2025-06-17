@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     public interface IIndexInjector
     {

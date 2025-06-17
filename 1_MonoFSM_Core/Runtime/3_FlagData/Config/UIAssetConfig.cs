@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     [CreateAssetMenu(fileName = "UIAssetConfig", menuName = "ScriptableObjects/UIAssetConfig", order = 1)]
     public class UIAssetConfig : AddressableSOSingleton<UIAssetConfig>

@@ -7,7 +7,7 @@ using UnityEditor.SceneManagement;
 #endif
 using UnityEngine;
 
-namespace RCGMaker.Core.Editor
+namespace MonoFSM.Core.Editor
 {
 #if UNITY_EDITOR
     public static class AnimatorControllerGenerator

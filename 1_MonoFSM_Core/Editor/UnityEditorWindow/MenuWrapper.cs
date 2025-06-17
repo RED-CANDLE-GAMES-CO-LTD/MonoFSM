@@ -1,7 +1,7 @@
 using System;
 using UnityEditor;
 
-namespace RCGMaker.Editor
+namespace MonoFSM.Editor
 {
     public class MenuWrapper : NonPublicClassWrapper
     {

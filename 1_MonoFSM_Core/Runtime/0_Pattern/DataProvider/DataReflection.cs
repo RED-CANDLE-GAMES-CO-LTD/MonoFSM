@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     public static class DataReflection
     {

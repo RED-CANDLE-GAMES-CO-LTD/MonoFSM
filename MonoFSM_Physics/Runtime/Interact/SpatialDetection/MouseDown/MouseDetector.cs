@@ -1,7 +1,7 @@
 using System;
-using RCGMaker.Core.Detection;
+using MonoFSM.Core.Detection;
 
-namespace RCGMaker.Runtime.Interact.SpatialDetection
+namespace MonoFSM.Runtime.Interact.SpatialDetection
 {
     public class IConditionProvider
     {
@@ -15,6 +15,10 @@ namespace RCGMaker.Runtime.Interact.SpatialDetection
         // //放在dealer層？
         // [AutoChildren] AbstractConditionComp[] conditions;
         // public bool IsValid => conditions.IsAllValid();
+
+        protected override void OnDisableImplement()
+        {
+        }
 
         protected override void SetLayerOverride()
         {

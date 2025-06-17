@@ -5,7 +5,7 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 
 //標記物件：
-namespace RCGMaker.Editor.DesignTool
+namespace MonoFSM.Editor.DesignTool
 {
     public class GamePlayElementTag : AbstractMapTag
     {

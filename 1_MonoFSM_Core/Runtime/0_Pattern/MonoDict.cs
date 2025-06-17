@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
@@ -11,7 +11,7 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public abstract class MonoDict<T, TU> : MonoBehaviour,ISceneAwake, IResetStateRestore
         where TU : IValueOfKey<T> where T : IStringKey

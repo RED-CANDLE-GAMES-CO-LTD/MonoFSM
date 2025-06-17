@@ -1,7 +1,7 @@
 using System.Linq;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public static class EffectHitExtension
     {

@@ -1,12 +1,10 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
-using RCGMaker.Core.Attributes;
-
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public interface IProxyUpdate : ICustomUpdate
     {

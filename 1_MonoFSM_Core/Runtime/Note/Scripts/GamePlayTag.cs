@@ -1,12 +1,12 @@
 
 using System.Collections.Generic;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using UnityEngine.UI;
 
-namespace RCGMaker.Editor.DesignTool
+namespace MonoFSM.Editor.DesignTool
 {
     // [RequireComponent(typeof(AreaMarker))]
 public class GamePlayTag : AbstractMapTag, IGizmoColorProvider

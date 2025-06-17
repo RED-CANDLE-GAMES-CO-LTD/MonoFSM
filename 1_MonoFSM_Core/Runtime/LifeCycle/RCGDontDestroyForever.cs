@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.LifeCycle
+namespace MonoFSM.Runtime.LifeCycle
 {
     public class RCGDontDestroyForever : MonoBehaviour
     {

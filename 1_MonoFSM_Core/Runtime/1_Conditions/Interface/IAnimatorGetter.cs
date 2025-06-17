@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public interface IAnimatorGetter
     {

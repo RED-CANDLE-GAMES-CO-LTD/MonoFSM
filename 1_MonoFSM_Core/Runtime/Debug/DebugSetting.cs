@@ -58,8 +58,11 @@ namespace RCGSetting
             // _isSpeedUpActionEnabled = BoolProperties[nameof(IsSpeedUpActionEnabled)];
             // if (IsDebugMode)
             //     GuidManager.InitRuntime();
+            Application.targetFrameRate = -1;
+            QualitySettings.vSyncCount = 0;
         }
-        
+
+        //FIXME: debug ui?
         
         static DebugSetting()
         {

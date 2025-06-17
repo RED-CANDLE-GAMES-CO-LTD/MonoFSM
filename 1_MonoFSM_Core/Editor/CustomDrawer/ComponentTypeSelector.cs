@@ -6,7 +6,7 @@ using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //搜尋所有繼承的Component
     public class ComponentTypeSelector : OdinSelector<Type>

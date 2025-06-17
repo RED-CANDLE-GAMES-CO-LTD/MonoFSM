@@ -1,4 +1,4 @@
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 using Sirenix.OdinInspector;
 

@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Fusion.Addons.FSM;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
-using RCGMaker.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.FSM.RCGStateMachine;
 using Sirenix.OdinInspector;
 using UnityEditor.PackageManager;
 using UnityEngine;

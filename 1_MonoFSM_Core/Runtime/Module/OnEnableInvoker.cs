@@ -2,8 +2,8 @@
 // using System.Collections;
 // using System.Collections.Generic;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.Module;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Module;
 using UnityEngine;
 using UnityEngine.Events;
 

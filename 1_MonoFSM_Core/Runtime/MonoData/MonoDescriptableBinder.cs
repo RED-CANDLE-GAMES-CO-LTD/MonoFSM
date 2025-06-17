@@ -1,10 +1,10 @@
 using System;
+using MonoFSM.Core;
+using MonoFSM.Runtime.Mono;
 using MonoFSMCore.Runtime.LifeCycle;
-using RCGMaker.Core;
-using RCGMaker.Runtime.Mono;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Item_BuildSystem.MonoDescriptables
+namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
 {
     /// <summary>
     /// 用MonoDescriptableTag當key的來找IMonoDescriptable

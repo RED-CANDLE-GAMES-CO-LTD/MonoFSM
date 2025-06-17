@@ -88,9 +88,9 @@ namespace Fusion.Addons.FSM
         void IState.OnFixedUpdate()
         {
             if (_transitions != null)
-                for (var i = 0; i < _transitions.Count; i++)
+                foreach (var trainstionData in _transitions)
                 {
-                    var transition = _transitions[i];
+                    var transition = trainstionData;
 
                     if (TryTransition(ref transition) == true)
                     {

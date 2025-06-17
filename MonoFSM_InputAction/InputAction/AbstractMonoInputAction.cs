@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace MonoFSM_InputAction
 {
@@ -10,16 +7,19 @@ namespace MonoFSM_InputAction
     //FIXME:好像包的有點亂，這個又要polling local, 又要提供處理完的?
     public abstract class AbstractMonoInputAction : MonoBehaviour
     {
-        public abstract bool IsPressed();
-        public abstract bool WasPressed(); //經過network處理過的按下事件
+        [ShowInPlayMode] public abstract bool IsPressed { get; }
+
+        [ShowInPlayMode] public abstract bool WasPressed { get; }
 
         // public abstract bool WasPressBuffered();
-        public abstract bool WasReleased();
+        [ShowInPlayMode] public abstract bool WasReleased { get; }
 
         [SOConfig("PlayerInputActionData")] [SerializeField]
         protected InputActionData _inputActionData;
 
         public int InputActionId => _inputActionData.actionID; //還是monobehaviour自己assign就好？
+
+        [PreviewInInspector]
         public abstract bool IsLocalPressed { get; }
 
         //這個是Uinput的

@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
+using RCGSetting;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
 namespace Fusion.Addons.FSM
@@ -55,7 +57,6 @@ namespace Fusion.Addons.FSM
 
         // private NetworkStateMachineController _controller;
         public StateMachineLogic Logic => _logic;
-        
         private StateMachineLogic _logic;
         private ITickProvider _tickProvider;
         public ITickProvider TickProvider => _tickProvider;
@@ -305,20 +306,25 @@ namespace Fusion.Addons.FSM
                 throw new InvalidOperationException($"State with ID {stateId} not present in the state machine {Name}");
 
             // Assert.Check(_tickProvider.Stage != default, "State changes are not allowed from Render calls");
-            Assert.Check(_tickProvider.IsStage, "State changes are not allowed from Render calls");
+            // Assert.Check(_tickProvider.IsStage, "State changes are not allowed from Render calls");
 
             _previousStateId = _activeStateId;
             _activeStateId = stateId;
 
-            LogStateChange();
+            if (DebugSetting.IsDebugMode)
+                LogStateChange();
 
+            Profiler.BeginSample("Exit State");
             if (_previousStateId >= 0) PreviousState.OnExitState();
+            Profiler.EndSample();
             // for (var i = 0; i < PreviousState.ChildMachines.Length; i++)
             //     // When parent state is deactivated, all child states are deactivated as well
             //     PreviousState.ChildMachines[i].ForceActivateState(_noneStateId);
             _stateChangeTick = _tickProvider.Tick;
 
+            Profiler.BeginSample("Enter State");
             if (_activeStateId >= 0) ActiveState.OnEnterState();
+            Profiler.EndSample();
             // for (var i = 0; i < ActiveState.ChildMachines.Length; i++)
             // {
             //     var childMachine = ActiveState.ChildMachines[i];
@@ -350,6 +356,13 @@ namespace Fusion.Addons.FSM
         [Conditional("DEBUG")]
         private void LogStateChange()
         {
+            if (_logic == null)
+            {
+                Debug.LogError(
+                    $"{nameof(StateMachine<TState>)}: Logic is null for state machine {Name}. This should not happen.");
+                return;
+            }
+                
             if (EnableLogging.HasValue == false && _logic.EnableLogging == false)
                 return; // Global controller logging is disabled
 

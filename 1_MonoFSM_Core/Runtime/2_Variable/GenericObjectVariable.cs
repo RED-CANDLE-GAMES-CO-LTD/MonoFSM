@@ -5,8 +5,7 @@ using UnityEngine.Events;
 using Object = UnityEngine.Object;
 
 using Sirenix.OdinInspector;
-
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine.Serialization;
 
 

@@ -1,12 +1,13 @@
 using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
+using MonoFSM.Core.Detection;
+using MonoFSM.Runtime.Interact.EffectHit.Resolver;
 using MonoFSM.Variable;
-using RCGMaker.Runtime.Interact.EffectHit.Resolver;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Interact.EffectHit
+namespace MonoFSM.Runtime.Interact.EffectHit
 {
     public class ProxySource
     {
@@ -107,7 +108,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         [PreviewInInspector] private List<IEffectReceiver> _receivers = new();
         [PreviewInInspector] private GeneralEffectReceiver _lastReceiver;
 
-        public void OnHitEnter(IEffectHitData data)
+        public void OnHitEnter(IEffectHitData data, DetectData? detectData = null)
         {
             _currentHitData = data;
             if (_proxyProvider != null) proxyDealer.OnHitEnter(data);

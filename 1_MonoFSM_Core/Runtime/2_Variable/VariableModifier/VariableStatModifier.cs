@@ -3,8 +3,8 @@ using MonoFSM.Condition;
 using MonoFSM.DataProvider;
 using UnityEngine;
 using Sirenix.OdinInspector;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 

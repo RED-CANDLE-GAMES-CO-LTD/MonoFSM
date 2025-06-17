@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using MonoFSM.Core.Runtime.Action;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -10,7 +10,7 @@ using UnityEditor.Animations;
 #endif
 
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //[]: 先弄成abstract不會和原專案的class衝突
     public abstract class AbstractAnimatorPlayAction : AbstractStateAction, IAnimatorPlayAction,

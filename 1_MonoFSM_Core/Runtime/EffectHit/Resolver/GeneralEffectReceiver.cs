@@ -1,13 +1,14 @@
 using System;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Detection;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Interact.EffectHit
+namespace MonoFSM.Runtime.Interact.EffectHit
 {
     //FIXME: 應該要怎麼轉接比較好，我會有好幾種事件類型，幫每種事件類型定義類別，再讓下面的action去做事
-    public class GeneralEffectReceiver : EffectResolver, IEffectReceiver,IHitDataProvider
+    public class GeneralEffectReceiver : EffectResolver, IEffectReceiver, IHitDataProvider, IDetectDataProvider
     {
         private void OnValidate()
         {
@@ -33,20 +34,30 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public IEffectType getEffectType => EffectType;
 
         //FIXME: rename to OnHitEnter
-        public void OnEffectHitEnter(IEffectHitData data) //這裡是code定義
+        public void OnEffectHitEnter(IEffectHitData data, DetectData detectData) //這裡是code定義
         {
             this.Log("OnEffectHitEnter");
             _currentHitData = data;
             _enterNode?.EventHandle(data);
+            _detectData = detectData;
 #if UNITY_EDITOR
             _lastHitData = data;
 #endif
         }
 
         [ShowInDebugMode] private IEffectHitData _currentHitData;
+        [ShowInDebugMode] private DetectData? _detectData;
+        
 #if UNITY_EDITOR
         [ShowInDebugMode] private IEffectHitData _lastHitData;
 #endif
+
+        public void OnEffectHitEnter(IEffectHitData data)
+        {
+            this.Log("OnHitEnter");
+            _currentHitData = data;
+            _enterNode?.EventHandle(data);
+        }
 
         public void OnEffectHitExit(IEffectHitData data)
         {
@@ -62,6 +73,14 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         public IEffectHitData GetHitData()
         {
             return _currentHitData;
+        }
+
+        public DetectData? GetDetectData()
+        {
+            if (_detectData.HasValue)
+                return _detectData.Value;
+            else
+                return null; //或許可以拋出異常？
         }
     }
 }

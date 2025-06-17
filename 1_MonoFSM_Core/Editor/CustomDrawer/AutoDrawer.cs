@@ -1,6 +1,6 @@
 using Sirenix.OdinInspector.Editor;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     [DrawerPriority(0, 100, 0)]
     public class AutoDrawer : AutoFamilyDrawer<AutoAttribute>

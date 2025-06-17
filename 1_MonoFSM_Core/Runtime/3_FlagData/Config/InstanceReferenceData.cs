@@ -1,13 +1,13 @@
 using System;
 using System.IO;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //ScriptableObject, 
     [CreateAssetMenu(menuName = "RCGMaker/InstanceReference")]

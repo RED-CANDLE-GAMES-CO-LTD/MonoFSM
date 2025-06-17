@@ -3,7 +3,7 @@ using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     //FIXME: 刪掉？
     public class FieldOfGameDataProvider : AbstractFieldOfVarProvider

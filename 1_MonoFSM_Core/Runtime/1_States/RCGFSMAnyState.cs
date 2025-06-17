@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 #endif
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public class RCGFSMAnyState : MonoBehaviour, IState<GeneralState>, IDefaultSerializable
     {

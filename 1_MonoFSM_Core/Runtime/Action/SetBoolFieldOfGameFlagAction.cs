@@ -4,7 +4,7 @@ using MonoFSM.Core.Runtime.Action;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM.RCGStateMachine.Action
+namespace MonoFSM.Runtime.FSM.RCGStateMachine.Action
 {
     public class SetBoolFieldOfGameFlagAction : AbstractStateAction
     {

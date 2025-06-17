@@ -4,7 +4,7 @@ using System.Linq;
 using Sirenix.Utilities.Editor;
 using UnityEngine;
 
-namespace RCGMaker.Core.Editor
+namespace MonoFSM.Core.Editor
 {
     public static class FilterSearchUtility
     {

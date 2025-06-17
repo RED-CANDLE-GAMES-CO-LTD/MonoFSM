@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.Interact.EffectHit;
-using RCGMaker.Runtime.Interact.SpatialDetection;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Interact.EffectHit;
+using MonoFSM.Runtime.Interact.SpatialDetection;
 using UnityEngine;
 
-namespace RCGMaker.Core.Detection
+namespace MonoFSM.Core.Detection
 {
     public class TriggerSpatialDetector : AbstractDetector
     {
@@ -29,6 +29,10 @@ namespace RCGMaker.Core.Detection
             virtualDetector?.OnSpatialExit(other.gameObject);
             // ReliableOnTriggerExit.NotifyTriggerExit(other, gameObject);
             OnSpatialExit(other.gameObject);
+        }
+
+        protected override void OnDisableImplement()
+        {
         }
 
         protected override void SetLayerOverride()

@@ -1,6 +1,6 @@
 using MonoFSM.Core.Runtime.Action;
 
-namespace RCGMaker.Runtime.ObjectPool
+namespace MonoFSM.Runtime.ObjectPool
 {
     //把FSM關掉，不一定是要回pool?
     public class StopFSMAction: AbstractStateAction

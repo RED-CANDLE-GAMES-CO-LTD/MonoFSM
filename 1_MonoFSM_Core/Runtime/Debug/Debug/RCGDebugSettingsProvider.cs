@@ -1,4 +1,4 @@
-using RCGMaker.Core;
+using MonoFSM.Core;
 #if UNITY_EDITOR
 using RCGExtension;
 using UnityEditor;

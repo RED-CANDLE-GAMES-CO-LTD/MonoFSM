@@ -1,5 +1,5 @@
 using MonoFSM.Core.Runtime.Action;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
 //DElayNode?

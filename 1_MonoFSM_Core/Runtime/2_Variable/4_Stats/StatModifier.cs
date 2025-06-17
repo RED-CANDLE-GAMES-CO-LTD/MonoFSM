@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 
 using Sirenix.OdinInspector;
 
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable;
 
 public enum StatModType

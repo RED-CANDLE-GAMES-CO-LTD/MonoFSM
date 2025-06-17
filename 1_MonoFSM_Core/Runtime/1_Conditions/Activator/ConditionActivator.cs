@@ -1,11 +1,11 @@
 using System;
 using MonoFSM.Condition;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //FIXME: 用AbstractConditionActivateTarget
 

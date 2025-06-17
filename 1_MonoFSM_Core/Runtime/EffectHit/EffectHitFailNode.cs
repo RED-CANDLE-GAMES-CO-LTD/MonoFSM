@@ -1,4 +1,4 @@
-namespace RCGMaker.Runtime.Interact.EffectHit
+namespace MonoFSM.Runtime.Interact.EffectHit
 {
     public sealed class EffectHitFailNode : AbstractEffectNode { }
 }

@@ -1,8 +1,8 @@
 using System;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
-namespace RCGMaker.Runtime
+namespace MonoFSM.Runtime
 {
     public interface IAnimationDoneReceiver
     {

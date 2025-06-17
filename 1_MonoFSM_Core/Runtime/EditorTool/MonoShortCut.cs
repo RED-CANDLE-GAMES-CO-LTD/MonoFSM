@@ -2,7 +2,7 @@ using MonoFSM.Foundation;
 using RCGExtension;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     /// <summary>
     /// <see cref="MonoShortCutInspector"/>

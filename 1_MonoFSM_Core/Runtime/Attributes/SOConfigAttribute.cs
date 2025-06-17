@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace RCGMaker.Core.Attributes
+namespace MonoFSM.Core.Attributes
 {
     [EditorOnly]
     public class SOConfigAttribute : Attribute

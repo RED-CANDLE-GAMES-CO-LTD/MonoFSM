@@ -1,6 +1,6 @@
-using RCGMaker.Core;
+using MonoFSM.Core;
 
-namespace RCGMaker.Runtime.Mono
+namespace MonoFSM.Runtime.Mono
 {
     public class MonoDescriptableCollectionBinder : MonoDict<MonoDescriptableTag, IMonoDescriptableCollection>
     {

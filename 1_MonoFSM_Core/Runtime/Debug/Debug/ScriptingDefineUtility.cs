@@ -4,7 +4,7 @@ using System;
 using UnityEngine;
 using UnityEditor;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     public static class ScriptingDefineUtility
     {

@@ -6,7 +6,7 @@ using UnityEditor.SceneManagement;
 #endif
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //Provider? 類似GuidComponent, 被找的那方
     [DefaultExecutionOrder(-999)]

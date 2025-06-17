@@ -1,7 +1,7 @@
 using MonoFSM.Core;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Interact.EffectHit
+namespace MonoFSM.Runtime.Interact.EffectHit
 {
     public abstract class AbstractEffectNode : AbstractEventHandler, IDefaultSerializable
     {
@@ -11,7 +11,7 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             Debug.Log(" EffectEnterNode OnEffectReceived", this);
 
             foreach (var receiver in _eventReceivers)
-                if (receiver.isActiveAndEnabled)
+                if (receiver.IsValid)
                     receiver.EventReceived(data);
         }
     }

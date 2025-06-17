@@ -1,8 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.Attributes;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Attributes;
 using MonoFSM.Variable;
 using UnityEngine;
 using Sirenix.OdinInspector;

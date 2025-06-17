@@ -1,6 +1,6 @@
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //把好幾個condition包起來, 只撈一層
     public class ConditionFolder : AbstractConditionComp

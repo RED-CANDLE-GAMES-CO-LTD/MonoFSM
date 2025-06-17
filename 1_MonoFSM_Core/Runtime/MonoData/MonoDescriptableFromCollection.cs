@@ -1,7 +1,7 @@
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Mono
+namespace MonoFSM.Runtime.Mono
 {
     //好像也沒有用到
     public class MonoDescriptableFromCollection : MonoBehaviour, IMonoDescriptable

@@ -4,7 +4,7 @@ using UnityEngine;
 
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     [Serializable]
     public class ChildrenInterfaceMonoRef<TInterface, TOwner> where TOwner : MonoBehaviour

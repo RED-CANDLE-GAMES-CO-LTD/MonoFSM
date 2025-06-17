@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using RCGSetting;
 using Sirenix.OdinInspector;
 using UnityEditor;

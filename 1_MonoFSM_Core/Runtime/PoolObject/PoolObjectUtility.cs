@@ -1,10 +1,10 @@
-using RCGMaker.Core;
+using MonoFSM.Core;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 
-namespace RCGMaker.Runtime
+namespace MonoFSM.Runtime
 {
     public static class PoolObjectUtility
     {
@@ -16,7 +16,7 @@ namespace RCGMaker.Runtime
             foreach (var savingObj in savingObjs)
             {
                 savingObj.OnBeforePrefabSave();
-                EditorUtility.SetDirty(savingObj as MonoBehaviour);
+                UnityEditor.EditorUtility.SetDirty(savingObj as MonoBehaviour);
             }
             AutoAttributeManager.AutoReferenceAllChildren(prefab);
             // var rootGameObjects = prefab.GetComponentsInChildren<ISceneSavingCallbackReceiver>(true);

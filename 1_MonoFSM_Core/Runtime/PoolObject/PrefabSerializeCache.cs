@@ -1,11 +1,11 @@
 using System;
 using Auto_Attribute.Runtime;
-using RCGMaker.Core;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime
+namespace MonoFSM.Runtime
 {
     public interface IPrefabSerializeCacheOwner
     {
@@ -13,17 +13,17 @@ namespace RCGMaker.Runtime
     }
     //從SceneSaveManager來重新處理prefab?
     [DefaultExecutionOrder(-20000)]
-    public class PrefabSerializeCache : MonoBehaviour, IEditorOnly, IBeforePrefabSaveCallbackReceiver
+    public class PrefabSerializeCache : MonoBehaviour, IBeforePrefabSaveCallbackReceiver
     {
         [Title("singleton類的prefab, poolObject應該不可以用")]
-        public bool RestoreAtAwake = false;
+        public bool _restoreAtAwake = true;
 
         [SerializeField] private MonoReferenceCache _monoReferenceCache;
       
 
         private void Awake()
         {
-            if (RestoreAtAwake)
+            if (_restoreAtAwake)
             {
                 RestoreReferenceCache();
             }
@@ -38,7 +38,8 @@ namespace RCGMaker.Runtime
                 return;
             }
 
-            _monoReferenceCache.SaveReferenceCache(owner.gameObject);
+            _monoReferenceCache.RootObj = owner.gameObject;
+            _monoReferenceCache.SaveReferenceCache();
             //prewarm的PoolObject要用這個
         }
 

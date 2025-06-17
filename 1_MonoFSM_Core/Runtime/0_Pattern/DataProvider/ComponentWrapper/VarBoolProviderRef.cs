@@ -1,4 +1,4 @@
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable;
 
 namespace RCGMakerFSMCore.Runtime._0_Pattern.DataProvider.ComponentWrapper

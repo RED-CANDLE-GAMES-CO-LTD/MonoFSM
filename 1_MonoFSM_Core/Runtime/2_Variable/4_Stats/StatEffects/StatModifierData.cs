@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace RCGMaker.Stat
+namespace MonoFSM.Stat
 {
     public class StatModifierData : DescriptableData
     {

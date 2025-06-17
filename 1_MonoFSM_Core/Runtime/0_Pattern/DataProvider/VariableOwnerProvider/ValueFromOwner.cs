@@ -1,5 +1,5 @@
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using UnityEngine;
 
 namespace MonoFSM.Core.Runtime

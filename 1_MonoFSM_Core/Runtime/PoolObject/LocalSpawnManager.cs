@@ -3,7 +3,7 @@ using MonoFSM.Core.Simulate;
 using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine;
 
-namespace RCGMaker.Runtime
+namespace MonoFSM.Runtime
 {
     public class LocalSpawnManager : MonoBehaviour, ISpawnProcessor
     {
@@ -21,6 +21,15 @@ namespace RCGMaker.Runtime
 
             _worldUpdateSimulator.RegisterMonoObject(obj);
             return newObj;
+        }
+
+        public void Despawn(MonoPoolObj obj)
+        {
+            if (obj == null) return;
+            // Unregister the object from the world update simulator
+            _worldUpdateSimulator.UnregisterMonoObject(obj);
+            // Return the object to the pool
+            PoolManager.Instance.ReturnToPool(obj);
         }
     }
 }

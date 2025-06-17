@@ -6,7 +6,7 @@ using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //[Serializable]
     // public class StringHolder : IValueHolder

@@ -1,15 +1,51 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Runtime.Interact.EffectHit;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGMaker.Core.Detection
+namespace MonoFSM.Core.Detection
 {
+    // [Serializable]
+    public struct DetectData
+    {
+        private AbstractDetector _detector;
+        private EffectDetectable _detectable;
+
+        //清掉
+        public DetectData(AbstractDetector detector, EffectDetectable detectable)
+        {
+            _detector = detector;
+            _detectable = detectable;
+            _isCustomHitPoint = false; //預設不是自定義hitPoint
+            _hitPoint = Vector3.zero; //預設hitPoint為零
+            _hitNormal = Vector3.zero; //預設hitNormal為零
+        }
+
+        public void SetCustomHitPoint(Vector3 point)
+        {
+            _isCustomHitPoint = true;
+            _hitPoint = point;
+        }
+
+        public void SetCustomNormal(Vector3 normal)
+        {
+            _isCustomHitPoint = true; //這個是hitPoint的normal
+            _hitNormal = normal;
+        }
+
+        private bool _isCustomHitPoint;
+        private Vector3 _hitPoint;
+        private Vector3 _hitNormal;
+
+        public Vector3 hitPoint => _isCustomHitPoint ? _hitPoint : _detectable.transform.position;
+        public Vector3 hitNormal => _isCustomHitPoint ? _hitNormal : -_detector.transform.forward;
+    }
+    
     [DisallowMultipleComponent]
     public abstract class AbstractDetector : MonoBehaviour, IDefaultSerializable
     {
@@ -34,7 +70,10 @@ namespace RCGMaker.Core.Detection
                 OnSpatialExit(detectable.gameObject);
 
             toRemove.Clear();
+            OnDisableImplement();
         }
+
+        protected abstract void OnDisableImplement(); 
 
         [AutoParent] private StateMachineOwner owner;
         public StateMachineOwner Owner => owner;
@@ -70,8 +109,10 @@ namespace RCGMaker.Core.Detection
         }
 #endif
 
+        // protected abstract void AssignHitPoint(DetectData data);
         //FIXME: 這個是spatial Detector的特性，不是所有的Detector都有
-        public void OnSpatialEnter(GameObject other) //可能需要帶其他額外參數？像是collision的資訊
+        public void OnSpatialEnter(GameObject other, Vector3? point = null,
+            Vector3? normal = null) //可能需要帶其他額外參數？像是collision的資訊
         {
             if (IsValid == false) //條件不符合
                 return;
@@ -82,6 +123,13 @@ namespace RCGMaker.Core.Detection
                 return;
             }
 
+            var detectData = new DetectData(this, spatialDetectable);
+
+            if (point != null)
+                detectData.SetCustomHitPoint(point.Value);
+            if (normal != null)
+                detectData.SetCustomNormal(normal.Value);
+            
             //FIXME: 物理的想要繞掉，另外做condition?
             // if (spatialDetectable.Owner == Owner) return; //自己身上的不算
             _detectedObjects.Add(spatialDetectable);
@@ -101,15 +149,25 @@ namespace RCGMaker.Core.Detection
             {
                 if (!dealer.IsValid) continue;
 
-                foreach (var receiver in spatialDetectable.EffectReceivers)
+                foreach (var receiver in spatialDetectable.EffectReceivers) //condition會錯？因為一直打？
                 {
                     //FIXME: proxy的判定
                     if (!dealer.CanHitReceiver(receiver)) continue; //不會打到的不算
                     //移到System?
                     //互動雙方的條件描述
+                    //每個receiver都一個？多餘嗎？
                     var hitData = receiver.GenerateEffectHitData(dealer, receiver);
-                    dealer.OnHitEnter(hitData);
-                    receiver.OnEffectHitEnter(hitData);
+
+
+                    hitData.hitNormal = normal;
+                    hitData.hitPoint = point;
+
+
+                    if (point != null) Debug.Log("HitPoint is set to: " + hitData.hitPoint + point, this);
+                    if (normal != null) Debug.Log("HitNormal is set to: " + hitData.hitNormal, this);
+
+                    dealer.OnHitEnter(hitData, detectData);
+                    receiver.OnEffectHitEnter(hitData, detectData);
                 }
             }
         }

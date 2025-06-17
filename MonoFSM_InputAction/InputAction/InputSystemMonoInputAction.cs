@@ -1,4 +1,4 @@
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using UnityEngine.InputSystem;
 
 namespace MonoFSM_InputAction
@@ -13,19 +13,12 @@ namespace MonoFSM_InputAction
 
         public override bool IsLocalPressed => myAction.IsPressed() || myAction.WasPressedThisFrame();
 
-        public override bool IsPressed()
-        {
-            return myAction.IsPressed();
-        }
+        public override bool IsPressed => myAction.IsPressed();
 
-        public override bool WasPressed()
-        {
-            return myAction.WasPressedThisFrame(); //FIXME: 這個是local的
-        }
+        public override bool WasPressed => myAction.WasPressedThisFrame(); //FIXME: 這個是local的
 
-        public override bool WasReleased()
-        {
-            return myAction.WasReleasedThisFrame(); //FIXME: 這個是local的
-        }
+
+        public override bool WasReleased => myAction.WasReleasedThisFrame(); //FIXME: 這個是local的
+        
     }
 }

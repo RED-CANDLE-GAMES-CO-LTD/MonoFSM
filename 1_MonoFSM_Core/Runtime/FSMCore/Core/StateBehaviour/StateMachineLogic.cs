@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Diagnostics;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using Debug = UnityEngine.Debug;
 
@@ -38,7 +38,7 @@ namespace Fusion.Addons.FSM
         }
 
         protected List<IStateMachine> _stateMachinesInternal = new(32);
-        public IReadOnlyList<IStateMachine> StateMachines => _stateMachinesInternal.AsReadOnly();
+        public List<IStateMachine> StateMachines => _stateMachinesInternal;
 
         protected List<IState> _statePool; // Used by CheckDuplicateStates
         [ShowInDebugMode] public bool _stateMachinesCollected { get; protected set; }

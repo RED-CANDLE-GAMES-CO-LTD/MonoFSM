@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using RCGInputAction;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 // using InControl;
 using UnityEngine;
 using UnityEngine.Serialization;

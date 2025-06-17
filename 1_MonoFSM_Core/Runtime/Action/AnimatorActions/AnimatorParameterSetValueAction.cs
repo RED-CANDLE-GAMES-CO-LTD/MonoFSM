@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;

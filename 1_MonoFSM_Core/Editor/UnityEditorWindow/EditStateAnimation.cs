@@ -1,10 +1,10 @@
 using System;
-using RCGMaker.Core;
+using MonoFSM.Core;
 using UnityEditor;
 using UnityEngine;
 
 
-namespace RCGMaker.Editor
+namespace MonoFSM.Editor
 {
     [InitializeOnLoad]
     public class ExtendedHotkeys : ScriptableObject
@@ -71,7 +71,7 @@ namespace RCGMaker.Editor
             {
                 var lastEditStateID = EditorPrefs.GetInt("lastEditState");
 
-                var lastEditStateGO = EditorUtility.InstanceIDToObject(lastEditStateID) as GameObject;
+                var lastEditStateGO = UnityEditor.EditorUtility.InstanceIDToObject(lastEditStateID) as GameObject;
                 if (lastEditStateGO == null)
                 {
                     Debug.Log("No lastEditStateGO");

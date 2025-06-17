@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace RCGMaker.Runtime.Interact.EffectHit.Resolver
+namespace MonoFSM.Runtime.Interact.EffectHit.Resolver
 {
     public class EffectReceivedEventInvoker : MonoBehaviour, IEffectReceivedProcessor
     {

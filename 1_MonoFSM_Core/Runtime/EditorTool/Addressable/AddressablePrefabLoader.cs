@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-namespace RCGMaker.AddressableAssets
+namespace MonoFSM.AddressableAssets
 {
     public class AddressablePrefabLoader : MonoBehaviour
     {

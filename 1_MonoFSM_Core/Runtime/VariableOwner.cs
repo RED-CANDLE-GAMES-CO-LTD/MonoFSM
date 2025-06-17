@@ -1,9 +1,9 @@
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
-using RCGMaker.Core.Attributes;
 using MonoFSM.Variable;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM.RCGStateMachine
+namespace MonoFSM.Runtime.FSM.RCGStateMachine
 {
     public class VariableOwner : MonoBehaviour, IVariableOwner, IUpdateSimulate
     {

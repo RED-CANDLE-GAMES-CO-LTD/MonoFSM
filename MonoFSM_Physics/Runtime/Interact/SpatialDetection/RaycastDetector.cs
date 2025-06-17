@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Physics;
 using MonoFSM.Variable.Attributes;
-using RCGMaker.Core.Attributes;
-using RCGMaker.Core.Detection;
+using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Detection;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
@@ -16,7 +16,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public enum RaycastMode
         {
             Single,
-            All
+            All //會需要all嗎？這樣對象要全部分開？
         }
 
         [SerializeField] private RaycastMode _raycastMode = RaycastMode.Single;
@@ -31,6 +31,16 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public IReadOnlyList<RaycastHit> CachedHits => _cachedHits;
         public RaycastHit CachedHit => _cachedHits.Count > 0 ? _cachedHits[0] : default;
         public Ray CachedRay => _cachedRay;
+
+        protected override void OnDisableImplement()
+        {
+            // Debug.Log("RaycastDetector OnDisableImplement", this);
+            _lastFrameColliders.Clear();
+            _thisFrameColliders.Clear();
+            _cachedHits.Clear();
+            _cachedRay = default;
+        }
+
         protected override void SetLayerOverride()
         {
         }
@@ -41,19 +51,38 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 
         [Auto] private IRaycastProcessor _raycastProcessor;
         private Ray _cachedRay;
-        public void PhysicsUpdate() //network?
+
+        private void PhysicsUpdate() //network?
         {
             _thisFrameColliders.Clear();
             TryCast();
-            foreach (var col in _thisFrameColliders)
-                if (!_lastFrameColliders.Contains(col))
+            //從hit拿collider
+            foreach (var hit in _cachedHits)
+            {
+                if (!_lastFrameColliders.Contains(hit.collider))
+                {
                     // Debug.Log("enter" + col.name, col.gameObject);
-                    OnSpatialEnter(col.gameObject);
+                    Debug.Log("Spatial enter: hitPoint " + hit.collider, hit.collider);
+
+                    //Note: Detectable必須在 rigidbody上面？
+                    OnSpatialEnter(hit.rigidbody.gameObject, hit.point, hit.normal);
+                }
+            }
+            // foreach (var col in _thisFrameColliders)
+            //     if (!_lastFrameColliders.Contains(col))
+            //     {
+            //         // Debug.Log("enter" + col.name, col.gameObject);
+            //         OnSpatialEnter(col.gameObject);
+            //     }
+                    
 
 
             foreach (var col in _lastFrameColliders)
                 if (!_thisFrameColliders.Contains(col))
-                    OnSpatialExit(col.gameObject);
+                {
+                    OnSpatialExit(col.attachedRigidbody.gameObject); //gameObject錯了...哭
+                }
+                    
 
             _lastFrameColliders.Clear();
             _lastFrameColliders.AddRange(_thisFrameColliders);
@@ -109,6 +138,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 
                     // Create a new ray with the adjusted direction
                     ray = new Ray(ray.origin, newDirection);
+                    transform.forward = newDirection;
                 }
             }
             else if (_isEffectByCameraRotation)
@@ -175,7 +205,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         }
 
         private readonly HashSet<Collider> _thisFrameColliders = new();
-        private readonly HashSet<Collider> _lastFrameColliders = new();
+        private readonly HashSet<Collider> _lastFrameColliders = new(); //ondisable也要清掉？
         [Required] [Auto] [CompRef] private IRayProvider _rayProvider;
         
         //update?
@@ -188,6 +218,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         {
             // throw new System.NotImplementedException();
         }
+        
     }
 
     public interface IRayProvider

@@ -1,4 +1,4 @@
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     //時間到就是true
     public class StateTimeUpCondition : AbstractConditionComp

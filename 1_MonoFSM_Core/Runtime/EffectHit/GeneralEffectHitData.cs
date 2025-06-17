@@ -1,16 +1,19 @@
 using System;
-using RCGMaker.Runtime.FSM.RCGStateMachine;
-using RCGMaker.Runtime.Item_BuildSystem;
+using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Item_BuildSystem;
+using Sirenix.OdinInspector;
+using UnityEngine;
 
-namespace RCGMaker.Runtime.Interact.EffectHit
+namespace MonoFSM.Runtime.Interact.EffectHit
 {
     public interface IActor
     {
     }
 
-    [Serializable]
+    [Serializable] //沒用？
     public class GeneralEffectHitData : IEffectHitData
     {
+        //反而是detector對detectable的資料？比較有用？
         public static GeneralEffectHitData Borrow(IEffectDealer dealer, IEffectReceiver receiver)
         {
             var data = new GeneralEffectHitData();
@@ -18,7 +21,12 @@ namespace RCGMaker.Runtime.Interact.EffectHit
             return data;
         }
 
+
+        //dealer和receiver的transform資料可以作為相對位置
+        [ShowInInspector]
         public IEffectDealer Dealer => _dealer;
+
+        [ShowInInspector]
         public IEffectReceiver Receiver => _receiver;
 
         public IActor Source => _dealer.Owner;
@@ -34,7 +42,27 @@ namespace RCGMaker.Runtime.Interact.EffectHit
         {
             _dealer = dealer as GeneralEffectDealer;
             _receiver = receiver as GeneralEffectReceiver;
+            hitPoint = null; //重置hitPoint
+            hitNormal = null; //重置hitNormal
         }
+
+
+        [ShowInInspector]
+        public Vector3? hitPoint
+        {
+            get => _hitPoint;
+            set => _hitPoint = value;
+        }
+
+        [ShowInInspector]
+        public Vector3? hitNormal
+        {
+            get => _hitNormal;
+            set => _hitNormal = value;
+        }
+
+        private Vector3? _hitPoint;
+        private Vector3? _hitNormal;
 
         public T GetComponentFromDealerOwner<T>() where T : class
         {

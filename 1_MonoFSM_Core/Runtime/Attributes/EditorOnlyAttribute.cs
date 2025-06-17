@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 using Sirenix.OdinInspector;
 
-namespace RCGMaker.Core.Attributes
+namespace MonoFSM.Core.Attributes
 {
     [IncludeMyAttributes]
     [Conditional("UNITY_EDITOR")]

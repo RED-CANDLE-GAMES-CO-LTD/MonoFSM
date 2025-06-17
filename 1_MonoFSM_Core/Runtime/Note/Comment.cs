@@ -1,10 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
-using RCGMaker.Core.Attributes;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Editor.DesignTool
+namespace MonoFSM.Editor.DesignTool
 {
     public class Comment : AbstractMapTag, IEditorOnly
     {

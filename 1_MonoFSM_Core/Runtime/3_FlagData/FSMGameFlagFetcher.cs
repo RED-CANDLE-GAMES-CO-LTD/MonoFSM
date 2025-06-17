@@ -3,7 +3,7 @@ using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.FSM
+namespace MonoFSM.Runtime.FSM
 {
     public class FSMGameFlagFetcher : MonoBehaviour
     {

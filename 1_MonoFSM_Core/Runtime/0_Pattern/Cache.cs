@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace RCGMaker.Core
+namespace MonoFSM.Core
 {
     // 應該是讓 Cache 有生命週期，level 層的 cache 和 application 層的 cache, 這樣 level 層的 cache 被刪掉的時候就整個一起刪掉
     public interface ILevelProvider<K, V> where V : Component where K : Component

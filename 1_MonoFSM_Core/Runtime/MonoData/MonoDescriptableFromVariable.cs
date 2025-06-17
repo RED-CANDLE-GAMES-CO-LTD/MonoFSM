@@ -1,7 +1,7 @@
-using RCGMaker.Core.DataProvider;
+using MonoFSM.Core.DataProvider;
 using UnityEngine;
 
-namespace RCGMaker.Runtime.Mono
+namespace MonoFSM.Runtime.Mono
 {
     //目的：想要灌sampleData, or data type
     public class MonoDescriptableFromVariable : MonoBehaviour, IMonoDescriptable

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using RCGMaker.AddressableAssets;
+using MonoFSM.AddressableAssets;
 using UIValueBinder;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace RCGMaker.Core.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     public interface ISpriteProvider
     {
