@@ -65,6 +65,7 @@ public class SceneConnectionData : ScriptableObject
 
        entry.sceneName = connection.gameObject.scene.name;
        entry.connectionPointPos = connection.transform.position;
+       entry.yaw = connection.transform.eulerAngles.y;
        this.SetDirty();
 #endif
     }
@@ -85,4 +86,5 @@ public class ConnectionRegisteredEntry
     public string ConnectionGUID;
     public string sceneName;
     public Vector3 connectionPointPos;
+    public float yaw;
 }
