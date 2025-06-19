@@ -1,3 +1,4 @@
+using System;
 using MonoFSM.Condition;
 using RCGMaker.Core.Attributes;
 using Sirenix.OdinInspector;
@@ -15,6 +16,11 @@ namespace MonoFSM.Condition
         public void EnterSceneStart()
         {
             Register();
+        }
+
+        private void OnDestroy()
+        {
+            listenField.RemoveListener(OnConditionChanged, this);
         }
 
         //要能實作OnConditionChanged?
