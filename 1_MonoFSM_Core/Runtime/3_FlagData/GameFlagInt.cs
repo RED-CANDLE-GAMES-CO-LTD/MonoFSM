@@ -39,17 +39,17 @@ public class GameFlagInt : AbstractScriptableData<FlagFieldInt, int>
             return addValue;
         }
     }
-    public void UpdateValue() //要讓誰update，
-    {
-    
-        tempValue += RCGTime.deltaTime *CurrentRate;
-        if (tempValue > MaxStat.Value)
-            tempValue = MaxStat.Value;
-        if (tempValue < minValue)
-            tempValue = minValue;
-        CurrentValue = Mathf.FloorToInt(tempValue);
-        //TODO: CurrentValue會太早變成0...要float才對最後再轉型，GameFlagInt不好用
-    }
+    // public void UpdateValue() //要讓誰update，
+    // {
+    //
+    //     tempValue += RCGTime.deltaTime *CurrentRate;
+    //     if (tempValue > MaxStat.Value)
+    //         tempValue = MaxStat.Value;
+    //     if (tempValue < minValue)
+    //         tempValue = minValue;
+    //     CurrentValue = Mathf.FloorToInt(tempValue);
+    //     //TODO: CurrentValue會太早變成0...要float才對最後再轉型，GameFlagInt不好用
+    // }
 
     public override void FlagInitStart()
     {

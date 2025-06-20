@@ -4,6 +4,6 @@ using UnityEngine;
 
 public class VarInputPromptUIData : GenericUnityObjectVariable<InputPromptUIData>, ISettable<InputPromptUIData>
 {
-    public override GameFlagBase FinalData { get; }
+    // public override GameFlagBase FinalData { get; }
 
 }

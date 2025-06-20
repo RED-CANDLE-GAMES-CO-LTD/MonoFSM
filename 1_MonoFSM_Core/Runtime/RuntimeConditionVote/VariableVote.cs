@@ -11,8 +11,8 @@ namespace MonoFSM.Runtime.Vote
         // [SerializeField]
         private readonly RuntimeConditionVote _vote = new();
         public RuntimeConditionVote Vote => _vote;
-        public override GameFlagBase FinalData { get; }
-        public override Type FinalDataType { get; }
+        // public override GameFlagBase FinalData { get; }
+        // public override Type FinalDataType { get; }
         public override Type ValueType => typeof(bool);
         public override object objectValue => _vote.Result;
 

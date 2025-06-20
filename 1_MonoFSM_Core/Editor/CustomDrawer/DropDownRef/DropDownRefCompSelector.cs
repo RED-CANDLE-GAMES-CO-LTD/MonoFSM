@@ -10,7 +10,7 @@ namespace MonoFSM.Core
     using Sirenix.Utilities.Editor;
     using UnityEngine;
 
-    public class DropDownRefCompSelector : OdinSelector<MonoBehaviour>
+    public class DropDownRefCompSelector : OdinSelector<Component>
     {
         private Type _filterType;
         private Component _forComp;
@@ -32,7 +32,7 @@ namespace MonoFSM.Core
             tree.Config.DrawSearchToolbar = true;
 
             // tree.Selection.SupportsMultiSelect = this.supportsMultiSelect;
-            var parentType = _attribute._parentType ?? typeof(IVariableOwner);
+            var parentType = _attribute._parentType ?? typeof(IVarBlackboard);
             Component[] comps;
             // parentType ??= 
 
@@ -64,9 +64,9 @@ namespace MonoFSM.Core
             // var types = filterType.FilterSubClassOrImplementationFromDomain();
             foreach (var comp in comps)
             {
-                var ownerName = comp.GetComponentInParent<IVariableOwner>().name;
+                var ownerName = comp.GetComponentInParent<IVarBlackboard>().name;
                 tree.Add(ownerName + "/" +comp.name+ " (" + comp.GetType().Name+")", comp);
-                Debug.Log("Add type " + comp.name + " ownerName is " + ownerName);
+                Debug.Log("Add type " + comp.GetType() + " ownerName is " + ownerName);
                 // tree.Add(ownerName + "/" + comp.name, comp);
                 // Debug.Log("Add type " + type);
             }

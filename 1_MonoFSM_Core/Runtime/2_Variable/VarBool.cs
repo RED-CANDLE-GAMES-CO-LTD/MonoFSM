@@ -63,7 +63,7 @@ namespace MonoFSM.Variable
                 }
 
                 // Value = value;
-                SetValue(value);
+                SetValue(value, this);
                 //FIXME: 這個event應該是錯的
                 //ValueChangedEvent.Invoke();
             }
@@ -90,7 +90,8 @@ namespace MonoFSM.Variable
         }
 
         public bool IsValid => CurrentValue;
-        public override GameFlagBase FinalData => _bindData;
+
+        // public override GameFlagBase FinalData => _bindData;
         public bool IsFullRect { get; }
         public string IconName => "Toggle Icon"; //  "d_Toggle Icon"
         public bool IsDrawingIcon => true;
@@ -98,9 +99,9 @@ namespace MonoFSM.Variable
         public string ValueInfo => CurrentValue.ToString();
         public bool IsDrawingValueInfo => true;
 
-        public void Toggle()
+        public void Toggle(Object byWho = null)
         {
-            SetValue(!CurrentValue);
+            SetValue(!CurrentValue, byWho ?? this);
         }
     }
 }

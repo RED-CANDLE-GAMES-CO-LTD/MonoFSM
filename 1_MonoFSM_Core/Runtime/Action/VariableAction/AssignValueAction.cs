@@ -17,30 +17,38 @@ namespace MonoFSM.Runtime.Backpack.Actions
 //TargetValueWrapper?
 
         [InlineEditor] [AutoChildren] [CompRef]
-        private SourceValueRef _sourceValueRef;
+        private TargetVarRef _targetVarRef;
 
         [InlineEditor] [AutoChildren] [CompRef]
-        private TargetVarRef _targetVarRef;
+        private SourceValueRef _sourceValueRef;
 
         // [AutoChildren] IConfigVar SourceValue; //FIXME; 怎麼用component...要手動assgin了嗎
         // [AutoChildren] IVariableProvider TargetVariable;
         [PreviewInInspector] private IEffectReceiver _lastReceiver;
 
-        public override string Description => $"Assign value from {_sourceValueRef} to {_targetVarRef}";
+        public override string Description => $"Assign {_sourceValueRef} to {_targetVarRef}";
 
         protected override void OnStateEnterImplement()
         {
             // throw new NotImplementedException();
-            var sourceValue = _sourceValueRef.GetValue();
+
+            if (_sourceValueRef == null)
+            {
+                Debug.LogError("AssignValueAction: Source value is null", _sourceValueRef);
+                return;
+            }
+            
             var targetVar = _targetVarRef.VarRaw;
+          
             if (targetVar == null)
             {
                 Debug.LogError("AssignValueAction: No variable found", this);
                 return;
             }
 
-            targetVar.SetValue(sourceValue, this);
-            Debug.Log($"AssignValueAction: Set value {sourceValue} to {targetVar}", this);
+            targetVar.SetValueByRef(_sourceValueRef, this);
+            Debug.Log($"AssignValueAction: Set value {_sourceValueRef} to {targetVar}", this);
+            Debug.Log($"AssignValueAction: {targetVar} Set", targetVar);
         }
 
         public override void ArgEventReceived(IEffectHitData arg)
@@ -66,10 +74,10 @@ namespace MonoFSM.Runtime.Backpack.Actions
                 return;
             }
 
-            Debug.Log("AssignValueAction: Set value to " + variable, variable);
-            var value = _sourceValueRef.GetValue();
-            Debug.Log("AssignValueAction: Set value: " + value);
-            variable.SetValue(value, this);
+            // Debug.Log("AssignValueAction: Set value to " + variable, variable);
+            // var value = GetValue();
+            // Debug.Log("AssignValueAction: Set value: " + value);
+            variable.SetValueByRef(_sourceValueRef, this);
             // TargetVariable.GetVariable().SetValue(SourceValue.GetValue(),this);
             // if (sourceType == SourceType.DescriptableData)
             // {

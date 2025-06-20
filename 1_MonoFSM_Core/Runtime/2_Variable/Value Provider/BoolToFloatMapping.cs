@@ -2,17 +2,16 @@ using MonoFSM.Variable;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using UnityEngine;
+using System;
 
 namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Scripts.Input
 {
     public class BoolToFloatMapping : MonoBehaviour, IFloatProvider
     {
+        public Type ValueType => typeof(float);
         [PreviewInInspector] [Auto] private IBoolProvider _boolProvider;
 
-        public object GetValue()
-        {
-            return _boolProvider.IsTrue ? 1.0f : 0.0f;
-        }
+        public float Value => _boolProvider.IsTrue ? 1.0f : 0.0f;
 
         public T GetValue<T>()
         {

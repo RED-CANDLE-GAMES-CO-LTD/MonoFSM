@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MonoFSM.Core;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime;
@@ -7,6 +8,11 @@ using UnityEngine;
 
 namespace MonoFSMCore.Runtime.LifeCycle
 {
+    public interface IMonoObjectProvider : ICompProvider<MonoPoolObj>
+    {
+        //這個是給MonoPoolObj用的
+        // MonoPoolObj GetMonoObject();
+    }
     //1. 先回狀態
     public interface IResetStateRestore //新規用這個，現在和上面都有call, exitLevelAndDestroy是為了換場景很煩可以拔掉
     {
@@ -69,11 +75,13 @@ namespace MonoFSMCore.Runtime.LifeCycle
         //FIXME: local還沒做這個喔
         public void SceneAwake(WorldUpdateSimulator world) //可以自己sceneＡwake吧？
         {
+            WorldUpdateSimulator = world;
             if (HasParent)
                 return;
             HandleIAwake();
             //這可以嗎？
             HandleIInstantiated(world);
+            
         }
 
         //FIXME: 想把這個拿掉

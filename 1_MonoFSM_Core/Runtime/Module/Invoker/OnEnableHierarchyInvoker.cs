@@ -1,3 +1,4 @@
+using System;
 using MonoFSM.Core.Attributes;
 using UnityEngine;
 using Sirenix.OdinInspector;
@@ -20,6 +21,8 @@ public interface IDataOwner
     public Transform transform { get; }
 }
 
+//開關的表達？ 關起來 = 註解不想用 vs 關起來=暫時還沒有要用，等等會用
+[Obsolete]
 public class OnEnableHierarchyInvoker : MonoBehaviour
 {
     //FIXME: 和AbilityActivateChecker搭配還有動畫時會錯...收到pool沒有關掉的那種感覺

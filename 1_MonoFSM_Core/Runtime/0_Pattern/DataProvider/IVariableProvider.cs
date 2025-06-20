@@ -1,4 +1,5 @@
 using System;
+
 using System.Collections.Generic;
 using System.Reflection;
 using MonoFSM.Core.Attributes;
@@ -8,6 +9,7 @@ using MonoFSM.Runtime.FSM.RCGStateMachine;
 using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Variable;
+using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Item_BuildSystem;
 using UIValueBinder;
 using Sirenix.OdinInspector;
@@ -21,7 +23,7 @@ namespace MonoFSM.Core.DataProvider
     //FIXME: 怎麼Monobeheviour化
     public interface IVarMonoProvider //IVarMonoProvider
     {
-        VarMono Variable { get; }
+        VarBlackboard Variable { get; }
         DescriptableData SampleData { get; }
         MonoDescriptable Value => Variable?.Value;
     }
@@ -30,16 +32,16 @@ namespace MonoFSM.Core.DataProvider
     //FIXME: 簡寫VarMonoProvider?
     //FIXME:好像還是要把常用的Property包掉，否則很難用
     [Serializable]
-    public class VariableMonoDescriptableProvider : VariableProvider<VarMono, MonoDescriptable>,
+    public class VariableMonoDescriptableProvider : VariableProvider<VarBlackboard, MonoDescriptable>,
         IVarMonoProvider
     {
         //目的：是要拿到Variable, value 是 MonoDescriptable
 
-        public VarMono GetVarMonoDescriptable => GetVarRaw() as VarMono;
+        public VarBlackboard GetVarBlackboardDescriptable => GetVarRaw() as VarBlackboard;
 
         [PreviewInInspector]
         public DescriptableData SampleData =>
-            GetVarMonoDescriptable?.SampleData;
+            GetVarBlackboardDescriptable?.SampleData;
     }
 
     //這個好像是正解喔？封裝完只需要宣告一個field, assign一個tag就能拿到了
@@ -131,7 +133,7 @@ namespace MonoFSM.Core.DataProvider
 
         private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
         {
-            var parents = CurrentTarget.GetComponentsInParent<VariableOwner>();
+            var parents = CurrentTarget.GetComponentsInParent<MonoBlackboard>();
             var tags = new List<ValueDropdownItem<VariableTag>>();
             foreach (var parent in parents)
             foreach (var variable in parent.VariableFolder.GetValues)
@@ -164,7 +166,7 @@ namespace MonoFSM.Core.DataProvider
         //FIXME: 這樣沒有辦法提早cache?
         // [AutoParent]
         [ShowInDebugMode]
-        public VariableOwner owner
+        public MonoBlackboard owner
         {
             get
             {
@@ -176,7 +178,7 @@ namespace MonoFSM.Core.DataProvider
             }
         }
 
-        private VariableOwner FetchOwner(MonoBehaviour target)
+        private MonoBlackboard FetchOwner(MonoBehaviour target)
         {
             if (target == null)
             {
@@ -193,14 +195,14 @@ namespace MonoFSM.Core.DataProvider
                 return monoCompInParent;
             }
 
-            _runtimeCachedOwner = target.GetComponentInParent<VariableOwner>();
+            _runtimeCachedOwner = target.GetComponentInParent<MonoBlackboard>();
             if (_runtimeCachedOwner == null)
                 Debug.LogError("VariableOwner InParent is null at:" + target, target);
             return _runtimeCachedOwner;
             // return _runtimeCachedOwner;
         }
 
-        private VariableOwner _runtimeCachedOwner;
+        private MonoBlackboard _runtimeCachedOwner;
 
         public void SetValue(TValueType value, MonoBehaviour byWho)
         {

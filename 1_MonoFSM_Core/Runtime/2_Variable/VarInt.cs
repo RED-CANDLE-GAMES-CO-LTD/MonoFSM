@@ -8,5 +8,5 @@ public interface IIntProvider
 public class VarInt : GenericMonoVariable<GameFlagInt, FlagFieldInt, int>, IIntProvider
 {
     public int IntValue => CurrentValue;
-    public override GameFlagBase FinalData => BindData;
+    // public override GameFlagBase FinalData => BindData;
 }

@@ -13,9 +13,6 @@ namespace MonoFSM.Variable
         {
             set => _defaultValue = value; //沒有serialized耶...
         }
-
-        public override GameFlagBase FinalData 
-            => Value;
     }
     
 }

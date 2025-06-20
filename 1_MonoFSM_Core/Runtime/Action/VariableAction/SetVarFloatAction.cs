@@ -14,7 +14,7 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
 
         protected override void OnStateEnterImplement()
         {
-            var value = _valueProvider.GetFloat();
+            var value = _valueProvider.Value;
             _targetVar.SetValue(value, this);
 
         }

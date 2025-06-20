@@ -22,8 +22,8 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
                 Debug.LogError("Arg is null", this);
                 return;
             }
-                
-            targetVar.SetValue(arg);
+
+            targetVar.SetValue(arg, this);
             //network? singleton...
         }
     }

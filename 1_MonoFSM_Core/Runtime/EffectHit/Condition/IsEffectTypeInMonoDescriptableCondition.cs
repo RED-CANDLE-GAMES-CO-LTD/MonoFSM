@@ -1,4 +1,5 @@
 using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
+using MonoFSM.Runtime.Variable;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -18,8 +19,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
         }
 
 
-        [FormerlySerializedAs("targetMonoDescriptableVariable")] [Required] [DropDownRef]
-        public VarMono _targetMonoDescriptableVar;
+        [FormerlySerializedAs("_targetMonoDescriptableVar")]
+        [FormerlySerializedAs("targetMonoDescriptableVariable")]
+        [Required]
+        [DropDownRef]
+        public VarBlackboard _targetBlackboardDescriptableVar;
 
         [Header("的")] public EffectSide effectSide;
         [Header("有")] public GeneralEffectType effectType;
@@ -28,12 +32,12 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
         {
             get
             {
-                if (_targetMonoDescriptableVar.Value == null)
+                if (_targetBlackboardDescriptableVar.Value == null)
                     return false;
                 if (effectSide == EffectSide.Dealer)
-                    return _targetMonoDescriptableVar.Value.HasDealerType(effectType);
+                    return _targetBlackboardDescriptableVar.Value.HasDealerType(effectType);
                 else
-                    return _targetMonoDescriptableVar.Value.HasReceiverType(effectType);
+                    return _targetBlackboardDescriptableVar.Value.HasReceiverType(effectType);
             }
         }
     }

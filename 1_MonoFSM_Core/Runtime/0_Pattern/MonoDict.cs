@@ -284,7 +284,7 @@ namespace MonoFSM.Core
         public void EnterSceneAwake()
         {
             PrepareDictCheck();
-            // Debug.Log("EnterSceneAwake Dict", this);
+            Debug.Log("MonoDict EnterSceneAwake Dict", this);
             // foreach (var key in _dict.Keys)
             // {
             //     Debug.Log("MonoDict Prepare" + key + " " + _dict[key], _dict[key] as Object);

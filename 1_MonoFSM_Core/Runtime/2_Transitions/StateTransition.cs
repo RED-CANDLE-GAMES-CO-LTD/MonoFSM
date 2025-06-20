@@ -29,6 +29,7 @@ public interface ITransitionCheckInvoker
 [Searchable]
 public class StateTransition : TransitionBehaviour
 {
+    //FIXME: 檢查沒有任何的condition應該是錯的
     public bool IsTransitionCheckNeeded = false;
 }
 

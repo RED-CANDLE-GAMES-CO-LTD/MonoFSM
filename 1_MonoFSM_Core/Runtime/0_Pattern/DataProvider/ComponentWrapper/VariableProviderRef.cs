@@ -23,9 +23,12 @@ namespace MonoFSM.Core.DataProvider
         VariableOwnerProvider,
     }
 
+    //負責提供一個MonoVar，需要一個BlackboardProvider
+    
     //TODO: FIXME: drag drop reference後，自動填入tag/monoTag
+    //隱含有Parent VariableOwner的概念是不是不太好？
     public abstract class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
-        IValueProvider, IVariableProvider, IStringProvider
+        IValueProvider<TValueType>, IVariableProvider, IStringProvider
         where TVarMonoType : AbstractMonoVariable
     {
         // private void OnValidate()
@@ -42,16 +45,15 @@ namespace MonoFSM.Core.DataProvider
 
         public override Type GetVarType => typeof(TVarMonoType);
 
+        [OnValueChanged(nameof(OnVarOwnerChange))]
         [TabGroup("Owner Setting")] public GetFromType _getFromType = GetFromType.ParentVarOwner;
 
         public override string ToString()
         {
-            if (varTag)
-                return varTag.name;
-            return "no var tag";
+            return Description;
         }
 
-        public string GetString()
+        public string GetString() //這啥？
         {
             return Value.ToString();
         }
@@ -77,20 +79,20 @@ namespace MonoFSM.Core.DataProvider
         private MonoBehaviour _currentTarget;
 
         //Dynamic Parent
-        public AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target)
-        {
-            _currentTarget = target;
-            FetchOwner(target);
-            //FIXME:
-            return VarRaw;
-        }
-
-        public TValueType GetValueFrom(MonoBehaviour target)
-        {
-            _currentTarget = target;
-            FetchOwner(target);
-            return Value;
-        }
+        // public AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target)
+        // {
+        //     _currentTarget = target;
+        //     FetchOwner(target);
+        //     //FIXME:
+        //     return VarRaw;
+        // }
+        //
+        // public TValueType GetValueFrom(MonoBehaviour target)
+        // {
+        //     _currentTarget = target;
+        //     FetchOwner(target);
+        //     return Value;
+        // }
 
         private bool TypeCheckFail()
         {
@@ -103,8 +105,8 @@ namespace MonoFSM.Core.DataProvider
         //globalTag
         //a(object).b(variable)
         //VariableOwner的話就可以往parent找，不是的話可以從asset找？ auto assign? 或是根本不需要
-        [TabGroup("Owner Setting")] [HideIf(nameof(IsFromParentOwner))]
-        public MonoDescriptableTag _parentMonoTag; //空的話就是自己
+        [FormerlySerializedAs("_parentMonoTag")] [TabGroup("Owner Setting")] [HideIf(nameof(IsFromParentOwner))]
+        public MonoDescriptableTag _blackboardTag; //空的話就是自己
 
         private bool IsFromParentOwner()
         {
@@ -149,19 +151,29 @@ namespace MonoFSM.Core.DataProvider
         //用varTag, monoTag直接找到 variable
         //從VarMono, 拿到他的variable
 
-        private void OnGlobalMonoTagChange()
-        {
-            _runtimeCachedOwner = null;
-        }
+        // private void OnGlobalMonoTagChange()
+        // {
+        //     _runtimeCachedOwner = null;
+        // }
         
         // IEnumerable<ValueDropdownItem<
+        private void OnVarOwnerChange()
+        {
+            var _ = owner;
+            Debug.Log("OnVarOwnerChange" + owner, owner);
+            if (owner)
+                _blackboardTag = owner.Tag; //需要set dirty嗎？
+        }
 
+        [OnValueChanged(nameof(OnVarOwnerChange))]
         [ShowIf(nameof(_getFromType), GetFromType.VariableOwnerProvider)]
         [CompRef]
         // [Component(AddComponentAt.Same)]
         [Auto]
         [TabGroup("Owner Setting")]
-        public IVariableOwnerProvider variableOwnerProvider;
+        [Required]
+        //FIXME: 這個required會造成誤會嗎？有showif的情況
+        public IBlackboardProvider _blackboardProvider; 
 
         private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags() //editor time?
         {
@@ -171,11 +183,11 @@ namespace MonoFSM.Core.DataProvider
             {
                 case GetFromType.VariableOwnerProvider:
 
-                    if (variableOwnerProvider == null)
+                    if (_blackboardProvider == null)
                         return tagDropdownItems;
                     if (Application.isPlaying)
                     {
-                        var variables = variableOwnerProvider.GetVariableOwner().VariableFolder.GetValues;
+                        var variables = _blackboardProvider.Blackboard.VariableFolder.GetValues;
                         foreach (var variable in variables)
                             if (variable is TVarMonoType)
                                 tagDropdownItems.Add(
@@ -184,7 +196,7 @@ namespace MonoFSM.Core.DataProvider
                     else
                     {
 #if UNITY_EDITOR
-                        var tags = _parentMonoTag.containsVariableTypeTags;
+                        var tags = _blackboardTag.containsVariableTypeTags;
                         foreach (var varTag in tags)
                             tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(varTag.name, varTag));
 #endif
@@ -194,12 +206,12 @@ namespace MonoFSM.Core.DataProvider
 
 
                 case GetFromType.GlobalInstance:
-                    
-                    var instance = CurrentTarget.GetGlobalInstance(_parentMonoTag);
+
+                    var instance = CurrentTarget.GetGlobalInstance(_blackboardTag);
                     if (instance == null)
                     {
                         //從MonoDescriptableTag找到varTag (schema一定會一致嗎？不一定)
-                        var parentMonoVarTags = _parentMonoTag.containsVariableTypeTags;
+                        var parentMonoVarTags = _blackboardTag.containsVariableTypeTags;
                         foreach (var parentVarTag in parentMonoVarTags)
                         {
                             tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(parentVarTag.name, parentVarTag));
@@ -215,7 +227,7 @@ namespace MonoFSM.Core.DataProvider
                     break;
                 case GetFromType.ParentVarOwner:
                 {
-                    var parents = CurrentTarget.GetComponentsInParent<VariableOwner>();
+                    var parents = CurrentTarget.GetComponentsInParent<MonoBlackboard>();
 
                     foreach (var parent in parents)
                     {
@@ -269,7 +281,7 @@ namespace MonoFSM.Core.DataProvider
         //FIXME: 這樣沒有辦法提早cache?
         // [AutoParent]
         [ShowInDebugMode]
-        public VariableOwner owner
+        public MonoBlackboard owner
         {
             get
             {
@@ -281,7 +293,7 @@ namespace MonoFSM.Core.DataProvider
             }
         }
 
-        private VariableOwner FetchOwner(MonoBehaviour target)
+        private MonoBlackboard FetchOwner(MonoBehaviour target)
         {
             if (target == null)
             {
@@ -290,15 +302,32 @@ namespace MonoFSM.Core.DataProvider
                 return null;
             }
 
-            if (_parentMonoTag != null)
+            if (_getFromType == GetFromType.VariableOwnerProvider)
             {
-                var monoCompInParent = target.GetMonoCompInParent(_parentMonoTag);
+                _blackboardProvider = GetComponent<IBlackboardProvider>();
+                if (_blackboardProvider == null)
+                    // Debug.LogError("VariableOwnerProvider is null", this);
+                    return null;
+                if (_blackboardProvider.Blackboard == null)
+                {
+                    if (Application.isPlaying)
+                        Debug.LogError("VariableOwnerProvider.GetVariableOwner is null", this);
+                    return null;
+                }
+
+                return _blackboardProvider.Blackboard;
+            }
+
+            if (_blackboardTag != null)
+            {
+                //FIXME:  不對
+                var monoCompInParent = target.GetMonoCompInParent(_blackboardTag);
                 if (monoCompInParent == null) return null;
-                //FIXME: 
+             
                 return monoCompInParent;
             }
 
-            _runtimeCachedOwner = target.GetComponentInParent<VariableOwner>();
+            _runtimeCachedOwner = target.GetComponentInParent<MonoBlackboard>();
             //FIXME: 有variable folder的才算？
             if (Application.isPlaying)
                 if (_runtimeCachedOwner == null)
@@ -308,7 +337,7 @@ namespace MonoFSM.Core.DataProvider
             // return _runtimeCachedOwner;
         }
 
-        private VariableOwner _runtimeCachedOwner;
+        private MonoBlackboard _runtimeCachedOwner;
 
         public void SetValue(TValueType value, MonoBehaviour byWho)
         {
@@ -348,7 +377,7 @@ namespace MonoFSM.Core.DataProvider
 
                 if (_getFromType == GetFromType.GlobalInstance)
                 {
-                    var descriptable = CurrentTarget.GetGlobalInstance(_parentMonoTag);
+                    var descriptable = CurrentTarget.GetGlobalInstance(_blackboardTag);
                     if (descriptable == null) return null;
                     return descriptable.GetVariable(_varTag);
                 }
@@ -359,10 +388,16 @@ namespace MonoFSM.Core.DataProvider
                         return null;
                     
                     Debug.Log("_getFromType == GetFromType.VariableOwnerProvider",this);
-                    
-                    if (this.variableOwnerProvider == null)
+
+                    if (_blackboardProvider == null)
                         return null;
-                    return this.variableOwnerProvider.GetVariableOwner().GetVariable(_varTag);
+                    if (_blackboardProvider.Blackboard == null)
+                    {
+                        Debug.LogError("_blackboardProvider.Board null", this);
+                        return null;
+                    }
+
+                    return _blackboardProvider.Blackboard.GetVariable(_varTag);
                 }
 
                 if (owner == null)
@@ -422,17 +457,18 @@ namespace MonoFSM.Core.DataProvider
             }
         }
 
+        public Type ValueType => typeof(TValueType);
+
         // public string GetDescription()
         // {
         //     
         // }
-
         public virtual string Description
         {
             get
             {
                 var str = string.Empty;
-                if (_parentMonoTag) str = _parentMonoTag.name + ".";
+                if (_blackboardTag) str = _blackboardTag.name + ".";
                 str += varTag?.name;
                 return str;
             }

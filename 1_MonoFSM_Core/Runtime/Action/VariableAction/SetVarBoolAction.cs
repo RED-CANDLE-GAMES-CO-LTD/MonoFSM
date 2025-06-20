@@ -15,13 +15,13 @@ namespace MonoFSM.Variable
             where T : AbstractMonoVariable
         {
             var items = new List<ValueDropdownItem<T>>();
-            var contexts = self.GetComponentsInParent<VariableOwner>(true);
+            var contexts = self.GetComponentsInParent<MonoBlackboard>(true);
             foreach (var context in contexts)
             {
                 var vars = context.GetComponentsInChildren<T>(true);
                 foreach (var var in vars)
                 {
-                    var owner = var.GetComponentInParent<VariableOwner>();
+                    var owner = var.GetComponentInParent<MonoBlackboard>();
                     items.Add(new ValueDropdownItem<T>(owner.name + "/" + var.name, var));
                 }
             }

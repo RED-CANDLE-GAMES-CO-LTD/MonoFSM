@@ -38,47 +38,44 @@ namespace MonoFSM.Core.DataProvider
 
         //_descriptableProvider?.variableProvider.Variable;
         // VarMono varMono => _variableProvider?.GetVar<VarMono>();
+        
+        
         [PreviewInInspector]
         [PropertyOrder(-1)]
-        public override Object targetObject
-        {
-            get
-            {
-#if UNITY_EDITOR
-                if (Application.isPlaying == false) //FIXME: 如果有也可以用descriptable?
-                {
-                    // if (varMono == null)
-                    // {
-                    //     
-                    //     if (_variableProvider is IVariableMonoDescriptableProvider varMonoDescriptableProvider)
-                    //         return varMonoDescriptableProvider.SampleData;
-                    //     return null;
-                    // }
-                    //
-                    // if (varMono.Value == null)
-                    //     return varMono.SampleData;
-                    // return varMono.Value.Data;
-                    // if (_descriptableProvider?.CurrentInstance?.Descriptable == null)
-                    //     return _descriptableProvider?.SampleData;
-                    // return _descriptableProvider?.CurrentInstance?.Descriptable as Object;
-                    if (_variableProviderRef == null)
-                        return null;
-                }
-#endif
+        public override Object targetObject => null;
 
-                if (_variableProviderRef == null)
-                {
-                    Debug.LogError("Variable Provider is null", this);
-                    return null;
-                }
-
-                //FIXME: ??
-                return _variableProviderRef.VarRaw.objectValue as Object; //這樣就可以了嗎？還是要用Data?
-                // return varMono.Value.Data; //_descriptableProvider?.CurrentInstance?.Descriptable as Object;
-                //一定要sample data?
-            }
-        }
-
+        // #if UNITY_EDITOR
+        //                 if (Application.isPlaying == false) //FIXME: 如果有也可以用descriptable?
+        //                 {
+        //                     // if (varMono == null)
+        //                     // {
+        //                     //     
+        //                     //     if (_variableProvider is IVariableMonoDescriptableProvider varMonoDescriptableProvider)
+        //                     //         return varMonoDescriptableProvider.SampleData;
+        //                     //     return null;
+        //                     // }
+        //                     //
+        //                     // if (varMono.Value == null)
+        //                     //     return varMono.SampleData;
+        //                     // return varMono.Value.Data;
+        //                     // if (_descriptableProvider?.CurrentInstance?.Descriptable == null)
+        //                     //     return _descriptableProvider?.SampleData;
+        //                     // return _descriptableProvider?.CurrentInstance?.Descriptable as Object;
+        //                     if (_variableProviderRef == null)
+        //                         return null;
+        //                 }
+        // #endif
+        //
+        //                 if (_variableProviderRef == null)
+        //                 {
+        //                     Debug.LogError("Variable Provider is null", this);
+        //                     return null;
+        //                 }
+        //
+        //                 //FIXME: ??
+        //                 return _variableProviderRef.VarRaw.objectValue as Object; //這樣就可以了嗎？還是要用Data?
+        // return varMono.Value.Data; //_descriptableProvider?.CurrentInstance?.Descriptable as Object;
+        //一定要sample data?
         public override Type targetType => typeof(DescriptableData); //有currentInstance的話，就可以直接拿到type
 
         // private Type dataType => _monoDescriptableProvider.GetVariable.FinalDataType; //FIXME: 還是錯...

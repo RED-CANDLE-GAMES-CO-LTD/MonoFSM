@@ -102,7 +102,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return true;
         }
 
-        public float FinalValue => _valueSource.GetFloat();
+        public float FinalValue => _valueSource.Value;
 
         //FIXME: runtime receivers
         [PreviewInInspector] private List<IEffectReceiver> _receivers = new();

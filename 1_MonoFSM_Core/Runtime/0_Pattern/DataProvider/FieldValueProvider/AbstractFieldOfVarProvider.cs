@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -21,10 +22,13 @@ namespace MonoFSM.Core.DataProvider
         //FIXME: 要提前有schema可以參考？ EditorPlaceholder?
         
         //這個auto會太慢耶導致看的時候error?
-        [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
-        protected AbstractVariableProviderRef _variableProviderRef; //FIXME: 有可能會無窮迴圈？應該要單向
+        //FIXME: 不一定是variable?
+        // [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
+        // protected AbstractVariableProviderRef _variableProviderRef; //FIXME: 有可能會無窮迴圈？應該要單向
 
-        
+        //IValueProvider? ICompProvider? 
+
+        [CompRef] [Auto] protected IValueProvider _objectProviderRef;
         
         [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
         [PreviewInInspector] public abstract Object targetObject { get; }
@@ -52,14 +56,13 @@ namespace MonoFSM.Core.DataProvider
         // [Button("更新")]
         private void UpdateParentTypes()
         {
-            if (_variableProviderRef == null)
+            if (_objectProviderRef == null)
                 return;
             var currentType = targetObject != null ? targetObject.GetType() : targetType;
             // Debug.Log("UpdateParentTypes currentType"+currentType, this);
             for (var i = 0; i < pathEntries.Count; i++)
             {
                 pathEntries[i]._serializedType.SetType(currentType);
-                // Debug.Log("currentType:" + currentType);
                 // 若 parentType 為可序列化型別或 Unity Object，則不限制支援的型別
                 // if (currentType.IsSerializable ||
                 //     typeof(Object).IsAssignableFrom(currentType))

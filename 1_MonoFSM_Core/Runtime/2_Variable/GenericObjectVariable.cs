@@ -15,8 +15,9 @@ namespace MonoFSM.Variable
     public abstract class AbstractObjectVariable : AbstractMonoVariable
     {
         //FIXME: 這個是多的嗎？
-        [PreviewInInspector] public abstract Object RawValue { get; set; }
+        [PreviewInInspector] public abstract Object RawValue { get; set; } //不一定有Object可以returnㄅ？
         public abstract void ClearValue();
+        // protected void SetValueExecution();
     }
 
     public abstract class GenericUnityObjectVariable<TValueType> : AbstractObjectVariable, ISettable<TValueType>,
@@ -102,18 +103,23 @@ namespace MonoFSM.Variable
                 _lastNonNullValue = _currentValue;
         }
 
-        public void SetValue(TValueType value, MonoBehaviour byWho = null)
+        private void SetValueExecution(TValueType value, MonoBehaviour byWho = null)
         {
             SetValue<TValueType>(value, byWho);
         }
 
-        public void SetValue(object value, MonoBehaviour byWho = null)
+        public void SetValue(object value, MonoBehaviour byWho)
         {
             SetValue<TValueType>((TValueType)value, byWho);
         }
 
+        public void SetValue(TValueType value, MonoBehaviour byWho)
+        {
+            SetValue<TValueType>(value, byWho);
+        }
+
         //怎麼那麼多種...
-        protected override void SetValueInternal<T1>(T1 value, Object byWho = null)
+        protected override void SetValueInternal<T1>(T1 value, Object byWho)
         {
             // Debug.Log("Set value to " + value, this);
             _currentValue = value as TValueType;
@@ -129,12 +135,12 @@ namespace MonoFSM.Variable
 
         public override void ClearValue()
         {
-            SetValue(null);
+            SetValueExecution(null);
             // _currentValue = null;
         }
 
         // public override GameFlagBase FinalData { get; }
-        public override Type FinalDataType => RawValue != null ? RawValue.GetType() : null; //指的是DescriptableData
+        // public override Type FinalDataType => RawValue != null ? RawValue.GetType() : null; //指的是DescriptableData
         public override Type ValueType => typeof(TValueType);
 
         public override object objectValue => _currentValue;
@@ -161,7 +167,7 @@ namespace MonoFSM.Variable
             //這裡才做會不會太晚？
             if (_isConst)
                 return;
-            SetValue(DefaultValue);
+            SetValueExecution(DefaultValue, this);
         }
 
         [FormerlySerializedAs("_isPreventReset")]

@@ -125,16 +125,16 @@ namespace MonoFSM.Core.Deprecated
                 }
             }
 
-            if (owner == null || owner.VariableFolder == null)
-            {
-                Debug.LogError("No owner found",this);
-            }
-            else
-            {
-                //aftertick?
-                //late update 之後才能更新
-                owner.VariableFolder.CommitVariableValues(); 
-            }
+            // if (owner == null || owner.VariableFolder == null)
+            // {
+            //     Debug.LogError("No owner found",this);
+            // }
+            // else
+            // {
+            //     //aftertick?
+            //     //late update 之後才能更新
+            //     owner.VariableFolder.CommitVariableValues(); 
+            // }
         }
         
         [PreviewInInspector]

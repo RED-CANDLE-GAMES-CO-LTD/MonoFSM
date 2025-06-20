@@ -1,5 +1,6 @@
 using System;
 using MonoFSM.Variable;
+using Sirenix.OdinInspector;
 using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.DataProvider
@@ -8,9 +9,10 @@ namespace MonoFSM.Core.DataProvider
     //這個和VarFloatProviderRef好像很像...
     public class FieldOfVarOfVarProvider : AbstractFieldOfVarProvider
     {
-        // protected override AbstractMonoVariable ListenToVariable => _variableProviderRef.VarRaw;
+        [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
+        protected AbstractVariableProviderRef _variableProviderRef;
         public override Object targetObject => _variableProviderRef?.VarRaw; //可能是null...怎麼處理
-        public override Type targetType => _variableProviderRef.GetVarType; //FIXME: 這個不對ㄅ
+        public override Type targetType => _variableProviderRef?.GetVarType; //FIXME: 這個不對ㄅ
 
         
         // [Required] [InlineField] [PropertyOrder(-1)] [SerializeReference]

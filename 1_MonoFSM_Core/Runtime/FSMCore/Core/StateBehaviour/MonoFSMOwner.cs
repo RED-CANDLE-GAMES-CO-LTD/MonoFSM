@@ -9,10 +9,11 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
     /// <summary>
     /// FIXME: 好像可以和 StateMachineLogic 合併成一個 MonoBehaviour
     /// </summary>
-    [RequireComponent(typeof(StateMachineLogic))]
+    //想要HFSM?
     public class MonoFSMOwner : MonoBehaviour, IStateMachineOwner
     {
-        [SerializeField] [CompRef] [AutoChildren]
+        //只撈一層就是了
+        [SerializeField] [CompRef] [AutoChildren(DepthOneOnly = true)]
         private MonoStateBehaviour[] _states; //SerializeField的話就可以略過不跑？
 
         [ShowInDebugMode] private StateMachine<MonoStateBehaviour> _fsm;

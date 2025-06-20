@@ -6,7 +6,6 @@ using JetBrains.Annotations;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
-using MonoFSM.Core.Runtime;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Runtime.FSM.RCGStateMachine;
 using MonoFSM.Runtime.Interact.EffectHit;
@@ -20,17 +19,28 @@ using UnityEngine;
 
 namespace MonoFSM.Runtime
 {
+    //property tag? string又如何？ 就a.b.c囉 -> 不好refactor
+    //PropertyTag? 
+    //
+    //hitdata schema, class定義好了
+
+    //HitDataSchemaProperty
+    //
+    
+    
+    
+    
     public interface IMonoAddToBinderChecker   //network想要看authority來決定要不要加到字典裡...這個性質是什麼
     {
         bool IsAddValid();
     }
-    
+
+    //FIXME: 改名，還有這個職責是不是有點多？ MonoContainer? MonoEntity?
     [Searchable]
     public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData>, IInstantiated,
         IBeforePrefabSaveCallbackReceiver, IGameDataProvider //這樣data也要一直繼承，好ㄇ...
     {
-        public VarFloat this[string statName] => GetVariable(statName) as VarFloat;
-
+        
         public void OnInstantiated(WorldUpdateSimulator world)
         {
             //network要看authoring... network版的？啥？ NetworkMonoDescriptableBinder?
@@ -57,9 +67,12 @@ namespace MonoFSM.Runtime
     //場景物件、角色、
     //應該要可以繼承這個嗎？Inventory
     //不該有variable嗎？
-    public class AbstractMonoDescriptable<TMonoDescriptable> : VariableOwner, IMonoDescriptable, ISceneAwake
+    //FIXME: 這層多餘嗎？
+    public class AbstractMonoDescriptable<TMonoDescriptable> : MonoBlackboard, IMonoDescriptable, ISceneAwake
         where TMonoDescriptable : DescriptableData //,IVariableOwner //VariableOwner?
     {
+        
+        
         //FIXME: 更複雜的描述組合？
         [UsedImplicitly] //從UI直接選
         public virtual string RuntimeDescription =>
@@ -128,63 +141,14 @@ namespace MonoFSM.Runtime
 
 
         //FIXME:  需要Descriptable Tag嗎？從Data拿就好了？
-        [InfoBox("$errorString", InfoMessageType.Error, nameof(IsVariableMissing))]
-        [InlineEditor]
-        [Required]
-        [ShowInInspector]
-        [SerializeField]
-        [SOConfig("DescriptableTag")]
-        protected MonoDescriptableTag DescriptableTag; //這有什麼用？
+   
 
         //FIXME: 還不只需要一種呢....可能需要多種tag
         [SerializeField] private MonoDescriptableTag[] DescriptableTags; //
-
-        public MonoDescriptableTag Tag => DescriptableTag;
-
+        
         public virtual void OnUIEventReceived() //FIXME; 這啥XD
         {
             Debug.Log("UI Event Received", this);
-        }
-
-        private string errorValue;
-        private string errorString => errorValue;
-
-
-        private bool IsVariableMissing()
-        {
-            return !CheckAllVariableExists();
-        }
-
-        private bool CheckAllVariableExists()
-        {
-            if (VariableFolder == null)
-            {
-                errorValue = "Variable Folder is null";
-                return false;
-            }
-
-            if (DescriptableTag == null)
-            {
-                errorValue = "Descriptable Tag is null"; //需要Descriptable Tag嗎？從Data取得？
-                return false;
-            }
-
-            foreach (var varTag in DescriptableTag.containsVariableTypeTags)
-            {
-                if (varTag == null)
-                {
-                    errorValue = "Variable Tag is null";
-                    return false;
-                }
-
-                if (!VariableFolder.GetVariable(varTag))
-                {
-                    errorValue = $"Variable {varTag} not found in {name}";
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         public object GetValue(VariableTag varTag)

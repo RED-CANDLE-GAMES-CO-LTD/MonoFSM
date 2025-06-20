@@ -1,13 +1,14 @@
-using MonoFSM.Runtime.PhysicsAction;
+using System;
+using MonoFSM.Core;
 using UnityEngine;
 
 namespace MonoFSM_Physics.Runtime.PhysicsAction
 {
-    public class ParentRigidbodyProvider : MonoBehaviour, IRigidbodyProvider
+    public class ParentRigidbodyProvider : MonoBehaviour, ICompProvider<Rigidbody>
     {
         [AutoParent] private Rigidbody _parentRigidbody;
 
-        public Rigidbody GetRigidbody()
+        public Rigidbody Get()
         {
             if (_parentRigidbody == null)
             {
@@ -17,5 +18,15 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
 
             return _parentRigidbody;
         }
+
+        public object GetValue()
+        {
+            return Get();
+        }
+
+        public Type ValueType => typeof(Rigidbody);
+
+        public string Description =>
+            _parentRigidbody != null ? "[Parent Rigidbody] " + _parentRigidbody.name : "No Parent Rigidbody assigned";
     }
 }

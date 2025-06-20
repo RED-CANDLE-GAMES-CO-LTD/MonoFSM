@@ -19,7 +19,7 @@ namespace MonoFSM.Core.DataProvider.Condition
         private AbstractMonoVariable targetVariable => _targetVarRef.VarRaw;
         // AbstractMonoVariable sourceVariable => _sourceValueRef?.VarRaw;
 
-        protected override bool IsValid => _sourceValueRef.GetValue() == targetVariable.objectValue;
+        protected override bool IsValid => targetVariable.Equals(_sourceValueRef);
 
         public override string Description =>
             $"{_sourceValueRef} == {_targetVarRef}";

@@ -53,7 +53,7 @@ namespace MonoFSM.Core.Simulate
             {
                 // Debug.Log("Counting down" + currentTime.CurrentValue + " " + Time.deltaTime);
                 _lastTime = currentTime.CurrentValue;
-                currentTime.SetValue(currentTime.CurrentValue - deltaTime); //TimeProvider
+                currentTime.SetValue(currentTime.CurrentValue - deltaTime, this); //TimeProvider
             }
         }
 

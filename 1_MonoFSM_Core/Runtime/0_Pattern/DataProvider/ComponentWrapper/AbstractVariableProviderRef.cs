@@ -8,7 +8,7 @@ namespace MonoFSM.Core.DataProvider
 {
     public abstract class AbstractVariableProviderRef : MonoBehaviour
     {
-        public GameFlagBase FinalData => VarRaw?.FinalData;
+        // public GameFlagBase FinalData => VarRaw?.FinalData;
         public abstract AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
         public abstract Type GetValueType { get; }
         public abstract Type GetVarType { get; }

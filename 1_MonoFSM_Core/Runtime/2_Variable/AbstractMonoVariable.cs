@@ -6,6 +6,7 @@ using MonoFSM.Variable.VariableBinder;
 using RCGExtension;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
+using MonoFSM.VarRef;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
@@ -61,12 +62,11 @@ namespace MonoFSM.Variable
         }
 
         // public abstract void CommitValue();
-        // public abstract void SetValue(object value, MonoBehaviour byWho = null); //一開始就預設要可以Set了
-        public abstract GameFlagBase FinalData { get; } //FIXME: 這是啥？可以拔掉嗎？
-        public abstract Type FinalDataType { get; }
+        // public abstract GameFlagBase FinalData { get; } //FIXME: 這是啥？可以拔掉嗎？
+        // public abstract Type FinalDataType { get; }
         public abstract Type ValueType { get; }
 
-        public abstract object objectValue { get; }
+        public abstract object objectValue { get; } //不好？generic value?
 
         public virtual T GetValue<T>()
         {
@@ -84,13 +84,106 @@ namespace MonoFSM.Variable
             }
         }
 
-        protected abstract void SetValueInternal<T>(T value, Object byWho = null);
+        protected abstract void SetValueInternal<T>(T value, Object byWho);
 
-        public void SetValue<T>(T value, MonoBehaviour byWho = null)
+        public void SetValue<T>(T value, Object byWho)
         {
             SetValueInternal(value, byWho);
             OnValueChangedRaw?.Invoke(); //通知有人改變了
             //FIXME: 如果還有什麼需要處理的？
+        }
+
+        public bool Equals(AbstractSourceValueRef sourceValueRef)
+        {
+            if (sourceValueRef == null)
+            {
+                Debug.LogError("Equals: sourceValueRef is null", this);
+                return false;
+            }
+
+            var type = sourceValueRef.ValueType;
+            if (type == typeof(int)) return Equals(sourceValueRef.GetValue<int>());
+            if (type == typeof(float)) return Equals(sourceValueRef.GetValue<float>());
+            if (type == typeof(bool)) return Equals(sourceValueRef.GetValue<bool>());
+            if (type == typeof(string)) return Equals(sourceValueRef.GetValue<string>());
+            if (type == typeof(Vector3)) return Equals(sourceValueRef.GetValue<Vector3>());
+            if (typeof(Object).IsAssignableFrom(type)) return Equals(sourceValueRef.GetValue<Object>());
+            Debug.LogWarning($"Equals: Unsupported type {type}", this);
+            return Equals(sourceValueRef.GetValue<object>());
+        }
+
+        public bool Equals<T>(T value)
+        {
+            var v = GetValue<T>();
+            return EqualityComparer<T>.Default.Equals(v, value);
+        }
+
+        public void SetValueByRef(AbstractSourceValueRef sourceValueRef, Object byWho)
+        {
+            if (sourceValueRef == null)
+            {
+                Debug.LogError("SetValue: sourceValueRef is null", this);
+                return;
+            }
+
+            var type = sourceValueRef.ValueType;
+
+            if (type == typeof(int))
+            {
+                SetValue(sourceValueRef.GetValue<int>(), byWho);
+                return;
+            }
+
+            if (type == typeof(float))
+            {
+                SetValue(sourceValueRef.GetValue<float>(), byWho);
+                return;
+            }
+
+            if (type == typeof(string))
+            {
+                SetValue(sourceValueRef.GetValue<string>(), byWho);
+                return;
+            }
+
+            if (type == typeof(bool))
+            {
+                SetValue(sourceValueRef.GetValue<bool>(), byWho);
+                return;
+            }
+
+            if (type == typeof(Vector2))
+            {
+                SetValue(sourceValueRef.GetValue<Vector2>(), byWho);
+                return;
+            }
+
+            if (type == typeof(Vector3))
+            {
+                SetValue(sourceValueRef.GetValue<Vector3>(), byWho);
+                return;
+            }
+
+            if (type == typeof(Vector4))
+            {
+                SetValue(sourceValueRef.GetValue<Vector4>(), byWho);
+                return;
+            }
+
+            if (type == typeof(Quaternion))
+            {
+                SetValue(sourceValueRef.GetValue<Quaternion>(), byWho);
+                return;
+            }
+
+            if (typeof(Object).IsAssignableFrom(type))
+            {
+                SetValue(sourceValueRef.GetValue<Object>(), byWho);
+                return;
+            }
+
+            Debug.LogError("SetValue: Unsupported type " + type, this);
+            SetValue(sourceValueRef.GetValue<object>(), byWho);
         }
 
         public object GetProperty(string knownFieldName)
@@ -98,13 +191,13 @@ namespace MonoFSM.Variable
             return GetPropertyCache(knownFieldName)?.Invoke(this);
         }
 
-        public Dictionary<string, Func<AbstractMonoVariable, object>> propertyCache = new();
+        public Dictionary<string, Func<AbstractMonoVariable, object>> _propertyCache = new();
 
         //GameFlagDescriptable有一樣的東西喔
         public Func<AbstractMonoVariable, object> GetPropertyCache(
             string propertyName)
         {
-            if (propertyCache.TryGetValue(propertyName, out var info))
+            if (_propertyCache.TryGetValue(propertyName, out var info))
                 return info;
 
 
@@ -115,7 +208,7 @@ namespace MonoFSM.Variable
 
             if (propertyInfo == null)
             {
-                propertyCache[propertyName] = null;
+                _propertyCache[propertyName] = null;
                 //FIXME: 可能因為unknownData所以有可能會找不到 有點危險？
                 // Debug.LogError($"Property {propertyName} not found in {GetType()}");
                 return null;
@@ -131,13 +224,19 @@ namespace MonoFSM.Variable
 
             Func<AbstractMonoVariable, object>
                 getMyProperty = (source) => getMethod.Invoke(source, null);
-            propertyCache[propertyName] = getMyProperty;
+            _propertyCache[propertyName] = getMyProperty;
             return getMyProperty;
         }
 
 #if UNITY_EDITOR
         [Header("GameState 功能說明")] [TextArea(1, 4)]
         public string description;
+
+        public string Description
+        {
+            get => description;
+            set => description = value;
+        }
 #endif
 
         // [HideInInlineEditors] [Header("Flag Setting")]

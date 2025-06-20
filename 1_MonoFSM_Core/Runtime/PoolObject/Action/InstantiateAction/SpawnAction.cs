@@ -10,7 +10,7 @@ using UnityEngine.Serialization;
 namespace MonoFSM.Core.LifeCycle
 {
     //重寫FXPlayer
-    public class SpawnAction : AbstractStateAction
+    public class SpawnAction : AbstractStateAction, IMonoObjectProvider
     {
         [FormerlySerializedAs("target")] public MonoPoolObj _target;
 
@@ -37,6 +37,7 @@ namespace MonoFSM.Core.LifeCycle
             //用目前這個action的transform的scale,fixme; 可能需要別種？物件本身的scale?還是應該避免
             newObj.transform.localScale = transform.lossyScale;
             _lastSpawnedObj = newObj;
+            _spawnEventHandler?.OnSpawn(newObj, position, rotation);
         }
 
         // private void OnEnable()
@@ -64,6 +65,50 @@ namespace MonoFSM.Core.LifeCycle
 
             Spawn(_target, pos, rotation);
             // var newObj = PoolManager.Instance.BorrowOrInstantiate(target, t.position, t.rotation);
+        }
+
+        public MonoPoolObj GetMonoObject()
+        {
+            if (_lastSpawnedObj != null)
+            {
+                return _lastSpawnedObj;
+            }
+            else
+            {
+                Debug.LogError("No object spawned yet, returning null", this);
+                return null; //或許可以拋出異常？
+            }
+        }
+
+        public object GetValue()
+        {
+            if (_lastSpawnedObj != null)
+            {
+                return _lastSpawnedObj;
+            }
+            else
+            {
+                Debug.LogError("No object spawned yet, returning null", this);
+                return null; //或許可以拋出異常？
+            }
+        }
+
+        public Type ValueType => typeof(MonoPoolObj);
+
+
+        public MonoPoolObj Get()
+        {
+            if (!Application.isPlaying) return _target;
+            if (_lastSpawnedObj != null)
+            {
+                return _lastSpawnedObj;
+            }
+            else
+            {
+                if (Application.isPlaying)
+                    Debug.LogError("No object spawned yet, returning null", this);
+                return null; //或許可以拋出異常？
+            }
         }
     }
 

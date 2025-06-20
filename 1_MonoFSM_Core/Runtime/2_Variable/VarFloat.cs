@@ -16,7 +16,7 @@ namespace MonoFSM.Variable
         IHierarchyValueInfo
     {
         //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 
-        public override GameFlagBase FinalData => BindData;
+        // public override GameFlagBase FinalData => BindData;
 
         // public VariableTag Key => _varTag;
         public int IntValue => Mathf.CeilToInt(CurrentValue);

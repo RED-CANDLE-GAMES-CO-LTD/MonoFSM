@@ -1,3 +1,5 @@
+using MonoFSM_Physics.Runtime;
+using MonoFSM.Core;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
@@ -6,15 +8,13 @@ namespace MonoFSM.Runtime.PhysicsAction
 {
     //GetComponentInParent?
 
-    public interface IRigidbodyProvider
-    {
-        Rigidbody GetRigidbody();
-    }
+    //FIXME: 不該用這個？應該用findVariableFromOwner?
+
 
     //從EffectHitData嗎？ 對象是Rigidbody, 方向
     public class AddTorqueAction : AbstractStateAction
     {
-        [CompRef] [AutoParent] private IRigidbodyProvider _rigidbodyProvider;
+        [CompRef] [AutoParent] private ICompProvider<Rigidbody> _rigidbodyProvider;
         [CompRef] [AutoParent] private IHitDataProvider _hitDataProvider;
 
         // [SerializeField] private Vector3 _torque;
@@ -55,7 +55,7 @@ namespace MonoFSM.Runtime.PhysicsAction
                 return;
             }
 
-            var target = _rigidbodyProvider.GetRigidbody();
+            var target = _rigidbodyProvider.Get();
             // var target = hitData.Receiver.transform.GetComponent<Rigidbody>();
             if (target == null)
             {

@@ -1,4 +1,5 @@
 using System;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using Sirenix.OdinInspector;
@@ -15,14 +16,23 @@ namespace MonoFSM.Core.DataProvider
     //MonoObject
     //MonoVariable來源
     //SOData來源 
-    public interface IFloatProvider : IValueProvider //用介面好處，但是會哭哭
+    public interface IFloatProvider : IValueProvider<float> //用介面好處，但是會哭哭
     {
-        public float GetFloat();
+    }
 
-        public float Value => GetFloat();
+    public interface IValueProvider<out T> : IValueProvider
+    {
+        [ShowInDebugMode] public T Value { get; }
 
-        // string Description { get; }
-        //string description name? provider description?
+        T1 IValueProvider.Get<T1>()
+        {
+            var value = Value;
+            if (value is T1 t1Value) return t1Value;
+            throw new InvalidCastException($"Cannot cast {typeof(T)} to {typeof(T1)}");
+        }
+
+
+        Type IValueProvider.ValueType => typeof(T);
     }
 
     // [InlineProperty]
@@ -64,17 +74,11 @@ namespace MonoFSM.Core.DataProvider
         [FormerlySerializedAs("_monoVariable")] [FormerlySerializedAs("_variable")] [HideLabel] [DropDownRef]
         public VarFloat _monoVar;
 
-        public float GetFloat()
-        {
-            return _monoVar?.FinalValue ?? 0;
-        }
+        public float Value => _monoVar?.FinalValue ?? 0;
+        
 
         public string Description => _monoVar?._varTag?.name;
-
-        public object GetValue()
-        {
-            return _monoVar?.FinalValue;
-        }
+        
 
         public T GetValue<T>()
         {
@@ -82,6 +86,8 @@ namespace MonoFSM.Core.DataProvider
 
             throw new InvalidCastException($"Cannot cast {typeof(float)} to {typeof(T)}");
         }
+
+        public Type ValueType => typeof(float);
 
         public string GetDescription()
         {

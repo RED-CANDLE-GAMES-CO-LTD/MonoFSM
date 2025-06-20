@@ -36,8 +36,15 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     public void CommitValue() 
         => Field.CommitValue();
 
-    public void SetValue(object value, MonoBehaviour byWho = null) 
-        => SetValue((TType)value, byWho);
+    public void SetValue(object value, MonoBehaviour byWho)
+    {
+        SetValueExecution((TType)value, byWho);
+    }
+
+    public void SetValue(TType value, MonoBehaviour byWho)
+    {
+        SetValueExecution(value, byWho);
+    }
 
     [CompRef]
     [Auto] private IVarValueSettingProcessor<TType> _beforeSetProcessor;
@@ -121,12 +128,12 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 #endif
 
     // [MCPExtractable]
-    [FormerlySerializedAs("localField")] [TabGroup("Data")] [InlineField] [HideIf(nameof(_bindData))]
+    [FormerlySerializedAs("localField")] [TabGroup("Value")] [InlineField] [HideIf(nameof(_bindData))]
     public TField _localField; // = new();
 
     //這個值會被蓋掉???
 
-    [TabGroup("Data")] public TField Field => BindData != null ? BindData.field : _localField;
+    [TabGroup("Value")] public TField Field => BindData != null ? BindData.field : _localField;
     //給非Auto的人看的，要綁，Auto自己就會生，就結束了
 
     public void EnterSceneStart()
@@ -137,7 +144,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
     // [EnableIn(PrefabKind.InstanceInScene | PrefabKind.NonPrefabInstance)] //scriptable binding, 只想要在景裡編輯
-    [TabGroup("Data")]
+    [TabGroup("GameState")]
     [Header("存檔")]
     [GameState]
     [InlineEditor]
@@ -188,26 +195,26 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [PreviewInInspector] [Component] [AutoChildren]
     protected AbstractVariableModifier<TType>[] _modifiers;
 
-    [TabGroup("Data")]
-    [PreviewInInspector]
+    // [TabGroup("Data")]
+    // [PreviewInInspector]
     public virtual TType FinalValue => CurrentValue;
 
-    [TabGroup("Data")]
-    [PreviewInInspector]
+    [TabGroup("Value")]
+    [ShowInDebugMode]
     public virtual TType LastValue => Field.LastValue; //FIXME: 這裡沒有過到modifier
 
     [MCPExtractable]
     public TType Value
     {
         get => CurrentValue;
-        set //給reflection用的
-        // this.Log("[Variable] Set", value);
-        {
-            if (!Application.isPlaying)
-                EditorValue = value;
-            else
-                SetValue(value);
-        }
+        // set //給reflection用的
+        // // this.Log("[Variable] Set", value);
+        // {
+        //     if (!Application.isPlaying)
+        //         EditorValue = value;
+        //     else
+        //         SetValueExecution(value);
+        // }
     }
 
     public TType EditorValue
@@ -302,12 +309,24 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     protected override void SetValueInternal<T>(T value, Object byWho = null)
     {
         if (value is TType type)
-            SetValue(type, byWho as MonoBehaviour);
+            SetValueExecution(type, byWho as MonoBehaviour);
         else
             Debug.LogError("SetValueInternal Type Error", this);
     }
 
-    public void SetValue(TType value, MonoBehaviour byWho = null)
+#if UNITY_EDITOR
+    [ShowInDebugMode] private Queue<SetValueExecutionData> _byWhoQueue = new();
+    [Serializable]
+    public struct SetValueExecutionData
+    {
+        public TType _value;
+        public Object _byWho;
+        public float _time;
+    }
+#endif
+
+//FIXME: protected?
+    private void SetValueExecution(TType value, MonoBehaviour byWho)
     {
         if (_beforeSetProcessor != null)
             _beforeSetProcessor.BeforeSetValue(value); //練線處理？
@@ -327,7 +346,18 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
         Field.SetCurrentValue(tempValue, byWho);
 
-        if (FinalData == null) return;
+#if UNITY_EDITOR
+        var byWhoData = new SetValueExecutionData
+        {
+            _value = tempValue,
+            _byWho = byWho,
+            _time = Time.time
+        };
+        _byWhoQueue.Enqueue(byWhoData);
+        if (_byWhoQueue.Count > 10) _byWhoQueue.Dequeue(); //保持最新的10個
+#endif
+
+        // if (FinalData == null) return;
 
         TrackValue(tempValue, byWho);
 // #if MIXPANEL
@@ -351,7 +381,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     {
         var trackValue = UserDataTracker.BorrowTrackableValue;
         if (trackValue == null) return;
-        trackValue.SetProperty("Data", FinalData ? FinalData.name : "null");
+        // trackValue.SetProperty("Data", FinalData ? FinalData.name : "null");
         trackValue.SetProperty("byWho", byWho ? byWho.name : "null");
         trackValue.SetProperty("value", value);
         //FIXME: 還是這裡應該用trackValue.Track(...?)既然都包了
@@ -442,7 +472,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     //         yield return field;
     // }
 
-    public override Type FinalDataType => typeof(TScriptableData);
+    // public override Type FinalDataType => typeof(TScriptableData);
     public override Type ValueType => typeof(TType);
     public override object objectValue => CurrentValue;
 

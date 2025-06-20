@@ -1,3 +1,4 @@
+using System;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using MonoFSM.Core;
@@ -27,22 +28,7 @@ namespace RCGInputAction
             return IsValid ? 1 : 0;
         }
 
-        public object GetValue()
-        {
-            return GetFloat();
-        }
-
-        public T GetValue<T>()
-        {
-            if (typeof(T) == typeof(float)) return (T)(object)GetFloat();
-
-            return default;
-            // throw new InvalidCastException($"Cannot cast {typeof(float)} to {typeof(T)}");
-        }
-
-        public string GetDescription()
-        {
-            return Description;
-        }
+        public float Value => GetFloat();
+        public Type ValueType => typeof(float);
     }
 }

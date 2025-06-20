@@ -11,16 +11,6 @@ namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
     /// </summary>
     public class MonoDescriptableBinder : MonoDict<MonoDescriptableTag, MonoDescriptable>
     {
-        // protected override void Awake()
-        // {
-        //     base.Awake();
-        //     Debug.Log("MonoDescriptableBinder Awake" + GetKeys.Count + ",collection:" + collections.Length, this);
-        //     foreach (var key in GetKeys)
-        //     {
-        //         Debug.Log("MonoDescriptableBinder " + key, this[key]);
-        //     }
-        // }
-        
         //network想要看authority來決定要不要加到字典裡...這個性質是什麼
         
         protected override bool IsAddValid(MonoDescriptable item)

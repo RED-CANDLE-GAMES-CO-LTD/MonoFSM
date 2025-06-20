@@ -107,7 +107,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
                 }
                 else // Stamina is full (or somehow over max, clamp it)
                 {
-                    _currentValue.SetValue(maxStamina); // Ensure it's clamped to max.
+                    _currentValue.SetValue(maxStamina, this); // Ensure it's clamped to max.
                     pauseTimeCounter = 0f; // Reset timer as we are full and paused.
                 }
 
@@ -119,7 +119,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
                 {
                     currentStamina += IncreaseSpeed * deltaTime;
                     var clamped = Mathf.Min(currentStamina, maxStamina); // Apply and clamp
-                    _currentValue.SetValue(clamped); // Set the clamped value to the stamina variable.
+                    _currentValue.SetValue(clamped, this); // Set the clamped value to the stamina variable.
 
                     // If stamina becomes full as a result of recovery, transition to Pause.
                     if (_currentValue.CurrentValue >= maxStamina)
@@ -130,7 +130,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
                 }
                 else // Should ideally not be in Increase state if already full, but as a safeguard:
                 {
-                    _currentValue.SetValue(maxStamina); // Ensure it's clamped.
+                    _currentValue.SetValue(maxStamina, this); // Ensure it's clamped.
                     countType = CountType.Pause;
                     pauseTimeCounter = 0f;
                 }

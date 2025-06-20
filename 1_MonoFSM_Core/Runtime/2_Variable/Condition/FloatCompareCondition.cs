@@ -63,7 +63,7 @@ namespace MonoFSM.Variable.Condition
         [PreviewInInspector] 
         [BoxGroup("Advanced Comparison")]
         private float Value1 =>  _floatValueSourceArray is { Length: > 0 }
-            ? _floatValueSourceArray[0].GetFloat()
+            ? _floatValueSourceArray[0].Value
             : 0;
 
         [ShowIf(nameof(comparisonMode), ComparisonMode.Advanced)]
@@ -75,7 +75,7 @@ namespace MonoFSM.Variable.Condition
         [PreviewInInspector]
         [BoxGroup("Advanced Comparison")]
         private float Value2 => _floatValueSourceArray is { Length: > 1 }
-            ? _floatValueSourceArray[1].GetFloat()
+            ? _floatValueSourceArray[1].Value
             : 0;
 
         private void OnComparisonModeChanged()

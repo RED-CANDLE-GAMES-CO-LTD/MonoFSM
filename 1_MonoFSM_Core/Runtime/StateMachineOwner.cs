@@ -18,7 +18,8 @@ public class CustomSerializableAttribute : PropertyAttribute
 {
 }
 
-public interface IVariableOwner
+//FIXME: 需要這個嗎？
+public interface IVarBlackboard
 {
     public string name { get; }
     VariableFolder VariableFolder { get; }
@@ -37,7 +38,7 @@ public static class StateMachineExtension
             return default;
         }
 
-        var owner = monoBehaviour.GetComponentInParent<IVariableOwner>(); //被monoDescriptable擋掉了...
+        var owner = monoBehaviour.GetComponentInParent<IVarBlackboard>(); //被monoDescriptable擋掉了...
         if (owner == null)
         {
             Debug.LogError("IVariableOwner not found", monoBehaviour);
@@ -151,7 +152,7 @@ public interface IBinder
 {
 }
 
-public class StateMachineOwner : VariableOwner, IAnimatorProvider, IDefaultSerializable,
+public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSerializable,
     IBinder, ISceneStart
 {
     [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;

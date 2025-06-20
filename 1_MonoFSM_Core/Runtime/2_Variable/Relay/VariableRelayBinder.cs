@@ -6,7 +6,7 @@ using MonoFSM.Core.Attributes;
 
 namespace MonoFSM.Variable
 {
-    public class VariableRelayBinder : MonoBehaviour, IVariableOwner
+    public class VariableRelayBinder : MonoBehaviour, IVarBlackboard
     {
         [Component] [PreviewInInspector] [AutoChildren]
         private VarBoolRelay[] _variableRelays;

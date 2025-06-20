@@ -2,6 +2,7 @@ using MonoFSM.Core;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
+using System;
 
 namespace MonoFSM.Runtime.FSM.RCGStateMachine.Action.PhysicsAction
 {
@@ -9,13 +10,10 @@ namespace MonoFSM.Runtime.FSM.RCGStateMachine.Action.PhysicsAction
     //運算要放在inspector上還是寫code? 支援寫數學式？
     public class CollisionValueProvider : MonoBehaviour, IValueProvider, IFloatProvider
     {
+        public Type ValueType => typeof(float);
         [CompRef] [AutoParent] private ICollisionDataProvider _collisionDataProvider;
 
-        public object GetValue()
-        {
-            //inject運算 AbstractCalculation[] _calculations;
-            return _collisionDataProvider.GetCollision().impulse.magnitude;
-        }
+        public float Value => _collisionDataProvider.GetCollision().impulse.magnitude;
 
         public T GetValue<T>()
         {
