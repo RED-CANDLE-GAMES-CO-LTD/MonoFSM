@@ -105,6 +105,27 @@ public class PoolManager : SingletonBehaviour<PoolManager>
     }
 
 
+    public static void OnBeforeDestroyScene(Scene s)
+    {
+        
+        foreach (var g in s.GetRootGameObjects())
+        {
+            foreach (var rcgOnDestroy in g.GetComponentsInChildren<ISceneDestroy>(true))
+            {
+                try
+                {
+                    rcgOnDestroy.OnSceneDestroy();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+
+            }
+        }
+    }
+
+
     public static void LevelResetChildrenReload(GameObject gObj)
     {
         var levelResets = new List<IResetStateRestore>();

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MonoFSM.Condition
 {
-    public abstract class NotifyConditionComp : AbstractConditionComp, IResetStart, ITransitionCheckInvoker,ISceneStart
+    public abstract class NotifyConditionComp : AbstractConditionComp, IResetStart, ITransitionCheckInvoker,ISceneStart,ISceneDestroy
     {
         public virtual void ResetStart() //應該在這裡註冊嗎？還是sceneStart?
         {
@@ -20,9 +20,13 @@ namespace MonoFSM.Condition
 
         private void OnDestroy()
         {
-            listenField.RemoveListener(OnConditionChanged, this);
+            UnRegister();
         }
 
+        public void OnSceneDestroy()
+        {
+            UnRegister();
+        }
         //要能實作OnConditionChanged?
         [PreviewInInspector]
         [AutoParent] protected IConditionChangeListener _parentConditionChangeListener;
@@ -38,6 +42,14 @@ namespace MonoFSM.Condition
             listenField.AddListener(OnConditionChanged, this);
         }
 
+        private void UnRegister()
+        {
+            if (_isRegistered == false)
+                return;
+            _isRegistered = false;
+            listenField.RemoveListener(OnConditionChanged, this);
+        }
+
 
         protected abstract IVariableField listenField { get; }
 
@@ -49,10 +61,11 @@ namespace MonoFSM.Condition
                 return;
             }
 
-            // Debug.Log("OnConditionChanged: " + listenField, this);
+             Debug.Log("OnConditionChanged: " + listenField, this);
             _parentConditionChangeListener.OnConditionChanged();
         }
 
-    
+
+
     }
 }
