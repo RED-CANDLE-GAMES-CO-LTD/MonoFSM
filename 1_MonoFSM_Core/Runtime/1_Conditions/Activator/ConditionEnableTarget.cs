@@ -1,16 +1,19 @@
+using MonoFSM.Core.Simulate;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-namespace _3_Script._0_RedCandleGamesUtilities.UICanvas.ActivateChecker
+namespace MonoFSM.Core.Condition
 {
     public class ConditionEnableTarget : AbstractConditionActivateTarget
     {
-        [SerializeField] private Behaviour target;
+        [FormerlySerializedAs("target")] [SerializeField]
+        private Behaviour _target;
 
         // public Component target;
         public override void ActivateCheck()
         {
-            target.enabled = result;
-            Debug.Log("ConditionEnableTarget: " + target + "  enabled:" + result, target);
+            _target.enabled = result;
+            // Debug.Log("ConditionEnableTarget: " + _target + "  enabled:" + result, _target);
         }
     }
 }

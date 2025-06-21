@@ -1,6 +1,4 @@
-using MonoFSM.Core;
-using MonoFSM.Runtime.FSM.RCGStateMachine;
-using UnityEngine;
+using MonoFSM.Runtime.Variable;
 
 /// <summary>
 /// 提供VariableOwner(可能會從一些奇怪的地方拿到)

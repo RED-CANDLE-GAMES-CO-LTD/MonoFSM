@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using MonoFSM.Core.Attributes;
 using UnityEngine;
 
-namespace MonoFSM.Runtime.FSM.RCGStateMachine
+namespace MonoFSM.Runtime.Variable
 {
     public interface IModuleOwner
     {

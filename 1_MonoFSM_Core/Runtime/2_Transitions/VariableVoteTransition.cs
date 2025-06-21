@@ -3,7 +3,7 @@ using MonoFSM.Runtime.Vote;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace MonoFSM.Runtime.FSM.RCGStateMachine._2_Transitions
+namespace MonoFSM.Runtime.Variable._2_Transitions
 {
     //FIXME: 用condition
     [Obsolete]

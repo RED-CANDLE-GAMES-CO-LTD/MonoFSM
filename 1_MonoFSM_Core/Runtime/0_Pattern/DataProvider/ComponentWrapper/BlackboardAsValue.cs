@@ -1,6 +1,6 @@
 using System;
 using MonoFSM.Core.DataProvider;
-using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Variable;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
 

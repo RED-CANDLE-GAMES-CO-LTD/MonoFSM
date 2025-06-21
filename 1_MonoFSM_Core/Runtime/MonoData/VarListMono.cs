@@ -16,22 +16,70 @@ namespace MonoFSM.Core.Variable
 
     public class VarList<T> : AbstractVarList, ISerializationCallbackReceiver
     {
+        
         public enum CollectionStorageType
         {
             List,
             Queue,
             HashSet
         }
-
+        
         [SerializeField] [ShowInInspector] [Tooltip("Determines the underlying collection type used.")]
         private CollectionStorageType _storageType = CollectionStorageType.List;
 
-        //FIXME: 好像也不需要這個？runtime用而已？
+        //FIXME: 好像也不需要這個？runtime用而已？ 不一定
+        [HideInInspector]
         [SerializeField] // This will be used by Unity for serialization
-        private List<T> _backingListForSerialization = new();
+        protected List<T> _backingListForSerialization = new();
 
+        [ShowInInspector]
         private object _activeCollection; // Runtime instance: List<T>, Queue<T>, or HashSet<T>
 
+        public int _currentIndex = 0;
+
+        public override void SetIndex(int index)
+        {
+            if (index < 0 || index >= Count)
+            {
+                Debug.LogError($"Index {index} is out of bounds for the collection of size {Count}.");
+                return;
+            }
+
+            _currentIndex = index;
+        }
+
+        public T CurrentObj
+        {
+            get
+            {
+                if (_currentIndex < 0 || _currentIndex >= Count)
+                {
+                    Debug.LogError("Current index is out of bounds.");
+                    return default;
+                }
+
+//FIXME: 只有list可以有這個？
+                return GetList()[_currentIndex];
+            }
+        }
+
+        public List<T> GetList()
+        {
+            EnsureActiveCollectionInitialized();
+            if (_activeCollection is List<T> list) return list;
+            // if (_activeCollection is Queue<T> queue) return queue.ToList();
+            // if (_activeCollection is HashSet<T> set) return set.ToList();
+            throw new InvalidOperationException("Active collection is not initialized or of an unknown type.");
+        }
+
+        public Queue<T> GetQueue()
+        {
+            EnsureActiveCollectionInitialized();
+            if (_activeCollection is Queue<T> queue) return queue;
+            throw new InvalidOperationException("Active collection is not initialized or of an unknown type.");
+        }
+        
+        
         private void EnsureActiveCollectionInitialized()
         {
             if (_activeCollection != null &&
@@ -89,6 +137,8 @@ namespace MonoFSM.Core.Variable
 
         public override Type ValueType => _activeCollection?.GetType() ?? DetermineRuntimeTypeFromStorage(_storageType);
         public override object objectValue => _activeCollection;
+
+        public override Object CurrentRawObject => CurrentObj as Object;
 
         protected override void SetValueInternal<T1>(T1 value, Object byWho = null)
         {
@@ -232,7 +282,8 @@ namespace MonoFSM.Core.Variable
     {
         // public override Type ValueType => typeof(List<T>);
         // public override object objectValue => _list;
-
+        public abstract Object CurrentRawObject { get; }
+        public abstract void SetIndex(int index);
         protected override void SetValueInternal<T1>(T1 value, Object byWho = null)
         {
         }

@@ -44,6 +44,11 @@ namespace MonoFSM.Physics
 
     public interface ISphereCastProcessor
     {
+        bool SphereCast(Vector3 origin, float radius, Vector3 direction, out RaycastHit hitInfo,
+            [DefaultValue("Mathf.Infinity")] float maxDistance,
+            [DefaultValue("DefaultRaycastLayers")] int layerMask,
+            [DefaultValue("QueryTriggerInteraction.UseGlobal")]
+            QueryTriggerInteraction queryTriggerInteraction);
         public int SphereCastNonAlloc(
             Vector3 origin,
             float radius,

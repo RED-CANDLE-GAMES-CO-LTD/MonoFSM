@@ -1,9 +1,10 @@
 using MonoFSM.Core.Attributes;
-using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Variable;
 using UnityEngine;
 
 namespace MonoFSM.Core.Runtime
 {
+    //Self?
     public class ParentBlackboardProvider : MonoBehaviour, IBlackboardProvider
     {
         [AutoParent] private MonoBlackboard _monoBlackboard;

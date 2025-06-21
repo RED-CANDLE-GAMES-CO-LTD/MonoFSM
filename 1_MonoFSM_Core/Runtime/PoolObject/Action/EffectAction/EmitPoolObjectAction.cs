@@ -1,6 +1,6 @@
 using MonoFSM.Core.Runtime.Action;
 
-namespace MonoFSM.Runtime.FSM.RCGStateMachine.Action.EffectAction
+namespace MonoFSM.Runtime.Variable.Action.EffectAction
 {
     //FIXME: 重做FXPlayer
     //FIXME: 和InstantiateAction 重複了

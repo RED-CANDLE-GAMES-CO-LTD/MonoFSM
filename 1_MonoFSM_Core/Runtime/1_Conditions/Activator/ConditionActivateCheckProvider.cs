@@ -1,5 +1,5 @@
-using System;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Condition;
 using UnityEngine;
 
 namespace _3_Script._0_RedCandleGamesUtilities.UICanvas.ActivateChecker
@@ -13,15 +13,6 @@ namespace _3_Script._0_RedCandleGamesUtilities.UICanvas.ActivateChecker
 
         //FIXME: 這個應該可以抽象掉？
         // [PreviewInInspector] [Auto(false)] private UIControlGroup uiControlGroup;
-
-        private void Awake()
-        {
-            // if (uiControlGroup == null)
-            //     return;
-            // if (uiControlGroup.OnPanelShow == null)
-            //     uiControlGroup.OnPanelShow = () => { };
-            // uiControlGroup.OnPanelShow += Check;
-        }
 
         private void Update() //希望可以不要update?
         {

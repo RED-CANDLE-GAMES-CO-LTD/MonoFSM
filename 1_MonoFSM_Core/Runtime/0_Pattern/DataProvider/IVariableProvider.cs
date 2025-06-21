@@ -5,7 +5,6 @@ using System.Reflection;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime;
 using MonoFSM.Runtime.Attributes;
-using MonoFSM.Runtime.FSM.RCGStateMachine;
 using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Variable;
@@ -301,6 +300,7 @@ namespace MonoFSM.Core.DataProvider
     }
 
 
+    //FIXME: 這有啥用？ TargetVarRef
     public interface IVariableProvider
     {
         // public GameFlagBase FinalData => VarRaw?.FinalData;

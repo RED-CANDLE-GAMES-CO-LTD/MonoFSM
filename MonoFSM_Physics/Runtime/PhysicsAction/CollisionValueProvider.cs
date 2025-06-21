@@ -4,7 +4,7 @@ using MonoFSM.Variable.Attributes;
 using UnityEngine;
 using System;
 
-namespace MonoFSM.Runtime.FSM.RCGStateMachine.Action.PhysicsAction
+namespace MonoFSM.Runtime.Variable.Action.PhysicsAction
 {
     //FIXME: 可能還需要經過一層運算...
     //運算要放在inspector上還是寫code? 支援寫數學式？

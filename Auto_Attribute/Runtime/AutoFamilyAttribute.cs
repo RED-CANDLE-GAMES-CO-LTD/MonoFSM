@@ -18,7 +18,7 @@ public static class Extension
 }
 
 
-public abstract class AutoFamily : AbstractAutoAttribute, IAutoAttribute
+public abstract class AutoFamilyAttribute : AbstractAutoAttribute, IAutoAttribute
 {
     private const string MonoBehaviourNameColor = "green";
     private static ReflectionHelperMethods Rhm = new ReflectionHelperMethods();
@@ -27,7 +27,7 @@ public abstract class AutoFamily : AbstractAutoAttribute, IAutoAttribute
     public Type LimitedType; //想要撈interface
     // private Component targetComponent;
 
-    public AutoFamily(bool getMadIfMissing = true)
+    public AutoFamilyAttribute(bool getMadIfMissing = true)
     {
         this.logErrorIfMissing = getMadIfMissing;
     }

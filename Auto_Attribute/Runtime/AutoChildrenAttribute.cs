@@ -28,10 +28,10 @@ using Sirenix.OdinInspector;
 [IncludeMyAttributes]
 [MeansImplicitUse]
 [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
-public class AutoChildrenAttribute : AutoFamily
+public class AutoChildrenAttribute : AutoFamilyAttribute
 {
     // public bool runtimeIgnore = false; //FIXME: 之後如果想要做全Serialized的
-    public bool DepthOneOnly = false; //只找一層
+    public bool DepthOneOnly = false; //只找一層, 且不找本身
 
     /// <summary>
     /// 關著的節點也要撈出來
@@ -50,21 +50,20 @@ public class AutoChildrenAttribute : AutoFamily
     public override object GetTheSingleComponent(MonoBehaviour mb, Type componentType)
     {
         //一定是最淺的...hmm
-
-        var result = mb.GetComponentInChildren(LimitedType ?? componentType, includeInactive);
         if (DepthOneOnly)
         {
-            if (result == null) return null;
+            //只從children找
+            foreach (Transform t in mb.transform)
+            {
+                var comp = t.GetComponent(LimitedType ?? componentType);
+                if (comp != null) return comp;
+                // all.AddRange(result);
+            }
 
-            //同一層給過？
-            if (result.transform == mb.transform) return result;
-
-            if (result.transform.parent == mb.transform)
-                return result;
-            else
-                return null;
+            return null;
         }
 
+        var result = mb.GetComponentInChildren(LimitedType ?? componentType, includeInactive);
         return result;
     }
 

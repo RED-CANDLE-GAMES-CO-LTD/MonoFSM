@@ -29,6 +29,10 @@ public class CollisionHitData : IEffectHitData //fixme:
 
     public Vector3? hitPoint { get; set; }
     public Vector3? hitNormal { get; set; }
+
+    public Vector3 Dir => hitPoint.HasValue && hitNormal.HasValue
+        ? (hitPoint.Value - Receiver.transform.position).normalized
+        : Vector3.zero; //FIXME: 這個要不要放在這裡？還是放在EffectHitData裡面？
 }
 
 public interface IEffectHitData
@@ -38,6 +42,7 @@ public interface IEffectHitData
     void Override(IEffectDealer dealer, IEffectReceiver receiver);
     Vector3? hitPoint { get; set; } //FIXME: 這個要不要放在這裡？還是放在EffectHitData裡面？
     Vector3? hitNormal { get; set; } //FIXME: 這個要不要放在這裡？還是放在EffectHitData裡面？
+    public Vector3 Dir { get; }
 }
 
 // public interface IEffectReceivedHandler //FIXME:和下面整和吧
@@ -102,6 +107,10 @@ namespace MonoFSM.Core
         public Vector3? hitPoint { get; set; }
 
         public Vector3? hitNormal { get; set; }
+
+        public Vector3 Dir => hitPoint.HasValue && hitNormal.HasValue
+            ? (hitPoint.Value - Receiver.transform.position).normalized
+            : Vector3.zero; //FIXME: 這個要不要放在這裡？還是放在EffectHitData裡面？
 
 
         private void Reset()

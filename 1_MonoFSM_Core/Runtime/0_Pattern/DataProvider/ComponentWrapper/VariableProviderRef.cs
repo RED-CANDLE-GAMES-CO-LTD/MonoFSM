@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime;
-using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
@@ -48,10 +48,10 @@ namespace MonoFSM.Core.DataProvider
         [OnValueChanged(nameof(OnVarOwnerChange))]
         [TabGroup("Owner Setting")] public GetFromType _getFromType = GetFromType.ParentVarOwner;
 
-        public override string ToString()
-        {
-            return Description;
-        }
+        // public override string ToString()
+        // {
+        //     return Description;
+        // }
 
         public string GetString() //這啥？
         {
@@ -327,11 +327,11 @@ namespace MonoFSM.Core.DataProvider
                 return monoCompInParent;
             }
 
+            //FIXME: 這個會爆掉？
             _runtimeCachedOwner = target.GetComponentInParent<MonoBlackboard>();
-            //FIXME: 有variable folder的才算？
             if (Application.isPlaying)
                 if (_runtimeCachedOwner == null)
-                    Debug.LogError("VariableOwner InParent is null at:" + target, target);
+                    Debug.LogError("VariableOwner InParent is null at:", target);
 
             return _runtimeCachedOwner;
             // return _runtimeCachedOwner;

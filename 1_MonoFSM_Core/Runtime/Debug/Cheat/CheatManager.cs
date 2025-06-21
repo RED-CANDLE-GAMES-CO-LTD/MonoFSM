@@ -12,7 +12,8 @@ namespace MonoFSM.Core
         //FIXME: 用action + condition的方式來做?
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.P)) EditorApplication.isPaused = !EditorApplication.isPaused;
+            //內建就有了
+            // if (Input.GetKeyDown(KeyCode.P)) EditorApplication.isPaused = !EditorApplication.isPaused;
         }
     }
 }

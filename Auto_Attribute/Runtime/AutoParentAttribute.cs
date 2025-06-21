@@ -24,7 +24,7 @@ using UnityEngine;
 [IncludeMyAttributes]
 [MeansImplicitUse]
 [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
-public class AutoParentAttribute : AutoFamily
+public class AutoParentAttribute : AutoFamilyAttribute
 {
     public AutoParentAttribute(bool getMadIfMissing = true) : base(getMadIfMissing)
     {

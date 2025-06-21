@@ -1,7 +1,7 @@
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Core.Attributes;
-using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Interact.EffectHit;
 using Sirenix.OdinInspector;
 using UnityEngine;

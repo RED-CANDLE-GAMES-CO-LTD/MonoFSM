@@ -35,14 +35,18 @@ namespace MonoFSM.Core
             bool isPublicOrSerialized = field.IsPublic || isSerialized;
             return isPublicOrSerialized;
         }
-        public static void SetPrivate(FieldInfo field,object belongObj,InspectorProperty property,AutoFamily autoAttribute,MonoBehaviour mb,Type componentType)
+
+        public static void SetPrivate(FieldInfo field, object belongObj, InspectorProperty property,
+            AutoFamilyAttribute autoAttribute, MonoBehaviour mb, Type componentType)
         {
             field.SetValue(belongObj,
                 property.ValueEntry.TypeOfValue.IsArray
                     ? autoAttribute.GetComponentsToReference(mb, mb.gameObject, componentType)
                     : autoAttribute.GetTheSingleComponent(mb, componentType));
         }
-        public static void SetSerialized(IPropertyValueEntry valueEntry,AutoFamily autoAttribute,MonoBehaviour mb,Type componentType)
+
+        public static void SetSerialized(IPropertyValueEntry valueEntry, AutoFamilyAttribute autoAttribute,
+            MonoBehaviour mb, Type componentType)
         {
             valueEntry.WeakSmartValue = valueEntry.TypeOfValue.IsArray
                 ? autoAttribute.GetComponentsToReference(mb, mb.gameObject, componentType)
@@ -50,7 +54,8 @@ namespace MonoFSM.Core
         }
     }
     [DrawerPriority(0, 100, 0)]
-    public abstract class AutoFamilyDrawer<TAutoFamily> : OdinAttributeDrawer<TAutoFamily> where TAutoFamily : AutoFamily
+    public abstract class AutoFamilyDrawer<TAutoFamily> : OdinAttributeDrawer<TAutoFamily>
+        where TAutoFamily : AutoFamilyAttribute
     {
         Type componentType => Property.ValueEntry.TypeOfValue;
         object belongObj => Property.ParentValues[0];

@@ -68,7 +68,8 @@ namespace MonoFSM.VarRef
         [Required] [CompRef] [Auto] private IValueProvider _valueProvider; //什麼鬼命名，IValueProvider?
 
 #if UNITY_EDITOR
-        [PreviewInInspector] private object _previewLastValue; // = new(); //這顆會boxing...
+        [ShowInDebugMode] private object _previewLastValue; // = new(); //這顆會boxing...
+        // private object CurrentValue => _previewLastValue;
 #endif
         public Type ValueType => _valueProvider.ValueType;
 
@@ -82,7 +83,7 @@ namespace MonoFSM.VarRef
 //             return value;
 //         }
 
-        [ShowInDebugMode] private object CurrentValue => _previewLastValue;
+        
         
         public T GetValue<T>()
         {
@@ -94,13 +95,13 @@ namespace MonoFSM.VarRef
         }
 
         [PreviewInInspector] public string Description => ToString();
-        public override string ToString()
-        {
-#if UNITY_EDITOR
-            _valueProvider = GetComponent<IValueProvider>();
-            if (_valueProvider == null) return "";
-#endif
-            return _valueProvider.Description;
-        }
+//         public override string ToString()
+//         {
+// #if UNITY_EDITOR
+//             _valueProvider = GetComponent<IValueProvider>();
+//             if (_valueProvider == null) return "";
+// #endif
+//             return _valueProvider.Description;
+//         }
     }
 }

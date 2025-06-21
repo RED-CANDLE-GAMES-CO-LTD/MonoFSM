@@ -17,7 +17,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         public override string Description
             => _target != null && _target.Name != null ? "=>" + _target.Name.Replace("[State]", "") : "";
 
-        private void Awake()
+        protected override void Awake()
         {
             _transitionData = new TransitionData<MonoStateBehaviour>(_target, (state, machine) =>
             {
@@ -36,7 +36,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 
 
 #if UNITY_EDITOR
-        public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
+        // public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
         public string IconName => "CollabMoved Icon";
         public bool IsDrawingIcon => true;
 
@@ -44,27 +44,27 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         // UnityEditor.EditorGUIUtility.ObjectContent(null, typeof(StateTransition)).image as Texture2D;
 
 #endif
-        public bool IsDrawGUIHierarchyBackground => HasError(); //還是用icon? 
-        [PreviewInInspector] private string _errorMessage;
+        // public bool IsDrawGUIHierarchyBackground => HasError(); //還是用icon? 
 
-        private bool HasError()
-        {
-            if (_target == null)
-            {
-                _errorMessage = "No Target State";
-                return true;
-            }
 
-            //FIXME: cache判定？貴一點要GetComponent...什麼時候refresh? auto找不到的有點麻煩...non serialized...
-            // if (NoChecker)
-            // {
-            //     _errorMessage = "No Checker Invoker in Parent or Children";
-            //     return true;
-            // }
-
-            _errorMessage = "Pass!";
-            return false;
-        }
+        // private bool HasError()
+        // {
+        //     if (_target == null)
+        //     {
+        //         _errorMessage = "No Target State";
+        //         return true;
+        //     }
+        //
+        //     //FIXME: cache判定？貴一點要GetComponent...什麼時候refresh? auto找不到的有點麻煩...non serialized...
+        //     // if (NoChecker)
+        //     // {
+        //     //     _errorMessage = "No Checker Invoker in Parent or Children";
+        //     //     return true;
+        //     // }
+        //
+        //     _errorMessage = "Pass!";
+        //     return false;
+        // }
     }
 
 

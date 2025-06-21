@@ -7,7 +7,7 @@ namespace MonoFSM.Core
     {
         //FIXME: 這個有點討厭...
         // object GetValue { get; } //無法避免boxing, 不該存在？
-        T Get<T>();
+        T1 Get<T1>();
 
         Type ValueType { get; }
 
@@ -17,11 +17,6 @@ namespace MonoFSM.Core
 
     public interface ICompProvider<out T> : IValueProvider //where T : Component
     {
-        // T1 IValueProvider.Get<T1>()
-        // {
-        //     if (typeof(T) != typeof(T1)) throw new InvalidCastException($"Cannot cast {typeof(T)} to {typeof(T)}");
-        //     return (T1)(object)Get();
-        // }
         T1 IValueProvider.Get<T1>()
         {
             var value = Get();

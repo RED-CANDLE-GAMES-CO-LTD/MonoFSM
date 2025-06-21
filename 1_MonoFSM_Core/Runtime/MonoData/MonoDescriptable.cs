@@ -7,7 +7,7 @@ using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Simulate;
-using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using MonoFSM.Runtime.Mono;

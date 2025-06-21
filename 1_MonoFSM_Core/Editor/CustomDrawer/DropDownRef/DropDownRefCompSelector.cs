@@ -66,7 +66,7 @@ namespace MonoFSM.Core
             {
                 var ownerName = comp.GetComponentInParent<IVarBlackboard>().name;
                 tree.Add(ownerName + "/" +comp.name+ " (" + comp.GetType().Name+")", comp);
-                Debug.Log("Add type " + comp.GetType() + " ownerName is " + ownerName);
+                // Debug.Log("Add type " + comp.GetType() + " ownerName is " + ownerName);
                 // tree.Add(ownerName + "/" + comp.name, comp);
                 // Debug.Log("Add type " + type);
             }

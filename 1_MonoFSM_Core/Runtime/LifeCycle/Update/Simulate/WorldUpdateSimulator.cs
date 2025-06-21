@@ -38,7 +38,10 @@ namespace MonoFSM.Core.Simulate
         public MonoPoolObj Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation)
         {
             //FIXME: 在這邊register?
-            return _spawnProcessor.Spawn(obj, position, rotation);
+            var result = _spawnProcessor.Spawn(obj, position, rotation);
+            result.ResetStateRestore();
+            result.ResetStart();
+            return result;
         }
 
         public void Despawn(MonoPoolObj obj)
@@ -47,6 +50,7 @@ namespace MonoFSM.Core.Simulate
             // Unregister the object from the world update simulator
             UnregisterMonoObject(obj);
             // Return the object to the pool
+            //FIXME: 要先做事？OnReturnPool? OnDespawn
             _spawnProcessor.Despawn(obj); //看實作
         }
 
@@ -77,12 +81,12 @@ namespace MonoFSM.Core.Simulate
         //從player進入？
         public void ResetLevel()
         {
-            foreach (var mono in _monoObjects) mono.ResetLevel();
+            foreach (var mono in _monoObjects) mono.ResetStateRestore();
         }
 
         public void ResetLevelStart()
         {
-            foreach (var mono in _monoObjects) mono.ResetLevelStart();
+            foreach (var mono in _monoObjects) mono.ResetStart();
         }
 
         public void WorldInit()

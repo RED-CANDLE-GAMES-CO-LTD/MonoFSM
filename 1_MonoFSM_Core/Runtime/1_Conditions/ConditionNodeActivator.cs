@@ -8,6 +8,7 @@ namespace MonoFSM.Core
 {
     //舊規，開Child
     //掛在上面，會被上面檢查？
+    [Obsolete]
     public class ConditionNodeActivator : MonoBehaviour, IResetter
     {
         // // [Header("是否反向表達")] public bool IsInverted;
@@ -48,11 +49,11 @@ namespace MonoFSM.Core
         }
 
         //Checker要一直開著，條件不對的時候，關掉下方的節點
-        private void OnEnable()
-        {
-            // Debug.Log("IAdditionalChecker pass active true", gameObject);
-            // childNode.SetActive(IsActivate);
-        }
+        // private void OnEnable()
+        // {
+        //     // Debug.Log("IAdditionalChecker pass active true", gameObject);
+        //     // childNode.SetActive(IsActivate);
+        // }
 
         public void Init()
         {

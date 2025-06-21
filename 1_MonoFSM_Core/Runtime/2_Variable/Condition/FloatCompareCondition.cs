@@ -100,8 +100,8 @@ namespace MonoFSM.Variable.Condition
                 if (comparisonMode == ComparisonMode.Simple)
                 {
                     float left = leftValue != null ? leftValue.Value : 0;
-                    float right = useConstantForRightValue ? rightConstantValue : 
-                                 (rightValue != null ? rightValue.GetFloat() : 0);
+                    float right = useConstantForRightValue ? rightConstantValue :
+                        rightValue != null ? rightValue.Value : 0;
                     
                     return ArithmeticHelper.CompareValues(left, right, op);
                 }

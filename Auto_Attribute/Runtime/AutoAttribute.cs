@@ -25,7 +25,7 @@ using UnityEngine;
 
 [IncludeMyAttributes]
 [AttributeUsage(AttributeTargets.Field)]
-public class AutoAttribute : AutoFamily
+public class AutoAttribute : AutoFamilyAttribute
 {
     private const string MonoBehaviourNameColor = "green"; //Changeme
 

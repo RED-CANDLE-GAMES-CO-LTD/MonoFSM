@@ -1,45 +1,56 @@
 using System;
+using _3_Script._0_RedCandleGamesUtilities.UICanvas.ActivateChecker;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Simulate;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace _3_Script._0_RedCandleGamesUtilities.UICanvas.ActivateChecker
+namespace MonoFSM.Core.Condition
 {
     //這個要整個Panel OnEnable的時候才會檢查一遍，不會隨時檢查
     //ActivateChecker
-    public class AbstractConditionActivateTarget : MonoBehaviour, ISubmitHandler//, ISelectedInstanceUpdater
+    public abstract class
+        AbstractConditionActivateTarget : MonoBehaviour, IUpdateSimulate //, ISelectedInstanceUpdater //ISubmitHandler
     {
+      
         //FIXME: 這邊的UI想要看有沒有被檢查
-#if UNITY_EDITOR //這只是想拿來看的...繞掉的attribute? [NonCache] ?
-         [Required] [PreviewInInspector] [AutoParent]
-         private ConditionActivateCheckProvider parentConditionActivateCheckProvider;
+// #if UNITY_EDITOR //這只是想拿來看的...繞掉的attribute? [NonCache] ?
+        // [Required] [PreviewInInspector] [AutoParent]
+        // private ConditionActivateCheckProvider parentConditionActivateCheckProvider;
 //
 //         [Title("有沒有在Update Loop檢查Condition")]
 //         [PreviewInInspector]
 //         private bool isCheckResultAtUpdateLoop => parentConditionActivateCheckProvider?.IsUpdate ?? false;
-#endif
+// #endif
+
+        public void Simulate(float deltaTime)
+        {
+            //FIXME: Input Condition觸發不了？
+            ActivateCheck();
+        }
+
+        public void AfterUpdate()
+        {
+        }
         //這個是不是太多層了...
         [Component] //沒用...
-        [AutoChildren]
+        [AutoChildren(DepthOneOnly = true)]
         [ShowInInspector]
-        private AbstractConditionComp[] conditions = Array.Empty<AbstractConditionComp>();
+        private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
 
-        [PreviewInInspector] protected virtual bool result => conditions.IsAllValid();
+        [PreviewInInspector] protected virtual bool result => _conditions.IsAllValid();
 
-        public virtual void ActivateCheck()
-        {
-            gameObject.SetActive(result);
-        }
+        public abstract void ActivateCheck();
 
-        public void OnSubmit(BaseEventData eventData)
-        {
-            ActivateCheck();
-        }
-
-        public void UpdateView(IDescriptableData data) //更新所選的instance時檢查看看
-        {
-            ActivateCheck();
-        }
+        // public void OnSubmit(BaseEventData eventData)
+        // {
+        //     ActivateCheck();
+        // }
+        //
+        // public void UpdateView(IDescriptableData data) //更新所選的instance時檢查看看
+        // {
+        //     ActivateCheck();
+        // }
     }
 }

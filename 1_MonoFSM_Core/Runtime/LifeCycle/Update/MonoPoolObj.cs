@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace MonoFSMCore.Runtime.LifeCycle
 {
-    public interface IMonoObjectProvider : ICompProvider<MonoPoolObj>
+    public interface IMonoObjectProvider : ICompProvider<MonoPoolObj> //FIXME:這個不是很好...trace不到，最好還是都過一層？
     {
         //這個是給MonoPoolObj用的
         // MonoPoolObj GetMonoObject();
@@ -59,10 +59,14 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [ShowInDebugMode] public WorldUpdateSimulator WorldUpdateSimulator { get; set; }
         [PreviewInInspector][AutoChildren] private ISceneAwake[] _sceneAwakes;
         [PreviewInInspector][AutoChildren] private ISceneStart[] _sceneStarts;
+        [PreviewInInspector] [AutoChildren] private ISceneDestroy[] _sceneDestroys;
+        
+        
         [PreviewInInspector][AutoChildren] private IResetStateRestore[] _resetStateRestores;
         [PreviewInInspector][AutoChildren] private IResetStart[] _resetStarts;
         [PreviewInInspector][AutoChildren] private IInstantiated[] _instantiateds;
         [PreviewInInspector][AutoChildren] private IUpdateSimulate[] _updateSimulates;
+        //FIXME: PoolBeforeReturnToPool? OnReturnPool?
 
         private List<MonoPoolObj> _parentObjs = new(2); //會拿到自己？
         public bool HasParent => _parentObjs.Count > 1; //有_parentObj就表示是nested的pool object，不作用，交給parent處理
@@ -108,14 +112,14 @@ namespace MonoFSMCore.Runtime.LifeCycle
             }
         }
 
-        public void ResetLevel() //還是要分兩階，先還原，再開始？ 還是說有這種dependency本身就不好...? life cycle集中化
+        public void ResetStateRestore() //還是要分兩階，先還原，再開始？ 還是說有這種dependency本身就不好...? life cycle集中化
         {
             if (HasParent)
                 return;
             HandleIResetStateRestore();
         }
 
-        public void ResetLevelStart()
+        public void ResetStart()
         {
             if (HasParent)
                 return;
@@ -269,6 +273,12 @@ namespace MonoFSMCore.Runtime.LifeCycle
                         Debug.LogError(e.Message + "\n" + e.StackTrace);
                 }
             }
+        }
+
+        public void OnReturnPool() //會被despawn才需要？ 反註冊用？
+        {
+            if (HasParent)
+                return;
         }
     }
 }

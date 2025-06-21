@@ -2,6 +2,7 @@ using System;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime;
 using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Core.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine;
@@ -10,19 +11,26 @@ using UnityEngine.Serialization;
 namespace MonoFSM.Core.LifeCycle
 {
     //重寫FXPlayer
-    public class SpawnAction : AbstractStateAction, IMonoObjectProvider
+    public class SpawnAction : AbstractStateAction, IMonoObjectProvider //ICompProvider<MonoPoolObj>
     {
-        [FormerlySerializedAs("target")] public MonoPoolObj _target;
+        //崩潰..Prefab和Runtime混在一起耶，所以拿Var比較好？但實際上不是啊...
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
+        private ICompProvider<MonoPoolObj> _targetVarProvider; //使用VarPoolObj來存儲目標物件
+
+        private MonoPoolObj Prefab => _targetVarProvider?.Get();
+
+        // [DropDownRef] [SerializeField] private VarPoolObj _targetRef; //使用VarPoolObj來存儲目標物件
+        // [FormerlySerializedAs("target")] public MonoPoolObj _target;
 
         [CompRef] [AutoChildren] private SpawnEventHandler _spawnEventHandler;
 
-//FIXME: preview scale & rotation
+        //FIXME: preview scale & rotation
         protected override void OnStateEnterImplement()
         {
             Debug.Log("SpawnAction OnStateEnterImplement", this);
             //FIXME: 時機點？FixedUpdateNetwork?
 
-            Spawn(_target, transform.position, transform.rotation);
+            Spawn(Prefab, transform.position, transform.rotation);
 
             //on spawn要怎麼吃action?
             
@@ -36,6 +44,7 @@ namespace MonoFSM.Core.LifeCycle
             var newObj = monoObj.WorldUpdateSimulator.Spawn(obj, position, rotation); //Runner.spawn?
             //用目前這個action的transform的scale,fixme; 可能需要別種？物件本身的scale?還是應該避免
             newObj.transform.localScale = transform.lossyScale;
+            //Rotation呢？
             _lastSpawnedObj = newObj;
             _spawnEventHandler?.OnSpawn(newObj, position, rotation);
         }
@@ -59,11 +68,17 @@ namespace MonoFSM.Core.LifeCycle
             var rotation = receiverTrans.rotation;
             if (arg.hitNormal != null)
             {
-                rotation = Quaternion.LookRotation(arg.hitNormal.Value, receiverTrans.up);
-                Debug.Log("hitNormal is not null, using it for rotation" + rotation, this);
+                // up 改為 Vector3.up，避免參考 receiverTrans
+                var normal = arg.hitNormal.Value.normalized;
+                var up = Vector3.up;
+                // 避免 up 跟 normal 太接近導致 LookRotation 不穩定
+                if (Mathf.Abs(Vector3.Dot(normal, up)) > 0.99f)
+                    up = Vector3.right;
+                rotation = Quaternion.LookRotation(normal, up);
+                Debug.Log("hitNormal is not null, using it for rotation " + rotation, this);
             }
 
-            Spawn(_target, pos, rotation);
+            Spawn(Prefab, pos, rotation);
             // var newObj = PoolManager.Instance.BorrowOrInstantiate(target, t.position, t.rotation);
         }
 
@@ -98,7 +113,7 @@ namespace MonoFSM.Core.LifeCycle
 
         public MonoPoolObj Get()
         {
-            if (!Application.isPlaying) return _target;
+            if (!Application.isPlaying) return Prefab;
             if (_lastSpawnedObj != null)
             {
                 return _lastSpawnedObj;

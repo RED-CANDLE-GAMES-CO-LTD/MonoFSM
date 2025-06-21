@@ -2,7 +2,7 @@ using System;
 using MonoFSM.Core.DataProvider;
 using UnityEngine;
 
-namespace _1_MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper.Vector
+namespace MonoFSM.Core.DataType.Vector
 {
     public class Vector3Literal : MonoBehaviour, IValueProvider<Vector3>
     {

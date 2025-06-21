@@ -22,7 +22,13 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
         private float _magnitude = 10f; // 可以在Inspector中調整
 
         [SerializeField] private ForceMode _forceMode = ForceMode.Impulse;
+        public ForcePosition _forcePosition = ForcePosition.TargetCenterOfMass; // 使用剛體的質心
 
+        public enum ForcePosition
+        {
+            TargetCenterOfMass, // 使用剛體的質心
+            ActionPosition // 使用Action所在的Transform位置
+        }
 //TODO: offset?
         private Rigidbody _cacheRigidbody;
         public void ArgEventReceived(Rigidbody target) //轉型Provider?
@@ -45,7 +51,10 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
             Debug.Log("AddForce: Applying torque to " + target.name + " with direction: " + dir, this);
             //怎麼用local space的方向？
             // var localDir = target.transform.TransformDirection(dir);
-            target.AddForceAtPosition(dir, target.worldCenterOfMass,
+            var pos = _forcePosition == ForcePosition.ActionPosition
+                ? transform.position // 使用Action所在的Transform位置
+                : target.worldCenterOfMass; // 使用剛體的質心
+            target.AddForceAtPosition(dir, pos,
                 _forceMode); // 使用 AddForceAtPosition 來施加力
             
             // Debug.Break();
@@ -68,7 +77,7 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
 
             if (_rigidbodyProvider == null)
             {
-                Debug.LogError("RigidbodyProvider is not set in AddTorqueAction", this);
+                Debug.LogError("RigidbodyProvider is not set in AddforceAction", this);
                 return;
             }
 

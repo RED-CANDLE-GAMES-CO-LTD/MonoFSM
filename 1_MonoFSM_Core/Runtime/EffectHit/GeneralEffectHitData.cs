@@ -1,5 +1,5 @@
 using System;
-using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Item_BuildSystem;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -60,6 +60,12 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             get => _hitNormal;
             set => _hitNormal = value;
         }
+
+        public Vector3 Dir =>
+            hitPoint.HasValue && hitNormal.HasValue
+                ? (hitPoint.Value - Receiver.transform.position).normalized
+                : (Dealer.transform.position - Receiver.transform.position)
+                .normalized;
 
         private Vector3? _hitPoint;
         private Vector3? _hitNormal;

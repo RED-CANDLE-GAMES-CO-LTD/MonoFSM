@@ -24,6 +24,9 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         
         private readonly List<RaycastHit> _cachedHits = new();
 
+        private RaycastHit[] _allocHits = new RaycastHit[10]; //FIXME: 這個大小要怎麼處理？會不會有問題？ 這個是用來儲存raycast的結果
+        //用spherecast還是raycast？ spherecast會有問題嗎？
+
         [PreviewInInspector]
         private Collider firstHitCollider => _cachedHits.Count > 0 ? _cachedHits[0].collider : null;
 
@@ -50,6 +53,8 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         // }
 
         [Auto] private IRaycastProcessor _raycastProcessor;
+        [Auto] private ISphereCastProcessor _sphereCastProcessor;
+        public float _sphereRadius = 0.5f; //FIXME: spherecast的半徑要怎麼處理？ 這個是用來儲存spherecast的結果
         private Ray _cachedRay;
 
         private void PhysicsUpdate() //network?
@@ -80,7 +85,23 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             foreach (var col in _lastFrameColliders)
                 if (!_thisFrameColliders.Contains(col))
                 {
-                    OnSpatialExit(col.attachedRigidbody.gameObject); //gameObject錯了...哭
+                    //FIXME: 已經關掉的話...是不是悲劇了？ rigidbody拿不到？
+                    var rb = col.attachedRigidbody;
+                    if (rb == null)
+                    {
+                        // Debug.LogError(
+                        //     "RaycastDetector: Collider has no attached Rigidbody, cannot call OnSpatialExit.", col);
+                        rb = col.GetComponentInParent<Rigidbody>(true);
+                        if (rb == null)
+                        {
+                            Debug.LogError(
+                                "RaycastDetector: Collider has no attached Rigidbody or parent Rigidbody, cannot call OnSpatialExit.",
+                                col);
+                            continue; //跳過這個 collider
+                        }
+                    }
+
+                    OnSpatialExit(rb.gameObject); //gameObject錯了...哭
                 }
                     
 
@@ -92,7 +113,17 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         private void OnDrawGizmos()
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawRay(_cachedRay.origin, _cachedRay.direction * _distance);
+            if (_sphereCastProcessor != null)
+            {
+                Gizmos.DrawWireSphere(_cachedRay.origin, _sphereRadius);
+                Gizmos.DrawRay(_cachedRay.origin, _cachedRay.direction * _distance);
+                Gizmos.DrawWireSphere(_cachedRay.origin + _cachedRay.direction * _distance, _sphereRadius);
+            }
+
+            else
+            {
+                Gizmos.DrawRay(_cachedRay.origin, _cachedRay.direction * _distance);
+            }
             // if (_cacehdHit.collider != null)
             // {
             //     Gizmos.color = Color.green;
@@ -174,8 +205,25 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             _cachedRay = ray;
             if (_raycastMode == RaycastMode.Single)
             {
-                if (_raycastProcessor != null)
+                if (_sphereCastProcessor != null)
                 {
+                    var hitCount = _sphereCastProcessor.SphereCastNonAlloc(ray.origin, _sphereRadius, ray.direction,
+                        _allocHits, _distance, HittingLayer, QueryTriggerInteraction.UseGlobal);
+                    if (hitCount > 0)
+                        for (var i = 0; i < hitCount; i++)
+                        {
+                            var hitInfo = _allocHits[i];
+                            _cachedHits.Add(hitInfo);
+                            _thisFrameColliders.Add(hitInfo.collider);
+                            // Debug.Log("hit" + hitInfo.collider.name, hitInfo.collider);
+                        }
+                    else
+                        Debug.Log("No hits found in sphere cast.");
+                }
+                else if (_raycastProcessor != null)
+                {
+                  
+                    
                     if (_raycastProcessor.Raycast(ray.origin, ray.direction, out var hitInfo, _distance, HittingLayer))
                     {
                         //FIXME: 操作 list好嗎？
@@ -204,7 +252,10 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             // }
         }
 
+        [PreviewInInspector]
         private readonly HashSet<Collider> _thisFrameColliders = new();
+
+        [PreviewInInspector]
         private readonly HashSet<Collider> _lastFrameColliders = new(); //ondisable也要清掉？
         [Required] [Auto] [CompRef] private IRayProvider _rayProvider;
         

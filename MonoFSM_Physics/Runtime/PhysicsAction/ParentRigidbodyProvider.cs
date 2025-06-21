@@ -1,11 +1,15 @@
 using System;
 using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM_Physics.Runtime.PhysicsAction
 {
     public class ParentRigidbodyProvider : MonoBehaviour, ICompProvider<Rigidbody>
     {
+        [Required]
+        [PreviewInInspector]
         [AutoParent] private Rigidbody _parentRigidbody;
 
         public Rigidbody Get()

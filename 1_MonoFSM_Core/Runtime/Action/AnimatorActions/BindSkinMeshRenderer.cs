@@ -1,5 +1,6 @@
 using UnityEngine;
-namespace MonoFSM.Runtime.FSM.RCGStateMachine.Action.AnimatorActions
+
+namespace MonoFSM.Runtime.Variable.Action.AnimatorActions
 {
     public class ReplaceBones : MonoBehaviour
     {

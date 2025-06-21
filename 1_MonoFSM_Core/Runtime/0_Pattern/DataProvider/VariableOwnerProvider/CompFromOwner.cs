@@ -7,6 +7,7 @@ namespace MonoFSM.Core.Runtime
 {
     //倒著拿，好難思考
     //全部都用介面，更難了...一步步倒推，沒道理
+    [Obsolete]
     public abstract class CompFromOwner<T> : MonoBehaviour, ICompProvider<T>
     {
         //FIXME: 還auto才能拿，悲劇QQ

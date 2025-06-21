@@ -12,6 +12,7 @@ using UnityEngine;
 // {
 // }
 
+
 public class OnEnableInvoker : MonoBehaviour
 {
     [CompRef] [AutoChildren] private OnEnableNode _onEnableNode;
@@ -27,7 +28,7 @@ public class OnEnableInvoker : MonoBehaviour
     private void OnDisable()
     {
         this.Log("OnDisable");
-        if (_onDisableNode.gameObject.activeSelf)
+        if (_onDisableNode && _onDisableNode.gameObject.activeSelf)
             _onDisableNode.EventHandle();
     }
 }

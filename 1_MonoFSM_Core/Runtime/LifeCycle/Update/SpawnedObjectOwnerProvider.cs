@@ -2,7 +2,7 @@ using System;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime;
-using MonoFSM.Runtime.FSM.RCGStateMachine;
+using MonoFSM.Runtime.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -24,7 +24,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
                     _monoObjectProvider = GetComponentInParent<IMonoObjectProvider>(true);
 #endif
                 // return _monoObjectProvider.
-                return _monoObjectProvider.Get()?.GetComponent<MonoDescriptable>();
+
+                return _monoObjectProvider?.Get()?.GetComponent<MonoDescriptable>();
             }
         }
 

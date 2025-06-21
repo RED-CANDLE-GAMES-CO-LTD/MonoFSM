@@ -127,7 +127,7 @@ namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
 
             //FIXME: 這個是從Binder往下找，可能有多個，不太好？
             var monoObj = mono.GetComponentInParent<MonoPoolObj>();
-            var binder = monoObj.WorldUpdateSimulator.GetComponent<MonoDescriptableBinder>();
+            var binder = monoObj?.WorldUpdateSimulator?.GetComponent<MonoDescriptableBinder>();
             if (binder == null)
             {
 #if UNITY_EDITOR //如果在Prefab裡不要噴error
