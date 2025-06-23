@@ -44,6 +44,10 @@ namespace MonoFSM.Physics
 
     public interface ISphereCastProcessor
     {
+        int SphereOverlap(Vector3 origin, float radius, Collider[] results,
+            [DefaultValue("DefaultRaycastLayers")] int layerMask,
+            [DefaultValue("QueryTriggerInteraction.UseGlobal")]
+            QueryTriggerInteraction queryTriggerInteraction);
         bool SphereCast(Vector3 origin, float radius, Vector3 direction, out RaycastHit hitInfo,
             [DefaultValue("Mathf.Infinity")] float maxDistance,
             [DefaultValue("DefaultRaycastLayers")] int layerMask,

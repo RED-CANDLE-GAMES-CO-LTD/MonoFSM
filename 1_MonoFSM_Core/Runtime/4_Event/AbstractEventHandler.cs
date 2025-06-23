@@ -30,7 +30,7 @@ namespace MonoFSM.Core
         /// <summary>
         /// Call all event receivers' <see cref="IEventReceiver.EventReceived"/> method.
         /// </summary>
-        public void EventHandle()
+        public virtual void EventHandle()
         {
             if (!isActiveAndEnabled)
                 return;
@@ -47,7 +47,7 @@ namespace MonoFSM.Core
         /// </summary>
         /// <typeparam name="T">The type of the argument.</typeparam>
         /// <param name="arg">The argument to pass to the event receivers.</param>
-        public void EventHandle<T>(T arg)
+        public virtual void EventHandle<T>(T arg)
         {
             if (!isActiveAndEnabled)
                 return;

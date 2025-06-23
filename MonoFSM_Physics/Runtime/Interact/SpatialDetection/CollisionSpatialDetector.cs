@@ -12,12 +12,12 @@ namespace MonoFSM.Core.Detection
         private void OnCollisionEnter(Collision other)
         {
             _enterNode?.EventHandle(other);
-            OnSpatialEnter(other.gameObject);
+            OnDetectEnter(other.gameObject);
         }
 
         private void OnCollisionExit(Collision other)
         {
-            OnSpatialExit(other.gameObject);
+            OnDetectExit(other.gameObject);
         }
 
         //FIXME:

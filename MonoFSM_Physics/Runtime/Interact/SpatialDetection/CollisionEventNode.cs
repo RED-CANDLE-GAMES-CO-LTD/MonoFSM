@@ -10,7 +10,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         {
 //FIXME: 
 //哪種action?
-            Debug.Log("CollisionEventNode EventHandle", this);
+            // Debug.Log("CollisionEventNode EventHandle", this);
             _cacheCollision = collision;
             foreach (var receiver in _eventReceivers)
                 if (receiver.isActiveAndEnabled)

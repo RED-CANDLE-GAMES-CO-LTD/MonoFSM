@@ -12,5 +12,8 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
             // Debug.Log($"ToggleBoolAction: Toggling value of {_target}", this);
             _target.SetValue(!_target.Value, this);
         }
+
+        public override string Description =>
+            _target != null ? $"Toggle Bool: {_target.name}" : "Toggle Bool: No target set";
     }
 }

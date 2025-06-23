@@ -15,20 +15,20 @@ namespace MonoFSM.Core.Detection
 
         private void OnTriggerEnter(Collider other)
         {
-            this.Log("OnTriggerEnter", this);
+            this.Log("OnTriggerEnter", other);
             // ReliableOnTriggerExit.NotifyTriggerEnter(other, gameObject, OnTriggerExit);
             //FIXME: 先標記，再Update做
-            virtualDetector?.OnSpatialEnter(other.gameObject);
-            OnSpatialEnter(other.gameObject);
+            virtualDetector?.OnDetectEnter(other.gameObject);
+            OnDetectEnter(other.gameObject);
         }
 
 
         private void OnTriggerExit(Collider other)
         {
             //FIXME: 先標記，再Update做
-            virtualDetector?.OnSpatialExit(other.gameObject);
+            virtualDetector?.OnDetectExit(other.gameObject);
             // ReliableOnTriggerExit.NotifyTriggerExit(other, gameObject);
-            OnSpatialExit(other.gameObject);
+            OnDetectExit(other.gameObject);
         }
 
         protected override void OnDisableImplement()

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Detection;
@@ -15,7 +16,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
     public class GeneralEffectDealer : EffectResolver, IEffectDealer,IHitDataProvider
     {
-        [PreviewInInspector] [Component] [AutoChildren]
+        [PreviewInInspector] [Component] [AutoChildren(DepthOneOnly = true)]
         private AbstractEffectHitCondition[] _effectConditions;
 
         // public VariableMonoDescriptableProvider proxyProvider;
@@ -54,22 +55,39 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return _receivers.Contains(receiver);
         }
 
+        [ShowInDebugMode] private string _failReason = "No Fail Reason";
+
+        [Conditional("UNITY_EDITOR")]
+        public void SetFailReason(string reason)
+        {
+            _failReason = reason;
+        }
+
         public bool CanHitReceiver(IEffectReceiver receiver)
         {
             // if (!IsValid)
             // {
             //     return false;
             // }
+            SetFailReason("Check");
             if (!receiver.IsValid) //沒開的不算
+            {
+                SetFailReason("Receiver is not valid");
                 return false;
+            }
             var r = (GeneralEffectReceiver)receiver;
-            if (r.EffectType != EffectType) return false;
+            if (r.EffectType != EffectType)
+            {
+                SetFailReason("EffectType mismatch");
+                return false;
+            }
 
 
             if (_proxyProvider != null) //指定需要透過ProxyProvider拿 ex: 斧頭上的Dealer
             {
                 if (proxyDealer == null) //並沒有找到Proxy Dealer，失敗
                 {
+                    SetFailReason("ProxyDealer is null");
                     var data = r.GenerateEffectHitData(this, receiver);
                     OnEffectHitConditionFail(data);
                     r.OnEffectHitConditionFail(data);
@@ -78,16 +96,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
                 proxyDealer.CanHitReceiver(r); //繼續判囉？
             }
-
-
-//FIXME: 應該要先判這個嗎？
-            //特殊的EffectCondition
+            
             if(_effectConditions != null)
                 foreach (var condition in _effectConditions)
                 {
                     var result = condition.IsEffectHitValid((GeneralEffectReceiver)receiver);
                     if (!result)
                     {
+                        SetFailReason($"EffectCondition {condition.GetType().Name} failed");
                         var data = r.GenerateEffectHitData(this, receiver);
                         OnEffectHitConditionFail(data);
                         r.OnEffectHitConditionFail(data);
@@ -96,9 +112,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
                 }
 
 #if UNITY_EDITOR
-            this.Log("HitReceiver Success:", r.GetGlobalId()); 
+            this.Log("HitReceiver Success:"); //, r.GetGlobalId()); 
 #endif
-            // Debug.Log("HitReceiver Success:", r);
+            SetFailReason("HitReceiver Success");
             return true;
         }
 

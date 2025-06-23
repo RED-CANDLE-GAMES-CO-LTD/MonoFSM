@@ -9,16 +9,15 @@ namespace MonoFSM.DataProvider
     /// </summary>
     public class VarFloatProviderRef : VariableProviderRef<VarFloat, float>, IFloatProvider //不該是IFloatProvider?
     {
+        //FIXME: 蛤？
         //可以拿field?
-        [CompRef] [Auto] private AbstractFieldOfVarProvider
-            _fieldValueProvider; //這個是VarFloat的FieldValueProvider嗎？還是VarFloat本身的FieldValueProvider?
-
-        //description?
-        //override value? fieldValue?
-        public override string Description =>
-            _fieldValueProvider != null && _fieldValueProvider != this
-                ? _fieldValueProvider.GetPathString()
-                : base.Description;
+        // [CompRef] [Auto] private AbstractFieldOfVarProvider
+        //     _fieldValueProvider; //這個是VarFloat的FieldValueProvider嗎？還是VarFloat本身的FieldValueProvider?
+        //
+        // public override string Description =>
+        //     _fieldValueProvider != null && _fieldValueProvider != this
+        //         ? _fieldValueProvider.GetPathString()
+        //         : base.Description;
     }
 
     //可以再往下拿？ 我提供float，如果要拿我的某個property (ex: max, min)

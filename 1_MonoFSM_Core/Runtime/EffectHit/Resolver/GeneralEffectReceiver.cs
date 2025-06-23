@@ -49,6 +49,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [ShowInDebugMode] private DetectData? _detectData;
         
 #if UNITY_EDITOR
+        [Header("Debug Info")]
         [ShowInDebugMode] private IEffectHitData _lastHitData;
 #endif
 

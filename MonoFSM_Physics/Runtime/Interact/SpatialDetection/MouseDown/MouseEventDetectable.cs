@@ -41,11 +41,11 @@ namespace MonoFSM.Runtime.Interact.SpatialDetection
             var detector = MouseDetector.Instance;
             // if(detector.)
             // Debug.Log("OnMouseDown", this);
-            detector.OnSpatialEnter(_mouseDownDetectable.gameObject);
+            detector.OnDetectEnter(_mouseDownDetectable.gameObject);
             //TODO: 馬上就Exit?
             //FIXME: 連點會有狀態問題耶...
             //FIXME: 要條件對才可以做這件事？
-            detector.OnSpatialExit(_mouseDownDetectable.gameObject);
+            detector.OnDetectExit(_mouseDownDetectable.gameObject);
             _mouseDownDetectable.HandleMouseDown(detector);
             // foreach (var effectReceiver in EffectReceivers)
             // {

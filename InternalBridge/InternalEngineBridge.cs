@@ -33,7 +33,7 @@ namespace MonoFSM.InternalBridge
 
     internal static class WindowDocker
     {
-        [MenuItem("Window/General/Maximize Game View %&#_2")]
+        [MenuItem("Window/General/Maximize Game View %#_.")]
         public static void MaximizeGameView()
         {
             var gameView = EditorWindow.GetWindow<GameView>();

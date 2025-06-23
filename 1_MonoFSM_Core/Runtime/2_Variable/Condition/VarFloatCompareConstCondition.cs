@@ -22,8 +22,8 @@ namespace MonoFSM.Variable.Condition
     public class VarFloatCompareConstCondition : NotifyConditionComp, ITransitionCheckInvoker
     {
         public override string Description => _monoVariableFloat != null
-            ? name = "[Condition] " + _monoVariableFloat.name + " " + GetOpString() + " " + targetValue
-            : name = "[Condition]";
+            ? name = _monoVariableFloat.name + " " + GetOpString() + " " + targetValue
+            : name = "null var";
 
         private void OnVariableChanged()
         {

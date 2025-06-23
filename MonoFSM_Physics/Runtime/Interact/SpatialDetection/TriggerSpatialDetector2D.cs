@@ -10,12 +10,12 @@ namespace MonoFSM.Core.Detection
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            OnSpatialEnter(other.gameObject);
+            OnDetectEnter(other.gameObject);
         }
 
         private void OnTriggerExit2D(Collider2D other)
         {
-            OnSpatialExit(other.gameObject);
+            OnDetectExit(other.gameObject);
         }
 
 

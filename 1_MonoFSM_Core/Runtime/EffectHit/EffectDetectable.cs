@@ -47,7 +47,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             {
                 // Debug.Log("OnDisable of Detectable", this);
                 // Debug.Log("OnDisable of Detectable removef from" + toRemove, toRemove);
-                toRemove.OnSpatialExit(gameObject);
+                toRemove.OnDetectExit(gameObject);
 
                 //copy _detectedObjects to toRemove
                 // toRemove.AddRange(_detectedObjects);

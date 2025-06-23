@@ -10,7 +10,7 @@ namespace MonoFSM.Core.Condition
 {
     //這個要整個Panel OnEnable的時候才會檢查一遍，不會隨時檢查
     //ActivateChecker
-    public abstract class
+    public abstract class //IReturnToPool? IDespawn?
         AbstractConditionActivateTarget : MonoBehaviour, IUpdateSimulate //, ISelectedInstanceUpdater //ISubmitHandler
     {
       

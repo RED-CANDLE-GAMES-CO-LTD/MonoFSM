@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime;
 using MonoFSM.Variable;
 using MonoFSMCore.Runtime.LifeCycle;
@@ -28,11 +29,11 @@ namespace MonoFSM.Core.Variable
         private CollectionStorageType _storageType = CollectionStorageType.List;
 
         //FIXME: 好像也不需要這個？runtime用而已？ 不一定
-        [HideInInspector]
+        
         [SerializeField] // This will be used by Unity for serialization
         protected List<T> _backingListForSerialization = new();
 
-        [ShowInInspector]
+        [ShowInPlayMode]
         private object _activeCollection; // Runtime instance: List<T>, Queue<T>, or HashSet<T>
 
         public int _currentIndex = 0;
@@ -44,8 +45,8 @@ namespace MonoFSM.Core.Variable
                 Debug.LogError($"Index {index} is out of bounds for the collection of size {Count}.");
                 return;
             }
-
             _currentIndex = index;
+            Debug.Log("Setting current index to: " + index + " CurrentObj: " + CurrentObj);
         }
 
         public T CurrentObj
@@ -195,7 +196,7 @@ namespace MonoFSM.Core.Variable
             else throw new InvalidOperationException("Collection not properly initialized or unknown type.");
         }
 
-        public int Count
+        public override int Count
         {
             get
             {
@@ -240,27 +241,16 @@ namespace MonoFSM.Core.Variable
         // ISerializationCallbackReceiver
         public void OnBeforeSerialize()
         {
-            if (_activeCollection == null)
-            {
-                // If _activeCollection is null (e.g. before first Awake/OnEnable),
-                // _backingListForSerialization should remain as it was loaded.
-                // Or, if we want to ensure it's empty if _storageType implies an empty collection:
-                // EnsureActiveCollectionInitialized(); // This might create an empty collection
-            }
-
-            // Always ensure _backingListForSerialization is up-to-date with _activeCollection
-            // This handles cases where _activeCollection might be null if not yet initialized by Awake/OnEnable
-            // but we still want to save whatever was in _backingListForSerialization if _activeCollection wasn't touched.
-            // However, if _activeCollection *was* initialized and then modified, we need its state.
-
-            // If _activeCollection is null, it means it hasn't been initialized from _backingListForSerialization yet,
-            // or it was explicitly set to null. In this case, _backingListForSerialization holds the state to be saved.
-            // If _activeCollection is not null, it is the source of truth.
-            if (_activeCollection != null)
-            {
-                _backingListForSerialization.Clear();
-                if (_activeCollection is IEnumerable<T> enumerable) _backingListForSerialization.AddRange(enumerable);
-            }
+            // If _activeCollection has been initialized (is not null), it is the source of truth.
+            // We need to update _backingListForSerialization to match it before serialization.
+            // If _activeCollection is null, it means it hasn't been initialized yet.
+            // In this case, _backingListForSerialization holds the most recent serialized state,
+            // so we do nothing and let Unity serialize it as is.
+            // if (_activeCollection != null)
+            // {
+            //     _backingListForSerialization.Clear();
+            //     if (_activeCollection is IEnumerable<T> enumerable) _backingListForSerialization.AddRange(enumerable);
+            // }
         }
 
         public void OnAfterDeserialize()
@@ -268,7 +258,10 @@ namespace MonoFSM.Core.Variable
             // _activeCollection will be (re)created from _backingListForSerialization and _storageType
             // This is best done in Awake or OnEnable, or an explicit Init method.
             // For editor-time changes to _storageType to take effect immediately, we can call it here.
+            
             EnsureActiveCollectionInitialized();
+            // Debug.Log("[VarList] OnAfterDeserialize called. Initializing active collection." +
+            //           _backingListForSerialization.Count);
         }
 
         // It's good practice to initialize in Awake/OnEnable if this class were a MonoBehaviour.
@@ -288,6 +281,8 @@ namespace MonoFSM.Core.Variable
         {
         }
 
+        public abstract int Count { get; }
+
 
         public abstract void Add(object item);
 
@@ -297,3 +292,4 @@ namespace MonoFSM.Core.Variable
         public abstract void Clear();
     }
 }
+

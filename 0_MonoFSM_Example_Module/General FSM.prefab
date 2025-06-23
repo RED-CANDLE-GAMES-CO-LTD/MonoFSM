@@ -530,6 +530,7 @@ MonoBehaviour:
   IsDontPlayWhenAnimatorDisabled: 0
   doneEventLayerName: 
   doneEventLayer: 0
+  _cachedClipLength: -1
 --- !u!1 &9020763545861940387
 GameObject:
   m_ObjectHideFlags: 0

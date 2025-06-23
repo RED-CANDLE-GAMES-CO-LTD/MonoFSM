@@ -67,7 +67,7 @@ namespace MonoFSM.Core.Detection
             toRemove.AddRange(_detectedObjects);
             foreach (var detectable in toRemove)
                 // Debug.Log("OnDisable of detectable",detectable);
-                OnSpatialExit(detectable.gameObject);
+                OnDetectExit(detectable.gameObject);
 
             toRemove.Clear();
             OnDisableImplement();
@@ -111,7 +111,9 @@ namespace MonoFSM.Core.Detection
 
         // protected abstract void AssignHitPoint(DetectData data);
         //FIXME: 這個是spatial Detector的特性，不是所有的Detector都有
-        public void OnSpatialEnter(GameObject other, Vector3? point = null,
+
+        //fixme:可以有直接傳過來的版本？
+        public void OnDetectEnter(GameObject other, Vector3? point = null,
             Vector3? normal = null) //可能需要帶其他額外參數？像是collision的資訊
         {
             if (IsValid == false) //條件不符合
@@ -119,10 +121,11 @@ namespace MonoFSM.Core.Detection
             //理論上不該打到別的東西，layer就擋掉了才對 (有分layer的話)
             if (!other.TryGetComponent<EffectDetectable>(out var spatialDetectable))
             {
-                // Debug.LogError(other.name + " is not a EffectDetectable" + other.gameObject.layer, other);
+                Debug.LogError(other.name + " is not a EffectDetectable" + other.gameObject.layer, other);
                 return;
             }
 
+            Debug.Log("OnSpatialEnter: " + spatialDetectable.name + " by " + gameObject.name, this);
             var detectData = new DetectData(this, spatialDetectable);
 
             if (point != null)
@@ -147,7 +150,12 @@ namespace MonoFSM.Core.Detection
                 
             foreach (var dealer in dealers)
             {
-                if (!dealer.IsValid) continue;
+                if (!dealer.IsValid)
+                {
+                    dealer.SetFailReason("Dealer is not valid");
+                    continue;
+                }
+                    
 
                 foreach (var receiver in spatialDetectable.EffectReceivers) //condition會錯？因為一直打？
                 {
@@ -172,7 +180,7 @@ namespace MonoFSM.Core.Detection
             }
         }
 
-        public void OnSpatialExit(GameObject other)
+        public void OnDetectExit(GameObject other)
         {
             if (!other.TryGetComponent<EffectDetectable>(out var spatialDetectable))
                 // Debug.LogError(other.name + " is not a GeneralEffectCollider" + other.gameObject.layer);

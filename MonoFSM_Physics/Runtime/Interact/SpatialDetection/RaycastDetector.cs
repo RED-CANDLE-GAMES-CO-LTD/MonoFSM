@@ -25,6 +25,8 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         private readonly List<RaycastHit> _cachedHits = new();
 
         private RaycastHit[] _allocHits = new RaycastHit[10]; //FIXME: 這個大小要怎麼處理？會不會有問題？ 這個是用來儲存raycast的結果
+
+        private Collider[] _allocColliders = new Collider[10]; //FIXME: 這個大小要怎麼處理？會不會有問題？ 這個是用來儲存raycast的結果
         //用spherecast還是raycast？ spherecast會有問題嗎？
 
         [PreviewInInspector]
@@ -70,7 +72,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
                     Debug.Log("Spatial enter: hitPoint " + hit.collider, hit.collider);
 
                     //Note: Detectable必須在 rigidbody上面？
-                    OnSpatialEnter(hit.rigidbody.gameObject, hit.point, hit.normal);
+                    OnDetectEnter(hit.rigidbody.gameObject, hit.point, hit.normal);
                 }
             }
             // foreach (var col in _thisFrameColliders)
@@ -101,7 +103,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
                         }
                     }
 
-                    OnSpatialExit(rb.gameObject); //gameObject錯了...哭
+                    OnDetectExit(rb.gameObject); //gameObject錯了...哭
                 }
                     
 
@@ -207,18 +209,16 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             {
                 if (_sphereCastProcessor != null)
                 {
-                    var hitCount = _sphereCastProcessor.SphereCastNonAlloc(ray.origin, _sphereRadius, ray.direction,
-                        _allocHits, _distance, HittingLayer, QueryTriggerInteraction.UseGlobal);
-                    if (hitCount > 0)
-                        for (var i = 0; i < hitCount; i++)
-                        {
-                            var hitInfo = _allocHits[i];
-                            _cachedHits.Add(hitInfo);
-                            _thisFrameColliders.Add(hitInfo.collider);
-                            // Debug.Log("hit" + hitInfo.collider.name, hitInfo.collider);
-                        }
-                    else
-                        Debug.Log("No hits found in sphere cast.");
+                    if (_sphereCastProcessor.SphereCast(ray.origin, _sphereRadius, ray.direction,
+                            out var hitInfo, _distance, HittingLayer, QueryTriggerInteraction.UseGlobal))
+                    {
+                        if (hitInfo.distance == 0)
+                            Debug.LogError(
+                                "RaycastDetector: SphereCast hit distance is 0, this may indicate an issue with the ray or sphere radius.",
+                                this);
+                        _cachedHits.Add(hitInfo);
+                        _thisFrameColliders.Add(hitInfo.collider);
+                    }
                 }
                 else if (_raycastProcessor != null)
                 {
