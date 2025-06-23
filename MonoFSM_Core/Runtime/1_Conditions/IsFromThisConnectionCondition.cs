@@ -7,6 +7,9 @@ public class IsFromThisConnectionCondition : AbstractConditionComp
     {
         get
         {
+            if (connection == null)
+                return false;
+            
             return connection.IsOnTransition;
         }
     }
