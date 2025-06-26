@@ -16,7 +16,7 @@ namespace MonoFSM.Core.DataProvider
     /// <summary>
     /// 拿Var的Field
     /// </summary>
-    public abstract class
+    public class
         AbstractFieldOfVarProvider : MonoBehaviour //打架了，這個有IConfigVar, 和VariableProviderRef衝突
     {
         //FIXME: 要提前有schema可以參考？ EditorPlaceholder?
@@ -31,13 +31,13 @@ namespace MonoFSM.Core.DataProvider
         [CompRef] [Auto] protected IValueProvider _objectProviderRef;
         
         [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
-        [PreviewInInspector] public abstract Object targetObject { get; }
 
-        [PreviewInInspector]
-        public abstract Type targetType { get; }
+        [PreviewInInspector] public List<Type> SupportedTypes => _typeRestrict.SupportedTypes;
+
+        [PreviewInInspector] public virtual Object targetObject => _objectProviderRef?.Get<Object>();
+
+        [PreviewInInspector] public Type targetType => _objectProviderRef.ValueType;
         [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
-
-
         
 
         private void OnDestroy()
@@ -225,6 +225,7 @@ namespace MonoFSM.Core.DataProvider
 #if UNITY_EDITOR
             if (Application.isPlaying == false) AutoAttributeManager.AutoReference(this);
 #endif
+
             // 每次按下前先更新所有層級的 parentType
             var resultValue = GetFieldValueFromPath(targetObject, pathEntries);
 #if UNITY_EDITOR
@@ -351,6 +352,18 @@ namespace MonoFSM.Core.DataProvider
 
         public T GetValue<T>()
         {
+            if (pathEntries == null || pathEntries.Count == 0)
+                // Ensure we have a provider and it's not pointing to this component to avoid recursion.
+                if (_objectProviderRef != null && !ReferenceEquals(_objectProviderRef, this))
+                    return _objectProviderRef.Get<T>();
+                else
+                    throw new InvalidOperationException(
+                        "No path entries defined and _objectProviderRef is not set or self-referencing.");
+
+
+            // Fallback for when _objectProviderRef is not assigned or is self-referencing.
+            // The original behavior for an empty path was to return targetObject.
+            // return targetObject;
             var value = GetFieldValue();
             if (value is T tValue)
                 return tValue;

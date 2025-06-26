@@ -2,7 +2,7 @@ using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Core.DataProvider;
 
-namespace MonoFSM.DataProvider
+namespace MonoFSM.Core.DataProvider
 {
     /// <summary>
     /// Provide a reference to a VarFloat.

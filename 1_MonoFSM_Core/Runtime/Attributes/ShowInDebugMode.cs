@@ -8,7 +8,8 @@ namespace MonoFSM.Core.Attributes
     [IncludeMyAttributes]
     [ShowInInspector]
     [ShowIf("@DebugSetting.IsDebugMode")]
-    [UsedImplicitly]
+    // [UsedImplicitly]
+    [MeansImplicitUse]
     public class ShowInDebugMode : Attribute
     {
         // !DebugSetting.IsDebugMode

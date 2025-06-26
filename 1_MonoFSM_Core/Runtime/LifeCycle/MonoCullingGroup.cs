@@ -1,24 +1,22 @@
 using System;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace MonoFSM.Runtime.LifeCycle
 {
     public class MonoCullingGroup : MonoBehaviour, IResetStart
     {
-        private void OnBecameVisible()
-        {
-            throw new NotImplementedException();
-        }
-
+        public GameObject _overrideTarget;
         private CullingGroup _cullingGroup;
         private BoundingSphere _boundingSphere;
         private int _sphereIndex = 0;
-        public float cullDistance = 50f; // Distance threshold
+        private static readonly float CullDistance = 10f; // Distance threshold
 
         // public Transform target; // The target to measure distance from (e.g., Camera)
-        public Transform trackingObject;
+        public Transform trackingObserver;
         [PreviewInInspector] private bool _isCulled = false;
 
         public float radius = 0.1f; // Adjustable radius for the bounding sphere
@@ -28,18 +26,18 @@ namespace MonoFSM.Runtime.LifeCycle
         {
             // if (target == null)
             var target = Camera.main?.transform;
-            trackingObject ??= transform;
+            trackingObserver ??= transform;
             _cullingGroup = new CullingGroup();
             _cullingGroup.targetCamera = Camera.main;
-            _boundingSphere = new BoundingSphere(trackingObject.position + gizmoOffset, radius);
+            _boundingSphere = new BoundingSphere(trackingObserver.position + gizmoOffset, radius);
             _boundingSpheres[0] = _boundingSphere;
             _cullingGroup.SetBoundingSpheres(_boundingSpheres);
             _cullingGroup.SetBoundingSphereCount(1);
             _cullingGroup.SetDistanceReferencePoint(target);
-            _cullingGroup.SetBoundingDistances(new[] { cullDistance });
+            _cullingGroup.SetBoundingDistances(new[] { CullDistance });
             _cullingGroup.onStateChanged = OnStateChanged;
             _cullingGroup.enabled = true;
-            if (gameObject.isStatic || trackingObject == null)
+            if (gameObject.isStatic || trackingObserver == null)
                 enabled = false; // Disable if the object is static, as it won't need update
         }
 
@@ -47,7 +45,7 @@ namespace MonoFSM.Runtime.LifeCycle
 
         private void Update()
         {
-            _boundingSpheres[0].position = trackingObject.position + gizmoOffset;
+            _boundingSpheres[0].position = trackingObserver.position + gizmoOffset;
             // _cullingGroup.SetBoundingSpheres(_boundingSpheres);
         }
 
@@ -64,15 +62,38 @@ namespace MonoFSM.Runtime.LifeCycle
             
             if (evt.hasBecomeVisible)
             {
-                gameObject.SetActive(true);
-                _isCulled = false;
+                HasBecomeVisible();
             }
             else if (evt.hasBecomeInvisible)
             {
-                gameObject.SetActive(false);
-                _isCulled = true;
-                // Debug.Log($"Object has been culled at distance index", this);
+                HasBecomeInvisible();
             }
+        }
+
+        [SerializeField] [CompRef] [AutoChildren]
+        private OnCullingVisibleHandler _onCullingVisibleHandler;
+
+        private void HasBecomeVisible()
+        {
+            // Override this method to handle when the object becomes visible
+            //GPUI的話是關掉一部分，
+            if (_overrideTarget != null)
+                _overrideTarget.SetActive(true);
+            else
+                gameObject.SetActive(true);
+            _onCullingVisibleHandler?.OnVisible(); //用裝的
+            _isCulled = false;
+        }
+
+        private void HasBecomeInvisible()
+        {
+            // Override this method to handle when the object becomes invisible
+            if (_overrideTarget != null)
+                _overrideTarget.SetActive(false);
+            else
+                gameObject.SetActive(false);
+            _onCullingVisibleHandler?.OnInvisible();
+            _isCulled = true;
         }
 
         private void OnDestroy()

@@ -4,7 +4,7 @@ using MonoFSM.Runtime.Mono;
 using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine;
 
-namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
+namespace MonoFSM.Runtime
 {
     /// <summary>
     /// 用MonoDescriptableTag當key的來找IMonoDescriptable
@@ -116,6 +116,7 @@ namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
         /// <param name="mono"></param>
         /// <param name="tag"></param>
         /// <returns></returns>
+        /// GetInstance, GetInstances ?
         public static MonoDescriptable GetGlobalInstance(this MonoBehaviour mono, MonoDescriptableTag tag)
         {
             //Descriptable就在自己的parent上，

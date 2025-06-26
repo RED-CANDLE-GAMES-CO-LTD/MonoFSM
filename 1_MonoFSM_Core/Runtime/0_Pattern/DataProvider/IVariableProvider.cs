@@ -30,18 +30,18 @@ namespace MonoFSM.Core.DataProvider
     // [MovedFrom(true, "RCGMaker.Runtime")]
     //FIXME: 簡寫VarMonoProvider?
     //FIXME:好像還是要把常用的Property包掉，否則很難用
-    [Serializable]
-    public class VariableMonoDescriptableProvider : VariableProvider<VarBlackboard, MonoDescriptable>,
-        IVarMonoProvider
-    {
-        //目的：是要拿到Variable, value 是 MonoDescriptable
-
-        public VarBlackboard GetVarBlackboardDescriptable => GetVarRaw() as VarBlackboard;
-
-        [PreviewInInspector]
-        public DescriptableData SampleData =>
-            GetVarBlackboardDescriptable?.SampleData;
-    }
+    // [Serializable]
+    // public class VariableMonoDescriptableProvider : VariableProvider<VarBlackboard, MonoDescriptable>,
+    //     IVarMonoProvider
+    // {
+    //     //目的：是要拿到Variable, value 是 MonoDescriptable
+    //
+    //     public VarBlackboard GetVarBlackboardDescriptable => GetVarRaw() as VarBlackboard;
+    //
+    //     [PreviewInInspector]
+    //     public DescriptableData SampleData =>
+    //         GetVarBlackboardDescriptable?.SampleData;
+    // }
 
     //這個好像是正解喔？封裝完只需要宣告一個field, assign一個tag就能拿到了
     //從parent的VariableOwner拿到Variable
@@ -52,247 +52,247 @@ namespace MonoFSM.Core.DataProvider
     //FIXME:好像還是要把常用的Property包掉，否則很難用
 
     //Serializable至少都不會掉內容，不要用SerializeReference
-    [Serializable]
-    public class VariableProvider<TVarMonoType, TValueType> //: IVariableProvider, IVarTagProperty, IConfigVar
-        where TVarMonoType : AbstractMonoVariable
-    {
-        public override string ToString()
-        {
-            return GetValue().ToString();
-        }
-
-        public Type GetValueType => typeof(TValueType);
-
-        public TVarMonoType GetVar()
-        {
-            return GetVar<TVarMonoType>();
-        }
-
-        [ShowInDebugMode]
-        [FormerlySerializedAs("propertyParent")] [SerializeReferenceParentValidate] [SerializeField]
-        private MonoBehaviour _propertyParent;
-
-        private MonoBehaviour CurrentTarget
-        {
-            get
-            {
-                if (_currentTarget == null)
-                    return _propertyParent;
-                return _currentTarget;
-            }
-        }
-
-        [ShowInDebugMode] private MonoBehaviour _currentTarget;
-
-        //Dynamic Parent
-        public AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target)
-        {
-            _currentTarget = target;
-            FetchOwner(target);
-            //FIXME:
-            return GetVarRaw();
-        }
-
-        public TValueType GetValueFrom(MonoBehaviour target)
-        {
-            _currentTarget = target;
-            FetchOwner(target);
-            return Value;
-        }
-
-        private bool TypeCheckFail()
-        {
-            if (_varTag == null) return false;
-            return typeof(TValueType).IsAssignableFrom(_varTag._valueFilterType.RestrictType) == false;
-        }
-
-        //FIXME: dropdown validate? 多檢查parent的owner? dropdown tag?
-        [BoxGroup("varTag")]
-        [FormerlySerializedAs("varTag")]
-        [InfoBox("Tag Type is wrong", InfoMessageType.Error, nameof(TypeCheckFail))]
-        [Required]
-        public VariableTag _varTag;
-
-        [BoxGroup("varTag")]
-        [ShowInInspector]
-        [ValueDropdown(nameof(GetParentVariableTags))]
-        private VariableTag DropDownVarTag
-        {
-            set => _varTag = value;
-            get => _varTag;
-        }
-        //FIXME: 拿到Variable的方式還是要很多種？
-        //用varTag, monoTag直接找到 variable
-        //從VarMono, 拿到他的variable
-
-        private void OnGlobalMonoTagChange()
-        {
-            _runtimeCachedOwner = null;
-        }
-
-        private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
-        {
-            var parents = CurrentTarget.GetComponentsInParent<MonoBlackboard>();
-            var tags = new List<ValueDropdownItem<VariableTag>>();
-            foreach (var parent in parents)
-            foreach (var variable in parent.VariableFolder.GetValues)
-                if (variable is TVarMonoType)
-                    tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
-
-            return tags;
-        }
-
-        private IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
-        {
-            var parents = CurrentTarget.GetComponentsInParent<MonoDescriptable>();
-            var tags = new List<ValueDropdownItem<MonoDescriptableTag>>();
-            foreach (var parent in parents)
-                tags.Add(new ValueDropdownItem<MonoDescriptableTag>(parent.Tag.name, parent.Tag));
-
-            return tags;
-        }
-
-        // [ValueDropdown(nameof(GetGlobalMonoTags))] [OnValueChanged(nameof(OnGlobalMonoTagChange))]
-        //FIXME: 1. 常常會空著
-        public MonoDescriptableTag _parentMonoTag; //空的話就是自己
-
-        [ShowInDebugMode]private Type variableValueType => typeof(TValueType);
-        //FIXME:也可以用string拿？
-        // MonoDescriptable parentDescriptable => propertyParent.GetComponentInParent<MonoDescriptable>();
-
-        //prefab裏可以不用有
-        //FIXME: 這個auto parent是不是不會跑到？是靠Inspector code才抓到的
-        //FIXME: 這樣沒有辦法提早cache?
-        // [AutoParent]
-        [ShowInDebugMode]
-        public MonoBlackboard owner
-        {
-            get
-            {
-                if (Application.isPlaying && _runtimeCachedOwner != null) //runtime才要cache
-                    return _runtimeCachedOwner;
-
-                _runtimeCachedOwner = FetchOwner(CurrentTarget);
-                return _runtimeCachedOwner;
-            }
-        }
-
-        private MonoBlackboard FetchOwner(MonoBehaviour target)
-        {
-            if (target == null)
-            {
-                if (Application.isPlaying)
-                    Debug.LogError("Target is null", _propertyParent);
-                return null;
-            }
-
-            if (_parentMonoTag != null)
-            {
-                var monoCompInParent = target.GetMonoCompInParent(_parentMonoTag);
-                if (monoCompInParent == null) return null;
-                //FIXME: 
-                return monoCompInParent;
-            }
-
-            _runtimeCachedOwner = target.GetComponentInParent<MonoBlackboard>();
-            if (_runtimeCachedOwner == null)
-                Debug.LogError("VariableOwner InParent is null at:" + target, target);
-            return _runtimeCachedOwner;
-            // return _runtimeCachedOwner;
-        }
-
-        private MonoBlackboard _runtimeCachedOwner;
-
-        public void SetValue(TValueType value, MonoBehaviour byWho)
-        {
-            GetVarRaw().SetValue(value, byWho);
-        }
-
-        public TMonoVar GetVar<TMonoVar>() where TMonoVar : AbstractMonoVariable
-        {
-            return GetVarRaw() as TMonoVar;
-        }
-
-
-        [GUIColor(0.8f, 1.0f, 0.8f)]
-        [PreviewInInspector]
-        public TVarMonoType Variable => GetVarRaw(false) as TVarMonoType; //這個如果沒抓到不要噴error，preview用的
-
-        // [GUIColor(0.8f, 1.0f, 0.8f)]
-        // [PreviewInInspector]
-
-        public AbstractMonoVariable GetVarRaw(bool errorIfNotFound = true)
-        {
-            if (owner == null)
-            {
-                if (Application.isPlaying)
-                    Debug.LogError("Owner is null", CurrentTarget);
-                return null;
-            }
-
-            if (owner.VariableFolder == null)
-            {
-                if (Application.isPlaying)
-                    Debug.LogError("VariableFolder is null", CurrentTarget);
-                return null;
-            }
-
-            Debug.Log("GetVariable:" + _varTag+"owner:"+owner, owner);
-            var variable = owner.GetVariable(_varTag);
-            //FIXME: 怎麼樣算正常？
-            //bool isNullOk
-
-            if (variable == null && errorIfNotFound)
-                Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);
-
-            return variable;
-        }
-
-        // public AbstractMonoVariable VarRaw
-        // {
-        //     get
-        //     {
-        //         if (owner == null)
-        //         {
-        //             if (Application.isPlaying)
-        //                 Debug.LogError("Owner is null", CurrentTarget);
-        //             return null;
-        //         }
-        //
-        //         if (owner.VariableFolder == null)
-        //         {
-        //             if (Application.isPlaying)
-        //                 Debug.LogError("VariableFolder is null", CurrentTarget);
-        //             return null;
-        //         }
-        //
-        //         var variable = owner.GetVariable(_varTag);
-        //         //FIXME: 怎麼樣算正常？
-        //         //bool isNullOk
-        //         
-        //         if (variable == null)
-        //             Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);
-        //
-        //         return variable;
-        //     }
-        // }
-
-        // [ShowInInspector]
-        // RCGVariableFolder GetFolder =>  owner?.VariableFolder;
-        [ShowInDebugMode]
-        public TValueType Value => GetVarRaw(false) == null ? default : GetVarRaw(false).GetValue<TValueType>();
-
-        public VariableTag varTag
-        {
-            get => _varTag;
-            set => _varTag = value;
-        }
-
-        public object GetValue()
-        {
-            return Value;
-        }
-    }
+    // [Serializable]
+    // public class VariableProvider<TVarMonoType, TValueType> //: IVariableProvider, IVarTagProperty, IConfigVar
+    //     where TVarMonoType : AbstractMonoVariable
+    // {
+    //     public override string ToString()
+    //     {
+    //         return GetValue().ToString();
+    //     }
+    //
+    //     public Type GetValueType => typeof(TValueType);
+    //
+    //     public TVarMonoType GetVar()
+    //     {
+    //         return GetVar<TVarMonoType>();
+    //     }
+    //
+    //     [ShowInDebugMode]
+    //     [FormerlySerializedAs("propertyParent")] [SerializeReferenceParentValidate] [SerializeField]
+    //     private MonoBehaviour _propertyParent;
+    //
+    //     private MonoBehaviour CurrentTarget
+    //     {
+    //         get
+    //         {
+    //             if (_currentTarget == null)
+    //                 return _propertyParent;
+    //             return _currentTarget;
+    //         }
+    //     }
+    //
+    //     [ShowInDebugMode] private MonoBehaviour _currentTarget;
+    //
+    //     //Dynamic Parent
+    //     public AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target)
+    //     {
+    //         _currentTarget = target;
+    //         FetchOwner(target);
+    //         //FIXME:
+    //         return GetVarRaw();
+    //     }
+    //
+    //     public TValueType GetValueFrom(MonoBehaviour target)
+    //     {
+    //         _currentTarget = target;
+    //         FetchOwner(target);
+    //         return Value;
+    //     }
+    //
+    //     private bool TypeCheckFail()
+    //     {
+    //         if (_varTag == null) return false;
+    //         return typeof(TValueType).IsAssignableFrom(_varTag._valueFilterType.RestrictType) == false;
+    //     }
+    //
+    //     //FIXME: dropdown validate? 多檢查parent的owner? dropdown tag?
+    //     [BoxGroup("varTag")]
+    //     [FormerlySerializedAs("varTag")]
+    //     [InfoBox("Tag Type is wrong", InfoMessageType.Error, nameof(TypeCheckFail))]
+    //     [Required]
+    //     public VariableTag _varTag;
+    //
+    //     [BoxGroup("varTag")]
+    //     [ShowInInspector]
+    //     [ValueDropdown(nameof(GetParentVariableTags))]
+    //     private VariableTag DropDownVarTag
+    //     {
+    //         set => _varTag = value;
+    //         get => _varTag;
+    //     }
+    //     //FIXME: 拿到Variable的方式還是要很多種？
+    //     //用varTag, monoTag直接找到 variable
+    //     //從VarMono, 拿到他的variable
+    //
+    //     private void OnGlobalMonoTagChange()
+    //     {
+    //         _runtimeCachedOwner = null;
+    //     }
+    //
+    //     private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
+    //     {
+    //         var parents = CurrentTarget.GetComponentsInParent<MonoBlackboard>();
+    //         var tags = new List<ValueDropdownItem<VariableTag>>();
+    //         foreach (var parent in parents)
+    //         foreach (var variable in parent.VariableFolder.GetValues)
+    //             if (variable is TVarMonoType)
+    //                 tags.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+    //
+    //         return tags;
+    //     }
+    //
+    //     private IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
+    //     {
+    //         var parents = CurrentTarget.GetComponentsInParent<MonoDescriptable>();
+    //         var tags = new List<ValueDropdownItem<MonoDescriptableTag>>();
+    //         foreach (var parent in parents)
+    //             tags.Add(new ValueDropdownItem<MonoDescriptableTag>(parent.Tag.name, parent.Tag));
+    //
+    //         return tags;
+    //     }
+    //
+    //     // [ValueDropdown(nameof(GetGlobalMonoTags))] [OnValueChanged(nameof(OnGlobalMonoTagChange))]
+    //     //FIXME: 1. 常常會空著
+    //     public MonoDescriptableTag _parentMonoTag; //空的話就是自己
+    //
+    //     [ShowInDebugMode]private Type variableValueType => typeof(TValueType);
+    //     //FIXME:也可以用string拿？
+    //     // MonoDescriptable parentDescriptable => propertyParent.GetComponentInParent<MonoDescriptable>();
+    //
+    //     //prefab裏可以不用有
+    //     //FIXME: 這個auto parent是不是不會跑到？是靠Inspector code才抓到的
+    //     //FIXME: 這樣沒有辦法提早cache?
+    //     // [AutoParent]
+    //     [ShowInDebugMode]
+    //     public MonoBlackboard owner
+    //     {
+    //         get
+    //         {
+    //             if (Application.isPlaying && _runtimeCachedOwner != null) //runtime才要cache
+    //                 return _runtimeCachedOwner;
+    //
+    //             _runtimeCachedOwner = FetchOwner(CurrentTarget);
+    //             return _runtimeCachedOwner;
+    //         }
+    //     }
+    //
+    //     private MonoBlackboard FetchOwner(MonoBehaviour target)
+    //     {
+    //         if (target == null)
+    //         {
+    //             if (Application.isPlaying)
+    //                 Debug.LogError("Target is null", _propertyParent);
+    //             return null;
+    //         }
+    //
+    //         if (_parentMonoTag != null)
+    //         {
+    //             var monoCompInParent = target.GetMonoCompInParent(_parentMonoTag);
+    //             if (monoCompInParent == null) return null;
+    //             //FIXME: 
+    //             return monoCompInParent;
+    //         }
+    //
+    //         _runtimeCachedOwner = target.GetComponentInParent<MonoBlackboard>();
+    //         if (_runtimeCachedOwner == null)
+    //             Debug.LogError("VariableOwner InParent is null at:" + target, target);
+    //         return _runtimeCachedOwner;
+    //         // return _runtimeCachedOwner;
+    //     }
+    //
+    //     private MonoBlackboard _runtimeCachedOwner;
+    //
+    //     public void SetValue(TValueType value, MonoBehaviour byWho)
+    //     {
+    //         GetVarRaw().SetValue(value, byWho);
+    //     }
+    //
+    //     public TMonoVar GetVar<TMonoVar>() where TMonoVar : AbstractMonoVariable
+    //     {
+    //         return GetVarRaw() as TMonoVar;
+    //     }
+    //
+    //
+    //     [GUIColor(0.8f, 1.0f, 0.8f)]
+    //     [PreviewInInspector]
+    //     public TVarMonoType Variable => GetVarRaw(false) as TVarMonoType; //這個如果沒抓到不要噴error，preview用的
+    //
+    //     // [GUIColor(0.8f, 1.0f, 0.8f)]
+    //     // [PreviewInInspector]
+    //
+    //     public AbstractMonoVariable GetVarRaw(bool errorIfNotFound = true)
+    //     {
+    //         if (owner == null)
+    //         {
+    //             if (Application.isPlaying)
+    //                 Debug.LogError("Owner is null", CurrentTarget);
+    //             return null;
+    //         }
+    //
+    //         if (owner.VariableFolder == null)
+    //         {
+    //             if (Application.isPlaying)
+    //                 Debug.LogError("VariableFolder is null", CurrentTarget);
+    //             return null;
+    //         }
+    //
+    //         Debug.Log("GetVariable:" + _varTag+"owner:"+owner, owner);
+    //         var variable = owner.GetVariable(_varTag);
+    //         //FIXME: 怎麼樣算正常？
+    //         //bool isNullOk
+    //
+    //         if (variable == null && errorIfNotFound)
+    //             Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);
+    //
+    //         return variable;
+    //     }
+    //
+    //     // public AbstractMonoVariable VarRaw
+    //     // {
+    //     //     get
+    //     //     {
+    //     //         if (owner == null)
+    //     //         {
+    //     //             if (Application.isPlaying)
+    //     //                 Debug.LogError("Owner is null", CurrentTarget);
+    //     //             return null;
+    //     //         }
+    //     //
+    //     //         if (owner.VariableFolder == null)
+    //     //         {
+    //     //             if (Application.isPlaying)
+    //     //                 Debug.LogError("VariableFolder is null", CurrentTarget);
+    //     //             return null;
+    //     //         }
+    //     //
+    //     //         var variable = owner.GetVariable(_varTag);
+    //     //         //FIXME: 怎麼樣算正常？
+    //     //         //bool isNullOk
+    //     //         
+    //     //         if (variable == null)
+    //     //             Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);
+    //     //
+    //     //         return variable;
+    //     //     }
+    //     // }
+    //
+    //     // [ShowInInspector]
+    //     // RCGVariableFolder GetFolder =>  owner?.VariableFolder;
+    //     [ShowInDebugMode]
+    //     public TValueType Value => GetVarRaw(false) == null ? default : GetVarRaw(false).GetValue<TValueType>();
+    //
+    //     public VariableTag varTag
+    //     {
+    //         get => _varTag;
+    //         set => _varTag = value;
+    //     }
+    //
+    //     public object GetValue()
+    //     {
+    //         return Value;
+    //     }
+    // }
 
     public interface IVarTagProperty //給Drawer拿來用的, 必須是property才需要被折疊 (State.Expand
     {

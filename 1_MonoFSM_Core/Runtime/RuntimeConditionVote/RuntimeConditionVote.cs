@@ -104,6 +104,7 @@ namespace MonoFSM.Runtime.Vote
             OnVoteChange?.Invoke(value);
         }
 
+        //FIXME: 有做這個耶！ 統一事件的實作
         public UnityEvent<bool> OnVoteChange = new UnityEvent<bool>();
 
         private GetDefaultValueDelegate _getDefaultValueDelegate;

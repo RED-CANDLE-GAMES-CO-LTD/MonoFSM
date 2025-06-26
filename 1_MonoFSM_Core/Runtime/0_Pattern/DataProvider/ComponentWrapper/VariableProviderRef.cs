@@ -28,7 +28,7 @@ namespace MonoFSM.Core.DataProvider
     //TODO: FIXME: drag drop reference後，自動填入tag/monoTag
     //隱含有Parent VariableOwner的概念是不是不太好？
     public abstract class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
-        IValueProvider<TValueType>, IVariableProvider, IStringProvider
+        IVariableProvider //, IStringProvider,IValueProvider<TValueType>
         where TVarMonoType : AbstractMonoVariable
     {
         // private void OnValidate()
@@ -117,7 +117,7 @@ namespace MonoFSM.Core.DataProvider
         
         [BoxGroup("varTag")]
         [ShowInInspector]
-        [ValueDropdown(nameof(GetParentVariableTags))]
+        [ValueDropdown(nameof(GetParentVariableTags), NumberOfItemsBeforeEnablingSearch = 5)]
         private VariableTag DropDownVarTag
         {
             set => _varTag = value;
@@ -207,22 +207,34 @@ namespace MonoFSM.Core.DataProvider
 
                 case GetFromType.GlobalInstance:
 
+                    // Debug.Log("GetFromType.GlobalInstance", this);
                     var instance = CurrentTarget.GetGlobalInstance(_blackboardTag);
                     if (instance == null)
                     {
                         //從MonoDescriptableTag找到varTag (schema一定會一致嗎？不一定)
                         var parentMonoVarTags = _blackboardTag.containsVariableTypeTags;
+              
                         foreach (var parentVarTag in parentMonoVarTags)
                         {
-                            tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(parentVarTag.name, parentVarTag));
+                            Debug.Log("TValueType: " + typeof(TValueType) +
+                                      " restrictType: " + parentVarTag._valueFilterType.RestrictType, this);
+                            if (typeof(TValueType).IsAssignableFrom(parentVarTag._valueFilterType.RestrictType))
+                                tagDropdownItems.Add(
+                                    new ValueDropdownItem<VariableTag>(parentVarTag.name, parentVarTag));
                         }
                         return tagDropdownItems;
                     }
 
+                    Debug.Log("TVarMonoType: " + typeof(TVarMonoType));
+
                     //從instance直接找variable
                     foreach (var variable in instance.VariableFolder.GetValues)
+                    {
+                   
                         if (variable is TVarMonoType)
                             tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+                    }
+                        
 
                     break;
                 case GetFromType.ParentVarOwner:

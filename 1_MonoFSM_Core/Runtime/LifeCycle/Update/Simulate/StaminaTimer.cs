@@ -3,10 +3,13 @@ using MonoFSM.Core.Simulate;
 using MonoFSM.Core.Attributes; // For DropDownRef, PreviewInInspector
 using MonoFSM.Variable; // For VarFloat, VarStat, VarBool
 using UnityEngine;
+using UnityEngine.Serialization;
 
 // 耐力條，體幹..應該都可以用這個套？ (Stamina bar, posture... should be usable with this?)
 // Refactored to handle stamina recovery with pause on external consumption.
 //FIXME: timer?TickTimer 情境code...
+//countdown timer?
+[DefaultExecutionOrder(100)]
 public class StaminaTimer : MonoBehaviour, IUpdateSimulate 
 {
     [Header("Stamina Properties")]
@@ -27,6 +30,11 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
     [SerializeField]
     private VarStat _waitTimeToRecover;
 
+    [Tooltip(
+        "The amount of stamina to recover in a single step. Recovery progress will accumulate, and stamina will be added in chunks of this size.")]
+    [SerializeField]
+    private float _recoveryStepUnit = -1f;
+
     // [Header("Consumption State")]
     // [Tooltip(
     //     "A boolean flag indicating if stamina is currently being consumed by an external system. Recovery pauses if true.")]
@@ -43,7 +51,10 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
     [Header("Internal State")]
     [PreviewInInspector]
     [Tooltip("Tracks the time elapsed while waiting to start recovery.")]
-    private float pauseTimeCounter;
+    private float _pauseTimeCounter;
+
+    [PreviewInInspector] [Tooltip("Accumulates recovery progress for step-based recovery.")]
+    private float _recoveryAccumulator;
 
     public enum CountType
     {
@@ -51,7 +62,8 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
         Pause // Recovery is paused (due to active consumption, waiting period, or stamina being full).
     }
 
-    [PreviewInInspector] public CountType countType = CountType.Pause; // Initial state.
+    [FormerlySerializedAs("countType")] [PreviewInInspector]
+    public CountType _countType = CountType.Pause; // Initial state.
 
     private float IncreaseSpeed => _recoverRateStat != null ? _recoverRateStat.FinalValue : 1f;
     private float WaitTimeToRecoverValue => _waitTimeToRecover != null ? _waitTimeToRecover.FinalValue : 0f;
@@ -79,36 +91,43 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
         // Debug.Log(
         //     $"Decreasing _currentValue.IsDecreasing{_currentValue.IsDecreasing}");
         // If stamina is being consumed, always pause recovery and reset the wait timer.
-        if (_currentValue.IsDecreasing)
+
+        //失敗？
+        if (_currentValue.IsDecreasing) //FIXME: 必須後執行，不好！
         {
             // Debug.Log(
             //     $"Stamina is being consumed, pausing recovery. Current Stamina: {currentStamina}, Max Stamina: {maxStamina}");
-            countType = CountType.Pause;
-            pauseTimeCounter = 0f;
+            _countType = CountType.Pause;
+            _pauseTimeCounter = 0f;
+            _recoveryAccumulator = 0f; // Reset accumulator on consumption.
             return; // Stop further processing for recovery this frame.
         }
 
         // if (!_currentValue.IsMax)
         //     Debug.Log(
         //         $"Stamina timer update: Current Stamina: {currentStamina}, Max Stamina: {maxStamina}, CountType: {countType}");
-        
-        switch (countType)
+
+        switch (_countType)
         {
             case CountType.Pause:
                 
                 // If stamina is not full, start/continue the wait timer.
                 if (currentStamina < maxStamina)
                 {
-                    pauseTimeCounter += deltaTime;
-                    
-                    if (pauseTimeCounter >= WaitTimeToRecoverValue) countType = CountType.Increase;
+                    _pauseTimeCounter += deltaTime;
+
+                    if (_pauseTimeCounter >= WaitTimeToRecoverValue)
+                    {
+                        _countType = CountType.Increase;
+                        _recoveryAccumulator = 0f; // Reset when starting to recover.
+                    }
                     // pauseTimeCounter will naturally be reset when moving to Pause state later (e.g., when full)
                     // or if consumption starts again.
                 }
                 else // Stamina is full (or somehow over max, clamp it)
                 {
                     _currentValue.SetValue(maxStamina, this); // Ensure it's clamped to max.
-                    pauseTimeCounter = 0f; // Reset timer as we are full and paused.
+                    _pauseTimeCounter = 0f; // Reset timer as we are full and paused.
                 }
 
                 break;
@@ -117,22 +136,49 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
                 // If stamina is not full, recover it.
                 if (currentStamina < maxStamina)
                 {
-                    currentStamina += IncreaseSpeed * deltaTime;
-                    var clamped = Mathf.Min(currentStamina, maxStamina); // Apply and clamp
-                    _currentValue.SetValue(clamped, this); // Set the clamped value to the stamina variable.
+                    if (_recoveryStepUnit <= 0)
+                    {
+                        // When recovery step unit is not set, add stamina directly.
+                        currentStamina += IncreaseSpeed * deltaTime;
+                        var clamped = Mathf.Min(currentStamina, maxStamina); // Apply and clamp
+                        _currentValue.SetValue(clamped, this); // Set the clamped value to the stamina variable.
+                    }
+                    else
+                    {
+                        // Accumulate recovery progress based on recovery rate.
+                        _recoveryAccumulator += IncreaseSpeed * deltaTime;
+
+                        // If accumulated progress reaches the step unit, add stamina.
+                        if (_recoveryAccumulator >= _recoveryStepUnit)
+                        {
+                            // Calculate how many full steps we can take.
+                            var steps = Mathf.FloorToInt(_recoveryAccumulator / _recoveryStepUnit);
+                            var staminaToAdd = steps * _recoveryStepUnit;
+
+                            // Add the stamina and subtract the "cashed-in" amount from the accumulator.
+                            currentStamina += staminaToAdd;
+                            _recoveryAccumulator -= staminaToAdd;
+
+                            var clamped = Mathf.Min(currentStamina, maxStamina); // Apply and clamp
+                            _currentValue.SetValue(clamped, this); // Set the clamped value to the stamina variable.
+                            Debug.Log("Increase Stamina: " + staminaToAdd + ", New Stamina: " + clamped);
+                        }
+                    }
 
                     // If stamina becomes full as a result of recovery, transition to Pause.
                     if (_currentValue.CurrentValue >= maxStamina)
                     {
-                        countType = CountType.Pause;
-                        pauseTimeCounter = 0f; // Reset wait timer for the next cycle.
+                        _countType = CountType.Pause;
+                        _pauseTimeCounter = 0f; // Reset wait timer for the next cycle.
+                        _recoveryAccumulator = 0f; // Reset accumulator.
                     }
                 }
                 else // Should ideally not be in Increase state if already full, but as a safeguard:
                 {
                     _currentValue.SetValue(maxStamina, this); // Ensure it's clamped.
-                    countType = CountType.Pause;
-                    pauseTimeCounter = 0f;
+                    _countType = CountType.Pause;
+                    _pauseTimeCounter = 0f;
+                    _recoveryAccumulator = 0f; // Reset accumulator.
                 }
 
                 break;

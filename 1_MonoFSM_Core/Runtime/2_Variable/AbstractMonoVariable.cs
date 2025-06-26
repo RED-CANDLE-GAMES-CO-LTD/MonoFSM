@@ -6,6 +6,7 @@ using MonoFSM.Variable.VariableBinder;
 using RCGExtension;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.VarRef;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -26,8 +27,36 @@ namespace MonoFSM.Variable
         //UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");
 #endif
 
-        public UnityAction OnValueChangedRaw; //任何數值改變就通知, UI有用到很重要 //override?
+        //FIXME: 這個不能被Debug「看」，不好用... AddListener 的形式比較好
+        // private UnityAction OnValueChangedRaw; //任何數值改變就通知, UI有用到很重要 //override?
 
+        private HashSet<IVarChangedListener> _dataChangedListeners; //有誰有用我，binder綁一下
+        //fuck!?
+
+        //倒著，事件鏈超難trace
+        public void OnValueChanged()
+        {
+            if (!Application.isPlaying)
+                return;
+            if (_dataChangedListeners != null)
+                foreach (var item in _dataChangedListeners)
+                    item.OnVarChanged(this);
+            // OnValueChangedRaw?.Invoke();
+            // Debug.Log("OnValueChanged", this);
+        }
+
+        public void AddListener(IVarChangedListener target)
+        {
+            if (_dataChangedListeners == null)
+                _dataChangedListeners = new HashSet<IVarChangedListener>();
+            _dataChangedListeners.Add(target);
+        }
+
+        public void RemoveListener(IVarChangedListener target)
+        {
+            _dataChangedListeners.Remove(target);
+        }
+        
         [Button]
         private void UpdateTag()
         {
@@ -60,10 +89,7 @@ namespace MonoFSM.Variable
             // Debug.Log("CreateTagPostProcess" + varTag._variableType.RestrictType + varTag._valueFilterType.RestrictType,
             //     varTag);
         }
-
-        // public abstract void CommitValue();
-        // public abstract GameFlagBase FinalData { get; } //FIXME: 這是啥？可以拔掉嗎？
-        // public abstract Type FinalDataType { get; }
+        
         public abstract Type ValueType { get; }
 
         public abstract object objectValue { get; } //不好？generic value?
@@ -89,7 +115,8 @@ namespace MonoFSM.Variable
         public void SetValue<T>(T value, Object byWho)
         {
             SetValueInternal(value, byWho);
-            OnValueChangedRaw?.Invoke(); //通知有人改變了
+            OnValueChanged();
+            // OnValueChangedRaw?.Invoke(); //通知有人改變了
             //FIXME: 如果還有什麼需要處理的？
         }
 

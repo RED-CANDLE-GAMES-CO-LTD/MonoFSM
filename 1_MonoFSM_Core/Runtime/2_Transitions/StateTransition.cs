@@ -13,10 +13,10 @@ using MonoFSM.Condition;
 
 public interface IState<in TState>
 {
-    GeneralFSMContext Context { get; }
+    // GeneralFSMContext Context { get; }
 
     bool TransitionCheck(TState toState);
-    bool TransitionCheck(TState toState, float timeOffset, StateTransition fromTransition = null);
+    // bool TransitionCheck(TState toState, float timeOffset, StateTransition fromTransition = null);
 }
 
 //FIXME:如果所有的condition都可以自行註冊，這個就不需要了，全部都用condition處理

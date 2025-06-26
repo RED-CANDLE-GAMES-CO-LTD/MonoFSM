@@ -18,6 +18,8 @@ namespace MonoFSM.Core.DataProvider
     //SOData來源 
     public interface IFloatProvider : IValueProvider<float> //用介面好處，但是會哭哭
     {
+        //監聽？
+        // public bool IsDirty { get; }
     }
 
     public interface IValueProvider<out T> : IValueProvider
@@ -28,12 +30,16 @@ namespace MonoFSM.Core.DataProvider
         {
             var value = Value;
             if (value is T1 t1Value) return t1Value;
-            throw new InvalidCastException($"Cannot cast {typeof(T)} to {typeof(T1)}");
+            return default;
+            // throw new InvalidCastException($"Cannot cast {typeof(T)} to {typeof(T1)}");
         }
 
 
         Type IValueProvider.ValueType => typeof(T);
+
+        //FIXME: valuechange?
     }
+    
 
     // [InlineProperty]
     // [Serializable]
@@ -93,39 +99,41 @@ namespace MonoFSM.Core.DataProvider
         {
             return _monoVar?.FinalValue.ToString();
         }
+
+        public bool IsDirty => _monoVar?.IsDirty ?? false;
     }
 
-    [Serializable]
-    public class VariableBoolProvider : VariableProvider<VarBool, bool>
-    {
-        public bool GetBool()
-        {
-            return Value;
-        }
-
-        public string Description => varTag?.name;
-    }
-
-    //平常都該用這個宣告？封裝過的VarFloat, 又有tag, 但沒有global instance
-    //serializeable class很噁心？
-    // [Obsolete]
-    //FIXME: 不該再用這種？非component的
-    [Serializable]
-    public class VariableFloatProvider : VariableProvider<VarFloat, float> //, IFloatProvider 反而不要用provider?
-    {
-        //這個只管了value, 沒有管是什麼var...
-        public float GetFloat()
-        {
-            return Value;
-        }
-
-        public string Description => varTag?.name;
-
-        public VarFloat GetVar()
-        {
-            return GetVar<VarFloat>();
-        }
-    }
+    // [Serializable]
+    // public class VariableBoolProvider : VariableProvider<VarBool, bool>
+    // {
+    //     public bool GetBool()
+    //     {
+    //         return Value;
+    //     }
+    //
+    //     public string Description => varTag?.name;
+    // }
+    //
+    // //平常都該用這個宣告？封裝過的VarFloat, 又有tag, 但沒有global instance
+    // //serializeable class很噁心？
+    // // [Obsolete]
+    // //FIXME: 不該再用這種？非component的
+    // [Serializable]
+    // public class VariableFloatProvider : VariableProvider<VarFloat, float> //, IFloatProvider 反而不要用provider?
+    // {
+    //     //這個只管了value, 沒有管是什麼var...
+    //     public float GetFloat()
+    //     {
+    //         return Value;
+    //     }
+    //
+    //     public string Description => varTag?.name;
+    //
+    //     public VarFloat GetVar()
+    //     {
+    //         return GetVar<VarFloat>();
+    //     }
+    // }
 
     // [Serializable]
     // public class VariableIntProvider : VariableProvider<VarInt, int>, IFloatProvider

@@ -121,11 +121,11 @@ namespace MonoFSM.Core.Detection
             //理論上不該打到別的東西，layer就擋掉了才對 (有分layer的話)
             if (!other.TryGetComponent<EffectDetectable>(out var spatialDetectable))
             {
-                Debug.LogError(other.name + " is not a EffectDetectable" + other.gameObject.layer, other);
+                // Debug.LogError(other.name + " is not a EffectDetectable" + other.gameObject.layer, other);
                 return;
             }
 
-            Debug.Log("OnSpatialEnter: " + spatialDetectable.name + " by " + gameObject.name, this);
+            // Debug.Log("OnSpatialEnter: " + spatialDetectable.name + " by " + gameObject.name, this);
             var detectData = new DetectData(this, spatialDetectable);
 
             if (point != null)

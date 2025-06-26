@@ -65,6 +65,7 @@ public class ValueChangedListener<T>
         toRemove?.Clear();
     }
 
+    //FIXME: 也可以直接塞介面？就不是彈性的隨便塞Action監聽
     private Dictionary<int, Tuple<Object, UnityAction<T>>> onChangeActionDict;
 
     [PreviewInInspector] private List<Object> ownersInDict 
@@ -169,7 +170,7 @@ public class ValueChangedListener<T>
 // [Serializable]
 public class FlagFieldModifier<T>
 {
-    public T OverrideValue;
+    public T OverrideValue; //FIXME: 這個是用來override的值嗎？ 啥？
     public IStatModifierOwner source;
     [PreviewInInspector] public Object sourceObj => source as Object;
 }
@@ -234,7 +235,7 @@ public class
 {
     [ShowInInspector] [ReadOnly]
     // private FlagFieldModifier<T> _modifier;
-    private List<FlagFieldModifier<T>> _modifiers = new();
+    private List<FlagFieldModifier<T>> _modifiers = new(); //FIXME: 這啥？
 
     public FlagField()
     {
@@ -260,7 +261,7 @@ public class
     //editor time value changed?
 
 
-    [GUIColor(0, 0.6f, 0.6f, 1)]
+    [GUIColor(0.3f, 0.7f, 0.7f, 1f)]
     [FormerlySerializedAs("DefaultValue")] public T ProductionValue;
 
     // public T PlayTestValue;
@@ -312,6 +313,7 @@ public class
         {
             if (Application.isPlaying == false)
                 return ProductionValue;
+            //強迫蓋值？
             return _modifiers.Count > 0 ? _modifiers[^1].OverrideValue : _currentValue;
         }
         //有modifier的話...
@@ -332,19 +334,19 @@ public class
         CurrentValue = LastValue;
     }
 
-    public void CommitValue() //state update之後，要commit
+    public (T lastValue, T currentValue) CommitValue() //state update之後，要commit
     {
-        // if (owner is MonoBehaviour mono)
-        //     mono.Log("FlagField CommitValue: ", CurrentValue);
-        // Debug.Log("FlagField CommitValue: " + CurrentValue, owner);
+        if (owner is MonoBehaviour mono)
+            mono.Log("FlagField CommitValue: ", CurrentValue);
+        // owner.Log("FlagField CommitValue: ", CurrentValue);
+        var old = _lastValue;
         _lastValue = CurrentValue;
+        return (old, _lastValue);
     }
 
     [ShowInDebugMode] private ValueChangedListener<T> listener; //好像可以把監聽對象丟出來看？
     // [ShowInDebugMode] private ValueChangedListener<T> listenerOnce = new();
-    [ShowInDebugMode]
-    private UnityAction _onChangeAction;
-    // private ValueChangedListener<object, object, T> listenerDict;
+    [ShowInDebugMode] private UnityAction _onChangeAction;
 
     // public void AddListener<TTarget, TParam>(TTarget target, TParam param, UnityAction<TTarget, TParam, T> callback)
     //     where TTarget : Object
@@ -354,6 +356,11 @@ public class
     //     listenerDict.AddListenerDict(target, param, callback as UnityAction<object, object, T>);
     // }
 
+    /// <summary>
+    /// <seealso cref="GenericMonoVariable.EnterSceneStart"/> variable會做監聽
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="owner"></param>
     public void AddListener(UnityAction action, Object owner)
     {
         _onChangeAction += action;

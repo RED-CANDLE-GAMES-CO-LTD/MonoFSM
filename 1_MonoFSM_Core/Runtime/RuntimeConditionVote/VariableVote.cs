@@ -2,6 +2,7 @@ using System;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using UnityEngine;
+using UnityEngine.Events;
 using Object = UnityEngine.Object;
 
 namespace MonoFSM.Runtime.Vote
@@ -13,6 +14,12 @@ namespace MonoFSM.Runtime.Vote
         public RuntimeConditionVote Vote => _vote;
         // public override GameFlagBase FinalData { get; }
         // public override Type FinalDataType { get; }
+        // public override void AddListener<T>(UnityAction<T> action)
+        // {
+        //     if (action == null) return;
+        //     throw new NotImplementedException("MonoVariableVote does not support AddListener with UnityAction<T>.");
+        // }
+
         public override Type ValueType => typeof(bool);
         public override object objectValue => _vote.Result;
 

@@ -33,6 +33,7 @@ namespace RCGSetting
                 
                 ScriptingDefineUtility.Add("RCG_DEV", EditorUserBuildSettings.selectedBuildTargetGroup, true);
                 IsDebugMode = EditorPrefs.GetBool("DebugSetting.IsDebugMode", false);
+                HierarchyDebug.IsDebugMode = IsDebugMode;
             }
             // Shared team settings
             // [UserSetting("Auto-add BlackBox component", "To new Prefabs", 

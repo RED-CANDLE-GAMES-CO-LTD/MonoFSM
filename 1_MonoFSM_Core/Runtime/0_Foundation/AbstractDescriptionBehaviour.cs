@@ -57,7 +57,7 @@ namespace MonoFSM.Foundation
 
             return false;
         }
-        
+
         [AutoParent] protected MonoDescriptable _self;
 
         //介面上也顯示？textarea?
@@ -96,7 +96,7 @@ namespace MonoFSM.Foundation
 #endif
         }
 
-       
+
         protected virtual bool HasError()
         {
             //FIXME: Reference Required error? 用reflection找？DropDownRef也是？ cached field會OK嗎？每個type做一次ㄋ

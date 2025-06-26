@@ -19,6 +19,7 @@ using MonoFSM.RCGMakerFSMCore.Tracking;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
+using UnityEngine.Events;
 
 //FIXME: autoGen太複雜，可能需要再拆漂亮
 //TODO: 現在根本還沒做監聽，是用condition做polling
@@ -33,8 +34,17 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 {
     //想要直接選一個field就拿他的值，應該抽出去做成一個新東西不要放在GenericVariable裡面
     //VariableFloat應該獨立寫？這樣就一定可以有一個最好的abstract class
-    public void CommitValue() 
-        => Field.CommitValue();
+    public void CommitValue()
+    {
+        var (last, current) = Field.CommitValue();
+        ValueCommited(last, current);
+    }
+
+
+    //可以用abstract比較好？但目前只用到VarFloat
+    protected virtual void ValueCommited(TType lastValue, TType currentValue)
+    {
+    }
 
     public void SetValue(object value, MonoBehaviour byWho)
     {
@@ -138,8 +148,25 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     public void EnterSceneStart()
     {
-        Field.AddListener((value)=>{OnValueChangedRaw?.Invoke();},this);
+        RegisterValueChange();
     }
+
+    // public override void AddListener<T>(UnityAction<T> action)
+    // {
+    //     if (action == null) return;
+    //     // this.Log("[Variable] AddListener", action);
+    //     if (action is UnityAction<TType> actionT)
+    //         Field.AddListener(actionT, this);
+    //     else
+    //         Debug.LogError("AddListener Type Error", this);
+    // }
+
+
+    protected virtual void RegisterValueChange()
+    {
+        Field.AddListener((value) => { OnValueChanged(); }, this);
+    }
+    
     [FormerlySerializedAs("scriptableData")]
     
     //FIXME: 這個錯了...要有特定設計tag，才是在prefab上不要gen
@@ -193,7 +220,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
 
     //不同type不同類型的modifier
     [PreviewInInspector] [Component] [AutoChildren]
-    protected AbstractVariableModifier<TType>[] _modifiers;
+    protected AbstractVariableModifier<TType>[] _modifiers; //bound modifier?
 
     // [TabGroup("Data")]
     // [PreviewInInspector]

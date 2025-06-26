@@ -25,30 +25,31 @@ public interface IStatModifierOwner //是誰改數值的
     public bool IsActivated { get; }
 }
 
-[System.Serializable]
-public class StatModifierPro : IStatModifer
-{
-    public VariableFloatProvider _targetProvider;
-    public VariableFloatProvider _valueProvider;
-    public StatModType _type = StatModType.Flat;
-    public int _order;
-
-    public VariableTag targetStatTag => _targetProvider._varTag;
-    public int GetOrder => _order;
-    public StatModType GetModType => _type;
-    public float GetValue => _valueProvider.Value;
-    public Object Source => _targetProvider.Variable;
-    public bool IsValid => true;
-}
+// [System.Serializable]
+// public class StatModifierPro : IStatModifer
+// {
+//     public VariableFloatProvider _targetProvider;
+//     public VariableFloatProvider _valueProvider;
+//     public StatModType _type = StatModType.Flat;
+//     public int _order;
+//
+//     public VariableTag targetStatTag => _targetProvider._varTag;
+//     public int GetOrder => _order;
+//     public StatModType GetModType => _type;
+//     public float GetValue => _valueProvider.Value;
+//     public Object Source => _targetProvider.Variable;
+//     public bool IsValid => true;
+// }
 
 public interface IStatModifer
 {
-    public VariableTag targetStatTag { get; }
+    public VariableTag targetStatTag { get; } //為什麼要這個？
     public int GetOrder { get; }
     public StatModType GetModType { get; }
     public float GetValue { get; }
     public Object Source { get; }
     bool IsValid { get; }
+    public bool IsDirty { get; } //這個是用來判斷是否需要重新計算的？還是說每次都要計算？ ///可是這樣要重新resolve?
 }
 
 [System.Serializable]
@@ -64,6 +65,7 @@ public class StatModifier : IStatModifer //以前是給Characterstat用的
     [ShowInInspector] public Object _source;
     public Object Source => _source;
     public bool IsValid => true;
+    public bool IsDirty => false; //不可能會變
 
     public void SetSource(Object source)
     {

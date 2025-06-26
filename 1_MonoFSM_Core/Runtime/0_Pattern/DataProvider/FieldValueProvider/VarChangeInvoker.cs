@@ -7,16 +7,13 @@ using UnityEngine;
 
 namespace MonoFSM.Core.DataProvider
 {
-    // public interface IFieldValueProvider
-    // {
-    //     public Object targetObject { get; }
-    // }
-
-    public class VarChangeInvoker : MonoBehaviour, IResetStart
+    //FIXME: 什麼時候提示要裝這個才會更新？？
+    //如果Polling就不需要這個了
+    public class VarChangeInvoker : MonoBehaviour, IResetStart, IDataChangedProvider, IVarChangedListener
     {
         [Required] [CompRef] [Auto] private AbstractVariableProviderRef _variableProviderRef; //當這個var值變化時
         [Required] [CompRef] [Auto] private AbstractFieldOfVarProvider _fieldOfVarProvider; //用這個值
-        [Required] [CompRef] [Auto] private IDataChangedListener _dataChangedListener; //給這個對象
+        [Required] [CompRef] [Auto] private IDataChangedListener _dataChangedListener;
 
 //Proxy updater要怎麼辦？沒有備注冊進去？
         public void ResetStart() //FIXME: 應該在這註冊？還是scene註冊一次就好？
@@ -25,9 +22,10 @@ namespace MonoFSM.Core.DataProvider
             //這個variable已經準備好了嗎？
             if (listenToVar)
             {
-                listenToVar.OnValueChangedRaw += OnValueChanged;
-                Debug.Log("Bind Variable", this);
-                _dataChangedListener.OnDataChanged(_fieldOfVarProvider.targetObject);
+                //FIXME: update polling通知？通知就是一種事件... polling?
+                // listenToVar.OnValueChangedRaw += OnValueChanged;
+                listenToVar.AddListener(this);
+                OnVarChanged(listenToVar);
             }
             else
             {
@@ -38,11 +36,10 @@ namespace MonoFSM.Core.DataProvider
             }
         }
 
-        private void OnValueChanged()
+        // private AbstractMonoVariable ListenToVariable => _variableProviderRef.VarRaw;
+        public void OnVarChanged(AbstractMonoVariable variable)
         {
             _dataChangedListener.OnDataChanged(_fieldOfVarProvider.targetObject);
         }
-
-        // private AbstractMonoVariable ListenToVariable => _variableProviderRef.VarRaw;
     }
 }

@@ -38,8 +38,9 @@ namespace MonoFSM.Core.DataProvider
         public IEnumerable<ValueDropdownItem<string>> GetFieldOptions()
         {
             var options = new List<ValueDropdownItem<string>>();
-            var parentType = _serializedType.RestrictType;
-            if (parentType != null)
+            var pType = _serializedType.RestrictType;
+            Debug.Log("GetFieldOptions parentType:" + pType);
+            if (pType != null)
             {
                 // 取得所有 Field
                 // var fields = parentType.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -47,7 +48,7 @@ namespace MonoFSM.Core.DataProvider
                 //     options.Add(new ValueDropdownItem<string>(field.Name + ":" + field.FieldType, field.Name));
                 // 取得所有 Property（可讀取的）
                 var properties =
-                    parentType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    pType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                 foreach (var prop in properties)
                 {
                     if (!prop.CanRead) continue;

@@ -4,32 +4,66 @@ using MonoFSM.Condition;
 using UnityEngine;
 using UnityEngine.Events;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 
 namespace MonoFSM.Variable
 {
     // Gameplay Attributes
     //FIXME: 不需要狀態？應該要是一個Getter, IFloatProvider
-    public sealed class VarStat : VarFloat, IConditionChangeListener
+    public sealed class VarStat : VarFloat, IConditionChangeListener //dependency變化時變化
     {
+        //通知對象，通知者
         private float BaseValue => Field.ProductionValue;
-        private bool _isDirty = true; //set dirty?
+        private bool _isDirty = true; //set dirty? dependency有沒有dirty?
         private float _lastBaseValue;
         private float _value;
 
-        //FIXME: 有可能用ScriptableObject? 混用？還是monobehaviour比較好
-        [PreviewInInspector] [AutoChildren] private VariableStatModifier[] _localStatModifiers; //原本就放在下面..這是不是反而不會有太多用處
+        [ShowInPlayMode] public float ToBaseValueRatio => CurrentValue / BaseValue;
 
+        //FIXME: 有可能用ScriptableObject? 混用？還是monobehaviour比較好
+        [CompRef] [AutoChildren] private VariableStatModifier[] _localStatModifiers; //原本就放在下面..這是不是反而不會有太多用處
+        
+        
         // ValueChangedListener<float> listener;
         // [PreviewInInspector] List<VariableStatModifier> statModifiers = new();
 
+        
         [ShowInInspector] private List<IStatModifer> _statModifiers = new();
+
+        // private bool ModifiersDirtyCheck()
+        // {
+        //     //如果有一個modifier dirty了，就dirty, statmodifier不要自己算？
+        //     if (_statModifiers == null) return false;
+        //     foreach (var statModifier in _statModifiers)
+        //         if (statModifier.IsDirty)
+        //         {
+        //             _isDirty = true;
+        //             return true;
+        //         }
+        //
+        //     return false;
+        // }
+
+        protected override void RegisterValueChange()
+        {
+            base.RegisterValueChange();
+            if (_localStatModifiers == null) return;
+            foreach (var statModifier in _localStatModifiers) RegisterModifier(statModifier);
+        }
+        
 
         protected override void Awake()
         {
             base.Awake();
-            if (_localStatModifiers == null) return;
-            foreach (var statModifier in _localStatModifiers) _statModifiers.Add(statModifier);
+            //執行順序不可以在awake
+            // _statModifiers.Add(statModifier);
+        }
+
+        private void OnDestroy()
+        {
+            //這是不是多餘了？都要destroy了
+            foreach (var statModifier in _localStatModifiers) RemoveModifier(statModifier);
         }
 
         [ShowInPlayMode]
@@ -53,13 +87,16 @@ namespace MonoFSM.Variable
             get
             {
                 //FIXME: bound還要管嗎？
-                if (_isDirty) ForceCalValues();
+                // ModifiersDirtyCheck();
+                // if (_isDirty) 
+                ForceCalValues();
                 return _value;
             }
             //FIXME: 要可以set嗎？
             // set => _lastBaseValue = value; //hmm???
         }
 
+        [ShowInDebugMode]
         private float _lastValue;
 
         private float ValueAfterApplyModifier()
@@ -72,17 +109,21 @@ namespace MonoFSM.Variable
         }
 
         ///最重要的！
+        [Button]
         private float ForceCalValues() 
         {
             _isDirty = false;
             _lastValue = _value;
             _lastBaseValue = BaseValue;
-            var tempValue = ValueAfterApplyModifier();
+            var tempValue = ValueAfterApplyModifier(); //主要算
             if (_modifiers != null)
                 foreach (var modifier in _modifiers)
                     tempValue = modifier.AfterGetValueModifyCheck(tempValue);
             _value = tempValue;
-            if (_lastValue != _value) OnValueChangedRaw?.Invoke();
+
+            if (_lastValue != _value) OnValueChanged();
+
+            //所有人polling ecs?
             return _value;
         }
 
@@ -95,7 +136,7 @@ namespace MonoFSM.Variable
             for (var i = 0; i < statModifiers.Count; i++)
             {
                 var mod = statModifiers[i];
-                Debug.Log("Stat Modifier:" + mod.GetValue + mod.GetModType + " mod.IsValid:" + mod.IsValid);
+                // Debug.Log("Stat Modifier:" + mod.GetValue + mod.GetModType + " mod.IsValid:" + mod.IsValid);
                 if (mod.IsValid == false) continue;
                 switch (mod.GetModType)
                 {
@@ -156,7 +197,8 @@ namespace MonoFSM.Variable
         //     // listener.AddListenerDict(action, owner);
         // }
 
-        public void AddModifier(IStatModifer mod)
+        //Add a modifier to the stat, if it doesn't already exist
+        public void RegisterModifier(IStatModifer mod)
         {
             //FIXME: 真的可以這樣新增嗎？
             if (!_statModifiers.Contains(mod))
@@ -171,7 +213,8 @@ namespace MonoFSM.Variable
             }
         }
 
-        public void AddModifier(VariableStatModifier mod) //fixme: 可以用StatModifier就好嗎？
+        //動態的modifier必定要進來，所以我應該要看每個statmodifier是不是dirty了？
+        public void RegisterModifier(VariableStatModifier mod) //fixme: 可以用StatModifier就好嗎？
         {
             // Debug.Log("Add Stat modifier" + this);
             if (!_statModifiers.Contains(mod))
@@ -179,6 +222,12 @@ namespace MonoFSM.Variable
                 _isDirty = true;
                 _statModifiers.Add(mod);
                 var value = CurrentValue; //modifier改變，更新一下值
+                // 監聽 VariableStatModifier 的變化
+                //FIXME: 不該用這種？才比較好trace, AddListener的方式
+                // mod.OnValueChanged += SetDirty;
+                //mod必定綁到一個variable嗎？不一定
+
+                //FIXME: 監聽數值變化！
                 // Debug.Log("Character Stat Add Modifier" + mod.Value + mod.Type + ",result:" + value);
             }
             else
@@ -204,6 +253,8 @@ namespace MonoFSM.Variable
             {
                 _isDirty = true;
                 var value = CurrentValue; //modifier改變，更新一下值
+                // 解除監聽
+                // mod.OnValueChanged -= SetDirty;
                 return true;
             }
 

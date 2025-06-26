@@ -48,16 +48,15 @@ namespace MonoFSM.Core
         {
             return _dict.ContainsKey(key);
         }
-
-        //FIXME: 我還想要兩種key....tag.string? 一定給一個基底string?
-        // [ShowInInspector] protected IEnumerable<U> values => _dict.Values;
-        // [ShowInInspector] private List<U> items = new();
-        //FIXME: GetComponentInChildren?
-        // protected readonly Dictionary<T, TU[]> _dictAll = new();
-
+        
         protected readonly Dictionary<T, TU> _dict = new();
         protected readonly Dictionary<string, TU> _stringDict = new();
-        protected readonly Dictionary<Type, TU> _typeDict = new();
+
+        //FIXME: 如果一個type有多個實例，要用List<TU>? firstOrDefault? 好像是耶
+        //GetAll, 和GetComponentsInChildren<TU> 有點像 GetComponentsInChildren<TU>就回傳第一個
+        //用List還是HashSet好？
+        protected readonly Dictionary<Type, HashSet<TU>> _typeDict = new();
+        
         protected readonly List<T> _tempRemoveList = new();
 
         public bool Contains(T key)
@@ -110,10 +109,16 @@ namespace MonoFSM.Core
                 return;
             }
 
-
-            if (value is IGlobalInstance) //
+            if (value is IGlobalInstance)
             {
-                _typeDict[value.GetType()] = value;
+                var type = value.GetType();
+                if (!_typeDict.TryGetValue(type, out var set))
+                {
+                    set = new HashSet<TU>();
+                    _typeDict[type] = set;
+                }
+
+                set.Add(value);
             }
 
             if (isLog)
@@ -128,10 +133,17 @@ namespace MonoFSM.Core
             // enabled = true;
         }
 
-        public TU Get(Type type)
+        public HashSet<TU> GetAll(Type type)
         {
             EditorPrepareCheck();
             return _typeDict.GetValueOrDefault(type);
+        }
+
+        public TU Get(Type type)
+        {
+            EditorPrepareCheck();
+            var set = _typeDict.GetValueOrDefault(type);
+            return set != null ? System.Linq.Enumerable.FirstOrDefault(set) : default;
         }
 
         public TU Get(string key)
@@ -166,14 +178,21 @@ namespace MonoFSM.Core
         {
             if (key == null)
                 return false;
-            if (_dict.ContainsKey(key) == false)
+            if (_dict.TryGetValue(key, out var item) == false)
                 return false;
-            var item = _dict[key];
 
             try
             {
                 if (item != null)
                     RemoveImplement(item);
+                // Remove from _typeDict if present
+                var type = item.GetType();
+                if (_typeDict.TryGetValue(type, out var set))
+                {
+                    set.Remove(item);
+                    if (set.Count == 0)
+                        _typeDict.Remove(type);
+                }
             }
             catch (Exception e)
             {
@@ -284,7 +303,7 @@ namespace MonoFSM.Core
         public void EnterSceneAwake()
         {
             PrepareDictCheck();
-            Debug.Log("MonoDict EnterSceneAwake Dict", this);
+            // Debug.Log("MonoDict EnterSceneAwake Dict", this);
             // foreach (var key in _dict.Keys)
             // {
             //     Debug.Log("MonoDict Prepare" + key + " " + _dict[key], _dict[key] as Object);

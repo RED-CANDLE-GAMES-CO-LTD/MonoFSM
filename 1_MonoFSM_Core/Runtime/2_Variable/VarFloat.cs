@@ -15,15 +15,21 @@ namespace MonoFSM.Variable
     public class VarFloat : GenericMonoVariable<GameDataFloat, FlagFieldFloat, float>, ISerializedFloatValue,
         IHierarchyValueInfo
     {
+        public bool IsDirty => CurrentValue != LastValue; //這樣只會一個frame耶？完全不用resolve啊...?
         //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...? 
         // public override GameFlagBase FinalData => BindData;
 
         // public VariableTag Key => _varTag;
+        [ShowInDebugMode]
         public int IntValue => Mathf.CeilToInt(CurrentValue);
-        public float Percentage => (CurrentValue - Min) / (Max - Min);
-        public float Min => _boundModifier.MinValue;
-        public float Max => _boundModifier.MaxValue; //FIXME: Editor Time拿不到
 
+        [ShowInPlayMode]
+        public float Percentage => (CurrentValue - Min) / (Max - Min);
+
+        public float Min => _boundModifier ? _boundModifier.MinValue : float.MinValue;
+        public float Max => _boundModifier ? _boundModifier.MaxValue : float.MaxValue;
+
+    
         public override void OnBeforePrefabSave()
         {
             base.OnBeforePrefabSave();
@@ -41,8 +47,22 @@ namespace MonoFSM.Variable
         public bool IsMax => CurrentValue >= Max;
 
         [ShowInDebugMode]
-        public bool IsDecreasing => CurrentValue < LastValue;
+        public bool IsDecreasing =>
+            _lastDecreasingTime > 0 && Time.time - _lastDecreasingTime < 0.2f;
 
+        private float _lastDecreasingTime;
+
+        /// <summary>
+        /// 把值寫入，表示
+        /// </summary>
+        /// <param name="lastValue"></param>
+        /// <param name="currentValue"></param>
+        protected override void ValueCommited(float lastValue, float currentValue)
+        {
+            if (currentValue < lastValue) _lastDecreasingTime = Time.time; //FIXME: 還是要往上問？
+        }
+
+        
         [ShowInDebugMode]
         public bool IsIncreasing => CurrentValue > LastValue;
 

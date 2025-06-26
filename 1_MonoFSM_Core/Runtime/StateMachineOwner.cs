@@ -96,10 +96,10 @@ public static class StateMachineExtension
         foreach (var binder in parents)
         {
             var comps = binder.GetComponentsInChildren(siblingType, true);
-            
+
             list.AddRange(comps);
         }
-            
+
 
         return list.ToArray();
         // if (binder != null) return binder.GetComponentsInChildren(siblingType);
@@ -155,13 +155,13 @@ public interface IBinder
 public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSerializable,
     IBinder, ISceneStart
 {
-    [PreviewInInspector] [AutoChildren] private GeneralFSMContext fsmContext;
-    [PreviewInInspector] [AutoChildren] private GeneralFSMContext[] fsmContexts;
+    // [PreviewInInspector][AutoChildren] private GeneralFSMContext fsmContext;
+    // [PreviewInInspector] [AutoChildren] private GeneralFSMContext[] fsmContexts;
 
     [AutoChildren] public StateMachineLogic fsmLogic;
-    
-    public GeneralFSMContext FsmContext =>
-        fsmContext ? fsmContext : fsmContext = GetComponentInChildren<GeneralFSMContext>();
+
+    // public GeneralFSMContext FsmContext =>
+    //     fsmContext ? fsmContext : fsmContext = GetComponentInChildren<GeneralFSMContext>();
 
     [HideFromFSMExport]
     [Title("超連結，只有prefab可以改")]
@@ -201,7 +201,7 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSeria
     public Animator ChildAnimator => GetComponentInChildren<Animator>();
 
     public Animator[] ChildAnimators => GetComponentsInChildren<Animator>();
-    
+
     private void Start()
     {
         // ResetFSM(); //中途加入的玩家沒有call到這個
@@ -215,11 +215,12 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSeria
     //
     // }
 
-    [ShowInPlayMode] [InfoBox("FSM has not been reset!", InfoMessageType.Error, nameof(HasNotReset))]
+    [ShowInPlayMode]
+    [InfoBox("FSM has not been reset!", InfoMessageType.Error, nameof(HasNotReset))]
     private bool _hasReset = false;
 
     private bool HasNotReset => !_hasReset;
-    
+
 
     [Button]
     private void ExportSerializedData()

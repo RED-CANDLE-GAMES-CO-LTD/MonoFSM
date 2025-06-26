@@ -1,10 +1,11 @@
 using MonoFSM.Variable;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 using UnityEngine;
 
 namespace RCGMakerFSMCore.Runtime.Action.DebugAction
 {
-    public class VarValueChangeLogAction : MonoBehaviour
+    public class VarValueChangeLogAction : MonoBehaviour, IVarChangedListener
     {
         [PreviewInInspector] [AutoParent] private AbstractMonoVariable _var;
 
@@ -16,7 +17,7 @@ namespace RCGMakerFSMCore.Runtime.Action.DebugAction
                 return;
             }
 
-            _var.OnValueChangedRaw += OnValueChanged;
+            _var.AddListener(this);
         }
 
         private void OnValueChanged()
@@ -32,7 +33,22 @@ namespace RCGMakerFSMCore.Runtime.Action.DebugAction
 
         private void OnDestroy()
         {
-            if (_var != null) _var.OnValueChangedRaw -= OnValueChanged;
+            if (_var != null)
+                _var.RemoveListener(this);
+            else
+                Debug.LogError("ValueChangeLogAction: Variable reference is null on destroy.", this);
+        }
+
+        public void OnVarChanged(AbstractMonoVariable variable)
+        {
+            if (variable == null)
+            {
+                Debug.LogError("VarValueChangeLogAction: Variable reference is null.", this);
+                return;
+            }
+
+            // Log the variable change
+            Debug.Log($"Variable '{variable.name}' changed to: {variable.objectValue}", this);
         }
     }
 }

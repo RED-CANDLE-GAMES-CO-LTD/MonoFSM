@@ -83,7 +83,8 @@ namespace MonoFSM.Variable
         public void SetType(Type type)
         {
             _type = type;
-            
+            typeName = _type?.AssemblyQualifiedName ?? typeName;
+            // Debug.Log($"SetType: {_type}");
         }
 
         [Header("宣告型別：")]

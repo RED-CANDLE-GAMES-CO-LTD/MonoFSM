@@ -23,7 +23,16 @@ namespace MonoFSM.Variable
     public abstract class GenericUnityObjectVariable<TValueType> : AbstractObjectVariable, ISettable<TValueType>,
         IResetStateRestore where TValueType : Object
     {
-        public UnityAction<TValueType> OnValueChanged;
+        // public UnityAction<TValueType> OnValueChanged;
+        //
+        // //FIXME: 這個好ㄇ
+        // public override void AddListener<T>(UnityAction<T> action)
+        // {
+        //     if (action is UnityAction<TValueType> typedAction)
+        //         OnValueChanged += typedAction;
+        //     else
+        //         Debug.LogError("Action type mismatch. Expected UnityAction<TValueType>.", this);
+        // }
 
         [Button]
         protected virtual void Rename()
@@ -123,7 +132,8 @@ namespace MonoFSM.Variable
         {
             // Debug.Log("Set value to " + value, this);
             _currentValue = value as TValueType;
-            OnValueChanged?.Invoke(_currentValue); //多一個參數的版本
+            // OnValueChanged?.Invoke(_currentValue); //多一個參數的版本
+            OnValueChanged();
 #if UNITY_EDITOR
             _lastSetByWho = byWho;
 #endif

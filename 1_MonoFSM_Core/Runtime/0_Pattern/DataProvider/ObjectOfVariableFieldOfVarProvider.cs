@@ -13,6 +13,15 @@ namespace MonoFSM.Core.DataProvider
         void OnDataChanged(Object data);
     }
 
+    public interface IVarChangedListener
+    {
+        void OnVarChanged(AbstractMonoVariable variable);
+    }
+
+    public interface IDataChangedProvider
+    {
+    }
+
     /// <summary>
     /// FIXME: VarMonoFieldValueProvider?
     /// </summary>
@@ -22,7 +31,7 @@ namespace MonoFSM.Core.DataProvider
         public override Object targetObject =>
             _objectProviderRef?.Get<Object>(); // _variableProviderRef?.GetVar<VarMono>()?.Value;
 
-        public override Type targetType => _objectProviderRef?.ValueType; //_variableProviderRef.GetValueType;
+        // public override Type targetType => _objectProviderRef?.ValueType; //_variableProviderRef.GetValueType;
 
         // [Required] [PropertyOrder(-1)] public VariableMonoDescriptableProvider _variableProvider;
 
