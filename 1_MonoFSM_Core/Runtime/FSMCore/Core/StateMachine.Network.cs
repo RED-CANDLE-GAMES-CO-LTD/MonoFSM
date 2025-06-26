@@ -1,13 +1,33 @@
 ﻿namespace Fusion.Addons.FSM
 {
-    //FIXME: 這段要留在這？需要fusion耶，應該要拆走
     public unsafe ref struct InterpolationData
     {
-        public NetworkBehaviourBuffer FromBuffer;
-        public NetworkBehaviourBuffer ToBuffer;
+        // public NetworkBehaviourBuffer FromBuffer;
+        // public NetworkBehaviourBuffer ToBuffer;
+        public int* FromBufferPtr;
+        public int* ToBufferPtr;
+        public int FromTick;
+        public int ToTick;
+
         public int From;
         public int To;
         public float Alpha;
+
+        /// <summary>
+        /// Access FromBuffer data by index using direct pointer access
+        /// </summary>
+        public int GetFromBuffer(int index)
+        {
+            return FromBufferPtr[index];
+        }
+
+        /// <summary>
+        /// Access ToBuffer data by index using direct pointer access
+        /// </summary>
+        public int GetToBuffer(int index)
+        {
+            return ToBufferPtr[index];
+        }
     }
 
     public partial class StateMachine<TState>
@@ -135,39 +155,39 @@
         unsafe void IStateMachine.Interpolate(InterpolationData interpolationData)
         {
             // Save interpolation float tick so we can calculate correct state time when asked from Render-related methods
-            _interpolationTick = UnityEngine.Mathf.Lerp(interpolationData.FromBuffer.Tick,
-                interpolationData.ToBuffer.Tick, interpolationData.Alpha);
+            _interpolationTick = UnityEngine.Mathf.Lerp(interpolationData.FromTick,
+                interpolationData.ToTick, interpolationData.Alpha);
 
             // We prefer using only From values
             var useFrom = true;
 
-            _activeStateId = useFrom == true
-                ? interpolationData.FromBuffer[interpolationData.From]
-                : interpolationData.ToBuffer[interpolationData.To];
+            _activeStateId = useFrom
+                ? interpolationData.GetFromBuffer(interpolationData.From)
+                : interpolationData.GetToBuffer(interpolationData.To);
             interpolationData.From++;
             interpolationData.To++;
 
-            _previousStateId = useFrom == true
-                ? interpolationData.FromBuffer[interpolationData.From]
-                : interpolationData.ToBuffer[interpolationData.To];
+            _previousStateId = useFrom
+                ? interpolationData.GetFromBuffer(interpolationData.From)
+                : interpolationData.GetToBuffer(interpolationData.To);
             interpolationData.From++;
             interpolationData.To++;
 
-            _defaultStateId = useFrom == true
-                ? interpolationData.FromBuffer[interpolationData.From]
-                : interpolationData.ToBuffer[interpolationData.To];
+            _defaultStateId = useFrom
+                ? interpolationData.GetFromBuffer(interpolationData.From)
+                : interpolationData.GetToBuffer(interpolationData.To);
             interpolationData.From++;
             interpolationData.To++;
 
-            _stateChangeTick = useFrom == true
-                ? interpolationData.FromBuffer[interpolationData.From]
-                : interpolationData.ToBuffer[interpolationData.To];
+            _stateChangeTick = useFrom
+                ? interpolationData.GetFromBuffer(interpolationData.From)
+                : interpolationData.GetToBuffer(interpolationData.To);
             interpolationData.From++;
             interpolationData.To++;
 
-            _bitState = useFrom == true
-                ? interpolationData.FromBuffer[interpolationData.From]
-                : interpolationData.ToBuffer[interpolationData.To];
+            _bitState = useFrom
+                ? interpolationData.GetFromBuffer(interpolationData.From)
+                : interpolationData.GetToBuffer(interpolationData.To);
             interpolationData.From++;
             interpolationData.To++;
 
