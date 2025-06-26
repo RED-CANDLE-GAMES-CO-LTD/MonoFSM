@@ -7,31 +7,31 @@ using UnityEngine.SceneManagement;
 public static class StartPointSelector
 {
     //失敗了
-    private static void MoveSpawnPointToMousePos(PlayerStartSpawnPoint playerStartSpawnPoint)
-    {
-        var mousePos = Event.current.mousePosition; //目前介面的位置, 現在focus來不及了唷
-
-        //current window position?
-        // var sceneViewPos = SceneView.lastActiveSceneView.cameraViewport
-        // Debug.Log("sceneViewPos:" + sceneViewPos);
-
-        //FIXME: 上面bar的高度，不知道怎麼判, 寫死
-        mousePos.y -= 48;
-        // SceneView.lastActiveSceneView.FixNegativeSize();
-        //convert mouse position in world position
-        var worldPosition = HandleUtility.GUIPointToWorldRay(mousePos).GetPoint(.1f);
-        worldPosition.z = 0;
-        //從ray拿到的點 z強迫設定為0
-
-        if (playerStartSpawnPoint)
-        {
-            playerStartSpawnPoint.transform.position = worldPosition;
-            if (Application.isPlaying)
-                playerStartSpawnPoint.playerRef.RunTimeInstance.transform.position = worldPosition;
-        }
-
-        Debug.Log("static mousePos:" + mousePos);
-    }
+    // private static void MoveSpawnPointToMousePos(PlayerStartSpawnPoint playerStartSpawnPoint)
+    // {
+    //     var mousePos = Event.current.mousePosition; //目前介面的位置, 現在focus來不及了唷
+    //
+    //     //current window position?
+    //     // var sceneViewPos = SceneView.lastActiveSceneView.cameraViewport
+    //     // Debug.Log("sceneViewPos:" + sceneViewPos);
+    //
+    //     //FIXME: 上面bar的高度，不知道怎麼判, 寫死
+    //     mousePos.y -= 48;
+    //     // SceneView.lastActiveSceneView.FixNegativeSize();
+    //     //convert mouse position in world position
+    //     var worldPosition = HandleUtility.GUIPointToWorldRay(mousePos).GetPoint(.1f);
+    //     worldPosition.z = 0;
+    //     //從ray拿到的點 z強迫設定為0
+    //
+    //     if (playerStartSpawnPoint)
+    //     {
+    //         playerStartSpawnPoint.transform.position = worldPosition;
+    //         if (Application.isPlaying)
+    //             playerStartSpawnPoint.playerRef.RunTimeInstance.transform.position = worldPosition;
+    //     }
+    //
+    //     Debug.Log("static mousePos:" + mousePos);
+    // }
 
     [MenuItem("RCGMaker/Toggle Global Position  _2", false, 0)]
     private static void ToggleGlobalPosition()
@@ -59,7 +59,7 @@ public static class StartPointSelector
     [MenuItem("RCGMaker/Focus Player in SceneView  #_P", false, 0)]
     private static void FocusPlayerInSceneView()
     {
-        var spawnPoint = Object.FindObjectOfType<PlayerStartSpawnPoint>();
+        var spawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
         var player = spawnPoint.playerRef.RunTimeInstance;
         if (player)
         {
@@ -87,7 +87,7 @@ public static class StartPointSelector
     {
         var sceneView = SceneView.lastActiveSceneView;
         //move camera to playerstartspawnpoint
-        var spawnPoint = Object.FindObjectOfType<PlayerStartSpawnPoint>();
+        var spawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
         if (spawnPoint != null)
         {
             sceneView.LookAt(spawnPoint.transform.position);
@@ -112,7 +112,7 @@ public static class StartPointSelector
     {
         FocusOnScene();
         // Debug.Log("DoSelectSpawnPoint: 1" + EditorWindow.focusedWindow);
-        var spawnPoint = Object.FindObjectOfType<PlayerStartSpawnPoint>();
+        var spawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
         // SceneView.duringSceneGui += (SceneView sceneView) =>
         // {
         // MoveSpawnPointToMousePos(spawnPoint);
@@ -160,22 +160,24 @@ public class PlayerStartSpawnPointEditor
 
     private static void SceneOpenedCallback(Scene scene, OpenSceneMode mode)
     {
-        target = Object.FindObjectOfType<PlayerStartSpawnPoint>();
+        _target = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
     }
 
-    private static PlayerStartSpawnPoint target;
+    private static PlayerStartSpawnPoint _target;
 
     private static PlayerStartSpawnPoint GetTarget
     {
         get
         {
-            var playerStartSpawnPoint = target;
-            if (!playerStartSpawnPoint) playerStartSpawnPoint = Object.FindObjectOfType<PlayerStartSpawnPoint>();
+            var playerStartSpawnPoint = _target;
+            if (!playerStartSpawnPoint) playerStartSpawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
             return playerStartSpawnPoint;
         }
     }
 
+#pragma warning disable IDE0060 // Remove unused parameter
     private static void OnSceneGUI(SceneView obj)
+#pragma warning restore IDE0060 // Remove unused parameter
     {
         if (Event.current.type == EventType.KeyDown)
             // Debug.Log(Event.current.type);
@@ -187,7 +189,7 @@ public class PlayerStartSpawnPointEditor
                 //FIXME: 2D遊戲用的...
                 if (obj.in2DMode)
                 {
-                    MoveSpawnPointToMousePos(obj, Event.current.mousePosition);
+                    MoveSpawnPointToMousePos(Event.current.mousePosition);
                 }
                 else
                 {
@@ -217,10 +219,10 @@ public class PlayerStartSpawnPointEditor
             }
     }
 
-    private static void MoveSpawnPointToMousePos(SceneView obj, Vector3 mousePos)
+    private static void MoveSpawnPointToMousePos(Vector3 mousePos)
     {
-        var playerStartSpawnPoint = target;
-        if (!playerStartSpawnPoint) playerStartSpawnPoint = Object.FindObjectOfType<PlayerStartSpawnPoint>();
+        var playerStartSpawnPoint = _target;
+        if (!playerStartSpawnPoint) playerStartSpawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
 
         if (!playerStartSpawnPoint)
             return;
