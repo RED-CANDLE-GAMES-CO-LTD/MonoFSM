@@ -1,5 +1,4 @@
 using System;
-using ExitGames.Client.Photon.StructWrapping;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable.Attributes;
