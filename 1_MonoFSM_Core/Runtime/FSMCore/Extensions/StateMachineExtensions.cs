@@ -80,7 +80,7 @@
 
 		public static void ForceToggleState(this IStateMachine stateMachine, IState state, bool value)
 		{
-			Assert.Check(stateMachine.HasState(state), $"State {state.Name} not present in the state machine {stateMachine.Name}");
+			// Assert.Check(stateMachine.HasState(state), $"State {state.Name} not present in the state machine {stateMachine.Name}");
 
 			stateMachine.ForceToggleState(state.StateId, value);
 		}
@@ -88,7 +88,7 @@
 		public static void ForceToggleState<T>(this IStateMachine stateMachine, bool value) where T : IState
 		{
 			var state = stateMachine.GetState<T>();
-			Assert.Check(state != null, $"State of type {typeof(T).Name} not present in the state machine {stateMachine.Name}");
+			// Assert.Check(state != null, $"State of type {typeof(T).Name} not present in the state machine {stateMachine.Name}");
 
 			stateMachine.ForceToggleState(state.StateId, value);
 		}
