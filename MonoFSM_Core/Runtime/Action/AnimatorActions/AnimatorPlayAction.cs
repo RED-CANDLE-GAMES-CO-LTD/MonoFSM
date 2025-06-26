@@ -421,7 +421,7 @@ namespace RCGFSM.Animation
 
             // FIXME: 不要update 0就不會造成這個onenable了？
             // 是什麼情境一定要OnEnable?
-            animator.Update(0);
+            animator?.Update(0);
 
             // animator.Update(RCGTime.deltaTime);
             // Debug.Break();
