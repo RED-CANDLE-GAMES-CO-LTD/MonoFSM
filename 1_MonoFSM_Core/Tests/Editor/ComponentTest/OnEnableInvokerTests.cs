@@ -22,35 +22,29 @@ using UnityEngine.TestTools;
 /// </remarks>
 public class OnEnableInvokerTests
 {
+    private const string scenePath = "Packages/com.monofsm.core/1_MonoFSM_Core/Tests/Editor/ComponentTest/OnEnableInvokerTests.unity";
     private GameObject _root;
     private OnEnableInvoker _invoker;
-
-//     OnEnableInvoker:3960855537088388994(C:OnEnableInvoker #2269622561476295443-0)
-//     ..GO:"OnEnableNode" #7235220239025890921-0(C:OnEnableNode #2653871638592893292-0)
-//     ....GO:"[Action] LogAction" #8718455501359711145-0(C:LogAction #5392556174335500925-0{_logMessage:OnEnable})
-//     ..GO:"OnDisableNode" #6373827583573887965-0(C:OnDisableNode #812966048265802247-0)
-//     ....GO:"[Action] LogAction" #5465047916926780095-0(C:LogAction #6779099019067522787-0{_logMessage:OnDisable})
-//沒有介面拗痛苦...
-    private const string prefabPath = "Packages/com.rcg.fsm/0_MonoFSM_Example_Module/OnEnableInvoker.prefab";
-    // public GameObject _prefab;
 
     [UnitySetUp]
     public IEnumerator SetUp()
     {
-        var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-        Assert.IsNotNull(prefab, $"Test prefab not found");
-        // Create a root object and add the component under test.
-        _root = Object.Instantiate(prefab);
-        _invoker = _root.GetComponent<OnEnableInvoker>();
+        // 開啟指定場景
+        UnityEditor.SceneManagement.EditorSceneManager.OpenScene(scenePath);
+        yield return null;
+        // 於場景中尋找 OnEnableInvoker
+        _invoker = Object.FindFirstObjectByType<OnEnableInvoker>();
+        Assert.IsNotNull(_invoker, "OnEnableInvoker component should be present in scene.");
+        _root = _invoker.gameObject;
+        // 若有自動綁定需求可於此呼叫
         AutoAttributeManager.AutoReferenceAllChildren(_root);
-        // Allow one frame for Awake/OnEnable to execute.
         yield return null;
     }
 
     [UnityTearDown]
     public IEnumerator TearDown()
     {
-        Object.Destroy(_root);
+        // 關閉場景或清理（可視需求保留）
         yield return null;
     }
 
@@ -91,7 +85,7 @@ public class OnEnableInvokerTests
     }
 
     // Helper method for accessing non‑public fields via reflection.
-    private static T? GetPrivateField<T>(object obj, string fieldName) where T : class?
+    private static T GetPrivateField<T>(object obj, string fieldName) where T : class
     {
         var fieldInfo = obj.GetType().GetField(fieldName,
             System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
