@@ -1,4 +1,6 @@
 using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 // using DiscordWebhook;
 using UnityEngine;
 
@@ -43,9 +45,9 @@ namespace MonoFSM.Runtime.WebAppIntegrate
             return GetLocalWebhookURL(url);
         }
 
-        public static JSONObject ParseCommandRuntime(string command)
+        public static JObject ParseCommandRuntime(string command)
         {
-            JSONObject obj;
+            JObject obj;
             //1. url格式
             if (command.Contains("http"))
             {
@@ -59,7 +61,7 @@ namespace MonoFSM.Runtime.WebAppIntegrate
                 //strip for content start from { to }
                 //FIXME: 檢查link格式
                 link = link.Substring(link.IndexOf("{", StringComparison.Ordinal));
-                obj = new JSONObject(link);
+                obj = JObject.Parse(link);
             }
 
             Debug.Log("parsed JSON obj" + obj.ToString());
@@ -67,11 +69,11 @@ namespace MonoFSM.Runtime.WebAppIntegrate
             return obj;
         }
 
-        public static JSONObject ParseURLParam(string url)
+        public static JObject ParseURLParam(string url)
         {
             var param = url.Split('?')[1];
             var paramList = param.Split('&');
-            var json = new JSONObject();
+            var json = new JObject();
             foreach (var p in paramList)
             {
                 var keyValue = p.Split('=');
@@ -80,11 +82,11 @@ namespace MonoFSM.Runtime.WebAppIntegrate
                 {
                     // case "external": //ex: coda link
                     //     //do something
-                    //     json.AddField("external", keyValue[1]);
+                    //     json["external"] = keyValue[1];
                     //     break;
                     // case "scene_guid":
                     //     //do something
-                    //     json.AddField("scene_guid", keyValue[1]);
+                    //     json["scene_guid"] = keyValue[1];
                     //     break;
                     case "pos":
 //the format of pos is "(-1.0, 0.0, 0.0)"
@@ -93,15 +95,15 @@ namespace MonoFSM.Runtime.WebAppIntegrate
                         var y = float.Parse(pos[1]);
                         var z = float.Parse(pos[2]);
                         var posVector = new Vector3(x, y, z);
-                        json.AddField("pos", JSONTemplates.FromVector3(posVector));
+                        json["pos"] = JObject.FromObject(new { x = posVector.x, y = posVector.y, z = posVector.z });
                         //do something
                         break;
                     // case "asset_guid":
                     //     //do something
-                    //     json.AddField("asset_guid", keyValue[1]);
+                    //     json["asset_guid"] = keyValue[1];
                     //     break;
                     default:
-                        json.AddField(keyValue[0], keyValue[1]);
+                        json[keyValue[0]] = keyValue[1];
                         break;
                 }
             }
