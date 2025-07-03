@@ -61,7 +61,7 @@ namespace MonoFSM.Condition
                 return;
             }
 
-             Debug.Log("OnConditionChanged: " + listenField, this);
+            // Debug.Log("OnConditionChanged: " + listenField, this);
             _parentConditionChangeListener.OnConditionChanged();
         }
 
