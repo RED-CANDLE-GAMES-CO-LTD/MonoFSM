@@ -71,7 +71,7 @@ public class DebugProvider : MonoBehaviour, IEditorOnly
         }
     }
 
-    public List<LogEntry> logEntries = new List<LogEntry>();
+    // public List<LogEntry> logEntries = new List<LogEntry>();
 
     // [Button("Test")]
     // public void Test()
@@ -84,7 +84,7 @@ public class DebugProvider : MonoBehaviour, IEditorOnly
         // if (IsLogInChildren)
         // {
         LogEntry logEntry = new LogEntry(message, context);
-        logEntries.Add(logEntry);
+        // logEntries.Add(logEntry);
         // }
     }
 

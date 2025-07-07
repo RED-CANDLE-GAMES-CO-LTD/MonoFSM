@@ -489,8 +489,9 @@ namespace MonoFSM.Animation
             animator.GetCurrentAnimatorStateInfo(doneEventLayer).normalizedTime;
 
         [AutoParent] private MonoStateBehaviour _stateBehaviour; //這個是State的行為，還是要有個StateAction來做事情
-        public bool IsDone => _stateBehaviour.Machine.StateTime >= ClipLength; // && IsPlayingCurrentClip();
-//FIXME: 播歸播？狀態歸狀態？播完怎麼辦？
+        //FIXME: 錯了！抓到BUG 要cache? 切State後，StateTime就會重置了
+        public bool IsDone => _stateBehaviour.StateTime >= ClipLength; // && IsPlayingCurrentClip();
+        
 
         // [SerializeField] private float clipDuration;
 
@@ -858,6 +859,12 @@ namespace MonoFSM.Animation
             //     Debug.Log("AnimatorPlayAction > 1" + animator.GetCurrentAnimatorStateInfo(0).normalizedTime + "state:", gameObject);
             //     transition.EventReceived("AnimationDone");
             // }
+        }
+
+        public override void OnBeforePrefabSave()
+        {
+            CalculateClipLength();
+            base.OnBeforePrefabSave();
         }
     }
 }

@@ -1,5 +1,7 @@
 using MonoFSM.Animation;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Variable.Attributes;
+using Sirenix.OdinInspector;
 
 namespace MonoFSM.Core
 {
@@ -7,6 +9,6 @@ namespace MonoFSM.Core
     public class AnimationDoneCondition : AbstractConditionComp
     {
         protected override bool IsValid => _action.IsDone;
-        [PreviewInInspector] [AutoParent] private AnimatorPlayAction _action;
+        [Required] [CompRef] [AutoParent] private AnimatorPlayAction _action;
     }
 }

@@ -20,7 +20,10 @@ namespace MonoFSM.Core
         public StateMachine<TState> Machine { get; set; }
         public virtual string Name => gameObject.name;
         public int Priority => _priority;
-
+        public float StateTime => _localStateTime;
+        private float _localStateTime;
+        [AutoParent] protected StateMachineLogic _context;
+        public float DeltaTime => _context.DeltaTime;
         //  PRIVATE MEMBERS
 
         [SerializeField] private int _priority = 0;
@@ -109,15 +112,16 @@ namespace MonoFSM.Core
         void IState.OnFixedUpdate()
         {
             _onStateUpdate?.EventHandle();
-
+            _localStateTime += DeltaTime;
             if (_transitions != null)
                 foreach (var t in _transitions)
                 {
                     var transition = t;
 
-                    if (TryTransition(ref t._transitionData) == true)
+                    if (CanTransition(ref t._transitionData) == true)
                     {
-                        Machine.ForceActivateState(transition.TargetState);
+                        Debug.Log($"[{Name}] ForceActivateState to {transition.TargetState.Name}", this);
+                        Machine.ForceActivateState(t.TargetState);
                         return;
                     }
                 }
@@ -152,11 +156,12 @@ namespace MonoFSM.Core
 
         void IState.OnEnterState()
         {
+            _localStateTime = 0f;
+            OnEnterState();
+            _onStateEnter?.EventHandle();
 #if UNITY_EDITOR
             EditorFsmEventManager.NotifyStateChanged(Machine.Logic);
 #endif
-            OnEnterState();
-            _onStateEnter?.EventHandle();
         }
 
         void IState.OnExitState()
@@ -193,7 +198,7 @@ namespace MonoFSM.Core
 
         // PRIVATE METHODS
 
-        private bool TryTransition(ref TransitionData<TState> transition)
+        private bool CanTransition(ref TransitionData<TState> transition)
         {
             try
             {
@@ -216,7 +221,7 @@ namespace MonoFSM.Core
 
             if (transition.TargetState.CanEnterState() == false)
                 return false;
-
+            Debug.Log($"Can Transitioning from {Name} to {transition.TargetState.Name}", this);
             return true;
         }
     }

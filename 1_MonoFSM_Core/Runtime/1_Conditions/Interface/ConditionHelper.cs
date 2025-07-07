@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public static class ConditionHelper
 {
     public static bool IsAllValid(this AbstractConditionComp[] conditions)
@@ -11,6 +13,7 @@ public static class ConditionHelper
             if (condition.gameObject.activeSelf == false) //只看自己，可能是parent有人關
                 continue;
             if (condition.FinalResult == false) return false;
+            Debug.Log($"[ConditionHelper] {condition.name} is valid", condition.gameObject);
         }
 
         return true;

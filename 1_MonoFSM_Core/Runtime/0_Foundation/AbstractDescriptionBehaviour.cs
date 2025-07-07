@@ -1,3 +1,4 @@
+using System;
 using RCGExtension;
 using UnityEngine;
 
@@ -75,8 +76,17 @@ namespace MonoFSM.Foundation
         {
             // gameObject.name = $"[Action] {GetType().Name.Split("Action")[0]} {renamePostfix}";
 #if UNITY_EDITOR
-            gameObject.name = $"[{DescriptionTag}] {DescriptionPreprocess(Description)}";
-            UnityEditor.EditorUtility.SetDirty(gameObject);
+            try
+            {
+                gameObject.name = $"[{DescriptionTag}] {DescriptionPreprocess(Description)}";
+                UnityEditor.EditorUtility.SetDirty(gameObject);    
+            }
+            catch (Exception e)
+
+            {
+                Debug.LogError($"Error renaming gameObject: {gameObject.name} to [{DescriptionTag}]", this);
+            }
+            
 #endif
         }
 
@@ -88,7 +98,7 @@ namespace MonoFSM.Foundation
         {
         }
 
-        public void OnBeforePrefabSave()
+        public virtual void OnBeforePrefabSave()
         {
 #if UNITY_EDITOR
             AutoAttributeManager.AutoReference(this); //有些field需要autoChildren容易造成 description null

@@ -134,7 +134,11 @@ namespace EditorTool
             var savingObjs = new List<IBeforePrefabSaveCallbackReceiver>();
             prefab.GetComponentsInChildren(true, savingObjs);
             savingObjs.Reverse();
-            foreach (var savingObj in savingObjs) savingObj.OnBeforePrefabSave();
+            foreach (var savingObj in savingObjs)
+            {
+                if(savingObj != null)
+                    savingObj.OnBeforePrefabSave();
+            }
 
             // var rootGameObjects = prefab.GetComponentsInChildren<ISceneSavingCallbackReceiver>(true);
             // foreach (var savingObj in rootGameObjects)

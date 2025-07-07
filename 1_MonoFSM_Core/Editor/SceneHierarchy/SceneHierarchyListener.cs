@@ -32,6 +32,8 @@ namespace _1_MonoFSM_Core.Editor.SceneHierarchy
             // Debug.Log(
             //     $"State changed from {stateMachine.StateMachines[0].PreviousState} to {stateMachine.StateMachines[0].ActiveState} in {stateMachine}");
             SceneHierarchyUtility.TryRepaintHierarchy();
+            // SceneHierarchyUtility.RepaintInspector();
+            
         }
     }
 }

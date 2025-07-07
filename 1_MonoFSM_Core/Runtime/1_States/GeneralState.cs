@@ -1,38 +1,9 @@
 using System;
 using UnityEngine;
 using Sirenix.OdinInspector;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
-using MonoFSM.Core.Runtime.Action;
-using MonoFSM.Variable.Attributes;
-using MonoFSM.Core;
-using RCGExtension;
-using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.Serialization;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-using MonoFSM.Core.Attributes;
-
-public interface INodeModel
-{
-    public Vector2 position { get; set; }
-}
-
-[Obsolete]
-public interface IStateEnter
-{
-    void OnStateEnter();
-}
-
-[Obsolete]
-public interface IStateExit
-{
-    void OnStateExit();
-}
 
 //FIXME: 可以拿掉？
 public interface IGuidEntity
