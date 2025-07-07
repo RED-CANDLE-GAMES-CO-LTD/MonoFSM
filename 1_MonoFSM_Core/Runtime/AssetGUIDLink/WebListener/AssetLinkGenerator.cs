@@ -1,5 +1,4 @@
 using System;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 // using DiscordWebhook;
 using UnityEngine;
@@ -89,7 +88,7 @@ namespace MonoFSM.Runtime.WebAppIntegrate
                     //     json["scene_guid"] = keyValue[1];
                     //     break;
                     case "pos":
-//the format of pos is "(-1.0, 0.0, 0.0)"
+                        //the format of pos is "(-1.0, 0.0, 0.0)"
                         var pos = keyValue[1].Replace("(", "").Replace(")", "").Split(',');
                         var x = float.Parse(pos[0]);
                         var y = float.Parse(pos[1]);

@@ -21,7 +21,6 @@ namespace MonoFSM.Core
     /// <seealso cref="IEventReceiver"/>
     /// <seealso cref="IEventReceiver{T}"/>
     /// <seealso cref="IActionParent"/>
-    /// FIXME: 應該要generic?
     public abstract class AbstractEventHandler : MonoBehaviour, IActionParent
     {
         [CompRef] [AutoChildren(DepthOneOnly = true)]

@@ -7,6 +7,7 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Runtime.LifeCycle
 {
+    [Obsolete]
     public class MonoCullingGroup : MonoBehaviour, IResetStart
     {
         public GameObject _overrideTarget;
@@ -59,7 +60,7 @@ namespace MonoFSM.Runtime.LifeCycle
 
         private void OnStateChanged(CullingGroupEvent evt)
         {
-            
+
             if (evt.hasBecomeVisible)
             {
                 HasBecomeVisible();
@@ -70,7 +71,9 @@ namespace MonoFSM.Runtime.LifeCycle
             }
         }
 
-        [SerializeField] [CompRef] [AutoChildren]
+        [SerializeField]
+        [CompRef]
+        [AutoChildren]
         private OnCullingVisibleHandler _onCullingVisibleHandler;
 
         private void HasBecomeVisible()

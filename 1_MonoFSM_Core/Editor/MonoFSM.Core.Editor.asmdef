@@ -1,5 +1,5 @@
 {
-    "name": "RCG.FSM.Editor",
+    "name": "MonoFSM.Core.Editor",
     "rootNamespace": "",
     "references": [
         "GUID:f2f860dd0c0594e9d880d20baa7b20c3",
@@ -13,7 +13,8 @@
         "GUID:2ce824e5d56f8495cb762ccff02f283b",
         "GUID:678282a48c1694e8eb9d6ffb51ff91a8",
         "GUID:3633c4449a93b4561b5ebc802e80de4a",
-        "GUID:8257d8cfffea844e7b42152d13929ca1"
+        "GUID:8257d8cfffea844e7b42152d13929ca1",
+        "GUID:8bff5c03563749edb926ea99b5e4dea2"
     ],
     "includePlatforms": [
         "Editor"

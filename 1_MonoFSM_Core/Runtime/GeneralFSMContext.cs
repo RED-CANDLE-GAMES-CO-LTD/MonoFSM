@@ -5,8 +5,10 @@ using UnityEditor;
 #endif
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
+using System;
 
 // using RCG.StateMachine;
+[Obsolete]
 public class GeneralFSMContext : MonoBehaviour
 {
 }

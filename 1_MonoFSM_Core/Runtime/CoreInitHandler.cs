@@ -16,7 +16,7 @@ public static class CoreInitHandler
         GameObject applicationCoreCandidate = Resources.Load<GameObject>("Configs/ApplicationCore");
         try
         {
-           
+           //fixme: 要放在package裡面?
             if(applicationCoreCandidate == null)
             {
                 Debug.LogError("Can't found: Configs/ApplicationCore.prefab, make sure you have it in the Resources folder");

@@ -13,16 +13,6 @@ namespace MonoFSM.Core.Condition
     public abstract class //IReturnToPool? IDespawn?
         AbstractConditionActivateTarget : MonoBehaviour, IUpdateSimulate //, ISelectedInstanceUpdater //ISubmitHandler
     {
-      
-        //FIXME: 這邊的UI想要看有沒有被檢查
-// #if UNITY_EDITOR //這只是想拿來看的...繞掉的attribute? [NonCache] ?
-        // [Required] [PreviewInInspector] [AutoParent]
-        // private ConditionActivateCheckProvider parentConditionActivateCheckProvider;
-//
-//         [Title("有沒有在Update Loop檢查Condition")]
-//         [PreviewInInspector]
-//         private bool isCheckResultAtUpdateLoop => parentConditionActivateCheckProvider?.IsUpdate ?? false;
-// #endif
 
         public void Simulate(float deltaTime)
         {
@@ -44,11 +34,6 @@ namespace MonoFSM.Core.Condition
         public abstract void ActivateCheck();
 
         // public void OnSubmit(BaseEventData eventData)
-        // {
-        //     ActivateCheck();
-        // }
-        //
-        // public void UpdateView(IDescriptableData data) //更新所選的instance時檢查看看
         // {
         //     ActivateCheck();
         // }

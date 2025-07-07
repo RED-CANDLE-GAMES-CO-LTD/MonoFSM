@@ -22,8 +22,7 @@ using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine.Events;
 
 //FIXME: autoGen太複雜，可能需要再拆漂亮
-//TODO: 現在根本還沒做監聽，是用condition做polling
-//FIXME: fieldMONO?
+//FIXME: 改檔案名
 [Searchable]
 public abstract class GenericMonoVariable<TScriptableData, TField, TType> : AbstractMonoVariable,
     IBeforePrefabSaveCallbackReceiver, ISettable<TType>,
@@ -482,24 +481,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
         return IsGameStateSaveIDNotMatch();
     }
 #endif
-
-    // public override GameFlagBase FinalData => ScriptableData ? ScriptableData : Sampledata;
-    // [TabGroup("再說")] public GameFlagBase mainData;
-
-    // [TabGroup("再說")] [ShowIf(nameof(mainData))] [ValueDropdown(nameof(GetAllFlagField))]
-    // public string fieldOfMainData;
-    //
-    // public TField fieldOfMainDataValue => mainData.FindField<TType>(fieldOfMainData) as TField;
-    //
-    // private IEnumerable<string> GetAllFlagField()
-    // {
-    //     if (mainData == null) yield break;
-    //     var fields = mainData.GetAllFlagFieldNames<TField>();
-    //     foreach (var field in fields)
-    //         yield return field;
-    // }
-
-    // public override Type FinalDataType => typeof(TScriptableData);
+    
     public override Type ValueType => typeof(TType);
     public override object objectValue => CurrentValue;
 
@@ -518,6 +500,8 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     {
         //FIXME: #if UnityEditor? setting build mode?
         _localField.Init(TestMode.Build, this);
+        // if(_bindData != null)
+        //     _bindData.field.ResetToDefault();
     }
 
     public virtual void OnBeforePrefabSave()

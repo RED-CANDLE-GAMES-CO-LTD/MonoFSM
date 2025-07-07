@@ -1,12 +1,8 @@
 {
-    "name": "GuidRef.Editor",
+    "name": "com.jerryee.unity-mcp",
     "rootNamespace": "",
-    "references": [
-        "GUID:5a99140e5b7ff4b43aa1f06887b3637d"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "references": [],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

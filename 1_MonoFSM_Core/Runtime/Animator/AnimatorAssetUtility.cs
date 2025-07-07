@@ -36,7 +36,10 @@ namespace MonoFSM.EditorUtility
             //get folder path of controller
             var path = AssetDatabase.GetAssetPath(animatorController);
             
-            var stateMachine = animatorController.layers[layer.syncedLayerIndex].stateMachine;
+            // 如果是同步層，使用 syncedLayerIndex，否則使用當前層的 stateMachine
+            var stateMachine = layer.syncedLayerIndex >= 0 
+                ? animatorController.layers[layer.syncedLayerIndex].stateMachine 
+                : layer.stateMachine;
 
             // Create a new state
             var newState = stateMachine.AddState(stateName);

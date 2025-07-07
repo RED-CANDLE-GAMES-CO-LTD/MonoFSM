@@ -8,12 +8,13 @@ using UnityEngine.Profiling;
 
 namespace MonoFSM.Core.Deprecated
 {
+    [Obsolete]
     public class StateMachineRunner : MonoBehaviour
     {
         // public bool showCurrentState = false;
         public object currentState => stateMachineList[0].CurrentStateMap.state;
         private List<IStateMachine> stateMachineList = new();
-        
+
         /// <summary>
         /// Creates a stateMachine token object which is used to managed to the state of a monobehaviour. 
         /// </summary>
@@ -26,12 +27,12 @@ namespace MonoFSM.Core.Deprecated
             var fsm = new StateMachine<T>(this, component, stateMapping);
 
             stateMachineList.Add(fsm);
-         
+
             return fsm;
         }
 
         private StateMachineManager _manager => StateMachineManager.Instance;
-        private void OnEnable() 
+        private void OnEnable()
             => StateMachineManager.Instance.Register(this);
 
         private void OnDisable()
@@ -92,12 +93,12 @@ namespace MonoFSM.Core.Deprecated
 
             Profiler.EndSample();
         }
-      
+
 
         public void UpdateFromManager()
         {
             Profiler.BeginSample("StateMachineRunner.UpdateFromManager", this);
-            
+
             for (var i = stateMachineList.Count - 1; i >= 0; i--)
             {
                 var fsm = stateMachineList[i];
@@ -136,7 +137,7 @@ namespace MonoFSM.Core.Deprecated
             //     owner.VariableFolder.CommitVariableValues(); 
             // }
         }
-        
+
         [PreviewInInspector]
         [AutoParent] StateMachineOwner owner;
 

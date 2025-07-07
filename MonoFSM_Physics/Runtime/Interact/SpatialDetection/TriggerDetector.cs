@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using MonoFSM.Core.Attributes;
-using MonoFSM.Runtime.Interact.EffectHit;
-using MonoFSM.Runtime.Interact.SpatialDetection;
 using UnityEngine;
 
 namespace MonoFSM.Core.Detection
 {
-    public class TriggerSpatialDetector : AbstractDetector
+    public class TriggerDetector : AbstractDetector
     {
         public AbstractDetector virtualDetector;
         [Auto] private Collider _collider;

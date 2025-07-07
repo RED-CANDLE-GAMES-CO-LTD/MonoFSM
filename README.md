@@ -28,7 +28,6 @@ MonoFSM is a comprehensive Finite State Machine (FSM) framework for Unity, desig
 
 ### State Machine System
 
-- **General FSM Context**: The central manager for state machines (`GeneralFSMContext`) handling state transitions and updates
 - **States**: `GeneralState` objects that represent discrete behavior states
 - **Transitions**: Logic for moving between states with condition-based switching
 - **State Actions**: Modular behaviors attached to states (`AbstractStateAction`)

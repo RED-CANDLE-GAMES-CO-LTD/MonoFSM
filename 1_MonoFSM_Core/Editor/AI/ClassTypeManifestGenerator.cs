@@ -83,6 +83,16 @@ namespace MonoFSM.Core.AI
                 Debug.LogError($"Persistent data folder does not exist: {persistentDataPath}");
         }
 
+        [MenuItem("Tools/MonoFSM/Open Project Folder")]
+        private static void OpenDataFolder()
+        {
+            var dataPath = Application.dataPath;
+            if (Directory.Exists(dataPath))
+                UnityEditor.EditorUtility.RevealInFinder(dataPath);
+            else
+                Debug.LogError($"Data folder does not exist: {dataPath}");
+        }
+
         //Application.temporaryCachePath
         [MenuItem("Tools/MonoFSM/Open Temporary Cache Folder")]
         private static void OpenTemporaryCacheFolder()
