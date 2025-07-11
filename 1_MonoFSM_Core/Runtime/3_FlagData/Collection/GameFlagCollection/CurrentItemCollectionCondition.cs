@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 
-public class CurrentItemCollectionCondition : AbstractConditionComp
+public class CurrentItemCollectionCondition : AbstractConditionBehaviour
 {
     public AbstractGameFlagCollection collection;
     //FIXME: 用dropdown選

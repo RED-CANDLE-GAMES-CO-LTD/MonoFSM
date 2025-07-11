@@ -51,7 +51,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
 
         [CompRef] [AutoChildren(DepthOneOnly = true)]
-        private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
+        private AbstractConditionBehaviour[] _conditions = Array.Empty<AbstractConditionBehaviour>();
 
         [PreviewInInspector]
         public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid(); //condition 可以burst?感覺不會比較快，這個數量級

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace MonoFSM.Core.DataProvider.Condition
 {
     //ex: FloatCompareCondition
-    public class VarValueEqualCondition : AbstractConditionComp //
+    public class VarValueEqualCondition : AbstractConditionBehaviour //
     {
         // [Component][PreviewInInspector] IVariableProvider _sourceVariableProvider;
         // [Component][PreviewInInspector] IVariableProvider _targetVariableProvider;

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public static class ConditionHelper
 {
-    public static bool IsAllValid(this AbstractConditionComp[] conditions)
+    public static bool IsAllValid(this AbstractConditionBehaviour[] conditions)
     {
         if (conditions == null || conditions.Length == 0)
             return true;

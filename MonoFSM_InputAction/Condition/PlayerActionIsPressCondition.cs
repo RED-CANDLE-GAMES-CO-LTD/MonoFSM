@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 
 namespace RCGInputAction
 {
-    public class PlayerActionIsPressCondition : AbstractConditionComp,IFloatProvider
+    public class PlayerActionIsPressCondition : AbstractConditionBehaviour,IFloatProvider
     {
         // string IValueProvider.Description => Description;
 

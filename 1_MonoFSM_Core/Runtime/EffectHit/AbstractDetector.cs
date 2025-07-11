@@ -50,7 +50,7 @@ namespace MonoFSM.Core.Detection
     public abstract class AbstractDetector : MonoBehaviour, IDefaultSerializable
     {
         [PreviewInInspector] [Component] [AutoChildren(DepthOneOnly = true)]
-        private AbstractConditionComp[] _conditions;
+        private AbstractConditionBehaviour[] _conditions;
 
         public bool IsValid => _conditions.IsAllValid();
 

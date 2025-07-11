@@ -8,7 +8,7 @@ using MonoFSM.Foundation;
 
 
 //還是Condition要用Is開頭？
-public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoolProvider, IOverrideHierarchyIcon,
+public abstract class AbstractConditionBehaviour : AbstractDescriptionBehaviour, IBoolProvider, IOverrideHierarchyIcon,
     IHierarchyValueInfo
 {
 #if UNITY_EDITOR
@@ -16,7 +16,7 @@ public abstract class AbstractConditionComp : AbstractDescriptionBehaviour, IBoo
     public bool IsDrawingIcon => true;
 
     public Texture2D CustomIcon =>
-        UnityEditor.EditorGUIUtility.ObjectContent(null, typeof(AbstractConditionComp)).image as Texture2D;
+        UnityEditor.EditorGUIUtility.ObjectContent(null, typeof(AbstractConditionBehaviour)).image as Texture2D;
     //UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");
 #endif
 //     [Button]

@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 namespace MonoFSM.Core
 {
     //從provider拿到animator
-    public class AnimatorPlayingStateCondition : AbstractConditionComp
+    public class AnimatorPlayingStateCondition : AbstractConditionBehaviour
     {
         //拿動畫上的所有state name
 #if UNITY_EDITOR

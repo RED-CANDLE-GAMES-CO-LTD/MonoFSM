@@ -1,7 +1,7 @@
 namespace MonoFSM.Variable.Condition
 {
     //FIXME: 並沒有註冊唷
-    public class IsUnityObjectVariableNullCondition : AbstractConditionComp
+    public class IsUnityObjectVariableNullCondition : AbstractConditionBehaviour
     {
         [DropDownRef] public AbstractObjectVariable unityObjectVariable;
 

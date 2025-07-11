@@ -4,7 +4,7 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Core
 {
-    public class IsStateCondition: AbstractConditionComp
+    public class IsStateCondition: AbstractConditionBehaviour
     {
         [PreviewInInspector]
         [AutoParent] StateMachineOwner _owner;

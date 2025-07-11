@@ -1,6 +1,6 @@
 namespace MonoFSM.Variable.Condition
 {
-    public class IntCompareCondition: AbstractConditionComp
+    public class IntCompareCondition: AbstractConditionBehaviour
     {
         protected override bool IsValid => ArithmeticHelper.CompareValues(_varInt.Value, _targetValue, _op);
         [DropDownRef]

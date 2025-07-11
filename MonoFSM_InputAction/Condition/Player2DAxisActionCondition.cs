@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 
 namespace RCGInputAction
 {
-    public class Player2DAxisActionCondition : AbstractConditionComp
+    public class Player2DAxisActionCondition : AbstractConditionBehaviour
     {
         [FormerlySerializedAs("ActionRef")] public InputActionReference _actionRef;
         protected override bool IsValid => action is { inProgress: true };

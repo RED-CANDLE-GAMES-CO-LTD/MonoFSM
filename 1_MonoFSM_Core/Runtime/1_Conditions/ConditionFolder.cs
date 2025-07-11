@@ -3,10 +3,10 @@ using Sirenix.OdinInspector;
 namespace MonoFSM.Core
 {
     //把好幾個condition包起來, 只撈一層
-    public class ConditionFolder : AbstractConditionComp
+    public class ConditionFolder : AbstractConditionBehaviour
     {
         [Component] [ShowInInspector] [AutoChildren(DepthOneOnly = true)]
-        private AbstractConditionComp[] _conditions;
+        private AbstractConditionBehaviour[] _conditions;
 
         protected override bool IsValid
         {

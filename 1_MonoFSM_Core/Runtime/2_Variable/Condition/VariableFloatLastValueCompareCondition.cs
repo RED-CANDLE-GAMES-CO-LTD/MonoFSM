@@ -5,7 +5,7 @@ namespace MonoFSM.Variable.Condition
     /// <summary>
     /// 和上個frame的值比較
     /// </summary>
-    public class VariableFloatLastValueCompareCondition : AbstractConditionComp
+    public class VariableFloatLastValueCompareCondition : AbstractConditionBehaviour
     {
         [InfoBox("比較VariableFloat的LastValue和CalValue")]
         [DropDownRef]

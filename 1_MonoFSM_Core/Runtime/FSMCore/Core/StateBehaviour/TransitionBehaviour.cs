@@ -31,8 +31,8 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 
         [DropDownRef] public MonoStateBehaviour _target;
 
-        [SerializeField] [CompRef] [AutoChildren]
-        private AbstractConditionComp[] _conditions;
+        [SerializeField] [CompRef] [AutoChildren(DepthOneOnly = true)]
+        private AbstractConditionBehaviour[] _conditions;
 
 
 #if UNITY_EDITOR

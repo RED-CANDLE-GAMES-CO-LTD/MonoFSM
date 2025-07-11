@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class IsFromThisConnectionCondition : AbstractConditionComp
+public class IsFromThisConnectionCondition : AbstractConditionBehaviour
 {
     public SceneConnection connection;
     protected override bool IsValid

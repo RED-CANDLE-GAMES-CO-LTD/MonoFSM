@@ -42,7 +42,7 @@ namespace MonoFSM.Core.Simulate
         //   
         // }
 
-        [PreviewInInspector] [AutoChildren] AbstractConditionComp[] _conditions;
+        [PreviewInInspector] [AutoChildren] AbstractConditionBehaviour[] _conditions;
 
         public void Simulate(float deltaTime)
         {

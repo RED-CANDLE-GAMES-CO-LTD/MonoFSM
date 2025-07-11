@@ -62,7 +62,7 @@ namespace MonoFSM.Core.Runtime.Action
         [PreviewInInspector]
         // #endif
         [AutoChildren(DepthOneOnly = true)]
-        protected AbstractConditionComp[] _conditions; //condition 成立，才能做事
+        protected AbstractConditionBehaviour[] _conditions; //condition 成立，才能做事
 
 #if UNITY_EDITOR
         [PreviewInInspector] private bool IsAllValid => _conditions.IsAllValid();

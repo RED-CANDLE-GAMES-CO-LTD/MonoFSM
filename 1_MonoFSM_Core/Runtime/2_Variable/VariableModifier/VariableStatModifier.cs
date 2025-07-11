@@ -84,7 +84,7 @@ namespace MonoFSM.Variable
             name = "Stat Modifier " + ValueDescription;
         }
 
-        [PreviewInInspector] [AutoChildren] AbstractConditionComp[] _conditions;
+        [PreviewInInspector] [AutoChildren] AbstractConditionBehaviour[] _conditions;
 
         [PreviewInInspector] public bool IsValid => _conditions.IsAllValid();
         public bool IsDirty => Application.isPlaying ? _cachedProviderValue != _floatProvider.Value : false;

@@ -13,7 +13,7 @@ namespace MonoFSM.Core
     {
         // // [Header("是否反向表達")] public bool IsInverted;
         // [InlineEditor] public PlayerAbilityData abilityData;
-        [PreviewInInspector] [AutoChildren()] private AbstractConditionComp[] conditions;
+        [PreviewInInspector] [AutoChildren()] private AbstractConditionBehaviour[] conditions;
 
         // [AutoChildren(false)] private IAdditionalChecker[] _additionalCheckers;
         [ReadOnly] [ShowInPlayMode] public bool IsActivate => conditions.IsAllValid();

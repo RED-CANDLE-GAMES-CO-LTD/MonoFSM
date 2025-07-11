@@ -27,7 +27,7 @@ namespace MonoFSM.Core.Condition
         [Component] //沒用...
         [AutoChildren(DepthOneOnly = true)]
         [ShowInInspector]
-        private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
+        private AbstractConditionBehaviour[] _conditions = Array.Empty<AbstractConditionBehaviour>();
 
         [PreviewInInspector] protected virtual bool result => _conditions.IsAllValid();
 

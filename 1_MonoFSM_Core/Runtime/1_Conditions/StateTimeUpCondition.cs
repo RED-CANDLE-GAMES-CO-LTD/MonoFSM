@@ -1,7 +1,7 @@
 namespace MonoFSM.Core
 {
     //時間到就是true
-    public class StateTimeUpCondition : AbstractConditionComp
+    public class StateTimeUpCondition : AbstractConditionBehaviour
     {
         [AutoParent] private GeneralState _parentState;
         public float time;

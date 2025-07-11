@@ -10,7 +10,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
     //FIXME: 這個是MonoDescribable下面有Receiver有EffectType
     //可以被 xx Effect 作用
 
-    public class IsEffectTypeInMonoDescriptableCondition : AbstractConditionComp
+    public class IsEffectTypeInMonoDescriptableCondition : AbstractConditionBehaviour
     {
         public enum EffectSide
         {

@@ -7,7 +7,7 @@ using jerryee.UnityMCP;
 
 namespace MonoFSM.Variable.Condition
 {
-    public class VarBoolValueCondition : NotifyConditionComp
+    public class VarBoolValueCondition : NotifyConditionBehaviour
     {
         public override string Description => _varBool?.name + " == " + targetValue;
 

@@ -11,13 +11,13 @@ using Sirenix.OdinInspector;
 namespace MonoFSM.Variable.Condition
 {
     //選到一個任何MonoBehavior的bool property
-    public class BoolMonoBehaviorPropertyCondition : AbstractFieldConditionComp<bool, MonoBehaviour>
+    public class BoolMonoBehaviorPropertyCondition : AbstractFieldConditionBehaviour<bool, MonoBehaviour>
     {
         protected override bool IsValid 
             => SourceValue == TargetValue;
     }
 
-    public abstract class AbstractFieldConditionComp<TField, TSource> : AbstractConditionComp
+    public abstract class AbstractFieldConditionBehaviour<TField, TSource> : AbstractConditionBehaviour
         where TSource : UnityEngine.Object
     {
         [FormerlySerializedAs("target")] public TSource sourceObject;

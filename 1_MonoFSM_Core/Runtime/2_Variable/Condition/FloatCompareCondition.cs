@@ -9,7 +9,7 @@ using MonoFSM.Core.DataProvider;
 
 namespace MonoFSM.Variable.Condition
 {
-    public class FloatCompareCondition : NotifyConditionComp //這個可以監聽嗎？leftvalue?
+    public class FloatCompareCondition : NotifyConditionBehaviour //這個可以監聽嗎？leftvalue?
     {
         public override bool IsInvertResultOptionAvailable => false;
 

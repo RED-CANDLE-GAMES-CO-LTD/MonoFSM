@@ -8,7 +8,7 @@ namespace MonoFSM.Runtime.Interact.SpatialDetection
     public class MouseOverDetectable : EffectDetectable
     {
         [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
-        private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
+        private AbstractConditionBehaviour[] _conditions = Array.Empty<AbstractConditionBehaviour>();
 
         public void OnMouseEnter()
         {

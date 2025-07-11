@@ -8,7 +8,7 @@ namespace MonoFSM.Core
     /// <summary>
     /// Condition that checks if a specific key is pressed.
     /// </summary>
-    public class IsCheatCondition : AbstractConditionComp //FIXME: parent的模組需要拔掉的話怎麼辦？
+    public class IsCheatCondition : AbstractConditionBehaviour //FIXME: parent的模組需要拔掉的話怎麼辦？
     {
         [SerializeField] private KeyCode _keyCode;
         [CompRef] [AutoParent] private IConditionChangeListener _parentConditionChangeListener;

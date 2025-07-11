@@ -3,7 +3,7 @@ using UnityEngine;
 namespace MonoFSM.Variable.Condition
 {
     //選一個game flag 的int property
-    public class IntPropertyCondition : AbstractFieldConditionComp<int, ScriptableObject>
+    public class IntPropertyCondition : AbstractFieldConditionBehaviour<int, ScriptableObject>
     {
         public override string Description =>
             sourceObject.name + "." + propertyName + " " + Op + " " + TargetValue;

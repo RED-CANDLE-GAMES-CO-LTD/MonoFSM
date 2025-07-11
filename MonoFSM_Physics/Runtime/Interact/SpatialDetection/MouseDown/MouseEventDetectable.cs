@@ -55,6 +55,6 @@ namespace MonoFSM.Runtime.Interact.SpatialDetection
 
         [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]
         //條件要下放嗎？
-        private AbstractConditionComp[] _conditions = Array.Empty<AbstractConditionComp>();
+        private AbstractConditionBehaviour[] _conditions = Array.Empty<AbstractConditionBehaviour>();
     }
 }

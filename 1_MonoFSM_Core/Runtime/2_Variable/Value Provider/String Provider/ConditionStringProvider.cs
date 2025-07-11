@@ -10,7 +10,7 @@ namespace MonoFSM.Core
         [Serializable]
         public class ConditionString
         {
-            public AbstractConditionComp condition;
+            public AbstractConditionBehaviour condition;
 
             [SerializeField] private string Value;
 

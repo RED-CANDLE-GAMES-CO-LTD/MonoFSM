@@ -5,7 +5,7 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
 {
     //FIXME: 非network也可以用要怎麼兼容？ 不用AbstractFusionPlayerInput而是用interface
     //FIXME: move不能用這個
-    public class InputActionWasPressedCondition : AbstractConditionComp
+    public class InputActionWasPressedCondition : AbstractConditionBehaviour
     {
         //valid的timing怎麼處理.. networkcondition, 太難了ㄅ 只看state?
         protected override bool IsValid

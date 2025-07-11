@@ -19,7 +19,7 @@ namespace MonoFSM.Core
         [Title("自動檢查條件，決定開關節點")]
         [CompRef]
         [AutoChildren]
-        private AbstractConditionComp[] conditions;
+        private AbstractConditionBehaviour[] conditions;
 
         [ReadOnly][ShowInPlayMode] private bool IsActivate => conditions.IsAllValid();
 
@@ -28,7 +28,7 @@ namespace MonoFSM.Core
         //[]: 這個節點上不可以放任何的condition node
 
 
-        private bool HasConditionNodeOnThisNode => GetComponents<AbstractConditionComp>().Length > 0;
+        private bool HasConditionNodeOnThisNode => GetComponents<AbstractConditionBehaviour>().Length > 0;
 
         public void EnableCheck()
         {
