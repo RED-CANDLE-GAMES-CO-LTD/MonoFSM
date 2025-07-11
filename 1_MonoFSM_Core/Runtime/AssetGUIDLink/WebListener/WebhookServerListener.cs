@@ -33,6 +33,8 @@ namespace MonoFSM.Core
         
         public static void Init()
         {
+            //FIXME: ToolBox? DebugSetting?
+            
             // if (serverListener == null)
             //     serverListener = new WebhookServerListener();
             // serverListener.InitServer();

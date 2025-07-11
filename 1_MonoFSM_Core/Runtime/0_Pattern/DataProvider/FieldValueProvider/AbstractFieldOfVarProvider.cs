@@ -32,7 +32,7 @@ namespace MonoFSM.Core.DataProvider
         
         [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
 
-        [PreviewInInspector] public List<Type> SupportedTypes => _typeRestrict.SupportedTypes;
+        [PreviewInInspector] public List<Type> SupportedTypes => _typeRestrict?.SupportedTypes;
 
         [PreviewInInspector] public virtual Object targetObject => _objectProviderRef?.Get<Object>();
 

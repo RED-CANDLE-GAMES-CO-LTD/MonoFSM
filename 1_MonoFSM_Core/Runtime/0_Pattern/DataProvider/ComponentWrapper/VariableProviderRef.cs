@@ -172,6 +172,7 @@ namespace MonoFSM.Core.DataProvider
         [Auto]
         [TabGroup("Owner Setting")]
         [Required]
+        //開prefab
         //FIXME: 這個required會造成誤會嗎？有showif的情況
         public IBlackboardProvider _blackboardProvider; 
 
