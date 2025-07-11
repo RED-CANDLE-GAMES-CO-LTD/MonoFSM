@@ -13,10 +13,11 @@ namespace MonoFSM.Foundation
         IDrawHierarchyBackGround
     {
         // Cache for required fields per type
-        private static readonly System.Collections.Generic.Dictionary<System.Type, System.Reflection.FieldInfo[]>
+        private static readonly System.Collections.Generic.Dictionary<Type, System.Reflection.FieldInfo[]>
             _requiredFieldsCache = new();
 
-        private static System.Reflection.FieldInfo[] GetRequiredFields(System.Type type)
+        //沒有做AutoComponent下會顯示error? 還是應該讓prefab openstage時做一次，scene上跳過這個判定，雖然稍嫌trivial
+        private static System.Reflection.FieldInfo[] GetRequiredHierarchyValidateFields(System.Type type)
         {
             if (_requiredFieldsCache.TryGetValue(type, out var cachedFields))
                 return cachedFields;
@@ -30,7 +31,11 @@ namespace MonoFSM.Foundation
             var requiredFields = System.Array.FindAll(fields,
                 f => (f.GetCustomAttributes(typeof(RequiredAttribute), false).Length > 0 ||
                       f.GetCustomAttributes(typeof(DropDownRefAttribute), false).Length > 0)
-                     && !f.FieldType.IsInterface);
+                     && !f.FieldType.IsInterface
+                     && (f.IsPublic || f.GetCustomAttributes(typeof(SerializeField), false).Length > 0));
+            //FIXME: 把non serialized都跳過了，要不然會一堆沒有自動抓
+            
+            
             _requiredFieldsCache[type] = requiredFields;
 
             return requiredFields;
@@ -40,7 +45,7 @@ namespace MonoFSM.Foundation
 
         private bool CheckNullOfRequiredFields()
         {
-            var requiredFields = GetRequiredFields(GetType());
+            var requiredFields = GetRequiredHierarchyValidateFields(GetType());
             foreach (var field in requiredFields)
             {
                 // Debug.Log($"Checking required field: {field.Name} in {gameObject.name}", this);

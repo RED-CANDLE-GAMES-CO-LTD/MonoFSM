@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Diagnostics.CodeAnalysis;
+using UnityEngine;
 using Sirenix.OdinInspector;
 using MonoFSM.Core.Attributes;
 using RCGExtension;
@@ -12,9 +13,11 @@ public abstract class AbstractConditionBehaviour : AbstractDescriptionBehaviour,
     IHierarchyValueInfo
 {
 #if UNITY_EDITOR
+    [ExcludeFromCodeCoverage]
     public string IconName { get; }
+    [ExcludeFromCodeCoverage]
     public bool IsDrawingIcon => true;
-
+    [ExcludeFromCodeCoverage]
     public Texture2D CustomIcon =>
         UnityEditor.EditorGUIUtility.ObjectContent(null, typeof(AbstractConditionBehaviour)).image as Texture2D;
     //UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");

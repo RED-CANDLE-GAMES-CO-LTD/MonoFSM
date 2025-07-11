@@ -12,9 +12,11 @@ namespace Fusion.Addons.FSM
         public IReadOnlyList<IStateMachine> StateMachines => _fsmLogic.StateMachines;
 
         // PRIVATE MEMBERS
+        //FIXME: 可以拿掉了ㄅ
         [Header("DEBUG")] [SerializeField] private bool _enableLogging; // Removed default initialization
 
         private StateMachineLogic _fsmLogic;
+        
         private bool _initialized; // Removed default initialization
 
         // UNITY MESSAGES

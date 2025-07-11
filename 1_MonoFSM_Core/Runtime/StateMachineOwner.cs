@@ -99,8 +99,7 @@ public static class StateMachineExtension
 
             list.AddRange(comps);
         }
-
-
+        
         return list.ToArray();
         // if (binder != null) return binder.GetComponentsInChildren(siblingType);
         Debug.LogError("IBinder not found", monoBehaviour);
@@ -152,8 +151,9 @@ public interface IBinder
 {
 }
 
+//FIXME: 沒用了？
 public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSerializable,
-    IBinder, ISceneStart
+    IBinder
 {
     // [PreviewInInspector][AutoChildren] private GeneralFSMContext fsmContext;
     // [PreviewInInspector] [AutoChildren] private GeneralFSMContext[] fsmContexts;
@@ -163,11 +163,11 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSeria
     // public GeneralFSMContext FsmContext =>
     //     fsmContext ? fsmContext : fsmContext = GetComponentInChildren<GeneralFSMContext>();
 
-    [HideFromFSMExport]
-    [Title("超連結，只有prefab可以改")]
-    [InlineEditor]
-    [DisallowModificationsIn(PrefabKind.NonPrefabInstance)]
-    public List<Component> quickFindLinks;
+    // [HideFromFSMExport]
+    // [Title("超連結，只有prefab可以改")]
+    // [InlineEditor]
+    // [DisallowModificationsIn(PrefabKind.NonPrefabInstance)]
+    // public List<Component> quickFindLinks;
 
     // public void ResetFSM()
     // {
@@ -202,10 +202,10 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSeria
 
     public Animator[] ChildAnimators => GetComponentsInChildren<Animator>();
 
-    private void Start()
-    {
-        // ResetFSM(); //中途加入的玩家沒有call到這個
-    }
+    // private void Start()
+    // {
+    //     // ResetFSM(); //中途加入的玩家沒有call到這個
+    // }
     //2. 關卡重置後開始
 
     // void IResetStart.ResetStart() //Instaniate之後不會call這個...
@@ -215,11 +215,11 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSeria
     //
     // }
 
-    [ShowInPlayMode]
-    [InfoBox("FSM has not been reset!", InfoMessageType.Error, nameof(HasNotReset))]
-    private bool _hasReset = false;
+    // [ShowInPlayMode]
+    // [InfoBox("FSM has not been reset!", InfoMessageType.Error, nameof(HasNotReset))]
+    // private bool _hasReset = false;
 
-    private bool HasNotReset => !_hasReset;
+    // private bool HasNotReset => !_hasReset;
 
 
     [Button]
@@ -243,8 +243,8 @@ public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSeria
     //         return _variableFolder;
     //     }
     // }
-    public void EnterSceneStart()
-    {
-        // ResetFSM();
-    }
+    // public void EnterSceneStart()
+    // {
+    //     // ResetFSM();
+    // }
 }

@@ -29,7 +29,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 745658623010812690}
   m_Father: {fileID: 873855735939457434}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3416425071146600925
@@ -44,6 +45,58 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d801bf8312e64aceb0942c2b6044bc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &425011043627497657
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 745658623010812690}
+  - component: {fileID: 1009362057655616824}
+  m_Layer: 0
+  m_Name: IsActive
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &745658623010812690
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 425011043627497657}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 199713319535136511}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1009362057655616824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 425011043627497657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0c0febcd3eb0a243b407df35c92898b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonoFSM.Core.Runtime::MonoFSM.Variable.VarBool
+  _varTag: {fileID: 0}
+  description: 
+  consumers: []
+  _localField:
+    ProductionValue: 0
+    DevValue: 0
+    _isShowDebugLog: 0
+  _bindData: {fileID: 0}
 --- !u!1 &567332959712725146
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,7 +235,7 @@ GameObject:
   - component: {fileID: 2859008457434227153}
   - component: {fileID: 1679154381190438241}
   m_Layer: 0
-  m_Name: Local General FSM
+  m_Name: General FSM
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
