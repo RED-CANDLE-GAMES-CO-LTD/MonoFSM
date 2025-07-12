@@ -109,43 +109,16 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
         var myPath = AssetDatabase.GetAssetPath(this);
         // Debug.Log("Mypath" + name + ":" + myPath);
         var dirPath = System.IO.Path.GetDirectoryName(myPath);
-        string[] allProjectFlags = AssetDatabase.FindAssets("t:GameFlagBase", new[] { dirPath });
+        var allProjectFlags = AssetDatabase.FindAssets("t:GameFlagBase", new[] { dirPath });
         //All 10_Flags
         // string[] allProjectFlags = AssetDatabase.FindAssets("t:GameFlagBase", new[] { "Assets/10_Flags" });
         for (int i = 0; i < allProjectFlags.Length; i++)
         {
-            string path = AssetDatabase.GUIDToAssetPath(allProjectFlags[i]);
-            GameFlagBase flag = AssetDatabase.LoadAssetAtPath<GameFlagBase>(path);
-
-            //  自動生成pathName
-            // var pathName = path.Substring(16, path.Length - 16);
-            // if (flag.SaveID != pathName)
-            // {
-            //     flag.SaveID = pathName;
-            //     EditorUtility.SetDirty(flag);
-            // }
+            var path = AssetDatabase.GUIDToAssetPath(allProjectFlags[i]);
+            var flag = AssetDatabase.LoadAssetAtPath<GameFlagBase>(path);
             Flags.Add(flag);
 
         }
-
-        //All 13_Maps
-        // string[] allProjectMapFlags = AssetDatabase.FindAssets("t:GameFlagBase", new[] { "Assets/13_Map" });
-        // for (int i = 0; i < allProjectMapFlags.Length; i++)
-        // {
-        //     string path = AssetDatabase.GUIDToAssetPath(allProjectMapFlags[i]);
-        //     GameFlagBase flag = AssetDatabase.LoadAssetAtPath<GameFlagBase>(path);
-
-        //     //  自動生成pathName
-        //     var pathName = path.Substring(7, path.Length - 7);
-        //     if (flag.flagpath != pathName)
-        //     {
-        //         flag.flagpath = pathName;
-        //         EditorUtility.SetDirty(flag);
-        //     }
-        //     Flags.Add(flag);
-        // }
-
-
         EditorUtility.SetDirty(this);
     }
 #endif

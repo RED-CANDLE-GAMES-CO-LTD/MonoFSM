@@ -22,28 +22,30 @@ namespace MonoFSM.Variable
         // [BoxGroup("Modifier")] [CompRef] [Auto]
         // public VarFloatProviderRef _valueProvider; //FIXME: 不該用這個ㄅ？
 
+        [Required]
         [BoxGroup("Modifier")] [CompRef] [Auto]
-        private IFloatProvider
-            _floatProvider;
+        private IValueProvider<float>
+            _floatProvider; //來源
 
         [BoxGroup("Modifier")]
         [PreviewInInspector]
-        public float Value
+        public float FinalValue
         {
             get
             {
                 if (IsDirty)
                 {
                     _cachedProviderValue = _floatProvider?.Value ?? 0f;
-                    _cachedValue = _cachedProviderValue * _valueMultiplier;
+                    _cachedFinalValue = _cachedProviderValue * _valueMultiplier;
                 }
 
-                return _cachedValue;
+                return _cachedFinalValue;
             }
         }
 
         private float _cachedProviderValue; //這個是用來顯示的
-        private float _cachedValue;
+
+        private float _cachedFinalValue;
         //_valueProvider?.Value * _valueMultiplier ?? _valueMultiplier;
 
         // 新增事件
@@ -60,14 +62,14 @@ namespace MonoFSM.Variable
         //     set => _valueProvider.VarRaw.OnValueChangedRaw = value;
         // }
 
-        private string sign => Value >= 0 ? "+" : "-"; //這個是用來顯示的
+        private string sign => FinalValue >= 0 ? "+" : "-"; //這個是用來顯示的
         [ShowInInspector]
         private string ValueDescription //FIXME: 用value不對ㄅ provider的資訊
             => _type switch
             {
-                StatModType.Flat => $"{sign}{Mathf.Abs(Value)}",
-                StatModType.PercentAdd => $"{sign}{Mathf.Abs(Value) * 100}%",
-                StatModType.PercentMult => $"*{Value * 100}%",
+                StatModType.Flat => $"{sign}{Mathf.Abs(FinalValue)}",
+                StatModType.PercentAdd => $"{sign}{Mathf.Abs(FinalValue) * 100}%",
+                StatModType.PercentMult => $"*{FinalValue * 100}%",
                 _ => throw new ArgumentOutOfRangeException()
             };
 
@@ -98,7 +100,7 @@ namespace MonoFSM.Variable
         public VariableTag targetStatTag { get; }
         public int GetOrder => _order;
         public StatModType GetModType => _type;
-        public float GetValue => Value;
+        public float GetValue => FinalValue;
 
     }
 

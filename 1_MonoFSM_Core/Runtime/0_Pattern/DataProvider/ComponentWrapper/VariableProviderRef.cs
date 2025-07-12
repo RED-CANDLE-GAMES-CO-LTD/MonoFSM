@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Utilities;
 using MonoFSM.Runtime;
 using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
-using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using Sirenix.OdinInspector;
-#if UNITY_EDITOR
-using UnityEditor.SceneManagement;
-#endif
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -27,22 +25,11 @@ namespace MonoFSM.Core.DataProvider
     
     //TODO: FIXME: drag drop reference後，自動填入tag/monoTag
     //隱含有Parent VariableOwner的概念是不是不太好？
+    //動態提取？不用type? 讓我pathField選到string就有string的能力？ any IValueProvider然後Get<TType>看看？
     public abstract class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
-        IVariableProvider //, IStringProvider,IValueProvider<TValueType>
+        IVariableProvider, IValueProvider<TValueType> //, IStringProvider,IValueProvider<TValueType>
         where TVarMonoType : AbstractMonoVariable
     {
-        // private void OnValidate()
-        // {
-        //     if (Application.isPlaying) return;
-        //     if (GetComponent<IVariableOwnerProvider>() != null)
-        //         _getFromType = GetFromType.VariableOwnerProvider;
-        //     else if (GetComponentInParent<VariableOwner>() != null)
-        //         _getFromType = GetFromType.ParentVarOwner;
-        //     else
-        //         _getFromType = GetFromType.GlobalInstance;
-        //
-        // }
-
         public override Type GetVarType => typeof(TVarMonoType);
 
         [OnValueChanged(nameof(OnVarOwnerChange))]
@@ -77,22 +64,6 @@ namespace MonoFSM.Core.DataProvider
         }
 
         private MonoBehaviour _currentTarget;
-
-        //Dynamic Parent
-        // public AbstractMonoVariable GetMonoVariableFrom(MonoBehaviour target)
-        // {
-        //     _currentTarget = target;
-        //     FetchOwner(target);
-        //     //FIXME:
-        //     return VarRaw;
-        // }
-        //
-        // public TValueType GetValueFrom(MonoBehaviour target)
-        // {
-        //     _currentTarget = target;
-        //     FetchOwner(target);
-        //     return Value;
-        // }
 
         private bool TypeCheckFail()
         {
@@ -145,6 +116,110 @@ namespace MonoFSM.Core.DataProvider
         [InfoBox("Tag Type is wrong", InfoMessageType.Error, nameof(TypeCheckFail))]
         [Required]
         public VariableTag _varTag;
+
+        #region Field Path Support
+
+        [BoxGroup("Field Path", ShowLabel = true)]
+        [InfoBox("選擇變數中的特定欄位。留空表示直接使用變數值。", InfoMessageType.Info)]
+        [InfoBox("欄位路徑的最終型別與變數型別不相容", InfoMessageType.Error, nameof(IsFieldPathTypeIncompatible))]
+        [OnValueChanged(nameof(OnPathEntriesChanged))]
+        [ListDrawerSettings(ShowFoldout = false)]
+        public List<FieldPathEntry> pathEntries = new();
+
+        [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
+
+        [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
+
+        private void OnPathEntriesChanged()
+        {
+            ReflectionUtility.UpdatePathEntryTypes(pathEntries, typeof(TVarMonoType), _typeRestrict?.SupportedTypes,
+                _indexInjector);
+        }
+
+        private bool HasFieldPath => pathEntries != null && pathEntries.Count > 0;
+
+        [BoxGroup("Field Path")]
+        [HorizontalGroup("Field Path/Buttons")]
+        [Button("新增層級")]
+        private void AddFieldLevel()
+        {
+            if (pathEntries == null)
+                pathEntries = new List<FieldPathEntry>();
+
+            var newEntry = new FieldPathEntry();
+
+            // 如果是第一個項目，預設使用 TVarMonoType 作為起始型別
+            if (pathEntries.Count == 0) newEntry.SetSerializedType(typeof(TVarMonoType));
+
+            pathEntries.Add(newEntry);
+            ReflectionUtility.UpdatePathEntryTypes(pathEntries, typeof(TVarMonoType), _typeRestrict?.SupportedTypes,
+                _indexInjector);
+        }
+
+        [HorizontalGroup("Field Path/Buttons")]
+        [Button("刪除最後層級")]
+        private void RemoveLastFieldLevel()
+        {
+            if (pathEntries != null && pathEntries.Count > 0)
+            {
+                pathEntries.RemoveAt(pathEntries.Count - 1);
+                ReflectionUtility.UpdatePathEntryTypes(pathEntries, typeof(TVarMonoType), _typeRestrict?.SupportedTypes,
+                    _indexInjector);
+            }
+        }
+
+        [BoxGroup("Field Path")]
+        [Button("驗證欄位路徑")]
+        private void ValidateFieldPath()
+        {
+            if (!HasFieldPath)
+            {
+                Debug.Log("無欄位路徑需要驗證", this);
+                return;
+            }
+
+            ReflectionUtility.UpdatePathEntryTypes(pathEntries, typeof(TVarMonoType), _typeRestrict?.SupportedTypes,
+                _indexInjector);
+            var result = ReflectionUtility.GetFieldValueFromPath(VarRaw, pathEntries, gameObject);
+
+            if (result == null)
+            {
+                Debug.LogWarning("欄位路徑回傳 null 值", this);
+                return;
+            }
+
+            var resultType = result.GetType();
+            if (typeof(TValueType).IsAssignableFrom(resultType))
+                Debug.Log($"✓ 欄位路徑驗證成功: {resultType} 可以轉換為 {typeof(TValueType)}", this);
+            else
+                Debug.LogError($"✗ 型別不相容: {resultType} 無法轉換為 {typeof(TValueType)}", this);
+        }
+
+        [BoxGroup("Field Path")]
+        [ShowInInspector]
+        [DisplayAsString]
+        [LabelText("當前路徑")]
+        private string CurrentFieldPath
+        {
+            get
+            {
+                if (!HasFieldPath) return "無欄位路徑 (直接使用變數值)";
+
+                var varName = VarRaw?.name ?? "Variable";
+                var fieldPath = string.Join(".", pathEntries.Select(e => e.fieldName ?? "未選擇"));
+                return $"{varName}.{fieldPath}";
+            }
+        }
+
+        private bool IsFieldPathTypeIncompatible()
+        {
+            if (!HasFieldPath || VarRaw == null)
+                return false;
+
+            return !ReflectionUtility.IsFieldPathTypeCompatible(VarRaw, pathEntries, typeof(TValueType));
+        }
+
+        #endregion
 
 
         //FIXME: 拿到Variable的方式還是要很多種？
@@ -214,6 +289,7 @@ namespace MonoFSM.Core.DataProvider
                     {
                         //從MonoDescriptableTag找到varTag (schema一定會一致嗎？不一定)
                         var parentMonoVarTags = _blackboardTag.containsVariableTypeTags;
+                        //FIXME: 有 null 要清掉
               
                         foreach (var parentVarTag in parentMonoVarTags)
                         {
@@ -273,26 +349,20 @@ namespace MonoFSM.Core.DataProvider
             return tagDropdownItems;
         }
 
-        private IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
-        {
-            var parents = CurrentTarget.GetComponentsInParent<MonoDescriptable>();
-            var tags = new List<ValueDropdownItem<MonoDescriptableTag>>();
-            foreach (var parent in parents)
-                tags.Add(new ValueDropdownItem<MonoDescriptableTag>(parent.Tag.name, parent.Tag));
-
-            return tags;
-        }
+        // private IEnumerable<ValueDropdownItem<MonoDescriptableTag>> GetParentMonoTags()
+        // {
+        //     var parents = CurrentTarget.GetComponentsInParent<MonoDescriptable>();
+        //     var tags = new List<ValueDropdownItem<MonoDescriptableTag>>();
+        //     foreach (var parent in parents)
+        //         tags.Add(new ValueDropdownItem<MonoDescriptableTag>(parent.Tag.name, parent.Tag));
+        //
+        //     return tags;
+        // }
 
 
         [ShowInDebugMode]
         [PreviewInInspector] private Type variableValueType => typeof(TValueType);
-        //FIXME:也可以用string拿？
-        // MonoDescriptable parentDescriptable => propertyParent.GetComponentInParent<MonoDescriptable>();
 
-        //prefab裏可以不用有
-        //FIXME: 這個auto parent是不是不會跑到？是靠Inspector code才抓到的
-        //FIXME: 這樣沒有辦法提早cache?
-        // [AutoParent]
         [ShowInDebugMode]
         public MonoBlackboard owner
         {
@@ -347,47 +417,25 @@ namespace MonoFSM.Core.DataProvider
                     Debug.LogError("VariableOwner InParent is null at:", target);
 
             return _runtimeCachedOwner;
-            // return _runtimeCachedOwner;
         }
 
         private MonoBlackboard _runtimeCachedOwner;
 
-        public void SetValue(TValueType value, MonoBehaviour byWho)
-        {
-            VarRaw.SetValue(value, byWho);
-        }
+        // public void SetValue(TValueType value, MonoBehaviour byWho)
+        // {
+        //     VarRaw.SetValue(value, byWho);
+        // }
 
         public override TMonoVar GetVar<TMonoVar>()
         {
             return VarRaw as TMonoVar;
         }
-
-
-        // [GUIColor(0.8f, 1.0f, 0.8f)]
-        // [PreviewInInspector]
-        // [PreviewInInspector]
-        // public AbstractMonoVariable VarRaw
-        // {
-        //     get
-        //     {
-        //         if (varTag == null && Application.isPlaying)
-        //         {
-        //             Debug.LogError("Variable Tag is null", propertyParent);
-        //             return null;
-        //         }
-        //
-        //         var descriptable = propertyParent.GetGlobalInstance(monoDescriptableTag);
-        //         if (descriptable == null) return null;
-        //         return descriptable.GetVariable(varTag);
-        //     }
-        // }
-
-
+        
         public override AbstractMonoVariable VarRaw
         {
             get
             {
-
+                //FIXME: 抽掉？
                 if (_getFromType == GetFromType.GlobalInstance)
                 {
                     var descriptable = CurrentTarget.GetGlobalInstance(_blackboardTag);
@@ -439,10 +487,59 @@ namespace MonoFSM.Core.DataProvider
             }
         }
 
-        // [ShowInInspector]
-        // RCGVariableFolder GetFolder =>  owner?.VariableFolder;
+        public override T1 Get<T1>() //原本interface就做掉了，但是
+        {
+            var value = Value;
+            if (value is T1 t1Value) return t1Value;
+
+            // 嘗試轉型
+            try
+            {
+                return (T1)Convert.ChangeType(value, typeof(T1));
+            }
+            catch (Exception e)
+            {
+                if (Application.isPlaying)
+                    Debug.LogError(
+                        $"無法將欄位值 {value} (型別: {value.GetType()}) 轉換為 {typeof(T1)}: {e.Message}",
+                        this);
+                return default;
+            }
+        }
+
         [ShowInDebugMode]
-        [PreviewInInspector] public TValueType Value => VarRaw == null ? default : VarRaw.GetValue<TValueType>();
+        [PreviewInInspector]
+        public TValueType Value
+        {
+            get
+            {
+                if (VarRaw == null) return default;
+
+                // 如果沒有設定欄位路徑，直接回傳變數值
+                if (!HasFieldPath) return VarRaw.GetValue<TValueType>();
+
+                // 使用欄位路徑存取特定欄位值
+                var fieldValue = ReflectionUtility.GetFieldValueFromPath(VarRaw, pathEntries, gameObject);
+
+                if (fieldValue is TValueType tValue) return tValue;
+
+                // 嘗試轉型
+                if (fieldValue != null)
+                    try
+                    {
+                        return (TValueType)Convert.ChangeType(fieldValue, typeof(TValueType));
+                    }
+                    catch (Exception e)
+                    {
+                        if (Application.isPlaying)
+                            Debug.LogError(
+                                $"無法將欄位值 {fieldValue} (型別: {fieldValue.GetType()}) 轉換為 {typeof(TValueType)}: {e.Message}",
+                                this);
+                    }
+
+                return default;
+            }
+        }
 
         public override VariableTag varTag
         {
@@ -450,42 +547,53 @@ namespace MonoFSM.Core.DataProvider
             set => _varTag = value;
         }
 
-        public object GetValue()
-        {
-            return Value;
-        }
-
-        public T GetValue<T>()
-        {
-            var value = GetValue();
-            switch (value)
-            {
-                case null:
-                    return default;
-                case T value1:
-                    return value1;
-                default:
-                    Debug.LogError($"Cannot cast {value} to {typeof(T)}", this);
-                    return default;
-            }
-        }
-
-        public Type ValueType => typeof(TValueType);
-
-        // public string GetDescription()
+        // public object GetValue()
         // {
-        //     
+        //     if (VarRaw == null) return null;
+        //
+        //     // 如果沒有設定欄位路徑，直接回傳變數值
+        //     if (!HasFieldPath) return VarRaw.GetValue<TValueType>();
+        //
+        //     // 使用欄位路徑存取特定欄位值
+        //     return ReflectionUtility.GetFieldValueFromPath(VarRaw, pathEntries, gameObject);
         // }
-        public virtual string Description
+        //
+        // public T GetValue<T>()
+        // {
+        //     var value = GetValue();
+        //     switch (value)
+        //     {
+        //         case null:
+        //             return default;
+        //         case T value1:
+        //             return value1;
+        //         default:
+        //             // 嘗試轉型
+        //             try
+        //             {
+        //                 return (T)Convert.ChangeType(value, typeof(T));
+        //             }
+        //             catch (Exception)
+        //             {
+        //                 if (Application.isPlaying)
+        //                     Debug.LogError($"Cannot cast {value} to {typeof(T)}", this);
+        //                 return default;
+        //             }
+        //     }
+        // }
+
+        public override Type ValueType => typeof(TValueType);
+
+        public override string Description
         {
             get
             {
                 var str = string.Empty;
                 if (_blackboardTag) str = _blackboardTag.name + ".";
                 str += varTag?.name;
+                if (HasFieldPath) str += "." + string.Join(".", pathEntries.Select(e => e.fieldName));
                 return str;
             }
         }
-        
     }
 }

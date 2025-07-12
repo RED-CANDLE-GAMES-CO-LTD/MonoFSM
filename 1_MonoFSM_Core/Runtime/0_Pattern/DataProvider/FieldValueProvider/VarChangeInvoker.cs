@@ -12,7 +12,8 @@ namespace MonoFSM.Core.DataProvider
     public class VarChangeInvoker : MonoBehaviour, IResetStart, IDataChangedProvider, IVarChangedListener
     {
         [Required] [CompRef] [Auto] private AbstractVariableProviderRef _variableProviderRef; //當這個var值變化時
-        [Required] [CompRef] [Auto] private AbstractFieldOfVarProvider _fieldOfVarProvider; //用這個值
+
+        // [Required] [CompRef] [Auto] private AbstractFieldOfVarProvider _fieldOfVarProvider; //用這個值
         [Required] [CompRef] [Auto] private IDataChangedListener _dataChangedListener;
 
 //Proxy updater要怎麼辦？沒有備注冊進去？
@@ -39,7 +40,7 @@ namespace MonoFSM.Core.DataProvider
         // private AbstractMonoVariable ListenToVariable => _variableProviderRef.VarRaw;
         public void OnVarChanged(AbstractMonoVariable variable)
         {
-            _dataChangedListener.OnDataChanged(_fieldOfVarProvider.targetObject);
+            _dataChangedListener.OnDataChanged(_variableProviderRef.VarRaw);
         }
     }
 }

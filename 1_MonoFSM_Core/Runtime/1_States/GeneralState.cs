@@ -33,6 +33,12 @@ public class GeneralState : MonoStateBehaviour
         return Machine.TryActivateState(this);
     }
 
+    [Button("強制跳State")]
+    private void TestGoToState()
+    {
+        ForceGoToState();
+    }
+
     public virtual void OnStateEnter()
     {
     }

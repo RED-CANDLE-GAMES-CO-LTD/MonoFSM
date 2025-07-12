@@ -4,7 +4,8 @@ namespace MonoFSM.Core
     {
         void OnBeforeBuildSceneSave();
     }
-    
+
+    //FIXME: 
     public interface ISceneSavingCallbackReceiver
     {
         void OnBeforeSceneSave();
@@ -26,5 +27,10 @@ namespace MonoFSM.Core
     public interface IBeforePrefabSaveCallbackReceiver
     {
         void OnBeforePrefabSave();
+    }
+
+    public interface IAfterPrefabStageOpenCallbackReceiver
+    {
+        void OnAfterPrefabStageOpen();
     }
 }

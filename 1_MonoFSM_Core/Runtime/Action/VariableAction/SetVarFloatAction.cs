@@ -8,8 +8,8 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
 {
     public class SetVarFloatAction : AbstractStateAction
     {
-        [MCPExtractable] [DropDownRef] public VarFloat _targetVar;
-
+        [DropDownRef] public VarFloat _targetVar;
+        
         [Required] [CompRef] [Auto] private IFloatProvider _valueProvider; //如果要拿到VarFloat的Max怎麼設計比較好？
 
         protected override void OnStateEnterImplement()

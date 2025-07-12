@@ -1,3 +1,4 @@
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
@@ -33,13 +34,15 @@ namespace MonoFSM.Core
         {
             if (!isActiveAndEnabled)
                 return;
+            _lastEventHandledTime = Time.time;
             foreach (var eventReceiver in _eventReceivers)
             {
                 if (eventReceiver.IsValid)
                     eventReceiver.EventReceived();
             }
-                
         }
+
+        [PreviewInInspector] private float _lastEventHandledTime = -1f;
 
         /// <summary>
         /// Call all event receivers' <see cref="IEventReceiver{T}.EventReceived"/> method with the given argument.

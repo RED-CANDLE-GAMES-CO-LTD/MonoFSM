@@ -10,16 +10,26 @@ using MonoFSM.Runtime;
 namespace MonoFSM.Foundation
 {
     public abstract class AbstractDescriptionBehaviour : MonoBehaviour, IBeforePrefabSaveCallbackReceiver,
-        IDrawHierarchyBackGround
+        IAfterPrefabStageOpenCallbackReceiver, IDrawHierarchyBackGround
     {
-        // Cache for required fields per type
+        // Cache for required fields per type (serialized only)
         private static readonly System.Collections.Generic.Dictionary<Type, System.Reflection.FieldInfo[]>
             _requiredFieldsCache = new();
 
+        // Cache for required fields per type (including non-serialized)
+        private static readonly System.Collections.Generic.Dictionary<Type, System.Reflection.FieldInfo[]>
+            _requiredFieldsCacheWithNonSerialized = new();
+
+        // Track if we're in prefab stage mode for more detailed error checking
+        private bool _isPrefabStageMode = false;
+
         //沒有做AutoComponent下會顯示error? 還是應該讓prefab openstage時做一次，scene上跳過這個判定，雖然稍嫌trivial
-        private static System.Reflection.FieldInfo[] GetRequiredHierarchyValidateFields(System.Type type)
+        private static System.Reflection.FieldInfo[] GetRequiredHierarchyValidateFields(Type type,
+            bool includeNonSerialized = false)
         {
-            if (_requiredFieldsCache.TryGetValue(type, out var cachedFields))
+            var cache = includeNonSerialized ? _requiredFieldsCacheWithNonSerialized : _requiredFieldsCache;
+
+            if (cache.TryGetValue(type, out var cachedFields))
                 return cachedFields;
 
             var fields = type.GetFields(System.Reflection.BindingFlags.Instance |
@@ -28,15 +38,23 @@ namespace MonoFSM.Foundation
 
             // Find all fields with [Required] or [DropDownRef] attributes that are not "interfaces"
             //interface在組合component就會看到了, 也比較不會在refactor之後掉reference
-            var requiredFields = System.Array.FindAll(fields,
-                f => (f.GetCustomAttributes(typeof(RequiredAttribute), false).Length > 0 ||
-                      f.GetCustomAttributes(typeof(DropDownRefAttribute), false).Length > 0)
-                     && !f.FieldType.IsInterface
-                     && (f.IsPublic || f.GetCustomAttributes(typeof(SerializeField), false).Length > 0));
-            //FIXME: 把non serialized都跳過了，要不然會一堆沒有自動抓
-            
-            
-            _requiredFieldsCache[type] = requiredFields;
+            System.Reflection.FieldInfo[] requiredFields;
+
+            if (includeNonSerialized)
+                // Include all fields with required attributes, regardless of serialization
+                requiredFields = Array.FindAll(fields,
+                    f => (f.GetCustomAttributes(typeof(RequiredAttribute), false).Length > 0 ||
+                          f.GetCustomAttributes(typeof(DropDownRefAttribute), false).Length > 0)
+                         && !f.FieldType.IsInterface);
+            else
+                // Only include public or SerializeField attributes (original behavior)
+                requiredFields = Array.FindAll(fields,
+                    f => (f.GetCustomAttributes(typeof(RequiredAttribute), false).Length > 0 ||
+                          f.GetCustomAttributes(typeof(DropDownRefAttribute), false).Length > 0)
+                         && !f.FieldType.IsInterface
+                         && (f.IsPublic || f.GetCustomAttributes(typeof(SerializeField), false).Length > 0));
+
+            cache[type] = requiredFields;
 
             return requiredFields;
         }
@@ -61,6 +79,28 @@ namespace MonoFSM.Foundation
             // Debug.Log($"All required fields are set in {gameObject.name}");
             _errorMessage = "pass!";
 
+            return false;
+        }
+
+        // Prefab stage specific error checking that includes non-serialized fields
+        private bool CheckNullOfRequiredFieldsForPrefabStage(bool isShowError = false)
+        {
+            var requiredFields = GetRequiredHierarchyValidateFields(GetType(), true);
+            foreach (var field in requiredFields)
+            {
+                var value = field.GetValue(this);
+                if (value == null)
+                {
+                    _errorMessage = $"Required field '{field.Name}' is null in {gameObject.name} (Prefab Stage Check)";
+                    //FIXME: 一打開prefab想log?
+
+                    if (isShowError)
+                        Debug.LogError($"Required field '{field.Name}' is null in {gameObject.name}", this);
+                    return true;
+                }
+            }
+
+            _errorMessage = "pass!";
             return false;
         }
 
@@ -111,11 +151,28 @@ namespace MonoFSM.Foundation
 #endif
         }
 
+        public virtual void OnAfterPrefabStageOpen()
+        {
+            _isPrefabStageMode = true;
+            // Trigger error checking with non-serialized fields included
+            CheckNullOfRequiredFieldsForPrefabStage(true);
+        }
+
 
         protected virtual bool HasError()
         {
-            //FIXME: Reference Required error? 用reflection找？DropDownRef也是？ cached field會OK嗎？每個type做一次ㄋ
-            return CheckNullOfRequiredFields();
+            // Use different checking logic based on environment
+            var isInPrefabStage = _isPrefabStageMode;
+
+#if UNITY_EDITOR
+            // Double-check using Unity's API for more reliability
+            if (UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage() != null) isInPrefabStage = true;
+#endif
+
+            if (isInPrefabStage)
+                return CheckNullOfRequiredFieldsForPrefabStage();
+            else
+                return CheckNullOfRequiredFields();
         }
 
         [PreviewInInspector] private string _errorMessage;

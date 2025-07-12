@@ -6,6 +6,7 @@ using System.Reflection;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
+using MonoFSM.Variable.FieldReference;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -15,39 +16,25 @@ namespace MonoFSM.Core.DataProvider
     // 監聽變數的變化，然後更新UI
     /// <summary>
     /// 拿Var的Field
+    /// FIXME: 拔掉？
     /// </summary>
     public class
         AbstractFieldOfVarProvider : MonoBehaviour //打架了，這個有IConfigVar, 和VariableProviderRef衝突
     {
-        //FIXME: 要提前有schema可以參考？ EditorPlaceholder?
-        
-        //這個auto會太慢耶導致看的時候error?
-        //FIXME: 不一定是variable?
-        // [Component(addAt = AddComponentAt.Same)] [Required] [Auto]
-        // protected AbstractVariableProviderRef _variableProviderRef; //FIXME: 有可能會無窮迴圈？應該要單向
+        [CompRef] [Required] [Auto] protected AbstractVariableProviderRef _variableProviderRef;
 
-        //IValueProvider? ICompProvider? 
-
-        [CompRef] [Auto] protected IValueProvider _objectProviderRef;
+        // [CompRef] [AutoChildren(DepthOneOnly = true)]
+        // protected IValueProvider _objectProviderRef; //FIXME: 用IValueProvider不好, 應該只吃variable?
         
         [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
 
-        [PreviewInInspector] public List<Type> SupportedTypes => _typeRestrict?.SupportedTypes;
+        // [PreviewInInspector] public List<Type> SupportedTypes => _typeRestrict?.SupportedTypes;
 
-        [PreviewInInspector] public virtual Object targetObject => _objectProviderRef?.Get<Object>();
+        [PreviewInInspector] public virtual Object targetObject => _variableProviderRef?.VarRaw;
 
-        [PreviewInInspector] public Type targetType => _objectProviderRef.ValueType;
+        [PreviewInInspector] public Type targetType => _variableProviderRef?.GetValueType;
         [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
         
-
-        private void OnDestroy()
-        {
-            //FIXME: unity destroy噁心！
-            //好像不用？AbstractMonoVariable自己‘清就好？
-            // if (ListenToVariable)
-            //     ListenToVariable.OnValueChangedRaw -= OnValueChanged;
-        }
-
         /// <summary>
         ///     從 targetObject 開始，依序根據 pathEntries 更新每一層的 parentType
         ///     若欄位為陣列，則下一層的 parentType 設為陣列元素的型別
@@ -56,23 +43,13 @@ namespace MonoFSM.Core.DataProvider
         // [Button("更新")]
         private void UpdateParentTypes()
         {
-            if (_objectProviderRef == null)
+            if (_variableProviderRef == null)
                 return;
             var currentType = targetObject != null ? targetObject.GetType() : targetType;
             // Debug.Log("UpdateParentTypes currentType"+currentType, this);
             for (var i = 0; i < pathEntries.Count; i++)
             {
                 pathEntries[i]._serializedType.SetType(currentType);
-                // 若 parentType 為可序列化型別或 Unity Object，則不限制支援的型別
-                // if (currentType.IsSerializable ||
-                //     typeof(Object).IsAssignableFrom(currentType))
-                // {
-                //     Debug.Log("currentType.IsSerializable" + currentType.IsSerializable +
-                //               "typeof(Object).IsAssignableFrom(currentType)" +
-                //               typeof(Object).IsAssignableFrom(currentType));
-                //     pathEntries[i]._supportedTypes = null;
-                // }
-                // else
                 if (_typeRestrict != null)
                     pathEntries[i]._supportedTypes = _typeRestrict.SupportedTypes;
 
@@ -81,19 +58,6 @@ namespace MonoFSM.Core.DataProvider
 
                 if (currentType != null && !string.IsNullOrEmpty(pathEntries[i].fieldName))
                 {
-                    // 先嘗試 Field
-                    // var field = currentType.GetField(pathEntries[i].fieldName,
-                    //     BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                    // if (field != null)
-                    // {
-                    //     if (field.FieldType.IsArray)
-                    //         // 若為陣列，下一層的型別為元素型別
-                    //         currentType = field.FieldType.GetElementType();
-                    //     else
-                    //         currentType = field.FieldType;
-                    //     continue;
-                    // }
-
                     // 再嘗試 Property
                     var prop = currentType.GetProperty(pathEntries[i].fieldName,
                         BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -138,10 +102,6 @@ namespace MonoFSM.Core.DataProvider
                     Debug.LogError($"在 '{entry.fieldName}' 層級遇到 null", this);
                     return $"在 '{entry.fieldName}' 層級遇到 null";
                 }
-                else
-                {
-                    // Debug.Log($"在 '{entry.fieldName}' {i}層級的物件: {currentObj}", this);
-                }
 
                 //FIXME: 如果某個type被refactor的時候，serializedType記得東西會爛掉，要重新開Prefab儲存
                 //FIXME: 這個prefab抓到的不一定會是對的耶... 除非是先拿到正確的sampleData
@@ -151,11 +111,19 @@ namespace MonoFSM.Core.DataProvider
 
                 if (entry.fieldName == null)
                 {
-                    Debug.LogError("欄位名稱為空", this);
+                    // Debug.LogError("欄位名稱為空", this);
                     return "欄位名稱為空";
                 }
 
                 var getter = GetMemberGetter(type, entry.fieldName);
+
+                // 檢查欄位是否已重命名，如果是則更新 entry.fieldName
+                var foundMember = RefactorSafeNameResolver.FindMemberByCurrentOrFormerName(type, entry.fieldName);
+                if (foundMember != null && foundMember.Name != entry.fieldName)
+                {
+                    Debug.Log($"欄位 '{entry.fieldName}' 已重命名為 '{foundMember.Name}'，正在更新參考", this);
+                    entry.fieldName = foundMember.Name;
+                }
                 if (getter != null)
                 {
                     currentObj = getter(currentObj); //可能拿到陣列
@@ -228,9 +196,10 @@ namespace MonoFSM.Core.DataProvider
 
             // 每次按下前先更新所有層級的 parentType
             var resultValue = GetFieldValueFromPath(targetObject, pathEntries);
-#if UNITY_EDITOR
-            if (resultValue == null && Application.isPlaying == false) Debug.LogError("Editor 取得欄位結果為 null" + targetObject, this);
-#endif
+// #if UNITY_EDITOR
+//             if (resultValue == null && Application.isPlaying == false)
+//                 Debug.LogError("Editor 取得欄位結果為 null" + targetObject, this);
+// #endif
             // Debug.Log("結果：" + (resultValue != null ? resultValue.ToString() : "null"));
             return resultValue;
         }
@@ -266,43 +235,26 @@ namespace MonoFSM.Core.DataProvider
         /// <summary>
         /// 取得指定型別與成員名稱的 getter delegate。
         /// 如果已快取則直接回傳，否則建立一個並快取起來。
+        /// 使用 RefactorSafeNameResolver 來查找成員（支援舊名稱）。
         /// </summary>
         private static Func<object, object> GetMemberGetter(Type type, string memberName)
         {
             var key = (type, memberName);
             if (getterCache.TryGetValue(key, out var getter)) return getter;
 
-            // 嘗試從 Field 取得
-            // FieldInfo field = type.GetField(memberName,
-            //     BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            // if (field != null)
-            // {
-            //     getter = CreateFieldGetter(field);
-            //     getterCache[key] = getter;
-            //     return getter;
-            // }
+            // 使用 RefactorSafeNameResolver 查找成員（支援舊名稱）
+            var member = RefactorSafeNameResolver.FindMemberByCurrentOrFormerName(type, memberName);
 
-            // 嘗試從 Property 取得
-            // var field = type.GetField(entry.fieldName,
-            //     BindingFlags.Public | BindingFlags.Instance);
-            // if (field != null)
-            // {
-            //     currentObj = field.GetValue(currentObj);
-            // }
-            // else
-            // {
-            // var prop = type.GetProperty(entry.fieldName,
-            //     BindingFlags.Public | BindingFlags.Instance);
-            // if (prop != null)
-            //     currentObj = prop.GetValue(currentObj, null);
-            // else
-            //     return $"在 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性";
-
-            var prop = type.GetProperty(memberName,
-                BindingFlags.Public | BindingFlags.Instance);
-            if (prop != null)
+            if (member is PropertyInfo prop)
             {
                 getter = CreatePropertyGetter(prop);
+                getterCache[key] = getter;
+                return getter;
+            }
+
+            if (member is FieldInfo field)
+            {
+                getter = CreateFieldGetter(field);
                 getterCache[key] = getter;
                 return getter;
             }
@@ -337,13 +289,7 @@ namespace MonoFSM.Core.DataProvider
         }
 
         #endregion
-
-        public void EnterSceneStart() //這個variable可能還沒準備好嗎？
-        {
-          
-        }
-
-       
+        
 
         public object GetValue()
         {
@@ -354,33 +300,51 @@ namespace MonoFSM.Core.DataProvider
         {
             if (pathEntries == null || pathEntries.Count == 0)
                 // Ensure we have a provider and it's not pointing to this component to avoid recursion.
-                if (_objectProviderRef != null && !ReferenceEquals(_objectProviderRef, this))
-                    return _objectProviderRef.Get<T>();
-                else
-                    throw new InvalidOperationException(
-                        "No path entries defined and _objectProviderRef is not set or self-referencing.");
+                if (_variableProviderRef != null && _variableProviderRef.VarRaw != null)
+                    return _variableProviderRef.VarRaw.GetValue<T>();
+            // else
+            //     throw new InvalidOperationException(
+            //         "No path entries defined and _objectProviderRef is not set or self-referencing.");
 
 
             // Fallback for when _objectProviderRef is not assigned or is self-referencing.
             // The original behavior for an empty path was to return targetObject.
             // return targetObject;
             var value = GetFieldValue();
+#if UNITY_EDITOR
+            if (Application.isPlaying == false && value == null) return default;
+#endif
             if (value is T tValue)
                 return tValue;
-            else
+            if (Application.isPlaying) 
                 Debug.LogError($"GetValue<T> 轉型失敗: {value} 無法轉型為 {typeof(T)}", this);
             return default;
         }
 
-        public string GetDescription()
+
+        public T1 Get<T1>()
         {
-            //FIXME: 這個要怎麼寫？
-            if (targetObject == null)
-                return "null";
-            if (targetObject is Object obj)
-                return obj.name;
-            else
+            var value = GetValue();
+            if (value is T1 t1Value) return t1Value;
+            Debug.LogError($"Get<T1> 轉型失敗: {value} 無法轉型為 {typeof(T1)}", this);
+            return default;
+            // throw new InvalidCastException($"Cannot cast {typeof(T)} to {typeof(T1)}");
+        }
+
+        public Type ValueType =>
+            _variableProviderRef.GetValueType;
+
+        public string Description
+        {
+            get
+            {
+                //FIXME: 這個要怎麼寫？
+                if (targetObject == null)
+                    return "null";
+                if (targetObject is Object obj)
+                    return obj.name;
                 return targetObject.ToString();
+            }
         }
     }
 }

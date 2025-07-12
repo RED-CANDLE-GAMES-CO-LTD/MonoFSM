@@ -232,7 +232,7 @@ namespace MonoFSM.Variable
             }
             else
             {
-                Debug.Log("Character Stat Already Has Modifier" + mod.Value + mod._type);
+                Debug.Log("Character Stat Already Has Modifier" + mod.FinalValue + mod._type);
             }
         }
 

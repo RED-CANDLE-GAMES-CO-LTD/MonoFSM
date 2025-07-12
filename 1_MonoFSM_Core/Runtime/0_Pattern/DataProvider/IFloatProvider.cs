@@ -10,7 +10,8 @@ using UnityEngine.Serialization;
 namespace MonoFSM.Core.DataProvider
 {
     //Float來源：直接給一個float, variable float, data的property
-
+    //不要亂放IValueProvider? 要不然provider會有很多種來源沒得選
+    //最後才限定？可是要寫很多種？尷尬
     //有各式各樣的來源
 
     //MonoObject

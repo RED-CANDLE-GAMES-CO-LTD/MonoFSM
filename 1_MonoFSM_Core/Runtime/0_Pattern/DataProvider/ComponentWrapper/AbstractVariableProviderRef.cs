@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MonoFSM.Core.DataProvider
 {
-    public abstract class AbstractVariableProviderRef : MonoBehaviour
+    public abstract class AbstractVariableProviderRef : MonoBehaviour, IValueProvider
     {
         // public GameFlagBase FinalData => VarRaw?.FinalData;
         public abstract AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
@@ -15,24 +15,15 @@ namespace MonoFSM.Core.DataProvider
         public abstract VariableTag varTag { get; set; }
         public abstract TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable;
 
-        // [Button]
-        // private void Rename()
-        // {
-        //     name = "[Ref]" + VarRaw?.name;
-        // }
-
         public override string ToString()
         {
             return VarRaw?.name;
         }
 
-        // public virtual string Description
-        // {
-        //     get
-        //     {
-        //         if (VarRaw == null) return "Null";
-        //         return $"{VarRaw.name}";
-        //     }
-        // }
+        public abstract T1 Get<T1>();
+
+
+        public abstract Type ValueType { get; }
+        public abstract string Description { get; }
     }
 }

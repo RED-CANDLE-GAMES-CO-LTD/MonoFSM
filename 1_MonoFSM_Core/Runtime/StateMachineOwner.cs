@@ -152,7 +152,7 @@ public interface IBinder
 }
 
 //FIXME: 沒用了？
-public class StateMachineOwner : MonoBlackboard, IAnimatorProvider, IDefaultSerializable,
+public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSerializable,
     IBinder
 {
     // [PreviewInInspector][AutoChildren] private GeneralFSMContext fsmContext;

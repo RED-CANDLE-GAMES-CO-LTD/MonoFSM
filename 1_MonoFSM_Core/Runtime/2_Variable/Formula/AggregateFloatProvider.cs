@@ -11,6 +11,7 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Formula
 {
+    //不同種valueProvider的聚合計算
     public class AggregateFloatProvider : MonoBehaviour, IFloatProvider
     {
         public enum AggregationType

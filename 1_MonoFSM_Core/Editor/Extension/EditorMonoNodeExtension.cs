@@ -135,7 +135,7 @@ public static class EditorMonoNodeExtension
         return typeList;
     }
 
-    public static IEnumerable<Type> GetAllScriptableAsset()
+    public static IEnumerable<Type> GetAllScriptableAssetType()
     {
         //[]: 好像不一定需要這個attribute 才能拿? 但這個是介面問題，不該拿到不能變成asset的SO，但不確定有需要動態產生SO嗎？
         var types = typeof(ScriptableObject).FilterSubClassFromDomain(typeof(CreateAssetMenuAttribute));

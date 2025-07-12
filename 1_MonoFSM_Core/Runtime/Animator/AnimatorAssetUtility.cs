@@ -5,7 +5,7 @@ using UnityEditor.Animations;
 #endif
 using UnityEngine;
 
-namespace MonoFSM.EditorUtility
+namespace MonoFSM.AnimatorUtility
 {
     //FIXME: core module? animator asset creation
     public static class AnimatorAssetUtility

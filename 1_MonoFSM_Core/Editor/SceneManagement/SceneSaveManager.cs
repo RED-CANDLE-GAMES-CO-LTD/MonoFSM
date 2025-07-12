@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using _1_MonoFSM_Core.Runtime._3_FlagData;
 using Cysharp.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -32,6 +33,14 @@ namespace EditorTool
             //FIXME: Shift Save? 沒有dirty就不會跑這個喔
             PrefabStage.prefabSaving -= OnPrefabSaving;
             PrefabStage.prefabSaving += OnPrefabSaving;
+
+            // Listen for prefab stage opened events
+            PrefabStage.prefabStageOpened -= OnPrefabStageOpened;
+            PrefabStage.prefabStageOpened += OnPrefabStageOpened;
+
+            // Listen for prefab stage closed events
+            PrefabStage.prefabStageClosing -= OnPrefabStageClosing;
+            PrefabStage.prefabStageClosing += OnPrefabStageClosing;
         }
 
         // public static async UniTask ScanSceneAndBuildCache(RCGBuildConfig config, bool isTinyBuild = false)
@@ -102,7 +111,7 @@ namespace EditorTool
             EditorUtility.DisplayDialog("Exit Scene: ValidateBeforeSave", "Call OnBefore Scene Save?", "ok", "cancel");
         }
 
-        [MenuItem("RCGs/檢查式存檔 Save Scene with BeforeSave Callback #_S")] //Shift + S
+        [MenuItem("MonoFSM/檢查式存檔 Save Scene with BeforeSave Callback #_S")] //Shift + S
         private static void CustomSave()
         {
             if (Application.isPlaying)
@@ -145,6 +154,35 @@ namespace EditorTool
             // {
             //     savingObj.OnBeforeSceneSave();
             // }
+        }
+
+        private static void OnPrefabStageOpened(PrefabStage prefabStage)
+        {
+            Debug.Log("OnPrefabStageOpened: " + prefabStage.assetPath);
+            var prefabRoot = prefabStage.prefabContentsRoot;
+            var openCallbackObjs = new List<IAfterPrefabStageOpenCallbackReceiver>();
+            prefabRoot.GetComponentsInChildren(true, openCallbackObjs);
+            AutoAttributeManager.AutoReferenceAllChildren(prefabRoot);
+            foreach (var callbackObj in openCallbackObjs)
+                if (callbackObj != null)
+                    callbackObj.OnAfterPrefabStageOpen();
+        }
+
+        private static void OnPrefabStageClosing(PrefabStage prefabStage)
+        {
+            Debug.Log("OnPrefabStageClosing: " + prefabStage.assetPath);
+            var prefabRoot = prefabStage.prefabContentsRoot;
+            var components = prefabRoot.GetComponentsInChildren<MonoFSM.Foundation.AbstractDescriptionBehaviour>(true);
+
+            foreach (var component in components)
+                if (component != null)
+                {
+                    // Reset prefab stage mode via reflection (since _isPrefabStageMode is private)
+                    var field = typeof(MonoFSM.Foundation.AbstractDescriptionBehaviour).GetField("_isPrefabStageMode",
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (field != null)
+                        field.SetValue(component, false);
+                }
         }
 
 
@@ -197,8 +235,35 @@ namespace EditorTool
             if (autoAttributeManager != null) autoAttributeManager.monoReferenceCache.SaveReferenceCache();
         }
 
+
+        public static void FindAllSOAndProcessSceneSave()
+        {
+            // gameFlagDataList.Clear();
+            // Debug.Log("Find GameFlag:" + typeof(T).FullName);
+            // var myPath = AssetDatabase.GetAssetPath(this);
+            // Debug.Log("Mypath" + name + ":" + myPath);
+            // var dirPath = System.IO.Path.GetDirectoryName(myPath);
+            var allProjectFlags = AssetDatabase.FindAssets("t:MonoSOConfig");
+            // var soList = new List<ScriptableObject>();
+            //All 10_Flags
+            // string[] allProjectFlags = AssetDatabase.FindAssets("t:GameFlagBase", new[] { "Assets/10_Flags" });
+            for (var i = 0; i < allProjectFlags.Length; i++)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(allProjectFlags[i]);
+                //這步驟感覺有點貴...只弄一個folder?或是篩選一層類別？
+                var flag = AssetDatabase.LoadAssetAtPath<MonoSOConfig>(path);
+                if (flag is ISceneSavingCallbackReceiver sceneSavingCallbackReceiver)
+                    sceneSavingCallbackReceiver.OnBeforeSceneSave();
+                if (flag is ISceneSavingAfterCallbackReceiver sceneSavingAfterCallbackReceiver)
+                    sceneSavingAfterCallbackReceiver.OnAfterSceneSave();
+                // soList.Add(flag);
+            }
+        }
         private static void FindSceneSavingAndProcess()
         {
+            //scriptable object也可以做這個？
+
+            FindAllSOAndProcessSceneSave();
             var rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
             // EditorUtility.ClearProgressBar();
             // StoreReferenceCacheOfScene();

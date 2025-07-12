@@ -2,7 +2,9 @@ using System;
 using RCGExtension;
 using UnityEngine;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Variable.FieldReference;
 using Sirenix.OdinInspector;
+using UnityEngine.Serialization;
 
 //CountdownTimer...直接掛在這個下面？
 namespace MonoFSM.Variable
@@ -23,11 +25,12 @@ namespace MonoFSM.Variable
         [ShowInDebugMode]
         public int IntValue => Mathf.CeilToInt(CurrentValue);
 
-        [ShowInPlayMode]
-        public float Percentage => (CurrentValue - Min) / (Max - Min);
+        [ShowInPlayMode] public float Percentage => (CurrentValue - Min) / (Max - Min);
 
+        //FIXME: 要editor time的時候GetComponent嗎？
         public float Min => _boundModifier ? _boundModifier.MinValue : float.MinValue;
-        public float Max => _boundModifier ? _boundModifier.MaxValue : float.MaxValue;
+
+        [FormerlyNamedAs("MaxTest")] public float Max => _boundModifier ? _boundModifier.MaxValue : float.MaxValue;
 
     
         public override void OnBeforePrefabSave()

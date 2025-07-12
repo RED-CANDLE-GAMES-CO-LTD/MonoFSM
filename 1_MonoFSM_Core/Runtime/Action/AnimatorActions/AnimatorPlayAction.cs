@@ -7,10 +7,10 @@ using UnityEngine;
 using System;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.AnimatorControl;
+using MonoFSM.AnimatorUtility;
 using MonoFSM.Foundation;
 using MonoFSM.Core.Editor;
 #if UNITY_EDITOR
-using MonoFSM.EditorUtility;
 using UnityEditor;
 using UnityEditor.Animations;
 #endif
@@ -413,6 +413,12 @@ namespace MonoFSM.Animation
         [Button]
         private void CalculateClipLength()
         {
+            if (CurrentClip == null)
+            {
+                Debug.LogError("CurrentClip is null, cannot calculate length", this);
+                return;
+            }
+            
             _cachedClipLength = CurrentClip.length;
         }
 

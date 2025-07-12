@@ -65,7 +65,7 @@ namespace MonoFSM.Core.PlayerEditor
             Selection.activeObject = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GetAssetPath(command.context));
         }
 
-        [MenuItem("CONTEXT/Object/Copy Reference 複製引���", false, 0)]
+        [MenuItem("CONTEXT/Object/Copy Reference 複製引用", false, 0)]
         private static void CopyReference(MenuCommand command)
         {
             _copyReference = command.context;

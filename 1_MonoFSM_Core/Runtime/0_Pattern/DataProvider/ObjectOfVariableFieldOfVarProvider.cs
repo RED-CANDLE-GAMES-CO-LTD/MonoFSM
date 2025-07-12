@@ -28,8 +28,8 @@ namespace MonoFSM.Core.DataProvider
     public class ObjectOfVariableFieldOfVarProvider : AbstractFieldOfVarProvider
     {
         // protected override AbstractMonoVariable ListenToVariable => _variableProviderRef?.VarRaw;
-        public override Object targetObject =>
-            _objectProviderRef?.Get<Object>(); // _variableProviderRef?.GetVar<VarMono>()?.Value;
+        // public override Object targetObject =>
+        //     _objectProviderRef?.Get<Object>(); // _variableProviderRef?.GetVar<VarMono>()?.Value;
 
         // public override Type targetType => _objectProviderRef?.ValueType; //_variableProviderRef.GetValueType;
 

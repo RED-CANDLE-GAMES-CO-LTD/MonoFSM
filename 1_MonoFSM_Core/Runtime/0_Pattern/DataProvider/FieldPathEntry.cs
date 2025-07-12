@@ -5,6 +5,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.DataProvider
 {
@@ -14,6 +15,18 @@ namespace MonoFSM.Core.DataProvider
     [Serializable]
     public class FieldPathEntry
     {
+        public void SetSerializedType(Type type)
+        {
+            _serializedType = new MySerializedType<Object>
+            {
+                RestrictType = type
+            };
+        }
+
+        // 父層型別，由外部更新（非序列化）
+        // [NonSerialized] public Type parentType;
+        [InlineProperty(LabelWidth = 60)] public MySerializedType<Object> _serializedType; //FIXME: refactor時會爛掉...有點麻煩
+
         [ValueDropdown(nameof(GetFieldOptions))]
         public string fieldName;
 
@@ -21,15 +34,12 @@ namespace MonoFSM.Core.DataProvider
         //FIXME: 不可以編輯？用index注入？
         [PreviewInInspector] [ShowIf(nameof(IsArray))] [LabelText("Index")]
         public int index; //injected index;
-
-        // 父層型別，由外部更新（非序列化）
-        // [NonSerialized] public Type parentType;
-        public MySerializedType _serializedType; //FIXME: refactor時會爛掉...有點麻煩
-
         Type parentType => _serializedType.RestrictType;
 
         // 支援的型別清單
         //restrict to types?
+        //FIXME: editor only?
+        [ShowInDebugMode]
         [PreviewInInspector] public List<Type> _supportedTypes;
 
         /// <summary>

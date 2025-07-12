@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace MonoFSM.Core
+namespace MonoFSM.Core.Deprecated
 {
+    [Obsolete]
     public abstract class AbstractState<T> : MonoBehaviour
     {
         [Required] public T stateType;

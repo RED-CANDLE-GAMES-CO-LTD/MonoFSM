@@ -195,6 +195,7 @@ GameObject:
   - component: {fileID: 3443555521515398386}
   - component: {fileID: 2859008457434227153}
   - component: {fileID: 1679154381190438241}
+  - component: {fileID: 2870840079908465395}
   m_Layer: 0
   m_Name: General FSM
   m_TagString: Untagged
@@ -233,7 +234,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fsmLogic: {fileID: 2054098507518886308}
-  quickFindLinks: []
 --- !u!114 &3443555521515398386
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -249,7 +249,6 @@ MonoBehaviour:
   IsLogInChildren: 0
   IsBreak: 0
   IsBreakWhenStateChange: 0
-  logEntries: []
 --- !u!114 &2859008457434227153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -280,6 +279,21 @@ MonoBehaviour:
   _noteType: 0
   note: 
   bgColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!114 &2870840079908465395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4082089536309548135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fdaea9a50c9419b9e6f82ed28c91b37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DescriptableTag: {fileID: 11400000, guid: fdbd0419cc8e24380b5c591c46fb6d78, type: 2}
+  data: {fileID: 0}
+  DescriptableTags: []
 --- !u!1 &4619145615866190664
 GameObject:
   m_ObjectHideFlags: 0

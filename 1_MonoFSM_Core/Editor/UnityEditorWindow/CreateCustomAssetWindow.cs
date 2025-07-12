@@ -320,7 +320,7 @@ public class CreateCustomAssetWindow : EditorWindow
             // }
             
         };
-        var scriptables = EditorMonoNodeExtension.GetAllScriptableAsset();
+        var scriptables = EditorMonoNodeExtension.GetAllScriptableAssetType();
         foreach (var scriptable in scriptables)
             if (!assetDataDict.ContainsKey(scriptable.Name))
                 assetDataDict.Add(scriptable.Name, new AssetData(".asset", scriptable));
