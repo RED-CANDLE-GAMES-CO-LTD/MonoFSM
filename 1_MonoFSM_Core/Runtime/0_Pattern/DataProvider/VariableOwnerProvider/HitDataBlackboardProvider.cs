@@ -89,9 +89,9 @@ namespace MonoFSM.Core.Runtime
 
         [FormerlySerializedAs("ownerType")] public HitDataTargetType _targetType;
 
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
         [PreviewInInspector] private IEffectHitData HitData => _hitDataProvider.GetHitData();
-#endif
+// #endif
 
         // private T _cached;
 

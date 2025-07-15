@@ -1,8 +1,9 @@
 using System;
 using _1_MonoFSM_Core.Runtime._3_FlagData;
-using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace MonoFSM.Variable.TypeTag
@@ -30,10 +31,12 @@ namespace MonoFSM.Variable.TypeTag
 
         public override void OnBeforeSceneSave()
         {
+#if UNITY_EDITOR
             //這個時候還沒存檔，還可以改
             var newname = "[Type] " + _type.RestrictType.Name; //這樣就可以直接拿到Type的名稱了
             AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(this), newname);
             Debug.Log("TypeTag OnBeforeSceneSave: " + newname);
+#endif
         }
     }
 

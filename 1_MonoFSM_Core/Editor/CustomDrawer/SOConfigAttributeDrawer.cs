@@ -1,3 +1,5 @@
+using System.Collections;
+using System;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Editor;
 using Sirenix.OdinInspector;
@@ -79,7 +81,19 @@ namespace MonoFSM.Core
 
         protected override void DrawPropertyLayout(GUIContent label)
         {
-            if ((Object)Property.ValueEntry.WeakSmartValue != null)
+            // 檢查是否為 List 類型
+            var valueType = Property.ValueEntry.TypeOfValue;
+            var isListType = typeof(IList).IsAssignableFrom(valueType);
+            
+            if (isListType)
+            {
+                // 對於 List 類型，直接使用預設繪製器
+                CallNextDrawer(label);
+                return;
+            }
+            
+            // 原有的單一物件檢查
+            if ((UnityEngine.Object)Property.ValueEntry.WeakSmartValue != null)
             {
                 CallNextDrawer(label);
                 return;

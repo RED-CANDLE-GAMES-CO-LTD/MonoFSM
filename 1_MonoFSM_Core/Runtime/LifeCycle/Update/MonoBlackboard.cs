@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Runtime.Mono;
@@ -28,24 +29,33 @@ namespace MonoFSM.Runtime.Variable
                 return false;
             }
 
-            if (DescriptableTag == null)
+            if (DescriptableTags == null || DescriptableTags.Count == 0)
             {
-                _errorValue = "Descriptable Tag is null"; //需要Descriptable Tag嗎？從Data取得？
+                _errorValue = "Descriptable Tags is null or empty"; //需要Descriptable Tag嗎？從Data取得？
                 return false;
             }
 
-            foreach (var varTag in DescriptableTag.containsVariableTypeTags)
+            foreach (var descriptableTag in DescriptableTags)
             {
-                if (varTag == null)
+                if (descriptableTag == null)
                 {
-                    _errorValue = "Variable Tag is null";
+                    _errorValue = "Descriptable Tag is null";
                     return false;
                 }
 
-                if (!VariableFolder.GetVariable(varTag))
+                foreach (var varTag in descriptableTag.containsVariableTypeTags)
                 {
-                    _errorValue = $"Variable {varTag} not found in {name}";
-                    return false;
+                    if (varTag == null)
+                    {
+                        _errorValue = "Variable Tag is null";
+                        return false;
+                    }
+
+                    if (!VariableFolder.GetVariable(varTag))
+                    {
+                        _errorValue = $"Variable {varTag} not found in {name}";
+                        return false;
+                    }
                 }
             }
 
@@ -58,9 +68,13 @@ namespace MonoFSM.Runtime.Variable
         [ShowInInspector]
         [SerializeField]
         [SOConfig("DescriptableTag")]
-        protected MonoDescriptableTag DescriptableTag; //這有什麼用？
+        [ListDrawerSettings(ShowFoldout = true, ShowIndexLabels = true, ListElementLabelName = "name")]
+        protected List<MonoDescriptableTag> _descriptableTags = new List<MonoDescriptableTag>(); //支援多個 DescriptableTag
 
-        public MonoDescriptableTag Tag => DescriptableTag;
+        public List<MonoDescriptableTag> DescriptableTags => _descriptableTags;
+
+        //FIXME: 可以多個tag? runtime 
+        public MonoDescriptableTag Tag => DescriptableTags?.Count > 0 ? DescriptableTags[0] : null;
 
         //reflection 同名還會...
         public AbstractMonoVariable this[string statName] => GetVariable(statName); //索引器，直接用GetVariable,還是也可以get comp?
@@ -148,5 +162,30 @@ namespace MonoFSM.Runtime.Variable
             //FIXME: 還是直接給variable folder做就好？
             VariableFolder.CommitVariableValues();
         }
+
+        // 多 Tag 支援方法
+        public MonoDescriptableTag GetDescriptableTag(string tagName)
+        {
+            return DescriptableTags?.FirstOrDefault(descriptableTag => descriptableTag != null && descriptableTag.GetStringKey == tagName);
+        }
+
+        public MonoDescriptableTag GetDescriptableTag(int index)
+        {
+            if (DescriptableTags == null || index < 0 || index >= DescriptableTags.Count)
+                return null;
+            return DescriptableTags[index];
+        }
+
+        public List<MonoDescriptableTag> GetAllDescriptableTags()
+        {
+            return DescriptableTags ?? new List<MonoDescriptableTag>();
+        }
+
+        public bool ContainsDescriptableTag(string tagName)
+        {
+            return GetDescriptableTag(tagName) != null;
+        }
+
+        public int DescriptableTagCount => DescriptableTags?.Count ?? 0;
     }
 }

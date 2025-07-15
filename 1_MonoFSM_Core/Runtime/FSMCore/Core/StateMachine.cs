@@ -196,9 +196,8 @@ namespace Fusion.Addons.FSM
         // void IStateMachine.Initialize(NetworkStateMachineController controller, NetworkRunner runner)
         void IStateMachine.Initialize(StateMachineLogic logic, ITickProvider tickProvider)
         {
-            // Runner = runner;
             _tickProvider = tickProvider;
-            // _controller = controller;
+            Debug.Log("tickProvider"+tickProvider);
             _logic = logic;
 
             for (var i = 0; i < _stateCount; i++)

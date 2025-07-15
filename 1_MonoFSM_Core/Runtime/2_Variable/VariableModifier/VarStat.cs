@@ -62,7 +62,7 @@ namespace MonoFSM.Variable
 
         private void OnDestroy()
         {
-            //這是不是多餘了？都要destroy了
+            //FIXME: 這是不是多餘了？都要destroy了, stop play時會噴error
             foreach (var statModifier in _localStatModifiers) RemoveModifier(statModifier);
         }
 

@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
-using MonoFSM.Core.Runtime.Action;
+#if UNITY_EDITOR
 using MonoFSM.Editor;
+#endif
 using MonoFSM.Variable.Attributes;
-using MonoFSM.Core.Attributes;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace MonoFSM.Core

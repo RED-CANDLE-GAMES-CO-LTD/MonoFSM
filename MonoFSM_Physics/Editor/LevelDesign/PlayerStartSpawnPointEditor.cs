@@ -86,6 +86,9 @@ public static class StartPointSelector
     private static void SceneOpenedCallback(Scene scene, OpenSceneMode mode)
     {
         var sceneView = SceneView.lastActiveSceneView;
+        if (sceneView == null) //build ignore
+            // Debug.LogWarning("SceneView is null, cannot move camera to spawn point.");
+            return;
         //move camera to playerstartspawnpoint
         var spawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
         if (spawnPoint != null)

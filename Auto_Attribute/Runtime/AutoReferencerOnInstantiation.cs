@@ -20,22 +20,6 @@ public class AutoReferencerOnInstantiation : MonoBehaviour
         {
             //應該和serialize cache合併？
             AutoAttributeManager.AutoReferenceAllChildren(this.gameObject);
-            // RecursivelyReferenceChildren(gameObject);
-            // foreach (Transform child in this.transform)
-            // {
-            //     AutoAttributeManager.AutoReference(child.gameObject);
-            // }
         }
     }
-
-    // private void RecursivelyReferenceChildren(GameObject go)
-    // {
-    //     AutoAttributeManager.AutoReference(go);
-
-    //     foreach (Transform child in this.transform)
-    //     {
-    //         RecursivelyReferenceChildren(child.gameObject);
-    //     }
-    // }
-
 }

@@ -161,7 +161,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
 
                             var clamped = Mathf.Min(currentStamina, maxStamina); // Apply and clamp
                             _currentValue.SetValue(clamped, this); // Set the clamped value to the stamina variable.
-                            Debug.Log("Increase Stamina: " + staminaToAdd + ", New Stamina: " + clamped);
+                            // Debug.Log("Increase Stamina: " + staminaToAdd + ", New Stamina: " + clamped);
                         }
                     }
 

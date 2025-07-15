@@ -398,6 +398,7 @@ namespace MonoFSM.Animation
         {
             get
             {
+#if UNITY_EDITOR
                 if (Mathf.Approximately(_cachedClipLength, -1))
                 {
                     var currentClip = CurrentClip;
@@ -405,11 +406,15 @@ namespace MonoFSM.Animation
                         return -1;
                     _cachedClipLength = currentClip.length;
                 }
-
+#endif
                 return _cachedClipLength; 
             }
         }
 
+
+        [SerializeField] private float _cachedClipLength = -1;
+
+#if UNITY_EDITOR
         [Button]
         private void CalculateClipLength()
         {
@@ -418,13 +423,9 @@ namespace MonoFSM.Animation
                 Debug.LogError("CurrentClip is null, cannot calculate length", this);
                 return;
             }
-            
+
             _cachedClipLength = CurrentClip.length;
         }
-
-        [SerializeField] private float _cachedClipLength = -1;
-
-#if UNITY_EDITOR
         [TabGroup("Animator")]
         // [HideIf(nameof(NoDoneEventTransition))]
         [PreviewInInspector]
@@ -869,8 +870,10 @@ namespace MonoFSM.Animation
 
         public override void OnBeforePrefabSave()
         {
+#if UNITY_EDITOR
             CalculateClipLength();
             base.OnBeforePrefabSave();
+#endif
         }
     }
 }

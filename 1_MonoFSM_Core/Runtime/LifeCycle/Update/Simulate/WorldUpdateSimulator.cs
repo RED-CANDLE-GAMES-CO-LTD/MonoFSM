@@ -110,9 +110,10 @@ namespace MonoFSM.Core.Simulate
 #if UNITY_EDITOR
         // [PreviewInInspector] private IUpdateSimulate[] PreviewSimulators => _simulators.ToArray();
         [PreviewInInspector] private MonoPoolObj[] PreviewMonoObjects => _monoObjects.ToArray();
+#endif
         public bool IsReady { get; private set; } = false;
 
-#endif
+
         private HashSet<MonoPoolObj> _currentUpdatingObjs = new();
 
         /// <summary>

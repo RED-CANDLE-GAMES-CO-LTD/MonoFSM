@@ -5,6 +5,7 @@ using MonoFSMCore.Runtime.LifeCycle;
 using MonoFSM.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 //Editor Debug用
 public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionParent,IResetStart
@@ -49,7 +50,8 @@ public class PlayerStartSpawnPoint : MonoBehaviour, IBeforeBuildProcess,IActionP
     private void Update()
     {
         //Debug用，按`鍵，把player移到這個位置
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+        var keyboard = Keyboard.current;
+        if (keyboard.digit1Key.wasPressedThisFrame)
         {
             Debug.Log("Alpha1 Pressed", this);
             //第一人稱? 第三人稱？

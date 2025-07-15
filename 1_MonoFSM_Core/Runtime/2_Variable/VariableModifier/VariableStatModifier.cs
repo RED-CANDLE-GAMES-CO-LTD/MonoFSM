@@ -22,7 +22,7 @@ namespace MonoFSM.Variable
         // [BoxGroup("Modifier")] [CompRef] [Auto]
         // public VarFloatProviderRef _valueProvider; //FIXME: 不該用這個ㄅ？
 
-        [Required]
+        // [Required]
         [BoxGroup("Modifier")] [CompRef] [Auto]
         private IValueProvider<float>
             _floatProvider; //來源
@@ -33,9 +33,9 @@ namespace MonoFSM.Variable
         {
             get
             {
-                if (IsDirty)
+                if (IsDirty || Application.isPlaying == false)
                 {
-                    _cachedProviderValue = _floatProvider?.Value ?? 0f;
+                    _cachedProviderValue = _floatProvider?.Value ?? 1f;
                     _cachedFinalValue = _cachedProviderValue * _valueMultiplier;
                 }
 
@@ -46,22 +46,8 @@ namespace MonoFSM.Variable
         private float _cachedProviderValue; //這個是用來顯示的
 
         private float _cachedFinalValue;
-        //_valueProvider?.Value * _valueMultiplier ?? _valueMultiplier;
-
-        // 新增事件
-        // public event Action OnValueChanged;
-
-        // valueMultiplier 改為 property
         [SerializeField] private float _valueMultiplier = 1f;
-
-        //FIXME: AddListener, RemoveListener
-        //這個好醜！
-        // public UnityAction OnValueChanged
-        // {
-        //     get => _valueProvider.VarRaw.OnValueChangedRaw;
-        //     set => _valueProvider.VarRaw.OnValueChangedRaw = value;
-        // }
-
+        
         private string sign => FinalValue >= 0 ? "+" : "-"; //這個是用來顯示的
         [ShowInInspector]
         private string ValueDescription //FIXME: 用value不對ㄅ provider的資訊
@@ -89,7 +75,7 @@ namespace MonoFSM.Variable
         [PreviewInInspector] [AutoChildren] AbstractConditionBehaviour[] _conditions;
 
         [PreviewInInspector] public bool IsValid => _conditions.IsAllValid();
-        public bool IsDirty => Application.isPlaying ? _cachedProviderValue != _floatProvider.Value : false;
+        public bool IsDirty => Application.isPlaying ? _cachedProviderValue != _floatProvider?.Value : false;
 
         //FIXME: 監聽condition才觸發dirty? 很貴耶...
         //bool condition?

@@ -92,15 +92,13 @@ public class AutoAttributeManager : MonoBehaviour
 
     private void Awake()
     {
-        // Debug.Log("monoReferenceCache:" + monoReferenceCache.monoValueCaches.Count);
-
-        //FIXME: 這可以減少GC嗎？
-        // monoReferenceCache.ClearRefs();
-#if UNITY_EDITOR
+        //FIXME: build cache 要在Editor可以測
         SweepScene();
-#else
-        monoReferenceCache.RestoreReferenceCacheToMonoFields();
-#endif
+// #if UNITY_EDITOR
+//         SweepScene();
+// #else
+//         monoReferenceCache.RestoreReferenceCacheToMonoFields();
+// #endif
     }
 
     private void OnDestroy()

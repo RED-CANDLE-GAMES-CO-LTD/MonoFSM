@@ -204,7 +204,7 @@ namespace Auto_Attribute.Runtime
                         Debug.LogError("CopyCacheToFields Error:" + e + e.StackTrace + "ValueArray[i]" + valueArray[i] +
                                        ",elementType:"
                                        + elementType + ",fieldName:" + fieldName +
-                                       ",monoName:" + targetName + ",typeName:" + typeName);
+                                       ",monoName:" + targetName + ",typeName:" + typeName, targetMb);
                     }
                 }
 

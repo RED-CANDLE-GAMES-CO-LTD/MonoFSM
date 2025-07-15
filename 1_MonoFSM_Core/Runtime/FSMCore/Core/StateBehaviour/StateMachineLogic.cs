@@ -23,12 +23,14 @@ namespace Fusion.Addons.FSM
     public class StateMachineLogic : MonoBehaviour
     {
         public float DeltaTime => _stateMachineController.DeltaTime;
-#if UNITY_EDITOR
+
+// #if UNITY_EDITOR
         /// <summary>
         /// 確保有controller才會執行
         /// </summary>
         [CompRef] [Required] [Auto] private IStateMachineController _stateMachineController;
-#endif
+
+// #endif
         private bool _backingEnableLogging = false;
 
         public bool EnableLogging

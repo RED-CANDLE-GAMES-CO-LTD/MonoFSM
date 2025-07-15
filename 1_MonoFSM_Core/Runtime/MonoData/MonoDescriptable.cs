@@ -49,7 +49,7 @@ namespace MonoFSM.Runtime
             //從world去bind?
             var worldBinder = world.GetComponent<MonoDescriptableBinder>();
             if (worldBinder)
-                worldBinder.Add(DescriptableTag, this); //註冊法
+                worldBinder.Add(Tag, this); //註冊法
             else
                 Debug.LogError("MonoDescriptableBinder not found in parent, cannot register to world binder", this);
             // GetComponent<MonoDescriptableBinder>().Add(DescriptableTag, this);
@@ -217,7 +217,7 @@ namespace MonoFSM.Runtime
             return _getMyProperty;
         }
 
-        public MonoDescriptableTag Key => DescriptableTag;
+        public MonoDescriptableTag Key => Tag;
 
         public MonoDescriptableTag[] GetKeys()
         {
@@ -278,22 +278,29 @@ namespace MonoFSM.Runtime
         //繼承MonoDescriptable的class，可以透過這個方法來將所有的variable field mapping到VariableFolder
         private FieldInfo[] _variableFields;
 
-        [Button("撈出所有變數的tag塞到 DescriptableTag")]
+        [Button("撈出所有變數的tag塞到 DescriptableTags")]
         protected void FillVarTagsToMonoDescriptableTag()
         {
             if (VariableFolder == null)
                 return;
-            if (DescriptableTag == null)
+            if (DescriptableTags == null || DescriptableTagCount == 0)
                 return;
             var variables = VariableFolder.GetValues;
-            foreach (var variable in variables)
+            
+            // 為所有 DescriptableTag 新增缺失的 variable tags
+            foreach (var descriptableTag in DescriptableTags)
             {
-                if (!DescriptableTag.containsVariableTypeTags.Contains(variable._varTag))
-                    DescriptableTag.containsVariableTypeTags.Add(variable._varTag);    
-            }
+                if (descriptableTag == null) continue;
+                
+                foreach (var variable in variables)
+                {
+                    if (!descriptableTag.containsVariableTypeTags.Contains(variable._varTag))
+                        descriptableTag.containsVariableTypeTags.Add(variable._varTag);    
+                }
 #if UNITY_EDITOR
-            UnityEditor.EditorUtility.SetDirty(DescriptableTag);
+                UnityEditor.EditorUtility.SetDirty(descriptableTag);
 #endif
+            }
             
         }
         

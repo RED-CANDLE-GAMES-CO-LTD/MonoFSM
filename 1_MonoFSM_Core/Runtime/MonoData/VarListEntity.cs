@@ -45,7 +45,7 @@ namespace MonoFSM.Core.Variable
                 return;
             }
             _currentIndex = index;
-            Debug.Log("Setting current index to: " + index + " CurrentObj: " + CurrentObj);
+            // Debug.Log("Setting current index to: " + index + " CurrentObj: " + CurrentObj);
         }
 
         public T CurrentObj
