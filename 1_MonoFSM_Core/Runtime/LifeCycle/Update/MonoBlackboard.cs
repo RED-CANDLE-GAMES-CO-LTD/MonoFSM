@@ -70,7 +70,7 @@ namespace MonoFSM.Runtime.Variable
         [SOConfig("DescriptableTag")]
         [ListDrawerSettings(ShowFoldout = true, ShowIndexLabels = true, ListElementLabelName = "name")]
         protected List<MonoDescriptableTag> _descriptableTags = new List<MonoDescriptableTag>(); //支援多個 DescriptableTag
-
+        
         public List<MonoDescriptableTag> DescriptableTags => _descriptableTags;
 
         //FIXME: 可以多個tag? runtime 

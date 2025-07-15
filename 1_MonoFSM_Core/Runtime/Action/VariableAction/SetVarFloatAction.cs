@@ -12,7 +12,7 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
         
         [Required] [CompRef] [Auto] private IFloatProvider _valueProvider; //如果要拿到VarFloat的Max怎麼設計比較好？
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             var value = _valueProvider.Value;
             _targetVar.SetValue(value, this);

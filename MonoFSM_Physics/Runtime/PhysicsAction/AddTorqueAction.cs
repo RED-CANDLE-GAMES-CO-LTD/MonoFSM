@@ -40,7 +40,7 @@ namespace MonoFSM.Runtime.PhysicsAction
         // }
 
         //如果沒有額外的，用Receiver
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             var hitData = _hitDataProvider.GetHitData();
             if (hitData == null)

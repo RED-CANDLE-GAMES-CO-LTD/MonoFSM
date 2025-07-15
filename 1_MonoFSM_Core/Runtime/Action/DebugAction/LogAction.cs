@@ -10,7 +10,7 @@ namespace RCGMakerFSMCore.Runtime.Action.DebugAction
         [MCPExtractable] public string _logMessage = "LogAction";
         public bool _isLogInProvider = false;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             if (_isLogInProvider)
                 this.Log(_logMessage);

@@ -8,7 +8,7 @@ namespace MonoFSM.Core.Runtime.Action.PrimeTweenAction
         [SerializeField] private Transform _target;
         private Tween _shakeTween;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             _shakeTween.Stop();
             _shakeTween = Tween.ShakeLocalPosition(_target,

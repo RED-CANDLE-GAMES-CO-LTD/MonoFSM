@@ -137,7 +137,7 @@ namespace MonoFSM.Core
 #endif
 
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             // Debug.Log("Play Animation State");
             if (animator == null || animator.runtimeAnimatorController == null) return;

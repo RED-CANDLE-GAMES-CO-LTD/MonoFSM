@@ -104,7 +104,7 @@ namespace MonoFSM.Variable
         //last value < current value
 
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             DoOperation(ConstValue);
         }

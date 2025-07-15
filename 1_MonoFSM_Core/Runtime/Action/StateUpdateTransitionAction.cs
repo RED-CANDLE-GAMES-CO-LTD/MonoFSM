@@ -17,7 +17,7 @@ namespace MonoFSM.Transition
         //FIXME: array?
         [PreviewInInspector] [Auto] private StateTransition validTransition;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             // Debug.Log("Action State 'Enter' Implement", gameObject);
             if (validTransition == null)

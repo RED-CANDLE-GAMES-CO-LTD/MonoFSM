@@ -28,7 +28,7 @@ namespace MonoFSM.Runtime.Backpack.Actions
 
         public override string Description => $"Assign {_sourceValueRef} to {_targetVarRef}";
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             // throw new NotImplementedException();
 

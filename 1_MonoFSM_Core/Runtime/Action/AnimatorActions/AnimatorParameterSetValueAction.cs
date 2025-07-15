@@ -81,7 +81,7 @@ namespace MonoFSM.Animation
                 }
         }
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             
             SetValue();

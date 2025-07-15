@@ -139,7 +139,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         }
 
         // protected override void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver)
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             if (_targetVariableProvider == null || _source1VariableProvider == null)
             {

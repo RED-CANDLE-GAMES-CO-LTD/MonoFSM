@@ -11,8 +11,9 @@ namespace MonoFSM.Runtime
     /// </summary>
     public class MonoDescriptableBinder : MonoDict<MonoDescriptableTag, MonoDescriptable>
     {
-        //network想要看authority來決定要不要加到字典裡...這個性質是什麼
-        
+        //FIXME: 同個tag可以有個list?
+
+        //network想要看authority來決定要不要加到字典裡...這個性質是什麼? 還是應該都加進去，但可以篩選authority?
         protected override bool IsAddValid(MonoDescriptable item)
         {
             if (item.TryGetComponent<IMonoAddToBinderChecker>(out var checker))

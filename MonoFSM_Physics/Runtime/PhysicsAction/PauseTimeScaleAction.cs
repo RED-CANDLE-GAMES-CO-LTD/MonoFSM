@@ -4,7 +4,7 @@ namespace MonoFSM.Runtime.Variable.Action.PhysicsAction
 {
     public class PauseTimeScaleAction : AbstractStateAction
     {
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             RCGTime.Pause();
         }

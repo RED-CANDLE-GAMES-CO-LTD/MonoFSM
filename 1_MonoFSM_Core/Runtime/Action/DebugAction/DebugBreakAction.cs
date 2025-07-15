@@ -4,7 +4,7 @@ namespace RCGMakerFSMCore.Runtime.Action.DebugAction
 {
     public class DebugBreakAction:AbstractStateAction
     {
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             this.Break();
         }

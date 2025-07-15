@@ -15,7 +15,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
         [FormerlySerializedAs("_varMono")] [SerializeField] [DropDownRef]
         private VarBlackboard _varBlackboard;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             Debug.Log($"AssignMonoVarFromOwner: Assigning {_ownerProvider.Description} to {_varBlackboard.name}");
             var source = _ownerProvider.GetComponentOfOwner<MonoDescriptable>();

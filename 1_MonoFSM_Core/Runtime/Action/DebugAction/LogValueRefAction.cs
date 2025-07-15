@@ -10,7 +10,7 @@ namespace RCGMakerFSMCore.Runtime.Action.DebugAction
         //FIXME: sourceValue? targetValue? IConfigVar?
         [CompRef] [AutoParent] private IValueProvider _valueRef;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             Debug.Log($"LogValueRefAction: {_valueRef?.Get<object>()}", this);
         }

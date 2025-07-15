@@ -29,7 +29,7 @@ namespace RCGInputAction
 
         // [PreviewInInspector]
         // string _playerActionMapName => _playerActionMap.name;
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             if (enableValue)
                 _playerInput.actions.FindActionMap(_playerActionMap).Enable();

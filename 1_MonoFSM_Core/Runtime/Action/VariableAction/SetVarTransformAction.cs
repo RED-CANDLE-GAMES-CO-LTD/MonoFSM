@@ -10,7 +10,7 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
         [DropDownRef]
         public VarTransform targetVar;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             
         }

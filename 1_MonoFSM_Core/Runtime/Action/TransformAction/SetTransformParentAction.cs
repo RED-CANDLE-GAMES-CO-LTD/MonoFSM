@@ -12,7 +12,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.TransformAction
         public Transform _target;
         public VarCompProviderRef _targetVarRef; //拿到rigidbody的話，再拿transform
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             var comp = _targetVarRef.Value;
             _target.SetParent(comp.transform);

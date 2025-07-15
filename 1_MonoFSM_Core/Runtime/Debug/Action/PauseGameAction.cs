@@ -7,7 +7,7 @@ namespace Fusion.Addons.KCC._0_MonoFSM_Network.Action
 {
     public class PauseGameAction : AbstractStateAction,IEditorOnly
     {
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
 #if UNITY_EDITOR
             EditorApplication.isPaused = !EditorApplication.isPaused;

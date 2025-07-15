@@ -90,7 +90,7 @@ namespace MonoFSM.Core.Runtime.Action
         private bool _delay = false; //FIXME: 
 
         //一定是AND的啦
-        public async void OnActionEnter()
+        public async void OnActionExecute()
         {
             if (!isActiveAndEnabled) return;
             if (_delay)
@@ -105,6 +105,7 @@ namespace MonoFSM.Core.Runtime.Action
                 try
                 {
                     //FIXME: 這個delay用unitask不好，時間軸和fsm錯開了
+                    //有點像sequence? 如果另外包好像還行？
                     await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime), DelayType.DeltaTime,
                         PlayerLoopTiming.Update, cancellationTokenSource.Token);
                 }
@@ -117,10 +118,10 @@ namespace MonoFSM.Core.Runtime.Action
 
             _delay = false;
             // this.AddTask(OnStateEnterImplement, delayActionModifier.delayTime);
-            OnStateEnterImplement();
+            OnActionExecuteImplement();
         }
 
-        protected abstract void OnStateEnterImplement(); //FIXME: 沒參數的?
+        protected abstract void OnActionExecuteImplement(); //FIXME: 沒參數的?
 
         // public void OnActionUpdate()
         // {
@@ -143,16 +144,16 @@ namespace MonoFSM.Core.Runtime.Action
         {
         }
 
-        public async void OnActionExit()
-        {
-            if (!IsValid) return;
-            if (delayActionModifier != null) await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime));
-            OnStateExitImplement();
-        }
-
-        protected virtual void OnStateExitImplement()
-        {
-        }
+        // public async void OnActionExit()
+        // {
+        //     if (!IsValid) return;
+        //     if (delayActionModifier != null) await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime));
+        //     OnStateExitImplement();
+        // }
+        //
+        // protected virtual void OnStateExitImplement()
+        // {
+        // }
 
         public virtual MonoBehaviour VoteOwner => nearestBinder as MonoBehaviour;
         [AutoParent] private IBinder nearestBinder;
@@ -188,14 +189,14 @@ namespace MonoFSM.Core.Runtime.Action
             //     receiver.EventReceived(arg);
             // }
             // else
-            OnStateEnterImplement();
+            OnActionExecuteImplement();
         }
 
 
 
         public void EventReceived()
         {
-            OnStateEnterImplement();
+            OnActionExecuteImplement();
         }
 
         public virtual void SimulationUpdate(float passedDuration)

@@ -34,7 +34,7 @@ namespace MonoFSM.Runtime.Variable.Action
             }
         }
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             if (targetVariable == null)
             {

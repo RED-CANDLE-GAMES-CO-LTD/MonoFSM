@@ -12,7 +12,7 @@ namespace MonoFSM.Runtime.ObjectPool
         [Required] [PreviewInInspector] [AutoParent]
         private MonoPoolObj _poolObject;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             _poolObject.Despawn();
         }

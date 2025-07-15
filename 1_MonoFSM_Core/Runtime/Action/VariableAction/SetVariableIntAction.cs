@@ -9,7 +9,7 @@ namespace MonoFSM.Variable
 
         public override string Description => $"Set {targetFlag.name} to {TargetValue}";
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             targetFlag.SetValue(TargetValue, this);
         }

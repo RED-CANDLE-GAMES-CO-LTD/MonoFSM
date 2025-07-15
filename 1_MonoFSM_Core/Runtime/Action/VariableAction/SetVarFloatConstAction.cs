@@ -11,7 +11,7 @@ namespace MonoFSM.Variable
         public VarFloat targetVar;
         public float TargetValue;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             targetVar.SetValue(TargetValue, this);
         }

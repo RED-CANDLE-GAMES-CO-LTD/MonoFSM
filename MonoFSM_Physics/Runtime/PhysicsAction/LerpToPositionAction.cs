@@ -11,7 +11,7 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
         [Required] [CompRef] [AutoChildren] private ICompProvider<Rigidbody> _rigidbodyProvider;
         public Vector3 _offsetPosition = Vector3.zero;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             var rb = _rigidbodyProvider.Get();
             rb.isKinematic = true;

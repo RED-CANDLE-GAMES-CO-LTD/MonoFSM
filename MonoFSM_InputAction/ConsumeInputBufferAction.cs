@@ -7,7 +7,7 @@ namespace RCGInputAction
     {
         public PlayerBufferedInputAction listener;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             listener.ForceWasPressAction();
         }

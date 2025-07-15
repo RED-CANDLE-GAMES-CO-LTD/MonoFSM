@@ -45,7 +45,7 @@ namespace MonoFSM.Core
         public int layer = 0; //FIXME: 會需要layer嗎？
 
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             animator.Play(StateName);
         }

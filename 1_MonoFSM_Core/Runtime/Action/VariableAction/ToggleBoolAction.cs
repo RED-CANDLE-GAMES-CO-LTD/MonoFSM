@@ -7,7 +7,7 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
     {
         [SerializeField] [DropDownRef] public VarBool _target; //var?
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             // Debug.Log($"ToggleBoolAction: Toggling value of {_target}", this);
             _target.SetValue(!_target.Value, this);

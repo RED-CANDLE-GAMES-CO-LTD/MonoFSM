@@ -24,7 +24,7 @@ namespace MonoFSM.Runtime.Vote
 
         protected override string renamePostfix => $"{voteType} {_voteVar.name} {voteValue}";
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             if (voteType == VoteType.Vote)
                 _voteVar.Vote.Vote(this, voteValue);

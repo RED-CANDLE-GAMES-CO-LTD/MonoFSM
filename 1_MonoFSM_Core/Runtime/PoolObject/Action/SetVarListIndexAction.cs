@@ -9,7 +9,7 @@ namespace MonoFSM.Runtime.ObjectPool
         public int _index;
         [DropDownRef] public AbstractVarList _varList;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             // Debug.Log($"SetVarListIndexAction: Setting index {_index} on VarList {_varList.name}", this);
             _varList.SetIndex(_index);

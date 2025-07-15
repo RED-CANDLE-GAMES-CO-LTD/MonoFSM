@@ -12,7 +12,7 @@ namespace MonoFSM.Core
         //指定到一個特定時間？
         [Component] [Auto] public IFloatProvider timeProvider;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             if (timeProvider != null)
                 timer.SetTimer(timeProvider.Value);

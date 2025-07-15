@@ -76,7 +76,7 @@ namespace MonoFSM.Variable
         // public bool Multiple = false;
 
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             SetValue();
         }

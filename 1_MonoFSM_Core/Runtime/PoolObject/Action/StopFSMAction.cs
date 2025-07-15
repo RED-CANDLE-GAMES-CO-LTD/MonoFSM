@@ -6,7 +6,8 @@ namespace MonoFSM.Runtime.ObjectPool
     public class StopFSMAction: AbstractStateAction
     {
         [AutoParent] private StateMachineOwner _owner;
-        protected override void OnStateEnterImplement()
+
+        protected override void OnActionExecuteImplement()
         {
             _owner.gameObject.SetActive(false); //FIXME: fusion要怎麼處理這個？
         }

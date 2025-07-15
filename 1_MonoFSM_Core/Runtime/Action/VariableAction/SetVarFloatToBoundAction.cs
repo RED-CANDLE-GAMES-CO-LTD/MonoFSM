@@ -18,7 +18,7 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
         [MCPExtractable] [DropDownRef] public VarFloat _targetVar;
         public BoundType _boundType = BoundType.Max;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             var value = _boundType == BoundType.Min ? _targetVar.Min : _targetVar.Max;
             _targetVar.SetValue(value, this);

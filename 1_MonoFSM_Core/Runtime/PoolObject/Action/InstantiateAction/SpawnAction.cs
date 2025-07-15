@@ -25,7 +25,7 @@ namespace MonoFSM.Core.LifeCycle
         [CompRef] [AutoChildren] private SpawnEventHandler _spawnEventHandler;
 
         //FIXME: preview scale & rotation
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             Debug.Log("SpawnAction OnStateEnterImplement", this);
             //FIXME: 時機點？FixedUpdateNetwork?

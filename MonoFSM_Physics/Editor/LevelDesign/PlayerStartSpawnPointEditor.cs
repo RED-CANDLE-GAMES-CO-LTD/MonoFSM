@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 //場景空降玩家位置
 public static class StartPointSelector
@@ -109,38 +110,116 @@ public static class StartPointSelector
         EditorWindow.FocusWindowIfItsOpen<SceneView>();
     }
 
+    // 靜態索引來跟踪當前選中的SpawnPoint
+    private static int _currentSpawnPointIndex;
+    
+    // 靜態方法來獲取所有SpawnPoint並按名稱排序
+    public static PlayerStartSpawnPoint[] GetAllSpawnPoints()
+    {
+        return Object.FindObjectsByType<PlayerStartSpawnPoint>(FindObjectsSortMode.None)
+            .OrderBy(sp => sp.name)
+            .ToArray();
+    }
+    
+    // 靜態方法來獲取當前選中的SpawnPoint
+    public static PlayerStartSpawnPoint GetCurrentSpawnPoint()
+    {
+        var spawnPoints = GetAllSpawnPoints();
+        if (spawnPoints.Length == 0) return null;
+        
+        // 確保索引在有效範圍內
+        _currentSpawnPointIndex = Mathf.Clamp(_currentSpawnPointIndex, 0, spawnPoints.Length - 1);
+        return spawnPoints[_currentSpawnPointIndex];
+    }
+    
+    // 靜態方法來循環切換到下一個SpawnPoint
+    public static PlayerStartSpawnPoint SwitchToNextSpawnPoint()
+    {
+        var spawnPoints = GetAllSpawnPoints();
+        if (spawnPoints.Length == 0) return null;
+        
+        _currentSpawnPointIndex = (_currentSpawnPointIndex + 1) % spawnPoints.Length;
+        return spawnPoints[_currentSpawnPointIndex];
+    }
+    
+    // 靜態方法來重置到第一個SpawnPoint
+    public static PlayerStartSpawnPoint ResetToFirstSpawnPoint()
+    {
+        _currentSpawnPointIndex = 0;
+        return GetCurrentSpawnPoint();
+    }
+
     [MenuItem("RCGMaker/SpawnPoint/Select SpawnPoint  _1", false, 0)]
     // [MenuItem("RCGMaker/SpawnPoint/Select SpawnPoint  _`", false, 0)]
     private static void DoSelectSpawnPoint()
     {
         FocusOnScene();
         // Debug.Log("DoSelectSpawnPoint: 1" + EditorWindow.focusedWindow);
-        var spawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
+        var spawnPoint = GetCurrentSpawnPoint();
         // SceneView.duringSceneGui += (SceneView sceneView) =>
         // {
         // MoveSpawnPointToMousePos(spawnPoint);
         // };
 
         if (spawnPoint)
+        {
             Selection.activeGameObject = spawnPoint.gameObject;
-
-        // if (Application.isPlaying)
-        // {
-        //     Debug.Log("DoSelectSpawnPoint");
-        //     var mousePos = Event.current.mousePosition;
-        //     //把玩家移過來
-        //     var worldPosition = HandleUtility.GUIPointToWorldRay(mousePos).GetPoint(.1f);
-        //     worldPosition.z = 0;
-        //     //從ray拿到的點 z強迫設定為0
-        //     Debug.Log(worldPosition);
-        //     spawnPoint.playerRef.instance.transform.position = worldPosition;
-        //     // Object.FindObjectOfType<Game>().SetPosition(worldPosition);
-        //     // if (Player.i) playerStartSpawnPoint.transform.position = worldPosition;
-        //
-        //     return;
-        // }
+            Debug.Log($"Selected SpawnPoint: {spawnPoint.name} (Current Index: {GetCurrentSpawnPointIndex()})");
+        }
         else
+        {
             Selection.activeGameObject = GameObject.Find("SpawnPoint");
+        }
+    }
+    
+    [MenuItem("RCGMaker/SpawnPoint/Switch to Next SpawnPoint  #_1", false, 1)]
+    private static void DoSwitchToNextSpawnPoint()
+    {
+        FocusOnScene();
+        var spawnPoint = SwitchToNextSpawnPoint();
+        
+        if (spawnPoint)
+        {
+            Selection.activeGameObject = spawnPoint.gameObject;
+            Debug.Log($"Switched to SpawnPoint: {spawnPoint.name} (Current Index: {GetCurrentSpawnPointIndex()})");
+        }
+        else
+        {
+            Debug.Log("No SpawnPoints found in scene.");
+        }
+    }
+    
+    [MenuItem("RCGMaker/SpawnPoint/Reset to First SpawnPoint  &_1", false, 2)]
+    private static void DoResetToFirstSpawnPoint()
+    {
+        FocusOnScene();
+        var spawnPoint = ResetToFirstSpawnPoint();
+        
+        if (spawnPoint)
+        {
+            Selection.activeGameObject = spawnPoint.gameObject;
+            Debug.Log($"Reset to first SpawnPoint: {spawnPoint.name}");
+        }
+        else
+        {
+            Debug.Log("No SpawnPoints found in scene.");
+        }
+    }
+    
+    public static int GetCurrentSpawnPointIndex()
+    {
+        var allSpawnPoints = GetAllSpawnPoints();
+        var currentSpawnPoint = GetCurrentSpawnPoint();
+        
+        if (currentSpawnPoint != null)
+        {
+            for (int i = 0; i < allSpawnPoints.Length; i++)
+            {
+                if (allSpawnPoints[i] == currentSpawnPoint)
+                    return i;
+            }
+        }
+        return 0;
     }
 }
 
@@ -187,31 +266,52 @@ public class PlayerStartSpawnPointEditor
             // Check for specific keycodes
             if (Event.current.keyCode == KeyCode.Alpha1)
             {
-                Selection.activeGameObject = GetTarget.gameObject;
-                Debug.Log("OnSceneGUI keycode:" + Event.current.keyCode + " pos:" + Event.current.mousePosition);
-                //FIXME: 2D遊戲用的...
-                if (obj.in2DMode)
+                // 如果同時按下Shift，則切換到下一個SpawnPoint
+                if (Event.current.shift)
                 {
-                    MoveSpawnPointToMousePos(Event.current.mousePosition);
+                    var nextSpawnPoint = StartPointSelector.SwitchToNextSpawnPoint();
+                    if (nextSpawnPoint)
+                    {
+                        Selection.activeGameObject = nextSpawnPoint.gameObject;
+                        _target = nextSpawnPoint;
+                        Debug.Log($"Switched to SpawnPoint: {nextSpawnPoint.name} (Current Index: {StartPointSelector.GetCurrentSpawnPointIndex()})");
+                    }
                 }
                 else
                 {
-                    // Debug.Log("3D mode?");
-                    // var ray =  obj.camera.ViewportPointToRay(Event.current.mousePosition);
-                    // var ray =  obj.camera.ScreenPointToRay(Event.current.mousePosition);
-                    var ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
-                    if (Physics.Raycast(ray, out var hit, 100000))
+                    // 正常按1鍵，使用當前選中的SpawnPoint進行移動
+                    var currentSpawnPoint = StartPointSelector.GetCurrentSpawnPoint();
+                    if (currentSpawnPoint)
                     {
-                        // Debug.Log("3D mode"+hit.point);
-                        GetTarget.transform.position = hit.point;
-                        GetTarget.EventReceived(hit.point);
+                        Selection.activeGameObject = currentSpawnPoint.gameObject;
+                        _target = currentSpawnPoint;
+                        Debug.Log($"Selected SpawnPoint: {currentSpawnPoint.name} (Current Index: {StartPointSelector.GetCurrentSpawnPointIndex()})");
+                    }
+                    
+                    Debug.Log("OnSceneGUI keycode:" + Event.current.keyCode + " pos:" + Event.current.mousePosition);
+                    //FIXME: 2D遊戲用的...
+                    if (obj.in2DMode)
+                    {
+                        MoveSpawnPointToMousePos(Event.current.mousePosition);
                     }
                     else
                     {
-                        Debug.Log("3D mode no hit");
+                        // Debug.Log("3D mode?");
+                        // var ray =  obj.camera.ViewportPointToRay(Event.current.mousePosition);
+                        // var ray =  obj.camera.ScreenPointToRay(Event.current.mousePosition);
+                        var ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
+                        if (Physics.Raycast(ray, out var hit, 100000))
+                        {
+                            // Debug.Log("3D mode"+hit.point);
+                            GetTarget.transform.position = hit.point;
+                            GetTarget.EventReceived(hit.point);
+                        }
+                        else
+                        {
+                            Debug.Log("3D mode no hit");
+                        }
                     }
                 }
-
 
                 // if (Event.current.shift)
                 // {

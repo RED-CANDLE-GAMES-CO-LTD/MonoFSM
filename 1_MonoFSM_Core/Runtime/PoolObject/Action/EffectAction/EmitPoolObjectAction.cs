@@ -8,7 +8,7 @@ namespace MonoFSM.Runtime.Variable.Action.EffectAction
     {
         public PoolObject poolObject;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             var newObj = PoolManager.Instance.BorrowOrInstantiate(poolObject, transform.position, transform.rotation);
         }

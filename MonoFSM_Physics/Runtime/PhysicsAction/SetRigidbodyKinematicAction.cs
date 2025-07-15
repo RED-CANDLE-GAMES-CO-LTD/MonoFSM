@@ -12,7 +12,7 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
         [Required] [CompRef] [AutoChildren] private ICompProvider<Rigidbody> _rigidbodyProvider;
         public bool _isKinematic = true;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             var rb = _rigidbodyProvider.Get();
             if (rb != null)

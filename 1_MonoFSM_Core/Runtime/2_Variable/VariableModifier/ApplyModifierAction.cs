@@ -37,7 +37,7 @@ namespace MonoFSM.Variable
 
         private VariableStatOwner _foundStatOwner;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             var varStat = _variableProvider.GetVar<VarStat>();
             foreach (var modifier in _modifiers) varStat.RegisterModifier(modifier);

@@ -12,7 +12,7 @@ namespace MonoFSM.Runtime.FSM._4_Stats
         public StatDataRef TargetStatData;
         public StatData SourceStatData;
 
-        protected override void OnStateEnterImplement()
+        protected override void OnActionExecuteImplement()
         {
             TargetStatData.BindingStatData = SourceStatData;
         }
