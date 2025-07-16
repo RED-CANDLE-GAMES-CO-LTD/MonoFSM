@@ -104,7 +104,7 @@ namespace MonoFSM.Foundation
             return false;
         }
 
-        [AutoParent] protected MonoDescriptable _self;
+        [AutoParent] protected MonoEntity _self;
 
         //介面上也顯示？textarea?
         public virtual string Description => $"{GetType().Name}";

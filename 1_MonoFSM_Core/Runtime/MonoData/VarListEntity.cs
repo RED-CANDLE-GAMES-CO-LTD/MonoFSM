@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.Variable
 {
-    public class VarListEntity : VarList<MonoDescriptable> //這個變
+    public class VarListEntity : VarList<MonoEntity> //這個變
     {
     }
 

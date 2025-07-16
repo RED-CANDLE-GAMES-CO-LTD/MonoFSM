@@ -9,12 +9,12 @@ namespace MonoFSM.Runtime
     /// <summary>
     /// 用MonoDescriptableTag當key的來找IMonoDescriptable
     /// </summary>
-    public class MonoDescriptableBinder : MonoDict<MonoDescriptableTag, MonoDescriptable>
+    public class MonoDescriptableBinder : MonoDict<MonoDescriptableTag, MonoEntity>
     {
         //FIXME: 同個tag可以有個list?
 
         //network想要看authority來決定要不要加到字典裡...這個性質是什麼? 還是應該都加進去，但可以篩選authority?
-        protected override bool IsAddValid(MonoDescriptable item)
+        protected override bool IsAddValid(MonoEntity item)
         {
             if (item.TryGetComponent<IMonoAddToBinderChecker>(out var checker))
             {
@@ -31,16 +31,16 @@ namespace MonoFSM.Runtime
         protected override bool isLog => true;
 
         //FIXME: 直接用MonoDescriptable就好？
-        protected override void AddImplement(MonoDescriptable item)
+        protected override void AddImplement(MonoEntity item)
         {
             // item.IsRegister = true;
         }
 
-        protected override void RemoveImplement(MonoDescriptable item)
+        protected override void RemoveImplement(MonoEntity item)
         {
         }
 
-        protected override bool CanBeAdded(MonoDescriptable item)
+        protected override bool CanBeAdded(MonoEntity item)
         {
             return true;
             // return item.isActiveAndEnabled;
@@ -55,16 +55,16 @@ namespace MonoFSM.Runtime
         }
 
         //FIXME: 一個tag可能有多個instance? 要找最近的... 如果是經過parent的話？
-        public static MonoDescriptable GetMonoCompInParent(this MonoBehaviour mono, MonoDescriptableTag tag)
+        public static MonoEntity GetMonoCompInParent(this MonoBehaviour mono, MonoDescriptableTag tag)
         {
             //Descriptable就在自己的parent上，
             if (mono == null)
                 return null;
-            var parentDescriptable = mono.GetComponentInParent<MonoDescriptable>();
+            var parentDescriptable = mono.GetComponentInParent<MonoEntity>();
             if (parentDescriptable != null && parentDescriptable.Tag == tag || tag == null)
                 return parentDescriptable;
 
-            var parents = mono.GetComponentsInParent<MonoDescriptable>();
+            var parents = mono.GetComponentsInParent<MonoEntity>();
             foreach (var parent in parents)
             {
                 if (parent.Tag == tag)
@@ -88,13 +88,13 @@ namespace MonoFSM.Runtime
 
         //TODO: 直接用Type來拿GlobalInstance..哪些需要？interface註冊？
         public static T GetGlobalInstance<T>(this MonoBehaviour mono, MonoDescriptableTag tag)
-            where T : MonoDescriptable
+            where T : MonoEntity
         {
             return mono.GetGlobalInstance(tag) as T;
         }
 
         //類似singleton, 但是可能有多個世界，因此可以從某個容器底下找到唯一即可
-        public static T GetGlobalInstance<T>(this MonoBehaviour mono) where T : MonoDescriptable, IGlobalInstance
+        public static T GetGlobalInstance<T>(this MonoBehaviour mono) where T : MonoEntity, IGlobalInstance
         {
             var type = typeof(T);
             var monoObj = mono.GetComponentInParent<MonoPoolObj>();
@@ -118,7 +118,7 @@ namespace MonoFSM.Runtime
         /// <param name="tag"></param>
         /// <returns></returns>
         /// GetInstance, GetInstances ?
-        public static MonoDescriptable GetGlobalInstance(this MonoBehaviour mono, MonoDescriptableTag tag)
+        public static MonoEntity GetGlobalInstance(this MonoBehaviour mono, MonoDescriptableTag tag)
         {
             //Descriptable就在自己的parent上，
             if (mono == null)

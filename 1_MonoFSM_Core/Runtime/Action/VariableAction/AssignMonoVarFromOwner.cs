@@ -18,7 +18,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
         protected override void OnActionExecuteImplement()
         {
             Debug.Log($"AssignMonoVarFromOwner: Assigning {_ownerProvider.Description} to {_varBlackboard.name}");
-            var source = _ownerProvider.GetComponentOfOwner<MonoDescriptable>();
+            var source = _ownerProvider.GetComponentOfOwner<MonoEntity>();
             _varBlackboard.SetValue(source, this);
         }
 

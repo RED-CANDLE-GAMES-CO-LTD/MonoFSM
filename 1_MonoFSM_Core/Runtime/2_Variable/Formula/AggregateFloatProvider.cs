@@ -60,9 +60,9 @@ namespace MonoFSM.Core.Formula
             }
         }
 
-        private float GetFloatFromDescriptable(MonoDescriptable descriptable)
+        private float GetFloatFromDescriptable(MonoEntity entity)
         {
-            if (descriptable == null)
+            if (entity == null)
             {
                 Debug.LogError(
                     $"Descriptable is null in '{_inputProvider?.GetType().Name}' for variable '{_variableToAggregate.name}'.",
@@ -71,12 +71,12 @@ namespace MonoFSM.Core.Formula
             }
 
 
-            var variable = descriptable.VariableFolder.GetVariable(_variableToAggregate);
+            var variable = entity.VariableFolder.GetVariable(_variableToAggregate);
             if (variable == null)
             {
                 Debug.LogError(
-                    $"Variable '{_variableToAggregate.name}' not found on '{descriptable.name}'.",
-                    descriptable);
+                    $"Variable '{_variableToAggregate.name}' not found on '{entity.name}'.",
+                    entity);
                 return 0f;
             }
 
@@ -87,8 +87,8 @@ namespace MonoFSM.Core.Formula
             if (variable.objectValue is int i) return i;
 
             Debug.LogWarning(
-                $"Variable '{_variableToAggregate.name}' on '{descriptable.name}' is not a float provider or a convertible type.",
-                descriptable);
+                $"Variable '{_variableToAggregate.name}' on '{entity.name}' is not a float provider or a convertible type.",
+                entity);
             return 0f;
         }
 

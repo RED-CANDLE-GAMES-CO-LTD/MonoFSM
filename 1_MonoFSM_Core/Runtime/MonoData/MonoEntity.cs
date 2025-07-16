@@ -9,7 +9,6 @@ using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Interact.EffectHit;
-using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Variable;
 using MonoFSMCore.Runtime.LifeCycle;
@@ -19,25 +18,14 @@ using UnityEngine;
 
 namespace MonoFSM.Runtime
 {
-    //property tag? string又如何？ 就a.b.c囉 -> 不好refactor
-    //PropertyTag? 
-    //
-    //hitdata schema, class定義好了
-
-    //HitDataSchemaProperty
-    //
-    
-    
-    
-    
     public interface IMonoAddToBinderChecker   //network想要看authority來決定要不要加到字典裡...這個性質是什麼
     {
         bool IsAddValid();
     }
 
-    //FIXME: 改名，還有這個職責是不是有點多？ MonoEntity? 代表一個在場上的實體
+    //FIXME: MonoEntity? 代表一個在場上的實體
     [Searchable]
-    public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData>, IInstantiated,
+    public class MonoEntity : AbstractMonoDescriptable<DescriptableData>, IInstantiated,
         IBeforePrefabSaveCallbackReceiver, IGameDataProvider //這樣data也要一直繼承，好ㄇ...
     {
         
@@ -78,10 +66,10 @@ namespace MonoFSM.Runtime
         public virtual string RuntimeDescription =>
             string.IsNullOrEmpty(Data.Description) ? Data.name : Data.Description;
 
-#if UNITY_EDITOR
-        [RequiredIn(PrefabKind.InstanceInScene)] [PreviewInInspector] [AutoParent]
-        private MonoDescriptableBinder _binder;
-#endif
+// #if UNITY_EDITOR
+//         [RequiredIn(PrefabKind.InstanceInScene)] [PreviewInInspector] [AutoParent]
+//         private MonoDescriptableBinder _binder;
+// #endif
 
         //GameLogic不該Nested?
         //FIXME: 太深了...會包到過多的東西
@@ -337,7 +325,5 @@ namespace MonoFSM.Runtime
                 // }
             });
         }
-
-
     }
 }

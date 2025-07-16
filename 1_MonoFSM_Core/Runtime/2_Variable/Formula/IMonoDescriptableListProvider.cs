@@ -5,6 +5,6 @@ namespace MonoFSM.Core.Formula
 {
     public interface IMonoDescriptableListProvider
     {
-        IEnumerable<MonoDescriptable> GetDescriptables();
+        IEnumerable<MonoEntity> GetDescriptables();
     }
 }

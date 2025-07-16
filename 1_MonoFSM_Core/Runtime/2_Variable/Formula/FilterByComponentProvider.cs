@@ -25,18 +25,18 @@ namespace MonoFSM.Core.Formula
             }
         }
 
-        public IEnumerable<MonoDescriptable> GetDescriptables()
+        public IEnumerable<MonoEntity> GetDescriptables()
         {
             if (_inputProvider == null || string.IsNullOrEmpty(_requiredComponentTypeName))
             {
-                return Enumerable.Empty<MonoDescriptable>();
+                return Enumerable.Empty<MonoEntity>();
             }
 
             Type componentType = Type.GetType(_requiredComponentTypeName);
             if (componentType == null)
             {
                 Debug.LogError($"Component type '{_requiredComponentTypeName}' not found.", this);
-                return Enumerable.Empty<MonoDescriptable>();
+                return Enumerable.Empty<MonoEntity>();
             }
 
             return _inputProvider.GetDescriptables().Where(md => md != null && md.GetComponent(componentType) != null);

@@ -54,10 +54,11 @@ namespace MonoFSM.Runtime.Mono
         [Button]
         void FindAllMonoDescriptable()
         {
-            _allMonoDescriptable = FindObjectsByType<MonoDescriptable>(FindObjectsSortMode.None).Where(x => x.Tag == this).ToArray();
+            _allMonoDescriptable = FindObjectsByType<MonoEntity>(FindObjectsSortMode.None).Where(x => x.Tag == this)
+                .ToArray();
         }
 
-        [PreviewInInspector] public MonoDescriptable[] _allMonoDescriptable;
+        [PreviewInInspector] public MonoEntity[] _allMonoDescriptable;
 #endif
 
         [SerializeField] private string _stringKey;

@@ -29,7 +29,7 @@ namespace UIValueBinder
         [Required] [TabGroup("Collection")] [PreviewInInspector]
         public IMonoDescriptableCollection MonoDescriptableCollection;
 
-        public MonoDescriptable GetDescriptable(int index)
+        public MonoEntity GetDescriptable(int index)
         {
             if (MonoDescriptableCollection == null)
             {
@@ -37,7 +37,7 @@ namespace UIValueBinder
                 return null;
             }
 
-            return MonoDescriptableCollection.MonoDescriptableList[index] as MonoDescriptable;
+            return MonoDescriptableCollection.MonoDescriptableList[index] as MonoEntity;
         }
 
 //FIXME: 要runtime才有用，dict還沒見建立好

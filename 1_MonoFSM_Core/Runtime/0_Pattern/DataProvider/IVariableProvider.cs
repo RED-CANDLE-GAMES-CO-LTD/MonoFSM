@@ -24,7 +24,7 @@ namespace MonoFSM.Core.DataProvider
     {
         VarBlackboard Variable { get; }
         DescriptableData SampleData { get; }
-        MonoDescriptable Value => Variable?.Value;
+        MonoEntity Value => Variable?.Value;
     }
 
     // [MovedFrom(true, "RCGMaker.Runtime")]
@@ -442,7 +442,7 @@ namespace MonoFSM.Core.DataProvider
         public AbstractMonoVariable VarRaw =>
             _monoDescriptableProvider?.GetMonoDescriptable()?.GetVariable(_varTag);
 
-        public Type GetValueType => typeof(MonoDescriptable);
+        public Type GetValueType => typeof(MonoEntity);
 
         public TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable
         {

@@ -41,7 +41,7 @@ namespace UIValueBinder
         public MonoDescriptableTag monoTag; //我就是provider...
 
         [ShowIf(nameof(sourceType), SourceType.MonoTag)] [PreviewInInspector]
-        MonoDescriptable bindedDescriptable; //單一型 
+        private MonoEntity _bindedEntity; //單一型 
 
         // [ShowIf(nameof(sourceType),SourceType.MonoTag)]
         [Required] //FIXME: 一定要有sampleData才能選property?
@@ -71,7 +71,7 @@ namespace UIValueBinder
 
         [GUIColor(0.2f, 0.8f, 0.2f)]
         [PreviewInInspector]
-        public virtual MonoDescriptable MonoInstance
+        public virtual MonoEntity MonoInstance
         {
             get
             {
@@ -83,7 +83,7 @@ namespace UIValueBinder
                     return collectionProvider.GetDescriptable(index);
                 }
 
-                return bindedDescriptable;
+                return _bindedEntity;
             }
         }
 
@@ -217,7 +217,7 @@ namespace UIValueBinder
 
             var mono = _binder.Get(monoTag);
 
-            bindedDescriptable = (MonoDescriptable)mono;
+            _bindedEntity = (MonoEntity)mono;
         }
 
         private void Start()

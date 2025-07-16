@@ -13,6 +13,6 @@ namespace MonoFSM.Runtime.Mono
         public IList<IMonoDescriptable> MonoDescriptableList => Collection;
         public bool isActiveAndEnabled { get; }
 
-        [PreviewInInspector] [AutoChildren] private MonoDescriptable[] Collection;
+        [PreviewInInspector] [AutoChildren] private MonoEntity[] Collection;
     }
 }

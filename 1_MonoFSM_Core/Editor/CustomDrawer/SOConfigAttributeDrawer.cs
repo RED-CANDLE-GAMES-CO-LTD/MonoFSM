@@ -79,6 +79,68 @@ namespace MonoFSM.Core
             }
         }
 
+        private void DrawCreateButtonForList()
+        {
+            var guiContent =
+                new GUIContent("Add DescriptableTag", null, "Create a new ScriptableObject and add to list");
+
+            var buttonClicked = SirenixEditorGUI.SDFIconButton(
+                EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight),
+                guiContent,
+                SdfIconType.FileEarmarkPlus,
+                IconAlignment.LeftEdge);
+
+            if (buttonClicked) CreateSOForList();
+        }
+
+        private void CreateSOForList()
+        {
+            // 取得 List 的元素類型
+            var listType = Property.ValueEntry.TypeOfValue;
+            var elementType = listType.GetGenericArguments()[0];
+
+            // 建立新的 ScriptableObject
+            ScriptableObject newSO = null;
+
+            if (Property.ParentValues[0] is ScriptableObject sObj)
+            {
+                var creatorPath = AssetDatabase.GetAssetPath(sObj);
+                var folderPath = System.IO.Path.GetDirectoryName(creatorPath).Replace("Assets/", "");
+                var path = folderPath + "/New " + sObj.name + "_" + elementType.Name + ".asset";
+                newSO = elementType.CreateScriptableObject(path);
+            }
+            else if (Property.ParentValues[0] is Component parentComp)
+            {
+                var path = "";
+                if (parentComp)
+                {
+                    var gObj = parentComp.gameObject;
+                    path = Attribute.GetPathFromOwnerObj(gObj, elementType.Name);
+                }
+                else
+                {
+                    path = Attribute.GetFilePath("0_" + elementType.Name + Property.Name);
+                }
+
+                newSO = elementType.CreateScriptableObject(path);
+            }
+
+            // 將新建立的 ScriptableObject 加入到 List 中
+            if (newSO != null)
+            {
+                var list = Property.ValueEntry.WeakSmartValue as IList;
+                if (list == null)
+                {
+                    // 如果 List 為 null，建立新的 List
+                    list = (IList)Activator.CreateInstance(listType);
+                    Property.ValueEntry.WeakSmartValue = list;
+                }
+
+                list.Add(newSO);
+                Property.ValueEntry.ApplyChanges();
+            }
+        }
+
         protected override void DrawPropertyLayout(GUIContent label)
         {
             // 檢查是否為 List 類型
@@ -87,8 +149,9 @@ namespace MonoFSM.Core
             
             if (isListType)
             {
-                // 對於 List 類型，直接使用預設繪製器
+                // 對於 List 類型，繪製預設內容和 Create 按鈕
                 CallNextDrawer(label);
+                DrawCreateButtonForList();
                 return;
             }
             

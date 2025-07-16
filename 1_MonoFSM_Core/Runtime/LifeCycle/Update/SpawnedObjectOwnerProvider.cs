@@ -25,7 +25,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
 #endif
                 // return _monoObjectProvider.
 
-                return _monoObjectProvider?.Get()?.GetComponent<MonoDescriptable>();
+                return _monoObjectProvider?.Get()?.GetComponent<MonoEntity>();
             }
         }
 

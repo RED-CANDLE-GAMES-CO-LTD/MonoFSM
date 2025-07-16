@@ -13,7 +13,7 @@ namespace MonoFSM.Core.DataProvider
 {
     public interface IMonoDescriptableProvider
     {
-        public MonoDescriptable GetMonoDescriptable();
+        public MonoEntity GetMonoDescriptable();
     }
 
     public enum ProviderType

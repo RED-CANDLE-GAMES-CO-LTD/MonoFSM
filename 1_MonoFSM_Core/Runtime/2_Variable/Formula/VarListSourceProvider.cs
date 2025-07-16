@@ -12,11 +12,11 @@ namespace MonoFSM.Core.Formula
         [DropDownRef] [SerializeField] [Required]
         private VarListEntity _sourceList;
 
-        public IEnumerable<MonoDescriptable> GetDescriptables()
+        public IEnumerable<MonoEntity> GetDescriptables()
         {
             if (_sourceList == null)
             {
-                return Enumerable.Empty<MonoDescriptable>();
+                return Enumerable.Empty<MonoEntity>();
             }
             // VarList<MonoDescriptable> stores items as MonoDescriptable.
             return _sourceList.GetItems();

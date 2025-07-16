@@ -47,6 +47,10 @@ namespace MonoFSM.Core
         [CompRef] [AutoChildren(DepthOneOnly = true)]
         private OnStateExitHandler _onStateExit;
 
+        // Support for direct AbstractStateLifeCycleHandler children
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
+        private AbstractStateLifeCycleHandler[] _lifeCycleHandlers;
+
         //FIXME: EnterStateRender
 
         // PUBLIC METHODS
@@ -110,7 +114,19 @@ namespace MonoFSM.Core
 
         void IState.OnFixedUpdate()
         {
+            // Traditional Handler approach
             _onStateUpdate?.EventHandle();
+            
+            // New LifeCycleHandler approach
+            if (_lifeCycleHandlers != null)
+            {
+                foreach (var handler in _lifeCycleHandlers)
+                {
+                    if (handler != null && handler.isActiveAndEnabled)
+                        handler.TriggerStateUpdate();
+                }
+            }
+            
             _localStateTime += DeltaTime;
             if (_transitions != null)
                 foreach (var t in _transitions)
@@ -157,7 +173,20 @@ namespace MonoFSM.Core
         {
             _localStateTime = 0f;
             OnEnterState();
+            
+            // Traditional Handler approach
             _onStateEnter?.EventHandle();
+            
+            // New LifeCycleHandler approach
+            if (_lifeCycleHandlers != null)
+            {
+                foreach (var handler in _lifeCycleHandlers)
+                {
+                    if (handler != null && handler.isActiveAndEnabled)
+                        handler.TriggerStateEnter();
+                }
+            }
+            
 #if UNITY_EDITOR
             EditorFsmEventManager.NotifyStateChanged(Machine.Logic);
 #endif
@@ -166,7 +195,19 @@ namespace MonoFSM.Core
         void IState.OnExitState()
         {
             OnExitState();
+            
+            // Traditional Handler approach
             _onStateExit?.EventHandle();
+            
+            // New LifeCycleHandler approach
+            if (_lifeCycleHandlers != null)
+            {
+                foreach (var handler in _lifeCycleHandlers)
+                {
+                    if (handler != null && handler.isActiveAndEnabled)
+                        handler.TriggerStateExit();
+                }
+            }
         }
 
         void IState.OnEnterStateRender()

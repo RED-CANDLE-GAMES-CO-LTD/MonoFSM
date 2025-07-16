@@ -12,7 +12,7 @@ namespace MonoFSM.Runtime.Variable
     //指向外部
     //需要再定義更細的class嗎？還是MonoDescriptable就夠了
     //最常用的Variable? MonoDescriptable下也會有MonoDescriptable
-    public class VarBlackboard : GenericUnityObjectVariable<MonoDescriptable>
+    public class VarBlackboard : GenericUnityObjectVariable<MonoEntity>
     {
         //FIXME: 還能做型別限制、檢查嗎？
         //MonoSchema?
@@ -35,12 +35,12 @@ namespace MonoFSM.Runtime.Variable
 
         //FIXME: 什麼意四？
         [Header("預設值")] [SerializeField] [DropDownRef(null, nameof(SiblingValueFilter))]
-        private MonoDescriptable _siblingDefaultValue;
+        private MonoEntity _siblingDefaultValue;
 
         private Type SiblingValueFilter()
         {
             if (_varTag == null)
-                return typeof(MonoDescriptable);
+                return typeof(MonoEntity);
             // Debug.Log("RestrictType is " + varTag._valueFilterType.RestrictType);
             return _varTag._valueFilterType.RestrictType;
         }
@@ -50,7 +50,7 @@ namespace MonoFSM.Runtime.Variable
         // protected Component _defaultValue;
 
 
-        protected override MonoDescriptable DefaultValue =>
+        protected override MonoEntity DefaultValue =>
             _siblingDefaultValue != null ? _siblingDefaultValue : _defaultValue;
 
         //FIXME: 用Type更好嗎？

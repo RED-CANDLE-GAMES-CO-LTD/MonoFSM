@@ -6,13 +6,13 @@ using MonoFSM.Runtime;
 namespace MonoFSM.Core.Variable.Providers
 {
     //variable 對 value... list?
-    public class VarListEntityProvider : VariableProviderRef<VarListEntity, List<MonoDescriptable>>,
+    public class VarListEntityProvider : VariableProviderRef<VarListEntity, List<MonoEntity>>,
         IMonoDescriptableListProvider
     {
         //FIXME: VarListEntity不一定用List?
-        public IEnumerable<MonoDescriptable> GetDescriptables()
+        public IEnumerable<MonoEntity> GetDescriptables()
         {
-            if (Variable == null) return new List<MonoDescriptable>();
+            if (Variable == null) return new List<MonoEntity>();
             // VarListEntity stores items as MonoDescriptable.
             return Variable.GetItems();
         }

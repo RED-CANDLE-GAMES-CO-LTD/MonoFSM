@@ -26,7 +26,7 @@ namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
         [InfoBox("VariableTag should be in the MonoTag", InfoMessageType.Error, nameof(IsVariableTagNotMatchingMonoTag))]
         public VariableTag _variableTag;
 
-        public override MonoDescriptable MonoInstance
+        public override MonoEntity MonoInstance
         {
             get
             {
@@ -46,7 +46,8 @@ namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
                     Debug.LogError("Variable is null"+_variableTag,this);
                     return null;
                 }
-                var monoDescriptable = variable.GetValue<MonoDescriptable>();
+
+                var monoDescriptable = variable.GetValue<MonoEntity>();
                 return monoDescriptable;
 
             }
