@@ -9,6 +9,7 @@ using UnityEngine.Serialization;
 namespace MonoFSM.Variable
 {
     //condition activate?
+    //FIXME: 需要對稱？
     public class ApplyModifierAction : AbstractStateAction //FIXME: 好像做成一個action比較好？
     {
         //FIXME: 沒辦法指定VariableStat..有點尷尬，要吃兩個Type?
@@ -41,45 +42,12 @@ namespace MonoFSM.Variable
         {
             var varStat = _variableProvider.GetVar<VarStat>();
             foreach (var modifier in _modifiers) varStat.RegisterModifier(modifier);
-
-
-            // _foundStatOwner = GetComponentInParent<VariableStatOwner>();
-            // if (_foundStatOwner == null)
-            // {
-            //     Debug.LogError("No VariableStatOwner found in parent of " + gameObject.name, this);
-            //     return;
-            // }
-            //
-            // var variableStats = _foundStatOwner.VariableStats;
-            // foreach (var stat in variableStats)
-            // {
-            //     if (stat.varTag == TargetVariable)
-            //     {
-            //         foreach (var modifier in _modifiers)
-            //         {
-            //             stat.AddModifier(modifier);
-            //         }
-            //     }
-            // }
         }
 
-        protected override void OnStateExitImplement()
-        {
-            var varStat = _variableProvider.GetVar<VarStat>();
-            foreach (var modifier in _modifiers) varStat.RemoveModifier(modifier);
-            // var variableStats = _foundStatOwner.VariableStats;
-            // foreach (var stat in variableStats)
-            // {
-            //     if (stat.varTag == TargetVariable)
-            //     {
-            //         foreach (var modifier in _modifiers)
-            //         {
-            //             stat.RemoveModifier(modifier);
-            //         }
-            //     }
-            // }
-            //
-            // _foundStatOwner = null;
-        }
+        // protected override void OnStateExitImplement()
+        // {
+        //     var varStat = _variableProvider.GetVar<VarStat>();
+        //     foreach (var modifier in _modifiers) varStat.RemoveModifier(modifier);
+        // }
     }
 }
