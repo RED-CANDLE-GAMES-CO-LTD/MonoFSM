@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using MonoFSM.Core.Attributes;
-using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Variable.FieldReference;
 using Sirenix.OdinInspector;

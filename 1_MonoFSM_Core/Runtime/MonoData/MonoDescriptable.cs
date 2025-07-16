@@ -35,7 +35,7 @@ namespace MonoFSM.Runtime
         bool IsAddValid();
     }
 
-    //FIXME: 改名，還有這個職責是不是有點多？ MonoContainer? MonoEntity?
+    //FIXME: 改名，還有這個職責是不是有點多？ MonoEntity? 代表一個在場上的實體
     [Searchable]
     public class MonoDescriptable : AbstractMonoDescriptable<DescriptableData>, IInstantiated,
         IBeforePrefabSaveCallbackReceiver, IGameDataProvider //這樣data也要一直繼承，好ㄇ...
@@ -139,12 +139,7 @@ namespace MonoFSM.Runtime
             // set => data = value;
         }
 
-
-        //FIXME:  需要Descriptable Tag嗎？從Data拿就好了？
-   
-
-        //FIXME: 還不只需要一種呢....可能需要多種tag
-        [SerializeField] private MonoDescriptableTag[] DescriptableTags; //
+        // [SerializeField] private MonoDescriptableTag[] DescriptableTags; //
         
         public virtual void OnUIEventReceived() //FIXME; 這啥XD
         {
@@ -221,7 +216,7 @@ namespace MonoFSM.Runtime
 
         public MonoDescriptableTag[] GetKeys()
         {
-            return DescriptableTags;
+            return DescriptableTags.ToArray();
         }
 
         public void EnterSceneAwake()
