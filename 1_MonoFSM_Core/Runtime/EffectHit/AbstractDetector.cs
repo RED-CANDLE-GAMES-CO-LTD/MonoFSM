@@ -164,7 +164,7 @@ namespace MonoFSM.Core.Detection
                     //移到System?
                     //互動雙方的條件描述
                     //每個receiver都一個？多餘嗎？
-                    var hitData = receiver.GenerateEffectHitData(dealer, receiver);
+                    var hitData = receiver.GenerateEffectHitData(dealer);
 
 
                     hitData.hitNormal = normal;
@@ -206,7 +206,7 @@ namespace MonoFSM.Core.Detection
                     if (!dealer.IsEnteredReceiver(receiver)) continue;
                     // if (!dealer.CanHitReceiver(receiver)) continue;
                     //FIXME: 這個是不是不該generate? 還是重新gen也還好
-                    var hitData = receiver.GenerateEffectHitData(dealer, receiver);
+                    var hitData = receiver.GenerateEffectHitData(dealer);
 
                     dealer.OnHitExit(hitData);
                     receiver.OnEffectHitExit(hitData);

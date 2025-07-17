@@ -81,33 +81,18 @@ namespace MonoFSM.Variable
             SetValue();
         }
 
-        public override void EventReceived<T>(T arg)
-        {
-          
-            // this.Log("EventReceived setVariableBoolAction");
-            if (arg is bool b)
-                SetValue(b);
-            else
-                SetValue();
-        }
+        // public override void EventReceived<T>(T arg)
+        // {
+        //   
+        //     // this.Log("EventReceived setVariableBoolAction");
+        //     if (arg is bool b)
+        //         SetValue(b);
+        //     else
+        //         SetValue();
+        // }
 
         private void SetValue(bool v)
         {
-            // if (!_conditions.IsAllValid())
-            //     return;
-            // if (Multiple)
-            // {
-            //     if (targetFlags == null)
-            //         return;
-            //
-            //     foreach (var flag in targetFlags)
-            //     {
-            //         if (flag != null)
-            //             flag.SetValue(v, this);
-            //     }
-            // }
-            // else
-            // {
             if (_target == null)
             {
                 Debug.LogError("targetFlag==null", this);

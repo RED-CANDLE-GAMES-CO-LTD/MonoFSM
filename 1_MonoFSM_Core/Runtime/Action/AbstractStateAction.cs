@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using MonoFSM.Foundation;
 using RCGExtension;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Runtime.Vote;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -15,15 +16,28 @@ namespace MonoFSM.Core.Runtime.Action
     {
     }
 
+    public abstract class AbstractStateAction<T> : AbstractStateAction, IArgEventReceiver<T>
+    // where T : IEffectHitData
+    {
+        void IArgEventReceiver<T>.ArgEventReceived(T arg)
+        {
+            _lastEventReceivedTime = Time.time;
+            OnArgEventReceived(arg);
+        }
+
+        protected abstract void OnArgEventReceived(T arg);
+    }
+
     /// <summary>
     /// Represents an abstract base class for defining actions that are executed within a state
     /// in the finite state machine (FSM) framework. Inherit from this class to implement
     /// custom state actions.
     /// </summary>
+    ///FIXME:  好像可以架一層有吃參數的比較好？
     [Searchable]
     public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteChild, IGuidEntity,
-        IDefaultSerializable,
-        IArgEventReceiver<IEffectHitData>
+        IDefaultSerializable
+    // IArgEventReceiver<GeneralEffectHitData>
     {
         protected override bool HasError()
         {
@@ -70,26 +84,9 @@ namespace MonoFSM.Core.Runtime.Action
 
         protected virtual string renamePostfix => "";
 
-        // private bool conditionFeteched = false;
-
-        // private void CheckFetchCondition()
-        // {
-        //     if (conditionFeteched)
-        //         return;
-
-        //     conditionFeteched = true;
-
-        //     if (conditions == null || conditions.Count == 0)
-        //     {
-        //         conditions.AddRange(this.GetComponents<AbstractCondition>());
-        //     }
-        // }
-
         [AutoParent] private DelayActionModifier delayActionModifier;
 
         private bool _delay = false; //FIXME: 
-
-        //一定是AND的啦
         public async void OnActionExecute()
         {
             if (!isActiveAndEnabled) return;
@@ -118,28 +115,18 @@ namespace MonoFSM.Core.Runtime.Action
 
             _delay = false;
             // this.AddTask(OnStateEnterImplement, delayActionModifier.delayTime);
+            _lastEventReceivedTime = Time.time;
             OnActionExecuteImplement();
         }
-
+        
         protected abstract void OnActionExecuteImplement(); //FIXME: 沒參數的?
-
-        // public void OnActionUpdate()
+        // public void OnActionSpriteUpdate() 
         // {
         //     if (IsValid)
-        //         OnStateUpdateImplement();
+        //         OnSpriteUpdateImplement();
         // }
 
-        //FIXME: 拔掉
-        // protected virtual void OnStateUpdateImplement()
-        // {
-        // }
-
-        public void OnActionSpriteUpdate()
-        {
-            if (IsValid)
-                OnSpriteUpdateImplement();
-        }
-
+        [Obsolete]
         protected virtual void OnSpriteUpdateImplement()
         {
         }
@@ -172,27 +159,24 @@ namespace MonoFSM.Core.Runtime.Action
         {
         }
 
-        public virtual void ArgEventReceived(IEffectHitData arg)
-        {
-            // Debug.Log("AbstractStateAction.EventReceived", this);
-            // Debug.Log("AbstractStateAction.EventReceived arg" + arg, this);
-            EventReceived(arg);
-        }
+        //FIXME: 不該全部都virtual
+        // public virtual void ArgEventReceived(IEffectHitData arg)
+        // {
+        //     EventReceived(arg);
+        // }
+        //
+        // public virtual void ArgEventReceived(GeneralEffectHitData arg)
+        // {
+        //     EventReceived(arg);
+        // }
 
-        public virtual void EventReceived<T>(T arg)
-        {
-            //FIXME: 這個會無窮迴圈..
-            // if (this is IRCGArgEventReceiver<T> receiver)
-            // {
-            //     Debug.Log("AbstractStateAction.EventReceived"+receiver, this);
-            //     Debug.Log("AbstractStateAction.EventReceived arg"+arg, this);
-            //     receiver.EventReceived(arg);
-            // }
-            // else
-            OnActionExecuteImplement();
-        }
-
-
+        // public virtual void EventReceived<T>(T arg)
+        // {
+        //     OnActionExecuteImplement();
+        // }
+#if UNITY_EDITOR
+        [PreviewInInspector] protected float _lastEventReceivedTime = -1f;
+#endif
 
         public void EventReceived()
         {

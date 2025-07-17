@@ -22,12 +22,22 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         // public  ValueSource; //FIXME: 拿來做什麼？
 
         //FIXME: 從GeneralEffectHitData？
-        public IEffectHitData GenerateEffectHitData(IEffectDealer dealer, IEffectReceiver receiver)
+        public IEffectHitData GenerateEffectHitData(IEffectDealer dealer)
         {
             //FIXME: 要用pool, 泛用的pool
             var data = new GeneralEffectHitData();
-            data.Override(dealer, receiver);
+            data.Override(dealer, this);
             return data;
+        }
+
+        public void ForceDirectEffectHit(GeneralEffectDealer dealer)
+        {
+            var hitData = GenerateEffectHitData(dealer);
+            dealer.OnHitEnter(hitData);
+            OnEffectHitEnter(hitData);
+            //然後要馬上離開？
+            dealer.OnHitExit(hitData);
+            OnEffectHitExit(hitData);
         }
 
         //收到事件後，叫下面的action做事
@@ -36,10 +46,15 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         //FIXME: rename to OnHitEnter
         public void OnEffectHitEnter(IEffectHitData data, DetectData detectData) //這裡是code定義
         {
-            this.Log("OnEffectHitEnter");
-            _currentHitData = data;
-            _enterNode?.EventHandle(data);
             _detectData = detectData;
+            OnEffectHitEnter(data);
+        }
+
+        public void OnEffectHitEnter(IEffectHitData data)
+        {
+            this.Log("OnHitEnter");
+            _currentHitData = data;
+            _enterNode?.EventHandle(data as GeneralEffectHitData);
 #if UNITY_EDITOR
             _lastHitData = data;
 #endif
@@ -53,17 +68,12 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [ShowInDebugMode] private IEffectHitData _lastHitData;
 #endif
 
-        public void OnEffectHitEnter(IEffectHitData data)
-        {
-            this.Log("OnHitEnter");
-            _currentHitData = data;
-            _enterNode?.EventHandle(data);
-        }
+
 
         public void OnEffectHitExit(IEffectHitData data)
         {
             this.Log("OnHitExit");
-            _exitNode?.EventHandle(data);
+            _exitNode?.EventHandle(data as GeneralEffectHitData);
             _currentHitData = null;
         }
 

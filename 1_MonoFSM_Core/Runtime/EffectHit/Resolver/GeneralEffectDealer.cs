@@ -14,6 +14,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
     {
     }
 
+    //FIXME: 篩選掉同個owner下的判斷？
+
     public class GeneralEffectDealer : EffectResolver, IEffectDealer,IHitDataProvider
     {
         [PreviewInInspector] [Component] [AutoChildren(DepthOneOnly = true)]
@@ -88,7 +90,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
                 if (proxyDealer == null) //並沒有找到Proxy Dealer，失敗
                 {
                     SetFailReason("ProxyDealer is null");
-                    var data = r.GenerateEffectHitData(this, receiver);
+                    var data = r.GenerateEffectHitData(this);
                     OnEffectHitConditionFail(data);
                     r.OnEffectHitConditionFail(data);
                     return false;
@@ -104,7 +106,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
                     if (!result)
                     {
                         SetFailReason($"EffectCondition {condition.GetType().Name} failed");
-                        var data = r.GenerateEffectHitData(this, receiver);
+                        var data = r.GenerateEffectHitData(this);
                         OnEffectHitConditionFail(data);
                         r.OnEffectHitConditionFail(data);
                         return false;

@@ -75,6 +75,13 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return GeneralDealer.GetComponentOfSibling<IModuleOwner, T>();
         }
 
+        //從Owner身旁的MonoEntityBinder取得下面的Entity
+        public T GetEntityFromDealerOwner<T>() where T : MonoEntity
+        {
+            var binder = GeneralDealer.GetComponentOfSibling<IModuleOwner, MonoEntityBinder>();
+            return binder.Get(typeof(T)) as T; //有點醜
+        }
+        
         public T GetComponentFromReceiver<T>() where T : class
         {
             return GeneralReceiver.GetComponentOfSibling<IModuleOwner, T>();

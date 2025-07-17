@@ -51,11 +51,11 @@ namespace MonoFSM.Variable
         [FormerlySerializedAs("valueSource")] public ValueSourceType sourceType;
 
         //FIXME: 
-        public override void EventReceived<T>(T arg)
-        {
-            //怎麼抽象化？ sourceValueProvider
-            if (arg is Collision collision) DoOperation(collision.impulse.magnitude);
-        }
+        // public override void EventReceived<T>(T arg)
+        // {
+        //     //怎麼抽象化？ sourceValueProvider
+        //     if (arg is Collision collision) DoOperation(collision.impulse.magnitude);
+        // }
 
         [Obsolete]
         public void ArgEventReceived(IEffectHitData arg) //FIXME: runtime value source? 狀態接著？

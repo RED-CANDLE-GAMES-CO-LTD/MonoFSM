@@ -14,4 +14,14 @@ namespace MonoFSM.Core.Attributes
     {
         // !DebugSetting.IsDebugMode
     }
+
+    [GUIColor(1, 1, 0, 1)]
+    [ShowIf("@DebugSetting.IsDebugMode")]
+    [MeansImplicitUse]
+    [IncludeMyAttributes]
+    [ShowInInspector]
+    [DisableIf("@true")]
+    public class PreviewInDebugMode : Attribute
+    {
+    }
 }

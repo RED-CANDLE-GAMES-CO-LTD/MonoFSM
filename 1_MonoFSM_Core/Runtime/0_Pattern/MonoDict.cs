@@ -13,22 +13,12 @@ using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core
 {
-    public abstract class MonoDict<T, TU> : MonoBehaviour,ISceneAwake, IResetStateRestore
+    //AutoDict?
+    public abstract class MonoDict<T, TU> : MonoBehaviour, ISceneAwake
         where TU : IValueOfKey<T> where T : IStringKey
     {
         protected virtual bool isLog => false;
 
-        // protected virtual void Awake()
-        // {
-        //     _isPrepared = false;
-        //     PrepareDictCheck();
-        // }
-
-        public void ResetStateRestore() //這會不會太晚？
-        {
-            // _isPrepared = false;
-            // PrepareDictCheck();
-        }
 
         //如果在autoReference 之前就不會進來...hmmm!?
         //有點討厭：spawned, player spawned (自己做reference & sceneAwake?), SceneAwake, SceneStart (並沒有拿到player)
@@ -142,6 +132,7 @@ namespace MonoFSM.Core
         public TU Get(Type type)
         {
             EditorPrepareCheck();
+            //FIXME: 做得有點粗，要細再想一下
             var set = _typeDict.GetValueOrDefault(type);
             return set != null ? System.Linq.Enumerable.FirstOrDefault(set) : default;
         }

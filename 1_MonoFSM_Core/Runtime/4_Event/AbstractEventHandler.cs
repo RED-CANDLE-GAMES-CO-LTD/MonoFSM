@@ -25,7 +25,7 @@ namespace MonoFSM.Core
     public abstract class AbstractEventHandler : MonoBehaviour, IActionParent
     {
         [CompRef] [AutoChildren(DepthOneOnly = true)]
-        protected IEventReceiver[] _eventReceivers;
+        protected IEventReceiver[] _eventReceivers; //IActions
 
         /// <summary>
         /// Call all event receivers' <see cref="IEventReceiver.EventReceived"/> method.
@@ -53,6 +53,7 @@ namespace MonoFSM.Core
         {
             if (!isActiveAndEnabled)
                 return;
+            _lastEventHandledTime = Time.time;
             foreach (var eventReceiver in _eventReceivers)
             {
                 if (eventReceiver is IArgEventReceiver<T> argEventReceiver)
@@ -60,8 +61,12 @@ namespace MonoFSM.Core
                     if (argEventReceiver.IsValid)
                         argEventReceiver.ArgEventReceived(arg);
                 }
-                else if (eventReceiver.IsValid)
-                    eventReceiver.EventReceived(arg);
+                else
+                {
+                    Debug.LogError(
+                        $"Event receiver {eventReceiver.GetType().Name} does not implement IArgEventReceiver<{typeof(T).Name}>.",
+                        this);
+                }
             }
                 
         }

@@ -42,7 +42,7 @@ public interface IToggleable
     bool EquipCheck(bool force = false);
 }
 
-public interface IMonoDescriptableCollection : IValueOfKey<MonoDescriptableTag>
+public interface IMonoDescriptableCollection : IValueOfKey<MonoEntityTag>
 {
     public IList<IMonoDescriptable> MonoDescriptableList { get; }
 
@@ -50,7 +50,7 @@ public interface IMonoDescriptableCollection : IValueOfKey<MonoDescriptableTag>
     // public MonoDescriptableTag Tag { get; }
 }
 
-public interface IMonoDescriptable : IValueOfKey<MonoDescriptableTag>
+public interface IMonoDescriptable : IValueOfKey<MonoEntityTag>
 {
     public IDescriptableData Descriptable { get; }
 
@@ -96,7 +96,8 @@ public interface IItem : IDescriptableData
 [Searchable]
 public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptable //以前是GameFlagDescriptable
 {
-    public MonoDescriptableTag descriptableTag;
+    [FormerlySerializedAs("descriptableTag")]
+    public MonoEntityTag _entityTag;
 
     public async void PreloadSprite()
     {
@@ -479,11 +480,11 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
 #endif
 
     //FIXME: 亂寫看看
-    public MonoDescriptableTag Key { get; }
+    public MonoEntityTag Key { get; }
 
-    public MonoDescriptableTag[] GetKeys()
+    public MonoEntityTag[] GetKeys()
     {
-        return new[] { descriptableTag };
+        return new[] { _entityTag };
     }
 
     public IDescriptableData Descriptable => this;

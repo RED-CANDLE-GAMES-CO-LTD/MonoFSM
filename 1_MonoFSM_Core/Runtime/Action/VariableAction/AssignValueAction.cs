@@ -1,5 +1,6 @@
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.VarRef;
 using Sirenix.OdinInspector;
@@ -30,8 +31,6 @@ namespace MonoFSM.Runtime.Backpack.Actions
 
         protected override void OnActionExecuteImplement()
         {
-            // throw new NotImplementedException();
-
             if (_sourceValueRef == null)
             {
                 Debug.LogError("AssignValueAction: Source value is null", _sourceValueRef);
@@ -51,59 +50,23 @@ namespace MonoFSM.Runtime.Backpack.Actions
             Debug.Log($"AssignValueAction: {targetVar} Set", targetVar);
         }
 
-        public override void ArgEventReceived(IEffectHitData arg)
-        {
-            // var receiver = arg.Receiver as MonoBehaviour;
-            // _lastReceiver = arg.Receiver;
-            // Debug.Log("SetObjectVariableFromReceiver EventReceived", receiver);
-            // if (receiver == null)
-            // {
-            //     Debug.LogError("SetObjectVariableFromReceiver: Receiver is not a MonoBehaviour",this);
-            //     return;
-            // }
-            if (_targetVarRef == null)
-            {
-                Debug.LogError("AssignValueAction: No target variable reference", this);
-                return;
-            }
-
-            var variable = _targetVarRef.VarRaw;
-            if (variable == null)
-            {
-                Debug.LogError("AssignValueAction: No variable found", this);
-                return;
-            }
-
-            // Debug.Log("AssignValueAction: Set value to " + variable, variable);
-            // var value = GetValue();
-            // Debug.Log("AssignValueAction: Set value: " + value);
-            variable.SetValueByRef(_sourceValueRef, this);
-            // TargetVariable.GetVariable().SetValue(SourceValue.GetValue(),this);
-            // if (sourceType == SourceType.DescriptableData)
-            // {
-            //     //FIXME: 效能好像不好？
-            //     var descriptable = receiver.GetMonoDescriptableInstance(_monoDescriptableTag); //FIXME: 換成effect resolver?
-            //     ObjectVariableToSet.RawValue = descriptable.data;
-            // }
-            // else if (sourceType == SourceType.MonoDescriptable)
-            // {
-            //     var descriptable = receiver.GetMonoDescriptableInstance(_monoDescriptableTag);
-            //     ObjectVariableToSet.RawValue = descriptable;
-            // }
-            // else
-            // {
-            //     var variableFound = receiver.FindVariableOfBinder<AbstractReferenceVariable>(varTag);
-            //     if (variableFound == null)
-            //     {
-            //         Debug.LogError("SetObjectVariableFromReceiver: No variable found of Tag"+varTag,receiver);
-            //         return;
-            //     }
-            //
-            //     Debug.Log("SetObjectVariableFromReceiver variableFound"+ variableFound.RawValue, variableFound);
-            //     ObjectVariableToSet.RawValue = variableFound.RawValue;
-            //     Debug.Log("SetObjectVariableFromReceiver ObjectVariableToSet"+ ObjectVariableToSet, ObjectVariableToSet);
-            // }
-        }
+        // protected override void OnArgEventReceived(GeneralEffectHitData arg)
+        // {
+        //     if (_targetVarRef == null)
+        //     {
+        //         Debug.LogError("AssignValueAction: No target variable reference", this);
+        //         return;
+        //     }
+        //
+        //     var variable = _targetVarRef.VarRaw;
+        //     if (variable == null)
+        //     {
+        //         Debug.LogError("AssignValueAction: No variable found", this);
+        //         return;
+        //     }
+        //     
+        //     variable.SetValueByRef(_sourceValueRef, this);
+        // }
 
         // public VariableTag refVariableTag => varTag;
     }

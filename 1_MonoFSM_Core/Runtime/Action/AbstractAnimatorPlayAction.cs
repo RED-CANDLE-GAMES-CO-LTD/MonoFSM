@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MonoFSM.Core.Runtime.Action;
@@ -13,6 +14,7 @@ using UnityEditor.Animations;
 namespace MonoFSM.Core
 {
     //[]: 先弄成abstract不會和原專案的class衝突
+    [Obsolete]
     public abstract class AbstractAnimatorPlayAction : AbstractStateAction, IAnimatorPlayAction,
         ISceneSavingCallbackReceiver, ITransitionCheckInvoker
     {

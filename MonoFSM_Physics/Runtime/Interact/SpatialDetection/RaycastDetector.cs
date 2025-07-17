@@ -15,7 +15,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
     {
         public enum RaycastMode
         {
-            Single,
+            Single, //FIXME: 應該都要用all 然後再sort, 然後會需要filter掉一部分
             All //會需要all嗎？這樣對象要全部分開？
         }
 
