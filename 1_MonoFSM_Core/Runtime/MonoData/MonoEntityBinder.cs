@@ -9,7 +9,7 @@ namespace MonoFSM.Runtime
     /// <summary>
     /// 用MonoDescriptableTag當key的來找IMonoDescriptable
     /// </summary>
-    public class MonoDescriptableBinder : MonoDict<MonoDescriptableTag, MonoEntity>
+    public class MonoEntityBinder : MonoDict<MonoEntityTag, MonoEntity>
     {
         //FIXME: 同個tag可以有個list?
 
@@ -49,13 +49,13 @@ namespace MonoFSM.Runtime
 
     public static class MonoDescriptableBinderExtension
     {
-        public static MonoDescriptableBinder GetMonoBinder(this MonoBehaviour mono)
+        public static MonoEntityBinder GetMonoBinder(this MonoBehaviour mono)
         {
-            return mono.GetComponentInParent<MonoDescriptableBinder>();
+            return mono.GetComponentInParent<MonoEntityBinder>();
         }
 
         //FIXME: 一個tag可能有多個instance? 要找最近的... 如果是經過parent的話？
-        public static MonoEntity GetMonoCompInParent(this MonoBehaviour mono, MonoDescriptableTag tag)
+        public static MonoEntity GetMonoCompInParent(this MonoBehaviour mono, MonoEntityTag tag)
         {
             //Descriptable就在自己的parent上，
             if (mono == null)
@@ -87,7 +87,7 @@ namespace MonoFSM.Runtime
         }
 
         //TODO: 直接用Type來拿GlobalInstance..哪些需要？interface註冊？
-        public static T GetGlobalInstance<T>(this MonoBehaviour mono, MonoDescriptableTag tag)
+        public static T GetGlobalInstance<T>(this MonoBehaviour mono, MonoEntityTag tag)
             where T : MonoEntity
         {
             return mono.GetGlobalInstance(tag) as T;
@@ -98,7 +98,7 @@ namespace MonoFSM.Runtime
         {
             var type = typeof(T);
             var monoObj = mono.GetComponentInParent<MonoPoolObj>();
-            var binder = monoObj.WorldUpdateSimulator.GetComponent<MonoDescriptableBinder>();
+            var binder = monoObj.WorldUpdateSimulator.GetComponent<MonoEntityBinder>();
             if (binder == null)
             {
                 Debug.LogError("No MonoDescriptableBinder found " + type, mono);
@@ -118,7 +118,7 @@ namespace MonoFSM.Runtime
         /// <param name="tag"></param>
         /// <returns></returns>
         /// GetInstance, GetInstances ?
-        public static MonoEntity GetGlobalInstance(this MonoBehaviour mono, MonoDescriptableTag tag)
+        public static MonoEntity GetGlobalInstance(this MonoBehaviour mono, MonoEntityTag tag)
         {
             //Descriptable就在自己的parent上，
             if (mono == null)
@@ -129,7 +129,7 @@ namespace MonoFSM.Runtime
 
             //FIXME: 這個是從Binder往下找，可能有多個，不太好？
             var monoObj = mono.GetComponentInParent<MonoPoolObj>();
-            var binder = monoObj?.WorldUpdateSimulator?.GetComponent<MonoDescriptableBinder>();
+            var binder = monoObj?.WorldUpdateSimulator?.GetComponent<MonoEntityBinder>();
             if (binder == null)
             {
 #if UNITY_EDITOR //如果在Prefab裡不要噴error

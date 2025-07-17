@@ -9,7 +9,7 @@ namespace MonoFSM.Runtime.Mono
     //可以純data就好嗎？
     public class MonoDescriptableCollection : MonoBehaviour, IMonoDescriptableCollection
     {
-        public MonoDescriptableTag Key { get; }
+        public MonoEntityTag Key { get; }
         public IList<IMonoDescriptable> MonoDescriptableList => Collection;
         public bool isActiveAndEnabled { get; }
 

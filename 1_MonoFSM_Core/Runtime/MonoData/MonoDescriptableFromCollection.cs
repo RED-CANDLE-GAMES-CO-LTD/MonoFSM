@@ -7,11 +7,11 @@ namespace MonoFSM.Runtime.Mono
     public class MonoDescriptableFromCollection : MonoBehaviour, IMonoDescriptable
     {
         [PreviewInInspector] [AutoParent] IMonoDescriptableCollection _collection;
-        public MonoDescriptableTag tag;
+        public MonoEntityTag tag;
         public int index;
 
         //fixme;   
-        public MonoDescriptableTag Key => tag; //_collection?.MonoDescriptableList[index]?.Key;
+        public MonoEntityTag Key => tag; //_collection?.MonoDescriptableList[index]?.Key;
 
         [PreviewInInspector]
         public IDescriptableData Descriptable

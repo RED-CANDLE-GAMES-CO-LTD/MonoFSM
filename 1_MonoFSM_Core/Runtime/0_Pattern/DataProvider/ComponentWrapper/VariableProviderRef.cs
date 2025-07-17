@@ -77,7 +77,7 @@ namespace MonoFSM.Core.DataProvider
         //a(object).b(variable)
         //VariableOwner的話就可以往parent找，不是的話可以從asset找？ auto assign? 或是根本不需要
         [FormerlySerializedAs("_parentMonoTag")] [TabGroup("Owner Setting")] [HideIf(nameof(IsFromParentOwner))]
-        public MonoDescriptableTag _blackboardTag; //空的話就是自己
+        public MonoEntityTag _blackboardTag; //空的話就是自己
 
         private bool IsFromParentOwner()
         {

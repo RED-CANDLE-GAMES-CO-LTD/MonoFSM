@@ -21,7 +21,7 @@ namespace UIValueBinder
     {
         //ItemCollection?
         [TabGroup("Collection")] [SOConfig("DescriptableTag")]
-        public MonoDescriptableTag _tag;
+        public MonoEntityTag _tag;
 
         //FIXME:同步數量，instantiate prefab?
         // [AutoChildren]

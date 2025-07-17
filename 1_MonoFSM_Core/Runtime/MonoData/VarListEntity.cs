@@ -337,6 +337,7 @@ namespace MonoFSM.Core.Variable
     //不想定義型別
     public abstract class AbstractVarList : AbstractMonoVariable
     {
+        public override bool IsValueExist => Count > 0;
         // public override Type ValueType => typeof(List<T>);
         // public override object objectValue => _list;
         public abstract Object CurrentRawObject { get; }

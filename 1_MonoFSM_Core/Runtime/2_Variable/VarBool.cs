@@ -96,6 +96,7 @@ namespace MonoFSM.Variable
         public string IconName => "Toggle Icon"; //  "d_Toggle Icon"
         public bool IsDrawingIcon => true;
         public Texture2D CustomIcon => null;
+        public override bool IsValueExist => true;
         public string ValueInfo => CurrentValue.ToString();
         public bool IsDrawingValueInfo => true;
 

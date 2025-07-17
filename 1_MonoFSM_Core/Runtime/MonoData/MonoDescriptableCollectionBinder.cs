@@ -2,7 +2,7 @@ using MonoFSM.Core;
 
 namespace MonoFSM.Runtime.Mono
 {
-    public class MonoDescriptableCollectionBinder : MonoDict<MonoDescriptableTag, IMonoDescriptableCollection>
+    public class MonoDescriptableCollectionBinder : MonoDict<MonoEntityTag, IMonoDescriptableCollection>
     {
         // public void Inject()
         // {

@@ -23,6 +23,7 @@ namespace MonoFSM.Variable
     public abstract class GenericUnityObjectVariable<TValueType> : AbstractObjectVariable, ISettable<TValueType>,
         IResetStateRestore where TValueType : Object
     {
+        public override bool IsValueExist => _currentValue != null;
         // public UnityAction<TValueType> OnValueChanged;
         //
         // //FIXME: 這個好ㄇ
@@ -140,7 +141,7 @@ namespace MonoFSM.Variable
         }
 
 #if UNITY_EDITOR
-        [ShowInDebugMode] private Object _lastSetByWho;
+        [PreviewInDebugMode] private Object _lastSetByWho;
 #endif
 
         public override void ClearValue()

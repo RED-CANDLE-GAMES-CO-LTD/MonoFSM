@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.DataProvider
 {
-    public interface IDataChangedListener
+    public interface IDataChangedListener //和下面差不多？
     {
         void OnDataChanged(Object data);
     }

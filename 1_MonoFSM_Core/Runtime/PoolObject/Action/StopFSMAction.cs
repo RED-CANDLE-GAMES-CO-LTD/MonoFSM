@@ -5,7 +5,7 @@ namespace MonoFSM.Runtime.ObjectPool
     //把FSM關掉，不一定是要回pool?
     public class StopFSMAction: AbstractStateAction
     {
-        [AutoParent] private StateMachineOwner _owner;
+        [AutoParent] private MonoEntity _owner;
 
         protected override void OnActionExecuteImplement()
         {

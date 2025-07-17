@@ -16,7 +16,7 @@ namespace MonoFSM.Runtime.Mono
     //先設計schema, 但這樣物件那邊又要對應，是不是很麻煩？
     //FIXME: 用DescriptableData是不是不太好？ 應該和data互斥？ 這個只是描述要尋找的類別
     [CreateAssetMenu(menuName = "RCGMaker/MonoDescriptableTag")]
-    public class MonoDescriptableTag : ScriptableObject, IStringKey
+    public class MonoEntityTag : ScriptableObject, IStringKey
     {
         public MySerializedType<DescriptableData> DataType;
 

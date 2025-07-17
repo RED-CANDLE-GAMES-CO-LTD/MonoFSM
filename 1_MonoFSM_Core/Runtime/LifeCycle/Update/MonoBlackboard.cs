@@ -69,12 +69,12 @@ namespace MonoFSM.Runtime.Variable
         [SerializeField]
         [SOConfig("DescriptableTag")]
         [ListDrawerSettings(ShowFoldout = true, ShowIndexLabels = true, ListElementLabelName = "name")]
-        protected List<MonoDescriptableTag> _descriptableTags = new(); //支援多個 DescriptableTag
-        
-        public List<MonoDescriptableTag> DescriptableTags => _descriptableTags;
+        protected List<MonoEntityTag> _descriptableTags = new(); //支援多個 DescriptableTag
+
+        public List<MonoEntityTag> DescriptableTags => _descriptableTags;
 
         //FIXME: 可以多個tag? runtime 
-        public MonoDescriptableTag Tag => DescriptableTags?.Count > 0 ? DescriptableTags[0] : null;
+        public MonoEntityTag Tag => DescriptableTags?.Count > 0 ? DescriptableTags[0] : null;
 
         //reflection 同名還會...
         public AbstractMonoVariable this[string statName] => GetVariable(statName); //索引器，直接用GetVariable,還是也可以get comp?
@@ -164,21 +164,21 @@ namespace MonoFSM.Runtime.Variable
         }
 
         // 多 Tag 支援方法
-        public MonoDescriptableTag GetDescriptableTag(string tagName)
+        public MonoEntityTag GetDescriptableTag(string tagName)
         {
             return DescriptableTags?.FirstOrDefault(descriptableTag => descriptableTag != null && descriptableTag.GetStringKey == tagName);
         }
 
-        public MonoDescriptableTag GetDescriptableTag(int index)
+        public MonoEntityTag GetDescriptableTag(int index)
         {
             if (DescriptableTags == null || index < 0 || index >= DescriptableTags.Count)
                 return null;
             return DescriptableTags[index];
         }
 
-        public List<MonoDescriptableTag> GetAllDescriptableTags()
+        public List<MonoEntityTag> GetAllDescriptableTags()
         {
-            return DescriptableTags ?? new List<MonoDescriptableTag>();
+            return DescriptableTags ?? new List<MonoEntityTag>();
         }
 
         public bool ContainsDescriptableTag(string tagName)

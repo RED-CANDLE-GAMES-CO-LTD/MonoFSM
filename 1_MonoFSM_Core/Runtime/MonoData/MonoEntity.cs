@@ -30,14 +30,14 @@ namespace MonoFSM.Runtime
     public class MonoEntity : AbstractMonoDescriptable<DescriptableData>, IInstantiated,
         IBeforePrefabSaveCallbackReceiver, IGameDataProvider //這樣data也要一直繼承，好ㄇ...
     {
-        
+        //FIXME: nested? MonoEntity dictionary?
         public void OnInstantiated(WorldUpdateSimulator world)
         {
             //network要看authoring... network版的？啥？ NetworkMonoDescriptableBinder?
             //想要註冊世界了，顆顆
             //掉在外面就不能註冊了，binder是不是不好？
             //從world去bind?
-            var worldBinder = world.GetComponent<MonoDescriptableBinder>();
+            var worldBinder = world.GetComponent<MonoEntityBinder>();
             if (worldBinder)
                 worldBinder.Add(Tag, this); //註冊法
             else
@@ -78,14 +78,21 @@ namespace MonoFSM.Runtime
         [PreviewInInspector] [AutoChildren] private GeneralEffectDealer[] _dealers; //可以互動的性質門
         // private HashSet<GeneralEffectType> _dealerTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
 
-        private Dictionary<GeneralEffectType, GeneralEffectDealer> _dealerTypeMap = new();
+        private readonly Dictionary<GeneralEffectType, GeneralEffectDealer> _dealerTypeMap = new(); //keys?
+
+#if UNITY_EDITOR
+
+        [PreviewInInspector] private List<GeneralEffectType> DealerTypes => _dealerTypeMap.Keys.ToList();
+        [PreviewInInspector] private List<GeneralEffectType> ReceiverTypes => _receiverTypeMap.Keys.ToList();
+
+#endif
 
         [PreviewInInspector] private int DealerSetCount => _dealerTypeMap.Count;
 
         [PreviewInInspector] [AutoChildren] private GeneralEffectReceiver[] _receivers; //可以互動的性質門
 
         // readonly HashSet<GeneralEffectType> _receiverTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
-        private Dictionary<GeneralEffectType, GeneralEffectReceiver> _receiverTypeMap = new();
+        private readonly Dictionary<GeneralEffectType, GeneralEffectReceiver> _receiverTypeMap = new();
 
         [PreviewInInspector] private int ReceiverSetCount => _receiverTypeMap.Count;
 
@@ -105,7 +112,24 @@ namespace MonoFSM.Runtime
 
         public GeneralEffectDealer GetDealer(GeneralEffectType effectType)
         {
-            return _dealerTypeMap[effectType];
+            if (_dealerTypeMap.TryGetValue(effectType, out var dealer) == false)
+            {
+                Debug.LogError($"Dealer {effectType} not found in {name}", this);
+                return null;
+            }
+
+            return dealer;
+        }
+
+        public GeneralEffectReceiver GetReceiver(GeneralEffectType effectType)
+        {
+            if (_receiverTypeMap.TryGetValue(effectType, out var receiver) == false)
+            {
+                Debug.LogError($"Receiver {effectType} not found in {name}", this);
+                return null;
+            }
+
+            return receiver;
         }
 
         // public DescriptableData SampleData;
@@ -202,9 +226,9 @@ namespace MonoFSM.Runtime
             return _getMyProperty;
         }
 
-        public MonoDescriptableTag Key => Tag;
+        public MonoEntityTag Key => Tag;
 
-        public MonoDescriptableTag[] GetKeys()
+        public MonoEntityTag[] GetKeys()
         {
             return DescriptableTags.ToArray();
         }
@@ -217,13 +241,10 @@ namespace MonoFSM.Runtime
                 foreach (var receiver in _receivers)
                 {
                     // _receiverTypeSet.Add(receiver.EffectType);
-                    if (_receiverTypeMap.ContainsKey(receiver.EffectType))
+                    if (!_receiverTypeMap.TryAdd(receiver.EffectType, receiver))
                     {
                         Debug.Log("Receiver type already exists" + receiver.EffectType, receiver);
-                        continue;
                     }
-                        
-                    _receiverTypeMap[receiver.EffectType] = receiver;
                 }
                     
 
@@ -263,7 +284,7 @@ namespace MonoFSM.Runtime
         //繼承MonoDescriptable的class，可以透過這個方法來將所有的variable field mapping到VariableFolder
         private FieldInfo[] _variableFields;
 
-        [Button("撈出所有變數的tag塞到 DescriptableTags")]
+        // [Button("撈出所有變數的tag塞到 DescriptableTags")]
         protected void FillVarTagsToMonoDescriptableTag()
         {
             if (VariableFolder == null)
@@ -288,7 +309,8 @@ namespace MonoFSM.Runtime
             }
             
         }
-        
+
+        //FIXME: 好像不需要了？要繼承 MonoEntity 才需要
         [Button]
         private void FieldMapping()
         {

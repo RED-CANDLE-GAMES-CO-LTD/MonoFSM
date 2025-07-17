@@ -38,7 +38,7 @@ namespace UIValueBinder
         [Header("DI注入MonoDescriptable")] public SourceType sourceType; //FIXME: 把這個做完
 
         [FormerlySerializedAs("tag")] [ShowIf(nameof(sourceType), SourceType.MonoTag)] [SOConfig("DescriptableTag")]
-        public MonoDescriptableTag monoTag; //我就是provider...
+        public MonoEntityTag monoTag; //我就是provider...
 
         [ShowIf(nameof(sourceType), SourceType.MonoTag)] [PreviewInInspector]
         private MonoEntity _bindedEntity; //單一型 
@@ -192,7 +192,7 @@ namespace UIValueBinder
         {
         }
 
-        [PreviewInInspector] [AutoParent] MonoDescriptableBinder _binder;
+        [PreviewInInspector] [AutoParent] private MonoEntityBinder _binder;
 
         [Button]
         void Bind()

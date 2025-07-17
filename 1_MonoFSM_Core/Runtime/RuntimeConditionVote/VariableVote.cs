@@ -28,6 +28,8 @@ namespace MonoFSM.Runtime.Vote
             _vote.Vote(byWho, (bool)(object)value);
         }
 
+        public override bool IsValueExist => true;
+
         [PreviewInInspector] public bool Result => _vote.Result;
         // public void Vote(bool vote, MonoBehaviour m)
         // {

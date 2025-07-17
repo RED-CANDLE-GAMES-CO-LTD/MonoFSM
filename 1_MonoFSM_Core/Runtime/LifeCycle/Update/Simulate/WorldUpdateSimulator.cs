@@ -56,37 +56,37 @@ namespace MonoFSM.Core.Simulate
 
         public void RegisterMonoObject(MonoPoolObj target)
         {
-            _monoObjects.Add(target);
+            _monoObjectSet.Add(target);
             target.WorldUpdateSimulator = this;
         }
 
         public void UnregisterMonoObject(MonoPoolObj target)
         {
-            _monoObjects.Remove(target);
+            _monoObjectSet.Remove(target);
             target.WorldUpdateSimulator = null; //清除引用
         }
 
         private void SceneAwake()
         {
             //這個是用來做初始化的？
-            foreach (var monoObject in _monoObjects) monoObject.SceneAwake(this);
+            foreach (var monoObject in _monoObjectSet) monoObject.SceneAwake(this);
             // Debug.Log($"MonoPoolObj {monoObject.name} has entered scene awake.");
         }
 
         private void SceneStart()
         {
-            foreach (var monoObject in _monoObjects) monoObject.HandleSceneStart();
+            foreach (var monoObject in _monoObjectSet) monoObject.HandleSceneStart();
         }
 
         //從player進入？
         public void ResetLevel()
         {
-            foreach (var mono in _monoObjects) mono.ResetStateRestore();
+            foreach (var mono in _monoObjectSet) mono.ResetStateRestore();
         }
 
         public void ResetLevelStart()
         {
-            foreach (var mono in _monoObjects) mono.ResetStart();
+            foreach (var mono in _monoObjectSet) mono.ResetStart();
         }
 
         public void WorldInit()
@@ -105,11 +105,11 @@ namespace MonoFSM.Core.Simulate
         // private readonly HashSet<IUpdateSimulate> _simulators = new(); //HashSet?
 
         // [PreviewInInspector] [AutoChildren] private IMonoObject[] _localMonoObjects; //FIXME這顆要掛在？
-        private readonly HashSet<MonoPoolObj> _monoObjects = new(); //這個是用來做reset的？還是要有一個MonoObjectRunner?
+        private readonly HashSet<MonoPoolObj> _monoObjectSet = new(); //這個是用來做reset的？還是要有一個MonoObjectRunner?
 
 #if UNITY_EDITOR
         // [PreviewInInspector] private IUpdateSimulate[] PreviewSimulators => _simulators.ToArray();
-        [PreviewInInspector] private MonoPoolObj[] PreviewMonoObjects => _monoObjects.ToArray();
+        [PreviewInInspector] private MonoPoolObj[] PreviewMonoObjects => _monoObjectSet.ToArray();
 #endif
         public bool IsReady { get; private set; } = false;
 
@@ -130,7 +130,7 @@ namespace MonoFSM.Core.Simulate
             //     return;
             // }
             _currentUpdatingObjs.Clear();
-            _currentUpdatingObjs.AddRange(_monoObjects); 
+            _currentUpdatingObjs.AddRange(_monoObjectSet); 
             
 
             //FIXME: isProxy? 要ㄇ 跳過模擬，或是regiester要兩階段
@@ -151,7 +151,7 @@ namespace MonoFSM.Core.Simulate
         {
             if (!IsReady)
                 return;
-            foreach (var monoObject in _monoObjects)
+            foreach (var monoObject in _monoObjectSet)
                 if (monoObject is { isActiveAndEnabled: true })
                     monoObject.AfterUpdate();
             // else

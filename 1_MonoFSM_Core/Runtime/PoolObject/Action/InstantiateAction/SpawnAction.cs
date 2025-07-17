@@ -3,6 +3,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Core.Variable;
+using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine;
@@ -11,7 +12,8 @@ using UnityEngine.Serialization;
 namespace MonoFSM.Core.LifeCycle
 {
     //重寫FXPlayer
-    public class SpawnAction : AbstractStateAction, IMonoObjectProvider //ICompProvider<MonoPoolObj>
+    public class
+        SpawnAction : AbstractStateAction<GeneralEffectHitData>, IMonoObjectProvider //ICompProvider<MonoPoolObj>
     {
         //崩潰..Prefab和Runtime混在一起耶，所以拿Var比較好？但實際上不是啊...
         [CompRef] [AutoChildren(DepthOneOnly = true)]
@@ -54,7 +56,7 @@ namespace MonoFSM.Core.LifeCycle
         // }
 
 
-        public override void ArgEventReceived(IEffectHitData arg)
+        protected override void OnArgEventReceived(GeneralEffectHitData arg)
         {
             // base.EventReceived(arg);
             //噴Receiver的位置?

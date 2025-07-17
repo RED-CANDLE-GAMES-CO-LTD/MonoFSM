@@ -9,4 +9,5 @@ public class VarInt : GenericMonoVariable<GameFlagInt, FlagFieldInt, int>, IIntP
 {
     public int IntValue => CurrentValue;
     // public override GameFlagBase FinalData => BindData;
+    public override bool IsValueExist => CurrentValue != 0;
 }

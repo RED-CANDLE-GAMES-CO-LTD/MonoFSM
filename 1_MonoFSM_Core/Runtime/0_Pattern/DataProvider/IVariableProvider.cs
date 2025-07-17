@@ -471,7 +471,8 @@ namespace MonoFSM.Core.DataProvider
         [SerializeReferenceParentValidate] public MonoBehaviour propertyParent;
 
         //FIXME: tag需要更鬆一點？類似同個型別都吃？interface...MonoDescriptable... MonoUISelecting
-        [Required] public MonoDescriptableTag monoDescriptableTag;
+        [FormerlySerializedAs("monoDescriptableTag")] [Required]
+        public MonoEntityTag _monoEntityTag;
         [Required] public VariableTag varTag;
 
         [PreviewInInspector]
@@ -485,7 +486,7 @@ namespace MonoFSM.Core.DataProvider
                     return null;
                 }
 
-                var descriptable = propertyParent.GetGlobalInstance(monoDescriptableTag);
+                var descriptable = propertyParent.GetGlobalInstance(_monoEntityTag);
                 if (descriptable == null) return null;
                 return descriptable.GetVariable(varTag);
             }
@@ -511,7 +512,8 @@ namespace MonoFSM.Core.DataProvider
         [SerializeReferenceParentValidate] public MonoBehaviour propertyParent;
 
         //FIXME: tag需要更鬆一點？類似同個型別都吃？interface...MonoDescriptable... MonoUISelecting
-        [Required] public MonoDescriptableTag monoDescriptableTag;
+        [FormerlySerializedAs("monoDescriptableTag")] [Required]
+        public MonoEntityTag _monoEntityTag;
         [Required] public VariableTag varTag;
 
         [PreviewInInspector]
@@ -525,7 +527,7 @@ namespace MonoFSM.Core.DataProvider
                     return null;
                 }
 
-                var descriptable = propertyParent.GetGlobalInstance(monoDescriptableTag);
+                var descriptable = propertyParent.GetGlobalInstance(_monoEntityTag);
                 if (descriptable == null) return null;
                 return descriptable.GetVariable(varTag);
             }

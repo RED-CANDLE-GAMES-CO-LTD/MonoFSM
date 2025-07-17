@@ -85,5 +85,6 @@ namespace MonoFSM.Variable
         public string ValueInfo => CurrentValue.ToString();
         public bool IsDrawingValueInfo => true;
 
+        public override bool IsValueExist => CurrentValue != 0f;
     }
 }

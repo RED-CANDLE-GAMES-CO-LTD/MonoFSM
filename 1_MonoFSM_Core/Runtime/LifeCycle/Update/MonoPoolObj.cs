@@ -4,6 +4,7 @@ using MonoFSM.Core;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSMCore.Runtime.LifeCycle
@@ -43,8 +44,12 @@ namespace MonoFSMCore.Runtime.LifeCycle
     }
 
     //FIXME: auto 怎麼處理？cache?
+    [DisallowMultipleComponent]
     public sealed class MonoPoolObj : MonoBehaviour, IPrefabSerializeCacheOwner
     {
+        // [Button]
+        
+        
         public void Despawn()
         {
             if (WorldUpdateSimulator == null)
@@ -56,7 +61,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
             WorldUpdateSimulator.Despawn(this);
         }
         //等世界準備好？
-        [ShowInDebugMode] public WorldUpdateSimulator WorldUpdateSimulator { get; set; }
+        [PreviewInDebugMode] public WorldUpdateSimulator WorldUpdateSimulator { get; set; }
         [PreviewInInspector][AutoChildren] private ISceneAwake[] _sceneAwakes;
         [PreviewInInspector][AutoChildren] private ISceneStart[] _sceneStarts;
         [PreviewInInspector] [AutoChildren] private ISceneDestroy[] _sceneDestroys;

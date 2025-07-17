@@ -54,7 +54,7 @@ public static class StateMachineExtension
 
     public static T GetComponentOfSibling<TParent, T>(this MonoBehaviour monoBehaviour)
     {
-        //FIXME: 效能不好
+        //FIXME: 效能不好?
         var binder = monoBehaviour.GetComponentInParent<TParent>() as MonoBehaviour;
         if (binder != null) return binder.GetComponentInChildren<T>(true);
         Debug.LogError("IBinder not found", monoBehaviour);

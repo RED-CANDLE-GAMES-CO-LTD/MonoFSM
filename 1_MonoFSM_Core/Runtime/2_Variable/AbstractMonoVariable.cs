@@ -287,6 +287,7 @@ namespace MonoFSM.Variable
         // [HideInInlineEditors] public UnityEvent valueChangedEvent;
         public string Name => gameObject.name;
         public VariableTag Key => _varTag;
+        public abstract bool IsValueExist { get; }
 
         public VariableTag[] GetKeys()
         {

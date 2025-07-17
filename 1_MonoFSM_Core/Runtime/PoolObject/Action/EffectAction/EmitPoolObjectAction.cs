@@ -1,10 +1,11 @@
 using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Runtime.Interact.EffectHit;
 
 namespace MonoFSM.Runtime.Variable.Action.EffectAction
 {
     //FIXME: 重做FXPlayer
     //FIXME: 和InstantiateAction 重複了
-    public class EmitPoolObjectAction : AbstractStateAction
+    public class EmitPoolObjectAction : AbstractStateAction<GeneralEffectHitData>
     {
         public PoolObject poolObject;
 
@@ -13,7 +14,7 @@ namespace MonoFSM.Runtime.Variable.Action.EffectAction
             var newObj = PoolManager.Instance.BorrowOrInstantiate(poolObject, transform.position, transform.rotation);
         }
 
-        public override void ArgEventReceived(IEffectHitData arg)
+        protected override void OnArgEventReceived(GeneralEffectHitData arg)
         {
             // base.EventReceived(arg);
             //噴Receiver的位置?

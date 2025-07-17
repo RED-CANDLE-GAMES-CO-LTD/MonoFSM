@@ -2,4 +2,5 @@ public class VarString : GenericMonoVariable<GameFlagString, FlagFieldString, st
 {
     public string StringValue => CurrentValue;
     // public override GameFlagBase FinalData => BindData;
+    public override bool IsValueExist => !string.IsNullOrEmpty(CurrentValue);
 }

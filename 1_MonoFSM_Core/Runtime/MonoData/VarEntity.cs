@@ -7,6 +7,7 @@ using MonoFSM.Variable.FieldReference;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace MonoFSM.Runtime.Variable
 {
@@ -19,16 +20,19 @@ namespace MonoFSM.Runtime.Variable
     {
         //FIXME: 還能做型別限制、檢查嗎？
         //MonoSchema?
-        [SOConfig("10_Flags/VarMono")] [BoxGroup("定義型別")] [PropertyOrder(-1)]
-        public MonoDescriptableTag _MonoDescriptableTag; //Class Name?
+        [FormerlySerializedAs("_MonoDescriptableTag")]
+        [SOConfig("10_Flags/VarMono")]
+        [BoxGroup("定義型別")]
+        [PropertyOrder(-1)]
+        public MonoEntityTag _monoEntityTag; //Class Name?
 
         [BoxGroup("定義型別")]
         [PropertyOrder(-1)]
         [PreviewInInspector]
         public DescriptableData SampleData 
 #if UNITY_EDITOR
-            => _MonoDescriptableTag 
-                ? _MonoDescriptableTag.SamepleData 
+            => _monoEntityTag
+                ? _monoEntityTag.SamepleData 
                 : null;
 #else
             => null;
