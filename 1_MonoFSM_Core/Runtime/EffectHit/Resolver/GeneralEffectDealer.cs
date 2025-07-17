@@ -37,11 +37,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         // [PropertyOrder(-1)]
         // public FloatValueSource ValueSource;
 
-        [Auto]
-        // [PreviewInInspector] 
-        [Component]
-        [PropertyOrder(-1)]
-        private IFloatProvider _valueSource; //FIXME: 還是要把情境也寫死？
+        // [Auto]
+        // // [PreviewInInspector] 
+        // [Component]
+        // [PropertyOrder(-1)]
+        // private IFloatProvider _valueSource; //FIXME: 還是要把情境也寫死？
         //FIXME: 可能還會涉及多個varfloat,不一定需要？ 用getFloat就好了 
         //通常就是 A 打 B
         //A有value
@@ -118,7 +118,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return true;
         }
 
-        public float FinalValue => _valueSource.Value;
+        // public float FinalValue => _valueSource.Value;
 
         //FIXME: runtime receivers
         [PreviewInInspector] private List<IEffectReceiver> _receivers = new();

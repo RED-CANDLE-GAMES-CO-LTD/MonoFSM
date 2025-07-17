@@ -1,10 +1,9 @@
-using System;
 using Fusion.Addons.FSM;
 using MonoFSM.Core;
 using MonoFSM.Foundation;
 using MonoFSM.Variable.Attributes;
 using RCGExtension;
-using MonoFSM.Core.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
@@ -31,6 +30,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 
         [DropDownRef] public MonoStateBehaviour _target;
 
+        [RequiredListLength(1, null)]
         [SerializeField] [CompRef] [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionBehaviour[] _conditions;
 

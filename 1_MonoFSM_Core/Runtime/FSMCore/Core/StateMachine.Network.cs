@@ -33,13 +33,17 @@
     public partial class StateMachine<TState>
     {
         // PRIVATE MEMBERS
-
+        // public void DeserializeFromBuffer(int* buffer) //直接寫成buffer, 更小？
+        // {
+        //     var stateMachine = (IStateMachine)this;
+        //
+        //     stateMachine.Read(buffer);
+        // }
         private int _activeStateId;
         private int _previousStateId;
         private int _defaultStateId;
         private int _stateChangeTick;
         private int _bitState;
-
         private int _wordCount;
         private bool _statesContainData;
         private bool _hasChildMachines;

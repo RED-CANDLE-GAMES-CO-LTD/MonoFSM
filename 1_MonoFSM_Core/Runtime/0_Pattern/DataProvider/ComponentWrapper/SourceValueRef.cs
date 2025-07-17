@@ -67,6 +67,7 @@ namespace MonoFSM.VarRef
         [Required] [CompRef] [Auto] private IValueProvider _valueProvider; //什麼鬼命名，IValueProvider?
 
 #if UNITY_EDITOR
+        //還要playmode版本？
         [ShowInDebugMode] private object _previewLastValue; // = new(); //這顆會boxing...
         // private object CurrentValue => _previewLastValue;
 #endif

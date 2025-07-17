@@ -34,6 +34,7 @@ namespace MonoFSM.Core.Deprecated
     /// 這個已經確定是monobehaviour的狀態機，會有一個runner來管理
     /// </summary>
     /// <typeparam name="T"></typeparam>
+    [Obsolete]
     public class StateMachine<T> : IStateMachine where T : class //這個弄死了
     {
         public event Action<T> Changed;

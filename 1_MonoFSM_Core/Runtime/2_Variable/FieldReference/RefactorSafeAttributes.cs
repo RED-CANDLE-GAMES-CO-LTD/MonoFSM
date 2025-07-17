@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 namespace MonoFSM.Variable.FieldReference
 {
@@ -86,15 +88,37 @@ namespace MonoFSM.Variable.FieldReference
         /// </summary>
         public static Type FindTypeByCurrentOrFormerName(string currentName, string assemblyName = null)
         {
-            if (string.IsNullOrEmpty(currentName)) return null;
+            if (string.IsNullOrEmpty(currentName))
+            {
+                Debug.LogError("Current name is null or empty. Cannot find type.");
+                return null;
+            }
 
             // 1. 先嘗試直接用當前名稱查找
             var type = Type.GetType(currentName);
             if (type != null) return type;
 
             // 2. 搜尋所有已載入的 Assembly 中的型別
+
+            var formerNameTypes = TypeCache.GetTypesWithAttribute<FormerlyNamedAsAttribute>();
+            foreach (var formerType in formerNameTypes)
+            {
+                var formerNameAttrs = formerType.GetCustomAttributes(typeof(FormerlyNamedAsAttribute), false)
+                    .Cast<FormerlyNamedAsAttribute>();
+
+                foreach (var attr in formerNameAttrs)
+                {
+                    Debug.Log("Checking former name: " + attr.FormerName + " for searchName: " + currentName);
+                    if (currentName.Contains(attr.FormerName) ||
+                        currentName.Contains($"{formerType.Namespace}.{attr.FormerName}"))
+                    {
+                        Debug.Log("Found type by former name: " + attr.FormerName);
+                        return formerType;
+                    }
+                }
+            }
+
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            
             // 如果指定了 Assembly，優先搜尋該 Assembly
             if (!string.IsNullOrEmpty(assemblyName))
             {
@@ -107,12 +131,13 @@ namespace MonoFSM.Variable.FieldReference
             }
 
             // 3. 在所有 Assembly 中搜尋
-            foreach (var assembly in assemblies)
-            {
-                var foundType = SearchTypeInAssembly(assembly, currentName);
-                if (foundType != null) return foundType;
-            }
-
+            // foreach (var assembly in assemblies)
+            // {
+            //     var foundType = SearchTypeInAssembly(assembly, currentName);
+            //     if (foundType != null) return foundType;
+            // }
+            Debug.LogError("Type not found: " + currentName +
+                           ". Please check if the type has been renamed or moved to another assembly.");
             return null;
         }
 
@@ -121,6 +146,7 @@ namespace MonoFSM.Variable.FieldReference
         /// </summary>
         private static Type SearchTypeInAssembly(System.Reflection.Assembly assembly, string searchName)
         {
+            Debug.Log("Searching for type: " + searchName + " in assembly: " + assembly.GetName().Name);
             try
             {
                 var types = assembly.GetTypes();
@@ -147,8 +173,10 @@ namespace MonoFSM.Variable.FieldReference
                     
                     foreach (var attr in formerNameAttrs)
                     {
-                        if (attr.FormerName == searchName || 
-                            $"{type.Namespace}.{attr.FormerName}" == searchName)
+                        Debug.Log("Checking former name: " + attr.FormerName + " for searchName: " + searchName);
+                        if (searchName.Contains(attr.FormerName) ||
+                            searchName.Contains($"{type.Namespace}.{attr.FormerName}"))
+
                             return type;
                     }
                 }

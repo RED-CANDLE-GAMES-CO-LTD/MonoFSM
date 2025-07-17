@@ -148,6 +148,7 @@ public interface IBinder
 }
 
 //FIXME: 沒用了？
+[Obsolete]
 public class StateMachineOwner : MonoBehaviour, IAnimatorProvider, IDefaultSerializable,
     IBinder
 {

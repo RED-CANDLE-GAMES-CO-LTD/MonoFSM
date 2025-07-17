@@ -9,7 +9,7 @@ namespace MonoFSM.VarRef
     //GetVarMono?
     //FIXME: 好像不該用這個？ 自打架了？
     [Obsolete]
-    public class VarMonoProviderRef : VariableProviderRef<VarBlackboard, MonoEntity> //, IVarMonoProvider
+    public class VarMonoProviderRef : VariableProviderRef<VarEntity, MonoEntity> //, IVarMonoProvider
     {
         public DescriptableData SampleData => Variable.SampleData;
 

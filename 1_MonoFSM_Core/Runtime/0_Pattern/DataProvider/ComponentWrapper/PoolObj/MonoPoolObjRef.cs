@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace MonoFSM.Core.DataProvider.ComponentWrapper
 {
+    //DirectReference
     public class MonoPoolObjRef : MonoBehaviour, IMonoObjectProvider
     {
         [Required] public MonoPoolObj _monoPoolObj;

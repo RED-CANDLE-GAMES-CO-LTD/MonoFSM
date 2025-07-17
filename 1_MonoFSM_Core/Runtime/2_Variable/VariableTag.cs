@@ -8,6 +8,7 @@ using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 namespace MonoFSM.Variable
 {
@@ -28,6 +29,9 @@ namespace MonoFSM.Variable
     [Serializable]
     public class MySerializedType<T> : ISerializationCallbackReceiver
     {
+#if UNITY_EDITOR
+        [HideInInspector] public Object _bindObject; //debug用
+#endif
         //override baseType
         [FormerlySerializedAs("_baseVarTypeName")]
         [FormerlySerializedAs("_varTypeName")]
@@ -167,7 +171,7 @@ namespace MonoFSM.Variable
         [Required]
         [ShowInDebugMode]
         [SerializeField]
-        string typeName;
+        private string typeName; //這個是full，太難了？
 
         
         public string TypeName => typeName;
@@ -178,7 +182,7 @@ namespace MonoFSM.Variable
             _baseFilterTypeName = _baseFilterType?.AssemblyQualifiedName;
         }
 
-        public void OnAfterDeserialize()
+        public void OnAfterDeserialize() //這個會讓reload domain變慢？資料變多就會跑愈多？
         {
             if (typeName.IsNullOrWhitespace())
             {
@@ -190,7 +194,8 @@ namespace MonoFSM.Variable
                 _type = GetTypeByMetadataTokenOrName();
                 if (_type == null)
                     Debug.LogError(
-                        $"Type '{typeName}' could not be found. Please check the type name."); //沒辦法拿到data holder...煩
+                        $"Type '{typeName}' could not be found. Please check the type name.",
+                        _bindObject); //沒辦法拿到data holder...煩
             }
 
             _baseFilterType = string.IsNullOrEmpty(_baseFilterTypeName) ? null : Type.GetType(_baseFilterTypeName);
@@ -213,30 +218,11 @@ namespace MonoFSM.Variable
                     return type;
                 }
             }
-
-            // 回退方案：如果有 MetadataToken，嘗試使用
-            // if (_typeMetadataToken != 0 && !string.IsNullOrEmpty(_assemblyName))
-            // {
-            //     try
-            //     {
-            //         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            //         foreach (var assembly in assemblies)
-            //             if (assembly.GetName().Name == _assemblyName)
-            //             {
-            //                 var types = assembly.GetTypes();
-            //                 var targetType = types.FirstOrDefault(t => t.MetadataToken == _typeMetadataToken);
-            //                 if (targetType != null) return targetType;
-            //             }
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         Debug.LogError($"MetadataToken 查找時發生錯誤: {ex.Message}");
-            //     }
-            // }
-
+            
             // 最終回退：直接用名稱查找
+            Debug.LogError($"RefactorSafeNameResolver 無法找到型別 '{typeName}'");
             // Debug.LogWarning($"使用 RefactorSafeNameResolver 和 MetadataToken 都失敗，回退到標準名稱查找: {typeName}");
-            return Type.GetType(typeName);
+            return null;
         }
 
         /// <summary>
@@ -338,8 +324,14 @@ namespace MonoFSM.Variable
     }
 
     [CreateAssetMenu(menuName = "RCG/VariableTag")]
-    public class VariableTag : ScriptableObject, IStringKey //, IFloatValue
+    public class VariableTag : ScriptableObject, IStringKey //, IFloatValue , SceneSave?
     {
+        private void OnValidate()
+        {
+            _variableType._bindObject = this;
+            _valueFilterType._bindObject = this;
+        }
+
         [ShowInInspector]
         [DisplayAsString]
         [PropertyOrder(-1)]
@@ -367,7 +359,7 @@ namespace MonoFSM.Variable
         [Button]
         public void SyncValueFilterTypeWithVariableType()
         {
-            var variableType = _variableType?.RestrictType;
+            var variableType = _variableTypeTag?.Type ?? _variableType?.RestrictType;
             if (variableType == null) return;
 
             Type tValueType = null;
@@ -395,13 +387,7 @@ namespace MonoFSM.Variable
 
             if (tValueType != null) _valueFilterType.SetBaseType(tValueType);
         }
-        // private void OnValidate()
-        // {
-        //     if (StringKey == "")
-        //         StringKey = name;
-        // }
-
-        // [SerializeField] private string StringKey; //run起來才？cache?
+      
         [Button]
         void RefreshStringKey()
         {
@@ -427,14 +413,19 @@ namespace MonoFSM.Variable
         }
 
 
+#if UNITY_EDITOR
         [HideInInlineEditors] [TextArea] public string Note;
+#endif
 
         //可以DI標記variable類型，像是血量？要降低對方的血量之類的
         // [InlineProperty]
+        [Obsolete("use _variableTypeTag")]
         [HideInInlineEditors] public MySerializedType<AbstractMonoVariable> _variableType; //我這個variable是什麼型別
 
+        [Obsolete]
         public MySerializedType<object> _valueFilterType;
 
+        public Type ValueFilterType => _valueTypeTag?.Type ?? _valueFilterType.RestrictType;
         // [ShowInInspector]
         // [LabelText("變數數值型別過濾")]
         // [TypeFilter(nameof(GetValueTypeOptions))]

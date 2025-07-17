@@ -11,14 +11,15 @@ namespace MonoFSM_Physics.Runtime
 
     public abstract class CompProviderFromVarMono<T> : MonoBehaviour, ICompProvider<T> where T : Component
     {
-        [FormerlySerializedAs("_varMono")] public VarBlackboard _varBlackboard;
+        [FormerlySerializedAs("_varBlackboard")] [FormerlySerializedAs("_varMono")]
+        public VarEntity _varEntity;
 
 //用SystemType?
         public T Get()
         {
-            if (_varBlackboard == null || _varBlackboard.Value == null) return null;
-            var t = _varBlackboard.Value["t"];
-            return _varBlackboard.Value.GetComp<T>();
+            if (_varEntity == null || _varEntity.Value == null) return null;
+            var t = _varEntity.Value["t"];
+            return _varEntity.Value.GetComp<T>();
         }
 
         public object GetValue()
@@ -28,7 +29,7 @@ namespace MonoFSM_Physics.Runtime
 
         public Type ValueType => typeof(T);
 
-        public string Description => _varBlackboard != null ? "[VarMono]" + _varBlackboard.name : "No VarMono assigned";
+        public string Description => _varEntity != null ? "[VarMono]" + _varEntity.name : "No VarMono assigned";
     }
 
     public class RigidBodyFromVarMono : CompProviderFromVarMono<Rigidbody>

@@ -11,19 +11,20 @@ namespace MonoFSM.Core.DataProvider
         [FormerlySerializedAs("_systemTypeData")]
         public CompTypeTag _monoTypeData; //沒有相容關係...
 
-        public VarBlackboard _varBlackboard; //用Provider?
+        [FormerlySerializedAs("_varBlackboard")]
+        public VarEntity _varEntity; //用Provider?
 
         public Component Get()
         {
-            if (_varBlackboard == null || _varBlackboard.Value == null) return null;
+            if (_varEntity == null || _varEntity.Value == null) return null;
             if (_monoTypeData == null)
             {
                 Debug.LogError("SystemTypeData is not set on " + gameObject.name, this);
                 return null;
             }
 
-            var t = _varBlackboard.Value["t"];
-            return _varBlackboard.Value.GetComp(_monoTypeData.Type);
+            var t = _varEntity.Value["t"];
+            return _varEntity.Value.GetComp(_monoTypeData.Type);
         }
 
         public object GetValue()

@@ -20,7 +20,11 @@ namespace Fusion.Addons.FSM
     public partial class StateMachine<TState> : IStateMachine where TState : class, IState
     {
         // PUBLIC MEMBERS
-
+        public void RestoreState(int stateId)
+        {
+            _activeStateId = stateId;
+            _previousStateId = stateId;
+        }
         public string Name { get; private set; }
         // public NetworkRunner Runner { get; private set; } //FIXME: 被強迫network了!
 
@@ -342,7 +346,7 @@ namespace Fusion.Addons.FSM
             return currentTick - StateChangeTick;
         }
 
-        private float GetStateTime()
+        private float GetStateTime() //沒搞懂這是啥
         {
             if (_tickProvider.IsStage || _interpolationTick == 0f)
                 return (_tickProvider.Tick - StateChangeTick) * _tickProvider.DeltaTime;

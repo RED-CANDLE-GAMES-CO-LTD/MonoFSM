@@ -12,17 +12,17 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
     {
         [CompRef] [Auto] private IBlackboardProvider _ownerProvider;
 
-        [FormerlySerializedAs("_varMono")] [SerializeField] [DropDownRef]
-        private VarBlackboard _varBlackboard;
+        [FormerlySerializedAs("_varBlackboard")] [FormerlySerializedAs("_varMono")] [SerializeField] [DropDownRef]
+        private VarEntity _varEntity;
 
         protected override void OnActionExecuteImplement()
         {
-            Debug.Log($"AssignMonoVarFromOwner: Assigning {_ownerProvider.Description} to {_varBlackboard.name}");
+            Debug.Log($"AssignMonoVarFromOwner: Assigning {_ownerProvider.Description} to {_varEntity.name}");
             var source = _ownerProvider.GetComponentOfOwner<MonoEntity>();
-            _varBlackboard.SetValue(source, this);
+            _varEntity.SetValue(source, this);
         }
 
         public override string Description =>
-            $"Assign {_ownerProvider?.Description} to {_varBlackboard?.name}";
+            $"Assign {_ownerProvider?.Description} to {_varEntity?.name}";
     }
 }

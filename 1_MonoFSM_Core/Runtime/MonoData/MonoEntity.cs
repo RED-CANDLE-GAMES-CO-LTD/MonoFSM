@@ -11,6 +11,7 @@ using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Variable;
+using MonoFSM.Variable.FieldReference;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
@@ -25,6 +26,7 @@ namespace MonoFSM.Runtime
 
     //FIXME: MonoEntity? 代表一個在場上的實體
     [Searchable]
+    [FormerlyNamedAs("MonoDescriptable")]
     public class MonoEntity : AbstractMonoDescriptable<DescriptableData>, IInstantiated,
         IBeforePrefabSaveCallbackReceiver, IGameDataProvider //這樣data也要一直繼承，好ㄇ...
     {

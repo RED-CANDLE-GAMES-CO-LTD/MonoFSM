@@ -13,9 +13,13 @@ namespace MonoFSM.Core.DataProvider
         void OnDataChanged(Object data);
     }
 
-    public interface IVarChangedListener
+    /// <summary>
+    /// 我想要監聽某個變數的變化，然後做出相應的處理。
+    /// </summary>
+    public interface IVarChangedListener //FIXME: 要有人幫忙註冊吧？
     {
         void OnVarChanged(AbstractMonoVariable variable);
+        //FIXME: 身邊需要IDataChangedProvider?
     }
 
     public interface IDataChangedProvider

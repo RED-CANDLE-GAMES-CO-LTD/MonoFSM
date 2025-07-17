@@ -55,7 +55,7 @@ namespace MonoFSM.Core
             }
         }
 
-        [AutoParent] protected GeneralState bindingState;
+        [AutoParent] protected GeneralState _bindingState;
 
         [Required] [PreviewInInspector] [AutoParent]
         protected IActionParent _actionParent;
@@ -80,7 +80,7 @@ namespace MonoFSM.Core
         [AutoParent] private IBinder nearestBinder;
 
         protected CancellationTokenSource cancellationTokenSource =>
-            bindingState?.GetStateExitCancellationTokenSource();
+            _bindingState?.GetStateExitCancellationTokenSource();
 
         #endregion
 

@@ -74,7 +74,7 @@ public interface IEffectDealer //FIXME: 好像不需要interface
     // IEffectType getEffectType { get; }
     Transform transform { get; }
     bool CanHitReceiver(IEffectReceiver receiver);
-    float FinalValue { get; } //FIXME: 好像不該透過這個拿值？
+    // float FinalValue { get; } //FIXME: 好像不該透過這個拿值？
 }
 
 public interface IEffectReceiver //FIXME: 好像不需要interface

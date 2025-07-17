@@ -22,7 +22,7 @@ namespace MonoFSM.Core.DataProvider
     //FIXME: 怎麼Monobeheviour化
     public interface IVarMonoProvider //IVarMonoProvider
     {
-        VarBlackboard Variable { get; }
+        VarEntity Variable { get; }
         DescriptableData SampleData { get; }
         MonoEntity Value => Variable?.Value;
     }

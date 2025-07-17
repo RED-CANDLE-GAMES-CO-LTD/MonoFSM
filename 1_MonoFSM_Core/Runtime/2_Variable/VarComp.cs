@@ -23,7 +23,7 @@ namespace MonoFSM.Variable
             if (_varTag == null)
                 return typeof(Component);
             // Debug.Log("RestrictType is " + _varTag._valueFilterType.RestrictType);
-            return _varTag._valueFilterType.RestrictType;
+            return _varTag.ValueFilterType;
         }
 
         //FIXME: 繼承時想要加更多attribute

@@ -16,11 +16,11 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         [SerializeField] [CompRef] [AutoChildren(DepthOneOnly = true)]
         private MonoStateBehaviour[] _states; //SerializeField的話就可以略過不跑？
 
-        [ShowInDebugMode] private StateMachine<MonoStateBehaviour> _fsm;
+        [ShowInDebugMode] public StateMachine<MonoStateBehaviour> _fsm;
 
         void IStateMachineOwner.CollectStateMachines(List<IStateMachine> stateMachines)
         {
-            var parent = GetComponentInParent<StateMachineOwner>(true);
+            var parent = GetComponentInParent<IStateMachineOwner>(true);
             if (parent == null)
             {
                 Debug.LogError("MonoFSMOwner must be a child of StateMachineOwner.", this);
@@ -30,5 +30,13 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
             _fsm = new StateMachine<MonoStateBehaviour>(parent.name, _states);
             stateMachines.Add(_fsm);
         }
+
+        public int GetCurrentStateId()
+        {
+            return _fsm.ActiveStateId;
+        }
+
+        //serialize state id? 用int就好？
+        
     }
 }

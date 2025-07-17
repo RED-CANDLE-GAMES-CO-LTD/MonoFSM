@@ -16,11 +16,10 @@ namespace MonoFSM.Core.LifeCycle
         //崩潰..Prefab和Runtime混在一起耶，所以拿Var比較好？但實際上不是啊...
         [CompRef] [AutoChildren(DepthOneOnly = true)]
         private ICompProvider<MonoPoolObj> _targetVarProvider; //使用VarPoolObj來存儲目標物件
+        //FIXME: 應該要分ConfigPrefabProvider, 不可以都用ICompProvider，因為會有Runtime的Prefab
+        //Prefab特殊，不該runtime去Instantiate對ㄅ，都應該從prefab來，就算要也是複製狀態
 
         private MonoPoolObj Prefab => _targetVarProvider?.Get();
-
-        // [DropDownRef] [SerializeField] private VarPoolObj _targetRef; //使用VarPoolObj來存儲目標物件
-        // [FormerlySerializedAs("target")] public MonoPoolObj _target;
 
         [CompRef] [AutoChildren] private SpawnEventHandler _spawnEventHandler;
 

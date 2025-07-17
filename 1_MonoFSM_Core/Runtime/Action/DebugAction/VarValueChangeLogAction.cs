@@ -20,16 +20,16 @@ namespace RCGMakerFSMCore.Runtime.Action.DebugAction
             _var.AddListener(this);
         }
 
-        private void OnValueChanged()
-        {
-            if (_var == null)
-            {
-                Debug.LogError("ValueChangeLogAction: Variable reference is null.", this);
-                return;
-            }
-
-            // Debug.Log($"ValueChanged {_var.name}: {_var.objectValue}", this);
-        }
+        // private void OnValueChanged()
+        // {
+        //     if (_var == null)
+        //     {
+        //         Debug.LogError("ValueChangeLogAction: Variable reference is null.", this);
+        //         return;
+        //     }
+        //
+        //     // Debug.Log($"ValueChanged {_var.name}: {_var.objectValue}", this);
+        // }
 
         private void OnDestroy()
         {

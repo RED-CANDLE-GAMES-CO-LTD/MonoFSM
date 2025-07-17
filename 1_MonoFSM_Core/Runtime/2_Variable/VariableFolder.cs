@@ -11,6 +11,8 @@ public abstract class AbstractFolder : MonoBehaviour
     public bool IsDrawingIcon => true;
 }
 
+//FIXME: 這個才該叫做blackboard?，這個是用來放變數的?
+
 public class VariableFolder : MonoDict<VariableTag, AbstractMonoVariable>
 {
     protected override bool IsStringDictEnable => true;

@@ -17,7 +17,7 @@ public enum Operator //FIXME: equality operator
 namespace MonoFSM.Variable.Condition
 {
     /// <summary>
-    /// 和FloatCompareCondition重複？還是這個要做成簡單版？
+    /// 和FloatCompareCondition重複？還是這個要做成簡單版？ simple compare
     /// </summary>
     public class VarFloatCompareConstCondition : NotifyConditionBehaviour, ITransitionCheckInvoker
     {
@@ -48,7 +48,7 @@ namespace MonoFSM.Variable.Condition
             };
         }
 
-        [OnValueChanged(nameof(OnVariableChanged))] [FormerlySerializedAs("variableBool")] [Required] [DropDownRef]
+        [OnValueChanged(nameof(OnVariableChanged))] [FormerlySerializedAs("variableBool")] [DropDownRef]
         // [ValueDropdown(nameof(GetBoolVariables))]
         public VarFloat _monoVariableFloat;
 

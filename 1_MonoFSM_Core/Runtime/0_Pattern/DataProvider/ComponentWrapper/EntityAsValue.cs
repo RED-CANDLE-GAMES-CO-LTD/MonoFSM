@@ -7,7 +7,7 @@ using UnityEngine;
 namespace MonoFSM.Core.Runtime
 {
     //把MonoBlackboard當成一個值提供者, 才可以被set到varMono上
-    public class BlackboardAsValue : MonoBehaviour, IValueProvider<MonoBlackboard>
+    public class EntityAsValue : MonoBehaviour, IValueProvider<MonoBlackboard>
     {
         [CompRef] [Auto] private IBlackboardProvider _blackboardProvider;
 

@@ -3,6 +3,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime.Mono;
 using RCGExtension;
 using MonoFSM.Variable;
+using MonoFSM.Variable.FieldReference;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
@@ -12,7 +13,9 @@ namespace MonoFSM.Runtime.Variable
     //指向外部
     //需要再定義更細的class嗎？還是MonoDescriptable就夠了
     //最常用的Variable? MonoDescriptable下也會有MonoDescriptable
-    public class VarBlackboard : GenericUnityObjectVariable<MonoEntity>
+    //FIXME: 還是叫別的吧 VarMono?好像還是比較好？
+    [FormerlyNamedAs("VarBlackboard")]
+    public class VarEntity : GenericUnityObjectVariable<MonoEntity>
     {
         //FIXME: 還能做型別限制、檢查嗎？
         //MonoSchema?
@@ -42,7 +45,7 @@ namespace MonoFSM.Runtime.Variable
             if (_varTag == null)
                 return typeof(MonoEntity);
             // Debug.Log("RestrictType is " + varTag._valueFilterType.RestrictType);
-            return _varTag._valueFilterType.RestrictType;
+            return _varTag.ValueFilterType;
         }
 
         //FIXME: 繼承時想要加更多attribute

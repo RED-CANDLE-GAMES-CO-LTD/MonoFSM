@@ -11,7 +11,7 @@ namespace MonoFSM.Core.DataProvider
     //如果Polling就不需要這個了
     public class VarChangeInvoker : MonoBehaviour, IResetStart, IDataChangedProvider, IVarChangedListener
     {
-        [Required] [CompRef] [Auto] private AbstractVariableProviderRef _variableProviderRef; //當這個var值變化時
+        [Required] [CompRef] [Auto] private AbstractVariableProviderRef _variableProviderRef; //當這個var值變化時, 需要監聽多個？
 
         // [Required] [CompRef] [Auto] private AbstractFieldOfVarProvider _fieldOfVarProvider; //用這個值
         [Required] [CompRef] [Auto] private IDataChangedListener _dataChangedListener;

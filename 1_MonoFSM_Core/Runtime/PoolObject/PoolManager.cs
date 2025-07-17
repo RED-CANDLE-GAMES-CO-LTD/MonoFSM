@@ -852,11 +852,6 @@ public class PoolManager : SingletonBehaviour<PoolManager>
             DisabledObjs.AddRange(AllObjs);
         }
 
-        public bool CanBorrow()
-        {
-            return DisabledObjs.Count > 0;
-        }
-
         public PoolObject Borrow(Vector3 position, Quaternion rotation, Transform parent = null,
             Action<PoolObject> beforeHandler = null)
         {

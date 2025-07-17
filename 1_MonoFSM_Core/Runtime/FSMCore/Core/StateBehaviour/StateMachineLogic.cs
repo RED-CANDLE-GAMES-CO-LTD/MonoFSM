@@ -17,6 +17,7 @@ namespace Fusion.Addons.FSM
     public interface IStateMachineOwner
     {
         void CollectStateMachines(List<IStateMachine> stateMachines);
+        string name { get; }
     }
 
     [DisallowMultipleComponent]

@@ -19,11 +19,12 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
         }
 
 
+        [FormerlySerializedAs("_targetBlackboardDescriptableVar")]
         [FormerlySerializedAs("_targetMonoDescriptableVar")]
         [FormerlySerializedAs("targetMonoDescriptableVariable")]
         [Required]
         [DropDownRef]
-        public VarBlackboard _targetBlackboardDescriptableVar;
+        public VarEntity _targetEntityDescriptableVar;
 
         [Header("的")] public EffectSide effectSide;
         [Header("有")] public GeneralEffectType effectType;
@@ -32,12 +33,12 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
         {
             get
             {
-                if (_targetBlackboardDescriptableVar.Value == null)
+                if (_targetEntityDescriptableVar.Value == null)
                     return false;
                 if (effectSide == EffectSide.Dealer)
-                    return _targetBlackboardDescriptableVar.Value.HasDealerType(effectType);
+                    return _targetEntityDescriptableVar.Value.HasDealerType(effectType);
                 else
-                    return _targetBlackboardDescriptableVar.Value.HasReceiverType(effectType);
+                    return _targetEntityDescriptableVar.Value.HasReceiverType(effectType);
             }
         }
     }
