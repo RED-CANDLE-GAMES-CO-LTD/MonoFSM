@@ -442,7 +442,7 @@ namespace MonoFSM.Core.DataProvider
                 {
                     var descriptable = CurrentTarget.GetGlobalInstance(_blackboardTag);
                     if (descriptable == null) return null;
-                    return descriptable.GetVariable(_varTag);
+                    return descriptable.GetVar(_varTag);
                 }
                 
                 if (_getFromType == GetFromType.VariableOwnerProvider)
@@ -460,7 +460,7 @@ namespace MonoFSM.Core.DataProvider
                         return null;
                     }
 
-                    return _blackboardProvider.Blackboard.GetVariable(_varTag);
+                    return _blackboardProvider.Blackboard.GetVar(_varTag);
                 }
 
                 if (owner == null)
@@ -476,11 +476,9 @@ namespace MonoFSM.Core.DataProvider
                         Debug.LogError("VariableFolder is null", CurrentTarget);
                     return null;
                 }
-                
-                
-        
-                
-                var variable = owner.GetVariable(_varTag);
+
+
+                var variable = owner.GetVar(_varTag);
                 if (Application.isPlaying)
                     if (variable == null)
                         Debug.LogError($"Variable{_varTag} is null in owner{owner}", CurrentTarget);

@@ -14,7 +14,7 @@ namespace MonoFSM.Variable
         [PreviewInInspector] [AutoChildren] private VariableFolder[] _variableFolders;
         public VariableFolder VariableFolder => _variableFolders.FirstOrDefault();
 
-        public AbstractMonoVariable GetVariable(VariableTag varTag)
+        public AbstractMonoVariable GetVar(VariableTag varTag)
         {
             foreach (var folder in _variableFolders)
                 if (folder.ContainsKey(varTag))

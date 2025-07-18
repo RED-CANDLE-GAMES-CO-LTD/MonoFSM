@@ -40,7 +40,7 @@ namespace MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables
                     return null;
                 }
 
-                var variable = base.MonoInstance.GetVariable(_variableTag);
+                var variable = base.MonoInstance.GetVar(_variableTag);
                 if(variable == null)
                 {
                     Debug.LogError("Variable is null"+_variableTag,this);

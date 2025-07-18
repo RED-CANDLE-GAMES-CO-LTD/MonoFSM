@@ -19,7 +19,7 @@ public interface IVarBlackboard
 {
     public string name { get; }
     VariableFolder VariableFolder { get; }
-    public AbstractMonoVariable GetVariable(VariableTag varTag);
+    public AbstractMonoVariable GetVar(VariableTag varTag);
     GameObject gameObject { get; }
 }
 

@@ -440,7 +440,7 @@ namespace MonoFSM.Core.DataProvider
         public VariableTag _varTag;
 
         public AbstractMonoVariable VarRaw =>
-            _monoDescriptableProvider?.GetMonoDescriptable()?.GetVariable(_varTag);
+            _monoDescriptableProvider?.GetMonoDescriptable()?.GetVar(_varTag);
 
         public Type GetValueType => typeof(MonoEntity);
 
@@ -488,7 +488,7 @@ namespace MonoFSM.Core.DataProvider
 
                 var descriptable = propertyParent.GetGlobalInstance(_monoEntityTag);
                 if (descriptable == null) return null;
-                return descriptable.GetVariable(varTag);
+                return descriptable.GetVar(varTag);
             }
         }
 
@@ -529,7 +529,7 @@ namespace MonoFSM.Core.DataProvider
 
                 var descriptable = propertyParent.GetGlobalInstance(_monoEntityTag);
                 if (descriptable == null) return null;
-                return descriptable.GetVariable(varTag);
+                return descriptable.GetVar(varTag);
             }
         }
 

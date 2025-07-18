@@ -77,7 +77,7 @@ namespace MonoFSM.Runtime.Variable
         public MonoEntityTag Tag => DescriptableTags?.Count > 0 ? DescriptableTags[0] : null;
 
         //reflection 同名還會...
-        public AbstractMonoVariable this[string statName] => GetVariable(statName); //索引器，直接用GetVariable,還是也可以get comp?
+        public AbstractMonoVariable this[string statName] => GetVar(statName); //索引器，直接用GetVariable,還是也可以get comp?
         // public AbstractMonoVariable this[VariableTag varTag] => GetVariable(varTag); //索引器，直接用GetVariable,還是也可以get comp?
         // public Component this[Type type] => GetComp(type); //索引器，直接用GetVariable,還是也可以get comp?
 
@@ -133,24 +133,24 @@ namespace MonoFSM.Runtime.Variable
         }
 
         //多包一層歐，好蠢
-        public AbstractMonoVariable GetVariable(VariableTag varTag)
+        public AbstractMonoVariable GetVar(VariableTag varTag)
         {
             return VariableFolder.GetVariable(varTag);
         }
 
-        public AbstractMonoVariable GetVariable(string varTagName)
+        public AbstractMonoVariable GetVar(string varTagName)
         {
             return VariableFolder.GetVariable(varTagName);
         }
 
-        public TMonoVariable GetVariable<TMonoVariable>(VariableTag varTag) where TMonoVariable : AbstractMonoVariable
+        public TMonoVariable GetVar<TMonoVariable>(VariableTag varTag) where TMonoVariable : AbstractMonoVariable
         {
             return VariableFolder.GetVariable<TMonoVariable>(varTag);
         }
 
-        public TMonoVariable GetVariable<TMonoVariable>(string varTagName) where TMonoVariable : AbstractMonoVariable
+        public TMonoVariable GetVar<TMonoVariable>(string varTagName) where TMonoVariable : AbstractMonoVariable
         {
-            return GetVariable(varTagName) as TMonoVariable;
+            return GetVar(varTagName) as TMonoVariable;
         }
 
         public void Simulate(float deltaTime)

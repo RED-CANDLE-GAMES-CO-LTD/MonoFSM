@@ -33,7 +33,7 @@ namespace MonoFSM.Runtime.Variable.Action
                 return;
             }
 
-            var variable = GetComponentInParent<UIMonoDescriptableProvider>().MonoInstance.GetVariable(_variableTag);
+            var variable = GetComponentInParent<UIMonoDescriptableProvider>().MonoInstance.GetVar(_variableTag);
             (variable as AbstractObjectVariable).ClearValue();
         }
 
