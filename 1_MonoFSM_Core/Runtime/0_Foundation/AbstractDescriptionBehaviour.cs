@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using RCGExtension;
 using UnityEngine;
 
@@ -6,6 +7,7 @@ using Sirenix.OdinInspector;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime;
+using Debug = UnityEngine.Debug;
 
 namespace MonoFSM.Foundation
 {
@@ -72,6 +74,7 @@ namespace MonoFSM.Foundation
                 {
                     _errorMessage = $"Required field '{field.Name}' is null in {gameObject.name}";
                     // Debug.LogError($"Required field '{field.Name}' is null in {gameObject.name}");
+                    // UnityEditor.EditorGUIUtility.PingObject(this);
                     return true;
                 }
             }
@@ -95,7 +98,11 @@ namespace MonoFSM.Foundation
                     //FIXME: 一打開prefab想log?
 
                     if (isShowError)
+                    {
                         Debug.LogError($"Required field '{field.Name}' is null in {gameObject.name}", this);
+                        UnityEditor.EditorGUIUtility.PingObject(this);
+                    }
+                        
                     return true;
                 }
             }
@@ -147,6 +154,7 @@ namespace MonoFSM.Foundation
         {
 #if UNITY_EDITOR
             AutoAttributeManager.AutoReference(this); //有些field需要autoChildren容易造成 description null
+            CheckNullOfRequiredFieldsForPrefabStage(true);
             Rename();
 #endif
         }
@@ -167,12 +175,16 @@ namespace MonoFSM.Foundation
 #if UNITY_EDITOR
             // Double-check using Unity's API for more reliability
             if (UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage() != null) isInPrefabStage = true;
-#endif
+
 
             if (isInPrefabStage)
                 return CheckNullOfRequiredFieldsForPrefabStage();
             else
                 return CheckNullOfRequiredFields();
+#else
+            return false;
+#endif
+            
         }
 
         [PreviewInInspector] private string _errorMessage;

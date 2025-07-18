@@ -61,10 +61,22 @@ namespace MonoFSM.Core
                 comps = _forComp.GetComponentsOfSiblingAll(parentType, _filterType);
             }
 
+            if (comps == null || comps.Length == 0)
+            {
+                Debug.LogError("No components found of type " + _filterType.Name + " in parent of " + _forComp.name);
+                return;
+            }
             // var types = filterType.FilterSubClassOrImplementationFromDomain();
             foreach (var comp in comps)
             {
-                var ownerName = comp.GetComponentInParent<IVarBlackboard>().name;
+                var parent = comp.GetComponentInParent<IVarBlackboard>();
+                if (parent == null)
+                {
+                    Debug.LogError("IVariableOwner not found for component " + comp.name, comp);
+                    continue;
+                }
+
+                var ownerName = parent.name;
                 tree.Add(ownerName + "/" +comp.name+ " (" + comp.GetType().Name+")", comp);
                 // Debug.Log("Add type " + comp.GetType() + " ownerName is " + ownerName);
                 // tree.Add(ownerName + "/" + comp.name, comp);

@@ -1,26 +1,38 @@
 using MonoFSM.Core.Attributes;
+using MonoFSM.Variable.Attributes;
 using UnityEngine;
 
 namespace MonoFSM_InputAction
 {
     //UnityMonoInputAction / RewireMonoInputAction
     //FIXME:好像包的有點亂，這個又要polling local, 又要提供處理完的?
-    public abstract class AbstractMonoInputAction : MonoBehaviour
+    //寫錯啦！應該給一個能串接的對象，然後實作抽出去
+    public interface IMonoInputAction
     {
-        [ShowInPlayMode] public abstract bool IsPressed { get; }
+        bool IsPressed { get; }
+        bool WasPressed { get; }
+        bool WasReleased { get; }
+        int InputActionId { get; }
+        bool IsLocalPressed { get; }
+    }
 
-        [ShowInPlayMode] public abstract bool WasPressed { get; }
+    //要叫什麼名字？
+    public class AbstractMonoInputAction : MonoBehaviour //不要綁定 InputSystem?
+    {
+        [CompRef] [Auto] private IMonoInputAction _abstractMonoInputAction;
+        [ShowInPlayMode] public bool IsPressed => _abstractMonoInputAction.IsPressed; //如果外掛
+
+        [ShowInPlayMode] public bool WasPressed => _abstractMonoInputAction.WasPressed; //FIXME: 這個是local的
 
         // public abstract bool WasPressBuffered();
-        [ShowInPlayMode] public abstract bool WasReleased { get; }
+        [ShowInPlayMode] public bool WasReleased => _abstractMonoInputAction.WasReleased; //FIXME: 這個是local的
 
-        [SOConfig("PlayerInputActionData")] [SerializeField]
-        protected InputActionData _inputActionData;
+        // [SOConfig("PlayerInputActionData")] [SerializeField]
+        // protected InputActionData _inputActionData;
 
-        public int InputActionId => _inputActionData.actionID; //還是monobehaviour自己assign就好？
+        public int InputActionId => _abstractMonoInputAction.InputActionId; //還是monobehaviour自己assign就好？
 
-        [PreviewInInspector]
-        public abstract bool IsLocalPressed { get; }
+        [PreviewInInspector] public bool IsLocalPressed => _abstractMonoInputAction.IsLocalPressed; //這個是local的
 
         //這個是Uinput的
         // public InputActionReference _actionRef;
@@ -69,5 +81,6 @@ namespace MonoFSM_InputAction
         //             i--;
         //         }
         // }
+        
     }
 }

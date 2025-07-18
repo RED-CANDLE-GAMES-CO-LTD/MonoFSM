@@ -161,17 +161,17 @@ namespace MonoFSM.Runtime
             Debug.Log("UI Event Received", this);
         }
 
-        public object GetValue(VariableTag varTag)
-        {
-            var variable = VariableFolder.GetVariable(varTag);
-            if (variable == null)
-            {
-                Debug.LogError($"Variable {varTag} not found in {name}", this);
-                return null;
-            }
-
-            return variable.objectValue;
-        }
+        // public object GetValue(VariableTag varTag)
+        // {
+        //     var variable = VariableFolder.GetVariable(varTag);
+        //     if (variable == null)
+        //     {
+        //         Debug.LogError($"Variable {varTag} not found in {name}", this);
+        //         return null;
+        //     }
+        //
+        //     return variable.objectValue;
+        // }
 
 
         // public int GetIntValue(VariableTypeTag typeTag)

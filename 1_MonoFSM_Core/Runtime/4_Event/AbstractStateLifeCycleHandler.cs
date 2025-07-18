@@ -93,6 +93,7 @@ namespace MonoFSM.Core
         /// Execute all registered event receivers.
         /// </summary>
         /// FIXME: 還要這個嗎？
+        [Obsolete]
         protected virtual void ExecuteEventReceivers()
         {
             if (!isActiveAndEnabled)
@@ -103,30 +104,6 @@ namespace MonoFSM.Core
                     if (eventReceiver.IsValid)
                         eventReceiver.EventReceived();
         }
-
-        /// <summary>
-        /// Execute all registered event receivers with a typed argument.
-        /// </summary>
-        /// <typeparam name="T">The type of the argument.</typeparam>
-        /// <param name="arg">The argument to pass to the event receivers.</param>
-        // protected virtual void ExecuteEventReceivers<T>(T arg)
-        // {
-        //     if (!isActiveAndEnabled)
-        //         return;
-        //
-        //     if (_eventReceivers != null)
-        //         foreach (var eventReceiver in _eventReceivers)
-        //             if (eventReceiver is IArgEventReceiver<T> argEventReceiver)
-        //             {
-        //                 if (argEventReceiver.IsValid)
-        //                     argEventReceiver.ArgEventReceived(arg);
-        //             }
-        //             else if (eventReceiver.IsValid)
-        //             {
-        //                 eventReceiver.EventReceived();
-        //             }
-        // }
-
         #endregion
 
         #region State Lifecycle Methods

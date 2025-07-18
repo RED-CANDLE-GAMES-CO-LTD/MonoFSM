@@ -12,6 +12,7 @@ namespace MonoFSM.Runtime
         GameObject gameObject { get; }
     }
     //從SceneSaveManager來重新處理prefab?
+    //FIXME: 很容易沒跑到？Spawn 時要 autoReference 
     [DefaultExecutionOrder(-20000)]
     public class PrefabSerializeCache : MonoBehaviour, IBeforePrefabSaveCallbackReceiver
     {

@@ -297,7 +297,7 @@ namespace Auto_Attribute.Runtime
         }
 
         [PropertyOrder(-1)]
-        [Button]
+        // [Button]
         public void RestoreReferenceCacheToMonoFields() //Runtime
         {
             // Debug.Log("GetAllMonoBehavioursWithAuto start:" + FieldCache.fieldDictByName.Count);

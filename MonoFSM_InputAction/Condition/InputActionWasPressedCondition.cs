@@ -19,7 +19,9 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
         // _playerInputProvider.GetPlayerInput().WasPressed(actionData.actionID); //isvalid的timing也要小心
 
         // public InputActionData actionData;
-        [DropDownRef] [Required] public AbstractMonoInputAction _inputAction;
+
+        //FIXME: 用一個介面
+        [DropDownRef] public AbstractMonoInputAction _inputAction;
         //resolve 去哪找？往上找
         // [AutoParent] AbstractFusionPlayerInput playerInput;
         // [AutoParent] private IPlayerInputProvider _playerInputProvider;

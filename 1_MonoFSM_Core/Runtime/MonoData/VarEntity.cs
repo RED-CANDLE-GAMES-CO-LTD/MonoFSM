@@ -69,7 +69,7 @@ namespace MonoFSM.Runtime.Variable
 // #if UNITY_EDITOR
 //         public Texture2D CustomIcon => UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarMonoIcon.png");
 // #endif
-        public string ValueInfo => Value?.ToString() ?? "null";
+        public string ValueInfo => Value?.name ?? "null";
         public bool IsDrawingValueInfo => true;
     }
 }

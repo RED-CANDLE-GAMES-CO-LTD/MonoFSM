@@ -118,6 +118,14 @@ namespace EditorTool
                 return;
             // EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
 
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
+                var prefabRoot = prefabStage.prefabContentsRoot;
+                OnPrefabSaving(prefabRoot);
+                return;
+            }
+            
             Debug.Log("OnSceneSaving");
 
             FindSceneSavingAndProcess();
@@ -259,6 +267,9 @@ namespace EditorTool
                 // soList.Add(flag);
             }
         }
+        
+        
+        
         private static void FindSceneSavingAndProcess()
         {
             //scriptable object也可以做這個？
