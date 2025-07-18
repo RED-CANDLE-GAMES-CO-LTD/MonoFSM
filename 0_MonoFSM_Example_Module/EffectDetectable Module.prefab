@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5319268292274740027}
   - component: {fileID: 3873472980409057923}
+  - component: {fileID: 237173539706676430}
   m_Layer: 0
   m_Name: '[Receiver]'
   m_TagString: Untagged
@@ -47,6 +48,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   EffectType: {fileID: 11400000, guid: 027893eb2faa049a29c8cfbbe7cad14b, type: 2}
+--- !u!114 &237173539706676430
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3337783564002856552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da00e78b230681a4996b6835aab48404, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _noteType: 0
+  note: "default\u53CD\u800C\u9020\u6210\u5F9Escene \u9032\u5165prefab\u6642\u6703\u8DD1\u5230\u5E95\u5C64\u6A21\u7D44....\u5C37\u5C2C"
+  bgColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &4276392733147328737
 GameObject:
   m_ObjectHideFlags: 0
@@ -215,9 +231,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c2cfdbeecef2224186cf08dfed57132, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _isAlwaysVisible: 0
   gizmoType: 2
   color: {r: 1, g: 0.46769637, b: 0.015686274, a: 0.49803922}
   size: 20
   boxCollider2D: {fileID: 0}
   _boxCollider: {fileID: 5285942459330704443}
-  disable: 0

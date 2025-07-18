@@ -56,7 +56,7 @@ GameObject:
   - component: {fileID: 4633267761569689230}
   - component: {fileID: 2411635744491296837}
   m_Layer: 0
-  m_Name: '[Action]SetVariableBoolIs Trigger Entered to False'
+  m_Name: '[Action] null target'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -89,11 +89,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 030c08acca9c148b09523a3baade3587, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  conditions: []
-  targetFlag: {fileID: 0}
-  targetFlags: []
+  _target: {fileID: 0}
   TargetValue: 0
-  Multiple: 0
 --- !u!1 &1264322080609581854
 GameObject:
   m_ObjectHideFlags: 0
@@ -140,7 +137,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 788128e4eeab4d919bfc3a6cec2e5567, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EffectType: {fileID: 11400000, guid: 107db2b0d31734c8abe3d999951b9667, type: 2}
+  EffectType: {fileID: 11400000, guid: 2795990079c9849ccb77b99d120be1db, type: 2}
 --- !u!1 &2642439091165249996
 GameObject:
   m_ObjectHideFlags: 0
@@ -197,7 +194,7 @@ GameObject:
   - component: {fileID: 5013150410101237501}
   - component: {fileID: 7590820080163302419}
   m_Layer: 0
-  m_Name: '[Action]SetVariableBoolIs Trigger Entered to True'
+  m_Name: '[Action] null target'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -230,11 +227,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 030c08acca9c148b09523a3baade3587, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  conditions: []
-  targetFlag: {fileID: 0}
-  targetFlags: []
+  _target: {fileID: 0}
   TargetValue: 1
-  Multiple: 0
 --- !u!1 &5776180804275836019
 GameObject:
   m_ObjectHideFlags: 0
@@ -333,7 +327,7 @@ GameObject:
   - component: {fileID: 3492560789353915584}
   - component: {fileID: 6897908958605213675}
   m_Layer: 0
-  m_Name: Detector Trigger
+  m_Name: Player Detector Trigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

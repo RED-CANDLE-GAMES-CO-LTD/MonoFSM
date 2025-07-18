@@ -1,6 +1,7 @@
 using System;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Foundation;
 using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -59,7 +60,7 @@ namespace MonoFSM.VarRef
         //好像要指定對象耶...身上一堆provider誰知道你要哪個值？
     }
 
-    public abstract class AbstractSourceValueRef : MonoBehaviour
+    public abstract class AbstractSourceValueRef : AbstractDescriptionBehaviour
     {
         //如果有多個？避免？
         //改成autoParent如何？
@@ -72,17 +73,6 @@ namespace MonoFSM.VarRef
         // private object CurrentValue => _previewLastValue;
 #endif
         public Type ValueType => _valueProvider.ValueType;
-
-//         public object GetValue()
-//         {
-//             var value = _valueProvider.GetValue;
-//             //value processor?
-// #if UNITY_EDITOR
-//             _previewLastValue = value;
-// #endif
-//             return value;
-//         }
-
         
         
         public T GetValue<T>()
@@ -94,14 +84,17 @@ namespace MonoFSM.VarRef
             return value;
         }
 
-        [PreviewInInspector] public string Description => ToString();
-//         public override string ToString()
-//         {
-// #if UNITY_EDITOR
-//             _valueProvider = GetComponent<IValueProvider>();
-//             if (_valueProvider == null) return "";
-// #endif
-//             return _valueProvider.Description;
-//         }
+        [PreviewInInspector] public override string Description => ToString();
+
+        protected override string DescriptionTag => "Source Value";
+
+        public override string ToString()
+        {
+#if UNITY_EDITOR
+            _valueProvider = GetComponent<IValueProvider>();
+            if (_valueProvider == null) return "";
+#endif
+            return _valueProvider.Description;
+        }
     }
 }

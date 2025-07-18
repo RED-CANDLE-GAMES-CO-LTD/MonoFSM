@@ -34,16 +34,5 @@ namespace MonoFSM.Transition
             // }
         }
 
-        // protected override void OnStateUpdateImplement()
-        // {
-        //     // if (validTransition == null)
-        //     //     validTransition = this.GetComponent<AbstractStateTransition>();
-        //
-        //     // Debug.Log("Action State 'Update' Implement", gameObject);
-        //     if (validTransition == null)
-        //         return;
-        //
-        //     validTransition.IsTransitionCheckNeeded = true;
-        // }
     }
 }

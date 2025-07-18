@@ -12,7 +12,7 @@ namespace MonoFSM.Core.DataProvider
         public abstract AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
         public abstract Type GetValueType { get; }
         public abstract Type GetVarType { get; }
-        public abstract VariableTag varTag { get; set; }
+        public abstract VariableTag varTag { get; }
         public abstract TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable;
 
         public override string ToString()

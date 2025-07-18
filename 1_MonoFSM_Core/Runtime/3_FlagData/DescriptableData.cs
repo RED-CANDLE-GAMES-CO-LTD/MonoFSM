@@ -94,7 +94,9 @@ public interface IItem : IDescriptableData
 //GameData?
 [CreateAssetMenu(fileName = "Descriptable", menuName = "ScriptableObjects/Descriptable", order = 1)]
 [Searchable]
-public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptable //以前是GameFlagDescriptable
+public class
+    DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptable,
+    ISceneSavingCallbackReceiver //以前是GameFlagDescriptable
 {
     [FormerlySerializedAs("descriptableTag")]
     public MonoEntityTag _entityTag;
@@ -489,8 +491,16 @@ public class DescriptableData : GameFlagBase, IDescriptableData, IMonoDescriptab
 
     public IDescriptableData Descriptable => this;
 
-    public void OnUIEventReceived()
+    // public void OnUIEventReceived()
+    // {
+    //     //throw new NotImplementedException();
+    // }
+
+    public void OnBeforeSceneSave()
     {
-        //throw new NotImplementedException();
+        //FIXME:
+        //自動改名、validation之類的
+        // name = name.Replace("[", "(").Replace("]", ")");
+        
     }
 }

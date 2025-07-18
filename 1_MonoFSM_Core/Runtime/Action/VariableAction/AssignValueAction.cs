@@ -27,7 +27,7 @@ namespace MonoFSM.Runtime.Backpack.Actions
         // [AutoChildren] IVariableProvider TargetVariable;
         [PreviewInInspector] private IEffectReceiver _lastReceiver;
 
-        public override string Description => $"Assign {_sourceValueRef} to {_targetVarRef}";
+        public override string Description => $"Assign {_sourceValueRef.Description} to {_targetVarRef.Description}";
 
         protected override void OnActionExecuteImplement()
         {

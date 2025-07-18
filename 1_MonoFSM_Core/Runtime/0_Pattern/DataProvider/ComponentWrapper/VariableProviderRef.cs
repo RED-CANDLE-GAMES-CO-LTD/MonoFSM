@@ -26,6 +26,8 @@ namespace MonoFSM.Core.DataProvider
     //TODO: FIXME: drag drop reference後，自動填入tag/monoTag
     //隱含有Parent VariableOwner的概念是不是不太好？
     //動態提取？不用type? 讓我pathField選到string就有string的能力？ any IValueProvider然後Get<TType>看看？
+    //A.B.Variable, 用tag來找variable
+    //單純版好像不想要這麼複雜？ localRef
     public abstract class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
         IVariableProvider, IValueProvider<TValueType> //, IStringProvider,IValueProvider<TValueType>
         where TVarMonoType : AbstractMonoVariable
@@ -541,12 +543,8 @@ namespace MonoFSM.Core.DataProvider
             }
         }
 
-        public override VariableTag varTag
-        {
-            get => _varTag;
-            set => _varTag = value;
-        }
-
+        public override VariableTag varTag => _varTag;
+        // set => _varTag = value;
         // public object GetValue()
         // {
         //     if (VarRaw == null) return null;
