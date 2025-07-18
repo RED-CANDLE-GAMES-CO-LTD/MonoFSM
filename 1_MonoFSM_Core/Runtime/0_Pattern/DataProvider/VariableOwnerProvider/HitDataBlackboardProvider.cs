@@ -113,10 +113,10 @@ namespace MonoFSM.Core.Runtime
             {
                 case HitDataTargetType.Dealer:
 
-                    Debug.Log(" HitDataVariableOwner.DealerOwner", hitData.Dealer.transform);
+                    // Debug.Log(" HitDataVariableOwner.DealerOwner", hitData.Dealer.transform);
                     return _hitDataProvider.GetHitData().Dealer.transform.GetComponentInParent<T>();
                 case HitDataTargetType.Receiver:
-                    Debug.Log(" HitDataVariableOwner.ReceiverOwner", hitData.Receiver.transform);
+                    // Debug.Log(" HitDataVariableOwner.ReceiverOwner", hitData.Receiver.transform);
                     return _hitDataProvider.GetHitData().Receiver.transform.GetComponentInParent<T>();
                 default:
                     throw new System.NotImplementedException();

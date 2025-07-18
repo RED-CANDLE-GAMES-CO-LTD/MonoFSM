@@ -56,6 +56,7 @@ namespace MonoFSM.Core
             _lastEventHandledTime = Time.time;
             foreach (var eventReceiver in _eventReceivers)
             {
+                //有參數的介面時
                 if (eventReceiver is IArgEventReceiver<T> argEventReceiver)
                 {
                     if (argEventReceiver.IsValid)
@@ -63,9 +64,7 @@ namespace MonoFSM.Core
                 }
                 else
                 {
-                    Debug.LogError(
-                        $"Event receiver {eventReceiver.GetType().Name} does not implement IArgEventReceiver<{typeof(T).Name}>.",
-                        this);
+                    eventReceiver.EventReceived();
                 }
             }
                 

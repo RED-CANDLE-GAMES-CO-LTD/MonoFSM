@@ -35,12 +35,20 @@ namespace MonoFSM.Core.Simulate
             // _simulators.AddRange(_localSimulators); //不需要了？
         }
 
+        //全世界都該透過這個spawn?
         public MonoPoolObj Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation)
         {
-            //FIXME: 在這邊register?
+            if (obj == null)
+            {
+                Debug.LogError("Cannot spawn a null MonoPoolObj.", this);
+                return null;
+            }
+
+            //Spawn Strategy? 透過 Fusion的PoolObject 系統...那何不都用他的就好?
             var result = _spawnProcessor.Spawn(obj, position, rotation);
-            result.ResetStateRestore();
-            result.ResetStart();
+            RegisterMonoObject(result);
+            //poolObject spawn lifecycle? 可以整進去？
+            result.SpawnFromPool();
             return result;
         }
 
@@ -54,6 +62,7 @@ namespace MonoFSM.Core.Simulate
             _spawnProcessor.Despawn(obj); //看實作
         }
 
+        //FIXME: 在這裡註冊好怪
         public void RegisterMonoObject(MonoPoolObj target)
         {
             _monoObjectSet.Add(target);

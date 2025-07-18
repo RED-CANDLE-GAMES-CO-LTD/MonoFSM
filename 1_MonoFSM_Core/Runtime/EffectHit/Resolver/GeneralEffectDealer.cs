@@ -129,9 +129,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public void OnHitEnter(IEffectHitData data, DetectData? detectData = null)
         {
             _currentHitData = data;
-            if (_proxyProvider != null) proxyDealer.OnHitEnter(data);
+            if (_proxyProvider != null) proxyDealer.OnHitEnter(data as GeneralEffectHitData, detectData);
             //兩邊可能都要做事，都判
-            _enterNode?.EventHandle(data);
+            _enterNode?.EventHandle(data as GeneralEffectHitData);
             _receivers.Add(data.Receiver);
             _lastReceiver = data.Receiver as GeneralEffectReceiver;
         }
@@ -143,7 +143,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             //_receivers裡面要有才可以做這件事
             if (_proxyProvider != null) proxyDealer.OnHitEnter(data);
 
-            _exitNode?.EventHandle(data);
+            _exitNode?.EventHandle(data as GeneralEffectHitData);
             _receivers.Remove(data.Receiver);
         }
 

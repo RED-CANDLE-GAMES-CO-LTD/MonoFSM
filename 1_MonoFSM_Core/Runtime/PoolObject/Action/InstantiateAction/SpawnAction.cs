@@ -42,6 +42,17 @@ namespace MonoFSM.Core.LifeCycle
         private void Spawn(MonoPoolObj obj, Vector3 position, Quaternion rotation)
         {
             var monoObj = GetComponentInParent<MonoPoolObj>();
+            if (monoObj == null)
+            {
+                Debug.LogError("SpawnAction: No MonoPoolObj found in parent", this);
+                return;
+            }
+
+            if (monoObj.WorldUpdateSimulator == null)
+            {
+                Debug.LogError("SpawnAction: No WorldUpdateSimulator found in MonoPoolObj", monoObj);
+                return;
+            }
             var newObj = monoObj.WorldUpdateSimulator.Spawn(obj, position, rotation); //Runner.spawn?
             //用目前這個action的transform的scale,fixme; 可能需要別種？物件本身的scale?還是應該避免
             newObj.transform.localScale = transform.lossyScale;

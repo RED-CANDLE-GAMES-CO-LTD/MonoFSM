@@ -45,7 +45,7 @@ namespace MonoFSM.Core
         //FIXME: 如果一個type有多個實例，要用List<TU>? firstOrDefault? 好像是耶
         //GetAll, 和GetComponentsInChildren<TU> 有點像 GetComponentsInChildren<TU>就回傳第一個
         //用List還是HashSet好？
-        protected readonly Dictionary<Type, HashSet<TU>> _typeDict = new();
+        protected readonly Dictionary<Type, HashSet<TU>> _typeDict = new(); //這個抽出去另外做？
         
         protected readonly List<T> _tempRemoveList = new();
 
@@ -99,17 +99,17 @@ namespace MonoFSM.Core
                 return;
             }
 
-            if (value is IGlobalInstance)
+            // if (value is IGlobalInstance)
+            // {
+            var type = value.GetType();
+            if (!_typeDict.TryGetValue(type, out var set))
             {
-                var type = value.GetType();
-                if (!_typeDict.TryGetValue(type, out var set))
-                {
-                    set = new HashSet<TU>();
-                    _typeDict[type] = set;
-                }
-
-                set.Add(value);
+                set = new HashSet<TU>();
+                _typeDict[type] = set;
             }
+
+            set.Add(value);
+            // }
 
             if (isLog)
             {

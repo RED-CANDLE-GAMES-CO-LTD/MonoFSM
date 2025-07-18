@@ -36,7 +36,7 @@ namespace MonoFSM.Core.Runtime.Action
     ///FIXME:  好像可以架一層有吃參數的比較好？
     [Searchable]
     public abstract class AbstractStateAction : AbstractDescriptionBehaviour, IVoteChild, IGuidEntity,
-        IDefaultSerializable
+        IDefaultSerializable, IEventReceiver
     // IArgEventReceiver<GeneralEffectHitData>
     {
         protected override bool HasError()
@@ -147,17 +147,7 @@ namespace MonoFSM.Core.Runtime.Action
 
         protected CancellationTokenSource cancellationTokenSource => bindingState.GetStateExitCancellationTokenSource();
 
-        public virtual void SetPlaybackTime(float time)
-        {
-        }
-
-        public virtual void Pause()
-        {
-        }
-
-        public virtual void Resume()
-        {
-        }
+  
 
         //FIXME: 不該全部都virtual
         // public virtual void ArgEventReceived(IEffectHitData arg)
@@ -180,6 +170,7 @@ namespace MonoFSM.Core.Runtime.Action
 
         public void EventReceived()
         {
+            _lastEventReceivedTime = Time.time;
             OnActionExecuteImplement();
         }
 
@@ -187,9 +178,16 @@ namespace MonoFSM.Core.Runtime.Action
         {
         }
 
-        // public virtual void EventReceived(IEffectHitData arg)
-        // {
-        //     EventReceived<IEffectHitData>(arg);
-        // }
+        public virtual void SetPlaybackTime(float time)
+        {
+        }
+
+        public virtual void Pause()
+        {
+        }
+
+        public virtual void Resume()
+        {
+        }
     }
 }

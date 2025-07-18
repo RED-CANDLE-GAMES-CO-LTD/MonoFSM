@@ -44,11 +44,15 @@ namespace MonoFSMCore.Runtime.LifeCycle
     }
 
     //FIXME: auto 怎麼處理？cache?
+    //這個和MonoEntity結構會類似？但分別做不同的角色？
     [DisallowMultipleComponent]
     public sealed class MonoPoolObj : MonoBehaviour, IPrefabSerializeCacheOwner
     {
         // [Button]
-        
+        //等世界準備好？從 root 拿是不是比較快？
+        //FIXME: 多個註冊進入點不好
+        //會找不到world很蠢，functional的方式？
+        [PreviewInDebugMode] public WorldUpdateSimulator WorldUpdateSimulator { get; set; }
         
         public void Despawn()
         {
@@ -60,9 +64,9 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
             WorldUpdateSimulator.Despawn(this);
         }
-        //等世界準備好？
-        [PreviewInDebugMode] public WorldUpdateSimulator WorldUpdateSimulator { get; set; }
-        [PreviewInInspector][AutoChildren] private ISceneAwake[] _sceneAwakes;
+
+
+        [PreviewInInspector] [AutoChildren] private ISceneAwake[] _sceneAwakes; 
         [PreviewInInspector][AutoChildren] private ISceneStart[] _sceneStarts;
         [PreviewInInspector] [AutoChildren] private ISceneDestroy[] _sceneDestroys;
         
@@ -73,12 +77,22 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [PreviewInInspector][AutoChildren] private IUpdateSimulate[] _updateSimulates;
         //FIXME: PoolBeforeReturnToPool? OnReturnPool?
 
-        private List<MonoPoolObj> _parentObjs = new(2); //會拿到自己？
+        private readonly List<MonoPoolObj> _parentObjs = new(2); //會拿到自己？
         public bool HasParent => _parentObjs.Count > 1; //有_parentObj就表示是nested的pool object，不作用，交給parent處理
 
         private void Awake()
         {
             GetComponentsInParent(true, _parentObjs);
+        }
+
+        public void SpawnFromPool() //必定是root吧
+        {
+            //這兩行 Pool 準備的時候就要先call了吧？
+            HandleIAwake();
+            HandleSceneStart();
+
+            ResetStateRestore();
+            ResetStart();
         }
 
         //FIXME: local還沒做這個喔

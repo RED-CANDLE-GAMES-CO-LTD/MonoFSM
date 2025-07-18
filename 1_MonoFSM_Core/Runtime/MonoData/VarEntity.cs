@@ -16,7 +16,7 @@ namespace MonoFSM.Runtime.Variable
     //最常用的Variable? MonoDescriptable下也會有MonoDescriptable
     //FIXME: 還是叫別的吧 VarMono?好像還是比較好？
     [FormerlyNamedAs("VarBlackboard")]
-    public class VarEntity : GenericUnityObjectVariable<MonoEntity>
+    public class VarEntity : GenericUnityObjectVariable<MonoEntity>, IHierarchyValueInfo
     {
         //FIXME: 還能做型別限制、檢查嗎？
         //MonoSchema?
@@ -69,5 +69,7 @@ namespace MonoFSM.Runtime.Variable
 // #if UNITY_EDITOR
 //         public Texture2D CustomIcon => UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarMonoIcon.png");
 // #endif
+        public string ValueInfo => Value?.ToString() ?? "null";
+        public bool IsDrawingValueInfo => true;
     }
 }

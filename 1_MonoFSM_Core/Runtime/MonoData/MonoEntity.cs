@@ -30,6 +30,7 @@ namespace MonoFSM.Runtime
     public class MonoEntity : AbstractMonoDescriptable<DescriptableData>, IInstantiated,
         IBeforePrefabSaveCallbackReceiver, IGameDataProvider //這樣data也要一直繼承，好ㄇ...
     {
+        
         //FIXME: nested? MonoEntity dictionary?
         public void OnInstantiated(WorldUpdateSimulator world)
         {

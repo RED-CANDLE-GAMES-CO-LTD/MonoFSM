@@ -76,9 +76,19 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         }
 
         //從Owner身旁的MonoEntityBinder取得下面的Entity
+        //FIXME: 不一定會有MonoEntityBinder? 還是要逼每個MonoObject都要有MonoEntityBinder? 那就應該要做成可以直接宣告的方式？(A has B)
         public T GetEntityFromDealerOwner<T>() where T : MonoEntity
         {
-            var binder = GeneralDealer.GetComponentOfSibling<IModuleOwner, MonoEntityBinder>();
+            //FIXME: 現在根本兩個就一樣..
+            var binder = GeneralDealer.GetComponentInParent<MonoEntityBinder>();
+            // var binder = GeneralDealer.GetComponentOfSibling<IModuleOwner, MonoEntityBinder>();
+            if (binder == null)
+            {
+                Debug.LogError("No MonoEntityBinder found in Dealer Owner", GeneralDealer);
+                return null;
+            }
+
+            Debug.Log("GetEntityFromDealerOwner " + typeof(T).Name, binder);
             return binder.Get(typeof(T)) as T; //有點醜
         }
         

@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace MonoFSM.Runtime
 {
+    //FIXME: fusion network不做一個對稱的？
     public class LocalSpawnManager : MonoBehaviour, ISpawnProcessor
     {
         [Auto] private WorldUpdateSimulator _worldUpdateSimulator;
@@ -18,16 +19,12 @@ namespace MonoFSM.Runtime
         {
             //FIXME: 還要做updateSimulator的註冊？
             var newObj = PoolManager.Instance.BorrowOrInstantiate(obj, position, rotation);
-
-            _worldUpdateSimulator.RegisterMonoObject(obj);
             return newObj;
         }
 
         public void Despawn(MonoPoolObj obj)
         {
             if (obj == null) return;
-            // Unregister the object from the world update simulator
-            _worldUpdateSimulator.UnregisterMonoObject(obj);
             // Return the object to the pool
             PoolManager.Instance.ReturnToPool(obj);
         }

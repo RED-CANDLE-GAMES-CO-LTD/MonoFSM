@@ -1,6 +1,7 @@
 using System;
 using MonoFSM.Core;
 using MonoFSM.Runtime.Mono;
+using MonoFSM.Runtime.Variable;
 using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace MonoFSM.Runtime
     /// <summary>
     /// 用MonoDescriptableTag當key的來找IMonoDescriptable
     /// </summary>
-    public class MonoEntityBinder : MonoDict<MonoEntityTag, MonoEntity>
+    public class MonoEntityBinder : MonoDict<MonoEntityTag, MonoEntity>, IModuleOwner
     {
         //FIXME: 同個tag可以有個list?
 
@@ -20,15 +21,13 @@ namespace MonoFSM.Runtime
             {
                 return checker.IsAddValid();
             }
-            else
-            {
-                // Debug.Log("MonoDescriptableBinder IsAddValid " + item.name, item);
-                return true;
-            }
-        }
-        
 
-        protected override bool isLog => true;
+            // Debug.Log("MonoDescriptableBinder IsAddValid " + item.name, item);
+            return true;
+        }
+
+
+        protected override bool isLog => false;
 
         //FIXME: 直接用MonoDescriptable就好？
         protected override void AddImplement(MonoEntity item)
