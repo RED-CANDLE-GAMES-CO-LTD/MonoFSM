@@ -1,10 +1,13 @@
+using System;
 using MonoFSM.Core;
 using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Runtime.FSM._3_FlagData
 {
+    [Obsolete]
     [CreateAssetMenu(menuName = "RCG/ItemData")]
     public class ItemData : DescriptableData, IItem
     {
@@ -21,16 +24,17 @@ namespace MonoFSM.Runtime.FSM._3_FlagData
         public virtual bool needInstance => false;
 
 //FIXME:要把PoolObject拿過來嗎？
-        [BoxGroup("物品")] [Required] public Component fsmPrefab;
-        public override Component bindPrefab => fsmPrefab; //需要這個變數嗎...
+        [BoxGroup("物品")] [Required] public MonoPoolObj fsmPrefab;
+        public override MonoPoolObj bindPrefab => fsmPrefab; //需要這個變數嗎...
 
-        public Component InstantiateFsm(Transform parent)
+        public MonoPoolObj InstantiateFsm(Transform parent)
         {
             return MyInstantiate(bindPrefab, parent);
         }
 
         protected T MyInstantiate<T>(T prefab, Transform parent) where T : Component
         {
+            //這ㄌ
             //可以用async
             if (prefab == null)
             {

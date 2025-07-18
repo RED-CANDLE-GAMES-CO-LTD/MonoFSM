@@ -1,6 +1,6 @@
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
-using MonoFSM.VarRef;
+using MonoFSM.VarRefOld;
 using UnityEngine;
 
 namespace MonoFSM.Core.DataProvider.Condition

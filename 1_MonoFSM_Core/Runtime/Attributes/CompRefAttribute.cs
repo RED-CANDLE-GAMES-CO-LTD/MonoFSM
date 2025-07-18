@@ -12,4 +12,5 @@ namespace MonoFSM.Variable.Attributes
     [MeansImplicitUse]
     
     public class CompRefAttribute : Attribute { }
+    //TODO: 限定型別？
 }

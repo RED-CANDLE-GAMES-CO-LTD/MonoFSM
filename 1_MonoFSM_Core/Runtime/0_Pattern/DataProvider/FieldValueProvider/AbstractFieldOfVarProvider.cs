@@ -17,6 +17,7 @@ namespace MonoFSM.Core.DataProvider
     /// 拿Var的Field
     /// FIXME: 拔掉？
     /// </summary>
+    [Obsolete]
     public class
         AbstractFieldOfVarProvider : MonoBehaviour //打架了，這個有IConfigVar, 和VariableProviderRef衝突
     {
@@ -31,7 +32,7 @@ namespace MonoFSM.Core.DataProvider
 
         [PreviewInInspector] public virtual Object targetObject => _variableProviderRef?.VarRaw;
 
-        [PreviewInInspector] public Type targetType => _variableProviderRef?.GetValueType;
+        [PreviewInInspector] public Type targetType => _variableProviderRef?.ValueType;
         [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
         
         /// <summary>
@@ -330,8 +331,8 @@ namespace MonoFSM.Core.DataProvider
             // throw new InvalidCastException($"Cannot cast {typeof(T)} to {typeof(T1)}");
         }
 
-        public Type ValueType =>
-            _variableProviderRef.GetValueType;
+        // public Type ValueType =>
+        //     _variableProviderRef.ValueType;
 
         public string Description
         {

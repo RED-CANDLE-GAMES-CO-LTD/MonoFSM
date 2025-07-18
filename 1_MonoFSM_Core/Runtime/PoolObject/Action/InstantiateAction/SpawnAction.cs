@@ -1,13 +1,13 @@
 using System;
 using MonoFSM.Core.Attributes;
-using MonoFSM.Core.Runtime;
 using MonoFSM.Core.Runtime.Action;
-using MonoFSM.Core.Variable;
+using MonoFSM.Runtime;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
+using MonoFSM.Runtime.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
+using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace MonoFSM.Core.LifeCycle
 {
@@ -16,12 +16,19 @@ namespace MonoFSM.Core.LifeCycle
         SpawnAction : AbstractStateAction<GeneralEffectHitData>, IMonoObjectProvider //ICompProvider<MonoPoolObj>
     {
         //崩潰..Prefab和Runtime混在一起耶，所以拿Var比較好？但實際上不是啊...
-        [CompRef] [AutoChildren(DepthOneOnly = true)]
-        private ICompProvider<MonoPoolObj> _targetVarProvider; //使用VarPoolObj來存儲目標物件
+        // [CompRef] [AutoChildren(DepthOneOnly = true)]
+        // private ICompProvider<MonoPoolObj> _targetVarProvider; //使用VarPoolObj來存儲目標物件
+
+        [Required] [CompRef] [AutoChildren(DepthOneOnly = true)] [ValueTypeValidate(typeof(MonoPoolObj))]
+        private DataProvider.VarRef _poolObjProvider; //使用VarPoolObj來存儲目標物件
+
+        //檢查？SerializeClass的話？
+
+        //型別篩選 vs attribute篩選？
         //FIXME: 應該要分ConfigPrefabProvider, 不可以都用ICompProvider，因為會有Runtime的Prefab
         //Prefab特殊，不該runtime去Instantiate對ㄅ，都應該從prefab來，就算要也是複製狀態
 
-        private MonoPoolObj Prefab => _targetVarProvider?.Get();
+        private MonoPoolObj Prefab => _poolObjProvider?.Get<MonoPoolObj>();
 
         [CompRef] [AutoChildren] private SpawnEventHandler _spawnEventHandler;
 

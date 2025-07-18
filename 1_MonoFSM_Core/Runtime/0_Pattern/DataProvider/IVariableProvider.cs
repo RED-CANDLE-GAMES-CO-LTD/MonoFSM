@@ -301,11 +301,11 @@ namespace MonoFSM.Core.DataProvider
 
 
     //FIXME: 這有啥用？ TargetVarRef
-    public interface IVariableProvider
+    public interface IVariableProvider //ValueProvider?
     {
         // public GameFlagBase FinalData => VarRaw?.FinalData;
         AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
-        Type GetValueType { get; }
+        // Type GetValueType { get; }
 
         TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable;
         // object SampleData { get; }

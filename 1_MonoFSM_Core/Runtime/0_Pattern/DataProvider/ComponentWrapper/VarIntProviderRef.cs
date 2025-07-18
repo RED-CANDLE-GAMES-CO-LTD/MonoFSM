@@ -1,7 +1,7 @@
 using System;
 using MonoFSM.Core.DataProvider;
 
-namespace MonoFSM.VarRef
+namespace MonoFSM.VarRefOld
 {
     [Obsolete]
     public class VarIntProviderRef : VariableProviderRef<VarInt, int>, IIntProvider

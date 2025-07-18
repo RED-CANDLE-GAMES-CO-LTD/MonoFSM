@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Utilities;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -27,6 +28,14 @@ namespace MonoFSM.Core.DataProvider
         // [NonSerialized] public Type parentType;
         [InlineProperty(LabelWidth = 60)] public MySerializedType<Object> _serializedType; //FIXME: refactor時會爛掉...有點麻煩
 
+        public Type GetPropertyType()
+        {
+            if (string.IsNullOrEmpty(fieldName)) return null;
+            
+            // 使用 ReflectionUtility 的快取機制來提高效率
+            return ReflectionUtility.GetMemberType(parentType, fieldName);
+        }
+        
         [ValueDropdown(nameof(GetFieldOptions))]
         public string fieldName;
 
@@ -34,7 +43,9 @@ namespace MonoFSM.Core.DataProvider
         //FIXME: 不可以編輯？用index注入？
         [PreviewInInspector] [ShowIf(nameof(IsArray))] [LabelText("Index")]
         public int index; //injected index;
-        Type parentType => _serializedType.RestrictType;
+
+        private Type parentType => _serializedType.RestrictType; //為什麼叫parentType？
+        
 
         // 支援的型別清單
         //restrict to types?
@@ -49,7 +60,7 @@ namespace MonoFSM.Core.DataProvider
         {
             var options = new List<ValueDropdownItem<string>>();
             var pType = _serializedType.RestrictType;
-            Debug.Log("GetFieldOptions parentType:" + pType);
+            // Debug.Log("GetFieldOptions parentType:" + pType);
             if (pType != null)
             {
                 // 取得所有 Field
@@ -91,13 +102,9 @@ namespace MonoFSM.Core.DataProvider
                 if (parentType == null || string.IsNullOrEmpty(fieldName))
                     return false;
 
-                // var field = parentType.GetField(fieldName,
-                //     BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                // if (field != null) return field.FieldType.IsArray;
-                var prop = parentType.GetProperty(fieldName,
-                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                if (prop != null) return prop.PropertyType.IsArray;
-                return false;
+                // 使用 ReflectionUtility 的快取機制來提高效率
+                var memberType = ReflectionUtility.GetMemberType(parentType, fieldName);
+                return memberType?.IsArray ?? false;
             }
         }
     }

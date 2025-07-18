@@ -27,11 +27,6 @@ namespace MonoFSM.Core.DataProvider
             return _varEntity.Value.GetComp(_monoTypeData.Type);
         }
 
-        public object GetValue()
-        {
-            return Get();
-        }
-
         public T GetValue<T>()
         {
             if (typeof(T) != typeof(Component))

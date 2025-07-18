@@ -340,6 +340,7 @@ namespace MonoFSM.Core.Variable
         public override bool IsValueExist => Count > 0;
         // public override Type ValueType => typeof(List<T>);
         // public override object objectValue => _list;
+        [ShowInPlayMode]
         public abstract Object CurrentRawObject { get; }
         public abstract void SetIndex(int index);
         protected override void SetValueInternal<T1>(T1 value, Object byWho = null)

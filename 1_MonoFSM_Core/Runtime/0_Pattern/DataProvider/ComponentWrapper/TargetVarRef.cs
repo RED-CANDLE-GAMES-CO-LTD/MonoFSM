@@ -5,7 +5,7 @@ using MonoFSM.Core.DataProvider;
 using MonoFSM.Foundation;
 using UnityEngine;
 
-namespace MonoFSM.VarRef
+namespace MonoFSM.VarRefOld
 {
     public class TargetVarRef : AbstractDescriptionBehaviour, IVariableProvider
     {
@@ -13,7 +13,7 @@ namespace MonoFSM.VarRef
         [Component] [Auto] private AbstractVariableProviderRef _providerRef;
 
         public AbstractMonoVariable VarRaw => _providerRef?.VarRaw;
-        public Type GetValueType => _providerRef?.GetValueType;
+        public Type GetValueType => _providerRef?.ValueType;
 
         public TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable
         {

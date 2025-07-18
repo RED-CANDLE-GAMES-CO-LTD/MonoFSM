@@ -1,7 +1,7 @@
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable;
 
-namespace MonoFSM.VarRef
+namespace MonoFSM.VarRefOld
 {
     /// <summary>
     /// 可以拿到一個VarGameData的MonoBehaviour

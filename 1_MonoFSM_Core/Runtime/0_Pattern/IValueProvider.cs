@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace MonoFSM.Core
 {
@@ -15,7 +16,25 @@ namespace MonoFSM.Core
         string Description { get; }
     }
 
-    public interface ICompProvider<out T> : IValueProvider //where T : Component
+    public interface ICompProvider : IValueProvider
+    {
+        T1 IValueProvider.Get<T1>() //繼承關係的
+        {
+            var value = Get();
+            if (value is T1 t1Value) return t1Value;
+            throw new InvalidCastException($"Cannot cast {typeof(Component)} to {typeof(T1)}");
+        }
+
+        Component Get();
+
+        Type IValueProvider.ValueType => typeof(Component);
+        // object IValueProvider.GetValue => Get<T>();
+        // T1 IValueProvider.Get<T1>() => Get();
+        // Type IValueProvider.ValueType => typeof(T);
+    }
+
+    // out T沒什麼意義...
+    public interface ICompProvider<out T> : ICompProvider where T : Component
     {
         T1 IValueProvider.Get<T1>()
         {
@@ -24,7 +43,13 @@ namespace MonoFSM.Core
             throw new InvalidCastException($"Cannot cast {typeof(T)} to {typeof(T1)}");
         }
 
-        T Get();
+        new T Get();
+
+        Component ICompProvider.Get()
+        {
+            return Get();
+            // 確保Get()返回Component類型
+        }
         // object IValueProvider.GetValue => Get<T>()<T>;
 
 

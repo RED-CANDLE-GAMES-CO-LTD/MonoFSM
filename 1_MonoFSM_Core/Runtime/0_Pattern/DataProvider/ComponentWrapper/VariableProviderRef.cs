@@ -37,23 +37,8 @@ namespace MonoFSM.Core.DataProvider
         [OnValueChanged(nameof(OnVarOwnerChange))]
         [TabGroup("Owner Setting")] public GetFromType _getFromType = GetFromType.ParentVarOwner;
 
-        // public override string ToString()
-        // {
-        //     return Description;
-        // }
-
-        public string GetString() //這啥？
-        {
-            return Value.ToString();
-        }
-
-        public override Type GetValueType => typeof(TValueType);
-
-        public TVarMonoType GetVar()
-        {
-            return GetVar<TVarMonoType>();
-        }
-
+        // public override Type GetValueType => typeof(TValueType);
+        
         [ShowInDebugMode]
         private MonoBehaviour CurrentTarget
         {
@@ -119,121 +104,7 @@ namespace MonoFSM.Core.DataProvider
         [Required]
         public VariableTag _varTag;
 
-        #region Field Path Support
-
-        [BoxGroup("Field Path", ShowLabel = true)]
-        [InfoBox("選擇變數中的特定欄位。留空表示直接使用變數值。", InfoMessageType.Info)]
-        [InfoBox("欄位路徑的最終型別與變數型別不相容", InfoMessageType.Error, nameof(IsFieldPathTypeIncompatible))]
-        [OnValueChanged(nameof(OnPathEntriesChanged))]
-        [ListDrawerSettings(ShowFoldout = false)]
-        public List<FieldPathEntry> pathEntries = new();
-
-        [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
-
-        [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
-
-        private void OnPathEntriesChanged()
-        {
-            ReflectionUtility.UpdatePathEntryTypes(pathEntries, typeof(TVarMonoType), _typeRestrict?.SupportedTypes,
-                _indexInjector);
-        }
-
-        private bool HasFieldPath => pathEntries != null && pathEntries.Count > 0;
-
-        [BoxGroup("Field Path")]
-        [HorizontalGroup("Field Path/Buttons")]
-        [Button("新增層級")]
-        private void AddFieldLevel()
-        {
-            if (pathEntries == null)
-                pathEntries = new List<FieldPathEntry>();
-
-            var newEntry = new FieldPathEntry();
-
-            // 如果是第一個項目，預設使用 TVarMonoType 作為起始型別
-            if (pathEntries.Count == 0) newEntry.SetSerializedType(typeof(TVarMonoType));
-
-            pathEntries.Add(newEntry);
-            ReflectionUtility.UpdatePathEntryTypes(pathEntries, typeof(TVarMonoType), _typeRestrict?.SupportedTypes,
-                _indexInjector);
-        }
-
-        [HorizontalGroup("Field Path/Buttons")]
-        [Button("刪除最後層級")]
-        private void RemoveLastFieldLevel()
-        {
-            if (pathEntries != null && pathEntries.Count > 0)
-            {
-                pathEntries.RemoveAt(pathEntries.Count - 1);
-                ReflectionUtility.UpdatePathEntryTypes(pathEntries, typeof(TVarMonoType), _typeRestrict?.SupportedTypes,
-                    _indexInjector);
-            }
-        }
-
-        [BoxGroup("Field Path")]
-        [Button("驗證欄位路徑")]
-        private void ValidateFieldPath()
-        {
-            if (!HasFieldPath)
-            {
-                Debug.Log("無欄位路徑需要驗證", this);
-                return;
-            }
-
-            ReflectionUtility.UpdatePathEntryTypes(pathEntries, typeof(TVarMonoType), _typeRestrict?.SupportedTypes,
-                _indexInjector);
-            var result = ReflectionUtility.GetFieldValueFromPath(VarRaw, pathEntries, gameObject);
-
-            if (result == null)
-            {
-                Debug.LogWarning("欄位路徑回傳 null 值", this);
-                return;
-            }
-
-            var resultType = result.GetType();
-            if (typeof(TValueType).IsAssignableFrom(resultType))
-                Debug.Log($"✓ 欄位路徑驗證成功: {resultType} 可以轉換為 {typeof(TValueType)}", this);
-            else
-                Debug.LogError($"✗ 型別不相容: {resultType} 無法轉換為 {typeof(TValueType)}", this);
-        }
-
-        [BoxGroup("Field Path")]
-        [ShowInInspector]
-        [DisplayAsString]
-        [LabelText("當前路徑")]
-        private string CurrentFieldPath
-        {
-            get
-            {
-                if (!HasFieldPath) return "無欄位路徑 (直接使用變數值)";
-
-                var varName = VarRaw?.name ?? "Variable";
-                var fieldPath = string.Join(".", pathEntries.Select(e => e.fieldName ?? "未選擇"));
-                return $"{varName}.{fieldPath}";
-            }
-        }
-
-        private bool IsFieldPathTypeIncompatible()
-        {
-            if (!HasFieldPath || VarRaw == null)
-                return false;
-
-            return !ReflectionUtility.IsFieldPathTypeCompatible(VarRaw, pathEntries, typeof(TValueType));
-        }
-
-        #endregion
-
-
-        //FIXME: 拿到Variable的方式還是要很多種？
-        //用varTag, monoTag直接找到 variable
-        //從VarMono, 拿到他的variable
-
-        // private void OnGlobalMonoTagChange()
-        // {
-        //     _runtimeCachedOwner = null;
-        // }
         
-        // IEnumerable<ValueDropdownItem<
         private void OnVarOwnerChange()
         {
             var _ = owner;
@@ -519,7 +390,7 @@ namespace MonoFSM.Core.DataProvider
                 if (!HasFieldPath) return VarRaw.GetValue<TValueType>();
 
                 // 使用欄位路徑存取特定欄位值
-                var fieldValue = ReflectionUtility.GetFieldValueFromPath(VarRaw, pathEntries, gameObject);
+                var fieldValue = ReflectionUtility.GetFieldValueFromPath(VarRaw, _pathEntries, gameObject);
 
                 if (fieldValue is TValueType tValue) return tValue;
 
@@ -587,7 +458,7 @@ namespace MonoFSM.Core.DataProvider
                 var str = string.Empty;
                 if (_blackboardTag) str = _blackboardTag.name + ".";
                 str += varTag?.name;
-                if (HasFieldPath) str += "." + string.Join(".", pathEntries.Select(e => e.fieldName));
+                if (HasFieldPath) str += "." + string.Join(".", _pathEntries.Select(e => e.fieldName));
                 return str;
             }
         }

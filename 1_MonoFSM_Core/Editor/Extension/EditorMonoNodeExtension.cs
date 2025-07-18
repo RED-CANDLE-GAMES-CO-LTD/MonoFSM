@@ -89,6 +89,20 @@ public static class EditorMonoNodeExtension
             // We also want to include the given type if it's not an abstract or a generic type.
             typeList.Add(baseType);
         }
+
+        // if (baseType.IsInterface)
+        // {
+        //     var allMonoTypes = TypeCache.GetTypesDerivedFrom<MonoBehaviour>();
+        //     foreach (var type in allMonoTypes)
+        //         // 檢查是否有實作 ICompProvider<T>（T 任何型別）且可 assign 到 ICompProvider<Component>
+        //     foreach (var iface in type.GetInterfaces())
+        //         if (iface.IsGenericType)
+        //             if (baseType.IsAssignableFrom(iface))
+        //             {
+        //                 typeList.Add(type);
+        //                 break;
+        //             }
+        // }
         
         var types = TypeCache.GetTypesDerivedFrom(baseType);
         if (baseType.IsInterface)

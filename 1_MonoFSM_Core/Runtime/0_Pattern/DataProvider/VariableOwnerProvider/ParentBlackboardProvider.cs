@@ -6,6 +6,7 @@ using UnityEngine;
 namespace MonoFSM.Core.Runtime
 {
     //Self?
+    //改名，這個記不住，OwnerEntity? ParentEntity? 
     public class ParentBlackboardProvider : MonoBehaviour, IBlackboardProvider
     {
         //為什麼不會自己撈？

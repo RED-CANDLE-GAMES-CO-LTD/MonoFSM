@@ -2,7 +2,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
-using MonoFSM.VarRef;
+using MonoFSM.VarRefOld;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

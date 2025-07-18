@@ -5,7 +5,7 @@ using MonoFSM.DataProvider;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
-using MonoFSM.VarRef;
+using MonoFSM.VarRefOld;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;

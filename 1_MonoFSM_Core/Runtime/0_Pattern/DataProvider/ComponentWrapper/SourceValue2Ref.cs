@@ -1,4 +1,4 @@
-using MonoFSM.VarRef;
+using MonoFSM.VarRefOld;
 
 namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
 {

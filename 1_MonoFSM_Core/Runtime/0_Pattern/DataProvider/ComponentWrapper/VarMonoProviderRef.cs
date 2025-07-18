@@ -4,7 +4,7 @@ using MonoFSM.Runtime;
 using MonoFSM.Runtime.Variable;
 using UnityEngine;
 
-namespace MonoFSM.VarRef
+namespace MonoFSM.VarRefOld
 {
     //GetVarMono?
     //FIXME: 好像不該用這個？ 自打架了？

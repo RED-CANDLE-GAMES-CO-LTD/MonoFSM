@@ -6,7 +6,7 @@ using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace MonoFSM.VarRef
+namespace MonoFSM.VarRefOld
 {
     public class GenericValue
     {

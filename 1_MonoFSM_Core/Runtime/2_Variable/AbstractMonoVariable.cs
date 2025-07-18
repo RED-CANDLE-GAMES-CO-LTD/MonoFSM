@@ -7,7 +7,7 @@ using RCGExtension;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
-using MonoFSM.VarRef;
+using MonoFSM.VarRefOld;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;

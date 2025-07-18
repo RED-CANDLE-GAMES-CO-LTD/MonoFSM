@@ -5,6 +5,7 @@ using System.Reflection;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Variable.FieldReference;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.Utilities
 {
@@ -17,6 +18,9 @@ namespace MonoFSM.Core.Utilities
 
         // 使用 ValueTuple 當作 Dictionary Key：Type 與成員名稱
         private static readonly Dictionary<(Type, string), Func<object, object>> GetterCache = new();
+        
+        // 快取成員型別資訊，避免重複反射查找
+        private static readonly Dictionary<(Type, string), Type> MemberTypeCache = new();
 
         /// <summary>
         /// 取得指定型別與成員名稱的 getter delegate。
@@ -75,17 +79,72 @@ namespace MonoFSM.Core.Utilities
         }
 
         /// <summary>
+        /// 取得指定型別與成員名稱的成員型別，支援 field 和 property。
+        /// 如果已快取則直接回傳，否則查找並快取結果。
+        /// </summary>
+        /// <param name="parentType">父型別</param>
+        /// <param name="memberName">成員名稱</param>
+        /// <returns>成員型別，如果找不到則回傳 null</returns>
+        public static Type GetMemberType(Type parentType, string memberName)
+        {
+            if (parentType == null || string.IsNullOrEmpty(memberName))
+                return null;
+
+            var key = (parentType, memberName);
+            if (MemberTypeCache.TryGetValue(key, out var cachedType))
+                return cachedType;
+
+            // 使用 RefactorSafeNameResolver 查找成員（支援舊名稱）
+            var member = RefactorSafeNameResolver.FindMemberByCurrentOrFormerName(parentType, memberName);
+
+            Type memberType = null;
+            
+            if (member is PropertyInfo prop)
+            {
+                memberType = prop.PropertyType;
+            }
+            else if (member is FieldInfo field)
+            {
+                memberType = field.FieldType;
+            }
+            else
+            {
+                // 如果 RefactorSafeNameResolver 找不到，嘗試直接查找
+                var directProp = parentType.GetProperty(memberName,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (directProp != null)
+                {
+                    memberType = directProp.PropertyType;
+                }
+                else
+                {
+                    var directField = parentType.GetField(memberName,
+                        BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (directField != null)
+                    {
+                        memberType = directField.FieldType;
+                    }
+                }
+            }
+
+            // 快取結果（即使是 null 也要快取，避免重複查找）
+            MemberTypeCache[key] = memberType;
+            return memberType;
+        }
+
+        /// <summary>
         /// 清除反射快取
         /// </summary>
         public static void ClearCache()
         {
             GetterCache.Clear();
+            MemberTypeCache.Clear();
         }
 
         /// <summary>
         /// 取得快取中的項目數量
         /// </summary>
-        public static int CacheCount => GetterCache.Count;
+        public static int CacheCount => GetterCache.Count + MemberTypeCache.Count;
 
         #endregion
 
@@ -266,7 +325,7 @@ namespace MonoFSM.Core.Utilities
         /// <param name="pathEntries">欄位路徑項目</param>
         /// <param name="targetType">目標型別</param>
         /// <returns>是否相容</returns>
-        public static bool IsFieldPathTypeCompatible(object obj, List<FieldPathEntry> pathEntries, Type targetType)
+        public static bool IsFieldPathTypeCompatible(Object obj, List<FieldPathEntry> pathEntries, Type targetType)
         {
             if (pathEntries == null || pathEntries.Count == 0) return true;
             if (obj == null) return false;
@@ -277,6 +336,7 @@ namespace MonoFSM.Core.Utilities
                 if (result == null) return false;
 
                 var resultType = result.GetType();
+                Debug.Log($"最終欄位值型別：{resultType}, 目標型別：{targetType}", obj);
                 return targetType.IsAssignableFrom(resultType) ||
                        CanConvertType(resultType, targetType);
             }

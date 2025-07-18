@@ -10,6 +10,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using MonoFSM.Runtime.Item_BuildSystem;
 using MonoFSM.Runtime.Mono;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -92,6 +93,20 @@ public interface IItem : IDescriptableData
 //Static資料，描述一個/種 東西的性質
 //ConfigData?
 //GameData?
+//用has來額外加功能？ ListOfDataFunction? pickableData?
+public interface IDataFunction
+{
+}
+
+[Serializable]
+public class PickableData : IDataFunction
+{
+    public MonoPoolObj EntityPrefab => _entityPrefab;
+    [SerializeField] private MonoPoolObj _entityPrefab; //這個是用來生成實體的
+    [SerializeField] private int _stackCount = 1; //這個是用來描述這個物品的堆疊數量
+}
+
+
 [CreateAssetMenu(fileName = "Descriptable", menuName = "ScriptableObjects/Descriptable", order = 1)]
 [Searchable]
 public class
@@ -101,6 +116,9 @@ public class
     [FormerlySerializedAs("descriptableTag")]
     public MonoEntityTag _entityTag;
 
+
+    [SerializeReference] private IDataFunction[] _dataFunctions; //這個用hashSet會比較好？ 可是QQ
+    private Dictionary<Type, IDataFunction> _dataFunctionSet;
     public async void PreloadSprite()
     {
         if (SpriteRef == null) return;
@@ -217,7 +235,18 @@ public class
 
     //類別，需要的自己用enum override掉
     public virtual int category => 0;
-    [PreviewInInspector] public virtual Component bindPrefab => null; //FIXME: 要弄這個？
+
+    [PreviewInInspector]
+    public virtual MonoPoolObj bindPrefab
+    {
+        get
+        {
+            if (_dataFunctionSet.TryGetValue(typeof(PickableData), out var dataFunction))
+                return ((PickableData)dataFunction).EntityPrefab;
+            // Debug.LogError("No PickableData found in " + name, this);
+            return null;
+        }
+    } //FIXME: 要弄這個？
     public FlagFieldBool unlocked; //在介面中可以看到的狀態，但可能還沒取得
     public virtual bool IsRevealed => unlocked.CurrentValue;
     [FormerlySerializedAs("aquired")] public FlagFieldBool acquired; //取得

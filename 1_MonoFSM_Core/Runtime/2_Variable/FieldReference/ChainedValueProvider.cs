@@ -171,7 +171,7 @@ namespace MonoFSM.Variable.FieldReference
             if (_accessChain.VariableTag != null && _variableProvider.VarRaw != null)
             {
                 var expectedType = _accessChain.VariableTag.ValueType;
-                var actualType = _variableProvider.GetValueType;
+                var actualType = _variableProvider.ValueType;
 
                 if (expectedType != null && actualType != null &&
                     !TypeCompatibilityChecker.AreCompatible(actualType, expectedType))
