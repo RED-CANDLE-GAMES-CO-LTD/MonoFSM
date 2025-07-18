@@ -81,7 +81,7 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
             if (term == lastSearchToken)
                 return;
 
-            Debug.Log("SearchToken:" + term);
+            // Debug.Log("SearchToken:" + term);
 
             //用t:開頭的字串，表示要搜尋特定類型的MonoBehaviour
             if (term.StartsWith("t:"))
@@ -91,15 +91,14 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
             var t = TypeFinderUtility.FindMonoBehaviourType(term, true);
             //FIXME: 可能搜到多個？
             // var t = AssemblyUtilities.GetTypeByCachedFullName(term); 
-            Debug.Log("Found Type:" + t);
+            // Debug.Log("Found Type:" + t);
             if (t == null)
             {
                 
                 return;
             }
 
-            Debug.Log("Searching for type: " + t.FullName);
-            // Debug.Log(t);
+            // Debug.Log("Searching for type: " + t.FullName);
             //FIXME: 一打開就要cache?
             FindAllComponentsInPrefab();
             var filteredComps = SearchForComponentType(currentPrefabComps, t);
@@ -111,7 +110,7 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
                 
             //get all gameobjects that have this component
             var filteredGObjs = filteredComps.Select((comp) => comp.gameObject);
-            Debug.Log(filteredGObjs.Count().ToString());
+            // Debug.Log(filteredGObjs.Count().ToString());
             _highlightedObjects.AddRange(filteredGObjs);
         }
 
@@ -135,7 +134,7 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
             currentPrefabComps.Clear();
             PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot
                 .GetComponentsInChildren(true, currentPrefabComps);
-            Debug.Log("Length: " + currentPrefabComps.Count);
+            // Debug.Log("Length: " + currentPrefabComps.Count);
             // }
         }
 
