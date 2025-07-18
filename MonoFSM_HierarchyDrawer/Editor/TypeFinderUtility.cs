@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEngine;
 
 public static class TypeFinderUtility
 {
@@ -17,18 +18,25 @@ public static class TypeFinderUtility
         if (string.IsNullOrWhiteSpace(typeName))
             return null;
 
+        typeName = typeName.Trim().ToLower();
         // Try cached
         if (_cachedExactName.TryGetValue(typeName, out var found))
+        {
+            Debug.Log($"Found MonoBehaviour type from cache: {found.Name} for name: {typeName}");
             return found;
+        }
+            
 
         // Lazy load all MonoBehaviour-derived types
-        _cachedAllMonoBehaviourTypes ??= TypeCache.GetTypesDerivedFrom<UnityEngine.MonoBehaviour>().ToList();
+        _cachedAllMonoBehaviourTypes ??= TypeCache.GetTypesDerivedFrom<MonoBehaviour>().ToList();
 
         // First pass: exact name
-        found = _cachedAllMonoBehaviourTypes.FirstOrDefault(t => t.Name == typeName || t.FullName == typeName);
+        found = _cachedAllMonoBehaviourTypes.FirstOrDefault(t =>
+            t.Name.ToLower() == typeName);
         if (found != null)
         {
             _cachedExactName[typeName] = found;
+            Debug.Log($"Found MonoBehaviour type: {found.Name} for name: {typeName}");
             return found;
         }
 
@@ -39,7 +47,7 @@ public static class TypeFinderUtility
                 t.Name.Contains(typeName, StringComparison.OrdinalIgnoreCase));
             if (found != null)
             {
-                _cachedExactName[typeName] = found;
+                // _cachedExactName[typeName] = found;
                 return found;
             }
         }

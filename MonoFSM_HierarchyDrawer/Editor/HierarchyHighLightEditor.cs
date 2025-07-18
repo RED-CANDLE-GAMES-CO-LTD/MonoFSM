@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -69,7 +70,7 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
             _highlightedObjects.Clear();
         }
 
-        public static void FilterObjectsPattern(string term)
+        private static void FilterObjectsPattern(string term)
         {
             if (string.IsNullOrEmpty(term))
             {
@@ -81,11 +82,16 @@ namespace HierarchyIDEWindow.MonoFSM_HierarchyDrawer.Editor
                 return;
 
             Debug.Log("SearchToken:" + term);
-            if (!term.StartsWith("t:")) return;
-            term = term.Substring(2).Replace(" ", "");
+
+            //用t:開頭的字串，表示要搜尋特定類型的MonoBehaviour
+            if (term.StartsWith("t:"))
+                term = term.Substring(2).Replace(" ", "");
+
+            //完全符合的也可以試試看
             var t = TypeFinderUtility.FindMonoBehaviourType(term, true);
+            //FIXME: 可能搜到多個？
             // var t = AssemblyUtilities.GetTypeByCachedFullName(term); 
-            Debug.Log("Type:" + t);
+            Debug.Log("Found Type:" + t);
             if (t == null)
             {
                 
