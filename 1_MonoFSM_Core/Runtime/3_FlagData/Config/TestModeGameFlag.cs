@@ -4,7 +4,7 @@ using UnityEngine;
 public enum TestMode
 {
     Undefined = -1,
-    Build,
+    Production,
     //DeveloperStaticTest,
     EditorDevelopment
     //BetaTest,

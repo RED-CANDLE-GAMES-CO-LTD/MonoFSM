@@ -118,7 +118,31 @@ public class
 
 
     [SerializeReference] private IDataFunction[] _dataFunctions; //這個用hashSet會比較好？ 可是QQ
-    private Dictionary<Type, IDataFunction> _dataFunctionSet;
+    private readonly Dictionary<Type, IDataFunction> _dataFunctionSet = new();
+
+    public override void FlagAwake(TestMode mode)
+    {
+        base.FlagAwake(mode);
+        Init();
+    }
+
+    private void Init()
+    {
+        _dataFunctionSet.Clear();
+        if (_dataFunctions == null) return;
+        foreach (var dataFunction in _dataFunctions)
+        {
+            if (dataFunction == null)
+            {
+                Debug.LogError("DataFunction is null in " + name, this);
+                continue;
+            }
+
+            var type = dataFunction.GetType();
+            if (!_dataFunctionSet.TryAdd(type, dataFunction))
+                Debug.LogError($"Duplicate data function of type {type} found in {name}", this);
+        }
+    }
     public async void PreloadSprite()
     {
         if (SpriteRef == null) return;
@@ -133,12 +157,12 @@ public class
 
     //一個propertyName會對應到一個Getter Func, 輸入是IDescriptableData, 輸出是object
     //nested應該不行...
-    public Dictionary<string, Func<IDescriptableData, object>> propertyCache = new();
+    public readonly Dictionary<string, Func<IDescriptableData, object>> _propertyCache = new();
 
     public Func<IDescriptableData, object> GetPropertyCache(
         string propertyName)
     {
-        if (propertyCache.TryGetValue(propertyName, out var info))
+        if (_propertyCache.TryGetValue(propertyName, out var info))
             return info;
 
 
@@ -149,7 +173,7 @@ public class
 
         if (propertyInfo == null)
         {
-            propertyCache[propertyName] = null;
+            _propertyCache[propertyName] = null;
             //FIXME: 可能因為unknownData所以有可能會找不到 有點危險？
             // Debug.LogError($"Property {propertyName} not found in {GetType()}");
             return null;
@@ -165,7 +189,7 @@ public class
 
         Func<IDescriptableData, object>
             _getMyProperty = (source) => getMethod.Invoke(source, null);
-        propertyCache[propertyName] = _getMyProperty;
+        _propertyCache[propertyName] = _getMyProperty;
         return _getMyProperty;
     }
 
@@ -303,6 +327,8 @@ public class
 
     public virtual string ItemType => typeStr;
 
+    //description attribute?
+    
     [PreviewInInspector] public virtual string Title => titleStr.ToString();
 
     public virtual string Description =>
@@ -330,6 +356,7 @@ public class
     [Header("一開遊戲就會讀進來的")] public Sprite staticSprite;
     [InlineField] [SerializeField] public RCGAssetReference spriteRef;
     [InlineField] [SerializeField] public RCGAssetReference smallSpriteRef;
+    
 
     public virtual void LoadAndSetIconForImage(Image image, Color loadedColor = default)
     {

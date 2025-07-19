@@ -46,6 +46,11 @@ namespace MonoFSM.Core.Simulate
 
             //Spawn Strategy? 透過 Fusion的PoolObject 系統...那何不都用他的就好?
             var result = _spawnProcessor.Spawn(obj, position, rotation);
+#if UNITY_EDITOR
+            //Editor裡還是直接使用AutoAttributeManager，cache太容易髒掉了
+            Debug.Log($"AutoReferenceAllChildren: {result.name}", result);
+            AutoAttributeManager.AutoReferenceAllChildren(result.gameObject);
+#endif
             RegisterMonoObject(result);
             //poolObject spawn lifecycle? 可以整進去？
             result.SpawnFromPool();

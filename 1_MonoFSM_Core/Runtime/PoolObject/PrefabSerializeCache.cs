@@ -13,6 +13,7 @@ namespace MonoFSM.Runtime
     }
     //從SceneSaveManager來重新處理prefab?
     //FIXME: 很容易沒跑到？Spawn 時要 autoReference 
+    //獨立不好，和MonoPoolObj一起用
     [DefaultExecutionOrder(-20000)]
     public class PrefabSerializeCache : MonoBehaviour, IBeforePrefabSaveCallbackReceiver
     {
@@ -20,15 +21,18 @@ namespace MonoFSM.Runtime
         public bool _restoreAtAwake = true;
 
         [SerializeField] private MonoReferenceCache _monoReferenceCache;
-      
 
-        private void Awake()
-        {
-            if (_restoreAtAwake)
-            {
-                RestoreReferenceCache();
-            }
-        }
+//         private void Awake()
+//         {
+//             if (_restoreAtAwake)
+//             {
+// #if UNITY_EDITOR
+//                 AutoAttributeManager.AutoReferenceAllChildren(_monoReferenceCache.RootObj);
+// #else
+//                 RestoreReferenceCache();
+// #endif
+//             }
+//         }
 
         public void OnBeforePrefabSave()
         {

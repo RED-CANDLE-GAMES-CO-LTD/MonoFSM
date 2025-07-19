@@ -1,4 +1,5 @@
 using MonoFSM.Core.DataProvider;
+using MonoFSM.Runtime.Mono;
 using MonoFSM.Runtime.Variable;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ namespace MonoFSM.Core.Runtime
     public class VarBlackboardRef : VariableProviderRef<VarEntity, MonoBlackboard>, IBlackboardProvider
     {
         public MonoBlackboard Blackboard => Value;
+        public MonoEntityTag entityTag => Value?.Tag;
 
         public T GetComponentOfOwner<T>()
         {

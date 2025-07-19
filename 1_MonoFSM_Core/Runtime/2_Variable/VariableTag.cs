@@ -336,7 +336,7 @@ namespace MonoFSM.Variable
         [DisplayAsString]
         [PropertyOrder(-1)]
         [LabelText("變數綁定型別")]
-        public Type VariableMonoType => _variableType.RestrictType;
+        public Type VariableMonoType => _variableTypeTag?.Type ?? _variableType.RestrictType;
 
         [FormerlySerializedAs("_variableTypeData")]
         public AbstractTypeTag _variableTypeTag;
@@ -426,48 +426,8 @@ namespace MonoFSM.Variable
         public MySerializedType<object> _valueFilterType;
 
         public Type ValueFilterType => _valueTypeTag?.Type ?? _valueFilterType.RestrictType;
-        // [ShowInInspector]
-        // [LabelText("變數數值型別過濾")]
-        // [TypeFilter(nameof(GetValueTypeOptions))]
-        // [PropertyOrder(170)]
-        // public Type ValueTypeSelector
-        // {
-        //     get => _valueFilterType.RestrictType;
-        //     set => _valueFilterType.SetType(value);
-        // }
-
-        // public IEnumerable<Type> GetValueTypeOptions()
-        // {
-        //     if (_variableType?.RestrictType == null) yield break;
-        //
-        //     var variableMonoType = _variableType.RestrictType;
-        //
-        //     var currentType = variableMonoType;
-        //     while (currentType != null && currentType != typeof(object))
-        //     {
-        //         if (currentType.IsGenericType)
-        //         {
-        //             var genericTypeDef = currentType.GetGenericTypeDefinition();
-        //             if (genericTypeDef == typeof(GenericMonoVariable<,,>))
-        //             {
-        //                 yield return currentType.GetGenericArguments()[2];
-        //                 yield break;
-        //             }
-        //
-        //             if (genericTypeDef == typeof(GenericUnityObjectVariable<>))
-        //             {
-        //                 yield return currentType.GetGenericArguments()[0];
-        //                 yield break;
-        //             }
-        //         }
-        //
-        //         currentType = currentType.BaseType;
-        //     }
-        // }
-
-//restrict type也放在variable type裡面？
-        // public MySerializedType<object> _valueFilterType; //當我是ObjectVariable時，才用的到這個？
-
+        
+        
         [Button]
         void FetchFilterType()
         {

@@ -13,6 +13,7 @@ namespace MonoFSM.Runtime.Variable
     [DisallowMultipleComponent]
     public class MonoBlackboard : MonoBehaviour, IVarBlackboard, IUpdateSimulate //FIXME: 沒有必要用介面？
     {
+        
         private bool IsVariableMissing()
         {
             return !CheckAllVariableExists();

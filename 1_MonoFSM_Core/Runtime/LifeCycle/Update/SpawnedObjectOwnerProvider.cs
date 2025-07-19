@@ -2,12 +2,14 @@ using System;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime;
+using MonoFSM.Runtime.Mono;
 using MonoFSM.Runtime.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSMCore.Runtime.LifeCycle
 {
+    //FIXME: 好像很trivial, 不好懂
     public class SpawnedObjectOwnerProvider : MonoBehaviour, IBlackboardProvider, ICompProvider<MonoBlackboard>
     {
         [Required] [ShowInInspector] [AutoParent]
@@ -28,6 +30,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 return _monoObjectProvider?.Get()?.GetComponent<MonoEntity>();
             }
         }
+
+        public MonoEntityTag entityTag => _monoObjectProvider?.Get()?.GetComponent<MonoEntityTag>();
 
         public T GetComponentOfOwner<T>()
         {

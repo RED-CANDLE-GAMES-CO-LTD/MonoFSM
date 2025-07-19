@@ -508,7 +508,7 @@ public class
         _currentValue = mode switch
         {
             TestMode.EditorDevelopment => DevValue,
-            TestMode.Build => ProductionValue,
+            TestMode.Production => ProductionValue,
             _ => _currentValue
         };
         _lastValue = _currentValue;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Auto.Utils;
 using MonoFSM.Core;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Core.Attributes;
@@ -45,6 +46,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
     //FIXME: auto 怎麼處理？cache?
     //這個和MonoEntity結構會類似？但分別做不同的角色？
+    [ScriptTiming(-20000)]
     [DisallowMultipleComponent]
     public sealed class MonoPoolObj : MonoBehaviour, IPrefabSerializeCacheOwner
     {
@@ -69,8 +71,6 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [PreviewInInspector] [AutoChildren] private ISceneAwake[] _sceneAwakes; 
         [PreviewInInspector][AutoChildren] private ISceneStart[] _sceneStarts;
         [PreviewInInspector] [AutoChildren] private ISceneDestroy[] _sceneDestroys;
-        
-        
         [PreviewInInspector][AutoChildren] private IResetStateRestore[] _resetStateRestores;
         [PreviewInInspector][AutoChildren] private IResetStart[] _resetStarts;
         [PreviewInInspector][AutoChildren] private IInstantiated[] _instantiateds;
@@ -83,6 +83,13 @@ namespace MonoFSMCore.Runtime.LifeCycle
         private void Awake()
         {
             GetComponentsInParent(true, _parentObjs);
+            if (HasParent)
+                return;
+#if UNITY_EDITOR
+            AutoAttributeManager.AutoReferenceAllChildren(gameObject);
+#endif
+            //FIXME: prefab cache restore?
+            //把 PrefabSerializeCache 的實作拿過來？
         }
 
         public void SpawnFromPool() //必定是root吧
@@ -228,17 +235,18 @@ namespace MonoFSMCore.Runtime.LifeCycle
             {
                 if (item == null || item.isActiveAndEnabled == false)
                     continue;
-                try
-                {
-                    item.AfterUpdate();
-                }
-                catch (Exception e)
-                {
-                    if (item is MonoBehaviour)
-                        Debug.LogError(e.Message + "\n" + e.StackTrace, item as MonoBehaviour);
-                    else
-                        Debug.LogError(e.Message + "\n" + e.StackTrace);
-                }
+                //FIXME: 這個很難偵錯耶？集中update的壞處，要怎麼樣
+                // try
+                // {
+                item.AfterUpdate();
+                // }
+                // catch (Exception e)
+                // {
+                //     if (item is MonoBehaviour)
+                //         Debug.LogError(e.Message + "\n" + e.StackTrace, item as MonoBehaviour);
+                //     else
+                //         Debug.LogError(e.Message + "\n" + e.StackTrace);
+                // }
             }
         }
 

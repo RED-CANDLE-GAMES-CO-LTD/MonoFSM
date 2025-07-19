@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -10,7 +7,7 @@ using UnityEditor;
 using UnityEngine;
 //所有的GameFlag, 存檔用
 [CreateAssetMenu(fileName = "GameFlagCollection", menuName = "System/FlagCollection", order = 1)]
-[System.Serializable]
+[Serializable]
 [Searchable]
 public class GameFlagCollection : ScriptableObject, ISelfValidator
 {
@@ -21,35 +18,35 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
         Flags.Clear();
         EditorUtility.SetDirty(this);
     }
-    
-    [Button]
-    void UpgradeForAllGameFlagDescriptable()
-    {
-        // AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
-        // settings.CreateAssetReference(flag);
-        EditorUtility.DisplayCancelableProgressBar("UpgradeForAllGameFlagDescriptable", "UpgradeForAllGameFlagDescriptable", 0);
-        
-        float progress = 0;
-        foreach (var flag in Flags)
-        {
-            progress += 1f / Flags.Count;
-            if (EditorUtility.DisplayCancelableProgressBar("UpgradeForAllGameFlagDescriptable",
-                    flag.name, progress))
-            {
-                break;
-            }
 
-            if (flag is DescriptableData descriptable)
-            {
-                // var descriptable = flag as GameFlagDescriptable;
-                // descriptable.UpgradeSpriteToAddressable();
-            }
-            // else
-            //     FixNameCheck(flag);
-        }
-
-        EditorUtility.ClearProgressBar();
-    }
+    // [Button]
+    // void UpgradeForAllGameFlagDescriptable()
+    // {
+    //     // AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+    //     // settings.CreateAssetReference(flag);
+    //     EditorUtility.DisplayCancelableProgressBar("UpgradeForAllGameFlagDescriptable", "UpgradeForAllGameFlagDescriptable", 0);
+    //     
+    //     float progress = 0;
+    //     foreach (var flag in Flags)
+    //     {
+    //         progress += 1f / Flags.Count;
+    //         if (EditorUtility.DisplayCancelableProgressBar("UpgradeForAllGameFlagDescriptable",
+    //                 flag.name, progress))
+    //         {
+    //             break;
+    //         }
+    //
+    //         if (flag is DescriptableData descriptable)
+    //         {
+    //             // var descriptable = flag as GameFlagDescriptable;
+    //             // descriptable.UpgradeSpriteToAddressable();
+    //         }
+    //         // else
+    //         //     FixNameCheck(flag);
+    //     }
+    //
+    //     EditorUtility.ClearProgressBar();
+    // }
     private void FixNameCheck(ScriptableObject obj)
     {
         //if name contains '[' ']', change to '(' ')'
@@ -99,8 +96,8 @@ public class GameFlagCollection : ScriptableObject, ISelfValidator
             }
         }
     }
-    
-    [Button("FindAllFlags")]
+
+    [Button]
     public void FindAllFlags()
     {
         Flags.Clear();

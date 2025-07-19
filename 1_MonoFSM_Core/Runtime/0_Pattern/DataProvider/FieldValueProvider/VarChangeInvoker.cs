@@ -19,6 +19,7 @@ namespace MonoFSM.Core.DataProvider
 //Proxy updater要怎麼辦？沒有備注冊進去？
         public void ResetStart() //FIXME: 應該在這註冊？還是scene註冊一次就好？
         {
+            //FIXME: Global還沒拿到嗎？應該不會吧
             var listenToVar = _variableProviderRef.VarRaw;
             //這個variable已經準備好了嗎？
             if (listenToVar)

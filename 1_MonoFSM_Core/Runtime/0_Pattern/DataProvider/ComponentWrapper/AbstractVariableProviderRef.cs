@@ -35,6 +35,8 @@ namespace MonoFSM.Core.DataProvider
 
         #region Field Path Support
 
+        //FIXME: 放下面？
+        [PropertyOrder(1)]
         [FormerlySerializedAs("pathEntries")]
         [BoxGroup("Field Path", ShowLabel = true)]
         [InfoBox("選擇變數中的特定欄位。留空表示直接使用變數值。", InfoMessageType.Info, nameof(NoFieldPath))]
@@ -48,12 +50,13 @@ namespace MonoFSM.Core.DataProvider
 
         [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
 
-        [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict;
+        // [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict; //FIXME: 這個是最後一個...hmmm之後在想怎麼處理好了
 
         private void OnPathEntriesChanged()
         {
-            ReflectionUtility.UpdatePathEntryTypes(_pathEntries, GetVarType, _typeRestrict?.SupportedTypes,
-                _indexInjector);
+            // ReflectionUtility.UpdatePathEntryTypes(_pathEntries, GetVarType, _typeRestrict?.SupportedTypes,
+            //     _indexInjector);
+            ReflectionUtility.UpdatePathEntryTypes(_pathEntries, GetVarType);
         }
 
         protected bool HasFieldPath => _pathEntries is { Count: > 0 };
@@ -85,8 +88,7 @@ namespace MonoFSM.Core.DataProvider
             }
 
             _pathEntries.Add(newEntry);
-            ReflectionUtility.UpdatePathEntryTypes(_pathEntries, GetVarType, _typeRestrict?.SupportedTypes,
-                _indexInjector);
+            OnPathEntriesChanged();
         }
 
         [HorizontalGroup("Field Path/Buttons")]
@@ -96,8 +98,9 @@ namespace MonoFSM.Core.DataProvider
             if (_pathEntries != null && _pathEntries.Count > 0)
             {
                 _pathEntries.RemoveAt(_pathEntries.Count - 1);
-                ReflectionUtility.UpdatePathEntryTypes(_pathEntries, GetVarType, _typeRestrict?.SupportedTypes,
-                    _indexInjector);
+                // ReflectionUtility.UpdatePathEntryTypes(_pathEntries, GetVarType, _typeRestrict?.SupportedTypes,
+                //     _indexInjector);
+                OnPathEntriesChanged();
             }
         }
 

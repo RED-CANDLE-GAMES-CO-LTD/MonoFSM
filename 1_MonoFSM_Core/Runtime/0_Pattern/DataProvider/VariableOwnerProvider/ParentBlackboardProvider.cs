@@ -1,4 +1,5 @@
 using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Mono;
 using MonoFSM.Runtime.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace MonoFSM.Core.Runtime
         [AutoParent] private MonoBlackboard _monoBlackboard;
 
         [PreviewInInspector] public MonoBlackboard Blackboard => _monoBlackboard;
+        public MonoEntityTag entityTag => _monoBlackboard?.Tag;
 
         public T GetComponentOfOwner<T>()
         {

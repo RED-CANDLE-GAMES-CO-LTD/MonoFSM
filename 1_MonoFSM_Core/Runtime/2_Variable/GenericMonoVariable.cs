@@ -499,7 +499,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     public void ResetStateRestore()
     {
         //FIXME: #if UnityEditor? setting build mode?
-        _localField.Init(TestMode.Build, this);
+        _localField.Init(TestMode.Production, this);
         // if(_bindData != null)
         //     _bindData.field.ResetToDefault();
     }

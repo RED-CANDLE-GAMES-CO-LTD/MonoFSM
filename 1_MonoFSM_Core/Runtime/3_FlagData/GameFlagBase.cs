@@ -87,7 +87,6 @@ public interface INativeDataConsumer
 }
 
 //最基礎的GameFlag元件
-[Serializable]
 public abstract class GameFlagBase : ScriptableObject, ISerializable, ISelfValidator, INativeData
 {
     public IEnumerable<string> GetAllFlagFieldNames<T>()

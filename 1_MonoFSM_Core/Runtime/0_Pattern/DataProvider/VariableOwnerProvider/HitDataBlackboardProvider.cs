@@ -3,6 +3,7 @@ using MonoFSM.Variable.Attributes;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Interact.EffectHit;
+using MonoFSM.Runtime.Mono;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -58,6 +59,8 @@ public class HitDataBlackboardProvider : MonoBehaviour, IBlackboardProvider //é€
             }
         }
     }
+
+    public MonoEntityTag entityTag => Blackboard?.Tag;
 
     [ShowInDebugMode] private IEffectHitData currentHitData => _hitDataProvider?.GetHitData();
     

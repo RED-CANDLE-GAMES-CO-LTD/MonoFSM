@@ -1,4 +1,5 @@
 using System;
+using _1_MonoFSM_Core.Runtime._3_FlagData;
 using UnityEngine;
 
 public static class CoreInitHandler
@@ -7,6 +8,14 @@ public static class CoreInitHandler
     private static void BeforeGameLevelLoadAndPrepareCores()
     {
         LoadCore();
+        LoadAllFlags();
+    }
+
+    private static void LoadAllFlags()
+    {
+        var allFlagCollection = AllFlagCollection.Instance;
+        Debug.Log("Loading AllFlagCollection..." + allFlagCollection.Flags.Count, allFlagCollection);
+        allFlagCollection.AllFlagAwake(TestMode.Production);
     }
 
     public static ApplicationCore LoadCore()

@@ -3,23 +3,18 @@
  * The alsoReferenceChildren boolean will determine if the referencing has to be done recursively to all its children, or only on this gameobject.
  */
 
+using System;
 using UnityEngine;
 using Auto.Utils;
 
 [ScriptTiming(-20000)]
+[Obsolete] //MonoPoolObj 已經有類似功能了
 public class AutoReferencerOnInstantiation : MonoBehaviour
 {
+    // public bool alsoReferenceChildren = true;
 
-    public bool alsoReferenceChildren = true;
-
-    private void Awake() //hmm...
-    {
-        AutoAttributeManager.AutoReference(this.gameObject);
-
-        if (alsoReferenceChildren)
-        {
-            //應該和serialize cache合併？
-            AutoAttributeManager.AutoReferenceAllChildren(this.gameObject);
-        }
-    }
+    // private void Awake() //hmm...和prefabcache合併？
+    // {
+    //     AutoAttributeManager.AutoReferenceAllChildren(gameObject);
+    // }
 }

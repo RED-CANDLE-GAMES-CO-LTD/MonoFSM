@@ -24,11 +24,10 @@ using System.Linq;
 using System.Reflection;
 using Auto_Attribute.Runtime;
 using Auto.Utils;
-using Cysharp.Threading.Tasks;
+// using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Sirenix.OdinInspector;
-using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
 
@@ -107,32 +106,33 @@ public class AutoAttributeManager : MonoBehaviour
     }
 
     //async版本的auto
-    public static async UniTask AsyncAutoReferenceAllChildren(GameObject targetGo)
-    {
-        var startFrame = Time.frameCount;
-        var componentsInChildren = targetGo.GetComponentsInChildren<MonoBehaviour>(true);
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
-
-        foreach (var mono in componentsInChildren)
-        {
-            AutoReference(mono);
-
-            if (stopwatch.Elapsed.TotalSeconds >= 0.016f) // Maximum time per frame in seconds (60fps)
-            {
-                await UniTask.Yield(targetGo.GetCancellationTokenOnDestroy());
-
-                stopwatch.Reset();
-                stopwatch.Start();
-            }
-
-#if UNITY_EDITOR
-            Debug.Log("AsyncAutoReferenceAllChildren" + mono.name + ",frame:" + (Time.frameCount - startFrame));
-#endif
-        }
-
-        stopwatch.Stop();
-    }
+    //FIXME: 真的會用到這個嗎？ async auto ref, 感覺bottle neck不在這
+//     public static async UniTask AsyncAutoReferenceAllChildren(GameObject targetGo)
+//     {
+//         var startFrame = Time.frameCount;
+//         var componentsInChildren = targetGo.GetComponentsInChildren<MonoBehaviour>(true);
+//         var stopwatch = new Stopwatch();
+//         stopwatch.Start();
+//
+//         foreach (var mono in componentsInChildren)
+//         {
+//             AutoReference(mono);
+//
+//             if (stopwatch.Elapsed.TotalSeconds >= 0.016f) // Maximum time per frame in seconds (60fps)
+//             {
+//                 await UniTask.Yield(targetGo.GetCancellationTokenOnDestroy());
+//
+//                 stopwatch.Reset();
+//                 stopwatch.Start();
+//             }
+//
+// #if UNITY_EDITOR
+//             Debug.Log("AsyncAutoReferenceAllChildren" + mono.name + ",frame:" + (Time.frameCount - startFrame));
+// #endif
+//         }
+//
+//         stopwatch.Stop();
+//     }
 
     public static void AutoReference(GameObject targetGo)
     {
