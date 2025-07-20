@@ -4,13 +4,14 @@ using System.Linq;
 using MonoFSM.Variable;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Utilities;
+using MonoFSM.Foundation;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace MonoFSM.Core.DataProvider
 {
-    public abstract class AbstractVariableProviderRef : MonoBehaviour, IValueProvider
+    public abstract class AbstractVariableProviderRef : AbstractDescriptionBehaviour, IValueProvider
     {
         // public GameFlagBase FinalData => VarRaw?.FinalData;
         public abstract AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
@@ -26,11 +27,8 @@ namespace MonoFSM.Core.DataProvider
         {
             return VarRaw?.name;
         }
-
         public abstract T1 Get<T1>();
-
-
-        public abstract string Description { get; }
+        public override string Description => CurrentFieldPath;
 
 
         #region Field Path Support
@@ -48,7 +46,8 @@ namespace MonoFSM.Core.DataProvider
         protected Type lastPathEntryType => _pathEntries[^1].GetPropertyType();
 
 
-        [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
+        //FIXME: 還是不要用吧
+        // [PreviewInInspector] [AutoParent] private IIndexInjector _indexInjector;
 
         // [PreviewInInspector] [Auto] private ITypeRestrict _typeRestrict; //FIXME: 這個是最後一個...hmmm之後在想怎麼處理好了
 
@@ -130,23 +129,24 @@ namespace MonoFSM.Core.DataProvider
         //     else
         //         Debug.LogError($"✗ 型別不相容: {resultType} 無法轉換為 {typeof(TValueType)}", this);
         // }
+        protected override string DescriptionTag => "varRef";
 
         [BoxGroup("Field Path")]
         [ShowInInspector]
         [DisplayAsString]
         [LabelText("當前路徑")]
-        private string CurrentFieldPath
+        protected string CurrentFieldPath
         {
             get
             {
-                if (!HasFieldPath) return "無欄位路徑 (直接使用變數值)";
-
-                var varName = VarRaw?.name ?? "Variable";
+                if (!HasFieldPath) return varTag.name;
+                
                 var fieldPath = string.Join(".", _pathEntries.Select(e => e.fieldName ?? "未選擇"));
-                return $"{varName}.{fieldPath}";
+                return $"{varTag.name}.{fieldPath}";
             }
         }
 
+        
         private bool IsFieldPathTypeIncompatible()
         {
             return !ReflectionUtility.IsFieldPathTypeCompatible(VarRaw, _pathEntries, ValueType);

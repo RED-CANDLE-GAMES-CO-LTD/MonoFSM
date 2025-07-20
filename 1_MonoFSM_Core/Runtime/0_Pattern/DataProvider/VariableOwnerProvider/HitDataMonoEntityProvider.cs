@@ -13,7 +13,7 @@ using UnityEngine.Serialization;
 /// 提供VariableOwner(可能會從一些奇怪的地方拿到), 必須要有HitDataProvider
 /// </summary>
 /// FIXME: 依照parent就能決定要用Dealer還是Receiver的Blackboard
-public class HitDataBlackboardProvider : MonoBehaviour, IBlackboardProvider //這個介面很怪？VariableOwner...那就直接I
+public class HitDataMonoEntityProvider : MonoBehaviour, IMonoEntityProvider //這個介面很怪？VariableOwner...那就直接I
 {
     //可是這裡
     [CompRef] [AutoParent] private IHitDataProvider _hitDataProvider;
@@ -25,7 +25,7 @@ public class HitDataBlackboardProvider : MonoBehaviour, IBlackboardProvider //�
         Receiver
     }
 
-    string IBlackboardProvider.Description => $"{ownerType}'s Blackboard";
+    string IMonoEntityProvider.Description => $"{ownerType}'s Blackboard";
 
     public HitDataVariableOwner ownerType;
 

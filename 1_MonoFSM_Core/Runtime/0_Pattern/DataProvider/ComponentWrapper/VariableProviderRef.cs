@@ -28,6 +28,7 @@ namespace MonoFSM.Core.DataProvider
     //動態提取？不用type? 讓我pathField選到string就有string的能力？ any IValueProvider然後Get<TType>看看？
     //A.B.Variable, 用tag來找variable
     //單純版好像不想要這麼複雜？ localRef
+    [Obsolete]
     public abstract class VariableProviderRef<TVarMonoType, TValueType> : AbstractVariableProviderRef,
         IVariableProvider, IValueProvider<TValueType> //, IStringProvider,IValueProvider<TValueType>
         where TVarMonoType : AbstractMonoVariable
@@ -122,7 +123,7 @@ namespace MonoFSM.Core.DataProvider
         [Required]
         //開prefab
         //FIXME: 這個required會造成誤會嗎？有showif的情況
-        public IBlackboardProvider _blackboardProvider; 
+        public IMonoEntityProvider _monoEntityProvider; 
 
         private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags() //editor time?
         {
@@ -132,11 +133,11 @@ namespace MonoFSM.Core.DataProvider
             {
                 case GetFromType.VariableOwnerProvider:
 
-                    if (_blackboardProvider == null)
+                    if (_monoEntityProvider == null)
                         return tagDropdownItems;
                     if (Application.isPlaying)
                     {
-                        var variables = _blackboardProvider.Blackboard.VariableFolder.GetValues;
+                        var variables = _monoEntityProvider.Blackboard.VariableFolder.GetValues;
                         foreach (var variable in variables)
                             if (variable is TVarMonoType)
                                 tagDropdownItems.Add(
@@ -260,18 +261,18 @@ namespace MonoFSM.Core.DataProvider
 
             if (_getFromType == GetFromType.VariableOwnerProvider)
             {
-                _blackboardProvider = GetComponent<IBlackboardProvider>();
-                if (_blackboardProvider == null)
+                _monoEntityProvider = GetComponent<IMonoEntityProvider>();
+                if (_monoEntityProvider == null)
                     // Debug.LogError("VariableOwnerProvider is null", this);
                     return null;
-                if (_blackboardProvider.Blackboard == null)
+                if (_monoEntityProvider.Blackboard == null)
                 {
                     if (Application.isPlaying)
                         Debug.LogError("VariableOwnerProvider.GetVariableOwner is null", this);
                     return null;
                 }
 
-                return _blackboardProvider.Blackboard;
+                return _monoEntityProvider.Blackboard;
             }
 
             if (_blackboardTag != null)
@@ -323,15 +324,15 @@ namespace MonoFSM.Core.DataProvider
                     
                     Debug.Log("_getFromType == GetFromType.VariableOwnerProvider",this);
 
-                    if (_blackboardProvider == null)
+                    if (_monoEntityProvider == null)
                         return null;
-                    if (_blackboardProvider.Blackboard == null)
+                    if (_monoEntityProvider.Blackboard == null)
                     {
                         Debug.LogError("_blackboardProvider.Board null", this);
                         return null;
                     }
 
-                    return _blackboardProvider.Blackboard.GetVar(_varTag);
+                    return _monoEntityProvider.Blackboard.GetVar(_varTag);
                 }
 
                 if (owner == null)

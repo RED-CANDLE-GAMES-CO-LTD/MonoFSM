@@ -10,7 +10,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
 {
     public class AssignMonoVarFromOwner : AbstractStateAction
     {
-        [CompRef] [Auto] private IBlackboardProvider _ownerProvider;
+        [CompRef] [Auto] private IMonoEntityProvider _ownerProvider;
 
         [FormerlySerializedAs("_varBlackboard")] [FormerlySerializedAs("_varMono")] [SerializeField] [DropDownRef]
         private VarEntity _varEntity;

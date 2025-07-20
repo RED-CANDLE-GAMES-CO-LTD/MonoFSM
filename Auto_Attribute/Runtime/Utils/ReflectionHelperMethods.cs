@@ -234,7 +234,8 @@ namespace Auto.Utils
             return null;
         }
 
-        public FieldInfo GetNonPublicFieldInBaseClasses(Type type, string name, bool excludeOverriddenMethods = true)
+        public static FieldInfo GetNonPublicFieldInBaseClasses(Type type, string name,
+            bool excludeOverriddenMethods = true)
         {
             Type baseType = type;
             while (baseType != typeof(object) && baseType != typeof(Component) && baseType != typeof(Behaviour))
@@ -254,7 +255,8 @@ namespace Auto.Utils
             return null;
         }
 
-        public PropertyInfo GetNonPublicPropertyInBaseClasses(Type type, string name, bool excludeOverriddenMethods = true)
+        public static PropertyInfo GetNonPublicPropertyInBaseClasses(Type type, string name,
+            bool excludeOverriddenMethods = true)
         {
             Type baseType = type;
             while (baseType != typeof(object) && baseType != typeof(Component) && baseType != typeof(Behaviour))
@@ -275,8 +277,8 @@ namespace Auto.Utils
         }
 
         #endregion
-        
-        public List<MethodInfo> GetNonPublicMethodsInBaseClasses(Type type, bool excludeOverriddenMethods = true)
+
+        public static List<MethodInfo> GetNonPublicMethodsInBaseClasses(Type type, bool excludeOverriddenMethods = true)
         {
             List<MethodInfo> result = new List<MethodInfo>();
 
@@ -309,8 +311,8 @@ namespace Auto.Utils
         }
 
 
-
-        public List<PropertyInfo> GetNonPublicPropertiesInBaseClasses(Type type, bool excludeOverriddenMethods = true)
+        public static List<PropertyInfo> GetNonPublicPropertiesInBaseClasses(Type type,
+            bool excludeOverriddenMethods = true)
         {
             List<PropertyInfo> result = new List<PropertyInfo>();
 

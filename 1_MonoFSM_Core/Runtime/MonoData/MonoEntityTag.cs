@@ -20,6 +20,17 @@ namespace MonoFSM.Runtime.Mono
     {
         public MySerializedType<DescriptableData> DataType;
 
+        public IEnumerable<ValueDropdownItem<VariableTag>> GetVariableTagItems()
+        {
+            var tagDropdownItems = new List<ValueDropdownItem<VariableTag>>();
+#if UNITY_EDITOR
+            var tags = containsVariableTypeTags;
+            foreach (var tempTag in tags)
+                tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(tempTag.name, tempTag));
+
+#endif
+            return tagDropdownItems;
+        }
 
         [PreviewInInspector]
         string SampleDataFilter =>

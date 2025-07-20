@@ -13,7 +13,7 @@ namespace EditorTool
 
         public void OnGUI()
         {
-            if (GUILayout.Button("Find Missing Scripts in selected GameObjects")) FindInSelected();
+            if (GUILayout.Button("Find Missing Scripts under selected GameObjects")) FindInSelected();
         }
 
         private static void FindInSelected()
@@ -23,26 +23,13 @@ namespace EditorTool
             foreach (var g in go)
             {
                 go_count++;
-                var components = g.GetComponents<Component>();
-                for (var i = 0; i < components.Length; i++)
+                var result = GameObjectUtility.RemoveMonoBehavioursWithMissingScript(g.gameObject);
+                if (result > 0)
                 {
-                    components_count++;
-                    if (components[i] == null)
-                    {
-                        missing_count++;
-                        var s = g.name;
-                        var t = g.transform;
-                        while (t.parent != null)
-                        {
-                            s = t.parent.name + "/" + s;
-                            t = t.parent;
-                        }
-
-                        Debug.Log(s + " has an empty script attached in position: " + i, g);
-                        GameObjectUtility.RemoveMonoBehavioursWithMissingScript(g.gameObject);
-                        // DestroyImmediate(components[i]); // Uncomment this to also remove the missing script
-                    }
+                    missing_count += result;
+                    Debug.Log(string.Format("GameObject {0} has {1} missing scripts", g.name, result), g);
                 }
+                
             }
 
             Debug.Log(string.Format("Searched {0} GameObjects, {1} components, found {2} missing", go_count,

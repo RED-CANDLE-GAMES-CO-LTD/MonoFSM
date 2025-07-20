@@ -121,7 +121,7 @@ namespace MonoFSM.Foundation
 
         protected abstract string DescriptionTag { get; }
 
-        [InfoBox("$Description", InfoMessageType.Info)]
+        [InfoBox("$Description")]
         [HideInInlineEditors]
         [Button]
         protected void Rename()

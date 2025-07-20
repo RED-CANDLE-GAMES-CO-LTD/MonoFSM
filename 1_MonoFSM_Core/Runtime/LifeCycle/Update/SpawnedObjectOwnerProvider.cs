@@ -10,7 +10,7 @@ using UnityEngine;
 namespace MonoFSMCore.Runtime.LifeCycle
 {
     //FIXME: 好像很trivial, 不好懂
-    public class SpawnedObjectOwnerProvider : MonoBehaviour, IBlackboardProvider, ICompProvider<MonoBlackboard>
+    public class SpawnedObjectOwnerProvider : MonoBehaviour, IMonoEntityProvider, ICompProvider<MonoBlackboard>
     {
         [Required] [ShowInInspector] [AutoParent]
         private IMonoObjectProvider _monoObjectProvider; //我就是自己了...不行？

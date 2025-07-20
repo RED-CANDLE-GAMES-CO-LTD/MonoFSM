@@ -264,24 +264,14 @@ namespace MonoFSM.Runtime
             //     }
         }
 
-        // [PreviewInInspector]
-        // [Component]
-        // [AutoChildren]
-        // RCGVariableFolder _variableFolder; //需要這個嗎？
-        //
-        // public RCGVariableFolder VariableFolder
-        // {
-        //     get
-        //     {
-        //         #if UNITY_EDITOR
-        //         if(Application.isPlaying == false)
-        //             _variableFolder = GetComponentInChildren<RCGVariableFolder>();
-        //         #endif
-        //         
-        //         return _variableFolder;
-        //     }
-        // }
-
+        public IEnumerable<ValueDropdownItem<VariableTag>> GetVarTagOptions()
+        {
+            var tagDropdownItems = new List<ValueDropdownItem<VariableTag>>();
+            foreach (var variable in VariableFolder.GetValues)
+                tagDropdownItems.Add(new ValueDropdownItem<VariableTag>(variable.name, variable._varTag));
+            return tagDropdownItems;
+        }        
+    
         //繼承MonoDescriptable的class，可以透過這個方法來將所有的variable field mapping到VariableFolder
         private FieldInfo[] _variableFields;
 

@@ -8,7 +8,7 @@ namespace MonoFSM.Core.Runtime
     //這個也是 IBlackboardProvider的一種，會打架？
     //這個不該繼承VariableProviderRef？應該自己獨立？
 
-    public class VarBlackboardRef : VariableProviderRef<VarEntity, MonoBlackboard>, IBlackboardProvider
+    public class VarMonoEntityRef : VariableProviderRef<VarEntity, MonoBlackboard>, IMonoEntityProvider
     {
         public MonoBlackboard Blackboard => Value;
         public MonoEntityTag entityTag => Value?.Tag;

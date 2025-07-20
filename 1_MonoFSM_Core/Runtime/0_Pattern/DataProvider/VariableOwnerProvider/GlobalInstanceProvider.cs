@@ -10,7 +10,7 @@ namespace MonoFSM.Core.Runtime
     /// <summary>
     /// 提供 Global Instance 的 Provider，參考 ParentBlackboardProvider 的實作方式
     /// </summary>
-    public class GlobalInstanceProvider : MonoBehaviour, IBlackboardProvider
+    public class GlobalInstanceProvider : MonoBehaviour, IMonoEntityProvider
     {
         [Required]
         [SerializeField] private MonoEntityTag _monoEntityTag;

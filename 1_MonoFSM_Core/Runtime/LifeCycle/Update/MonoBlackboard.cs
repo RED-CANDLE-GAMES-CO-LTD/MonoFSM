@@ -116,19 +116,22 @@ namespace MonoFSM.Runtime.Variable
         [Component] [PreviewInInspector] [AutoChildren]
         private VariableFolder _variableFolder;
 
+        //從一開始就應該做getter?? 然後用attribute來標記怎麼做的？ 像是[Networked]掛在getter上面？
         public VariableFolder VariableFolder
         {
             get
             {
-#if UNITY_EDITOR
-                if (Application.isPlaying == false && _variableFolder == null)
-                    _variableFolder = GetComponentInChildren<VariableFolder>();
-                // Debug.Log("VariableFolder is null, try to find it in children", this);
-#endif
-                if (Application.isPlaying && _variableFolder == null)
-                    Debug.LogError(
-                        "VariableFolder is null, please ensure it is assigned in the inspector or added as a child component.",
-                        this);
+                this.EnsureComponentInChildren(ref _variableFolder);
+// #if UNITY_EDITOR
+//                 
+//                 if (Application.isPlaying == false && _variableFolder == null)
+//                     _variableFolder = GetComponentInChildren<VariableFolder>();
+//                 // Debug.Log("VariableFolder is null, try to find it in children", this);
+// #endif
+//                 if (Application.isPlaying && _variableFolder == null)
+//                     Debug.LogError(
+//                         "VariableFolder is null, please ensure it is assigned in the inspector or added as a child component.",
+//                         this);
                 return _variableFolder;
             }
         }

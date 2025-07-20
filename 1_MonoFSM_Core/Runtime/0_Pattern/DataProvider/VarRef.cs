@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Utilities;
+using MonoFSM.Runtime;
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -15,16 +17,16 @@ namespace MonoFSM.Core.DataProvider
 
         #region Local Variable Reference
 
-        [OnValueChanged(nameof(OnAssignDirectVar))]
-        [PropertyOrder(-1)]
-        [DropDownRef] //FIXME: 有tag的話就不需要 Required 了?
-        [SerializeField]
-        private AbstractMonoVariable _monoVariable;
+        // [OnValueChanged(nameof(OnAssignDirectVar))]
+        // [PropertyOrder(-1)]
+        // [DropDownRef] //FIXME: 有tag的話就不需要 Required 了?
+        // [SerializeField]
+        // private AbstractMonoVariable _monoVariable;
 
-        private void OnAssignDirectVar()
-        {
-            if (_monoVariable != null) _varTag = _monoVariable._varTag;
-        }
+        // private void OnAssignDirectVar()
+        // {
+        //     if (_monoVariable != null) _varTag = _monoVariable._varTag;
+        // }
 
         #endregion
 
@@ -39,13 +41,12 @@ namespace MonoFSM.Core.DataProvider
 
         private IEnumerable<ValueDropdownItem<VariableTag>> GetParentVariableTags()
         {
-            return blackboardProvider?.GetParentVariableTags() ?? new List<ValueDropdownItem<VariableTag>>();
+            return entityProvider?.entityTag?.GetVariableTagItems() ?? ParentEntity?.GetVarTagOptions();
         }
 
 
         [ShowInDebugMode]
         [BoxGroup("varTag")]
-        // [InfoBox("Tag Type is wrong", InfoMessageType.Error, nameof(TypeCheckFail))]
         [Required]
         public VariableTag _varTag;
         // private bool TypeCheckFail()
@@ -59,40 +60,42 @@ namespace MonoFSM.Core.DataProvider
         {
             get
             {
-                //FIXME: 這個 editor time很容易是null耶
-                if (blackboardProvider != null)
-                    return blackboardProvider?.Blackboard?.GetVar(_varTag);
-                if (_monoVariable != null)
-                    return _monoVariable;
+                if (entityProvider != null) //這個可以是null...hmmm
+                    return entityProvider?.Blackboard?.GetVar(_varTag);
+
+                // if (_monoVariable != null)
+                //     return _monoVariable;
                 // Debug.LogError("VarRef: No variable found", this);
-                return null;
+                return ParentEntity.GetVar(_varTag); //如果沒有黑板就從parent entity拿
             }
         }
 
-        [Auto] private IBlackboardProvider _blackboardProvider; //不小心忘記加耶白痴
-
-        private IBlackboardProvider blackboardProvider
+        private MonoEntity ParentEntity
         {
             get
             {
-                if (Application.isPlaying)
-                {
-                    if (_blackboardProvider == null && _monoVariable == null)
-                        Debug.LogError("VarRef: 需要修改 No IBlackboardProvider or MonoVariable found", this);
-                    return _blackboardProvider;
-                }
-
-#if UNITY_EDITOR
-                if (_blackboardProvider == null)
-                {
-                    _blackboardProvider = GetComponentInParent<IBlackboardProvider>();
-                    if (_blackboardProvider == null)
-                        Debug.LogError("VarRef: No IBlackboardProvider found in parent", this);
-                }
-#endif
-
-                return _blackboardProvider;
+                this.EnsureComponentInParent(ref _parentEntity);
+                return _parentEntity;
             }
+        }
+
+        [AutoParent] private MonoEntity _parentEntity;
+
+        [CompRef] [Auto] private IMonoEntityProvider _monoEntityProvider;
+
+        private IMonoEntityProvider entityProvider
+        {
+            get
+            {
+                this.EnsureComponent(ref _monoEntityProvider, false); //不一定需要這個物件
+                return _monoEntityProvider;
+            }
+        }
+
+        protected override string DescriptionPreprocess(string text)
+        {
+            if (entityProvider != null) return entityProvider.entityTag?.name + "." + text;
+            return text;
         }
 
         // public override AbstractMonoVariable VarRaw => _monoVariable;
@@ -147,6 +150,6 @@ namespace MonoFSM.Core.DataProvider
         }
 
 
-        public override string Description => VarRaw != null ? VarRaw.ToString() : "VarRef is null";
+        // protected override string DescriptionTag => "varRef";
     }
 }

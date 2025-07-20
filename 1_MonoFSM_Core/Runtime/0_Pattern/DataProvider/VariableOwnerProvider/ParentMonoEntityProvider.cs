@@ -8,7 +8,7 @@ namespace MonoFSM.Core.Runtime
 {
     //Self?
     //改名，這個記不住，OwnerEntity? ParentEntity? 
-    public class ParentBlackboardProvider : MonoBehaviour, IBlackboardProvider
+    public class ParentMonoEntityProvider : MonoBehaviour, IMonoEntityProvider
     {
         //為什麼不會自己撈？
         [Required]

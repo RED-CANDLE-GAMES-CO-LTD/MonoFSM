@@ -46,7 +46,7 @@ namespace MonoFSM.Variable
         // private int _typeMetadataToken;
 
         [ShowInDebugMode] [SerializeField] [ReadOnly]
-        private string _typeFullName; // 用於顯示和驗證
+        private string _typeFullName; // 用於顯示和驗證 //兩種都有？搞屁？
 
         [ShowInDebugMode] [SerializeField] [ReadOnly]
         private string _assemblyName;
@@ -116,8 +116,10 @@ namespace MonoFSM.Variable
             // Debug.Log($"SetType: {_type}");
         }
 
-        [Header("宣告型別：")]
-        [ShowInInspector]
+
+        // [Header("宣告型別：")]
+
+        [ShowInDebugMode]
         // [OnValueChanged(nameof(TypeToString))]
         [TypeSelectorSettings(FilterTypesFunction = nameof(FilterTypes))]
         public Type RestrictType
@@ -173,8 +175,14 @@ namespace MonoFSM.Variable
         [SerializeField]
         private string typeName; //這個是full，太難了？
 
-        
-        public string TypeName => typeName;
+        [ShowInInspector]
+        [HideLabel]
+        [DisplayAsString]
+        public string TypeName
+        {
+            get => _type.Name;
+            private set => throw new NotImplementedException();
+        }
 
         public void OnBeforeSerialize()
         {
