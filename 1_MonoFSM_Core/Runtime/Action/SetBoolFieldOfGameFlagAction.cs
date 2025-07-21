@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using MonoFSM.Core.Runtime.Action;
@@ -6,6 +7,7 @@ using UnityEngine;
 
 namespace MonoFSM.Runtime.Variable.Action
 {
+    [Obsolete("Use AssignValueAction instead")]
     public class SetBoolFieldOfGameFlagAction : AbstractStateAction
     {
         [InlineEditor] public GameFlagBase targetVariable;

@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core
 {
+    //FIXME: use case?
     // 應該是讓 Cache 有生命週期，level 層的 cache 和 application 層的 cache, 這樣 level 層的 cache 被刪掉的時候就整個一起刪掉
     public interface ILevelProvider<K, V> where V : Component where K : Component
     {
@@ -13,9 +12,9 @@ namespace MonoFSM.Core
     }
 
     // 把資料放在物件上，不要中心化就沒有反註冊這個問題了
-    public class Cache<K, V> where V : Component where K : Component
+    public class Cache<TK, TV> where TV : Component where TK : Component
     {
-        private readonly Dictionary<K, List<V>> cache = new();
+        private readonly Dictionary<TK, List<TV>> cache = new();
 
         public void Clear()
         {
@@ -26,7 +25,7 @@ namespace MonoFSM.Core
         {
             try
             {
-                var invalidPairs = new List<KeyValuePair<K, List<V>>>();
+                var invalidPairs = new List<KeyValuePair<TK, List<TV>>>();
                 foreach (var pair in cache)
                 {
                     if (pair.Key == null)
@@ -68,10 +67,10 @@ namespace MonoFSM.Core
         }
 
 
-        public void Add(K key, V value, ILevelProvider<K, V> levelProvider = null)
+        public void Add(TK key, TV value, ILevelProvider<TK, TV> levelProvider = null)
         {
             //不要擋掉null喔
-            if (!cache.ContainsKey(key)) cache.Add(key, new List<V>());
+            if (!cache.ContainsKey(key)) cache.Add(key, new List<TV>());
             cache[key].Add(value);
             //TODO:要找key or value的owner? 註冊到LevelProvider? 當LevelProvider被刪掉的時候要清掉dictionary
             if (levelProvider != null)
@@ -79,13 +78,13 @@ namespace MonoFSM.Core
         }
 
 
-        public List<V> Get(K key) 
+        public List<TV> Get(TK key) 
             => cache.GetValueOrDefault(key);
 
-        public bool Has(K key) 
+        public bool Has(TK key) 
             => cache.ContainsKey(key);
 
-        public void Remove(K key, V value)
+        public void Remove(TK key, TV value)
         {
             if (cache.ContainsKey(key))
             {
@@ -94,7 +93,7 @@ namespace MonoFSM.Core
             }
         }
 
-        public void RemoveAll(K key) 
+        public void RemoveAll(TK key) 
             => cache.Remove(key);
     }
 }

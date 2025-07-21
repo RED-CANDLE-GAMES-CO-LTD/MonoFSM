@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace InputExtension
 {
-    public static class RCGInput
+    public static class MonoInput
     {
         private static bool isCursorVisible
         {

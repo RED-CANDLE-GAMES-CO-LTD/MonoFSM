@@ -4,7 +4,7 @@ using UnityEngine;
 namespace MonoFSM.Core
 {
     //IReferenceProvider?
-    public interface IValueProvider //這個是不是太粗啊？
+    public interface IValueProvider
     {
         //FIXME: 這個有點討厭...
         // object GetValue { get; } //無法避免boxing, 不該存在？

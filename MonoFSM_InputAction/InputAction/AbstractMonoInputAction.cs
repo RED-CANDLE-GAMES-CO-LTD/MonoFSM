@@ -17,6 +17,7 @@ namespace MonoFSM_InputAction
     }
 
     //要叫什麼名字？
+    //抽象的input介面
     public class AbstractMonoInputAction : MonoBehaviour //不要綁定 InputSystem?
     {
         [CompRef] [Auto] private IMonoInputAction _abstractMonoInputAction;

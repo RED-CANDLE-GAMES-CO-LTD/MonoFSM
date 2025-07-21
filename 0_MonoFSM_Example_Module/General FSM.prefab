@@ -151,6 +151,719 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _enableLogging: 0
+--- !u!1 &2129574344856500652
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3254448036623600880}
+  - component: {fileID: 5446345422080395625}
+  m_Layer: 0
+  m_Name: cache
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3254448036623600880
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2129574344856500652}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 873855735939457434}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5446345422080395625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2129574344856500652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de5f1786820a480b903ebcf740c17c33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _restoreAtAwake: 1
+  _monoReferenceCache:
+    lastUpdateTime:
+      m_ticks: 638884475501035120
+    monoValueCaches:
+    - fieldCaches:
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoEntity
+        fieldName: _dealers
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoEntity
+        fieldName: _receivers
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoEntity
+        fieldName: _variableFolder
+        valueArray: []
+        value: {fileID: 3416425071146600925}
+      TargetMb: {fileID: 2870840079908465395}
+      TargetMbName: Foo Prefab FSM Variant
+    - fieldCaches:
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoPoolObj
+        fieldName: _sceneAwakes
+        valueArray:
+        - {fileID: 2870840079908465395}
+        - {fileID: 3416425071146600925}
+        value: {fileID: 0}
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoPoolObj
+        fieldName: _sceneStarts
+        valueArray:
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoPoolObj
+        fieldName: _sceneDestroys
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoPoolObj
+        fieldName: _resetStateRestores
+        valueArray:
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoPoolObj
+        fieldName: _resetStarts
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoPoolObj
+        fieldName: _instantiateds
+        valueArray:
+        - {fileID: 2870840079908465395}
+        value: {fileID: 0}
+      - targetName: Foo Prefab FSM Variant
+        typeName: MonoPoolObj
+        fieldName: _updateSimulates
+        valueArray:
+        - {fileID: 2870840079908465395}
+        value: {fileID: 0}
+      TargetMb: {fileID: 4819980146996288446}
+      TargetMbName: Foo Prefab FSM Variant
+    - fieldCaches:
+      - targetName: Variables
+        typeName: VariableFolder
+        fieldName: _collections
+        valueArray:
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: Variables
+        typeName: VariableFolder
+        fieldName: _collections
+        valueArray:
+        - {fileID: 0}
+        - {fileID: 0}
+        - {fileID: 0}
+        value: {fileID: 0}
+      TargetMb: {fileID: 3416425071146600925}
+      TargetMbName: Variables
+    - fieldCaches:
+      - targetName: isApplyingEffect
+        typeName: VarBool
+        fieldName: _modifiers
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: isApplyingEffect
+        typeName: VarBool
+        fieldName: _modifiers
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: isApplyingEffect
+    - fieldCaches:
+      - targetName: FooEnergy
+        typeName: VarFloat
+        fieldName: _modifiers
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: FooEnergy
+        typeName: VarFloat
+        fieldName: _modifiers
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: FooEnergy
+    - fieldCaches:
+      - targetName: States
+        typeName: StateMachineLogic
+        fieldName: _stateMachineController
+        valueArray: []
+        value: {fileID: 4988702094416698374}
+      TargetMb: {fileID: 2054098507518886308}
+      TargetMbName: States
+    - fieldCaches:
+      - targetName: States
+        typeName: MonoFSMOwner
+        fieldName: _states
+        valueArray:
+        - {fileID: 4377014297404095105}
+        - {fileID: 4920970186908325163}
+        - {fileID: 0}
+        - {fileID: 0}
+        value: {fileID: 0}
+      TargetMb: {fileID: 1973556432026734445}
+      TargetMbName: States
+    - fieldCaches:
+      - targetName: '[State] init '
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] init '
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] init '
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] init '
+        typeName: GeneralState
+        fieldName: _transitions
+        valueArray:
+        - {fileID: 3763308402822794965}
+        value: {fileID: 0}
+      - targetName: '[State] init '
+        typeName: GeneralState
+        fieldName: _renderActions
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[State] init '
+        typeName: GeneralState
+        fieldName: _lifeCycleHandlers
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 4377014297404095105}
+      TargetMbName: '[State] init '
+    - fieldCaches:
+      - targetName: '[Transition] => idle'
+        typeName: StateTransition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Transition] => idle'
+        typeName: StateTransition
+        fieldName: _conditions
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Transition] => idle'
+        typeName: StateTransition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Transition] => idle'
+        typeName: StateTransition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Transition] => idle'
+        typeName: StateTransition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      TargetMb: {fileID: 3763308402822794965}
+      TargetMbName: '[Transition] => idle'
+    - fieldCaches:
+      - targetName: '[State] idle'
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] idle'
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] idle'
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] idle'
+        typeName: GeneralState
+        fieldName: _transitions
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: '[State] idle'
+        typeName: GeneralState
+        fieldName: _renderActions
+        valueArray:
+        - {fileID: 5010657810671805049}
+        value: {fileID: 0}
+      - targetName: '[State] idle'
+        typeName: GeneralState
+        fieldName: _onStateEnter
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[State] idle'
+        typeName: GeneralState
+        fieldName: _lifeCycleHandlers
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 4920970186908325163}
+      TargetMbName: '[State] idle'
+    - fieldCaches:
+      - targetName: '[Anim]  Animator: Idle'
+        typeName: AnimatorPlayAction
+        fieldName: _stateBehaviour
+        valueArray: []
+        value: {fileID: 4920970186908325163}
+      - targetName: '[Anim]  Animator: Idle'
+        typeName: AnimatorPlayAction
+        fieldName: _animatorPlayActionModule
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Anim]  Animator: Idle'
+        typeName: AnimatorPlayAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Anim]  Animator: Idle'
+        typeName: AnimatorPlayAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      TargetMb: {fileID: 5010657810671805049}
+      TargetMbName: '[Anim]  Animator: Idle'
+    - fieldCaches:
+      - targetName: '[Transition] => Applying Effect'
+        typeName: StateTransition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Transition] => Applying Effect'
+        typeName: StateTransition
+        fieldName: _conditions
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: '[Transition] => Applying Effect'
+        typeName: StateTransition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Transition] => Applying Effect'
+        typeName: StateTransition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Transition] => Applying Effect'
+        typeName: StateTransition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[Transition] => Applying Effect'
+    - fieldCaches:
+      - targetName: '[Condition] isApplyingEffect == True'
+        typeName: VarBoolValueCondition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Condition] isApplyingEffect == True'
+        typeName: VarBoolValueCondition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Condition] isApplyingEffect == True'
+        typeName: VarBoolValueCondition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Condition] isApplyingEffect == True'
+        typeName: VarBoolValueCondition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[Condition] isApplyingEffect == True'
+    - fieldCaches:
+      - targetName: OnStateEnterHandler
+        typeName: OnStateEnterHandler
+        fieldName: _eventReceivers
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: OnStateEnterHandler
+        typeName: OnStateEnterHandler
+        fieldName: _eventReceivers
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: OnStateEnterHandler
+    - fieldCaches:
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: SetTransformParentAction
+        fieldName: bindingState
+        valueArray: []
+        value: {fileID: 4920970186908325163}
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: SetTransformParentAction
+        fieldName: _actionParent
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: SetTransformParentAction
+        fieldName: _conditions
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: SetTransformParentAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: SetTransformParentAction
+        fieldName: bindingState
+        valueArray: []
+        value: {fileID: 4920970186908325163}
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: SetTransformParentAction
+        fieldName: _actionParent
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: SetTransformParentAction
+        fieldName: _conditions
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: SetTransformParentAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: SetTransformParentAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[Action] SetTransformParentAction'
+    - fieldCaches:
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: VarBlackboardRef
+        fieldName: _blackboardProvider
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[Action] SetTransformParentAction'
+    - fieldCaches:
+      - targetName: '[Action] SetTransformParentAction'
+        typeName: VarCompProviderRef
+        fieldName: _blackboardProvider
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[Action] SetTransformParentAction'
+    - fieldCaches:
+      - targetName: '[State] Applying Effect'
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] Applying Effect'
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] Applying Effect'
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] Applying Effect'
+        typeName: GeneralState
+        fieldName: _transitions
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: '[State] Applying Effect'
+        typeName: GeneralState
+        fieldName: _renderActions
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: '[State] Applying Effect'
+        typeName: GeneralState
+        fieldName: _onStateEnter
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[State] Applying Effect'
+        typeName: GeneralState
+        fieldName: _onStateUpdate
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[State] Applying Effect'
+        typeName: GeneralState
+        fieldName: _lifeCycleHandlers
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[State] Applying Effect'
+    - fieldCaches:
+      - targetName: '[Anim]  Animator: Idle'
+        typeName: AnimatorPlayAction
+        fieldName: _stateBehaviour
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Anim]  Animator: Idle'
+        typeName: AnimatorPlayAction
+        fieldName: _animatorPlayActionModule
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Anim]  Animator: Idle'
+        typeName: AnimatorPlayAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Anim]  Animator: Idle'
+        typeName: AnimatorPlayAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[Anim]  Animator: Idle'
+    - fieldCaches:
+      - targetName: OnStateEnterHandler
+        typeName: OnStateEnterHandler
+        fieldName: _eventReceivers
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: OnStateEnterHandler
+        typeName: OnStateEnterHandler
+        fieldName: _eventReceivers
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: OnStateEnterHandler
+    - fieldCaches:
+      - targetName: OnStateUpdateHandler
+        typeName: OnStateUpdateHandler
+        fieldName: _eventReceivers
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: OnStateUpdateHandler
+        typeName: OnStateUpdateHandler
+        fieldName: _eventReceivers
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: OnStateUpdateHandler
+    - fieldCaches:
+      - targetName: '[Transition] => Despawn'
+        typeName: TransitionBehaviour
+        fieldName: _conditions
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: '[Transition] => Despawn'
+        typeName: TransitionBehaviour
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Transition] => Despawn'
+        typeName: TransitionBehaviour
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Transition] => Despawn'
+        typeName: TransitionBehaviour
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[Transition] => Despawn'
+    - fieldCaches:
+      - targetName: '[Condition] StateTimeUpCondition'
+        typeName: StateTimeUpCondition
+        fieldName: _parentState
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Condition] StateTimeUpCondition'
+        typeName: StateTimeUpCondition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Condition] StateTimeUpCondition'
+        typeName: StateTimeUpCondition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Condition] StateTimeUpCondition'
+        typeName: StateTimeUpCondition
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[Condition] StateTimeUpCondition'
+    - fieldCaches:
+      - targetName: '[State] Despawn'
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] Despawn'
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] Despawn'
+        typeName: GeneralState
+        fieldName: _context
+        valueArray: []
+        value: {fileID: 2054098507518886308}
+      - targetName: '[State] Despawn'
+        typeName: GeneralState
+        fieldName: _transitions
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[State] Despawn'
+        typeName: GeneralState
+        fieldName: _renderActions
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[State] Despawn'
+        typeName: GeneralState
+        fieldName: _onStateEnter
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[State] Despawn'
+        typeName: GeneralState
+        fieldName: _lifeCycleHandlers
+        valueArray: []
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[State] Despawn'
+    - fieldCaches:
+      - targetName: OnStateEnterHandler
+        typeName: OnStateEnterHandler
+        fieldName: _eventReceivers
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      - targetName: OnStateEnterHandler
+        typeName: OnStateEnterHandler
+        fieldName: _eventReceivers
+        valueArray:
+        - {fileID: 0}
+        value: {fileID: 0}
+      TargetMb: {fileID: 0}
+      TargetMbName: OnStateEnterHandler
+    - fieldCaches:
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: _poolObject
+        valueArray: []
+        value: {fileID: 4819980146996288446}
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: bindingState
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: _actionParent
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: _conditions
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: bindingState
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: _actionParent
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: _conditions
+        valueArray: []
+        value: {fileID: 0}
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      - targetName: '[Action] ReturnToPoolAction'
+        typeName: ReturnToPoolAction
+        fieldName: _self
+        valueArray: []
+        value: {fileID: 2870840079908465395}
+      TargetMb: {fileID: 0}
+      TargetMbName: '[Action] ReturnToPoolAction'
+    RootObj: {fileID: 4082089536309548135}
+    CachedMonoBehaviours:
+    - {fileID: 2870840079908465395}
+    - {fileID: 4819980146996288446}
+    - {fileID: 3416425071146600925}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 2054098507518886308}
+    - {fileID: 1973556432026734445}
+    - {fileID: 4377014297404095105}
+    - {fileID: 3763308402822794965}
+    - {fileID: 4920970186908325163}
+    - {fileID: 5010657810671805049}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  _prefabRoot: {fileID: 4082089536309548135}
 --- !u!1 &3801494400675193616
 GameObject:
   m_ObjectHideFlags: 0
@@ -219,6 +932,7 @@ Transform:
   - {fileID: 199713319535136511}
   - {fileID: 4778143190040884346}
   - {fileID: 2827814410462917981}
+  - {fileID: 3254448036623600880}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3443555521515398386

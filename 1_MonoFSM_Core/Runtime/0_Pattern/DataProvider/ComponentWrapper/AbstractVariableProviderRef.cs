@@ -139,7 +139,8 @@ namespace MonoFSM.Core.DataProvider
         {
             get
             {
-                if (!HasFieldPath) return varTag.name;
+                if (!HasFieldPath)
+                    return varTag.name;
                 
                 var fieldPath = string.Join(".", _pathEntries.Select(e => e.fieldName ?? "未選擇"));
                 return $"{varTag.name}.{fieldPath}";

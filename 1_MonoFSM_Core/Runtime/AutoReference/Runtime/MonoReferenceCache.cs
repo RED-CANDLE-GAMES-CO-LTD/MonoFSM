@@ -7,15 +7,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-public interface IEditorOnly
-{
-}
 
-public interface IBeforeBuild //auto也要清掉/不要gen, 再strip時去把auto cache
-{
-    public GameObject gameObject { get; }
-    public void OnBeforeBuild();
-}
 namespace Auto_Attribute.Runtime
 {
     public static class FieldCache
