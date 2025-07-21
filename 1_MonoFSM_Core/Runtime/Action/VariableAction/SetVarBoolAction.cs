@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using jerryee.UnityMCP;
 using MonoFSM.Core.Runtime.Action;
-using MonoFSM.Variable;
 using MonoFSM.Runtime.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -59,7 +57,6 @@ namespace MonoFSM.Variable
 
         [FormerlySerializedAs("_targetFlag")]
         [FormerlySerializedAs("targetFlag")]
-        [MCPExtractable]
         [DropDownRef]
         [ValueDropdown(nameof(GetVariables))]
         // [InlineEditor]
@@ -71,7 +68,8 @@ namespace MonoFSM.Variable
         //FIXME: Multiple的話另外寫SetVariableComplexAction, 直接用VariableProviderList之類的好了？
         // [ShowIf("Multiple")] public List<VarBool> targetFlags;
 
-        [MCPExtractable] public bool TargetValue = true;
+        // [MCPExtractable] 
+        public bool TargetValue = true;
 
         // public bool Multiple = false;
 

@@ -1,6 +1,6 @@
 using System;
 using System.Diagnostics;
-using RCGSetting;
+using MonoDebugSetting;
 using UnityEngine;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;

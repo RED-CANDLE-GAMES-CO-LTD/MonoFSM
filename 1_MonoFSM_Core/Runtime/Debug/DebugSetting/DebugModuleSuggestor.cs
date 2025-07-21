@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 // using QFSW.QC;
 //FIXME: 要有Quantom Console的才能用
-namespace RCGSetting
+namespace MonoDebugSetting
 {
     // public struct DebugModuleTag : IQcSuggestorTag
     // {

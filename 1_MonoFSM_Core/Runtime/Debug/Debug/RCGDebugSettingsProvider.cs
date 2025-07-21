@@ -7,7 +7,7 @@ using UnityEditor;
 // using UnityEditor.SettingsManagement;
 using UnityEngine;
 
-namespace RCGSetting
+namespace MonoDebugSetting
 {
 
 #if UNITY_EDITOR
@@ -17,7 +17,7 @@ namespace RCGSetting
         //         : base(RCGDebugSetting.settings, key, value, SettingsScope.User) { }
         // }
 
-        public static class RCGDebugSetting
+        public static class MonoFSMDebugSetting
         {
             // public static Settings settings = new Settings("com.rcg.debug", "RCGDebugSetting");
             // [UserSetting("User-specific preferences", 
@@ -51,10 +51,11 @@ namespace RCGSetting
             private static void ToggleDebugMode()
             {
                 // RCGDebugSetting.IsDebugMode.SetValue(!RCGDebugSetting.IsDebugMode.value);
-                RCGDebugSetting.IsDebugMode = !RCGDebugSetting.IsDebugMode;
-                HierarchyDebug.IsDebugMode = RCGDebugSetting.IsDebugMode;
-                EditorPrefs.SetBool("DebugSetting.IsDebugMode", RCGDebugSetting.IsDebugMode);
-                Debug.Log("ToggleDebugMode: "+ RCGDebugSetting.IsDebugMode + " " + EditorPrefs.GetBool("DebugSetting.IsDebugMode",false));
+                MonoFSMDebugSetting.IsDebugMode = !MonoFSMDebugSetting.IsDebugMode;
+                HierarchyDebug.IsDebugMode = MonoFSMDebugSetting.IsDebugMode;
+                EditorPrefs.SetBool("DebugSetting.IsDebugMode", MonoFSMDebugSetting.IsDebugMode);
+                Debug.Log("ToggleDebugMode: " + MonoFSMDebugSetting.IsDebugMode + " " +
+                          EditorPrefs.GetBool("DebugSetting.IsDebugMode", false));
                 EditorApplication.RepaintHierarchyWindow();
             }
 

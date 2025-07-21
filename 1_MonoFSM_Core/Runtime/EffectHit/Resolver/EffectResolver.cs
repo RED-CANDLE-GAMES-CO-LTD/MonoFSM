@@ -1,5 +1,4 @@
 using System;
-using jerryee.UnityMCP;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable.Attributes;
 using RCGExtension;
@@ -8,6 +7,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 #endif
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace MonoFSM.Runtime.Interact.EffectHit
 {
@@ -26,13 +26,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [Button]
         private void Rename()
         {
-            name = "[" + TypeTag + "]" + EffectType.name.Replace("[EffectType]", "");
+            name = "[" + TypeTag + "]" + _effectType.name.Replace("[EffectType]", "");
         }
 
         protected abstract string TypeTag { get; }
 
-        [MCPExtractable] [Required] [SOConfig("GeneralEffectType")]
-        public GeneralEffectType EffectType;
+
+        [FormerlySerializedAs("EffectType")] [Required] [SOConfig("GeneralEffectType")]
+        public GeneralEffectType _effectType;
         // public IEffectType getEffectType => EffectType;
 
         [Required] [Component] [AutoChildren(DepthOneOnly = true)] [PreviewInInspector]

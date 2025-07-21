@@ -6,7 +6,7 @@ using UnityEditor;
 #endif
 
 
-namespace RCGSetting
+namespace MonoDebugSetting
 {
 #if UNITY_EDITOR
     [InitializeOnLoad]
@@ -227,7 +227,7 @@ get => false;
         {
             //FIXME: 怎麼從這邊拿...
 #if UNITY_EDITOR
-            get => RCGDebugSetting.IsDebugMode;
+            get => MonoFSMDebugSetting.IsDebugMode;
 #else
             get => false;
 #endif

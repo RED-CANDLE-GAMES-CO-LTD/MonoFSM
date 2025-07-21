@@ -1,7 +1,5 @@
 using System;
-using jerryee.UnityMCP;
 using MonoFSM.Variable;
-using MonoFSM.Variable.Attributes;
 
 namespace MonoFSM.Core.Runtime.Action.VariableAction
 {
@@ -15,7 +13,7 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
             Max
         }
 
-        [MCPExtractable] [DropDownRef] public VarFloat _targetVar;
+        [DropDownRef] public VarFloat _targetVar;
         public BoundType _boundType = BoundType.Max;
 
         protected override void OnActionExecuteImplement()

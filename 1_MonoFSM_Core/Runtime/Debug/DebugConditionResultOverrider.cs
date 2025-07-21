@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace RCGSetting
+namespace MonoDebugSetting
 {
     //強迫改condition的值
     public class DebugConditionResultOverrider : MonoBehaviour

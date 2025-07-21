@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace RCGSetting
+namespace MonoDebugSetting
 {
     /// <summary>
     /// 應該用ConditionActivator配合IsDebugModeCondition?

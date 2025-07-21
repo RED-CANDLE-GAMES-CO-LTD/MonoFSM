@@ -1,9 +1,8 @@
 using UnityEngine.Serialization;
-
 using Sirenix.OdinInspector;
-
 using MonoFSM.Condition;
-using jerryee.UnityMCP;
+
+// using jerryee.UnityMCP;
 
 namespace MonoFSM.Variable.Condition
 {
@@ -21,7 +20,7 @@ namespace MonoFSM.Variable.Condition
 
 
         [FormerlySerializedAs("_monoVariableBool")]
-        [MCPExtractable]
+        // [MCPExtractable]
         [OnValueChanged(nameof(OnVariableChanged))]
         [FormerlySerializedAs("variableBool")]
         [DropDownRef]

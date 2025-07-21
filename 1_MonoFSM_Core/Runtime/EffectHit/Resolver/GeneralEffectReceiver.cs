@@ -41,7 +41,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         }
 
         //收到事件後，叫下面的action做事
-        public IEffectType getEffectType => EffectType;
+        public IEffectType getEffectType => _effectType;
 
         //FIXME: rename to OnHitEnter
         public void OnEffectHitEnter(IEffectHitData data, DetectData detectData) //這裡是code定義

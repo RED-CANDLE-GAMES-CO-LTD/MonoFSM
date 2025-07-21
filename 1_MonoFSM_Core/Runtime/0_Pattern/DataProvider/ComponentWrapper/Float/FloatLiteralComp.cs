@@ -1,11 +1,7 @@
 using System;
 using System.Globalization;
-using jerryee.UnityMCP;
 using MonoFSM.Foundation;
-using MonoFSM.Core;
 using MonoFSM.Core.DataProvider;
-using Sirenix.OdinInspector;
-using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace MonoFSM.DataProvider
@@ -13,7 +9,7 @@ namespace MonoFSM.DataProvider
     //FloatConstant?
     public class FloatLiteralComp : AbstractDescriptionBehaviour, IFloatProvider
     {
-        [MCPExtractable]
+        // [MCPExtractable]
         [FormerlySerializedAs("literal")] public float _literal;
 
         public float GetFloat()

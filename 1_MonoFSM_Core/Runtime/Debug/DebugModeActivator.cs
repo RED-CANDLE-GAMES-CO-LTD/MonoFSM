@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using MonoFSM.Core.Attributes;
-using RCGSetting;
+using MonoDebugSetting;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using RCGSetting;
+using MonoDebugSetting;
 using UnityEditor.Experimental;
 
 namespace Febucci.HierarchyData

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using jerryee.UnityMCP;
 using MonoFSM.Variable.VariableBinder;
 using RCGExtension;
 using MonoFSM.Core;
@@ -10,7 +9,6 @@ using MonoFSM.Core.DataProvider;
 using MonoFSM.VarRefOld;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
@@ -74,7 +72,7 @@ namespace MonoFSM.Variable
         }
 
         [FormerlySerializedAs("varTag")]
-        [MCPExtractable]
+        // [MCPExtractable]
         [OnValueChanged(nameof(UpdateTag))]
         [Header("變數名稱")]
         [PropertyOrder(-1)]

@@ -1,4 +1,3 @@
-using jerryee.UnityMCP;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Core.DataProvider;

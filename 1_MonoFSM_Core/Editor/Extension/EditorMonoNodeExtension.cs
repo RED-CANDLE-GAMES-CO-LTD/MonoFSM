@@ -1,5 +1,5 @@
 using Gizmo;
-using RCGSetting;
+using MonoDebugSetting;
 using Sirenix.Utilities;
 using System;
 using System.Collections.Generic;

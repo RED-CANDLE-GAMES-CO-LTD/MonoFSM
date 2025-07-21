@@ -18,10 +18,10 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             _bindedDealers =
                 FindObjectsByType<GeneralEffectDealer>(FindObjectsInactive.Include, FindObjectsSortMode.None)
-                .Where(v => v.EffectType == this).ToArray();
+                    .Where(v => v._effectType == this).ToArray();
             _bindedReceivers =
                 FindObjectsByType<GeneralEffectReceiver>(FindObjectsInactive.Include, FindObjectsSortMode.None)
-                .Where(v => v.EffectType == this).ToArray();
+                    .Where(v => v._effectType == this).ToArray();
         }
 #endif
     }

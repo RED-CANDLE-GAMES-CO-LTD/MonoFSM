@@ -1,18 +1,14 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
-
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
 #endif
-
-using jerryee.UnityMCP;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.RCGMakerFSMCore.Tracking;
@@ -229,7 +225,7 @@ public abstract class GenericMonoVariable<TScriptableData, TField, TType> : Abst
     [ShowInDebugMode]
     public virtual TType LastValue => Field.LastValue; //FIXME: 這裡沒有過到modifier
 
-    [MCPExtractable]
+    // [MCPExtractable]
     public TType Value
     {
         get => CurrentValue;

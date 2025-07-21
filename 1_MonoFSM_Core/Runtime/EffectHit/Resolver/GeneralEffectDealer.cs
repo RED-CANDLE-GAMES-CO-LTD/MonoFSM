@@ -30,9 +30,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         // [ShowDrawerChain]
         private IVarMonoProvider _proxyProvider;
 
+        
         [PreviewInInspector]
         private GeneralEffectDealer proxyDealer =>
-            _proxyProvider?.Value?.GetDealer(EffectType); //兩個都可以執行耶，那EffectHitData怎麼算呢？ ex: 人dealer耗體力，斧頭dealer耗耐久
+            _proxyProvider?.Value?.GetDealer(_effectType);
+        //互動時，兩個都可以執行耶，那EffectHitData怎麼算呢？ ex: 人dealer耗體力，斧頭dealer耗耐久
 
 
         //FIXME: 要必須有嗎？如果null就表示可以當純偵測器...
@@ -78,7 +80,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
                 return false;
             }
             var r = (GeneralEffectReceiver)receiver;
-            if (r.EffectType != EffectType)
+            if (r._effectType != _effectType)
             {
                 SetFailReason("EffectType mismatch");
                 return false;

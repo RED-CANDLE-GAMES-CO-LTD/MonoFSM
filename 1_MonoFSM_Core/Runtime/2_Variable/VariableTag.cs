@@ -180,7 +180,7 @@ namespace MonoFSM.Variable
         [DisplayAsString]
         public string TypeName
         {
-            get => _type.Name;
+            get => _type?.Name;
             private set => throw new NotImplementedException();
         }
 

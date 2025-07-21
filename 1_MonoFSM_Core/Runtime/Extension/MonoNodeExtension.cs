@@ -5,7 +5,7 @@ using System.Linq;
 using Cysharp.Text;
 using Cysharp.Threading.Tasks;
 using Gizmo;
-using RCGSetting;
+using MonoDebugSetting;
 using Sirenix.Utilities;
 using UnityEditor;
 using UnityEngine;

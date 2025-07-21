@@ -1,13 +1,10 @@
-using jerryee.UnityMCP;
 using MonoFSM.Core.Runtime.Action;
 using UnityEngine;
-using UnityEngine.Serialization;
-
 namespace RCGMakerFSMCore.Runtime.Action.DebugAction
 {
     public class LogAction : AbstractStateAction
     {
-        [MCPExtractable] public string _logMessage = "LogAction";
+        public string _logMessage = "LogAction";
         public bool _isLogInProvider = false;
 
         protected override void OnActionExecuteImplement()

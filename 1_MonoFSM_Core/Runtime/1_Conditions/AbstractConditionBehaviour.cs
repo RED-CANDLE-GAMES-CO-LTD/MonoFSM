@@ -3,7 +3,7 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 using MonoFSM.Core.Attributes;
 using RCGExtension;
-using RCGSetting;
+using MonoDebugSetting;
 using MonoFSM.Variable;
 using MonoFSM.Foundation;
 

@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using RCGSetting;
+using MonoDebugSetting;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;

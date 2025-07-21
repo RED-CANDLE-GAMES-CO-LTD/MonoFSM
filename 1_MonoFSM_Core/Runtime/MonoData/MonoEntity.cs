@@ -242,16 +242,16 @@ namespace MonoFSM.Runtime
                 foreach (var receiver in _receivers)
                 {
                     // _receiverTypeSet.Add(receiver.EffectType);
-                    if (!_receiverTypeMap.TryAdd(receiver.EffectType, receiver))
+                    if (!_receiverTypeMap.TryAdd(receiver._effectType, receiver))
                     {
-                        Debug.Log("Receiver type already exists" + receiver.EffectType, receiver);
+                        Debug.Log("Receiver type already exists" + receiver._effectType, receiver);
                     }
                 }
                     
 
             foreach (var dealer in _dealers)
-                if (_dealerTypeMap.TryAdd(dealer.EffectType, dealer) == false)
-                    Debug.LogWarning($"Dealer {dealer.EffectType} already exists", dealer);
+                if (_dealerTypeMap.TryAdd(dealer._effectType, dealer) == false)
+                    Debug.LogWarning($"Dealer {dealer._effectType} already exists", dealer);
 
             // _dealerTypeMap = _dealers.ToDictionary(dealer => dealer.EffectType);
 
