@@ -17,7 +17,7 @@ namespace MonoFSM.Core.DataProvider
         public abstract AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
 
         // public abstract Type GetValueType { get; }
-        public abstract Type GetVarType { get; }
+        public abstract Type GetObjectType { get; }
 
         public abstract Type ValueType { get; }
         public abstract VariableTag varTag { get; }
@@ -55,7 +55,7 @@ namespace MonoFSM.Core.DataProvider
         {
             // ReflectionUtility.UpdatePathEntryTypes(_pathEntries, GetVarType, _typeRestrict?.SupportedTypes,
             //     _indexInjector);
-            ReflectionUtility.UpdatePathEntryTypes(_pathEntries, GetVarType);
+            ReflectionUtility.UpdatePathEntryTypes(_pathEntries, GetObjectType);
         }
 
         protected bool HasFieldPath => _pathEntries is { Count: > 0 };
@@ -75,7 +75,7 @@ namespace MonoFSM.Core.DataProvider
             // 如果是第一個項目，預設使用 TVarMonoType 作為起始型別
             if (_pathEntries.Count == 0)
             {
-                newEntry.SetSerializedType(GetVarType);
+                newEntry.SetSerializedType(GetObjectType);
             }
             // 如果不是第一個項目，則使用前一個項目的型別
             else
@@ -140,13 +140,12 @@ namespace MonoFSM.Core.DataProvider
             get
             {
                 if (!HasFieldPath)
-                    return varTag.name;
-                
-                var fieldPath = string.Join(".", _pathEntries.Select(e => e.fieldName ?? "未選擇"));
-                return $"{varTag.name}.{fieldPath}";
+                    return GetObjectType.Name;
+
+                var fieldPath = string.Join(".", _pathEntries.Select(e => e.PropertyPath ?? "未選擇"));
+                return $"{GetObjectType.Name}.{fieldPath}";
             }
         }
-
         
         private bool IsFieldPathTypeIncompatible()
         {

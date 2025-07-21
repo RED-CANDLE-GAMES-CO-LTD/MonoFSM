@@ -15,7 +15,7 @@ using Object = UnityEngine.Object;
 namespace MonoFSM.Variable
 {
     public abstract class AbstractMonoVariable : MonoBehaviour, IGuidEntity, IName, IValueOfKey<VariableTag>,
-        IOverrideHierarchyIcon
+        IOverrideHierarchyIcon, IValueProvider
     {
 #if UNITY_EDITOR
         public string IconName { get; }
@@ -88,8 +88,13 @@ namespace MonoFSM.Variable
             // Debug.Log("CreateTagPostProcess" + varTag._variableType.RestrictType + varTag._valueFilterType.RestrictType,
             //     varTag);
         }
-        
-        public abstract Type ValueType { get; }
+
+        public T1 Get<T1>()
+        {
+            return GetValue<T1>();
+        }
+
+        public virtual Type ValueType => _varTag.ValueType;
 
         public abstract object objectValue { get; } //不好？generic value?
 

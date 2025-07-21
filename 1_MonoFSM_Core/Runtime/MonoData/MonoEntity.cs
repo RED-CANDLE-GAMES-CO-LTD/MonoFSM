@@ -28,7 +28,7 @@ namespace MonoFSM.Runtime
     [Searchable]
     [FormerlyNamedAs("MonoDescriptable")]
     public class MonoEntity : AbstractMonoDescriptable<DescriptableData>, IInstantiated,
-        IBeforePrefabSaveCallbackReceiver, IGameDataProvider //這樣data也要一直繼承，好ㄇ...
+        IBeforePrefabSaveCallbackReceiver, IGameDataProvider, IValueProvider //這樣data也要一直繼承，好ㄇ...
     {
         
         //FIXME: nested? MonoEntity dictionary?
@@ -52,6 +52,17 @@ namespace MonoFSM.Runtime
         }
 
         public DescriptableData GameData => Data;
+
+        public T1 Get<T1>()
+        {
+            if (this is T1 t1) return t1;
+
+            Debug.LogError($"Cannot cast {GetType()} to {typeof(T1)}", this);
+            return default;
+        }
+
+        public Type ValueType => GetType();
+        public string Description { get; }
     }
 
     //描述物件的monoNode, Entity? MonoEntity?
@@ -275,7 +286,7 @@ namespace MonoFSM.Runtime
         //繼承MonoDescriptable的class，可以透過這個方法來將所有的variable field mapping到VariableFolder
         private FieldInfo[] _variableFields;
 
-        // [Button("撈出所有變數的tag塞到 DescriptableTags")]
+        //撈出所有變數的tag塞到 DescriptableTags
         protected void FillVarTagsToMonoDescriptableTag()
         {
             if (VariableFolder == null)

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace MonoFSM.Runtime.FSM._3_FlagData
 {
-    [Obsolete]
+    [Obsolete("用datafunction?")]
     [CreateAssetMenu(menuName = "RCG/ItemData")]
     public class ItemData : DescriptableData, IItem
     {

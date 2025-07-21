@@ -33,7 +33,7 @@ namespace MonoFSM.Core.DataProvider
         IVariableProvider, IValueProvider<TValueType> //, IStringProvider,IValueProvider<TValueType>
         where TVarMonoType : AbstractMonoVariable
     {
-        public override Type GetVarType => typeof(TVarMonoType);
+        public override Type GetObjectType => typeof(TVarMonoType);
 
         [OnValueChanged(nameof(OnVarOwnerChange))]
         [TabGroup("Owner Setting")] public GetFromType _getFromType = GetFromType.ParentVarOwner;
@@ -137,7 +137,7 @@ namespace MonoFSM.Core.DataProvider
                         return tagDropdownItems;
                     if (Application.isPlaying)
                     {
-                        var variables = _monoEntityProvider.Blackboard.VariableFolder.GetValues;
+                        var variables = _monoEntityProvider.monoEntity.VariableFolder.GetValues;
                         foreach (var variable in variables)
                             if (variable is TVarMonoType)
                                 tagDropdownItems.Add(
@@ -265,14 +265,14 @@ namespace MonoFSM.Core.DataProvider
                 if (_monoEntityProvider == null)
                     // Debug.LogError("VariableOwnerProvider is null", this);
                     return null;
-                if (_monoEntityProvider.Blackboard == null)
+                if (_monoEntityProvider.monoEntity == null)
                 {
                     if (Application.isPlaying)
                         Debug.LogError("VariableOwnerProvider.GetVariableOwner is null", this);
                     return null;
                 }
 
-                return _monoEntityProvider.Blackboard;
+                return _monoEntityProvider.monoEntity;
             }
 
             if (_blackboardTag != null)
@@ -326,13 +326,13 @@ namespace MonoFSM.Core.DataProvider
 
                     if (_monoEntityProvider == null)
                         return null;
-                    if (_monoEntityProvider.Blackboard == null)
+                    if (_monoEntityProvider.monoEntity == null)
                     {
                         Debug.LogError("_blackboardProvider.Board null", this);
                         return null;
                     }
 
-                    return _monoEntityProvider.Blackboard.GetVar(_varTag);
+                    return _monoEntityProvider.monoEntity.GetVar(_varTag);
                 }
 
                 if (owner == null)
@@ -459,7 +459,7 @@ namespace MonoFSM.Core.DataProvider
                 var str = string.Empty;
                 if (_blackboardTag) str = _blackboardTag.name + ".";
                 str += varTag?.name;
-                if (HasFieldPath) str += "." + string.Join(".", _pathEntries.Select(e => e.fieldName));
+                if (HasFieldPath) str += "." + string.Join(".", _pathEntries.Select(e => e._propertyName));
                 return str;
             }
         }

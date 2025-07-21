@@ -430,8 +430,7 @@ namespace MonoFSM.Variable
         [Obsolete("use _variableTypeTag")]
         [HideInInlineEditors] public MySerializedType<AbstractMonoVariable> _variableType; //我這個variable是什麼型別
 
-        [Obsolete]
-        public MySerializedType<object> _valueFilterType;
+        [Obsolete] public MySerializedType<object> _valueFilterType; //自動化的部分要改成去動tag? 但好像不該動tag?
 
         public Type ValueFilterType => _valueTypeTag?.Type ?? _valueFilterType.RestrictType;
         

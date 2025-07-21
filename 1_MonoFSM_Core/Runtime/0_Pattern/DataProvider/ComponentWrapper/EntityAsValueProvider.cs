@@ -11,14 +11,14 @@ namespace MonoFSM.Core.Runtime
     {
         [CompRef] [Auto] private IMonoEntityProvider _monoEntityProvider;
 
-        public MonoBlackboard Value => _monoEntityProvider.Blackboard;
+        public MonoBlackboard Value => _monoEntityProvider.monoEntity;
 
         public T GetValue<T>()
         {
             if (typeof(T) != typeof(MonoBlackboard))
                 throw new InvalidOperationException("GetValue<T>() can only be used with MonoBlackboard type.");
 
-            return (T)(object)_monoEntityProvider.Blackboard;
+            return (T)(object)_monoEntityProvider.monoEntity;
         }
 
         public Type ValueType => typeof(MonoBlackboard);

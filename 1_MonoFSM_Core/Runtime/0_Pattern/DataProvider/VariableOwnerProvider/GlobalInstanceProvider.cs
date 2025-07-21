@@ -15,12 +15,11 @@ namespace MonoFSM.Core.Runtime
         [Required]
         [SerializeField] private MonoEntityTag _monoEntityTag;
 
-        [PreviewInInspector] 
-        public MonoBlackboard Blackboard => GetBlackboardFromGlobalInstance();
+        [PreviewInInspector] public MonoEntity monoEntity => GetBlackboardFromGlobalInstance();
 
         public MonoEntityTag entityTag => _monoEntityTag;
 
-        private MonoBlackboard GetBlackboardFromGlobalInstance()
+        private MonoEntity GetBlackboardFromGlobalInstance()
         {
             if (_monoEntityTag == null)
             {
@@ -37,8 +36,8 @@ namespace MonoFSM.Core.Runtime
             }
 
             // 如果 instance 是 MonoBlackboard，直接回傳
-            if (instance is MonoBlackboard blackboard)
-                return blackboard;
+            // if (instance is MonoEntity blackboard)
+            //     return blackboard;
 
             // 否則嘗試從 instance 取得 MonoBlackboard component
             return instance;

@@ -56,10 +56,10 @@ namespace MonoFSM.Core.DataProvider
                 //把index注入到pathEntries
                 if (_indexInjector != null && pathEntries[i].IsArray) pathEntries[i].index = _indexInjector.Index;
 
-                if (currentType != null && !string.IsNullOrEmpty(pathEntries[i].fieldName))
+                if (currentType != null && !string.IsNullOrEmpty(pathEntries[i]._propertyName))
                 {
                     // 再嘗試 Property
-                    var prop = currentType.GetProperty(pathEntries[i].fieldName,
+                    var prop = currentType.GetProperty(pathEntries[i]._propertyName,
                         BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                     if (prop != null)
                     {
@@ -99,8 +99,8 @@ namespace MonoFSM.Core.DataProvider
             {
                 if (currentObj == null)
                 {
-                    Debug.LogError($"在 '{entry.fieldName}' 層級遇到 null", this);
-                    return $"在 '{entry.fieldName}' 層級遇到 null";
+                    Debug.LogError($"在 '{entry._propertyName}' 層級遇到 null", this);
+                    return $"在 '{entry._propertyName}' 層級遇到 null";
                 }
 
                 //FIXME: 如果某個type被refactor的時候，serializedType記得東西會爛掉，要重新開Prefab儲存
@@ -109,20 +109,20 @@ namespace MonoFSM.Core.DataProvider
                 //直接從 currentObj 獲取實際的 Type，而不依賴序列化的資料
                 var type = currentObj.GetType();
 
-                if (entry.fieldName == null)
+                if (entry._propertyName == null)
                 {
                     // Debug.LogError("欄位名稱為空", this);
                     return "欄位名稱為空";
                 }
 
-                var getter = GetMemberGetter(type, entry.fieldName);
+                var getter = GetMemberGetter(type, entry._propertyName);
 
                 // 檢查欄位是否已重命名，如果是則更新 entry.fieldName
-                var foundMember = RefactorSafeNameResolver.FindMemberByCurrentOrFormerName(type, entry.fieldName);
-                if (foundMember != null && foundMember.Name != entry.fieldName)
+                var foundMember = RefactorSafeNameResolver.FindMemberByCurrentOrFormerName(type, entry._propertyName);
+                if (foundMember != null && foundMember.Name != entry._propertyName)
                 {
-                    Debug.Log($"欄位 '{entry.fieldName}' 已重命名為 '{foundMember.Name}'，正在更新參考", this);
-                    entry.fieldName = foundMember.Name;
+                    Debug.Log($"欄位 '{entry._propertyName}' 已重命名為 '{foundMember.Name}'，正在更新參考", this);
+                    entry._propertyName = foundMember.Name;
                 }
                 if (getter != null)
                 {
@@ -130,8 +130,8 @@ namespace MonoFSM.Core.DataProvider
                 }
                 else
                 {
-                    Debug.LogError($"在 {i}層 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性" + obj, this);
-                    return $"在 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性";
+                    Debug.LogError($"在 {i}層 {type.Name} 中找不到名稱為 '{entry._propertyName}' 的欄位或屬性" + obj, this);
+                    return $"在 {type.Name} 中找不到名稱為 '{entry._propertyName}' 的欄位或屬性";
                 }
 
                 // Debug.Log("CurrentObj1:" + currentObj, this);
@@ -142,8 +142,8 @@ namespace MonoFSM.Core.DataProvider
                 {
                     if (entry.index < 0 || entry.index >= arr.Length)
                     {
-                        Debug.LogError($"索引 {entry.index} 超出陣列 '{entry.fieldName}' 的範圍 (長度 {arr.Length})", this);
-                        return $"索引 {entry.index} 超出陣列 '{entry.fieldName}' 的範圍 (長度 {arr.Length})";
+                        Debug.LogError($"索引 {entry.index} 超出陣列 '{entry._propertyName}' 的範圍 (長度 {arr.Length})", this);
+                        return $"索引 {entry.index} 超出陣列 '{entry._propertyName}' 的範圍 (長度 {arr.Length})";
                     }
 
                     currentObj = arr.GetValue(entry.index);
@@ -184,7 +184,7 @@ namespace MonoFSM.Core.DataProvider
                 return "null";
             }
 
-            return targetObject.name + "." + string.Join(".", pathEntries.Select(e => e.fieldName));
+            return targetObject.name + "." + string.Join(".", pathEntries.Select(e => e._propertyName));
         }
 
         [Button("Runtime 取得欄位值")]

@@ -1,6 +1,7 @@
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime;
 using MonoFSM.Runtime.Variable;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Runtime.Mono;
@@ -29,7 +30,7 @@ public class HitDataMonoEntityProvider : MonoBehaviour, IMonoEntityProvider //�
 
     public HitDataVariableOwner ownerType;
 
-    public MonoBlackboard Blackboard
+    public MonoEntity monoEntity
     {
         get
         {
@@ -50,24 +51,24 @@ public class HitDataMonoEntityProvider : MonoBehaviour, IMonoEntityProvider //�
                 case HitDataVariableOwner.Dealer:
 
                     Debug.Log(" HitDataVariableOwner.DealerOwner", hitData.Dealer.transform);
-                    return hitData.Dealer.transform.GetComponentInParent<MonoBlackboard>();
+                    return hitData.Dealer.transform.GetComponentInParent<MonoEntity>();
                 case HitDataVariableOwner.Receiver:
                     Debug.Log(" HitDataVariableOwner.ReceiverOwner", hitData.Receiver.transform);
-                    return hitData.Receiver.transform.GetComponentInParent<MonoBlackboard>();
+                    return hitData.Receiver.transform.GetComponentInParent<MonoEntity>();
                 default:
                     throw new System.NotImplementedException();
             }
         }
     }
 
-    public MonoEntityTag entityTag => Blackboard?.Tag;
+    public MonoEntityTag entityTag => monoEntity?.Tag;
 
     [ShowInDebugMode] private IEffectHitData currentHitData => _hitDataProvider?.GetHitData();
     
 
     public T GetComponentOfOwner<T>() //好像有點白痴
     {
-        var owner = Blackboard;
+        var owner = monoEntity;
         if (owner == null)
             return default;
         return owner.gameObject.GetComponent<T>();

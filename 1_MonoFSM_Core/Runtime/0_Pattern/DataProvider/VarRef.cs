@@ -7,6 +7,7 @@ using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.DataProvider
 {
@@ -47,7 +48,7 @@ namespace MonoFSM.Core.DataProvider
 
         [ShowInDebugMode]
         [BoxGroup("varTag")]
-        [Required]
+        // [Required]
         public VariableTag _varTag;
         // private bool TypeCheckFail()
         // {
@@ -55,18 +56,20 @@ namespace MonoFSM.Core.DataProvider
         //     return typeof(TValueType).IsAssignableFrom(_varTag._valueFilterType.RestrictType) == false;
         // }
 
+     
+
         [ShowInPlayMode]
-        public override AbstractMonoVariable VarRaw
+        public override AbstractMonoVariable VarRaw //可以去拿MonoEntity的資料？而不是一定要透過Var?
         {
             get
             {
                 if (entityProvider != null) //這個可以是null...hmmm
-                    return entityProvider?.Blackboard?.GetVar(_varTag);
+                    return entityProvider?.monoEntity?.GetVar(_varTag);
 
                 // if (_monoVariable != null)
                 //     return _monoVariable;
                 // Debug.LogError("VarRef: No variable found", this);
-                return ParentEntity.GetVar(_varTag); //如果沒有黑板就從parent entity拿
+                return ParentEntity?.GetVar(_varTag); //如果沒有黑板就從parent entity拿
             }
         }
 
@@ -100,10 +103,40 @@ namespace MonoFSM.Core.DataProvider
 
         // public override AbstractMonoVariable VarRaw => _monoVariable;
 
-        [PreviewInInspector] public override Type ValueType => !HasFieldPath ? VarRaw?.ValueType : lastPathEntryType;
+        [PreviewInInspector]
+        public override Type ValueType => !HasFieldPath ? GetTarget()?.ValueType : lastPathEntryType;
+
+
+        private IValueProvider GetTarget()
+        {
+            if (_varTag == null)
+            {
+                if (entityProvider != null)
+                    return entityProvider.monoEntity;
+                return ParentEntity;
+            }
+
+            return VarRaw;
+        }
+
 
         // public override Type GetValueType => 
-        public override Type GetVarType => _varTag.VariableMonoType; // VarRaw?.GetType();
+        [PropertyOrder(-1)]
+        [PreviewInInspector]
+        public override Type GetObjectType
+        {
+            get
+            {
+                if (_varTag != null)
+                    return _varTag.ValueType;
+                if (entityProvider != null) return entityProvider.entityTag?._entityType?.RestrictType;
+                if (ParentEntity != null) return ParentEntity.GetType();
+
+                Debug.LogError("VarRef: No target entity or variable tag found.", this);
+                return typeof(object); // 如果沒有找到目標，返回 object 類型
+            }
+        }
+        
         public override VariableTag varTag => _varTag;
 
         public override TVariable GetVar<TVariable>()
@@ -122,12 +155,16 @@ namespace MonoFSM.Core.DataProvider
                 return default;
             }
 
+            var target = GetTarget();
             // 如果沒有設定欄位路徑，直接回傳變數值
             if (!HasFieldPath)
-                return VarRaw.GetValue<T1>();
+            {
+                return target.Get<T1>();
+            }
 
+            // 不選varTag的話就用Entity?
             // 使用欄位路徑存取特定欄位值
-            var fieldValue = ReflectionUtility.GetFieldValueFromPath(VarRaw, _pathEntries, gameObject);
+            var fieldValue = ReflectionUtility.GetFieldValueFromPath(target, _pathEntries, gameObject);
 
             if (fieldValue is T1 tValue) return tValue;
 
@@ -144,8 +181,12 @@ namespace MonoFSM.Core.DataProvider
                             $"無法將欄位值 {fieldValue} (型別: {fieldValue.GetType()}) 轉換為 {typeof(T1)}: {e.Message}",
                             this);
                 }
+            else
+            {
+                return default; //null的時候
+            }
 
-            Debug.LogError($"VarRef: 欄位值為 null 或轉換失敗 Var:{VarRaw}", this);
+            Debug.LogError($"VarRef: 轉換失敗 Var:{target}", this);
             return default;
         }
 

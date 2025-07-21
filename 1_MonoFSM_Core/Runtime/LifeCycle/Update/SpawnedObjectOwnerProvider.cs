@@ -10,13 +10,13 @@ using UnityEngine;
 namespace MonoFSMCore.Runtime.LifeCycle
 {
     //FIXME: 好像很trivial, 不好懂
-    public class SpawnedObjectOwnerProvider : MonoBehaviour, IMonoEntityProvider, ICompProvider<MonoBlackboard>
+    public class SpawnedObjectOwnerProvider : MonoBehaviour, IMonoEntityProvider, ICompProvider<MonoEntity>
     {
         [Required] [ShowInInspector] [AutoParent]
         private IMonoObjectProvider _monoObjectProvider; //我就是自己了...不行？
 
         [PreviewInInspector]
-        public MonoBlackboard Blackboard
+        public MonoEntity monoEntity
         {
             get
             {
@@ -35,20 +35,20 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         public T GetComponentOfOwner<T>()
         {
-            var owner = Blackboard;
+            var owner = monoEntity;
             if (owner == null)
                 return default;
             return owner.gameObject.GetComponent<T>();
         }
 
-        public MonoBlackboard Get()
+        public MonoEntity Get()
         {
-            return Blackboard;
+            return monoEntity;
         }
 
         public object GetValue()
         {
-            return Blackboard;
+            return monoEntity;
         }
 
         public Type ValueType => typeof(MonoBlackboard);

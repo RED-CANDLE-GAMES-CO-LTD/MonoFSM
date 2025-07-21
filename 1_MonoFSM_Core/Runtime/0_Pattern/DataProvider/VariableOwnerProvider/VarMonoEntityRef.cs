@@ -1,4 +1,6 @@
+using System;
 using MonoFSM.Core.DataProvider;
+using MonoFSM.Runtime;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Runtime.Variable;
 using UnityEngine;
@@ -8,9 +10,10 @@ namespace MonoFSM.Core.Runtime
     //這個也是 IBlackboardProvider的一種，會打架？
     //這個不該繼承VariableProviderRef？應該自己獨立？
 
-    public class VarMonoEntityRef : VariableProviderRef<VarEntity, MonoBlackboard>, IMonoEntityProvider
+    [Obsolete]
+    public class VarMonoEntityRef : VariableProviderRef<VarEntity, MonoEntity>, IMonoEntityProvider
     {
-        public MonoBlackboard Blackboard => Value;
+        public MonoEntity monoEntity => Value;
         public MonoEntityTag entityTag => Value?.Tag;
 
         public T GetComponentOfOwner<T>()

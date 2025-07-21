@@ -2,7 +2,6 @@
     "name": "MonoFSM.Core.Runtime",
     "rootNamespace": "",
     "references": [
-        "GUID:c2f440c9fef6c8c40ac5c50eea18c599",
         "GUID:5a99140e5b7ff4b43aa1f06887b3637d",
         "GUID:f51ebe6a0ceec4240a699833d6309b23",
         "GUID:33661e06c33d31b4c9223810bf503247",
@@ -12,7 +11,6 @@
         "GUID:9e24947de15b9834991c9d8411ea37cf",
         "GUID:69448af7b92c7f342b298e06a37122aa",
         "GUID:84651a3751eca9349aac36a66bba901b",
-        "GUID:8bff5c03563749edb926ea99b5e4dea2",
         "GUID:92f5e35d95a2645d3a36426c06255e50",
         "GUID:75469ad4d38634e559750d17036d5f7c"
     ],

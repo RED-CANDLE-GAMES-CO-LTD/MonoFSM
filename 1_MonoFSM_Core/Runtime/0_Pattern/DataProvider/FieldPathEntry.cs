@@ -5,7 +5,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Utilities;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
-using UnityEngine;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.DataProvider
@@ -28,20 +28,46 @@ namespace MonoFSM.Core.DataProvider
         // [NonSerialized] public Type parentType;
         [InlineProperty(LabelWidth = 60)] public MySerializedType<Object> _serializedType; //FIXME: refactor時會爛掉...有點麻煩
 
+#if UNITY_EDITOR
+        [NonSerialized] [PreviewInDebugMode] public object _tempCurrentObject;
+#endif
+        
         public Type GetPropertyType()
         {
-            if (string.IsNullOrEmpty(fieldName)) return null;
+            if (string.IsNullOrEmpty(_propertyName)) return null;
             
             // 使用 ReflectionUtility 的快取機制來提高效率
-            return ReflectionUtility.GetMemberType(parentType, fieldName);
+            var memberType = ReflectionUtility.GetMemberType(parentType, _propertyName);
+
+            if (IsArray && memberType is { IsArray: true })
+                return memberType.GetElementType();
+
+            return memberType;
         }
-        
-        [ValueDropdown(nameof(GetFieldOptions))]
-        public string fieldName;
+
+        [FormerlySerializedAs("fieldName")] [ValueDropdown(nameof(GetFieldOptions))]
+        public string _propertyName;
+
+        public string PropertyPath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_propertyName))
+                    return string.Empty;
+
+                // 如果是陣列，則加上索引
+                if (IsArray)
+                    return $"{_propertyName}[{index}]";
+
+                // 否則只返回欄位名稱
+                return _propertyName;
+            }
+        }
 
         // 當對應的欄位為陣列時，才會顯示 index 欄位
         //FIXME: 不可以編輯？用index注入？
-        [PreviewInInspector] [ShowIf(nameof(IsArray))] [LabelText("Index")]
+        // [PreviewInInspector]
+        [ShowIf(nameof(IsArray))] [LabelText("Index")]
         public int index; //injected index;
 
         private Type parentType => _serializedType.RestrictType; //為什麼叫parentType？
@@ -99,13 +125,15 @@ namespace MonoFSM.Core.DataProvider
         {
             get
             {
-                if (parentType == null || string.IsNullOrEmpty(fieldName))
+                if (parentType == null || string.IsNullOrEmpty(_propertyName))
                     return false;
 
                 // 使用 ReflectionUtility 的快取機制來提高效率
-                var memberType = ReflectionUtility.GetMemberType(parentType, fieldName);
+                var memberType = ReflectionUtility.GetMemberType(parentType, _propertyName);
                 return memberType?.IsArray ?? false;
             }
         }
+
+        public bool _canBeNull;
     }
 }

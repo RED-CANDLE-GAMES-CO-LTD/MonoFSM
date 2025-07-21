@@ -212,6 +212,7 @@ namespace MonoFSM.Core.Utilities
         /// <param name="entries">欄位路徑項目</param>
         /// <param name="logTarget">用於 Debug.Log 的目標物件</param>
         /// <returns>最終欄位值</returns>
+        /// FIXME: 這個會有gc?
         public static object GetFieldValueFromPath(object obj, List<FieldPathEntry> entries, UnityEngine.Object logTarget = null)
         {
             if (obj == null)
@@ -223,23 +224,23 @@ namespace MonoFSM.Core.Utilities
             {
                 if (currentObj == null)
                 {
-                    Debug.LogError($"在 '{entry.fieldName}' 層級遇到 null", logTarget);
-                    return $"在 '{entry.fieldName}' 層級遇到 null";
+                    Debug.LogError($"在 '{entry._propertyName}' 層級遇到 null", logTarget);
+                    return $"在 '{entry._propertyName}' 層級遇到 null";
                 }
 
                 // 直接從 currentObj 獲取實際的 Type，而不依賴序列化的資料
                 var type = currentObj.GetType();
 
-                if (entry.fieldName == null) return "欄位名稱為空";
+                if (entry._propertyName == null) return "欄位名稱為空";
 
-                var getter = GetMemberGetter(type, entry.fieldName);
+                var getter = GetMemberGetter(type, entry._propertyName);
 
                 // 檢查欄位是否已重命名，如果是則更新 entry.fieldName
-                var foundMember = RefactorSafeNameResolver.FindMemberByCurrentOrFormerName(type, entry.fieldName);
-                if (foundMember != null && foundMember.Name != entry.fieldName)
+                var foundMember = RefactorSafeNameResolver.FindMemberByCurrentOrFormerName(type, entry._propertyName);
+                if (foundMember != null && foundMember.Name != entry._propertyName)
                 {
-                    Debug.Log($"欄位 '{entry.fieldName}' 已重命名為 '{foundMember.Name}'，正在更新參考", logTarget);
-                    entry.fieldName = foundMember.Name;
+                    Debug.Log($"欄位 '{entry._propertyName}' 已重命名為 '{foundMember.Name}'，正在更新參考", logTarget);
+                    entry._propertyName = foundMember.Name;
                 }
 
                 if (getter != null)
@@ -248,8 +249,8 @@ namespace MonoFSM.Core.Utilities
                 }
                 else
                 {
-                    Debug.LogError($"在 {i}層 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性" + obj, logTarget);
-                    return $"在 {type.Name} 中找不到名稱為 '{entry.fieldName}' 的欄位或屬性";
+                    Debug.LogError($"在 {i}層 {type.Name} 中找不到名稱為 '{entry._propertyName}' 的欄位或屬性" + obj, logTarget);
+                    return $"在 {type.Name} 中找不到名稱為 '{entry._propertyName}' 的欄位或屬性";
                 }
 
                 // 如果是陣列，取得指定index的element value
@@ -257,16 +258,22 @@ namespace MonoFSM.Core.Utilities
                 {
                     if (entry.index < 0 || entry.index >= arr.Length)
                     {
-                        Debug.LogError($"索引 {entry.index} 超出陣列 '{entry.fieldName}' 的範圍 (長度 {arr.Length})", logTarget);
-                        return $"索引 {entry.index} 超出陣列 '{entry.fieldName}' 的範圍 (長度 {arr.Length})";
+                        Debug.LogError($"索引 {entry.index} 超出陣列 '{entry._propertyName}' 的範圍 (長度 {arr.Length})",
+                            logTarget);
+                        return $"索引 {entry.index} 超出陣列 '{entry._propertyName}' 的範圍 (長度 {arr.Length})";
                     }
 
                     currentObj = arr.GetValue(entry.index);
                 }
 
+                if (currentObj == null) //半途遇到 null
+                    if (entry._canBeNull)
+                        return null; // 如果允許為 null，則直接返回 null
                 i++;
+                entry._tempCurrentObject = currentObj; // 用於 Unity 編輯器的預覽
             }
 
+            
             return currentObj;
         }
 
@@ -294,10 +301,10 @@ namespace MonoFSM.Core.Utilities
                 if (indexInjector != null && pathEntries[i].IsArray)
                     pathEntries[i].index = indexInjector.Index;
 
-                if (currentType != null && !string.IsNullOrEmpty(pathEntries[i].fieldName))
+                if (currentType != null && !string.IsNullOrEmpty(pathEntries[i]._propertyName))
                 {
                     // 嘗試 Property
-                    var prop = currentType.GetProperty(pathEntries[i].fieldName,
+                    var prop = currentType.GetProperty(pathEntries[i]._propertyName,
                         BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                     if (prop != null)
                     {

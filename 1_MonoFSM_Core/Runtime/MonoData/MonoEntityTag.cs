@@ -18,6 +18,8 @@ namespace MonoFSM.Runtime.Mono
     [CreateAssetMenu(menuName = "RCGMaker/MonoDescriptableTag")]
     public class MonoEntityTag : ScriptableObject, IStringKey
     {
+        //
+        public MySerializedType<MonoEntity> _entityType;
         public MySerializedType<DescriptableData> DataType;
 
         public IEnumerable<ValueDropdownItem<VariableTag>> GetVariableTagItems()
