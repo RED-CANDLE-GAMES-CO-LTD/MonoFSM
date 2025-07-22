@@ -9,6 +9,7 @@ namespace MonoFSM.Core.Runtime
 {
     /// <summary>
     /// 提供 Global Instance 的 Provider，參考 ParentBlackboardProvider 的實作方式
+    /// FIXME: 怎麼拿到目前player的Inventory? condition? runtime tag? (LocalPlayer,Inventory?) tuple key?
     /// </summary>
     public class GlobalInstanceProvider : MonoBehaviour, IMonoEntityProvider
     {

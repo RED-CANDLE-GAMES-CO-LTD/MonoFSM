@@ -20,7 +20,7 @@ namespace MonoFSM.Core.LifeCycle
         // private ICompProvider<MonoPoolObj> _targetVarProvider; //使用VarPoolObj來存儲目標物件
 
         [Required] [CompRef] [AutoChildren(DepthOneOnly = true)] [ValueTypeValidate(typeof(MonoPoolObj))]
-        private DataProvider.VarRef _poolObjProvider; //使用VarPoolObj來存儲目標物件
+        private DataProvider.ValueProvider _poolObjProvider; //使用VarPoolObj來存儲目標物件
 
         //檢查？SerializeClass的話？
 

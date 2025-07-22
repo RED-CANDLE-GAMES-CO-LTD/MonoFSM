@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Foundation;
@@ -62,6 +63,11 @@ namespace MonoFSM.VarRefOld
 
     public abstract class AbstractSourceValueRef : AbstractDescriptionBehaviour
     {
+        public bool Equals<T>(T value)
+        {
+            var v = GetValue<T>();
+            return EqualityComparer<T>.Default.Equals(v, value);
+        }
         //如果有多個？避免？
         //改成autoParent如何？
         //還要再多一層比較好？
@@ -73,7 +79,8 @@ namespace MonoFSM.VarRefOld
         // private object CurrentValue => _previewLastValue;
 #endif
         public Type ValueType => _valueProvider.ValueType;
-        
+
+        public object objectValue => _valueProvider.Get<object>();
         
         public T GetValue<T>()
         {

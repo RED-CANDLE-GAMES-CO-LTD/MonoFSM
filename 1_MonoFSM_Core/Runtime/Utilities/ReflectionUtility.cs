@@ -213,7 +213,8 @@ namespace MonoFSM.Core.Utilities
         /// <param name="logTarget">用於 Debug.Log 的目標物件</param>
         /// <returns>最終欄位值</returns>
         /// FIXME: 這個會有gc?
-        public static object GetFieldValueFromPath(object obj, List<FieldPathEntry> entries, UnityEngine.Object logTarget = null)
+        /// FIXME: 吃<T>?
+        public static object GetFieldValueFromPath(object obj, List<FieldPathEntry> entries, Object logTarget = null)
         {
             if (obj == null)
                 return null;

@@ -7,12 +7,11 @@ using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.DataProvider
 {
-    //var local ref? 
-    public class VarRef : AbstractVariableProviderRef, IValueProvider
+    //用這顆就夠了，其他應該都不需要了？除了literal
+    public class ValueProvider : AbstractVariableProviderRef, IValueProvider
     {
         //FIXME: 這裡自帶 field entry就可以找到任何東西了？
 
@@ -49,14 +48,13 @@ namespace MonoFSM.Core.DataProvider
         [ShowInDebugMode]
         [BoxGroup("varTag")]
         // [Required]
-        public VariableTag _varTag;
+        [SerializeField]
+        private VariableTag _varTag;
         // private bool TypeCheckFail()
         // {
         //     if (_varTag == null) return false;
         //     return typeof(TValueType).IsAssignableFrom(_varTag._valueFilterType.RestrictType) == false;
         // }
-
-     
 
         [ShowInPlayMode]
         public override AbstractMonoVariable VarRaw //可以去拿MonoEntity的資料？而不是一定要透過Var?
@@ -97,7 +95,7 @@ namespace MonoFSM.Core.DataProvider
 
         protected override string DescriptionPreprocess(string text)
         {
-            if (entityProvider != null) return entityProvider.entityTag?.name + "." + text;
+            if (entityProvider != null) return entityProvider.entityTag?.name + "(entity)." + text;
             return text;
         }
 
@@ -115,7 +113,6 @@ namespace MonoFSM.Core.DataProvider
                     return entityProvider.monoEntity;
                 return ParentEntity;
             }
-
             return VarRaw;
         }
 

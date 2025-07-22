@@ -11,25 +11,10 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Core.DataProvider
 {
-    public abstract class AbstractVariableProviderRef : AbstractDescriptionBehaviour, IValueProvider
+    public abstract class PropertyOfTypeProvider : AbstractDescriptionBehaviour
     {
-        // public GameFlagBase FinalData => VarRaw?.FinalData;
-        public abstract AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
-
-        // public abstract Type GetValueType { get; }
         public abstract Type GetObjectType { get; }
-
         public abstract Type ValueType { get; }
-        public abstract VariableTag varTag { get; }
-        public abstract TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable;
-
-        public override string ToString()
-        {
-            return VarRaw?.name;
-        }
-        public abstract T1 Get<T1>();
-        public override string Description => CurrentFieldPath;
-
 
         #region Field Path Support
 
@@ -43,6 +28,7 @@ namespace MonoFSM.Core.DataProvider
         [ListDrawerSettings(ShowFoldout = false)]
         public List<FieldPathEntry> _pathEntries = new();
 
+        //最終值
         protected Type lastPathEntryType => _pathEntries[^1].GetPropertyType();
 
 
@@ -103,39 +89,8 @@ namespace MonoFSM.Core.DataProvider
             }
         }
 
-        // [BoxGroup("Field Path")]
-        // [Button("驗證欄位路徑")]
-        // private void ValidateFieldPath()
-        // {
-        //     if (!HasFieldPath)
-        //     {
-        //         Debug.Log("無欄位路徑需要驗證", this);
-        //         return;
-        //     }
-        //
-        //     ReflectionUtility.UpdatePathEntryTypes(pathEntries, GetVarType, _typeRestrict?.SupportedTypes,
-        //         _indexInjector);
-        //     var result = ReflectionUtility.GetFieldValueFromPath(VarRaw, pathEntries, gameObject);
-        //
-        //     if (result == null)
-        //     {
-        //         Debug.LogWarning("欄位路徑回傳 null 值", this);
-        //         return;
-        //     }
-        //
-        //     var resultType = result.GetType();
-        //     if (typeof(TValueType).IsAssignableFrom(resultType))
-        //         Debug.Log($"✓ 欄位路徑驗證成功: {resultType} 可以轉換為 {typeof(TValueType)}", this);
-        //     else
-        //         Debug.LogError($"✗ 型別不相容: {resultType} 無法轉換為 {typeof(TValueType)}", this);
-        // }
-        protected override string DescriptionTag => "varRef";
 
-        [BoxGroup("Field Path")]
-        [ShowInInspector]
-        [DisplayAsString]
-        [LabelText("當前路徑")]
-        protected string CurrentFieldPath
+        protected string FullPropertyPath
         {
             get
             {
@@ -146,12 +101,52 @@ namespace MonoFSM.Core.DataProvider
                 return $"{GetObjectType.Name}.{fieldPath}";
             }
         }
-        
-        private bool IsFieldPathTypeIncompatible()
+
+        [BoxGroup("Field Path")]
+        [ShowInInspector]
+        [DisplayAsString]
+        [LabelText("當前路徑")]
+        protected string PropertyPath
         {
-            return !ReflectionUtility.IsFieldPathTypeCompatible(VarRaw, _pathEntries, ValueType);
+            get
+            {
+                if (!HasFieldPath)
+                    return string.Empty;
+
+                return string.Join(".", _pathEntries.Select(e => e.PropertyPath ?? "未選擇"));
+            }
         }
 
+        // private bool IsFieldPathTypeIncompatible()
+        // {
+        //     return !ReflectionUtility.IsFieldPathTypeCompatible(VarRaw, _pathEntries, ValueType);
+        // }
+
         #endregion
+    }
+
+    //不一定有var? IVarProvider
+    public abstract class AbstractVariableProviderRef : PropertyOfTypeProvider, IValueProvider
+    {
+        // public GameFlagBase FinalData => VarRaw?.FinalData;
+        //不一定有這個？再切一層？
+        public abstract AbstractMonoVariable VarRaw { get; } //還是其實這個也可以？
+
+        //FIXME: get Object? Object Type & ValueType
+        // public abstract Type GetValueType { get; }
+        
+
+        public abstract VariableTag varTag { get; }
+        public abstract TVariable GetVar<TVariable>() where TVariable : AbstractMonoVariable;
+
+        public override string ToString()
+        {
+            return VarRaw?.name;
+        }
+        public abstract T1 Get<T1>();
+        public override string Description => PropertyPath;
+
+
+        protected override string DescriptionTag => "Value";
     }
 }
