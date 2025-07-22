@@ -18,6 +18,12 @@ namespace MonoFSM.Core.DataProvider
 
         #region Field Path Support
 
+        [PropertyOrder(0)]
+        [BoxGroup("Field Path", ShowLabel = true)]
+        [InfoBox("選擇欄位路徑編輯模式", InfoMessageType.Info)]
+        [ToggleLeft]
+        public bool UseSimplePathEditor = false;
+
         //FIXME: 放下面？
         [PropertyOrder(1)]
         [FormerlySerializedAs("pathEntries")]
@@ -26,6 +32,7 @@ namespace MonoFSM.Core.DataProvider
         // [InfoBox("欄位路徑的最終型別與變數型別不相容", InfoMessageType.Error, nameof(IsFieldPathTypeIncompatible))]
         [OnValueChanged(nameof(OnPathEntriesChanged))]
         [ListDrawerSettings(ShowFoldout = false)]
+        [HideIf(nameof(UseSimplePathEditor))]
         public List<FieldPathEntry> _pathEntries = new();
 
         //最終值

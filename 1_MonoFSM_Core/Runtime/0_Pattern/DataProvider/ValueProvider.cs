@@ -30,6 +30,7 @@ namespace MonoFSM.Core.DataProvider
 
         #endregion
 
+        [PropertyOrder(-1)]
         [BoxGroup("varTag")]
         [ShowInInspector]
         [ValueDropdown(nameof(GetParentVariableTags), NumberOfItemsBeforeEnablingSearch = 5)]

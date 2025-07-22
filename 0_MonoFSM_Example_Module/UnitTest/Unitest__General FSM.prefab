@@ -235,7 +235,7 @@ GameObject:
   - component: {fileID: 2859008457434227153}
   - component: {fileID: 1679154381190438241}
   m_Layer: 0
-  m_Name: General FSM
+  m_Name: Unitest__General FSM
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

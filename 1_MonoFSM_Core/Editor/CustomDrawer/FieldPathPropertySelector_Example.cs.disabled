@@ -1,0 +1,49 @@
+// 這是一個範例檔案，展示如何使用FieldPathPropertySelector
+// 檔案副檔名為.disabled，避免編譯
+
+/*
+使用範例：
+
+// 1. 基本使用
+var selector = new FieldPathPropertySelector(typeof(Inventory), currentSelection);
+selector.ShowInPopup(buttonRect, 400);
+
+selector.SelectionConfirmed += selection =>
+{
+    var selectedProperty = selection.FirstOrDefault();
+    if (!string.IsNullOrEmpty(selectedProperty))
+    {
+        Debug.Log($"選擇了屬性: {selectedProperty}");
+        // 處理選擇邏輯
+    }
+};
+
+// 2. 在按鈕點擊中使用
+if (GUI.Button(rect, "選擇屬性", EditorStyles.popup))
+{
+    var selector = new FieldPathPropertySelector(currentType, currentPropertyName);
+    selector.ShowInPopup(rect, 400);
+    
+    selector.SelectionConfirmed += selection =>
+    {
+        HandlePropertySelection(selection.FirstOrDefault());
+    };
+}
+
+// 3. 搜尋功能
+// 使用者可以在彈出的選單中輸入搜尋關鍵字，如：
+// - "slot" 搜尋包含slot的屬性
+// - "item" 搜尋物品相關屬性  
+// - "string" 搜尋字串型別屬性
+// - "array" 搜尋陣列型別屬性
+
+// 4. 分組功能
+// 屬性會自動按型別分組：
+// - 文字/string屬性
+// - 數值/int, float屬性
+// - 布林/bool屬性
+// - 變數/Var*屬性
+// - 實體/MonoEntity屬性
+// - 物品系統/Item, Slot屬性
+// - 其他型別
+*/

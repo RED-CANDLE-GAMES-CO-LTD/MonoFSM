@@ -153,6 +153,7 @@ public class DropDownRefAttributeDrawer : OdinAttributeDrawer<DropDownRefAttribu
     {
         SirenixEditorGUI.BeginBox();
         //特規，客製寫拿Selection的方法
+        // Debug.Log("DropDownRefAttributeDrawer:" + Property.ValueEntry.BaseValueType);
         if (_isValueDropDownAttribute)
         {
             CallNextDrawer(label);

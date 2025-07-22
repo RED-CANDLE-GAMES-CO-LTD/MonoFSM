@@ -1,12 +1,14 @@
 using System;
 using MonoFSM.Core.Utilities;
 using MonoFSM.Foundation;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Core.DataProvider
 {
     public class ValueRef : PropertyOfTypeProvider, IValueProvider
     {
+        // [ShowDrawerChain]
         [DropDownRef] [SerializeField] private PropertyOfTypeProvider _valueProvider;
 
         public T1 Get<T1>()
