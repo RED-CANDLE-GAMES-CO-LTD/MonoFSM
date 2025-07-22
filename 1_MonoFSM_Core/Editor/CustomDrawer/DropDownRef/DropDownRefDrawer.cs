@@ -75,12 +75,7 @@ public class DropDownRefAttributeDrawer : OdinAttributeDrawer<DropDownRefAttribu
         {
             filterType = filterType.GetElementType();
         }
-
-
         var currentComp = Property.ValueEntry.WeakSmartValue as Component;
-
-        // Debug.Log("Property Type of Component Drawer:" + type);
-
         //draw SDFIcon down arrow to the right of the button
         var buttonText = currentComp ? currentComp.name : "None";
         if (SirenixEditorGUI.SDFIconButton(buttonText, 16, SdfIconType.CaretDownFill, IconAlignment.RightEdge))
@@ -191,20 +186,24 @@ public class DropDownRefAttributeDrawer : OdinAttributeDrawer<DropDownRefAttribu
                 Selection.activeObject = target;
         }
 
-        if (_isInlineEditor)
-            CallNextDrawer(label);
-        else //這個可以拿掉？
-        {
-            GUI.backgroundColor = Property.ValueEntry.WeakSmartValue == null
-                ? new Color(0.2f, 0.2f, 0.3f, 0.1f)
-                : new Color(0.35f, 0.3f, 0.1f, 0.2f);
+        // if (_isInlineEditor)
+        //     CallNextDrawer(label);
+        // else //這個可以拿掉？
+        // {
+        GUI.backgroundColor = Property.ValueEntry.WeakSmartValue == null
+            ? new Color(0.2f, 0.2f, 0.3f, 0.1f)
+            : new Color(0.35f, 0.3f, 0.1f, 0.2f);
 
-
-            Property.ValueEntry.WeakSmartValue = SirenixEditorFields.UnityObjectField(
-                Property.ValueEntry.WeakSmartValue as UnityEngine.Object,
-                typeof(Component), true); //GUILayout.Width(EditorGUIUtility.currentViewWidth) 這個會太肥噴掉
-            GUI.backgroundColor = Color.white;
-        }
+        var newObj = SirenixEditorFields.UnityObjectField(
+            Property.ValueEntry.WeakSmartValue as UnityEngine.Object,
+            Property.ValueEntry.TypeOfValue, true); //GUILayout.Width(EditorGUIUtility.currentViewWidth) 這個會太肥噴掉
+        if (newObj == _bindComp)
+            // Debug.Log("newObj == Property.ParentValues[0]");
+            Debug.LogError("newObj == Property.ParentValues[0], this should not happen, please check your code.");
+        else
+            Property.ValueEntry.WeakSmartValue = newObj;
+        GUI.backgroundColor = Color.white;
+        // }
 
         // }
         SirenixEditorGUI.EndBox();

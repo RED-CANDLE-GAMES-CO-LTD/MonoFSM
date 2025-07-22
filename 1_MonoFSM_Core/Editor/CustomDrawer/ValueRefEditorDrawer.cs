@@ -14,68 +14,82 @@ namespace MonoFSM.Core.Editor
     /// 為ValueRef類別提供特化的簡化編輯器
     /// 支援_valueProvider選擇和欄位路徑編輯
     /// </summary>
+    [CustomEditor(typeof(ValueRef), true)]
     [DrawerPriority(3, 0, 0)] // 優先於SimpleFieldPathEditorDrawer
     public class ValueRefEditorDrawer : BasePathEditorDrawer<ValueRef>
     {
-        protected override void DrawPropertyLayout(GUIContent label)
+        private ValueRef _target;
+
+        protected override void DrawTree()
         {
-            var target = ValueEntry.SmartValue;
-            if (target == null)
+            //FIXME: 好像不該這樣弄，還是ValueDrawer比較好？針對path處理就好
+            Tree.BeginDraw(true);
+            _target = serializedObject.targetObject as ValueRef;
+            if (DebugSetting.IsDebugMode)
             {
-                CallNextDrawer(label);
-                return;
+                // 繪製原始的Inspector內容
+                base.DrawTree();
             }
 
-            SirenixEditorGUI.BeginBox();
-
-            // 繪製UseSimplePathEditor勾選框
-            var useSimpleEditor = GetUseSimplePathEditor(target);
-
-            // EditorGUI.BeginChangeCheck();
-            // var newUseSimpleEditor = EditorGUILayout.Toggle("使用簡化路徑編輯器 (A.B.C)", useSimpleEditor);
-            // if (EditorGUI.EndChangeCheck())
-            // {
-            //     Undo.RecordObject(target, "切換路徑編輯器模式");
-            //     SetUseSimplePathEditor(target, newUseSimpleEditor);
-            //     EditorUtility.SetDirty(target);
-            // }
-            //
-            // EditorGUILayout.Space(3);
-
-            if (useSimpleEditor)
-            {
-                DrawSimplifiedEditor(target, label);
-            }
             else
             {
-                // 繪製原始的詳細編輯器，但不包含最外層的Box（避免雙重boxing）
-                SirenixEditorGUI.EndBox();
-                CallNextDrawer(label);
-                return;
+                SirenixEditorGUI.BeginBox();
+                // 繪製簡化編輯器
+                DrawSimplifiedEditor(_target);
+                SirenixEditorGUI.EndBox();    
             }
 
-            SirenixEditorGUI.EndBox();
+            Tree.EndDraw();
+            
         }
+        // protected override void DrawPropertyLayout(GUIContent label)
+        // {
+        //     var target = ValueEntry.SmartValue;
+        //     if (target == null)
+        //     {
+        //         CallNextDrawer(label);
+        //         return;
+        //     }
+        //
+        //     SirenixEditorGUI.BeginBox();
+        //
+        //     // 繪製UseSimplePathEditor勾選框
+        //     var useSimpleEditor = GetUseSimplePathEditor(target);
+        //
+        //     if (useSimpleEditor)
+        //     {
+        //         DrawSimplifiedEditor(target, label);
+        //     }
+        //     else
+        //     {
+        //         // 繪製原始的詳細編輯器，但不包含最外層的Box（避免雙重boxing）
+        //         SirenixEditorGUI.EndBox();
+        //         CallNextDrawer(label);
+        //         return;
+        //     }
+        //
+        //     SirenixEditorGUI.EndBox();
+        // }
 
         /// <summary>
         /// 繪製簡化編輯器（包含valueProvider和fieldPath）
         /// </summary>
-        private void DrawSimplifiedEditor(ValueRef target, GUIContent _ = null)
+        private void DrawSimplifiedEditor(ValueRef valueRef, GUIContent _ = null)
         {
             // 顯示ValueProvider資訊
-            DrawValueProviderInfo(target);
+            DrawValueProviderInfo(valueRef);
 
             EditorGUILayout.Space(5);
 
             // 繪製ValueProvider選擇器
-            DrawValueProviderSelector(target);
+            DrawValueProviderSelector(valueRef);
 
             EditorGUILayout.Space(5);
 
             // 繪製fieldPath編輯器
-            var valueProvider = GetValueProvider(target);
+            var valueProvider = GetValueProvider(valueRef);
             if (valueProvider != null)
-                DrawSimplifiedPathEditor(target, valueProvider.ValueType, "請先選擇數值提供者");
+                DrawSimplifiedPathEditor(valueRef, valueProvider.ValueType, "請先選擇數值提供者");
             else
                 SirenixEditorGUI.ErrorMessageBox("請先選擇數值提供者");
         }
@@ -83,11 +97,11 @@ namespace MonoFSM.Core.Editor
         /// <summary>
         /// 顯示ValueProvider資訊
         /// </summary>
-        private void DrawValueProviderInfo(ValueRef target)
+        private void DrawValueProviderInfo(ValueRef valueRef)
         {
             EditorGUILayout.LabelField("起始型別資訊", EditorStyles.boldLabel);
 
-            var valueProvider = GetValueProvider(target);
+            var valueProvider = GetValueProvider(valueRef);
             var displayInfo = "未選擇來源";
 
             try
@@ -122,47 +136,32 @@ namespace MonoFSM.Core.Editor
         private void DrawValueProviderSelector(ValueRef _)
         {
             EditorGUILayout.LabelField("數值提供者選擇", EditorStyles.boldLabel);
-
-            // 在OdinValueDrawer中，我們需要直接調用下一個drawer來處理DropDownRef
-            // 找到_valueProvider欄位並讓它使用原本的繪製邏輯
-            var targetProperty = ValueEntry.Property;
+            var targetProperty = Tree.RootProperty;
             var valueProviderProperty = targetProperty.Children.FirstOrDefault(p => p.Name == "_valueProvider");
-            // var dropdownAttr = valueProviderProperty.GetAttribute<DropDownRefAttribute>();
-            // valueProviderProperty.PushDraw();
-            // Debug.Log("Is dropdownRef: " + (dropdownAttr != null));
-            // DropDownRefAttributeDrawer
-
             if (valueProviderProperty != null)
-                // valueProviderProperty.IncrementDrawerChainIndex();
-                // valueProviderProperty.IncrementDrawerChainIndex();
-                // EditorGUILayout.HelpBox(valueProviderProperty.DrawerChainIndex.ToString(), MessageType.Info);
+            {
+                // EditorGUI.BeginChangeCheck();
                 valueProviderProperty.Draw();
-
+                // if (EditorGUI.EndChangeCheck())
+                // {
+                //     // 強制重繪當整個 Inspector 當值改變時
+                //     Tree.UpdateTree();
+                //     GUIHelper.RequestRepaint();
+                // }
+            }
             else
                 EditorGUILayout.HelpBox("無法找到_valueProvider欄位", MessageType.Warning);
-            // 直接繪製_valueProvider欄位，讓DropDownRef attribute處理
-
-            //     // 使用 InlineProperty 來限制繪製範圍
-            //     using (var scope = valueProviderProperty.ValueEntry)
-            //     {
-            //         scope.Property.Draw();
-            //     }
-            // else
-            //     EditorGUILayout.HelpBox("無法找到_valueProvider欄位", MessageType.Warning);
-
-            // else
-            // EditorGUILayout.HelpBox("無法找到_valueProvider欄位", MessageType.Warning);
         }
 
 
         /// <summary>
         /// 獲取ValueProvider
         /// </summary>
-        private PropertyOfTypeProvider GetValueProvider(ValueRef target)
+        private PropertyOfTypeProvider GetValueProvider(ValueRef valueRef)
         {
-            var field = target.GetType().GetField("_valueProvider",
+            var field = valueRef.GetType().GetField("_valueProvider",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            return field?.GetValue(target) as PropertyOfTypeProvider;
+            return field?.GetValue(valueRef) as PropertyOfTypeProvider;
         }
     }
 }

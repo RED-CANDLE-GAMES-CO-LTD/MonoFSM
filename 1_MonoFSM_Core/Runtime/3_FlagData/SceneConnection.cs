@@ -1,12 +1,8 @@
-using System;
-using RCGMaker.Core;
-using Sirenix.OdinInspector;
-
+using MonoFSM.Core;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
-using Object = System.Object;
 
 public class SceneConnection : MonoBehaviour,IOnBuildSceneSavingCallbackReceiver
 {

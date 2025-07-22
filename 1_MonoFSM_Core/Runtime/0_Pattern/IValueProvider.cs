@@ -8,6 +8,39 @@ namespace MonoFSM.Core
     {
         //FIXME: 這個有點討厭...
         // object GetValue { get; } //無法避免boxing, 不該存在？
+        public object ValueRaw => Get<object>();
+
+        public bool IsValueExist
+        {
+            get
+            {
+                if (ValueType == typeof(int))
+                {
+                    if (Get<int>() == 0)
+                        return false; // int類型的值為0時，視為不存在
+                }
+                else if (ValueType == typeof(float))
+                {
+                    if (Mathf.Approximately(Get<float>(), 0f))
+                        return false; // float類型的值為0時，視為不存在
+                }
+                else if (ValueType == typeof(string))
+                {
+                    if (string.IsNullOrEmpty(Get<string>()))
+                        return false; // string類型的值為空時，視為不存在
+                }
+                else if (ValueType == typeof(bool))
+                {
+                    return Get<bool>(); // bool類型的值為false時，視為不存在
+                }
+                else
+                {
+                    return ValueRaw != null; // 其他類型只要不為null即視為存在
+                }
+
+                return true; // 如果沒有特殊處理，則視為存在
+            }
+        }
         T1 Get<T1>();
 
         Type ValueType { get; }

@@ -15,14 +15,15 @@ namespace MonoFSM.Core.DataProvider
     {
         public abstract Type GetObjectType { get; }
         public abstract Type ValueType { get; }
+        public object ValueRaw => Get<object>();
 
         #region Field Path Support
 
-        [PropertyOrder(0)]
-        [BoxGroup("Field Path", ShowLabel = true)]
-        [InfoBox("選擇欄位路徑編輯模式", InfoMessageType.Info)]
-        [ToggleLeft]
-        public bool UseSimplePathEditor = false;
+        // [PropertyOrder(0)]
+        // [BoxGroup("Field Path", ShowLabel = true)]
+        // [InfoBox("選擇欄位路徑編輯模式", InfoMessageType.Info)]
+        // [ToggleLeft]
+        // public bool UseSimplePathEditor = false;
 
         //FIXME: 放下面？
         [PropertyOrder(1)]
@@ -32,7 +33,7 @@ namespace MonoFSM.Core.DataProvider
         // [InfoBox("欄位路徑的最終型別與變數型別不相容", InfoMessageType.Error, nameof(IsFieldPathTypeIncompatible))]
         [OnValueChanged(nameof(OnPathEntriesChanged))]
         [ListDrawerSettings(ShowFoldout = false)]
-        [HideIf(nameof(UseSimplePathEditor))]
+        // [HideIf(nameof(UseSimplePathEditor))]
         public List<FieldPathEntry> _pathEntries = new();
 
         //最終值
@@ -124,6 +125,7 @@ namespace MonoFSM.Core.DataProvider
             }
         }
 
+        public abstract T1 Get<T1>();
         // private bool IsFieldPathTypeIncompatible()
         // {
         //     return !ReflectionUtility.IsFieldPathTypeCompatible(VarRaw, _pathEntries, ValueType);
@@ -150,7 +152,7 @@ namespace MonoFSM.Core.DataProvider
         {
             return VarRaw?.name;
         }
-        public abstract T1 Get<T1>();
+        
         public override string Description => PropertyPath;
 
 

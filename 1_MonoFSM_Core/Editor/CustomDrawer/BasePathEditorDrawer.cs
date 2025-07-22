@@ -15,8 +15,10 @@ namespace MonoFSM.Core.Editor
     /// <summary>
     /// 路徑編輯器的基礎類別，提供共用的路徑編輯功能
     /// </summary>
-    public abstract class BasePathEditorDrawer<T> : OdinValueDrawer<T> where T : PropertyOfTypeProvider
+    public abstract class BasePathEditorDrawer<T> : OdinEditor where T : PropertyOfTypeProvider
     {
+        
+
         protected Dictionary<string, List<string>> _memberCache = new();
 
         /// <summary>
@@ -165,6 +167,19 @@ namespace MonoFSM.Core.Editor
 
                 // 繪製屬性選擇器
                 EditorGUILayout.BeginHorizontal();
+
+                // 添加CanBeNull checkbox
+                EditorGUI.BeginChangeCheck();
+                var canBeNullContent = new GUIContent("", "勾選時允許此層級為null值，不會拋出NullReference異常");
+                var newCanBeNull =
+                    EditorGUILayout.Toggle(canBeNullContent, currentSegment._canBeNull, GUILayout.Width(20));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(target, "修改CanBeNull設定");
+                    currentSegment._canBeNull = newCanBeNull;
+                    EditorUtility.SetDirty(target);
+                }
+                
                 EditorGUILayout.LabelField($"層級 {i + 1}:", GUILayout.Width(50));
 
                 // 使用OdinSelector來選擇屬性
@@ -214,7 +229,13 @@ namespace MonoFSM.Core.Editor
             if (currentEntries.Count < maxSegments && currentType != null && GetAvailableMembers(currentType).Count > 0)
             {
                 EditorGUILayout.BeginHorizontal();
+
+                // 新層級的CanBeNull checkbox（預設為false）
+                var newLevelCanBeNullContent = new GUIContent("", "新層級的CanBeNull設定（預設為false）");
+                EditorGUILayout.Toggle(newLevelCanBeNullContent, false, GUILayout.Width(20));
+                EditorGUI.BeginDisabledGroup(true); // 禁用，因為還沒有實際的entry
                 EditorGUILayout.LabelField($"層級 {currentEntries.Count + 1}:", GUILayout.Width(50));
+                EditorGUI.EndDisabledGroup();
 
                 var addButtonRect = EditorGUILayout.GetControlRect();
                 if (GUI.Button(addButtonRect, "+ 添加屬性", EditorStyles.popup))

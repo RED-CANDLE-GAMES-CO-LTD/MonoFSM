@@ -17,40 +17,92 @@ namespace MonoFSM.Core.Editor
     /// 當UseSimplePathEditor為true時，顯示A.B.C風格的編輯介面
     /// </summary>
     [DrawerPriority(2, 0, 0)]
+    [CustomEditor(typeof(PropertyOfTypeProvider), true)]
     public class SimpleFieldPathEditorDrawer : BasePathEditorDrawer<PropertyOfTypeProvider>
     {
-        protected override bool CanDrawValueProperty(InspectorProperty property)
-        {
-            // return false;
-            // Debug.Log(
-            //     $"SimpleFieldPathEditorDrawer: Checking if can draw property {property.Name} of type {property.ParentType.Name}");
-            if (property.ParentType == typeof(ValueRef))
-                return false;
-            return true;
-        }
+        // protected override bool CanDrawValueProperty(InspectorProperty property)
+        // {
+        //     // return false;
+        //     // Debug.Log(
+        //     //     $"SimpleFieldPathEditorDrawer: Checking if can draw property {property.Name} of type {property.ParentType.Name}");
+        //     if (property.ParentType == typeof(ValueRef))
+        //         return false;
+        //     return true;
+        // }
+        //
+        // public override bool CanDrawTypeFilter(Type type)
+        // {
+        //     // Debug.Log($"SimpleFieldPathEditorDrawer: Checking if can draw type {type.Name}");
+        //     // 排除 ValueRef 及其子類型
+        //     return type != typeof(ValueRef);
+        //     return !typeof(ValueRef).IsAssignableFrom(type) && base.CanDrawTypeFilter(type);
+        // }
 
-        public override bool CanDrawTypeFilter(Type type)
-        {
-            // Debug.Log($"SimpleFieldPathEditorDrawer: Checking if can draw type {type.Name}");
-            // 排除 ValueRef 及其子類型
-            return type != typeof(ValueRef);
-            return !typeof(ValueRef).IsAssignableFrom(type) && base.CanDrawTypeFilter(type);
-        }
 
-        protected override void DrawPropertyLayout(GUIContent label)
+        // protected override void DrawPropertyLayout(GUIContent label)
+        // {
+        //     var target = ValueEntry.SmartValue;
+        //     if (target == null)
+        //     {
+        //         CallNextDrawer(label);
+        //         return;
+        //     }
+        //
+        //     // 如果是 ValueRef 類型，讓其他 drawer 處理
+        //     if (target is ValueRef)
+        //     {
+        //         Debug.Log("SimpleFieldPathEditorDrawer: ValueRef detected, delegating to next drawer.");
+        //         CallNextDrawer(label);
+        //         return;
+        //     }
+        //
+        //     SirenixEditorGUI.BeginBox();
+        //
+        //     // 繪製UseSimplePathEditor勾選框
+        //     var useSimpleEditor = GetUseSimplePathEditor(target);
+        //
+        //     // EditorGUI.BeginChangeCheck();
+        //     // var newUseSimpleEditor = EditorGUILayout.Toggle("使用簡化路徑編輯器 (A.B.C)", useSimpleEditor);
+        //     // if (EditorGUI.EndChangeCheck())
+        //     // {
+        //     //     Undo.RecordObject(target, "切換路徑編輯器模式");
+        //     //     SetUseSimplePathEditor(target, newUseSimpleEditor);
+        //     //     EditorUtility.SetDirty(target);
+        //     // }
+        //     //
+        //     // EditorGUILayout.Space(3);
+        //
+        //     if (useSimpleEditor)
+        //     {
+        //         DrawSimplifiedEditor(target, label);
+        //     }
+        //     else
+        //     {
+        //         // 繪製原始的詳細編輯器，但不包含最外層的Box（避免雙重boxing）
+        //         SirenixEditorGUI.EndBox();
+        //         CallNextDrawer(label);
+        //         return;
+        //     }
+        //
+        //     SirenixEditorGUI.EndBox();
+        // }
+        protected override void DrawTree()
         {
-            var target = ValueEntry.SmartValue;
+            // public override void OnInspectorGUI()
+            // {
+            // base.OnInspectorGUI();
+            var target = (PropertyOfTypeProvider)serializedObject.targetObject;
             if (target == null)
             {
-                CallNextDrawer(label);
+                EditorGUILayout.HelpBox("目標物件為空，無法繪製編輯器。", MessageType.Warning);
                 return;
             }
 
             // 如果是 ValueRef 類型，讓其他 drawer 處理
             if (target is ValueRef)
             {
-                Debug.Log("SimpleFieldPathEditorDrawer: ValueRef detected, delegating to next drawer.");
-                CallNextDrawer(label);
+                // Debug.Log("SimpleFieldPathEditorDrawer: ValueRef detected, delegating to next drawer.");
+                // CallNextDrawer();
                 return;
             }
 
@@ -59,36 +111,28 @@ namespace MonoFSM.Core.Editor
             // 繪製UseSimplePathEditor勾選框
             var useSimpleEditor = GetUseSimplePathEditor(target);
 
-            // EditorGUI.BeginChangeCheck();
-            // var newUseSimpleEditor = EditorGUILayout.Toggle("使用簡化路徑編輯器 (A.B.C)", useSimpleEditor);
-            // if (EditorGUI.EndChangeCheck())
-            // {
-            //     Undo.RecordObject(target, "切換路徑編輯器模式");
-            //     SetUseSimplePathEditor(target, newUseSimpleEditor);
-            //     EditorUtility.SetDirty(target);
-            // }
-            //
-            // EditorGUILayout.Space(3);
 
             if (useSimpleEditor)
             {
-                DrawSimplifiedEditor(target, label);
+                DrawSimplifiedEditor(target);
             }
             else
             {
                 // 繪製原始的詳細編輯器，但不包含最外層的Box（避免雙重boxing）
                 SirenixEditorGUI.EndBox();
-                CallNextDrawer(label);
+                // CallNextDrawer(label);
+                base.DrawTree();
                 return;
             }
-
+            
             SirenixEditorGUI.EndBox();
+            
         }
 
         /// <summary>
         /// 繪製簡化編輯器（包含varTag和fieldPath）
         /// </summary>
-        private void DrawSimplifiedEditor(PropertyOfTypeProvider target, GUIContent _ = null)
+        private void DrawSimplifiedEditor(PropertyOfTypeProvider target)
         {
             // 顯示Root Object資訊
             DrawRootObjectInfo(target);

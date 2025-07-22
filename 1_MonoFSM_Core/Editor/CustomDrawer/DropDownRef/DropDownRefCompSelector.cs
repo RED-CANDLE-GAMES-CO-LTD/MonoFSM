@@ -57,7 +57,7 @@ namespace MonoFSM.Core
             //2. scene裏找所有 _parentType(IVariableOwner) 下的所有_filterType component
             else
             {
-                Debug.Log("ParentType is " + parentType+" filterType is " + _filterType);
+                // Debug.Log("ParentType is " + parentType+" filterType is " + _filterType);
                 comps = _forComp.GetComponentsOfSiblingAll(parentType, _filterType);
             }
 
@@ -69,6 +69,10 @@ namespace MonoFSM.Core
             // var types = filterType.FilterSubClassOrImplementationFromDomain();
             foreach (var comp in comps)
             {
+                // 排除當前組件本身，避免遞迴引用
+                if (comp == _forComp)
+                    continue;
+                    
                 var parent = comp.GetComponentInParent<IVarBlackboard>();
                 if (parent == null)
                 {

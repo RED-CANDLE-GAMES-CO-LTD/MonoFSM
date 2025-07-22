@@ -33,7 +33,7 @@ namespace MonoFSM.Variable.Condition
         public override void CheatComplete()
         {
             base.CheatComplete();
-            _varBool.CurrentValue = targetValue;
+            _varBool.SetValue(targetValue, this);
         }
 
         // [Component] [Auto] IBoolProvider _boolValue; //會再度抓到自己，...沒屁用
