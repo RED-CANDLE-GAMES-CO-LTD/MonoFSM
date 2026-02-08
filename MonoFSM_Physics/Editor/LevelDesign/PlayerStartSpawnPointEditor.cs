@@ -332,12 +332,6 @@ public class PlayerStartSpawnPointEditor
                             GetTarget.transform.position = hit.point;
                             GetTarget.EventReceived(hit.point);
                         }
-                        else
-                        {
-                            Debug.LogError(
-                                "3D mode no hit" + currentSpawnPoint.TeleportHitLayerMask
-                                    .MaskToNames().Aggregate((a, b) => a + "," + b));
-                        }
                     }
                 }
                 Event.current.Use();

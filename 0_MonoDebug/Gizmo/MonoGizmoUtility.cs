@@ -102,27 +102,6 @@ namespace MonoDebug.Gizmo
             }
         }
 
-        /// <summary>
-        /// 繪製多個節點連接
-        /// </summary>
-        /// <param name="startPos">起點位置</param>
-        /// <param name="nextNodes">下一個節點列表</param>
-        /// <param name="defaultIndex">預設節點索引</param>
-        public static void DrawNodeConnections<T>(Vector3 startPos,
-            System.Collections.Generic.List<T> nextNodes, int defaultIndex) where T : class
-        {
-            if (nextNodes == null || nextNodes.Count == 0) return;
-
-            for (int i = 0; i < nextNodes.Count; i++)
-            {
-                var nextNode = nextNodes[i] as dynamic;
-                if (nextNode == null) continue;
-
-                Vector3 nextStartPos = nextNode.StartPosition;
-                DrawNodeConnection(startPos, nextStartPos, i == defaultIndex, true);
-            }
-        }
-
         #endregion
 
         #region Switch Drawing
