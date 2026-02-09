@@ -134,6 +134,7 @@ namespace MonoFSM.Core.Detection
         // public LayerMask HittingLayer;
         // protected abstract void SetLayerOverride();
 
+        [GUIColor(0.3f, 0.9f, 0.3f)]
         [PreviewInInspector]
         protected Dictionary<EffectDetectable, DetectData> _thisFrameDetectedObjects = new();
 
@@ -450,7 +451,7 @@ namespace MonoFSM.Core.Detection
             {
                 if (!dealer.IsValid)
                 {
-                    dealer.SetFailReason("Dealer is not valid");
+                    dealer.SetFailReason("Dealer is not valid || condition not pass");
                     continue;
                 }
 

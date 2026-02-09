@@ -646,7 +646,8 @@ namespace MonoFSM.Variable
             "此變數會使用 ValueProvider 或 Parent VarEntity 的值，無法設定預設值"
         )]
         [ShowInInspector]
-        protected virtual bool HasProxyValue => HasValueProvider || HasParentVarEntity;
+        protected virtual bool HasProxyValue =>
+            HasValueProvider || (HasParentVarEntity && IsValueExist);
 
         public VariableTag[] GetKeys()
         {

@@ -90,6 +90,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         public bool HasDealerOverlap => _dealers.Count > 0;
 
+        [GUIColor(0.3f, 0.9f, 0.3f)]
         [PreviewInInspector]
         private HashSet<GeneralEffectDealer> _dealers = new();
 

@@ -194,11 +194,11 @@ namespace MonoFSM.Variable
 
         public void SetValue(TValue value, Object byWho, string reason = "")
         {
-            Debug.Log($"VarWrapper SetValue: Setting value to {value}", byWho);
+            // Debug.Log($"VarWrapper SetValue: Setting value to {value}", byWho);
             if (_var == null)
             {
-                Debug.Log($"VarWrapper SetValue: Var is null, setting temp value to {value}",
-                    byWho);
+                // Debug.Log($"VarWrapper SetValue: Var is null, setting temp value to {value}",
+                //     byWho);
                 _tempValue = value;
                 return;
             }

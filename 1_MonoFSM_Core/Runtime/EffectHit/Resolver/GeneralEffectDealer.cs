@@ -76,7 +76,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (_effectConditions != null)
                 foreach (var condition in _effectConditions)
                 {
-                    var result = condition.IsEffectHitValid(pairResolver);
+                    var result = condition.IsEffectShouldHit(pairResolver);
                     if (!result)
                     {
                         // SetFailReason($"EffectCondition {condition.GetType().Name} failed");
@@ -136,7 +136,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (_effectConditions != null)
                 foreach (var condition in _effectConditions)
                 {
-                    var result = condition.IsEffectHitValid(r);
+                    var result = condition.IsEffectShouldHit(r);
                     if (!result)
                     {
                         SetFailReason($"EffectCondition {condition.GetType().Name} failed");

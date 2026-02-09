@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Foundation;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace MonoFSM.Runtime.Interact.EffectHit.Resolver
 {
@@ -12,12 +16,44 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver
     {
         protected override string DescriptionTag => "EffectHitCondition";
 
-        [PropertyOrder(-1)]
-        protected abstract string description { get; }
+        const int MaxResultRecordCount = 10;
+
+        [Serializable]
+        public struct ResultRecord
+        {
+            [HorizontalGroup, HideLabel] public float _time;
+            [HorizontalGroup, HideLabel] public bool _result;
+            [HorizontalGroup, HideLabel] public EffectResolver _receiverName;
+
+            public ResultRecord(float time, bool result, EffectResolver receiver)
+            {
+                _time = time;
+                _result = result;
+                _receiverName = receiver;
+            }
+
+            public override string ToString() =>
+                $"[{_time:F2}s] {(_result ? "Hit" : "Miss")} {_receiverName}";
+        }
+
+        [ShowInDebugMode] [ShowInInspector, ReadOnly] [ListDrawerSettings(IsReadOnly = true)]
+        List<ResultRecord> _resultRecords = new();
+
+        public bool IsEffectShouldHit(EffectResolver receiver)
+        {
+            if (gameObject.activeSelf == false)
+                return true; //條件不啟用就當作通過
+            var result = IsEffectHitValidImplement(receiver);
+            if (_resultRecords.Count >= MaxResultRecordCount)
+                _resultRecords.RemoveAt(0);
+            _resultRecords.Add(new ResultRecord(Time.time, result, receiver));
+
+            return result;
+        }
+
 
         //應該用EffectHitData?
-        public abstract bool IsEffectHitValid(EffectResolver receiver); //只能在Dealer用？
-        //FIXME: preview last result?
+        protected abstract bool IsEffectHitValidImplement(EffectResolver receiver); //只能在Dealer用？
 
 
         //FIXME:

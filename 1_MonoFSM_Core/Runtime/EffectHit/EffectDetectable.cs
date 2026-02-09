@@ -87,6 +87,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         //DebugOnly
 #if UNITY_EDITOR
+        [GUIColor(1f, 0.5f, 0.5f)]
         [PreviewInInspector]
         public HashSet<EffectDetector> _debugDetectors = new(); //沒在判？
 #endif

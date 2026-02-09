@@ -22,7 +22,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             IHitDataProvider,
             IResetStateRestore //, IHierarchyValueInfo,
     {
-      
+
         [RequiredIn(PrefabKind.PrefabInstance)]
         [PreviewInInspector]
         [AutoParent]
@@ -51,6 +51,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         protected DetectData? _detectData;
 
 #if UNITY_EDITOR
+        [GUIColor(0.3f, 0.9f, 0.3f)]
         [Header("Debug Info")]
         [ShowInDebugMode]
         protected IEffectHitData _lastHitData;
@@ -131,6 +132,10 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionBehaviour[] _conditions =
             Array.Empty<AbstractConditionBehaviour>();
+
+        [GUIColor(0.3f, 0.9f, 0.3f)]
+        [ShowInDebugMode]
+        bool IsConditionPasses => _conditions.IsAllValid();
 
         //FIXME: 關掉的就不算嗎 hmmm
         // [PreviewInInspector] public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid();
