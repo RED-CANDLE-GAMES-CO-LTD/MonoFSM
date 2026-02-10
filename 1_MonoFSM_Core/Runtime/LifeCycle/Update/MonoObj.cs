@@ -11,6 +11,9 @@ using MonoFSM.Variable.FieldReference;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Profiling;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace MonoFSMCore.Runtime.LifeCycle
 {
@@ -121,45 +124,45 @@ namespace MonoFSMCore.Runtime.LifeCycle
             // Debug.Log("MonoObj OnDestroy" + name, this);
         }
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoChildren]
         private ISceneAwake[] _sceneAwakes;
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoChildren]
         private ISceneStart[] _sceneStarts;
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoChildren]
         private ISceneDestroy[] _sceneDestroys;
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoChildren]
         private IResetStateRestore[] _resetStateRestores;
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoChildren]
         private IResetStart[] _resetStarts;
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoChildren]
         private IInstantiated[] _instantiateds;
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoChildren]
         private IUpdateSimulate[] _updateSimulates;
 
         public bool IsUpdateSimulatesNeeded => _updateSimulates.Length > 0;
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoChildren]
         private IBeforeSimulate[] _beforeSimulates;
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoChildren]
         private IAfterSimulate[] _afterSimulates;
 
-        [PreviewInInspector] [AutoChildren] private IRenderSimulate[] _renderSimulates;
+        [PreviewInDebugMode] [AutoChildren] private IRenderSimulate[] _renderSimulates;
 
         // [PreviewInInspector]
         // [AutoChildren]
@@ -171,7 +174,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         //FIXME: PoolBeforeReturnToPool? OnReturnPool?
 
-        [ShowInDebugMode]
+        [PreviewInDebugMode]
         private MonoObj _parentObj;
 
         [SerializeField]
@@ -489,6 +492,22 @@ namespace MonoFSMCore.Runtime.LifeCycle
         {
             if (HasParent)
                 return;
+        }
+
+        [Button("Rename to Prefab Name")]
+        private void RenameToPrefabName()
+        {
+#if UNITY_EDITOR
+            var prefab = PrefabUtility.GetCorrespondingObjectFromSource(gameObject);
+            if (prefab == null)
+            {
+                Debug.LogWarning("This GameObject is not a prefab instance.", this);
+                return;
+            }
+
+            Undo.RecordObject(gameObject, "Rename to Prefab Name");
+            gameObject.name = prefab.name;
+#endif
         }
     }
 }

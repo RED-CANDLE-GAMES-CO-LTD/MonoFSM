@@ -4,6 +4,7 @@ using System.Reflection;
 using MonoFSM.Core;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static MonoFSMEditor.RefectionUtility;
 
 namespace MonoFSM.Editor.AnimationWindow
@@ -24,26 +25,25 @@ namespace MonoFSM.Editor.AnimationWindow
             if (Selection.activeGameObject == null)
                 return;
 
-            //去找animator play action來播？好像也沒什麼必要
-            var selection = Selection.activeGameObject;
-            if (selection != null)
-            {
-                var animator = selection.GetComponentInChildren<Animator>();
-                if (animator != null)
-                    Selection.activeGameObject = animator.gameObject;
-            }
-
-            //FIXME: iAnimatorPlayAction?
-
             var iAnimatorPlayAction =
                 Selection.activeGameObject.GetComponentInChildren<IAnimatorPlayAction>();
             if (iAnimatorPlayAction != null)
             {
-                Debug.Log("[ShortCut] Edit anim of state" + iAnimatorPlayAction);
+                // Debug.Log("[ShortCut] Edit anim of state" + iAnimatorPlayAction);
                 _lastEditState = iAnimatorPlayAction;
                 iAnimatorPlayAction.EditClip();
-                //FIXME:
-                // AnimatorHelper.EditClip(_lastEditState.BindAnimator, _lastEditState.Clip);
+                // Debug.Log(" Edit anim of stateDone");
+            }
+            else
+            {
+                //去找animator play action來播？好像也沒什麼必要
+                var selection = Selection.activeGameObject;
+                if (selection != null)
+                {
+                    var animator = selection.GetComponentInChildren<Animator>();
+                    if (animator != null)
+                        Selection.activeGameObject = animator.gameObject;
+                }
             }
         }
 
@@ -55,26 +55,25 @@ namespace MonoFSM.Editor.AnimationWindow
 
         static AnimationWindowSearchBar()
         {
-            //FIXME: override的時候，最下面那排不見了...
-            // t_AnimationWindow = typeof(UnityEditor.Editor).Assembly.GetType(
-            //     "UnityEditor.AnimationWindow"
-            // );
-            // t_HostView = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.HostView");
-            // t_EditorWindowDelegate = t_HostView.GetNestedType(
-            //     "EditorWindowDelegate",
-            //     maxBindingFlags
-            // );
-            // mi_WrappedGUI = typeof(AnimationWindowSearchBar).GetMethod(
-            //     nameof(WrappedGUI),
-            //     maxBindingFlags
-            // );
+            t_AnimationWindow = typeof(UnityEditor.Editor).Assembly.GetType(
+                "UnityEditor.AnimationWindow"
+            );
+            t_HostView = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.HostView");
+            t_EditorWindowDelegate = t_HostView.GetNestedType(
+                "EditorWindowDelegate",
+                maxBindingFlags
+            );
+            mi_WrappedGUI = typeof(AnimationWindowSearchBar).GetMethod(
+                nameof(WrappedGUI),
+                maxBindingFlags
+            );
         }
 
         [InitializeOnLoadMethod]
         private static void Init()
         {
-            // EditorApplication.update -= CheckForAnimationWindows;
-            // EditorApplication.update += CheckForAnimationWindows;
+            EditorApplication.update -= CheckForAnimationWindows;
+            EditorApplication.update += CheckForAnimationWindows;
         }
 
         private static void CheckForAnimationWindows()
@@ -111,14 +110,7 @@ namespace MonoFSM.Editor.AnimationWindow
 
         private static void WrappedGUI(EditorWindow window)
         {
-            // 動態計算navbar高度
-            var baseHeight = 26;
-            var extraHeight = 0;
-            // if (navbars_byWindow.ContainsKey(window) && navbars_byWindow[window].showObjectFields)
-            // {
-            //     extraHeight = 28; // 第二層的高度
-            // }
-            var navbarHeight = baseHeight + extraHeight;
+            var navbarHeight = 26;
 
             void navbarGui()
             {
@@ -131,12 +123,6 @@ namespace MonoFSM.Editor.AnimationWindow
 
             void defaultGuiWithOffset()
             {
-                var topOffset = navbarHeight;
-                var m_Pos_original = window.GetFieldValue<Rect>("m_Pos");
-
-                GUI.BeginGroup(m_Pos_original.SetPos(0, 0).AddHeightFromBottom(-topOffset));
-                window.SetFieldValue("m_Pos", m_Pos_original.AddHeightFromBottom(-topOffset));
-
                 // 在調用原始OnGUI之前，先處理navbar的dropdown事件
                 if (navbars_byWindow.ContainsKey(window))
                 {
@@ -144,9 +130,21 @@ namespace MonoFSM.Editor.AnimationWindow
                     navbar.HandleDropdownEventsFirst();
                 }
 
+                var m_Pos_original = window.GetFieldValue<Rect>("m_Pos");
+
+                // 用 GUI.matrix 平移內容往下，不會產生 clipping（footer 不會被擠掉）
+                var originalMatrix = GUI.matrix;
+                GUI.matrix = Matrix4x4.TRS(
+                    new Vector3(0, navbarHeight, 0),
+                    Quaternion.identity,
+                    Vector3.one
+                ) * originalMatrix;
+
+                // 告訴 Animation Window 可用高度少了 navbarHeight，讓它 layout 在縮小的空間內
+                window.SetFieldValue("m_Pos", m_Pos_original.AddHeightFromBottom(-navbarHeight));
+
                 try
                 {
-                    // 調用原本的OnGUI邏輯
                     window.InvokeMethod("OnGUI");
                 }
                 catch (Exception exception)
@@ -158,25 +156,18 @@ namespace MonoFSM.Editor.AnimationWindow
                 }
 
                 window.SetFieldValue("m_Pos", m_Pos_original);
-                GUI.EndGroup();
+                GUI.matrix = originalMatrix;
             }
 
-            // var doNavbarFirst = navbars_byWindow.ContainsKey(window) && navbars_byWindow[window].isSearchActive;
+            // 設定 Dockarea 的 bottom style，讓 IMGUI 區域縮短以容納 navbar（避免 footer 被擠掉）
+            var dockarea =
+                window.rootVisualElement; //?.parent?.Q(className: "unity-imgui-container");
+            if (dockarea != null)
+                dockarea.style.bottom = navbarHeight;
 
-            // 恢復原來的順序，但優化控制項ID管理
+            // 先渲染原始 GUI（往下平移），再把 navbar 畫在最上面
             defaultGuiWithOffset();
             navbarGui();
-
-            // 最後繪製任何需要在最上層的dropdown
-            // if (navbars_byWindow.ContainsKey(window))
-            // {
-            //     var navbar = navbars_byWindow[window];
-            //     // if (navbar.shouldDrawDropdown)
-            //     // {
-            //     //     navbar.shouldDrawDropdown = false;
-            //     //     navbar.DrawDropdownOverlay();
-            //     // }
-            // }
         }
 
         private static void UpdateGUIWrapping(EditorWindow window)
@@ -215,6 +206,13 @@ namespace MonoFSM.Editor.AnimationWindow
 
                 var originalDelegate = hostView.InvokeMethod("CreateDelegate", "OnGUI");
                 hostView.SetMemberValue("m_OnGUI", originalDelegate);
+
+                // 還原 Dockarea 的 bottom style
+                var dockarea =
+                    window.rootVisualElement; //?.parent?.Q(className: "unity-imgui-container");
+                if (dockarea != null)
+                    dockarea.style.bottom = 3;
+
                 window.Repaint();
             }
 

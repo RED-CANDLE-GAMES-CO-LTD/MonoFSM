@@ -48,14 +48,14 @@ public class AnimationWindowNavbar
     private Rect pendingDropdownRect;
     private bool shouldDrawDropdown = false;
     private Animator currentAnimator; // 追踪當前的Animator Component
-    private AnimatorController currentController; // 追踪當前的AnimatorController
+    private RuntimeAnimatorController currentController; // 追踪當前的AnimatorController
 
     private bool isCreateOptionSelected
     {
         get => _isCreateOptionSelected;
         set
         {
-            Debug.Log("Create option selected: " + value);
+            // Debug.Log("Create option selected: " + value);
             _isCreateOptionSelected = value;
         }
     } // 追蹤是否選中了創建選項
@@ -119,8 +119,9 @@ public class AnimationWindowNavbar
                     }
                     else if (currentMatches.Any())
                     {
-                        // 選中了現有的clip
-                        SetAnimationWindowClip(currentMatches[currentMatchIndex]);
+                        // 有選取用選取的，沒選取則用第一個（最相關的）
+                        var idx = isNavigatingDropdown ? currentMatchIndex : 0;
+                        SetAnimationWindowClip(currentMatches[idx]);
                         searchText = "";
                         showDropdown = false;
                         isNavigatingDropdown = false;
@@ -188,7 +189,7 @@ public class AnimationWindowNavbar
     void CloseSearch()
     {
         searchText = "";
-        Debug.Log("Search cleared");
+        // Debug.Log("Search cleared");
         PerformSearch();
         showDropdown = false;
         isNavigatingDropdown = false;
@@ -268,7 +269,7 @@ public class AnimationWindowNavbar
                 currentAnimator = selectedAnimator;
                 // 同時更新 AnimatorController
                 currentController =
-                    currentAnimator?.runtimeAnimatorController as AnimatorController;
+                    currentAnimator?.runtimeAnimatorController;
             }
 
             // var width = 120f;
@@ -306,22 +307,6 @@ public class AnimationWindowNavbar
                 EditorGUI.ObjectField(objectFieldRect, currentAnimator, typeof(Animator), true)
                 as Animator;
 
-            // if (newAnimator != currentAnimator)
-            // {
-            //     currentAnimator = newAnimator;
-            //     currentController =
-            //         currentAnimator?.runtimeAnimatorController as AnimatorController;
-            //
-            //     if (newAnimator != null)
-            //     {
-            //         // 選擇對應的 GameObject
-            //         Selection.activeGameObject = newAnimator.gameObject;
-            //
-            //         // 重新執行搜尋以更新匹配項目
-            //         PerformSearch();
-            //     }
-            // }
-
             return startX + width;
         }
 
@@ -339,19 +324,15 @@ public class AnimationWindowNavbar
             var buttonWidth = shouldShowCreateButton ? 24f : 0f;
             var totalWidth = baseWidth + buttonWidth + (shouldShowCreateButton ? 2f : 0f); // 2f為間距
 
-            // 繪製圖標
-            var iconRect = new Rect(startX, 5, 18, 18);
-            var icon = EditorGUIUtility.IconContent("d_AnimatorController Icon");
-            GUI.DrawTexture(
-                iconRect,
-                icon.image,
-                ScaleMode.ScaleToFit,
-                true,
-                0,
-                Greyscale(isDarkTheme ? 0.8f : 0.4f),
-                0,
-                0
-            );
+            // 繪製圖標（點擊開啟 Animator Window）
+            var iconRect = new Rect(startX, 4, 20, 20);
+            if (IconButton(iconRect, "d_AnimatorController Icon", 16,
+                    Greyscale(isDarkTheme ? 0.8f : 0.4f),
+                    Greyscale(isDarkTheme ? 1f : 0.2f),
+                    Greyscale(isDarkTheme ? 0.6f : 0.5f)))
+            {
+                EditorApplication.ExecuteMenuItem("Window/Animation/Animator");
+            }
 
             // 計算ObjectField的寬度（如果有建立按鈕，需要預留空間）
             var objectFieldWidth = shouldShowCreateButton
@@ -370,9 +351,9 @@ public class AnimationWindowNavbar
                 EditorGUI.ObjectField(
                     objectFieldRect,
                     currentController,
-                    typeof(AnimatorController),
+                    typeof(RuntimeAnimatorController),
                     false
-                ) as AnimatorController;
+                ) as RuntimeAnimatorController;
 
             // 繪製建立按鈕（當controller為null但animator存在時）
             if (shouldShowCreateButton)
@@ -382,23 +363,10 @@ public class AnimationWindowNavbar
                 // 調試：繪製按鈕區域（可選）
                 // EditorGUI.DrawRect(buttonRect, Color.red * 0.3f); // 取消註解來查看按鈕位置
 
-                // 使用IconButton方法（與其他按鈕保持一致）
-                var iconName = "d_CreateAddNew";
-                var iconSize = 16;
-                var colorNormal = Greyscale(isDarkTheme ? .75f : .2f);
-                var colorHovered = Greyscale(isDarkTheme ? 1f : .2f);
-                var colorPressed = Greyscale(isDarkTheme ? .75f : .5f);
-
-                if (
-                    IconButton(
-                        buttonRect,
-                        iconName,
-                        iconSize,
-                        colorNormal,
-                        colorHovered,
-                        colorPressed
-                    )
-                )
+                if (IconButton(buttonRect, "d_CreateAddNew", 16,
+                        Greyscale(isDarkTheme ? .75f : .2f),
+                        Greyscale(isDarkTheme ? 1f : .2f),
+                        Greyscale(isDarkTheme ? .75f : .5f)))
                 {
                     Debug.Log("Create button clicked!"); // 加入調試信息
                     CreateAnimatorControllerForCurrentAnimator();
@@ -411,12 +379,12 @@ public class AnimationWindowNavbar
                 currentController = newController;
 
                 // 如果當前有 Animator，更新它的 controller
-                if (currentAnimator != null)
-                {
-                    currentAnimator.runtimeAnimatorController = newController;
-                    // 重新執行搜尋以更新匹配項目
-                    PerformSearch();
-                }
+                // if (currentAnimator != null)
+                // {
+                //     currentAnimator.runtimeAnimatorController = newController;
+                //     // 重新執行搜尋以更新匹配項目
+                //     PerformSearch();
+                // }
             }
 
             return startX + totalWidth;
@@ -462,20 +430,21 @@ public class AnimationWindowNavbar
                 as AnimationClip;
 
             // 處理 clip 變更
-            if (newClip != currentClip)
-            {
-                if (newClip != null)
-                {
-                    // 設置新的 clip 到 Animation Window
-                    SetAnimationWindowClip(newClip);
-                }
-                else
-                {
-                    // 清除 clip
-                    window.animationClip = null;
-                    window.Repaint();
-                }
-            }
+            // if (newClip != currentClip)
+            // {
+            //     if (newClip != null)
+            //     {
+            //         // 設置新的 clip 到 Animation Window
+            //         SetAnimationWindowClip(newClip);
+            //     }
+            //     else
+            //     {
+            //         // 清除 clip
+            //         Debug.Log("Clearing Animation Window clip");
+            //         window.animationClip = null;
+            //         window.Repaint();
+            //     }
+            // }
 
             return startX + width;
         }
@@ -555,7 +524,7 @@ public class AnimationWindowNavbar
 
             if (newSearchText != searchText)
             {
-                Debug.Log("searchText: " + searchText + " -> " + newSearchText);
+                // Debug.Log("searchText: " + searchText + " -> " + newSearchText);
                 searchText = newSearchText;
                 isNavigatingDropdown = false;
                 PerformSearch();
@@ -814,7 +783,7 @@ public class AnimationWindowNavbar
         // 在最後繪製dropdown，確保它在所有內容之上
         if (showDropdown)
         {
-            Debug.Log("Drawing dropdown at: " + pendingDropdownRect);
+            // Debug.Log("Drawing dropdown at: " + pendingDropdownRect);
             DrawDropdownAtTop(pendingDropdownRect);
         }
 
@@ -908,11 +877,11 @@ public class AnimationWindowNavbar
             currentMatches = FindMatchingAnimationClips(searchText);
             currentMatchIndex = -1;
 
-            if (currentMatches.Any())
-            {
-                // 不自動設置clip，讓用戶從下拉選單選擇
-                Debug.Log($"Found {currentMatches.Count} matches for '{searchText}'");
-            }
+            // if (currentMatches.Any())
+            // {
+            //     // 不自動設置clip，讓用戶從下拉選單選擇
+            //     Debug.Log($"Found {currentMatches.Count} matches for '{searchText}'");
+            // }
         }
         catch (Exception e)
         {
@@ -1065,8 +1034,25 @@ public class AnimationWindowNavbar
             Debug.LogError($"Error finding animation clips: {e.Message}");
         }
 
-        Debug.Log("clips count" + clips.Count);
-        return clips.OrderBy(c => c.name).ToList();
+        // Debug.Log("clips count" + clips.Count);
+
+        // 按字母排序
+        // return clips.OrderBy(c => c.name).ToList();
+
+        // 按搜尋詞相似度排序（完全匹配 > 開頭匹配 > 包含位置靠前）
+        if (string.IsNullOrEmpty(searchTerm))
+            return clips.OrderBy(c => c.name).ToList();
+
+        var term = searchTerm.ToLowerInvariant();
+        return clips.OrderBy(c =>
+        {
+            var name = c.name.ToLowerInvariant();
+            if (name == term) return 0; // 完全匹配
+            if (name.StartsWith(term)) return 1; // 開頭匹配
+            var idx = name.IndexOf(term, StringComparison.Ordinal);
+            if (idx >= 0) return 2 + idx; // 包含，位置越前越優先
+            return 1000; // fallback
+        }).ThenBy(c => c.name).ToList();
     }
 
     private void SetAnimationWindowClip(AnimationClip clip)
@@ -1096,6 +1082,7 @@ public class AnimationWindowNavbar
             // var animationWindowType = typeof(Editor).Assembly.GetType("UnityEditor.AnimationWindow");
             // var clipProperty = animationWindow.animationClip;// animationWindowType.GetProperty("animationClip");
 
+            Debug.Log($"Setting Animation Window clip to: {clip.name}");
             animationWindow.animationClip = clip;
             // 重新繪製窗口
             animationWindow.previewing = true;

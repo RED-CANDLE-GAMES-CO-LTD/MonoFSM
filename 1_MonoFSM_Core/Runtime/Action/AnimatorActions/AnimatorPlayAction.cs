@@ -556,10 +556,17 @@ namespace MonoFSM.Animation
             {
                 var overridingClip = OverridingClip;
                 if (overridingClip != null)
+                {
                     return overridingClip;
+                }
+
                 var baseClip = BaseClip;
                 if (baseClip != null)
                     return baseClip;
+
+                // Debug.LogError(
+                //     "CurrentClip is null, please check if the state name is correct and the animator has the clip",
+                //     this);
                 return null;
             }
         }
@@ -728,56 +735,23 @@ namespace MonoFSM.Animation
         //     // doneEventTransition = gameObject.AddComponent<AbstractStateTransition>();
         // }
 
-
-        //TODO: animation clip  ...生成？
-        //GenerateAnimationClipInPrefabFolder
-        private AnimationClip previewClip;
-
-        private AnimationClip FetchClip()
-        {
-            var controller = animator.runtimeAnimatorController as AnimatorController;
-            //find the clip of the state
-            if (controller == null)
-            {
-                Debug.LogError("找不到AnimatorController");
-                return null;
-            }
-
-            //FIXME: 沒有處理override controller?
-            var clip =
-                controller
-                    .layers[stateLayer]
-                    .stateMachine.states.First(s => s.state.name == StateName)
-                    .state.motion as AnimationClip;
-            previewClip = clip;
-            return clip;
-        }
-
         [Button("編輯動畫")]
         public void EditClip()
         {
-            Debug.Log("Edit State Clip" + gameObject, this);
-            EditorApplication.ExecuteMenuItem("Window/General/Hierarchy");
+            // Debug.Log("Edit State Clip" + gameObject, this);
             Selection.activeObject = animator.gameObject;
-            var animationWindow = EditorWindow.GetWindow<AnimationWindow>(false);
-            // AnimatorHelper.EditClip(_lastEditState.BindAnimator, _lastEditState.Clip);
-            //TODO:選不到.. state和clip不會對上？
+            var clip = CurrentClip;
 
-            // var clip = animator.GetCurrentAnimatorClipInfo(stateLayer)[0].clip;
-            // var clip = animator.runtimeAnimatorController.animationClips[""];
-            FetchClip();
-            animationWindow.Focus();
-            animationWindow.animationClip = CurrentClip; // previewClip;
-            animationWindow.previewing = true;
-            // animationWindow.recording = true;
-
-            Debug.Log(
-                "animationWindow current clip:" + animationWindow.animationClip + "," + previewClip
-            );
-
-            // Debug.Log("Focus Window:" + EditorWindow.focusedWindow.ToString());
-            // EditorWindow.GetWindow<ProjectWindowUtil>();
-            // ActiveEditorTracker.sharedTracker.isLocked = true;
+            // 延遲到下一個 Editor update，等 AnimationWindow 處理完 selection change 後再設定 clip
+            EditorApplication.delayCall += () =>
+            {
+                var animationWindow = EditorWindow.GetWindow<AnimationWindow>(false);
+                animationWindow.animationClip = clip;
+                animationWindow.previewing = true;
+                animationWindow.Repaint();
+                // Debug.Log("animationWindow current clip:" + clip + ", WindowClip:" +
+                //           animationWindow.animationClip);
+            };
         }
 
         public AnimationClip Clip => CurrentClip;
