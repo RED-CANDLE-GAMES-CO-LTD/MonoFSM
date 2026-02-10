@@ -14,6 +14,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [Required]
         [Component] //[Component?
         public VarEntity _hittingEntity; //to set
+        //這個只有 dealer才需要吧？ receiver自己就是了？
 
         protected override void Rename()
         {

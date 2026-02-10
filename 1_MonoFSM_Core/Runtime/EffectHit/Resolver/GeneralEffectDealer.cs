@@ -15,7 +15,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
     public class ProxySource { }
 
     //FIXME: 篩選掉同個owner下的判斷？
-
+//FIXME: 還是要可以帶一個變數會比較好 (或是一組變數？可以 remapping的？) 畢竟就算要 add force 之類的還是有可能會有多種力道之類的
     public class GeneralEffectDealer : EffectResolver, IEffectDealer
     {
         // public VariableMonoDescriptableProvider proxyProvider;

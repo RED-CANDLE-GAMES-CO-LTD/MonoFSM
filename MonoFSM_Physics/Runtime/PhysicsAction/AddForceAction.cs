@@ -1,8 +1,10 @@
 using System;
 using MonoFSM.Core.Detection;
 using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Runtime.Attributes;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -18,11 +20,11 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
     {
         [Header("Rigidbody Target")]
         [Tooltip("直接指定的 Rigidbody，優先級最高")]
-        // [DropDownRef] private Rigidbody _rigidbody;
-        //
-        // [HideIf("_rigidbody")]
-        // [Tooltip("當沒有直接指定 Rigidbody 時使用的 Provider")]
-        // [SerializeField] private ValueProvider _rigidbodyProvider;
+        [DropDownRef]
+        [SerializeField]
+        private Rigidbody _rigidbody;
+
+        [HideIf(nameof(_rigidbody))] [DropDownRef]
         public VarComp _rigidbodyVar;
 
         [Header("Force Settings")]
@@ -32,6 +34,7 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
         // private IValueProvider<Vector3> _forceDirectionProvider;
         public VarVector3 _forceDirectionVar;
 
+        //FIXME:
         [Tooltip("力的大小")]
         [FormerlySerializedAs("_torqueMagnitude")]
         [SerializeField]
@@ -67,6 +70,9 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
             // 優先使用自定義的 Rigidbody 實作
             if (target.TryGetComponent<ICustomRigidbody>(out var customRigidbody))
             {
+                Debug.Log(
+                    $"AddForce: Applying force to {target.name} using ICustomRigidbody with direction: {force}",
+                    this);
                 customRigidbody.AddForce(force, _forceMode);
                 return;
             }
@@ -128,7 +134,8 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
         private Rigidbody GetTargetRigidbody(GeneralEffectHitData hitData)
         {
             // 優先使用直接指定的 rigidbody
-
+            if (_rigidbody != null)
+                return _rigidbody;
             if (_rigidbodyVar != null)
                 return _rigidbodyVar.Value as Rigidbody;
             // 嘗試從備用來源取得 rigidbody

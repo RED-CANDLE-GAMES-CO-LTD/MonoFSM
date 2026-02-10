@@ -14,7 +14,7 @@ namespace MonoFSM.Core.Editor
    public static class AnimatorRefactor
    {
 #if UNITY_EDITOR
-      private const string menuPath = "GameObject/赤燭RCG/Refactor 節點 #r";
+       private const string menuPath = "GameObject/MonoFSM Animation/Refactor 節點 #r";
 
       // [InitializeOnLoadMethod]
       // static void Init()
@@ -25,7 +25,7 @@ namespace MonoFSM.Core.Editor
 
       public static void Activate()
       {
-         
+
          if(_isRefactoring)
             return;
          Debug.Log("Activate");
@@ -37,7 +37,7 @@ namespace MonoFSM.Core.Editor
       private static bool _isRefactoring = false;
       // public static void DeactivateCheck()
       // {
-      //    
+      //
       //    Debug.Log("DeactivateCheck");
       //    var node = GameObject.FindObjectOfType<RefactorNode>();
       //    if (node == null)
@@ -47,7 +47,7 @@ namespace MonoFSM.Core.Editor
       //    }
       // }
       static void HierarchyChanged()
-      { 
+      {
          RefactorNode[] nodes = null;
          if (PrefabStageUtility.GetCurrentPrefabStage())
          {
@@ -61,8 +61,8 @@ namespace MonoFSM.Core.Editor
             nodes = Object.FindObjectsByType<RefactorNode>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             Debug.Log("Find all RefactorNode in Scene" + nodes.Length);
          }
-      
-        
+
+
          if (nodes == null || nodes.Length == 0)
          {
             Debug.Log("AnimatorRefactor Deactivated");
@@ -75,17 +75,17 @@ namespace MonoFSM.Core.Editor
             if (node.gameObject.name != node.currentName)
             {
                Debug.Log("GameObject was renamed from " + node.currentName + " to " + node.gameObject.name);
-               
+
                var oldPath = GetRelativePathWithOldName(node.gameObject, node.currentName);
                var newPath = GetRelativePath(node.gameObject);
-               
+
                RefactorClips(node.gameObject, oldPath, newPath);
 
                node.currentName = node.gameObject.name;
             }
          }
       }
-      
+
       public static string GetRelativePathWithOldName(GameObject go,string oldName)
       {
          var animator = go.GetComponentInParent<Animator>();
@@ -98,7 +98,7 @@ namespace MonoFSM.Core.Editor
          }
          return path;
       }
-      
+
       //return the relative path of a GameObject to the parent animator controller
       public static string GetRelativePath(GameObject go)
       {
@@ -134,7 +134,7 @@ namespace MonoFSM.Core.Editor
       //    }
       //    return (path, newPath);
       // }
-      
+
       private static (string, string) GetRelativePath(GameObject go, string newName)
       {
          var animator = go.GetComponentInParent<Animator>();
@@ -156,23 +156,23 @@ namespace MonoFSM.Core.Editor
       [MenuItem(menuPath, true)]
       private static bool RenameNodeCheck()
       {
-         if (Selection.activeGameObject == null)
-            return false;
+          if (Selection.activeGameObject == null)
+              return false;
 
-         var animator = Selection.activeGameObject.GetComponentInParent<Animator>();  
+         var animator = Selection.activeGameObject.GetComponentInParent<Animator>();
          if (animator == null)
             return false;
-         
+
          if (animator.runtimeAnimatorController == null)
             return false;
-         
+
          selectingNode = Selection.activeGameObject;
          return true;
       }
 
       private static GameObject selectingNode;
 
-      // private static string savedLastNewName = "GameObject"; 
+      // private static string savedLastNewName = "GameObject";
       [MenuItem(menuPath)]
       static void RenameNode()
       {
@@ -193,10 +193,10 @@ namespace MonoFSM.Core.Editor
          // selectingNode.name = newName;
       }
 
-      
-      
-      
-     
+
+
+
+
       //把Animator的Default State的key貼到所有的GameObject上
       [MenuItem("CONTEXT/Animator/Paste Default State Key to GameObjects")]
       public static void PasteDefaultStateToGameObject(MenuCommand menuCommand)
@@ -240,14 +240,14 @@ namespace MonoFSM.Core.Editor
     public static void RefactorClips(GameObject gObj,string oldPath,string newPath)
       {
          var animator = gObj.GetComponentInParent<Animator>();
-         
+
          var animatorController = animator.runtimeAnimatorController;
          if (animator.runtimeAnimatorController == null)
             return;
          //find all clips in the animator controller
          var clips = animatorController.animationClips;
-         
-         
+
+
          //parse all clips
          foreach (var clip in clips)
          {
@@ -317,7 +317,7 @@ namespace MonoFSM.Core.Editor
       {
          //record undo for the clip
          Undo.RecordObject(clip, "Rename path in Clip");
-         
+
          var curveBindings =  AnimationUtility.GetCurveBindings(clip);
          var refCurveBindings = AnimationUtility.GetObjectReferenceCurveBindings(clip);
 
@@ -333,7 +333,7 @@ namespace MonoFSM.Core.Editor
             RenameCurveBinding(clip, curveBinding, oldPath, newPath);
          }
       }
-      
+
       static void RenameCurveBinding(AnimationClip clip, EditorCurveBinding curveBinding, string oldPath, string newPath)
       {
          if (curveBinding.path.StartsWith(oldPath) && (curveBinding.path.Length == oldPath.Length || curveBinding.path[oldPath.Length] == '/'))
@@ -345,21 +345,21 @@ namespace MonoFSM.Core.Editor
 
             var curve = AnimationUtility.GetEditorCurve(clip, curveBinding);
             ObjectReferenceKeyframe[] objectReferenceCurve = AnimationUtility.GetObjectReferenceCurve(clip, curveBinding);
-            
+
             //remove old curve
             if (curve != null)
                AnimationUtility.SetEditorCurve(clip, curveBinding, null);
             else
                AnimationUtility.SetObjectReferenceCurve(clip, curveBinding, null);
-            
+
             var newCurveBinding = new EditorCurveBinding
             {
                path = newString,
                type = curveBinding.type,
                propertyName = curveBinding.propertyName
             };
-            
-           
+
+
             //add new curve
             if(curve != null)
                AnimationUtility.SetEditorCurve(clip, newCurveBinding, curve);
@@ -394,7 +394,7 @@ namespace MonoFSM.Core.Editor
 #endif
 
    }
-   
-   
+
+
 
 }

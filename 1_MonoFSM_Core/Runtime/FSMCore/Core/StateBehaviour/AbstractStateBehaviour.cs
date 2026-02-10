@@ -40,6 +40,9 @@ namespace MonoFSM.Core
         [AutoChildren(DepthOneOnly = true)]
         private CanEnterNode _canEnterNode;
 
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
+        private CanExitNode _canExitNode;
+
         public float DeltaTime => context.DeltaTime;
 
         //  PRIVATE MEMBERS

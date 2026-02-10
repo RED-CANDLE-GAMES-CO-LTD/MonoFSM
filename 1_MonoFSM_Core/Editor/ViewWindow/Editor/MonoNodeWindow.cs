@@ -25,7 +25,7 @@ namespace MonoFSM.Core.Editor
             PrefabStage.prefabStageOpened += OnPrefabStageOpened;
             PrefabStage.prefabStageClosing += OnPrefabStateClosing;
             EditorSceneManager.sceneOpened += OnSceneOpened;
-            
+
         }
 
 
@@ -45,17 +45,17 @@ namespace MonoFSM.Core.Editor
         private static void OnSceneOpened(Scene scene, OpenSceneMode mode)
         {
             MonoNodeWindow.UpdateCurrentWindow();
-            
+
         }
     }
 
 
     //TODO: static PrefabStage?
-    
-    
+
+
     public class MonoNodeWindow : OdinEditorWindow
     {
-        [MenuItem("Window/赤燭RCG/ShowMonoHierarchyTab Prefab ")]
+        [MenuItem("Window/MonoFSM/ShowMonoHierarchyTab Prefab ")]
         public static void ShowMonoHierarchyTab()
         {
             // animCont.layers[0].stateMachine.states[0].state;
@@ -76,8 +76,7 @@ namespace MonoFSM.Core.Editor
             }
         }
 
-        // [MenuItem("Window/赤燭RCG/ShowMonoHierarchyTab Any #%_T")]
-        [MenuItem("Window/赤燭RCG/ShowMonoHierarchyTab Any")]
+        [MenuItem("Window/MonoFSM/ShowMonoHierarchyTab Any")]
         public static void ShowMonoHierarchyTabAny()
         {
             // animCont.layers[0].stateMachine.states[0].state;
@@ -101,13 +100,13 @@ namespace MonoFSM.Core.Editor
         private static MonoNodeWindow CreateDockWindow()
         {
 //             var types = new List<Type>()
-//             { 
+//             {
 //                 // first add your preferences
-//                 typeof(SceneView), 
+//                 typeof(SceneView),
 //                 typeof(Editor).Assembly.GetType("UnityEditor.GameView"),
 //                 typeof(Editor).Assembly.GetType("UnityEditor.SceneHierarchyWindow"),
-//                 typeof(Editor).Assembly.GetType("UnityEditor.ConsoleWindow"), 
-//                 typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser"), 
+//                 typeof(Editor).Assembly.GetType("UnityEditor.ConsoleWindow"),
+//                 typeof(Editor).Assembly.GetType("UnityEditor.ProjectBrowser"),
 //                 typeof(Editor).Assembly.GetType("UnityEditor.InspectorWindow")
 //             };
 //
@@ -207,7 +206,7 @@ namespace MonoFSM.Core.Editor
             Prefab = currentPrefab;
             currentPrefab = null;
         }
-            
+
         if (listView == null)
             return;
 
@@ -221,7 +220,7 @@ namespace MonoFSM.Core.Editor
     [PreviewField]
     [HideLabel]
     public GameObject preview => lastSelectedEntity;
-    
+
     private bool IsSyncSelectionInHierarchy = false;
     private DropdownField FilterTypeDropDown;
     // public Type[] filterTypes = new[] {typeof(IRCGSignal),typeof(EncapsuleExclusionTag), typeof(Component), typeof(Collider),typeof(RCGSignalType),typeof(AbstractVariable) };
@@ -243,8 +242,8 @@ namespace MonoFSM.Core.Editor
         // if (TypeFilterEntries == null || TypeFilterEntries.Length == 0)
             TypeFilterEntries = FilterTypes.Where(x => x != null)
                 .Select(x => new TypeFilterEntry() { type = x, Enabled = true }).ToArray();
-            
-       
+
+
     }
 
     // [InlineEditor] [OnValueChanged("UpdateFilterEntry")]
@@ -252,36 +251,34 @@ namespace MonoFSM.Core.Editor
     // [OnValueChanged("UpdateView")]
     // [ValueDropdown("FilterTypes")]
     // public Type currentType;
-    
 
-    
     //TODO: readonly, 可以改isOn
     // [OnValueChanged("UpdateView")]
-    // [ValueDropdown("FilterTypes")] 
-    
-    
+    // [ValueDropdown("FilterTypes")]
+
+
     [ListDrawerSettings(HideRemoveButton = true, HideAddButton = true)] [OdinSerialize]
     public TypeFilterEntry[] TypeFilterEntries = Array.Empty<TypeFilterEntry>(); //TODO: 用Editor Pref 記住
 
-  
+
     // [Toggle("Enabled")]
     public struct TypeFilterEntry
     {
-        
+
         // private string GetLabel()
         // {
         //     return "<icon name=UnityEditor.SceneAsset.Icon/>";
         // }
-        
+
         // [LabelText("@type.Name")]
         [HorizontalGroup] [OnValueChanged("@$root.DrawHierarchyList()")]
-        public bool Enabled; 
-        
+        public bool Enabled;
+
         [HorizontalGroup(),HideLabel]
-        
+
         // [GUIColor(1,1,1,1)]
         // [GUIColor("black")]
-        
+
         // [DisableIf("@true")]
         [EnableGUI]
         [ReadOnly]
@@ -307,8 +304,8 @@ namespace MonoFSM.Core.Editor
         //         FilterPreset;
         // }
         UpdateFilterEntry();
-        
-        
+
+
         // Create a two-pane view with the left pane being fixed with
         var splitView = new TwoPaneSplitView(0, 250, TwoPaneSplitViewOrientation.Vertical);
         FilterTypeDropDown = new DropdownField
@@ -318,9 +315,9 @@ namespace MonoFSM.Core.Editor
         };
 
         // CreateEntityDropDown();
-      
+
         // rootVisualElement.Add(entityDropDown);
-        
+
         FilterTypeDropDown.RegisterValueChangedCallback(evt =>
         {
             UpdateView();
@@ -334,7 +331,7 @@ namespace MonoFSM.Core.Editor
             Input.imeCompositionMode = IMECompositionMode.On;
         });
         _textField.RegisterCallback<FocusOutEvent>(evt => { Input.imeCompositionMode = IMECompositionMode.Auto; });
-        
+
 // A TwoPaneSplitView always needs exactly two child elements
         listView = new ListView
         {
@@ -355,7 +352,7 @@ namespace MonoFSM.Core.Editor
             // leftPane.reorderable = true;
             showBoundCollectionSize = true
         };
-        
+
         listView.onItemsChosen += (objs) =>
         {
             Debug.Log(objs);
@@ -366,7 +363,7 @@ namespace MonoFSM.Core.Editor
             InternalEditorUtility.SetIsInspectorExpanded(objs.First() as Component, true);
 
             //TODO: show a popup inspector???
-            
+
         };
 
 
@@ -385,8 +382,8 @@ namespace MonoFSM.Core.Editor
 
 
         var treeView = new TreeViewItemData<DraggableLabel>();
-        
-        
+
+
         // var treeView = rootVisualElement.Q<TreeView>();
         var topPanel = new VisualElement();
         // _textField.style.minHeight = 20;
@@ -403,7 +400,7 @@ namespace MonoFSM.Core.Editor
             EnsureTree();
             tree.Draw();
         };
-        
+
         scrollView.Add(container);
         scrollView.style.minHeight = 40;
 
@@ -412,8 +409,8 @@ namespace MonoFSM.Core.Editor
         // splitView.Add(treeView);
         // rootVisualElement.Add(listView);
         DisplayEntity(lastSelectedEntity);
-        
-            
+
+
 
         var toggleButton = new Toggle("select in hierarchy");
         toggleButton.RegisterValueChangedCallback((evt) =>
@@ -425,7 +422,7 @@ namespace MonoFSM.Core.Editor
         // var button = new Button(() =>
         // {
         //     var list = new List<int>();
-        //     
+        //
         //     for (var i = 0; i < 3; i++)
         //     {
         //         list.Add(i);
@@ -439,7 +436,7 @@ namespace MonoFSM.Core.Editor
 
         // if (overridePreset != null) UpdateFilterEntry();
 
-        
+
         listView.selectionType = SelectionType.Multiple;
         listView.Clear();
 
@@ -501,7 +498,7 @@ namespace MonoFSM.Core.Editor
 
         // PrefabStage.prefabStageOpened -= OnPrefabStageOpened;
         // PrefabStage.prefabStageClosing -= OnPrefabStateClosing;
-        
+
         if ( tree != null )
         {
             tree.Dispose();
@@ -531,7 +528,7 @@ namespace MonoFSM.Core.Editor
         Debug.Log("display entity" + gObj);
         // objectField.value = gObj;
         var comps = new List<Component>();
-        
+
         if (gObj == null)
             UpdateHierarchy(comps);
         else
@@ -542,15 +539,15 @@ namespace MonoFSM.Core.Editor
             {
                 return;
             }
-            
+
             Debug.Log("result:" + filteredComps.Count);
-            UpdateHierarchy(filteredComps);    
-            
+            UpdateHierarchy(filteredComps);
+
             // treeView.SetRootItems(TreeRoots);
             // treeView.RefreshItems();
             // treeView.reorderable = true;
         }
-        
+
     }
 
     void DrawHierarchyList()
@@ -559,8 +556,8 @@ namespace MonoFSM.Core.Editor
         DisplayEntity(lastSelectedEntity);
     }
     //FuzzySearch names of gameobjects
-     
-    
+
+
 
     List<Component> FilterComponent(List<Component> comps)
     {
@@ -579,7 +576,7 @@ namespace MonoFSM.Core.Editor
                     if (typeFilterEntry.Enabled)
                         if (typeFilterEntry.type.IsInstanceOfType(comp))
                             return true;
-                
+
                 // if (filteringType.IsInstanceOfType(comp))
                 //     return true;
                 return false;
@@ -610,15 +607,15 @@ namespace MonoFSM.Core.Editor
 
     // void OnPrefabStageChange()
     // {
-    //     
+    //
     //     var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
     //     if (prefabStage == null)
     //         return;
     //     if (lastPrefabRoot == prefabStage.prefabContentsRoot)
     //         return;
-    //    
+    //
     // }
-    
+
     //find nearest parent prefab of selection
     static GameObject FindNearestPrefab()
     {
@@ -626,7 +623,7 @@ namespace MonoFSM.Core.Editor
         if (selection == null)
             return null;
         var entity = selection.GetComponentInParent(ModuleEntityType);
-        
+
         //有entity
         if (entity != null)
         {
@@ -674,12 +671,12 @@ namespace MonoFSM.Core.Editor
                 DisplayEntity(lastSelectedEntity);
             }
         }
-        
+
     }
 
     private void OnSelectionChangeAllTheTime()
     {
-        //TODO: 
+        //TODO:
         // if(isPrefabMode)
         //     UpdateEntities();
         // Debug.Log("OnSelectionChange" + _lastSelectedEntity);
@@ -696,11 +693,11 @@ namespace MonoFSM.Core.Editor
                 ShowTab();
             Debug.Log("Selected Same Entity" + lastSelectedEntity);
         }
-            
-        
+
+
     }
 
-   
+
     void AddANewContextMenu(VisualElement element)
     {
         // The manipulator handles the right click and sends a ContextualMenuPopulateEvent to the target element.
@@ -720,7 +717,7 @@ namespace MonoFSM.Core.Editor
             evt.menu.AppendAction("Another action", (x) => Debug.Log("Another Action!!!!"), DropdownMenuAction.AlwaysEnabled);
         });
     }
-    
+
     void ReplaceContextMenu(VisualElement element)
     {
         element.RegisterCallback<ContextualMenuPopulateEvent>((evt) =>
@@ -734,16 +731,16 @@ namespace MonoFSM.Core.Editor
         //TODO: 是不是不用每次都要重新畫？
         listView.bindItem = (item, index) =>
         {
-            
+
             if (index < list.Count)
             {
                 var label = item as DraggableLabel;
-                
+
                 var comp = list[index];
                 if (label != null && comp != null)
                 {
                     label.bindComp = comp;
-           
+
                     AddANewContextMenu(label);
                     InsertIntoAnExistingMenu(label);
                 }
@@ -752,7 +749,7 @@ namespace MonoFSM.Core.Editor
             {
                 Debug.Log("Length:" + list.Count + "index:" + index);
             }
-            
+
         };
         listView.selectionType = SelectionType.Multiple;
         listView.Clear();
@@ -773,7 +770,7 @@ namespace MonoFSM.Core.Editor
             foreach (var t in nodes)
             {
                 var comps = t.GetComponents<Component>();
-                
+
                 var group = new List<TreeViewItemData<GameObject>>(comps.Length);
                 foreach (var comp in comps)
                 {
@@ -785,7 +782,7 @@ namespace MonoFSM.Core.Editor
             return roots;
         }
     }
-   
+
     class MouseEventLogger : Manipulator
     {
         protected override void RegisterCallbacksOnTarget()
