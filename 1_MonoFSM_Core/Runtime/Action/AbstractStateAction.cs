@@ -56,6 +56,7 @@ namespace MonoFSM.Core.Runtime.Action
         [AutoParent]
         protected GeneralState bindingState; // => this.GetComponentInParent<GeneralState>(true)// ;
 
+        //為什麼沒有紅紅？
         [Required]
         [PreviewInInspector]
         [AutoParent]

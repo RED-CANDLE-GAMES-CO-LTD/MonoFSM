@@ -10,12 +10,11 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM_Physics.Runtime.PhysicsAction
 {
-    //TODO: 真的要寫 for loop 節點嗎？
+    //TODO: 好像要和 SimpleRigidbodyAction 合併整合
     /// <summary>
     /// 對一個 Rigidbody 施加力的 Action
     /// 支援通過預設 Rigidbody、Provider 或者 GeneralEffectHitData 來取得目標
     /// </summary>
-    // [Obsolete("這個版本沒有在更新了？")]
     public class AddForceAction : AbstractStateAction, IArgEventReceiver<GeneralEffectHitData>
     {
         [Header("Rigidbody Target")]

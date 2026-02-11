@@ -149,7 +149,9 @@ namespace MonoFSM.Editor
         {
             if (obj == null)
                 return "null";
+            var globalID = GlobalObjectId.GetGlobalObjectIdSlow(obj);
 
+            //FIXME: 錯了，連單純的 reference都會誤判成 asset
             var path = AssetDatabase.GetAssetPath(obj);
             if (!string.IsNullOrEmpty(path))
             {

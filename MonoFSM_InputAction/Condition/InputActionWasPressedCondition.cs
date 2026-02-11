@@ -1,11 +1,12 @@
 using MonoFSM_InputAction;
+using Sirenix.OdinInspector;
 
 namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Scripts.Input
 {
     //FIXME: move不能用這個
     public class InputActionWasPressedCondition : AbstractConditionBehaviour
     {
-        public override string Description => $"{_inputAction.name} {_inputActionType}";
+        public override string Description => $"{inputAction?.name} {_inputActionType}";
 
         public enum InputActionType
         {
@@ -21,26 +22,28 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
         {
             get
             {
+                if (inputAction == null)
+                    return false;
                 switch (_inputActionType)
                 {
                     case InputActionType.WasPressed:
                         this.Log(
                             "InputActionWasPressedCondition IsValid: ",
-                            _inputAction.WasPressed
+                            inputAction.WasPressed
                         );
-                        return _inputAction.WasPressed;
+                        return inputAction.WasPressed;
                     case InputActionType.IsPressed:
                         this.Log(
                             "InputActionWasPressedCondition IsValid: ",
-                            _inputAction.IsPressed
+                            inputAction.IsPressed
                         );
-                        return _inputAction.IsPressed;
+                        return inputAction.IsPressed;
                     case InputActionType.WasReleased:
                         this.Log(
                             "InputActionWasPressedCondition IsValid: ",
-                            _inputAction.WasReleased
+                            inputAction.WasReleased
                         );
-                        return _inputAction.WasReleased;
+                        return inputAction.WasReleased;
                     default:
                         return false;
                 }
@@ -52,8 +55,17 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
         // public InputActionData actionData;
 
         //FIXME: 用一個介面
+        [HideIf("_inputActionVar")]
         [DropDownRef]
         public MonoInputAction _inputAction;
+
+        public MonoInputAction inputAction =>
+            _inputActionVar != null ? _inputActionVar._inputActionRef : _inputAction;
+
+        // [DropDownRef]
+        public VarInputAction _inputActionVar;
+        //可以再過一層？
+
         //resolve 去哪找？往上找
         // [AutoParent] AbstractFusionPlayerInput playerInput;
         // [AutoParent] private IPlayerInputProvider _playerInputProvider;

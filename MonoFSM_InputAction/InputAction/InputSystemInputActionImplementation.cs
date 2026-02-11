@@ -46,9 +46,12 @@ namespace MonoFSM_InputAction
         bool IInputActionImplementation.IsLocalPressed =>
             Application.isPlaying && (myAction.IsPressed() || myAction.WasPressedThisFrame());
 
-        [ShowInDebugMode]
+        //FIXME:
+        // [ShowInDebugMode]
         Vector2 IInputActionImplementation.ReadLocalVec2 =>
-            myAction?.ReadValue<Vector2>() ?? Vector2.zero;
+            ((IInputActionImplementation)this).IsVec2
+                ? myAction?.ReadValue<Vector2>() ?? Vector2.zero
+                : Vector2.zero;
         Vector2 IInputActionImplementation.Vec2Value =>
             ((IInputActionImplementation)this).ReadLocalVec2;
 

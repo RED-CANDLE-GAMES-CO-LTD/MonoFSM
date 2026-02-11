@@ -51,13 +51,13 @@ namespace MonoFSM.Core.Simulate
         // }
 
         //FIXME: 還要有condition? 暫停？
-        [PreviewInInspector] [AutoChildren(DepthOneOnly = true)]
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
         AbstractConditionBehaviour[] _conditions;
 
         public void Simulate(float deltaTime)
         {
-            // if (!_conditions.IsAllValid())
-            //     return;
+            if (!_conditions.IsAllValid())
+                return;
             if (currentTime.CurrentValue > currentTime.Min)
             {
                 // Debug.Log("Counting down" + currentTime.CurrentValue + " " + Time.deltaTime);

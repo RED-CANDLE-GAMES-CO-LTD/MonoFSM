@@ -11,7 +11,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
     public sealed class EffectEnterNode : AbstractEventHandler
     {
         //local variable, 這在這個enter下的生命週期
-        [Required]
+        // [Required]
         [Component] //[Component?
         public VarEntity _hittingEntity; //to set
         //這個只有 dealer才需要吧？ receiver自己就是了？

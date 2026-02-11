@@ -20,6 +20,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
 
         [HideIf(nameof(_overrideEnableHandle))]
         public VarComp _enableHandleVar;
+        //wrap?
 
         //不夠好用，還是要用類別來mapping
         //用effect type可能也不夠耶, general tag?
