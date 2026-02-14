@@ -65,6 +65,10 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [field: AutoChildren] //Children? //FIXME: 要弄成必定同一層，還是因為MonoObj 包一層 FSM的case很多？
         public MonoEntity Entity { get; }
 
+        public T GetCompCache<T>() where T : Component
+        {
+            return Entity.GetCompCache<T>();
+        }
         // public
         //寫一個show error的Attribute，然後在這裡用
         [InfoBox(
@@ -163,6 +167,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
         private IAfterSimulate[] _afterSimulates;
 
         [PreviewInDebugMode] [AutoChildren] private IRenderSimulate[] _renderSimulates;
+        [PreviewInDebugMode] [AutoChildren] private IBeforeRender[] _beforeRenders;
 
         // [PreviewInInspector]
         // [AutoChildren]
@@ -405,7 +410,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 return;
             // if (!IsProxy)
             //     return;
-            foreach (var item in _renderSimulates)
+            foreach (var item in _renderSimulates) //如果 render有順序問題就哭惹？
             {
                 if (item is not { isActiveAndEnabled: true })
                     continue;
@@ -508,6 +513,22 @@ namespace MonoFSMCore.Runtime.LifeCycle
             Undo.RecordObject(gameObject, "Rename to Prefab Name");
             gameObject.name = prefab.name;
 #endif
+        }
+
+        public void BeforeRender()
+        {
+            if (HasParent)
+                return;
+            // if (!IsProxy)
+            //     return;
+            foreach (var item in _beforeRenders) //如果 render有順序問題就哭惹？
+            {
+                if (item is not { isActiveAndEnabled: true })
+                    continue;
+                Profiler.BeginSample("MonoObj.Render", item.gameObject);
+                item.BeforeRender();
+                Profiler.EndSample();
+            }
         }
     }
 }

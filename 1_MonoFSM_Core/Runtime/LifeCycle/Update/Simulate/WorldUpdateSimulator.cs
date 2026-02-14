@@ -323,8 +323,11 @@ namespace MonoFSM.Core.Simulate
         private static float _deltaTime;
         public static float DeltaTime => _deltaTime * TimeScale;
 
+        public static SimPhase CurrentPhase { get; private set; } = SimPhase.None;
+
         public void BeforeSimulate(float time, float deltaTime, int tick)
         {
+            CurrentPhase = SimPhase.BeforeSimulate;
             CurrentTick = tick;
             SimulationTime = time;
             _deltaTime = deltaTime;
@@ -372,6 +375,8 @@ namespace MonoFSM.Core.Simulate
 
             _currentUpdatingObjs.AddRange(_monoObjectSet);
 
+            CurrentPhase = SimPhase.Simulate;
+
             //FIXME: isProxy? 要ㄇ 跳過模擬，或是regiester要兩階段
             foreach (var monoObject in _currentUpdatingObjs)
             {
@@ -385,6 +390,8 @@ namespace MonoFSM.Core.Simulate
                     }
                 }
             }
+
+            CurrentPhase = SimPhase.AfterSimulate;
 
             foreach (var monoObject in _currentUpdatingObjs)
             {
@@ -411,6 +418,7 @@ namespace MonoFSM.Core.Simulate
         {
             if (!IsReady)
                 return;
+            CurrentPhase = SimPhase.AfterUpdate;
             foreach (var monoObject in _monoObjectSet)
                 if (monoObject is { isActiveAndEnabled: true })
                 {
@@ -456,11 +464,25 @@ namespace MonoFSM.Core.Simulate
             }
         }
 #endif
+        public void BeforeRender()
+        {
+            if (!IsReady)
+                return;
+            CurrentPhase = SimPhase.BeforeRender;
+            foreach (var monoObject in _monoObjectSet)
+                if (monoObject is { isActiveAndEnabled: true })
+                {
+                    Profiler.BeginSample("Render", monoObject);
+                    monoObject.BeforeRender();
+                    Profiler.EndSample();
+                }
+        }
 
         public void Render(float runnerLocalRenderTime)
         {
             if (!IsReady)
                 return;
+            CurrentPhase = SimPhase.Render;
             foreach (var monoObject in _monoObjectSet)
                 if (monoObject is { isActiveAndEnabled: true })
                 {

@@ -20,6 +20,12 @@ namespace MonoFSM.Core.DataProvider
         // public bool IsDirty { get; }
     }
 
+    public interface IFloatBoundProvider
+    {
+        float Min { get; }
+        float Max { get; }
+    }
+
     public interface IEntityValueProvider : IValueProvider<MonoEntity> //怎麼
     {
         MonoEntityTag entityTag { get; }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using MonoDebugSetting;
 using MonoFSM.Core;
@@ -13,6 +15,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 #endif
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 [Serializable]
 public class ConditionGroup //AndGroup? //封裝的蠻好的...? 但是auto可能會遇到問題...
@@ -101,8 +104,28 @@ public abstract class AbstractConditionBehaviour
     public bool FinalResultInverted = false;
 
     protected abstract bool IsValid { get; }
+    [ShowInPlayMode] private bool _cachedFinalResult;
 
-    [ShowInPlayMode]
+    [Serializable]
+    private struct ConditionResultRecord
+    {
+        public float _time;
+        public bool _result;
+        public override string ToString() => $"[{_time:F2}] {_result}";
+    }
+
+    [ShowInDebugMode] [SerializeField]
+    private List<ConditionResultRecord> _resultHistory = new List<ConditionResultRecord>(10);
+
+    [Conditional("UNITY_EDITOR")]
+    private void RecordResult(bool result)
+    {
+        _cachedFinalResult = result;
+        if (_resultHistory.Count >= 10)
+            _resultHistory.RemoveAt(0);
+        _resultHistory.Add(new ConditionResultRecord { _time = Time.time, _result = result });
+    }
+
     public bool FinalResult
     {
         get
@@ -113,16 +136,20 @@ public abstract class AbstractConditionBehaviour
 
             //Debug用，暫時強迫覆蓋值 (ex: 裝備可以在路上換)
             if (_debugConditionResultOverrider != null && IsDebugMode)
-                return _debugConditionResultOverrider.OverrideResultValue;
+            {
+                var overrideResult = _debugConditionResultOverrider.OverrideResultValue;
+                RecordResult(overrideResult);
+                return overrideResult;
+            }
 #endif
             //之前都沒有...
             // if (isActiveAndEnabled == false)
             //     return false;
             //FIXME: 關著表示不判...
 
-            if (FinalResultInverted)
-                return !IsValid;
-            return IsValid;
+            var finalResult = FinalResultInverted ? !IsValid : IsValid;
+            RecordResult(finalResult);
+            return finalResult;
         }
     }
 

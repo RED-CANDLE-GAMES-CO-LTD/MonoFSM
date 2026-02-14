@@ -31,7 +31,7 @@ namespace Fusion.Addons.FSM
         private MonoEntity _parentEntity;
         public MonoEntity ParentEntity => _parentEntity;
 
-        [ShowInInspector]
+        // [ShowInInspector]
         public float DeltaTime => WorldUpdateSimulator.DeltaTime;
 
         // #if UNITY_EDITOR

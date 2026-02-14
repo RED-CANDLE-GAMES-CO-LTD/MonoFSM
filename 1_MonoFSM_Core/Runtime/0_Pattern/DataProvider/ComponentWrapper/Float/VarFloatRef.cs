@@ -8,19 +8,17 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
 {
-    public class VarFloatRef : AbstractValueSource<float>, IFloatProvider
+    //FIXME: 這不能 set 呀？
+    public class VarFloatRef : AbstractValueSource<float>, IFloatProvider, IFloatBoundProvider
     {
         //不對啊XDD
         [Required] [DropDownRef] public VarFloat _dropDownRef;
 
-        public float GetFloat()
-        {
-            return _dropDownRef.Value;
-        }
-
-        // public float Value => _dropDownRef.Value;
         public override float Value => _dropDownRef != null ? _dropDownRef.Value : 0f;
         public Type ValueType => typeof(float);
+
+        public float Min => _dropDownRef != null ? _dropDownRef.Min : float.MinValue;
+        public float Max => _dropDownRef != null ? _dropDownRef.Max : float.MaxValue;
 
         public override string Description => "DropDownRef: " + _dropDownRef?.Description;
     }

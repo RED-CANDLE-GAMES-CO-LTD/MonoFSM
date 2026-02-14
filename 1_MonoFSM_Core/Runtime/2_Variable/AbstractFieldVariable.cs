@@ -419,45 +419,6 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
                 _recursionDepth--;
             }
         }
-
-        //         set //FIXME: 拿掉，用SetValue(
-        //         {
-        //             var tempValue = value;
-        //             //先檢查會被修改
-        //
-        //             if (_modifiers != null)
-        //                 foreach (var modifier in _modifiers)
-        //                     tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
-        //             // this.Log("[Variable] Set", value);
-        //             if (BindData == null)
-        //             {
-        //                 if (_localField.CurrentValue.Equals(tempValue)) return;
-        //                 // if (localField == null)
-        //                 //     localField = default(TField);
-        //                 _localField.CurrentValue = tempValue;
-        //             }
-        //
-        //             else
-        //             {
-        //                 if (BindData.CurrentValue.Equals(tempValue)) return;
-        //                 if (FinalData == null) return;
-        // #if MIXPANEL
-        //                 _trackValue.OnRecycle();
-        //                 _trackValue["Data"] = FinalData ? FinalData.name : "null";
-        //                 _trackValue["value"] = tempValue switch
-        //                 {
-        //                     bool valueBool => valueBool,
-        //                     int valueInt => valueInt,
-        //                     float valueFloat => valueFloat,
-        //                     _ => _trackValue["value"]
-        //                 };
-        //                 this.Track("Variable Changed", _trackValue);
-        // #endif
-        //                 // Debug.Log("Set Value" + tempValue);
-        //
-        //                 BindData.CurrentValue = tempValue;
-        //             }
-        //         }
     }
 
     // private MonoBehaviour lastValueSetter;

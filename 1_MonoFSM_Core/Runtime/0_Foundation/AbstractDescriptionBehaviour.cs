@@ -33,8 +33,9 @@ namespace MonoFSM.Foundation
             IDrawHierarchyBackGround
     {
         [HideIf(nameof(_parentObj))]
+        [ShowIn(PrefabKind.PrefabInstance)]
         [RequiredIn(PrefabKind.PrefabInstance)]
-        [ShowInInspector]
+        // [ShowInInspector]
         [AutoParent]
         protected MonoObj _parentObj; //FIXME: 會拿不到root的耶...好麻煩啊
 

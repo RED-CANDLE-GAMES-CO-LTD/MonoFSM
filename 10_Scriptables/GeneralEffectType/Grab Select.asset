@@ -10,5 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0dd95d420d0f4628875cbf5008b05a70, type: 3}
-  m_Name: Select
+  m_Name: Grab Select
   m_EditorClassIdentifier: 
+  _note: "\u9019\u5565\u610F\u601D\uFF1F"

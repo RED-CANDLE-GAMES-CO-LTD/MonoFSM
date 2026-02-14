@@ -286,7 +286,7 @@ namespace MonoFSM.Core
                 Debug.LogError($"Transition target state is null in {Name} to {transition}", this);
             // try
             // {
-            if (transition.Transition(this as TState, transition.TargetState) == false)
+            if (!transition.Transition(this as TState, transition.TargetState))
                 return false;
             // // }
             // // catch (Exception e)

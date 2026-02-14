@@ -176,57 +176,55 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [PreviewInInspector]
         private GeneralEffectReceiver _lastReceiver;
 
+        [ShowInInspector]
         GeneralEffectReceiver _lastBestMatchReceiver;
         public GeneralEffectReceiver BestMatchReceiver => _lastBestMatchReceiver;
 
         public void OnBestMatchCheck()
         {
-            if (_onlyTriggerBestMatch != null)
+            if (_receivers.Count == 0)
             {
-                // Debug.Log("OnBestMatchCheck", this);
-                if (_receivers.Count == 0)
+                if (_lastBestMatchReceiver != null)
+                    _lastBestMatchReceiver.OnEffectHitBestMatchExit(_currentHitData);
+                _lastBestMatchReceiver = null;
+                return;
+            }
+
+            if (_receivers.Count == 1)
+            {
+                var only = _receivers.First();
+                if (_lastBestMatchReceiver != only)
                 {
                     if (_lastBestMatchReceiver != null)
                         _lastBestMatchReceiver.OnEffectHitBestMatchExit(_currentHitData);
-                    _lastBestMatchReceiver = null;
-                    return;
+                    only.OnEffectHitBestMatchEnter(_currentHitData);
+                    _lastBestMatchReceiver = only;
                 }
+                return;
+            }
 
-                if (_receivers.Count == 1)
+            // receivers >= 2: 用計分機制找 best match
+            GeneralEffectReceiver bestMatch = null;
+            float bestScore = float.MinValue;
+            foreach (var receiver in _receivers)
+            {
+                var score = _onlyTriggerBestMatch != null
+                    ? _onlyTriggerBestMatch.CalculateScore(this, receiver)
+                    : -Vector3.Distance(transform.position, receiver.transform.position); // 距離越近分數越高
+                if (score > bestScore)
                 {
-                    var only = _receivers.First();
-                    if (_lastBestMatchReceiver != only)
-                    {
-                        if (_lastBestMatchReceiver != null)
-                            _lastBestMatchReceiver.OnEffectHitBestMatchExit(_currentHitData);
-                        only.OnEffectHitBestMatchEnter(_currentHitData);
-                        // Debug.Log($"Only one receiver, {only.name} is the best match", this);
-                        _lastBestMatchReceiver = only;
-                    }
-
-                    return;
+                    bestScore = score;
+                    bestMatch = receiver;
                 }
+            }
 
-                GeneralEffectReceiver bestMatch = null;
-                float bestScore = float.MinValue;
-                foreach (var receiver in _receivers)
-                {
-                    var score = _onlyTriggerBestMatch.CalculateScore(this, receiver);
-                    if (score > bestScore)
-                    {
-                        bestScore = score;
-                        bestMatch = receiver;
-                    }
-                }
-
-                if (_lastBestMatchReceiver != bestMatch)
-                {
-                    if (_lastBestMatchReceiver != null)
-                        _lastBestMatchReceiver.OnEffectHitBestMatchExit(_currentHitData);
-                    if (bestMatch != null)
-                        bestMatch.OnEffectHitBestMatchEnter(_currentHitData);
-                    _lastBestMatchReceiver = bestMatch;
-                }
+            if (_lastBestMatchReceiver != bestMatch)
+            {
+                if (_lastBestMatchReceiver != null)
+                    _lastBestMatchReceiver.OnEffectHitBestMatchExit(_currentHitData);
+                if (bestMatch != null)
+                    bestMatch.OnEffectHitBestMatchEnter(_currentHitData);
+                _lastBestMatchReceiver = bestMatch;
             }
         }
 

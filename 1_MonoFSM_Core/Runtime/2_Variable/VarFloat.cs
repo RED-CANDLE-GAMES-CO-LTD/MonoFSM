@@ -1,5 +1,6 @@
 using System.Globalization;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.EditorExtension;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Variable.FieldReference;
@@ -43,10 +44,26 @@ namespace MonoFSM.Variable
         public float Percentage => (CurrentValue - Min) / (Max - Min);
 
         //FIXME: 要editor time的時候GetComponent嗎？
-        public float Min => _boundModifier ? _boundModifier.MinValue : float.MinValue;
+        public float Min
+        {
+            get
+            {
+                if (valueSource is IFloatBoundProvider boundProvider)
+                    return boundProvider.Min;
+                return _boundModifier ? _boundModifier.MinValue : float.MinValue;
+            }
+        }
 
         [FormerlyNamedAs("MaxTest")]
-        public float Max => _boundModifier ? _boundModifier.MaxValue : float.MaxValue;
+        public float Max
+        {
+            get
+            {
+                if (valueSource is IFloatBoundProvider boundProvider)
+                    return boundProvider.Max;
+                return _boundModifier ? _boundModifier.MaxValue : float.MaxValue;
+            }
+        }
 
         public override void OnBeforePrefabSave()
         {
@@ -69,6 +86,7 @@ namespace MonoFSM.Variable
         }
 
         public bool IsMax => CurrentValue >= Max;
+        public bool IsMin => CurrentValue <= Min;
 
         [ShowInDebugMode]
         public bool IsDecreasing =>

@@ -279,6 +279,8 @@ namespace MonoFSM.Runtime
         private readonly Dictionary<GeneralEffectType, GeneralEffectReceiver> _receiverTypeMap =
             new();
 
+        public GeneralEffectReceiver[] AllReceivers => _receivers;
+
         [ShowInDebugMode]
         private int ReceiverSetCount => _receiverTypeMap.Count;
 

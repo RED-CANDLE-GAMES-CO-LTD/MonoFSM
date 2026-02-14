@@ -78,7 +78,7 @@ namespace MonoFSM.Core.Simulate
 
         private void LateUpdate()
         {
-            _world.Render(Time.deltaTime * WorldUpdateSimulator.TimeScale);
+            _world.Render(Time.time - Time.fixedTime);
             _world.AfterUpdate();
         }
 

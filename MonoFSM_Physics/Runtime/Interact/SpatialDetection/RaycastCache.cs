@@ -24,7 +24,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             IBeforeSimulate,
             IUpdateSimulate,
             IResetStateRestore,
-            IHierarchyValueInfo, IRenderSimulate
+            IHierarchyValueInfo, IRenderSimulate, ISceneAwake
 
     {
         [SerializeField]
@@ -58,7 +58,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         private float GetDistance()
         {
             if (_distanceSource != null)
-                return _distanceSource.Distance * _deltaTime;
+                return _distanceSource.Distance;
             return _distance;
         }
 
@@ -77,14 +77,16 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         //用spherecast還是raycast？ spherecast會有問題嗎？
 
         [PreviewInInspector]
-        private Collider firstHitCollider => CachedHits.Count > 0 ? CachedHits[0].collider : null;
+        private Collider firstHitCollider =>
+            CachedHits is { Count: > 0 } ? CachedHits[0].collider : null;
 
-        [PreviewInInspector]
-        public List<RaycastHit> CachedHits { get; } = new();
+        private DualPhaseValue<List<RaycastHit>> _cachedHits = new(); //這個是用來儲存raycast的結果
 
-        public RaycastHit CachedHit => CachedHits.Count > 0 ? CachedHits[0] : default;
+        [PreviewInInspector] public List<RaycastHit> CachedHits => _cachedHits.Value;
+
+        public RaycastHit CachedHit => CachedHits is { Count: > 0 } ? CachedHits[0] : default;
         public VarVector3 _hitPosVar;
-        public Ray CachedRay => _cachedRay;
+        public Ray CachedRay => _cachedRay.Value;
 
         private IRaycastProcessor raycastProcessor =>
             _parentObj.WorldUpdateSimulator.GetCompCache<IRaycastProcessor>();
@@ -93,8 +95,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         // [Auto]
         // private ISphereCastProcessor _sphereCastProcessor;
         // public float _sphereRadius = 0.5f; //FIXME: spherecast的半徑要怎麼處理？ 這個是用來儲存spherecast的結果
-        [ShowInInspector]
-        private Ray _cachedRay;
+        [ShowInInspector] private DualPhaseValue<Ray> _cachedRay = new();
 
 #if UNITY_EDITOR
         [ShowInDebugMode]
@@ -114,16 +115,21 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 
             //FIXME: 處理 editor mode的ray provider
             if (Application.isPlaying == false && _rayProvider != null)
-                _cachedRay = _rayProvider.GetRay();
+            {
+                _cachedRay.SimValue = _rayProvider.GetRay();
+            }
+
             // Debug.Log("[RaycastCache] Draw Gizmo Ray:" + _cachedRay, this);
             //FIXME: 要選mode? sphere cast, ray cast...
-            Gizmos.DrawRay(_cachedRay.origin, _cachedRay.direction * GetDistance());
-            Gizmos.DrawWireCube(_cachedRay.origin, Vector3.one * 0.1f);
-            foreach (var hit in CachedHits)
-            {
-                Gizmos.color = Color.green;
-                Gizmos.DrawSphere(hit.point, 0.1f);
-            }
+            var ray = _cachedRay.Value;
+            Gizmos.DrawRay(ray.origin, ray.direction * GetDistance());
+            Gizmos.DrawWireCube(ray.origin, Vector3.one * 0.1f);
+            if (CachedHits != null)
+                foreach (var hit in CachedHits)
+                {
+                    Gizmos.color = Color.green;
+                    Gizmos.DrawSphere(hit.point, 0.1f);
+                }
         }
 
         public QueryTriggerInteraction _queryTriggerInteraction = QueryTriggerInteraction.Collide;
@@ -132,17 +138,18 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         {
             var ray = _rayProvider.GetRay();
             CachedHits.Clear();
-            _cachedRay = ray;
-            transform.rotation = Quaternion.LookRotation(_cachedRay.direction);
+            _cachedRay.Value = ray;
+            transform.rotation = Quaternion.LookRotation(_cachedRay.Value.direction);
             if (_raycastMode == RaycastMode.Single)
             {
-                var endPoint = _cachedRay.origin + _cachedRay.direction * GetDistance();
+                var currentRay = _cachedRay.Value;
+                var endPoint = currentRay.origin + currentRay.direction * GetDistance();
                 if (_cacheOrigin != null)
-                    _cacheOrigin.position = _cachedRay.origin;
+                    _cacheOrigin.position = currentRay.origin;
                 if (_cacheEndPoint != null)
                     _cacheEndPoint.position = endPoint;
                 if (_isDrawDebugColor)
-                    Debug.DrawLine(_cachedRay.origin, endPoint, _overrideGizmoColor, 10f);
+                    Debug.DrawLine(currentRay.origin, endPoint, _overrideGizmoColor, 10f);
 
                 var result = raycastProcessor.Raycast(
                     ray.origin,
@@ -165,7 +172,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             }
             else
             {
-                throw new ArgumentNullException("Not implement Multiple Raycast");
+                throw new ArgumentNullException($"Not implement Multiple Raycast");
             }
             // else
             // {
@@ -183,13 +190,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         [Auto]
         [CompRef]
         private AbstractRayProvider _rayProvider;
-
-        //update?
-        // public void Simulate(float deltaTime)
-        // {
-        //     PhysicsUpdate();
-        // }
-        private float _deltaTime;
+        // private float _deltaTime;
 
         //FIXME: raycast時間點...
         //beforeStateUpdate?
@@ -201,11 +202,8 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         //直接放在variable下面也是蠻好笑的？
         public void Simulate(float deltaTime) //這個優先順序問題？
         {
-            // if (_manualUpdateMode)
-            //     return;
-            _deltaTime = deltaTime;
+            // _deltaTime = deltaTime;
             TryCast();
-            // Debug.Log("[RaycastCache] Simulate Ray:" + _cachedRay, this);
         }
 
         public void AfterUpdate() { }
@@ -216,17 +214,21 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public void ResetStateRestore()
         {
             //把狀態清掉
-            _cachedRay = default;
-            CachedHits.Clear();
+            _cachedRay.Reset();
+
+            _cachedHits.SimValue?.Clear();
+            _cachedHits.RenderValue?.Clear();
 #if UNITY_EDITOR
             _debugHistoryObjs.Clear();
 #endif
         }
 
+
         public void BeforeSimulate(float deltaTime)
         {
+
             // _deltaTime = deltaTime;
-            // TryCast();
+
             // Debug.Log("[RaycastCache] BeforeSimulate Ray:" + _cachedRay, this);
         }
 
@@ -234,12 +236,28 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public string ValueInfo => "layer:" + _hittingLayer.value; //FIXME: 可能會是多個..
         public bool IsDrawingValueInfo => true;
 #endif
-        public void Render(float runnerLocalRenderTime)
+        public void Render(float deltaTime)
         {
-            // _deltaTime = deltaTime;
-            //FIXME: render cast
-            //TryCast();
-            // Debug.Log("[RaycastCache] Render Ray:" + _cachedRay, this);
+            //fIXME: 從 camera來的 ray, 一定很晚，所以這邊都是上個 frame的？但上個frame會怎麼樣嗎？
+            // TryCast();
+
+            // Debug.Log("[RaycastCache] Render Ray:" + _cachedRay.RenderValue, this);
+        }
+
+        private void Update()
+        {
+            // TryCast();
+        }
+
+        private void LateUpdate()
+        {
+            // TryCast();
+        }
+
+        public void EnterSceneAwake()
+        {
+            _cachedHits.SimValue = new List<RaycastHit>();
+            _cachedHits.RenderValue = new List<RaycastHit>();
         }
     }
 

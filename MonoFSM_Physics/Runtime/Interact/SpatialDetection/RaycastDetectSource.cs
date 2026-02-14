@@ -41,6 +41,14 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
             //FIXME:  TryCast();
             //從hit拿collider
             var cachedHits = _raycastCache.CachedHits;
+            if (cachedHits == null)
+            {
+                Debug.LogError(
+                    "RaycastDetectSource: CachedHits is null. Make sure RaycastCache is properly set up.",
+                    this);
+                return;
+            }
+
             foreach (var hit in cachedHits)
                 _thisFrameColliders.Add(hit.collider); //這個有用嗎？
         }

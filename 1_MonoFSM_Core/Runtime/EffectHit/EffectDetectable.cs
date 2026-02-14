@@ -158,6 +158,6 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return true;
         }
 
-        protected override string DescriptionTag => "EffectDetectable 接收進入點";
+        protected override string DescriptionTag => "-> EffectDetectable 接收";
     }
 }
