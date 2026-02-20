@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime._1_Conditions.Activator
 {
+    /// <summary>
+    /// 可以關掉自己嗎？
+    /// </summary>
     public class GameObjectActivateChecker : AbstractConditionActivateTarget
     {
         [PropertyOrder(-1)]

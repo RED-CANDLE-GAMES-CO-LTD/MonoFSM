@@ -101,54 +101,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         // {
         //     Debug.Log($"[EffectDetectable] ProcessEffectHit from {detector.name} to {name}", this);
         //     //FIXME: 在這邊new data...?
-        //     var detectData = new DetectData(detector, this);
-        //
-        //     foreach (var dealer in detector.Dealers)
-        //     {
-        //         var receiver = Get(dealer._effectType);
-        //         if (receiver == null)
-        //             continue;
-        //         // foreach (var receiver in EffectReceivers)
-        //         // {
-        //         //
-        //         // }
-        //         if (!dealer.CanHitReceiver(receiver))
-        //             continue;
-        //
-        //         var hitData = receiver.GenerateEffectHitData(dealer);
-        //         dealer.OnHitEnter(hitData, detectData);
-        //         receiver.OnEffectHitEnter(hitData, detectData);
-        //     }
-        // }
 
-        //         private void OnDisable() //FIXME: 這是TriggerDetectableTarget該做的事嗎？
-        //         {
-        //             //FIXME: 標記狀態改變，不要在這裡執行OnSpatialExit?
-        //             if (!Application.isPlaying)
-        //                 return;
-        // #if UNITY_EDITOR
-        //             toRemoves.AddRange(_detectors);
-        // #endif
-        //             foreach (var toRemove in toRemoves)
-        //             {
-        //                 // Debug.Log("OnDisable of Detectable", this);
-        //                 // Debug.Log("OnDisable of Detectable removef from" + toRemove, toRemove);
-        //                 toRemove.OnDetectExitCheck(gameObject);
-        //
-        //                 //copy _detectedObjects to toRemove
-        //                 // toRemove.AddRange(_detectedObjects);
-        //                 // foreach (var detectable in toRemove)
-        //                 // {
-        //                 //     // Debug.Log("OnDisable of detectable",detectable);
-        //                 //     OnTriggerExit(detectable.MyCollider);
-        //                 // }
-        //                 // toRemove.Clear();
-        //             }
-        //
-        //             toRemoves.Clear();
-        //         }
-
-        // protected override string DescriptionTag => "Detectable 接收";
         protected override void AddImplement(GeneralEffectReceiver item) { }
 
         protected override void RemoveImplement(GeneralEffectReceiver item) { }

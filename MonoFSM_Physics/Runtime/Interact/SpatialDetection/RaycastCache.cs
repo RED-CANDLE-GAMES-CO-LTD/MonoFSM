@@ -159,7 +159,19 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
                     _hittingLayer,
                     _queryTriggerInteraction
                 );
-                _hitPosVar?.SetValue(hitInfo.point);
+                if (!result)
+                {
+                    // 沒打到 collider 時，用 ray 方向上最大距離的位置當作 hit point
+                    hitInfo = new RaycastHit();
+                    var farPoint = currentRay.origin + currentRay.direction * GetDistance();
+                    // RaycastHit.point 是 readonly，透過反射或直接用 unsafe 不太好，
+                    // 改用 _hitPosVar 記錄位置，並把 endPoint 更新
+                    _hitPosVar?.SetValue(farPoint);
+                }
+                else
+                {
+                    _hitPosVar?.SetValue(hitInfo.point);
+                }
                 //FIXME: 操作 list好嗎？
                 CachedHits.Add(hitInfo);
                 // Debug.Log("[RaycastCache] RaycastProcessor Hit:" + hitInfo.collider, this);

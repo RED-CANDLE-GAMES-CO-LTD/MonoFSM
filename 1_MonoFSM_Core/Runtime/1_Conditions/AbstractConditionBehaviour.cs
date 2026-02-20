@@ -105,7 +105,7 @@ public abstract class AbstractConditionBehaviour
 
     protected abstract bool IsValid { get; }
     [ShowInPlayMode] private bool _cachedFinalResult;
-
+#if UNITY_EDITOR
     [Serializable]
     private struct ConditionResultRecord
     {
@@ -125,7 +125,7 @@ public abstract class AbstractConditionBehaviour
             _resultHistory.RemoveAt(0);
         _resultHistory.Add(new ConditionResultRecord { _time = Time.time, _result = result });
     }
-
+#endif
     public bool FinalResult
     {
         get

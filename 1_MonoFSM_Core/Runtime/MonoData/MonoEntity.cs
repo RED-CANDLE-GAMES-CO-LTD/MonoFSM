@@ -107,6 +107,7 @@ namespace MonoFSM.Runtime
 
         public void OnBeforePrefabSave()
         {
+            //FIXME :會漏掉嗎？
             FillVarTagsToMonoDescriptableTag();
             FillSchemaTypesToMonoEntityTag();
             BindModulePackFolders();
