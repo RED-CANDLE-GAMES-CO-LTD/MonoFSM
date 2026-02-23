@@ -12,7 +12,7 @@ public class RootMotionRelay
     [ReadOnly]
     [CompRef]
     [Required]
-    [Auto]
+    [AutoParent]
     private IRootMotionReceiver _rootMotionReceiver;
 
     [ReadOnly]
@@ -21,9 +21,13 @@ public class RootMotionRelay
     [ShowInInspector]
     private Animator _animator = null;
 
+    [ShowInInspector, ReadOnly]
+    private Vector3 _lastDeltaPosition;
+
     private void OnAnimatorMove()
     {
-        _rootMotionReceiver.OnProcessRootMotion(_animator.deltaPosition, _animator.deltaRotation);
+        _lastDeltaPosition = _animator.deltaPosition;
+        _rootMotionReceiver.OnProcessRootMotion(_lastDeltaPosition, _animator.deltaRotation);
     }
 
 #if UNITY_EDITOR

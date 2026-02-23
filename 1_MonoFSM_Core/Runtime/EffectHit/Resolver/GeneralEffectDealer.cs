@@ -192,7 +192,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
             if (_receivers.Count == 1)
             {
-                var only = _receivers.First();
+                GeneralEffectReceiver only = null;
+                foreach (var r in _receivers) { only = r; break; }
+                if (only == null) return;
                 if (_lastBestMatchReceiver != only)
                 {
                     if (_lastBestMatchReceiver != null)
@@ -249,11 +251,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             _lastReceiver = data.Receiver as GeneralEffectReceiver;
         }
 
-        private readonly HashSet<MonoEntity> _hittingEntities = new();
+        private readonly List<MonoEntity> _hittingEntities = new();
 
         public List<MonoEntity> GetHittingEntities()
         {
-            return _hittingEntities.ToList();
+            return _hittingEntities;
         }
 
         public void OnHitExit(IEffectHitData data)

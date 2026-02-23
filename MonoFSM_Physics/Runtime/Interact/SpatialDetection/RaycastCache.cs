@@ -218,8 +218,6 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             TryCast();
         }
 
-        public void AfterUpdate() { }
-
         protected override string DescriptionTag => "Raycast";
         public override string Description => _rayProvider?.GetType().Name;
 

@@ -89,12 +89,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 #if UNITY_EDITOR
         [GUIColor(1f, 0.5f, 0.5f)]
         [PreviewInInspector]
-        public HashSet<EffectDetector> _debugDetectors = new(); //沒在判？
+        public List<EffectDetector> _debugDetectors = new(); //沒在判？
 #endif
-
-        // List<SpatialDetector> fromDetectors;
-        [PreviewInInspector]
-        private HashSet<EffectDetector> toRemoves = new();
 
         //FIXME: 要改成能支援photon 給的HitData？
         // public void ProcessEffectHit(EffectDetector detector, Vector3 hitPoint, Vector3 hitNormal)
@@ -112,5 +108,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         }
 
         protected override string DescriptionTag => "-> EffectDetectable 接收";
+        [AutoParent] Rigidbody _rb;
+        public Rigidbody rb => _rb;
     }
 }

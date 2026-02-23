@@ -319,7 +319,7 @@ namespace MonoFSM.Core.Simulate
             }
         }
 
-        private readonly HashSet<MonoObj> _currentUpdatingObjs = new();
+        private readonly List<MonoObj> _currentUpdatingObjs = new();
         private static float _deltaTime;
         public static float DeltaTime => _deltaTime * TimeScale;
 
@@ -373,7 +373,8 @@ namespace MonoFSM.Core.Simulate
             }
 #endif
 
-            _currentUpdatingObjs.AddRange(_monoObjectSet);
+            foreach (var obj in _monoObjectSet)
+                _currentUpdatingObjs.Add(obj);
 
             CurrentPhase = SimPhase.Simulate;
 

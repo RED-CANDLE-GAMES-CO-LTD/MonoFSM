@@ -137,6 +137,8 @@ namespace MonoFSM.Variable
             : base(defaultValue) { }
     }
 
+
+
     public abstract class AbstractVarWrapper { }
 
     //FIXME: 真的有需要wrapper嗎？
@@ -214,6 +216,11 @@ namespace MonoFSM.Variable
             }
 
             _tempValue = default;
+        }
+
+        public override string ToString()
+        {
+            return _var != null ? _var.name : _tempValue?.ToString() ?? "null";
         }
     }
 }

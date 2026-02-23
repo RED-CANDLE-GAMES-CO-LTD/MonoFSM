@@ -27,7 +27,7 @@ namespace MonoFSM.Core
         //有點討厭：spawned, player spawned (自己做reference & sceneAwake?), SceneAwake, SceneStart (並沒有拿到player)
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
-        [SerializeField]
+        // [SerializeField]
         protected Tu[] _collections; //disable也會被加進來
 
         public Tu[] Collections //這個太晚了？應該要serialize?
@@ -154,6 +154,11 @@ namespace MonoFSM.Core
         public Tu Get(Type type)
         {
             EditorPrepareCheck();
+            if (_isPrepared == false && Application.isPlaying)
+            {
+                Debug.LogError($"GetFrom {type} Dict, Not prepared", this);
+                return default;
+            }
             //FIXME: 做得有點粗，要細再想一下
             var set = _typeDict.GetValueOrDefault(type);
             if (set != null && set.Count > 0)
@@ -169,7 +174,6 @@ namespace MonoFSM.Core
         public virtual Tt Get<Tt>() //用Generic來拿
             where Tt : class, Tu
         {
-            EditorPrepareCheck();
             return Get(typeof(Tt)) as Tt;
         }
 
@@ -316,6 +320,12 @@ namespace MonoFSM.Core
         }
 
         protected abstract bool CanBeAdded(Tu item);
+
+        protected override void Awake()
+        {
+            base.Awake();
+            PrepareDictCheck();
+        }
 
         public virtual void EnterSceneAwake()
         {

@@ -468,10 +468,9 @@ namespace MonoFSM.Core.Variable
             {
                 if (IsReadOnly)
                 {
-                    if (_valueSourceProvider != null && _valueSourceProvider.Value != null)
-                        return _valueSourceProvider.Value.Count;
-                    // else
-                    //     return 0;
+                    var valueList = _valueSourceProvider?.Value;
+                    if (valueList != null)
+                        return valueList.Count;
                 }
 
                 EnsureActiveCollectionInitialized();

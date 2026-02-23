@@ -13,6 +13,14 @@ namespace MonoFSM.InternalBridge
             gameView.maximized = !gameView.maximized;
         }
 
+        [MenuItem("Window/General/Toggle Maximize Current Window %#_,")]
+        public static void ToggleMaximizeCurrentWindow()
+        {
+            var window = EditorWindow.focusedWindow;
+            if (window == null) return;
+            window.maximized = !window.maximized;
+        }
+
 
         public static SceneHierarchyWindow GetSceneHierarchyWindow =>
             (SceneHierarchyWindow)EditorWindow.GetWindow(typeof(SceneHierarchyWindow));

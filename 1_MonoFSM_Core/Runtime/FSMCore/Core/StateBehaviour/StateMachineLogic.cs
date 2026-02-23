@@ -65,7 +65,7 @@ namespace Fusion.Addons.FSM
             stateIdToRestore = stateId;
         }
 
-        //FIXME: 這個要做啥？ cache?
+        //FIXME: 這個只有 fusion的會去restore?
         public int stateIdToRestore = -1;
 
         [AutoChildren]
@@ -97,7 +97,7 @@ namespace Fusion.Addons.FSM
         }
 
         [ShowInInspector]
-        private IState CurrentState
+        public IState CurrentState
         {
             get
             {

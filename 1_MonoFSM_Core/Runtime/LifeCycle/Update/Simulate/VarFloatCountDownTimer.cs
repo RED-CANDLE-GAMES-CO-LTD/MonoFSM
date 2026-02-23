@@ -1,10 +1,7 @@
-using System;
-using MonoFSM.Core.Simulate;
 using MonoFSM.Variable;
 using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using MonoFSM.Core;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 
@@ -13,6 +10,7 @@ namespace MonoFSM.Core.Simulate
     //0表示valid
     /// <summary>
     /// FIXME: fusion有 ticktimer
+    /// 搭配 ResetTimerAction 使用
     /// </summary>
     public class VarFloatCountDownTimer : MonoBehaviour, IUpdateSimulate, IResetStart
     {

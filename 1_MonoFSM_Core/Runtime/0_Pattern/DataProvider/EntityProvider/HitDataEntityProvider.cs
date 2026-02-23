@@ -46,10 +46,10 @@ public class HitDataEntityProvider : AbstractEntityProvider, IEntityValueProvide
             switch (ownerType)
             {
                 case HitDataVariableOwner.Dealer:
-                    Debug.Log(" HitDataVariableOwner.DealerOwner", hitData.Dealer.transform);
+                    // Debug.Log(" HitDataVariableOwner.DealerOwner", hitData.Dealer.transform);
                     return hitData.GeneralDealer.ParentEntity;
                 case HitDataVariableOwner.Receiver:
-                    Debug.Log(" HitDataVariableOwner.ReceiverOwner", hitData.Receiver.transform);
+                    // Debug.Log(" HitDataVariableOwner.ReceiverOwner", hitData.Receiver.transform);
                     return hitData.GeneralReceiver.ParentEntity;
                 default:
                     throw new NotImplementedException();

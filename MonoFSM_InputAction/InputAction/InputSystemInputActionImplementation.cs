@@ -96,11 +96,6 @@ namespace MonoFSM_InputAction
         ) //走beforesimulate?
         { }
 
-        public void AfterUpdate()
-        {
-            // throw new System.NotImplementedException();
-        }
-
         public void BeforeSimulate(float deltaTime)
         {
             // if (!Application.isPlaying || myAction == null)

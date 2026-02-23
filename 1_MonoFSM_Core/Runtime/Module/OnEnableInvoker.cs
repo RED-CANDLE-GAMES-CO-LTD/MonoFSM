@@ -76,6 +76,4 @@ public class OnEnableInvoker : MonoBehaviour, IUpdateSimulate
                 Debug.LogError("OnDisableNode is not active", this);
         }
     }
-
-    public void AfterUpdate() { }
 }

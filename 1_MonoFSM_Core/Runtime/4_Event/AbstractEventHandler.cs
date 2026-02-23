@@ -56,12 +56,23 @@ namespace MonoFSM.Core
             _lastEventHandledTime = Time.time;
             foreach (var eventReceiver in _eventReceivers)
             {
-                if (eventReceiver.IsValid)
-                    eventReceiver.EventReceived();
+                //如果有exception就會中斷掉？
+                try
+                {
+                    if (eventReceiver.IsValid)
+                        eventReceiver.EventReceived();
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError(
+                        $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.Message}",
+                        eventReceiver as Object);
+                }
+
             }
         }
 
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         private float _lastEventHandledTime = -1f;
 
         protected virtual void EventHandleImplement<T>(T arg)

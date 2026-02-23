@@ -10,8 +10,7 @@ namespace MonoFSM_InputAction.Condition
         [DropDownRef]
         public MonoInputAction _inputAction;
 
-        [ShowInInspector]
-        private float pressingTime => _inputAction.PressTime;
+        [ShowInInspector] private float pressingTime => _inputAction?.PressTime ?? 0;
 
         [InlineField]
         [SerializeField]

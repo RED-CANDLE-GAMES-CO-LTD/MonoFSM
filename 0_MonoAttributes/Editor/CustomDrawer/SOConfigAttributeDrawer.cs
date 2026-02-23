@@ -17,6 +17,10 @@ namespace MonoFSM.Core
     [DrawerPriority(0, 1, 0.25)]
     public class SOConfigAttributeDrawer : OdinAttributeDrawer<SOConfigAttribute>
     {
+        private static Type GetCollectionElementType(Type collectionType)
+        {
+            return collectionType.GetGenericArguments()[0];
+        }
         /// <summary>
         /// 取得可用的路徑選項
         /// </summary>
@@ -202,7 +206,7 @@ namespace MonoFSM.Core
         {
             // 取得 List 的元素類型
             var listType = Property.ValueEntry.TypeOfValue;
-            var defaultElementType = listType.GetGenericArguments()[0];
+            var defaultElementType = GetCollectionElementType(listType);
             var actualElementType = GetActualConfigType(defaultElementType);
 
             // 產生檔案名稱
@@ -265,16 +269,23 @@ namespace MonoFSM.Core
         protected override void DrawPropertyLayout(GUIContent label)
         {
             // EditorGUILayout.BeginFadeGroup(1);
-            // 檢查是否為 List 類型
             SirenixEditorGUI.BeginBox();
             var valueType = Property.ValueEntry.TypeOfValue;
+
+            if (valueType.IsArray)
+            {
+                SirenixEditorGUI.ErrorMessageBox("[SOConfig] 不支援陣列，請改用 List<T>");
+                SirenixEditorGUI.EndBox();
+                CallNextDrawer(label);
+                return;
+            }
 
             var isListType = typeof(IList).IsAssignableFrom(valueType);
 
             // 檢查 valueType 是否繼承自 ScriptableObject
             if (isListType)
             {
-                var elementType = valueType.GetGenericArguments()[0];
+                var elementType = GetCollectionElementType(valueType);
                 if (!typeof(ScriptableObject).IsAssignableFrom(elementType))
                 {
                     SirenixEditorGUI.EndBox();
@@ -297,8 +308,7 @@ namespace MonoFSM.Core
                 // 對於 List 類型，繪製預設內容和 Create 按鈕
                 CallNextDrawer(label);
 
-                // 取得 List 的元素類型來顯示路徑選擇器
-                var defaultElementType = valueType.GetGenericArguments()[0];
+                var defaultElementType = GetCollectionElementType(valueType);
                 var actualElementType = GetActualConfigType(defaultElementType);
                 DrawPathSelector(actualElementType);
 

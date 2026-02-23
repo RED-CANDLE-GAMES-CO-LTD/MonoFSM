@@ -1,6 +1,9 @@
+using System.Collections.Generic;
 using System.Threading;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
+using MonoFSM.Core;
+using MonoFSM.Core.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -21,6 +24,11 @@ public interface IReferenceTarget //FIXME: 這樣只有我自己寫的型別可�
 [Searchable]
 public class GeneralState : MonoStateBehaviour
 {
+    [SerializeField] [SOConfig("StateTags")]
+    private List<StateTag> _stateTags = new();
+
+    public bool HasTag(StateTag tag) => _stateTags.Contains(tag);
+
     public float statusTimer => Machine.StateTime;
 
     public bool TryActivateState() //FIXME: 拿掉這個

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RCGInputAction
 {
     //FIXME:
-    public class Player2DAxisActionCondition : AbstractConditionBehaviour
+    public class InputAction2DAxisActionCondition : AbstractConditionBehaviour
     {
         [Required]
         [DropDownRef] public MonoInputAction _inputAction;

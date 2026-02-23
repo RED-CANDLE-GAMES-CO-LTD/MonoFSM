@@ -11,7 +11,17 @@ namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
     //FIXME: 這不能 set 呀？
     public class VarFloatRef : AbstractValueSource<float>, IFloatProvider, IFloatBoundProvider
     {
-        //不對啊XDD
+        protected override bool HasError()
+        {
+            if (_dropDownRef == GetComponentInParent<VarFloat>())
+            {
+                _errorMessage = "DropDownRef不能指向自己或父物件上的VarFloat";
+                return true;
+            }
+
+            return base.HasError();
+        }
+
         [Required] [DropDownRef] public VarFloat _dropDownRef;
 
         public override float Value => _dropDownRef != null ? _dropDownRef.Value : 0f;

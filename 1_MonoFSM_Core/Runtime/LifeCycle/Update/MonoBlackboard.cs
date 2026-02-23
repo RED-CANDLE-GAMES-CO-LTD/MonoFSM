@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
+using Fusion;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Runtime.Interact.EffectHit;
@@ -15,7 +16,9 @@ namespace MonoFSM.Runtime.Variable
 {
     //FIXME: 不需要這個吧？
     [DisallowMultipleComponent]
-    public class MonoBlackboard : MonoBehaviour, IMonoEntity, IUpdateSimulate //FIXME: 沒有必要用介面？
+    public class
+        MonoBlackboard : MonoBehaviour, IMonoEntity,
+        IAfterSimulate //FIXME: 沒有必要用介面？
     {
         private bool IsVariableMissing()
         {
@@ -220,13 +223,7 @@ namespace MonoFSM.Runtime.Variable
             return GetVar(varTagName) as TMonoVariable;
         }
 
-        public void Simulate(float deltaTime) { }
-
-        public void AfterUpdate() //等Simulate都跑完後才CommitValue
-        {
-            //FIXME: 還是直接給variable folder做就好？
-            VariableFolder.CommitVariableValues();
-        }
+        // public void Simulate(float deltaTime) { }
 
         // 多 Tag 支援方法
         public MonoEntityTag GetDescriptableTag(string tagName)
@@ -254,5 +251,9 @@ namespace MonoFSM.Runtime.Variable
         }
 
         public int DescriptableTagCount => DescriptableTags?.Count ?? 0;
+
+        public void AfterSimulate(float deltaTime)
+        {
+        }
     }
 }

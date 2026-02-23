@@ -30,6 +30,8 @@ namespace MonoFSM.Core.Runtime
             IStringKey,
             IValueOfKey<string>, IDropdownRef
     {
+        [ShowInInspector] [Required] [AutoParent]
+        SchemaFolder _schemaFolder;
         //FIXME: 有需要用wrapper嗎？
         protected override string DescriptionTag => "Schema";
 

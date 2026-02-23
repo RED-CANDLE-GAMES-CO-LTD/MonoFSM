@@ -44,8 +44,8 @@ namespace MonoFSM.Core.Runtime.Action
         {
             get
             {
-                if (_delay) //FIXME: 蛤？
-                    return false;
+                // if (_delay) //FIXME: 蛤？
+                //     return false;
                 return gameObject.activeSelf && _conditions.IsAllValid();
                 //用activeSelf到底可以嗎？有可能強制都要isActiveAndEnabled？
             }
@@ -80,8 +80,9 @@ namespace MonoFSM.Core.Runtime.Action
 
         protected virtual string renamePostfix => "";
 
-        [AutoParent]
-        private DelayActionModifier delayActionModifier;
+        //FIXME: 還是不要用這個好了
+        // [AutoParent]
+        // private DelayActionModifier delayActionModifier;
 
         private bool _delay; //FIXME:
 

@@ -277,6 +277,7 @@ namespace MonoFSM.Variable
         [Serializable]
         public struct SetValueExecutionData
         {
+            //FIXME 這個 object type會gc
             public object _value; //可能被attribute processor給處理到，好像有點太過侵入？
             public Object _byWho;
             public float _time;
@@ -318,21 +319,11 @@ namespace MonoFSM.Variable
         // }
 #endif
 
-        protected void RecordSetbyWho<T>(Object byWho, T tempValue, string reason = null)
+        protected void RecordSetbyWhoDebug<T>(Object byWho, T tempValue, string reason = null)
         {
             //這個會gc, hmm
             if (!RuntimeDebugSetting.IsDebugMode)
             {
-                var simplebyWhoData = new SetValueExecutionData
-                {
-                    _value = tempValue,
-                    _byWho = byWho,
-                    _time = Time.time,
-                    _reason = reason,
-                };
-                _byWhoQueue.Enqueue(simplebyWhoData);
-                if (_byWhoQueue.Count > 10)
-                    _byWhoQueue.Dequeue(); //保持最新的10個
                 return;
             }
 #if UNITY_EDITOR
@@ -638,7 +629,7 @@ namespace MonoFSM.Variable
         public string Name => gameObject.name;
         public VariableTag Key => _varTag;
 
-        [ShowInInspector]
+        [ShowInInspector] //FIXME: 這個show的話，可能會造成 value 重運算
         public abstract bool IsValueExist { get; }
         protected virtual bool HasValueProvider => false;
 

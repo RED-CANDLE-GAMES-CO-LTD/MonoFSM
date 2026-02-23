@@ -118,11 +118,20 @@ namespace Fusion.Addons.FSM
         {
             if (!_initialized)
                 return;
+
+
+            if (_fsmLogic.stateIdToRestore != -1)
+            {
+                //FIXME: 只有單一fsm, nested應該是假的沒有實作？
+                _fsmLogic.StateMachines[0].ForceActivateState(_fsmLogic.stateIdToRestore, true);
+                _fsmLogic.stateIdToRestore = -1; // Reset after restoring
+            }
             for (var i = 0; i < _fsmLogic.StateMachines.Count; i++)
             {
                 Profiler.BeginSample(
                     $"MonoStateMachineController.FixedUpdate ({_fsmLogic.StateMachines[i].Name})"
                 );
+
                 _fsmLogic.StateMachines[i].FixedUpdate(); // Assuming IStateMachine can handle null Runner
                 Profiler.EndSample();
             }

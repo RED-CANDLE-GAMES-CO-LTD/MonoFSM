@@ -48,6 +48,7 @@ namespace MonoFSM.Animation
             base.Awake();
 
             _stateNameHash = Animator.StringToHash(StateName);
+            _skipStateHashes = null; // lazy rebuild on first use
         }
 
         private bool IsStateNameProvider() => GetComponent<AbstractStringProvider>() != null;
@@ -476,6 +477,37 @@ namespace MonoFSM.Animation
         //如果animator沒開，就不要強迫開啟
         public bool IsDontPlayWhenAnimatorDisabled = false;
 
+        [TitleGroup("播放限制")]
+        [Tooltip("當 Animator 正在播放這些 State 時，略過此 Action 的播放")]
+#if UNITY_EDITOR
+        [ValueDropdown(nameof(GetAnimatorStateNamesOfCurrentLayer), IsUniqueList = true,
+            NumberOfItemsBeforeEnablingSearch = 3)]
+#endif
+        [SerializeField]
+        private List<string> _skipWhenPlayingStateNames = new();
+
+        private HashSet<int> _skipStateHashes;
+        public bool _canInterruptSameState = true; //要不要可以打斷正在播的同一個state? 不同的state就算了，反正也不會播到
+
+        private bool IsSkippedByCurrentState()
+        {
+            var currentState = animator.GetCurrentAnimatorStateInfo(stateLayer);
+            if (_canInterruptSameState == false && currentState.shortNameHash == _stateNameHash)
+                return true;
+            if (_skipWhenPlayingStateNames == null || _skipWhenPlayingStateNames.Count == 0)
+                return false;
+
+            if (_skipStateHashes == null)
+            {
+                _skipStateHashes = new HashSet<int>();
+                foreach (var name in _skipWhenPlayingStateNames)
+                    _skipStateHashes.Add(Animator.StringToHash(name));
+            }
+
+
+            return _skipStateHashes.Contains(currentState.shortNameHash);
+        }
+
         // protected override void OnStateEnterImplement()
         // {
         //     OnEnterRender();
@@ -533,7 +565,22 @@ namespace MonoFSM.Animation
                 return;
             }
 
-            _cachedClipLength = CurrentClip.length;
+            var ac = animator.GetAnimatorController();
+            var stateSpeed = 1f;
+            if (ac != null)
+            {
+                try
+                {
+                    var state = ac.layers[stateLayer].stateMachine.states
+                        .First(s => s.state.name == StateName).state;
+                    stateSpeed = state.speed;
+                }
+                catch
+                {
+                }
+            }
+
+            _cachedClipLength = CurrentClip.length / stateSpeed;
         }
 
         [TitleGroup("Animator")]
@@ -617,6 +664,7 @@ namespace MonoFSM.Animation
 
         //FIXME: 錯了！抓到BUG 要cache? 切State後，StateTime就會重置了
         public bool IsDone => _stateBehaviour.StateTime >= ClipLength; // && IsPlayingCurrentClip();
+        public bool IsPassedRatio(float ratio) => _stateBehaviour.StateTime >= ClipLength * ratio;
 
         // [SerializeField] private float clipDuration;
 
@@ -724,16 +772,6 @@ namespace MonoFSM.Animation
         private AbstractConditionBehaviour[] _conditions;
 
 #if UNITY_EDITOR
-        //不一定有，optional...
-        // [TitleGroup("Animator")]
-        // [Button("Add Done Event Transition")]
-        // [ShowIf(nameof(NoDoneEventTransition))]
-        // private void CreateEventReceiver()
-        // {
-        //     // doneEventTransition = gameObject.AddChildrenComponent<AbstractStateTransition>("[Transition] Anim Done");
-        //     doneEventTransition = this.AddChildrenComponent<StateTransition>("[Transition] Anim Done");
-        //     // doneEventTransition = gameObject.AddComponent<AbstractStateTransition>();
-        // }
 
         [Button("編輯動畫")]
         public void EditClip()
@@ -769,9 +807,6 @@ namespace MonoFSM.Animation
         }
 
         #region InitAndAutoSkipToLastFrame
-
-        [AutoParent(false)]
-        private StateMachineOwner _fsmOwner; //monster也可以，應該抽成interface
 
         // private bool CheckInitAndSkipAnimationToLastFrame()
         // {
@@ -842,6 +877,7 @@ namespace MonoFSM.Animation
             if (animator == null)
             {
                 Debug.LogError("animator is null", this);
+                gameObject.SetActive(false);
                 return;
             }
 
@@ -849,6 +885,9 @@ namespace MonoFSM.Animation
             {
                 return;
             }
+
+            if (IsSkippedByCurrentState())
+                return;
             if (animator.runtimeAnimatorController == null)
                 // Debug.Log(animator);
                 // Debug.Log(animator.runtimeAnimatorController);
@@ -929,6 +968,9 @@ namespace MonoFSM.Animation
 
             if (currentState.shortNameHash == StateHash)
                 return;
+
+            if (IsSkippedByCurrentState())
+                return;
             // Debug.Log("Current State:" + currentState.shortNameHash + ", want state:" + StateHash,
             //     this);
             //FIXME: 很失敗QQ
@@ -939,7 +981,14 @@ namespace MonoFSM.Animation
             if (animatorEnterCrossFade <= 0)
             {
                 // Debug.Log("Play Animation Again:" + StateName + "layer:" + stateLayer, this);
-                animator.Play(StateHash, stateLayer, float.NegativeInfinity);
+                if (animator.HasState(stateLayer, StateHash) == false)
+                {
+                    Debug.LogError(
+                        "AnimatorPlayAction: 沒有這個state:" + StateName + ",hash:" + StateHash,
+                        gameObject
+                    );
+                }
+                else animator.Play(StateHash, stateLayer, float.NegativeInfinity);
             }
             else
             {

@@ -85,6 +85,7 @@ namespace MonoFSM.Variable
         [PreviewInInspector]
         public bool IsValid => _conditions.IsAllValid();
 
+        //FIXME: 怪怪的？
         public bool IsDirty =>
             Application.isPlaying ? _cachedProviderValue != _valueVar?.Value : false;
 

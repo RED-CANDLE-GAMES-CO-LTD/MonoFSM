@@ -193,6 +193,4 @@ public class PlayerStartSpawnPoint
             // _onPlayerSpawn.EventReceived(transform.position);
         }
     }
-
-    public void AfterUpdate() { }
 }

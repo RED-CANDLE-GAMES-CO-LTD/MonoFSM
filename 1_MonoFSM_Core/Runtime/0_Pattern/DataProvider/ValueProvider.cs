@@ -476,9 +476,11 @@ namespace MonoFSM.Core.DataProvider
                 return null;
             }
 
+
             // 使用反射調用泛型方法
-            var method = typeof(MonoEntity).GetMethod("GetSchema").MakeGenericMethod(schemaType);
-            return (AbstractEntitySchema)method.Invoke(entity, null);
+            // var method = typeof(MonoEntity).GetMethod("GetSchema").MakeGenericMethod(schemaType);
+            // return (AbstractEntitySchema)method.Invoke(entity, null);
+            return entity.GetSchema(_schemaTypeTag.Type);
         }
 
         public TSchema GetSchema<TSchema>()

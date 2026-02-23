@@ -4,6 +4,7 @@ using MonoFSM.Foundation;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace MonoFSM.Core.Condition
 {
@@ -23,7 +24,6 @@ namespace MonoFSM.Core.Condition
             ActivateCheck();
         }
 
-        public void AfterUpdate() { }
 
         [InlineField]
         [AutoNested]
@@ -33,7 +33,11 @@ namespace MonoFSM.Core.Condition
 
         public void ActivateCheck()
         {
-            ActivateCheckImplement(_conditionGroup.IsValid);
+            Profiler.BeginSample("ConditionActivateCheck");
+            var result = _conditionGroup.IsValid;
+            Profiler.EndSample();
+
+            ActivateCheckImplement(result);
         }
 
         protected abstract void ActivateCheckImplement(bool isValid); //last result?

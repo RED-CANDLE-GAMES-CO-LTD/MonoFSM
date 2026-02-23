@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
@@ -21,7 +22,7 @@ namespace MonoFSM.Foundation
         public ConditionGroup _conditionGroup;
 
         //TODO: 需要 hasValue嗎？ not null
-        public virtual bool IsValid => _conditionGroup.IsValid && isActiveAndEnabled && HasValue;
+        public virtual bool IsValid => _conditionGroup.IsValid && isActiveAndEnabled; //&& HasValue
         public abstract bool HasValue { get; }
     }
 
@@ -48,7 +49,7 @@ namespace MonoFSM.Foundation
         [ShowInInspector]
         public abstract T Value { get; }
 
-        public override bool HasValue => Value != null;
+        public override bool HasValue => !EqualityComparer<T>.Default.Equals(Value, default);
         public string ValueInfo => HasValue ? Value.ToString() : "Null"; //TODO: list太肥了
         public bool IsDrawingValueInfo => true;
     }

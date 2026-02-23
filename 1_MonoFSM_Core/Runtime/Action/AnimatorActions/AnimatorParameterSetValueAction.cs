@@ -16,7 +16,7 @@ namespace MonoFSM.Animation
     /// <summary>
     ///     實驗性，還要整理
     /// </summary>
-    public class AnimatorParameterSetValueAction : AbstractStateAction
+    public class AnimatorParameterSetValueAction : AbstractStateAction, ISceneStart
     {
         public enum ValueType
         {
@@ -68,11 +68,14 @@ namespace MonoFSM.Animation
 
         private float _lastValue;
 
+        [HideIf(nameof(_varFloat))]
         public float _floatValue;
 
         [SerializeField]
         private VarFloat _varFloat;
-        float floatValue => _varFloat != null ? _varFloat.Value : _floatValue;
+
+//varfloatWrapper?
+        private float floatValue => _varFloat != null ? _varFloat.Value : _floatValue;
         #endregion
 
         public int _intValue;
@@ -115,34 +118,24 @@ namespace MonoFSM.Animation
 
         private void SetValue()
         {
+
             if (!animator.isActiveAndEnabled)
                 return;
 
             if (!HasParameter(ParameterName))
             {
                 Debug.LogWarning(
-                    $"Animator parameter '{ParameterName}' does not exist on {animator.gameObject.name}");
+                    $"Animator parameter '{ParameterName}' does not exist on {animator.gameObject.name}",
+                    this);
                 return;
             }
-            // if (_floatValueSource != null)
-            // {
-            //     if (_interpolate == 0)
-            //         _lastValue = _floatValueSource.Value;
-            //     else
-            //         _lastValue = Mathf.MoveTowards(
-            //             _lastValue,
-            //             _floatValueSource.Value,
-            //             _interpolate * bindingState.DeltaTime
-            //         ); //FIXME: 不一定會有bindingState? 還是乾脆拿logic的就好了？
-            //
-            //     animator.SetFloat(ParameterName, _lastValue);
-            // }
-            // else
+            else
             {
                 switch (valueType)
                 {
                     case ValueType.Bool:
-                        animator.SetBool(ParameterName, IsValid); //直接對著valid做不是很爽？ FIXME: 要拆出去？
+                        animator.SetBool(ParameterName,
+                            IsValid); //直接對著valid做不是很爽？ FIXME: 要拆出去？ bool value吧
                         break;
                     case ValueType.Float:
                         animator.SetFloat(ParameterName, floatValue);
@@ -166,5 +159,13 @@ namespace MonoFSM.Animation
         // {
         //     if (IsUpdateSet) SetValue();
         // }
+        public void EnterSceneStart()
+        {
+            if (animator == null)
+            {
+                Debug.LogError("Animator is null", this);
+                gameObject.SetActive(false);
+            }
+        }
     }
 }

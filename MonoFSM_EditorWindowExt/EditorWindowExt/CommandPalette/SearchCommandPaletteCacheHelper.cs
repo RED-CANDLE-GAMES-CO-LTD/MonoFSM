@@ -172,7 +172,7 @@ namespace CommandPalette
                     {
                         foreach (var item in menuItemsArray)
                         {
-                            Debug.Log($"[CommandPalette] 收集MenuItem: {item.path}");
+                            // Debug.Log($"[CommandPalette] 收集MenuItem: {item.path}");
                             // if (string.IsNullOrEmpty(menuPath)) continue;
                             var menuPath = item.path;
 

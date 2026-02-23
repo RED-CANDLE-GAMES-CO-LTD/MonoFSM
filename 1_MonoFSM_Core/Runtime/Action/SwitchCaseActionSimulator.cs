@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action
 {
-    public class SwitchCaseActionSimulator : AbstractEventHandler, IUpdateSimulate, IActionParent
+    public class SwitchCaseActionSimulator : AbstractEventHandler, IUpdateSimulate
     {
         protected override string DescriptionTag => "Switch Simulate";
 

@@ -10,10 +10,10 @@ namespace MonoFSM.Variable
 {
     // Gameplay Attributes
     //FIXME: 不需要狀態？應該要是一個Getter, IFloatProvider
-    public sealed class VarStat : VarFloat, IConditionChangeListener //dependency變化時變化
+    public sealed class VarStat : VarFloat, IConditionChangeListener, ISceneStart //dependency變化時變化
     {
         //通知對象，通知者
-        private float BaseValue => Field.ProductionValue;
+        private float BaseValue => Field.CurrentValue;
         private bool _isDirty = true; //set dirty? dependency有沒有dirty?
         private float _lastBaseValue;
         private float _value;
@@ -35,7 +35,6 @@ namespace MonoFSM.Variable
 
         // private bool ModifiersDirtyCheck()
         // {
-        //     //如果有一個modifier dirty了，就dirty, statmodifier不要自己算？
         //     if (_statModifiers == null) return false;
         //     foreach (var statModifier in _statModifiers)
         //         if (statModifier.IsDirty)
@@ -63,6 +62,12 @@ namespace MonoFSM.Variable
             // _statModifiers.Add(statModifier);
         }
 
+        public override void EnterSceneStart()
+        {
+            base.EnterSceneStart();
+            ForceCalValues();
+        }
+
         private void OnDestroy()
         {
             //FIXME: 這是不是多餘了？都要destroy了, stop play時會噴error
@@ -74,12 +79,12 @@ namespace MonoFSM.Variable
         {
             get
             {
-                if (_isDirty || _lastBaseValue != BaseValue)
-                {
-                    //條件一變，值就變？dirty也是一路問，問每個statmodifier
-                    ForceCalValues();
-                    // listener?.OnChange(_value, false);
-                }
+                // if (_isDirty || _lastBaseValue != BaseValue)
+                // {
+                //     //條件一變，值就變？dirty也是一路問，問每個statmodifier
+                ForceCalValues();
+                //     // listener?.OnChange(_value, false);
+                // }
 
                 return _value;
             }
@@ -89,18 +94,19 @@ namespace MonoFSM.Variable
         {
             get
             {
+
                 if (Application.isPlaying == false)
                 {
-                    return Field.ProductionValue;
+                    return base.CurrentValue;
                 }
+
 
                 //FIXME: bound還要管嗎？
                 // ModifiersDirtyCheck();
                 // if (_isDirty)
                 if (!isActiveAndEnabled)
                     return _value;
-                ForceCalValues();
-                return _value;
+                return FinalValue;
             }
             //FIXME: 要可以set嗎？
             // set => _lastBaseValue = value; //hmm???
@@ -120,6 +126,7 @@ namespace MonoFSM.Variable
         }
 
         ///最重要的！
+        /// FIXME: 有需要用isdirty省這個運算嗎？
         [Button]
         private float ForceCalValues()
         {

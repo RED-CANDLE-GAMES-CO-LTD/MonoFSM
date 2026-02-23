@@ -112,17 +112,17 @@ namespace MonoFSM.Core
         /// Execute all registered event receivers.
         /// </summary>
         /// FIXME: 還要這個嗎？
-        [Obsolete]
-        protected virtual void ExecuteEventReceivers()
-        {
-            if (!isActiveAndEnabled)
-                return;
-
-            if (_eventReceivers != null)
-                foreach (var eventReceiver in _eventReceivers)
-                    if (eventReceiver.IsValid)
-                        eventReceiver.EventReceived();
-        }
+        // [Obsolete]
+        // protected virtual void ExecuteEventReceivers()
+        // {
+        //     if (!isActiveAndEnabled)
+        //         return;
+        //
+        //     if (_eventReceivers != null)
+        //         foreach (var eventReceiver in _eventReceivers)
+        //             if (eventReceiver.IsValid)
+        //                 eventReceiver.EventReceived();
+        // }
         #endregion
 
         #region State Lifecycle Methods
@@ -133,7 +133,7 @@ namespace MonoFSM.Core
         /// </summary>
         protected virtual void OnStateEnter()
         {
-            ExecuteEventReceivers();
+            // ExecuteEventReceivers();
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace MonoFSM.Core
         /// </summary>
         protected virtual void OnStateUpdate()
         {
-            ExecuteEventReceivers();
+            // ExecuteEventReceivers();
         }
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace MonoFSM.Core
         /// </summary>
         protected virtual void OnStateExit()
         {
-            ExecuteEventReceivers();
+            // ExecuteEventReceivers();
         }
 
         #endregion
@@ -162,27 +162,29 @@ namespace MonoFSM.Core
         /// Public interface for triggering state enter from external sources.
         /// Includes validation and delay handling like AbstractStateAction.
         /// </summary>
-        public async void TriggerStateEnter()
+        public void TriggerStateEnter()
         {
-            await ExecuteWithValidationAndDelay(() => OnStateEnter());
+            OnStateEnter();
+            // await ExecuteWithValidationAndDelay();
         }
 
         /// <summary>
         /// Public interface for triggering state update from external sources.
         /// Includes validation and delay handling like AbstractStateAction.
         /// </summary>
-        public async void TriggerStateUpdate()
+        public void TriggerStateUpdate()
         {
-            await ExecuteWithValidationAndDelay(() => OnStateUpdate());
+            OnStateUpdate();
         }
 
         /// <summary>
         /// Public interface for triggering state exit from external sources.
         /// Includes validation and delay handling like AbstractStateAction.
         /// </summary>
-        public async void TriggerStateExit()
+        public void TriggerStateExit()
         {
-            await ExecuteWithValidationAndDelay(() => OnStateExit());
+            OnStateExit();
+            // await ExecuteWithValidationAndDelay(() => ());
         }
 
         #endregion

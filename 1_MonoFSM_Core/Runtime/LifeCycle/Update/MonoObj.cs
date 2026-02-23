@@ -384,23 +384,15 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 return;
             if (IsProxy)
                 return;
+            // Debug.Log("MonoObj AfterSimulate " + name, this);
             foreach (var item in _afterSimulates)
             {
-                if (item == null || !item.isActiveAndEnabled)
+                if (item is not { isActiveAndEnabled: true })
                     continue;
-                // try
-                // {
+
                 Profiler.BeginSample("MonoObj.AfterUpdate", item.gameObject);
                 item.AfterSimulate(deltaTime);
                 Profiler.EndSample();
-                // }
-                // catch (Exception e)
-                // {
-                //     if (item is MonoBehaviour)
-                //         Debug.LogError(e.Message + "\n" + e.StackTrace, item as MonoBehaviour);
-                //     else
-                //         Debug.LogError(e.Message + "\n" + e.StackTrace);
-                // }
             }
         }
 

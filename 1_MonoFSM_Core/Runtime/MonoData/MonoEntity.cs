@@ -61,25 +61,6 @@ namespace MonoFSM.Runtime
                 return _fsmLogic;
             }
         }
-
-        // [PreviewInInspector]
-        // [AutoChildren(DepthOneOnly = true)]
-        // private SchemaFolder _schemaFolder;
-
-        // public SchemaFolder SchemaFolder
-        // {
-        //     get
-        //     {
-        //         AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_schemaFolder));
-        //         // this.EnsureComponentInChildren(ref _schemaFolder);
-        //         return _schemaFolder;
-        //     }
-        // }
-
-        // set => _entitySchema = value;
-        //Utility? 開始要拿一些Rigidbody、Collider之類的東西了
-        // public Rigidbody DefaultRigidbody => GetComponent<Rigidbody>(); //FIXME: 位置對嗎？
-
         //FIXME: nested? MonoEntity dictionary?
         public void OnInstantiated(WorldUpdateSimulator world)
         {
@@ -196,15 +177,25 @@ namespace MonoFSM.Runtime
         public TSchema GetSchema<TSchema>()
             where TSchema : AbstractEntitySchema
         {
+            return GetSchema(typeof(TSchema)) as TSchema;
+        }
+
+        public AbstractEntitySchema GetSchema(Type type)
+        {
             if (SchemaFolder != null)
             {
-                var result = SchemaFolder.Get<TSchema>();
+                var result = SchemaFolder.Get(type);
+                if (result == null)
+                {
+                    Debug.LogError(
+                        $"MonoEnity GetSchema Schema {type} not found in SchemaFolder of {name}",
+                        this);
+                }
+
                 return result;
             }
 
-            // if (_entitySchema is TSchema schema) return schema;
-
-            Debug.LogError($"Schema {typeof(TSchema)} not found in {name}", this);
+            Debug.LogError($"Schema {type} not found in {name}", this);
             return null;
         }
     }

@@ -1,6 +1,7 @@
 using System.Globalization;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
+using MonoFSM.Core.Simulate;
 using MonoFSM.EditorExtension;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Variable.FieldReference;
@@ -90,8 +91,10 @@ namespace MonoFSM.Variable
 
         [ShowInDebugMode]
         public bool IsDecreasing =>
-            _lastDecreasingTime > 0 && Time.time - _lastDecreasingTime < 0.2f;
+            _lastDecreasingTime > 0 &&
+            WorldUpdateSimulator.SimulationTime - _lastDecreasingTime < 0.2f;
 
+        [ShowInDebugMode]
         private float _lastDecreasingTime;
 
         /// <summary>
@@ -102,7 +105,8 @@ namespace MonoFSM.Variable
         protected override void ValueCommited(float lastValue, float currentValue)
         {
             if (currentValue < lastValue)
-                _lastDecreasingTime = Time.time; //FIXME: 還是要往上問？
+                _lastDecreasingTime =
+                    WorldUpdateSimulator.SimulationTime; //FIXME: 會有float太大的問題嗎？ //FIXME: 還是要往上問？
         }
 
         [ShowInDebugMode]
@@ -130,7 +134,7 @@ namespace MonoFSM.Variable
         public string ValueInfo => CurrentValue.ToString(CultureInfo.CurrentCulture) ?? "";
         public bool IsDrawingValueInfo => true;
 
-        public override bool IsValueExist => CurrentValue != 0f;
+        public override bool IsValueExist => Field.CurrentValue != 0f; //  CurrentValue != 0f;
 
         public override void ResetStateRestore()
         {

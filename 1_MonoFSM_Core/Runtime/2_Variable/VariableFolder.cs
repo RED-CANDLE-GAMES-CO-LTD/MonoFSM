@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using MonoFSM.Core;
+using MonoFSM.Core.Simulate;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 public abstract class AbstractFolder : MonoBehaviour
 {
@@ -13,7 +15,7 @@ public abstract class AbstractFolder : MonoBehaviour
 
 //FIXME: 這個才該叫做blackboard?，這個是用來放變數的?
 
-public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>
+public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>, IAfterSimulate
 {
     private Dictionary<VariableTag, AbstractMonoVariable> _varMap = new();
 
@@ -26,7 +28,7 @@ public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>
         base.EnterSceneAwake();
         RebuildVariableMap();
     }
-    
+
 
     [Button]
     public void RebuildVariableMap()
@@ -125,8 +127,13 @@ public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>
         //FIXME: 用
 
         foreach (var variable in _collections)
+        {
+            Profiler.BeginSample($"Commit in loop");
             if (variable is ISettable settableVariable)
                 settableVariable.CommitValue();
+            Profiler.EndSample();
+        }
+
     }
 
     // [PreviewInInspector]
@@ -257,4 +264,10 @@ public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>
     #endregion
 
     protected override string DescriptionTag => "VarFolder";
+
+    public void AfterSimulate(float deltaTime)
+    {
+        // this.Log($"VariableFolder AfterSimulate: {name}");
+        CommitVariableValues();
+    }
 }

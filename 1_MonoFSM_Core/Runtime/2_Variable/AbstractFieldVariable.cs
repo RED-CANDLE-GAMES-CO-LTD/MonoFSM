@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using MonoDebugSetting;
 using MonoFSM.Core;
@@ -106,8 +107,14 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
     public override void CommitValue()
     {
+        this.Log("CommitValue", this);
+        Profiler.BeginSample("Field.CommitValue");
         var (last, current) = Field.CommitValue();
+        Profiler.EndSample();
+        this.Log("CommitValue Commited", current, "Last Value", last, this);
+        Profiler.BeginSample("ValueCommited");
         ValueCommited(last, current);
+        Profiler.EndSample();
     }
 
     //可以用abstract比較好？但目前只用到VarFloat
@@ -215,7 +222,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
     //給非Auto的人看的，要綁，Auto自己就會生，就結束了
 
-    public void EnterSceneStart()
+    public virtual void EnterSceneStart()
     {
         RegisterValueChange();
         //EnterSceneAwake?
@@ -361,6 +368,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
     [SerializeField]
     private bool _isNull = false; //預設是ProductionValue
+//可以用 Vector3?
 
     public override string StringValue => CurrentValue.ToString();
     [ShowInPlayMode]
@@ -431,7 +439,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
         var (result, tempValue) = SetValueExecution(value, byWho as MonoBehaviour);
         if (result)
-            RecordSetbyWho(byWho, tempValue, reason);
+            RecordSetbyWhoDebug(byWho, tempValue, reason);
 
         Profiler.EndSample();
     }
@@ -445,12 +453,14 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         var tempValue = value;
         //先檢查會被修改
 
+        Profiler.BeginSample("BeforeSetValueModifyCheck", this);
         if (_modifiers != null)
             foreach (var modifier in _modifiers)
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
+        Profiler.EndSample();
         //after?
         // Debug.Log("[Variable] Set" + value + "tempValue:" + tempValue + ", Value:" + CurrentValue, byWho);
-        if (tempValue.Equals(CurrentValue))
+        if (EqualityComparer<TType>.Default.Equals(tempValue, CurrentValue))
             return (false, tempValue); //沒有變化就不需要處理
 
         Profiler.BeginSample("Field SetCurrentValue");
@@ -592,7 +602,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     public override void ClearValue()
     {
         Field.ClearValue();
-        RecordSetbyWho(this, default(TType), "ClearValue");
+        RecordSetbyWhoDebug(this, default(TType), "ClearValue");
         _isNull = true;
     }
 

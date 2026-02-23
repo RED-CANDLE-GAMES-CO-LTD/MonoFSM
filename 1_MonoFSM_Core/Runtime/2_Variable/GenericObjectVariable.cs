@@ -171,7 +171,10 @@ namespace MonoFSM.Variable
 
                 try
                 {
-                    return GetValueInternal();
+                    Profiler.BeginSample("GetValueInternal", this);
+                    var rst = GetValueInternal();
+                    Profiler.EndSample();
+                    return rst;
                 }
                 finally
                 {
@@ -255,12 +258,10 @@ namespace MonoFSM.Variable
             if (HasValueProvider) //FIXME: 和field 分開寫很鳥?
             {
                 _valueDebugStatus = "Resolving from ValueProvider";
-                // if (Application.isPlaying)
-                // {
-                if (valueSource == null) //有可能resolve後是null
-                    return null;
-                return valueSource.Get<TValueType>(); //Editor可以拿吧？
-                // }
+                // Profiler.BeginSample("GetValueFromProvider" + valueSource);
+                var rst = valueSource?.Get<TValueType>(); //Editor可以拿吧？
+                // Profiler.EndSample();
+                return rst;
             }
 
             if (Application.isPlaying == false)
@@ -309,9 +310,13 @@ namespace MonoFSM.Variable
 
         public override void CommitValue()
         {
+            Profiler.BeginSample("GenericUnityObjectVariable<TValueType>.CommitValue", this);
+            Profiler.BeginSample("GetValue");
             _lastValue = Value;
-            if (Value != null)
-                _lastNonNullValue = Value;
+            Profiler.EndSample();
+            if (_lastValue != null)
+                _lastNonNullValue = _lastValue;
+            Profiler.EndSample();
         }
 
         //FIXME: 不該留這個API
@@ -342,7 +347,7 @@ namespace MonoFSM.Variable
             // Debug.Log("Set value to " + value, this);
             //FIXME: 這需要分開嗎？在寫啥
             _tempValue = value;
-            RecordSetbyWho(byWho, _tempValue, reason);
+            RecordSetbyWhoDebug(byWho, _tempValue, reason);
             // OnValueChanged?.Invoke(_currentValue); //多一個參數的版本
             OnValueChanged();
 
