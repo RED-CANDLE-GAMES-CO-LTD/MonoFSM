@@ -4,10 +4,12 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 //Just for remind
+
 public class
     Note : MonoBehaviour, IEditorOnly, IHierarchyValueInfo,
     IDrawHierarchyBackGround //IOverrideHierarchyIcon
 {
+#if UNITY_EDITOR
     //FIXME: 用vHierarchyIcon來做?
     // [EnumToggleButtons]
     //FIXME: hoverable note, 不要直接顯示
@@ -35,9 +37,6 @@ public class
         FIXME,
     }
 
-#if UNITY_EDITOR
-
-
     [GUIColor("BackgroundColor")]
     [SerializeField]
     private NoteType _noteType = NoteType.NOTE;
@@ -46,15 +45,11 @@ public class
     [Title("意圖、Prompt")]
     public string note;
     // [ColorPalette] public Color bgColor = Color.yellow; //fixme:color 應該直接照著類型，和IDE這個註解一樣
-#endif
+
 
     public string IconName => "_Help";
     public bool IsDrawingIcon => false;
-#if UNITY_EDITOR
     public string ValueInfo => note;
-#else
-    public string ValueInfo => "";
-#endif
     public bool IsDrawingValueInfo => false; //TODO:
 
     public Color BackgroundColor => _noteType switch
@@ -68,4 +63,6 @@ public class
 
     public bool IsDrawGUIHierarchyBackground =>
         _noteType == NoteType.FIXME || _noteType == NoteType.TODO;
+#endif
 }
+

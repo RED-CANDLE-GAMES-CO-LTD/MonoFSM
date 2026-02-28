@@ -6,6 +6,10 @@ using UnityEngine;
 //看到dynamic rigidbody就應該要有這個
 //要寫一堆restore系列？
 //FIXME: 放在這，還是應該放在init state
+/// <summary>
+/// transform memory?
+///
+/// </summary>
 public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
 {
     [ShowInInspector]

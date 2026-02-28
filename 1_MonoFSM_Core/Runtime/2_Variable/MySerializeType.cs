@@ -18,10 +18,9 @@ namespace MonoFSM.Variable
     [Serializable]
     public class MySerializedType<T> : ISerializationCallbackReceiver
     {
-#if UNITY_EDITOR
         [HideInInspector]
+        [NonSerialized]
         public Object _bindObject; //debug用
-#endif
 
         //override baseType
         [FormerlySerializedAs("_baseVarTypeName")]

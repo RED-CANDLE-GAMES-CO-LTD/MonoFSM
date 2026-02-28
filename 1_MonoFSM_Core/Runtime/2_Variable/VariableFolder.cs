@@ -95,15 +95,15 @@ public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>,
         return null;
     }
 
-    public void AddExternalFolder(VariableFolder folder)
-    {
-        AddExternalDict(folder);
-    }
-
-    public void RemoveExternalFolder(VariableFolder folder)
-    {
-        RemoveExternalDict(folder);
-    }
+    // public void AddExternalFolder(VariableFolder folder)
+    // {
+    //     AddExternalDict(folder);
+    // }
+    //
+    // public void RemoveExternalFolder(VariableFolder folder)
+    // {
+    //     RemoveExternalDict(folder);
+    // }
 
     public TVariable GetVariable<TVariable>(VariableTag type)
         where TVariable : AbstractMonoVariable

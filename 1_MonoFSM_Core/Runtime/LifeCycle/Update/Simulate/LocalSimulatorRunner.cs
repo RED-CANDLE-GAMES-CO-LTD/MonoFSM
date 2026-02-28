@@ -62,6 +62,7 @@ namespace MonoFSM.Core.Simulate
         {
             //FIXME: 還是要player生出來才呼叫？
             _world.WorldInit();
+            _world.WorldReset();
         }
 
         private void FixedUpdate()

@@ -123,11 +123,11 @@ namespace MonoFSM.Variable
             }
         }
 
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
         [HideInInlineEditors]
         [TextArea]
         public string Note;
-#endif
+// #endif
 
         //可以DI標記variable類型，像是血量？要降低對方的血量之類的
         // [InlineProperty]

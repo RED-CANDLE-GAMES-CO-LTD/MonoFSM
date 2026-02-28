@@ -205,12 +205,13 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     //FIXME: 這個可以cache嗎...
 #endif
 
+    private bool HasLocalField => _bindData != null || HasValueProvider;
+
     // [MCPExtractable]
     [FormerlySerializedAs("localField")]
     [TabGroup("Value")]
     [InlineField]
-    [HideIf(nameof(_bindData))]
-    [HideIf(nameof(HasValueProvider))]
+    [HideIf(nameof(HasLocalField))]
     public TField _localField; // = new();
 
     protected override bool HasValueProvider => _valueSources is { Length: > 0 };
@@ -400,7 +401,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
                 if (varRef != null)
                     return varRef.Get<TType>();
 
-                Profiler.BeginSample("FieldVariable CurrentValue", this);
+                // Profiler.BeginSample("FieldVariable CurrentValue", this);
                 var tempValue = _localField.CurrentValue;
 
                 //FIXME: 這裡就有proxy? 而且還是直接reference...
@@ -412,13 +413,13 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
                 if (BindData != null)
                     tempValue = BindData.CurrentValue;
 
-                Profiler.EndSample();
-                Profiler.BeginSample("AfterGetValueModifyCheck", this);
-                //FIXME: 這個是不是有點貴？有需要在這層做嗎？應該在set時就做掉了？不需要ㄅ
-                // if (_modifiers != null)
-                //     foreach (var modifier in _modifiers)
-                //         tempValue = modifier.AfterGetValueModifyCheck(tempValue);
-                Profiler.EndSample();
+                // Profiler.EndSample();
+                // Profiler.BeginSample("AfterGetValueModifyCheck", this);
+                // //FIXME: 這個是不是有點貴？有需要在這層做嗎？應該在set時就做掉了？不需要ㄅ
+                // // if (_modifiers != null)
+                // //     foreach (var modifier in _modifiers)
+                // //         tempValue = modifier.AfterGetValueModifyCheck(tempValue);
+                // Profiler.EndSample();
                 // this.Log("[Variable] Get", tempValue);
                 return tempValue;
             }
@@ -463,15 +464,15 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         if (EqualityComparer<TType>.Default.Equals(tempValue, CurrentValue))
             return (false, tempValue); //沒有變化就不需要處理
 
-        Profiler.BeginSample("Field SetCurrentValue");
+        // Profiler.BeginSample("Field SetCurrentValue");
         Field.SetCurrentValue(tempValue, byWho);
         _isNull = false;
-        Profiler.EndSample();
+        // Profiler.EndSample();
 
         //什麼時候需要track? isTracking?
-        Profiler.BeginSample("TrackValue");
+        // Profiler.BeginSample("TrackValue");
         TrackValue(tempValue, byWho);
-        Profiler.EndSample();
+        // Profiler.EndSample();
 
         return (true, tempValue);
         // #if MIXPANEL
@@ -609,7 +610,9 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     public override void OnBeforePrefabSave()
     {
         base.OnBeforePrefabSave();
-        if (_varTag == null)
+        if (HasParentVar) //local的沒差
+            return;
+        if (_varTag == null) //nested的可以不用有？
             Debug.LogError("No VarTag: " + this, this);
         else
             name = _varTag.name;

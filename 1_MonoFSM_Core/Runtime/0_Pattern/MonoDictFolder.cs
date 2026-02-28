@@ -36,8 +36,9 @@ namespace MonoFSM.Core
             }
         }
 
-        [SerializeField] [LabelText("External Sources")]
-        protected List<MonoDict<T, Tu>> _externalDicts = new();
+        // [SerializeField]
+        [LabelText("External Sources")] [ShowInInspector]
+        protected List<MonoDict<T, Tu>> _externalDicts = new(); //FIXME 這個會dirty...
 
         public void AddExternalDict(MonoDict<T, Tu> dict)
         {
@@ -83,6 +84,8 @@ namespace MonoFSM.Core
         {
             get
             {
+                // Debug.Log(
+                //     $"Collecting all values for {DescriptionTag} '{name}'. Local count: {Collections.Length}, External dicts: {_externalDicts.Count}");
                 var results = new List<Tu>(Collections);
                 foreach (var dict in _externalDicts)
                 {

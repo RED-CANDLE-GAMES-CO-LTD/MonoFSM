@@ -22,9 +22,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         //module不會有耶
         // [Component(AddComponentAt.Parent)]
-        // [Required]
-        // [AutoParent]
-        // private EffectDetectable _detectable; //不一定是，IEffectDetectable?
+        [PreviewInInspector] [Required] [AutoParent]
+        private EffectDetectable _detectable; //不一定是，IEffectDetectable?
 
         [Header("Best Match Settings")]
         [Tooltip("當 EffectType 設定為只觸發最佳匹配時，此值越高優先級越高")]

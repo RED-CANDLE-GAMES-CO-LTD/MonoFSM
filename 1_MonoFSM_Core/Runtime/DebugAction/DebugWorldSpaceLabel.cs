@@ -1,178 +1,82 @@
-using System;
+using System.Collections.Generic;
 using MonoDebugSetting;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Foundation;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 #if UNITY_EDITOR
-using MonoFSM.Runtime;
 using UnityEditor;
+#endif
 
 namespace _0_MonoDebug.Gizmo
 {
-    /// <summary>
-    /// FIXME: 可以統一執行？有差嗎？
-    /// </summary>
     [ExecuteAlways]
     public class DebugWorldSpaceLabel : AbstractDescriptionBehaviour
     {
+        protected override string DescriptionTag => "DebugLabel";
+#if UNITY_EDITOR
+        public Vector3 offset = new Vector3(0, 2f, 0);
 
-        // [Header("顯示設定")] public string text = "";
-        public Vector3 offset = new Vector3(0, 2f, 0); // 讓文字飄在物體頭頂
-
-        [OnValueChanged(nameof(ResetStyle))] public int fontSize = 24;
-        [OnValueChanged(nameof(ResetStyle))] public Color fontColor = Color.green;
+        [OnValueChanged(nameof(ApplyStyle))] public int fontSize = 24;
+        [OnValueChanged(nameof(ApplyStyle))] public Color fontColor = Color.green;
 
         public enum OutlineMode
         {
             None,
             Shadow,
-            FourDirections,
-            EightDirections,
-            Full
+            Outline
         }
 
-        [Header("可讀性設定")] [Tooltip("外框模式。Shadow 最便宜，Full 最貴")]
+        [Header("可讀性設定")]
+        [Tooltip("外框模式。Shadow 使用 text-shadow，Outline 使用描邊")]
+        [OnValueChanged(nameof(ApplyStyle))]
         public OutlineMode outlineMode = OutlineMode.Shadow;
 
-        [ShowIf("@outlineMode != OutlineMode.None")] [Tooltip("外框顏色，建議使用深色或黑色")]
+        [ShowIf("@outlineMode != OutlineMode.None")]
+        [Tooltip("外框顏色")]
+        [OnValueChanged(nameof(ApplyStyle))]
         public Color outlineColor = Color.black;
 
         [ShowIf("@outlineMode != OutlineMode.None")] [Tooltip("外框透明度")] [Range(0f, 1f)]
+        [OnValueChanged(nameof(ApplyStyle))]
         public float outlineAlpha = 1f;
 
-        [ShowIf("@outlineMode != OutlineMode.None")]
-        [Tooltip("外框像素偏移（Shadow / Four / Eight 使用）")]
+        [ShowIf("outlineMode", OutlineMode.Shadow)]
+        [Tooltip("陰影像素偏移")]
         [Range(1, 4)]
-        public int outlineOffsetPx = 1;
+        [OnValueChanged(nameof(ApplyStyle))]
+        public int shadowOffsetPx = 1;
 
-        [ShowIf("outlineMode", OutlineMode.Full)]
-        [Tooltip("Full 模式額外半徑（2 代表 5x5-1=24 次，3 代表 7x7-1=48 次）")]
-        [Range(1, 3)]
-        public int outlineRadius = 1;
+        [ShowIf("outlineMode", OutlineMode.Outline)]
+        [Tooltip("描邊寬度")]
+        [Range(0.1f, 3f)]
+        [OnValueChanged(nameof(ApplyStyle))]
+        public float outlineWidth = 1f;
 
-        [Space] [Tooltip("使用半透明背景")] public bool useBackground = false;
-        [ShowIf("useBackground")] public Color backgroundColor = new Color(0, 0, 0, 0.7f);
+        [Space] [Tooltip("使用半透明背景")] [OnValueChanged(nameof(ApplyStyle))]
+        public bool useBackground = false;
+
+        [ShowIf("useBackground")] [OnValueChanged(nameof(ApplyStyle))]
+        public Color backgroundColor = new Color(0, 0, 0, 0.7f);
 
         [Space] [Tooltip("在 Scene 視圖中可點擊選取")] public bool clickableInScene = true;
 
-        protected override void Start()
-        {
-            base.Start();
-            if (!Application.isPlaying)
-                return;
-            //不該在start?
-            _bindingRigidbody = ParentEntity?.GetCompCache<Rigidbody>();
-            if (_bindingRigidbody == null)
-            {
-                _bindingRigidbody = GetComponentInParent<Rigidbody>();
-            }
+        // --- UI Toolkit (由 DebugLabelOverlay 管理) ---
+        [ShowInInspector] VisualElement _container;
+        [ShowInInspector] Label _label;
+        bool _uiReady;
 
-            if (_bindingRigidbody == null)
-                Debug.LogError("DebugWorldSpaceLabel 找不到 Rigidbody，請確認 ParentEntity 有 Rigidbody 組件",
-                    this);
-        }
-
-        //hmm editor也跑這個
-        private void Update()
-        {
-            if (_bindingRigidbody != null)
-                transform.position = _bindingRigidbody.transform.position;
-        }
+        // --- SceneView 用 GUIStyle (保留) ---
+        GUIStyle _gizmoStyle;
+        GUIStyle _gizmoOutlineStyle;
+        GUIStyle _backgroundStyle;
 
         [ShowInDebugMode] Rigidbody _bindingRigidbody;
 
-        private GUIStyle _guiStyle;
-        private GUIStyle _gizmoStyle;
-        private GUIStyle _guiOutlineStyle;
-        private GUIStyle _gizmoOutlineStyle;
-        private GUIStyle _backgroundStyle;
-
-        private GUIStyle guiStyle
-        {
-            get
-            {
-                if (_guiStyle == null)
-                {
-                    _guiStyle = new GUIStyle();
-                    _guiStyle.alignment = TextAnchor.MiddleCenter;
-                }
-
-                _guiStyle.fontSize = fontSize;
-                _guiStyle.normal.textColor = GetDynamicColor();
-                return _guiStyle;
-            }
-        }
-
-        private GUIStyle gizmoStyle
-        {
-            get
-            {
-                if (_gizmoStyle == null)
-                {
-                    _gizmoStyle = new GUIStyle();
-                    _gizmoStyle.alignment = TextAnchor.MiddleCenter;
-                }
-
-                _gizmoStyle.fontSize = fontSize;
-                _gizmoStyle.normal.textColor = GetDynamicColor();
-                return _gizmoStyle;
-            }
-        }
-
-        private GUIStyle guiOutlineStyle
-        {
-            get
-            {
-                if (_guiOutlineStyle == null)
-                {
-                    _guiOutlineStyle = new GUIStyle(guiStyle);
-                }
-
-                _guiOutlineStyle.fontSize = fontSize;
-                _guiOutlineStyle.alignment = TextAnchor.MiddleCenter;
-                _guiOutlineStyle.normal.textColor = GetOutlineColor();
-                return _guiOutlineStyle;
-            }
-        }
-
-        private GUIStyle gizmoOutlineStyle
-        {
-            get
-            {
-                if (_gizmoOutlineStyle == null)
-                {
-                    _gizmoOutlineStyle = new GUIStyle(gizmoStyle);
-                }
-
-                _gizmoOutlineStyle.fontSize = fontSize;
-                _gizmoOutlineStyle.alignment = TextAnchor.MiddleCenter;
-                _gizmoOutlineStyle.normal.textColor = GetOutlineColor();
-                return _gizmoOutlineStyle;
-            }
-        }
-
-        private Color GetDynamicColor()
-        {
-            if (currentVariable is VarBool varBool)
-            {
-                return varBool.Value ? Color.green : Color.red;
-            }
-
-            // 非 VarBool 或沒有 variable 時使用黃色
-            return currentVariable != null ? Color.yellow : fontColor;
-        }
-
-        private Color GetOutlineColor()
-        {
-            var c = outlineColor;
-            c.a *= outlineAlpha;
-            return c;
-        }
-
-        [HideIf("_externalVariable", null, false)] [Required] [AutoParent] //hmm
+        [HideIf("_externalVariable", null, false)] [Required] [AutoParent]
         public AbstractMonoVariable _variable;
 
         public AbstractMonoVariable _externalVariable;
@@ -187,29 +91,248 @@ namespace _0_MonoDebug.Gizmo
             }
         }
 
-        protected override string DescriptionTag => "DebugLabel";
         public override string Description => currentVariable?.Description;
 
-        private void ResetStyle()
+        protected override void Start()
         {
-            _guiStyle = null;
-            _gizmoStyle = null;
-            _guiOutlineStyle = null;
-            _gizmoOutlineStyle = null;
-            _backgroundStyle = null;
+            base.Start();
+            if (!Application.isPlaying)
+                return;
+            _bindingRigidbody = ParentEntity?.GetCompCache<Rigidbody>();
+            if (_bindingRigidbody == null)
+                _bindingRigidbody = GetComponentInParent<Rigidbody>();
+            if (_bindingRigidbody == null)
+                Debug.LogError("DebugWorldSpaceLabel 找不到 Rigidbody，請確認 ParentEntity 有 Rigidbody 組件",
+                    this);
         }
 
-        private void OnEnable()
+        // ========== Lifecycle ==========
+
+        void OnEnable()
         {
             SceneView.duringSceneGui += OnSceneGUI;
+            RegisterOverlayLabel();
         }
 
-        private void OnDisable()
+        void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneGUI;
+            UnregisterOverlayLabel();
         }
 
-        private void OnSceneGUI(SceneView sceneView)
+        void Update()
+        {
+            // 跟隨 Rigidbody（維持原本行為，不含 offset）
+            if (_bindingRigidbody != null)
+                transform.position = _bindingRigidbody.transform.position;
+
+            UpdateOverlayLabel();
+        }
+
+        // ========== Screen Space Overlay Label ==========
+
+        void RegisterOverlayLabel()
+        {
+            // EnsureInitialized 會觸發，但 root 可能還沒準備好
+            // 此時 _uiReady = false，Update 中會自動重試
+            DebugLabelOverlay.EnsureReady();
+            TryBuildLabel();
+        }
+
+        [ShowInInspector] private GameObject overlay => DebugLabelOverlay._overlayGo;
+
+        void TryBuildLabel()
+        {
+            if (_uiReady) return;
+
+            var root = DebugLabelOverlay.GetRoot();
+            if (root == null) return;
+
+            _container = new VisualElement();
+            _container.style.position = Position.Absolute;
+            _container.style.alignItems = Align.Center;
+            _container.style.justifyContent = Justify.Center;
+            _container.style.paddingLeft = 5;
+            _container.style.paddingRight = 5;
+            _container.style.paddingTop = 2;
+            _container.style.paddingBottom = 2;
+            _container.style.translate = new Translate(Length.Percent(-50), Length.Percent(-50));
+            _container.pickingMode = PickingMode.Position;
+
+            _label = new Label();
+            _label.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _label.style.whiteSpace = WhiteSpace.NoWrap;
+            _label.pickingMode = PickingMode.Position;
+
+            _container.Add(_label);
+            root.Add(_container);
+
+            // GameView 點擊選取
+            _container.RegisterCallback<ClickEvent>(OnLabelClicked);
+
+            _uiReady = true;
+            ApplyStyle();
+        }
+
+        void UnregisterOverlayLabel()
+        {
+            _container?.RemoveFromHierarchy();
+            _container = null;
+            _label = null;
+            _uiReady = false;
+        }
+
+        void UpdateOverlayLabel()
+        {
+            // Lazy init: root 可能在之後幾幀才準備好
+            if (!_uiReady)
+            {
+                TryBuildLabel();
+                if (!_uiReady) return;
+            }
+
+            bool show = RuntimeDebugSetting.IsDebugMode;
+            _container.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!show) return;
+
+            var cam = Camera.main;
+            if (cam == null)
+            {
+                _container.style.display = DisplayStyle.None;
+                return;
+            }
+
+            // 世界座標 → 螢幕座標
+            var worldPos = transform.position + offset;
+            var screenPos = cam.WorldToScreenPoint(worldPos);
+
+            // 在攝影機背後
+            if (screenPos.z <= 0)
+            {
+                _container.style.display = DisplayStyle.None;
+                return;
+            }
+
+            // 螢幕座標轉 UI Toolkit 座標（Y 軸反轉）
+            _container.style.left = screenPos.x;
+            _container.style.top = cam.pixelHeight - screenPos.y;
+
+            // 更新文字
+            _label.text = currentVariable != null
+                ? currentVariable.Description + ": " + currentVariable.StringValue
+                : "";
+
+            // 更新動態顏色
+            _label.style.color = GetDynamicColor();
+        }
+
+        void ApplyStyle()
+        {
+            if (!_uiReady) return;
+
+            _label.style.fontSize = fontSize;
+            _label.style.color = GetDynamicColor();
+
+            var oc = GetOutlineColor();
+
+            // 重置
+            _label.style.textShadow = new TextShadow();
+            _label.style.unityTextOutlineColor = Color.clear;
+            _label.style.unityTextOutlineWidth = 0;
+
+            switch (outlineMode)
+            {
+                case OutlineMode.Shadow:
+                    _label.style.textShadow = new TextShadow
+                    {
+                        offset = new Vector2(shadowOffsetPx, shadowOffsetPx),
+                        blurRadius = 0,
+                        color = oc
+                    };
+                    break;
+                case OutlineMode.Outline:
+                    _label.style.unityTextOutlineColor = oc;
+                    _label.style.unityTextOutlineWidth = outlineWidth;
+                    break;
+            }
+
+            _container.style.backgroundColor = useBackground ? backgroundColor : Color.clear;
+        }
+
+        void OnLabelClicked(ClickEvent evt)
+        {
+            if (evt.commandKey)
+                SelectVariableGameObject();
+        }
+
+        // ========== 共用 ==========
+
+        Color GetDynamicColor()
+        {
+            if (currentVariable is VarBool varBool)
+                return varBool.Value ? Color.green : Color.red;
+            return currentVariable != null ? Color.yellow : fontColor;
+        }
+
+        Color GetOutlineColor()
+        {
+            var c = outlineColor;
+            c.a *= outlineAlpha;
+            return c;
+        }
+
+        void SelectVariableGameObject()
+        {
+            var targetGo = currentVariable != null ? currentVariable.gameObject : gameObject;
+            Selection.activeGameObject = targetGo;
+            EditorGUIUtility.PingObject(targetGo);
+        }
+
+        // ========== SceneView (保留 Gizmos + Handles) ==========
+
+        GUIStyle gizmoStyle
+        {
+            get
+            {
+                if (_gizmoStyle == null)
+                {
+                    _gizmoStyle = new GUIStyle();
+                    _gizmoStyle.alignment = TextAnchor.MiddleCenter;
+                }
+                _gizmoStyle.fontSize = fontSize;
+                _gizmoStyle.normal.textColor = GetDynamicColor();
+                return _gizmoStyle;
+            }
+        }
+
+        GUIStyle gizmoOutlineStyle
+        {
+            get
+            {
+                if (_gizmoOutlineStyle == null)
+                    _gizmoOutlineStyle = new GUIStyle(gizmoStyle);
+                _gizmoOutlineStyle.fontSize = fontSize;
+                _gizmoOutlineStyle.alignment = TextAnchor.MiddleCenter;
+                _gizmoOutlineStyle.normal.textColor = GetOutlineColor();
+                return _gizmoOutlineStyle;
+            }
+        }
+
+        GUIStyle backgroundGUIStyle
+        {
+            get
+            {
+                if (_backgroundStyle == null)
+                {
+                    _backgroundStyle = new GUIStyle();
+                    _backgroundStyle.normal.background = Texture2D.whiteTexture;
+                }
+
+                return _backgroundStyle;
+            }
+        }
+
+        void OnSceneGUI(SceneView sceneView)
         {
             if (!RuntimeDebugSetting.IsDebugMode || !clickableInScene)
                 return;
@@ -237,7 +360,6 @@ namespace _0_MonoDebug.Gizmo
 
             Event e = Event.current;
 
-            // 檢測點擊 (需按住 Alt 鍵才會選取，避免干擾 Transform Gizmo 操作)
             if (e.type == EventType.MouseDown && e.button == 0 && e.command &&
                 clickRect.Contains(e.mousePosition))
             {
@@ -245,19 +367,16 @@ namespace _0_MonoDebug.Gizmo
                 SelectVariableGameObject();
             }
 
-            // 顯示 hover 效果
             if (clickRect.Contains(e.mousePosition))
             {
                 Handles.BeginGUI();
 
-                // 提示文字
                 var hintStyle = new GUIStyle(EditorStyles.helpBox);
                 hintStyle.fontSize = 10;
                 hintStyle.alignment = TextAnchor.MiddleCenter;
                 var hintRect = new Rect(clickRect.x, clickRect.yMax + 2, clickRect.width, 16);
                 var hintText = e.command ? "Click 選取" : "Command+Click 選取";
 
-                // 按住 Alt 時用不透明背景
                 if (e.command)
                 {
                     EditorGUI.DrawRect(hintRect, new Color(0.2f, 0.6f, 0.9f, 1f));
@@ -265,162 +384,13 @@ namespace _0_MonoDebug.Gizmo
                 }
 
                 GUI.Label(hintRect, hintText, hintStyle);
-
                 Handles.EndGUI();
 
                 if (e.command)
-                {
                     EditorGUIUtility.AddCursorRect(clickRect, MouseCursor.Link);
-                }
 
                 sceneView.Repaint();
             }
-        }
-
-
-        private void DrawLabelWithOptionalOutline(Rect rect, string displayText, GUIStyle mainStyle,
-            GUIStyle outlineStyle)
-        {
-            if (outlineMode != OutlineMode.None)
-            {
-                DrawOutline(rect, displayText, outlineStyle);
-            }
-
-            GUI.Label(rect, displayText, mainStyle);
-        }
-
-        private void DrawOutline(Rect rect, string displayText, GUIStyle outlineStyle)
-        {
-            int o = Mathf.Max(1, outlineOffsetPx);
-
-            switch (outlineMode)
-            {
-                case OutlineMode.Shadow:
-                    GUI.Label(new Rect(rect.x + o, rect.y + o, rect.width, rect.height),
-                        displayText, outlineStyle);
-                    return;
-
-                case OutlineMode.FourDirections:
-                    GUI.Label(new Rect(rect.x - o, rect.y, rect.width, rect.height), displayText,
-                        outlineStyle);
-                    GUI.Label(new Rect(rect.x + o, rect.y, rect.width, rect.height), displayText,
-                        outlineStyle);
-                    GUI.Label(new Rect(rect.x, rect.y - o, rect.width, rect.height), displayText,
-                        outlineStyle);
-                    GUI.Label(new Rect(rect.x, rect.y + o, rect.width, rect.height), displayText,
-                        outlineStyle);
-                    return;
-
-                case OutlineMode.EightDirections:
-                    GUI.Label(new Rect(rect.x - o, rect.y, rect.width, rect.height), displayText,
-                        outlineStyle);
-                    GUI.Label(new Rect(rect.x + o, rect.y, rect.width, rect.height), displayText,
-                        outlineStyle);
-                    GUI.Label(new Rect(rect.x, rect.y - o, rect.width, rect.height), displayText,
-                        outlineStyle);
-                    GUI.Label(new Rect(rect.x, rect.y + o, rect.width, rect.height), displayText,
-                        outlineStyle);
-                    GUI.Label(new Rect(rect.x - o, rect.y - o, rect.width, rect.height),
-                        displayText, outlineStyle);
-                    GUI.Label(new Rect(rect.x + o, rect.y - o, rect.width, rect.height),
-                        displayText, outlineStyle);
-                    GUI.Label(new Rect(rect.x - o, rect.y + o, rect.width, rect.height),
-                        displayText, outlineStyle);
-                    GUI.Label(new Rect(rect.x + o, rect.y + o, rect.width, rect.height),
-                        displayText, outlineStyle);
-                    return;
-
-                case OutlineMode.Full:
-                    int r = Mathf.Clamp(outlineRadius, 1, 3);
-                    for (int x = -r; x <= r; x++)
-                    {
-                        for (int y = -r; y <= r; y++)
-                        {
-                            if (x == 0 && y == 0)
-                                continue;
-
-                            GUI.Label(new Rect(rect.x + x, rect.y + y, rect.width, rect.height),
-                                displayText, outlineStyle);
-                        }
-                    }
-
-                    return;
-            }
-        }
-
-        void OnGUI()
-        {
-            if (!RuntimeDebugSetting.IsDebugMode)
-                return;
-
-            // 1. 取得主攝影機
-            var cam = Camera.main;
-            if (cam == null)
-                return;
-
-            // 2. 計算物體在世界空間的實際位置 (加上偏移量)
-            var worldPos = transform.position + offset;
-
-            // 3. 轉成螢幕座標
-            var screenPos = cam.WorldToScreenPoint(worldPos);
-
-            // 如果 z < 0，代表物體在攝影機背後
-            if (screenPos.z <= 0)
-                return;
-
-            // 4. 修正 Y 軸 (GUI 的 Y 是從上往下算，ScreenPoint 是從下往上算)
-            float guiY = cam.pixelHeight - screenPos.y;
-
-            // 5. 準備顯示文字（不要覆蓋 serialized 的 text，避免和其它地方互相影響）
-            string displayText = "";
-            if (currentVariable != null)
-                displayText = currentVariable.Description + ": " + currentVariable.StringValue;
-
-            // 6. 用字體真實尺寸計算 Rect，避免固定寬高導致置中偏移
-            Vector2 size = guiStyle.CalcSize(new GUIContent(displayText));
-            size.x = Mathf.Max(size.x, 40f);
-            size.y = Mathf.Max(size.y, 18f);
-
-            var rect = new Rect(screenPos.x - size.x * 0.5f, guiY - size.y * 0.5f, size.x, size.y);
-
-            // GameView 點擊檢測
-            if (clickableInScene)
-            {
-                Rect clickRect = useBackground
-                    ? new Rect(rect.x - 5, rect.y - 2, rect.width + 10, rect.height + 4)
-                    : rect;
-
-                Event e = Event.current;
-
-                // 需按住 Alt 鍵才會選取，避免干擾其他操作
-                if (e.type == EventType.MouseDown && e.button == 0 && e.command &&
-                    clickRect.Contains(e.mousePosition))
-                {
-                    e.Use();
-                    SelectVariableGameObject();
-                }
-            }
-
-            if (useBackground)
-            {
-                DrawBackground(rect);
-            }
-
-            DrawLabelWithOptionalOutline(rect, displayText, guiStyle, guiOutlineStyle);
-        }
-
-        private void DrawBackground(Rect rect)
-        {
-            var backgroundRect = new Rect(rect);
-            backgroundRect.xMin -= 5;
-            backgroundRect.xMax += 5;
-            backgroundRect.yMin -= 2;
-            backgroundRect.yMax += 2;
-
-            Color oldColor = GUI.color;
-            GUI.color = backgroundColor;
-            GUI.Label(backgroundRect, GUIContent.none, backgroundStyle);
-            GUI.color = oldColor;
         }
 
         void OnDrawGizmos()
@@ -443,26 +413,20 @@ namespace _0_MonoDebug.Gizmo
             DrawSceneLabel(labelPosition, displayText);
         }
 
-        private void DrawSceneLabel(Vector3 worldPosition, string displayText)
+        void DrawSceneLabel(Vector3 worldPosition, string displayText)
         {
-            // Scene 視窗應優先使用 SceneView 的相機
             Camera cam;
-
             var sceneView = SceneView.lastActiveSceneView;
             if (sceneView != null && sceneView.camera != null)
-            {
                 cam = sceneView.camera;
-            }
             else
             {
                 cam = Camera.current;
-                if (cam == null)
-                    return;
+                if (cam == null) return;
             }
 
             Vector3 sp = cam.WorldToScreenPoint(worldPosition);
-            if (sp.z <= 0)
-                return;
+            if (sp.z <= 0) return;
 
             Vector2 guiPos = HandleUtility.WorldToGUIPoint(worldPosition);
             Vector2 size = gizmoStyle.CalcSize(new GUIContent(displayText));
@@ -472,51 +436,98 @@ namespace _0_MonoDebug.Gizmo
 
             if (useBackground)
             {
-                DrawSceneBackground(rect);
+                var backgroundRect = new Rect(rect);
+                backgroundRect.xMin -= 5;
+                backgroundRect.xMax += 5;
+                backgroundRect.yMin -= 2;
+                backgroundRect.yMax += 2;
+
+                Color oldColor = GUI.color;
+                GUI.color = backgroundColor;
+                GUI.Label(backgroundRect, GUIContent.none, backgroundGUIStyle);
+                GUI.color = oldColor;
             }
 
-            DrawLabelWithOptionalOutline(rect, displayText, gizmoStyle, gizmoOutlineStyle);
+            if (outlineMode == OutlineMode.Shadow)
+            {
+                int o = Mathf.Max(1, shadowOffsetPx);
+                GUI.Label(new Rect(rect.x + o, rect.y + o, rect.width, rect.height),
+                    displayText, gizmoOutlineStyle);
+            }
+            else if (outlineMode == OutlineMode.Outline)
+            {
+                int o = Mathf.Max(1, Mathf.CeilToInt(outlineWidth));
+                GUI.Label(new Rect(rect.x - o, rect.y, rect.width, rect.height), displayText,
+                    gizmoOutlineStyle);
+                GUI.Label(new Rect(rect.x + o, rect.y, rect.width, rect.height), displayText,
+                    gizmoOutlineStyle);
+                GUI.Label(new Rect(rect.x, rect.y - o, rect.width, rect.height), displayText,
+                    gizmoOutlineStyle);
+                GUI.Label(new Rect(rect.x, rect.y + o, rect.width, rect.height), displayText,
+                    gizmoOutlineStyle);
+            }
+
+            GUI.Label(rect, displayText, gizmoStyle);
 
             Handles.EndGUI();
             Gizmos.DrawIcon(transform.position, "sv_label_4", true);
         }
 
-        private void SelectVariableGameObject()
-        {
-            // 選中 variable 的 GameObject，如果沒有 variable 則選中自己
-            var targetGO = currentVariable != null ? currentVariable.gameObject : gameObject;
-            Selection.activeGameObject = targetGO;
-            EditorGUIUtility.PingObject(targetGO);
-        }
+        // ========== 共用 Screen Space Overlay（所有 Label 共享一個 UIDocument） ==========
 
-        private void DrawSceneBackground(Rect rect)
+        static class DebugLabelOverlay
         {
-            var backgroundRect = new Rect(rect);
-            backgroundRect.xMin -= 5;
-            backgroundRect.xMax += 5;
-            backgroundRect.yMin -= 2;
-            backgroundRect.yMax += 2;
+            public static GameObject _overlayGo;
+            static UIDocument _uiDocument;
+            static PanelSettings _panelSettings;
+            static VisualElement _root;
 
-            Color oldColor = GUI.color;
-            GUI.color = backgroundColor;
-            GUI.Label(backgroundRect, GUIContent.none, backgroundStyle);
-            GUI.color = oldColor;
-        }
+            public static VisualElement GetRoot() => _root;
 
-        private GUIStyle backgroundStyle
-        {
-            get
+            public static void EnsureReady()
             {
-                if (_backgroundStyle == null)
-                {
-                    _backgroundStyle = new GUIStyle();
-                    _backgroundStyle.normal.background = Texture2D.whiteTexture;
-                }
+                // 靜態欄位都還活著 → 已初始化
+                if (_overlayGo != null && _uiDocument != null && _root != null)
+                    return;
 
-                return _backgroundStyle;
+                // Domain reload 後靜態歸零，但舊 GO (DontSave) 還在場景中
+                // PanelSettings (runtime ScriptableObject) 已被銷毀 → Missing
+                // 解法：直接砍掉重建，不嘗試復用
+                var stale = GameObject.Find("[DebugLabelOverlay]");
+                if (stale != null)
+                    Object.DestroyImmediate(stale);
+
+                // 建立 PanelSettings（也標記 DontSave 避免存進場景）
+                _panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
+                _panelSettings.name = "DebugLabelOverlay";
+                _panelSettings.hideFlags = HideFlags.HideAndDontSave;
+                _panelSettings.scaleMode = PanelScaleMode.ConstantPixelSize;
+                _panelSettings.clearColor = false;
+                _panelSettings.sortingOrder = 10000;
+
+                // 建立 GO + UIDocument
+                _overlayGo = new GameObject("[DebugLabelOverlay]");
+                _overlayGo.hideFlags = HideFlags.HideAndDontSave;
+
+                _uiDocument = _overlayGo.AddComponent<UIDocument>();
+                _uiDocument.panelSettings = _panelSettings;
+
+                // rootVisualElement 可能要等下一幀，TryBuildLabel 會在 Update 中重試
+                if (_uiDocument.rootVisualElement != null)
+                    SetupRoot();
+            }
+
+            static void SetupRoot()
+            {
+                _root = _uiDocument.rootVisualElement;
+                _root.pickingMode = PickingMode.Ignore;
+                _root.style.position = Position.Absolute;
+                _root.style.left = 0;
+                _root.style.top = 0;
+                _root.style.right = 0;
+                _root.style.bottom = 0;
             }
         }
+#endif
     }
 }
-
-#endif

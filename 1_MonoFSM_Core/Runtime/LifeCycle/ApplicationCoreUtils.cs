@@ -1,10 +1,14 @@
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using System.IO;
 
 public class ApplicationCoreUtils
 {
+#if UNITY_EDITOR
     [MenuItem("Tools/MonoFSM/Copy ApplicationCore to Custom")]
+
     public static void CopyApplicationCore()
     {
         // Try to find the ApplicationCore prefab
@@ -57,4 +61,5 @@ public class ApplicationCoreUtils
             Debug.LogError($"Failed to copy '{sourcePath}' to '{destinationPath}'");
         }
     }
+#endif
 }

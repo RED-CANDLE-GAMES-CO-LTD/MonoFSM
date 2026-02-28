@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+#if UNITY_EDITOR
 using _0_MonoDebug.Gizmo;
+#endif
 using MonoDebugSetting;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
@@ -67,6 +69,9 @@ namespace MonoFSM.Variable
                 return _parentVarEntity != null;
             }
         }
+
+        //bool isLocalVar? 不在folder下 || HasParentVar
+        public bool HasParentVar => GetComponentInParent<AbstractMonoVariable>() != null;
 #if UNITY_EDITOR
         public string IconName { get; }
         public bool IsDrawingIcon => CustomIcon != null;
@@ -137,7 +142,7 @@ namespace MonoFSM.Variable
         {
             if (_varTag != null)
             {
-                Debug.Log($"Set _varTag:{_varTag} _variableType  {GetType()}", _varTag);
+                // Debug.Log($"Set _varTag:{_varTag} _variableType  {GetType()}", _varTag);
 
                 //要怎麼找到對應的variable tag...要有一個dict可以找hmm
                 _varTag._variableType.SetType(GetType());
@@ -319,10 +324,12 @@ namespace MonoFSM.Variable
         // }
 #endif
 
+        //FIXME: 太卡了
         protected void RecordSetbyWhoDebug<T>(Object byWho, T tempValue, string reason = null)
         {
+            return;
             //這個會gc, hmm
-            if (!RuntimeDebugSetting.IsDebugMode)
+            if (!RuntimeDebugSetting.IsDebugMode) //要再開一種？
             {
                 return;
             }
@@ -615,16 +622,19 @@ namespace MonoFSM.Variable
             return getMyProperty;
         }
 
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
         // [Header("GameState 功能說明")]
         //FIXME: 整合 AbstractDescriptable??
         // [TextArea(1, 4)]
         // public string description;
 
         public override string Description => _varTag != null ? _varTag.name : ReformatedName;
-        public abstract string StringValue { get; }
+
         // set => description = value;
-#endif
+
+        //包進去override會爆掉捏
+        public abstract string StringValue { get; }
+// #endif
 
         public string Name => gameObject.name;
         public VariableTag Key => _varTag;

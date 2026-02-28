@@ -171,9 +171,9 @@ namespace MonoFSM.Variable
 
                 try
                 {
-                    Profiler.BeginSample("GetValueInternal", this);
+                    // Profiler.BeginSample("GetValueInternal", this);
                     var rst = GetValueInternal();
-                    Profiler.EndSample();
+                    // Profiler.EndSample();
                     return rst;
                 }
                 finally
@@ -373,14 +373,14 @@ namespace MonoFSM.Variable
 
         public void EnterSceneStart()
         {
-            if (_isRuntimeOnly)
-                SetValueInternal(Value, this, "EnterSceneStart");
+            // if (_isRuntimeOnly)
+            //     SetValueInternal(Value, this, "EnterSceneStart");
         }
 
         public override void ResetStateRestore()
         {
-            if (_isRuntimeOnly)
-                SetValueInternal(_defaultValue, this, "ResetStateRestore");
+            // if (_isRuntimeOnly)
+            //     SetValueInternal(_defaultValue, this, "ResetStateRestore");
         }
 
         //FIXME: 和isConfig定位一樣？

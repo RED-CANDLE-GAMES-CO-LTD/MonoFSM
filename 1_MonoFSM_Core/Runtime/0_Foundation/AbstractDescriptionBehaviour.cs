@@ -414,7 +414,8 @@ namespace MonoFSM.Foundation
 
         protected virtual string DescriptionPreprocess(string text) => text;
 
-        protected abstract string DescriptionTag { get; }
+        protected virtual string DescriptionTag => "";
+
 
         protected virtual bool IsIgnoreRename => false;
 

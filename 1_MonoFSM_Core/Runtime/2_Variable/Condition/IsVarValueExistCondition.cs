@@ -2,9 +2,10 @@ using UnityEngine;
 
 namespace MonoFSM.Variable.Condition
 {
-    //FIXME: 很怪？
     public class IsVarValueExistCondition : AbstractConditionBehaviour
     {
+        public override string Description => $"Is {unityObjectVariable} exist?";
+
         [DropDownRef]
         public AbstractMonoVariable unityObjectVariable;
 

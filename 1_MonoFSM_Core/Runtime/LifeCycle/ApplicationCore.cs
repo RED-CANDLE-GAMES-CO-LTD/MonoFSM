@@ -1,4 +1,3 @@
-using MonoFSM.Runtime;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -19,10 +18,12 @@ public class ApplicationCore : SingletonBehaviour<ApplicationCore>
 
     private bool IsInEditor => !gameObject.name.Contains("Custom");
 
+#if UNITY_EDITOR
     [ShowIf("IsInEditor")]
     [Button("Custom Core")]
     void CreateCustomCore()
     {
         ApplicationCoreUtils.CopyApplicationCore();
     }
+#endif
 }

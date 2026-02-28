@@ -77,12 +77,12 @@ namespace MonoFSM.Core.Simulate
         {
             _spawnProcessor = GetComponent<ISpawnProcessor>();
             _simulateRunner = GetComponent<ISimulateRunner>();
-
-            // _simulators.AddRange(_localSimulators); //不需要了？
+            // _simulators.AddRange(_localSimulators);
+            // FIXME: 不需要了？
             _binder = GetComponent<MonoEntityBinder>();
-
             _binder.EnterSceneAwake();
-            Debug.Log("MonoEntityBinder Init");
+
+            // Debug.Log("MonoEntityBinder Init");
         }
 
         [CompRef]
@@ -273,12 +273,18 @@ namespace MonoFSM.Core.Simulate
         }
 
         //世界進入點
-        public void WorldInit()
+        public void WorldInit() //FIXME: 這個應該要什麼時間點做？
         {
+            Debug.Log("WorldUpdateSimulator WorldInit called.", this);
             //SceneAwake可以自己做ㄅ？
             IsReady = true;
             SceneAwake();
             SceneStart();
+        }
+
+        public void WorldReset()
+        {
+
             ResetLevelRestore();
             ResetLevelStart();
         }
@@ -437,14 +443,20 @@ namespace MonoFSM.Core.Simulate
 
 #if UNITY_EDITOR
         [MenuItem("MonoFSM/ResetLevel %R")]
-        public static void ManualResetLevel() //Cheat Reset?
+        public static void ManualResetLevelMenu()
         {
             if (!Application.isPlaying)
             {
-                CompilationPipeline.RequestScriptCompilation();
+                // CompilationPipeline.RequestScriptCompilation();
+                //refresh editor
+                AssetDatabase.Refresh();
                 return;
             }
-
+            // ManualResetLevel();
+        }
+#endif
+        public static void ManualResetLevel() //Cheat Reset?
+        {
             PoolManager.Instance.ReturnAllObjects();
 
             Debug.Log("ResetLevel CMD+Shift+R");
@@ -464,7 +476,7 @@ namespace MonoFSM.Core.Simulate
                     simulator.ResetLevelStart();
             }
         }
-#endif
+
         public void BeforeRender()
         {
             if (!IsReady)

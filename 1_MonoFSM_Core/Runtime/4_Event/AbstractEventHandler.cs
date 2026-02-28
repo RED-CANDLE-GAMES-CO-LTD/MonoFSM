@@ -65,7 +65,7 @@ namespace MonoFSM.Core
                 catch (System.Exception e)
                 {
                     Debug.LogError(
-                        $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.Message}",
+                        $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
                         eventReceiver as Object);
                 }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.Action.AnimatorActions;
+using MonoDebugSetting;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Runtime.Action;
@@ -118,7 +119,6 @@ namespace MonoFSM.Animation
 
         private void SetValue()
         {
-
             if (!animator.isActiveAndEnabled)
                 return;
 
@@ -161,9 +161,10 @@ namespace MonoFSM.Animation
         // }
         public void EnterSceneStart()
         {
-            if (animator == null)
+            if (animator == null && gameObject.activeSelf)
             {
-                Debug.LogError("Animator is null", this);
+                if (RuntimeDebugSetting.IsDebugMode)
+                    Debug.LogError("Animator is null", this);
                 gameObject.SetActive(false);
             }
         }

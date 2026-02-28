@@ -461,9 +461,9 @@ namespace MonoFSMCore.Runtime.LifeCycle
         {
             if (HasParent)
                 return;
-            if (WorldUpdateSimulator.IsReady == false)
-                // Debug.LogError("WorldUpdateSimulator is not ready. Cannot proceed with SceneAwake.", this);
-                return;
+            // if (WorldUpdateSimulator.IsReady == false)
+            //     // Debug.LogError("WorldUpdateSimulator is not ready. Cannot proceed with SceneAwake.", this);
+            //     return;
             var iLevelStarts = new List<ISceneStart>(_sceneStarts);
             iLevelStarts.Reverse();
 
