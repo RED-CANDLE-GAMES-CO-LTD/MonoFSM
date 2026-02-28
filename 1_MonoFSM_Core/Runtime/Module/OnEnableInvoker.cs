@@ -3,26 +3,16 @@ using MonoFSM.Core.Simulate;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
 
-// internal interface IUnityEventHolder
-// {
-//     void PrepareUnityEvent();
-// }
-//
-// [Serializable]
-// public class TransformEvent : UnityEvent<Transform>
-// {
-// }
-
-
+//XX EnableInoker 自動命名？
 public class OnEnableInvoker : MonoBehaviour, IUpdateSimulate
 {
     [CompRef]
     [AutoChildren]
-    private OnEnableNode _onEnableNode;
+    private OnEnableHandler _onEnableHandler;
 
     [CompRef]
     [AutoChildren]
-    private OnDisableNode _onDisableNode;
+    private OnDisableHandler _onDisableHandler;
 
     private bool _isCachedEnabled;
     private bool _isCachedDisabled;
@@ -52,26 +42,26 @@ public class OnEnableInvoker : MonoBehaviour, IUpdateSimulate
     public void Simulate(float deltaTime)
     {
         //FIXME: 應該要下個frame做？ 先記下來？
-        if (isTriggeringEnable && _onEnableNode != null)
+        if (isTriggeringEnable && _onEnableHandler != null)
         {
             if (_enableHandle != null)
                 _enableHandle._isCachedEnabled = false;
 
             _isCachedEnabled = false;
-            if (_onEnableNode.gameObject.activeSelf)
-                _onEnableNode.EventHandle();
+            if (_onEnableHandler.gameObject.activeSelf)
+                _onEnableHandler.EventHandle();
             else
                 Debug.LogError("OnEnableNode is not active", this);
         }
 
-        if (_isCachedDisabled && _onDisableNode != null)
+        if (_isCachedDisabled && _onDisableHandler != null)
         {
             if (_enableHandle != null)
                 _enableHandle._isCachedDisabled = false;
 
             _isCachedDisabled = false;
-            if (_onDisableNode.gameObject.activeSelf)
-                _onDisableNode.EventHandle();
+            if (_onDisableHandler.gameObject.activeSelf)
+                _onDisableHandler.EventHandle();
             else
                 Debug.LogError("OnDisableNode is not active", this);
         }
