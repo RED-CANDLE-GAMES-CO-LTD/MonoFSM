@@ -4,7 +4,9 @@ using System.Linq;
 using System.Reflection;
 using MonoFSM.Core.Runtime;
 using _1_MonoFSM_Core.Runtime.LifeCycle.Update;
+using _1_MonoFSM_Core.Runtime.MonoData;
 using Fusion.Addons.FSM;
+using MonoDebugSetting;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
@@ -12,6 +14,7 @@ using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Runtime.Variable;
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
 using MonoFSM.Variable.FieldReference;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
@@ -47,7 +50,10 @@ namespace MonoFSM.Runtime
         //effect感覺需要同步？要不然debug會看不懂？
         //install後有個搬移的過程？但這樣資料就會不同步了(ex: override)
 
-
+        private void Awake()
+        {
+            BindModulePackFolders(); //FIXME: 可以在這嗎？
+        }
 
 
         [AutoChildren]
@@ -187,9 +193,10 @@ namespace MonoFSM.Runtime
                 var result = SchemaFolder.Get(type);
                 if (result == null)
                 {
-                    Debug.LogError(
-                        $"MonoEnity GetSchema Schema {type} not found in SchemaFolder of {name}",
-                        this);
+                    if (RuntimeDebugSetting.IsDebugMode)
+                        Debug.LogError(
+                            $"MonoEnity GetSchema Schema {type} not found in SchemaFolder of {name}",
+                            this);
                 }
 
                 return result;
@@ -416,15 +423,18 @@ namespace MonoFSM.Runtime
 
         public void EnterSceneAwake()
         {
+
             // _receiverTypeSet = new HashSet<GeneralEffectType>();
             // Debug.Log("EnterSceneAwake: " +name,this); //跑兩次？
+
+            //FIXME 不要用 type map
             if (_receivers != null)
                 foreach (var receiver in _receivers)
                 {
                     // _receiverTypeSet.Add(receiver.EffectType);
                     if (!_receiverTypeMap.TryAdd(receiver._effectType, receiver))
                     {
-                        Debug.Log("Receiver type already exists" + receiver._effectType, receiver);
+                        // Debug.Log("Receiver type already exists" + receiver._effectType, receiver);
                     }
                 }
             //
@@ -435,9 +445,12 @@ namespace MonoFSM.Runtime
 
         public void EnterSceneStart()
         {
+            //FIXME: 放這嗎？
+
         }
 
-        [PreviewInInspector] [AutoChildren] private MonoModulePack[] _modulePack;
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
+        private MonoModuleFolder _monoPackFolder;
 
         /// <summary>
         /// 將所有 MonoModulePack 中的 Folder 自動綁定到 MonoEntity 的 Folder 作為 external sources
@@ -445,7 +458,7 @@ namespace MonoFSM.Runtime
         [Button]
         protected void BindModulePackFolders()
         {
-            if (_modulePack == null || _modulePack.Length == 0) return;
+            if (_monoPackFolder == null || _monoPackFolder.ModulePacks.Length == 0) return;
 
             // 撈出 MonoEntity 直屬的所有 folder (不包含 ModulePack 下的)
             var entityFolders = GetEntityFolders();
@@ -455,9 +468,11 @@ namespace MonoFSM.Runtime
                 folder.ClearExternalSources();
             }
 
-            foreach (var pack in _modulePack)
+            foreach (var pack in _monoPackFolder.ModulePacks)
             {
                 if (pack == null) continue;
+                if (pack.GetComponentInParent<MonoEntity>() != this) //有別人就不算
+                    continue;
 
                 foreach (var sourceFolder in pack.GetAllFolders())
                 {

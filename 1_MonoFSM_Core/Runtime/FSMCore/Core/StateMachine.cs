@@ -300,6 +300,13 @@ namespace Fusion.Addons.FSM
             if (stateId == _activeStateId && allowReset == false)
                 return false;
 
+            if (stateId < 0 || stateId >= _stateCount)
+            {
+                Debug.LogError(
+                    $"TryActivateState: Invalid state Id {stateId} for state machine {Name}");
+                return false;
+            }
+
             var nextState = _states[stateId];
 
             if (

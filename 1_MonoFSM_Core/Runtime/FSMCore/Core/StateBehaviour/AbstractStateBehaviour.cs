@@ -155,6 +155,7 @@ namespace MonoFSM.Core
 
                     if (CanTransition(ref t._transitionData) == true)
                     {
+                        //try catch 抓問題？
                         if (Machine.TryActivateState(t.TargetState))
                             return;
                     }

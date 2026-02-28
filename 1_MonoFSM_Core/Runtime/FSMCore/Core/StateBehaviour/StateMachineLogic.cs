@@ -22,6 +22,7 @@ namespace Fusion.Addons.FSM
     {
         void CollectStateMachines(List<IStateMachine> stateMachines);
         string name { get; }
+        Transform transform { get; }
     }
 
     [DisallowMultipleComponent]
@@ -173,7 +174,7 @@ namespace Fusion.Addons.FSM
         {
             if (machines.Count == 0)
             {
-                var ownerObject = (owner as Component).gameObject;
+                var ownerObject = ((Component)owner).gameObject;
                 Debug.LogWarning(
                     $"No state machines collected from the state machine owner {ownerObject.name}",
                     ownerObject

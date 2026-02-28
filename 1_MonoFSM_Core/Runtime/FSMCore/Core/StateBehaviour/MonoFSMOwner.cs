@@ -30,15 +30,16 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 
         void IStateMachineOwner.CollectStateMachines(List<IStateMachine> stateMachines)
         {
-            var parent = GetComponentInParent<IStateMachineOwner>(true);
-            if (parent == null)
+            var owner = GetComponentInParent<IStateMachineOwner>(true);
+            if (owner == null)
             {
                 Debug.LogError("MonoFSMOwner must be a child of StateMachineOwner.", this);
                 return;
             }
-
             //FIXME: 這個沒有nested喔
-            _fsm = new StateMachine<MonoStateBehaviour>(parent.name, _stateFolder.AllValues);
+            //FIXME 會很早call, register networkObject時， word count
+            _fsm = new StateMachine<MonoStateBehaviour>(owner.transform.parent.name,
+                _stateFolder.AllValues);
             stateMachines.Add(_fsm);
         }
 

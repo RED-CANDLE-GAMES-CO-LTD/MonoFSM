@@ -73,9 +73,9 @@ namespace MonoFSM.Runtime.Mono
         }
 
         [ValueDropdown(nameof(GetDescriptableData))]
-        public GameData SamepleData; //FIXME: 需要嗎？
 #endif
 
+        public GameData SamepleData; //FIXME: 需要嗎？
         //FIXME: Data Type Restriction?
         public List<VariableTag> containsVariableTypeTags = new List<VariableTag>(); //VariableTag[] containsVariableTypeTags = Array.Empty<VariableTag>();
 
@@ -111,19 +111,18 @@ namespace MonoFSM.Runtime.Mono
                 .ToArray();
         }
 
-        [PreviewInInspector]
-        public MonoEntity[] _allMonoDescriptable;
+        [PreviewInInspector] MonoEntity[] _allMonoDescriptable;
 #endif
 
         [SerializeField]
         private string _stringKey;
         public string GetStringKey => _stringKey;
 
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
         [HideInInlineEditors]
         [TextArea]
         public string Note;
-#endif
+// #endif
 
         public List<MonoEntity> Filter(List<MonoEntity> entities)
         {
