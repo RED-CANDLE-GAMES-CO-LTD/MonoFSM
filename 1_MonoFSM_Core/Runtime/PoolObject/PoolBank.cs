@@ -70,10 +70,10 @@ public class PoolBank : MonoBehaviour, ISceneSavingCallbackReceiver, ISceneAwake
 
     public static PoolPrewarmData FindGlobalPrewarmData()
     {
-        var folderPath = "Assets/15_PoolManagerPrewarm";
+        var folderPath = "Assets/Resources/15_PoolManagerPrewarm";
         var assetName = "_Global_Prewarm.asset";
         var path = $"{folderPath}/{assetName}";
-        string resourcesId = "_Global_Prewarm";
+        string resourcesId = "15_PoolManagerPrewarm/_Global_Prewarm";
 
         // 先嘗試從 Resources 載入
         PoolPrewarmData prewarmData = Resources.Load<PoolPrewarmData>(resourcesId);

@@ -231,9 +231,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>, IPoolManager
 
     public void PrepareGlobalPrewarmData()
     {
-        if (this.globalPrewarmDataLogger == null)
+        if (globalPrewarmDataLogger == null)
         {
-            this.globalPrewarmDataLogger = PoolBank.FindGlobalPrewarmData();
+            globalPrewarmDataLogger = PoolBank.FindGlobalPrewarmData();
             //CleanUp 沒用的資料
 #if UNITY_EDITOR
             Instance.globalPrewarmDataLogger.objectEntries.RemoveAll((a) => a.prefab == null);
@@ -241,7 +241,15 @@ public class PoolManager : SingletonBehaviour<PoolManager>, IPoolManager
             EditorUtility.SetDirty(Instance.globalPrewarmDataLogger);
 #endif
 
-            this.globalPrewarmDataLogger.PrewarmObjects(this, this);
+            if (globalPrewarmDataLogger == null)
+            {
+                PoolLogger.LogError(
+                    "No global prewarm data found. Please create one and assign it to the PoolManager.",
+                    this);
+                return;
+            }
+
+            globalPrewarmDataLogger.PrewarmObjects(this, this);
         }
     }
 
