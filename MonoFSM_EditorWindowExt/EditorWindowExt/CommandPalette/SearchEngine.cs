@@ -36,7 +36,8 @@ namespace CommandPalette
     /// 多層次搜尋引擎
     /// 層次 1：精確匹配（名稱完全相等）→ 1.0 分
     /// 層次 2：前綴匹配（名稱以關鍵字開頭）→ 0.9 分
-    /// 層次 3：包含匹配（名稱包含關鍵字）→ 0.8 分
+    /// 層次 3：包含匹配（名稱包含完整 query 字串）→ 0.8 分
+    /// 層次 3.5：Multi-token 順序無關匹配（所有 token 均存在，順序不限）→ 0.75 分
     /// 層次 4：路徑匹配（路徑包含關鍵字）→ 0.6 分
     /// 層次 5：Fuzzy 匹配（Levenshtein、子序列、首字母縮寫）
     /// </summary>
@@ -45,11 +46,11 @@ namespace CommandPalette
         /// <summary>
         /// 搜尋 AssetEntry 列表
         /// </summary>
-        public static List<SearchResult<AssetEntry>> Search(string query, IEnumerable<AssetEntry> assets, int maxResults = 100)
+        public static List<SearchResult<AssetEntry>> Search(string query, IEnumerable<AssetEntry> assets,
+            int maxResults = 100, SearchSortMode sortMode = SearchSortMode.ScoreBased)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
-                // 空查詢時返回所有資源（依名稱排序）
                 return assets
                     .OrderBy(a => a.name)
                     .Take(maxResults)
@@ -58,15 +59,24 @@ namespace CommandPalette
             }
 
             var queryLower = query.Trim().ToLower();
-            var results = new List<SearchResult<AssetEntry>>();
+            var tokens = SplitTokens(queryLower);
 
+            if (sortMode == SearchSortMode.Alphabetical)
+            {
+                return assets
+                    .Where(a => MatchesAllTokens(tokens, a.name?.ToLower() ?? "", ""))
+                    .OrderBy(a => a.name)
+                    .Take(maxResults)
+                    .Select(a => new SearchResult<AssetEntry>(a, 1.0f))
+                    .ToList();
+            }
+
+            var results = new List<SearchResult<AssetEntry>>();
             foreach (var asset in assets)
             {
                 var result = CalculateAssetScore(queryLower, asset);
                 if (result != null && result.Score > 0)
-                {
                     results.Add(result);
-                }
             }
 
             return results
@@ -79,7 +89,8 @@ namespace CommandPalette
         /// <summary>
         /// 搜尋 EditorWindowEntry 列表
         /// </summary>
-        public static List<SearchResult<EditorWindowEntry>> Search(string query, IEnumerable<EditorWindowEntry> windows, int maxResults = 100)
+        public static List<SearchResult<EditorWindowEntry>> Search(string query, IEnumerable<EditorWindowEntry> windows,
+            int maxResults = 100, SearchSortMode sortMode = SearchSortMode.ScoreBased)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -91,15 +102,24 @@ namespace CommandPalette
             }
 
             var queryLower = query.Trim().ToLower();
-            var results = new List<SearchResult<EditorWindowEntry>>();
+            var tokens = SplitTokens(queryLower);
 
+            if (sortMode == SearchSortMode.Alphabetical)
+            {
+                return windows
+                    .Where(w => MatchesAllTokens(tokens, w.DisplayName?.ToLower() ?? "", ""))
+                    .OrderBy(w => w.DisplayName)
+                    .Take(maxResults)
+                    .Select(w => new SearchResult<EditorWindowEntry>(w, 1.0f))
+                    .ToList();
+            }
+
+            var results = new List<SearchResult<EditorWindowEntry>>();
             foreach (var window in windows)
             {
                 var result = CalculateWindowScore(queryLower, window);
                 if (result != null && result.Score > 0)
-                {
                     results.Add(result);
-                }
             }
 
             return results
@@ -112,7 +132,8 @@ namespace CommandPalette
         /// <summary>
         /// 搜尋 MenuItemEntry 列表
         /// </summary>
-        public static List<SearchResult<MenuItemEntry>> Search(string query, IEnumerable<MenuItemEntry> menuItems, int maxResults = 100)
+        public static List<SearchResult<MenuItemEntry>> Search(string query, IEnumerable<MenuItemEntry> menuItems,
+            int maxResults = 100, SearchSortMode sortMode = SearchSortMode.ScoreBased)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -124,15 +145,24 @@ namespace CommandPalette
             }
 
             var queryLower = query.Trim().ToLower();
-            var results = new List<SearchResult<MenuItemEntry>>();
+            var tokens = SplitTokens(queryLower);
 
+            if (sortMode == SearchSortMode.Alphabetical)
+            {
+                return menuItems
+                    .Where(m => MatchesAllTokens(tokens, m.displayName?.ToLower() ?? "", ""))
+                    .OrderBy(m => m.displayName)
+                    .Take(maxResults)
+                    .Select(m => new SearchResult<MenuItemEntry>(m, 1.0f))
+                    .ToList();
+            }
+
+            var results = new List<SearchResult<MenuItemEntry>>();
             foreach (var menuItem in menuItems)
             {
                 var result = CalculateMenuItemScore(queryLower, menuItem);
                 if (result != null && result.Score > 0)
-                {
                     results.Add(result);
-                }
             }
 
             return results
@@ -146,12 +176,11 @@ namespace CommandPalette
         {
             var nameLower = asset.name?.ToLower() ?? "";
             var pathLower = asset.path?.ToLower() ?? "";
+            var tokens = SplitTokens(query);
 
             // 層次 1：精確匹配
             if (nameLower == query)
-            {
                 return new SearchResult<AssetEntry>(asset, 1.0f, "name");
-            }
 
             // 層次 2：前綴匹配
             if (nameLower.StartsWith(query))
@@ -160,12 +189,17 @@ namespace CommandPalette
                 return new SearchResult<AssetEntry>(asset, score, "name");
             }
 
-            // 層次 3：包含匹配
+            // 層次 3：包含匹配（完整字串）
             if (nameLower.Contains(query))
             {
                 var score = 0.8f + (float)query.Length / nameLower.Length * 0.05f;
                 return new SearchResult<AssetEntry>(asset, score, "name");
             }
+
+            // 層次 3.5：Multi-token 順序無關匹配
+            var tokenScore = ScoreAllTokens(tokens, nameLower);
+            if (tokenScore > 0)
+                return new SearchResult<AssetEntry>(asset, tokenScore, "tokens");
 
             // 層次 4：路徑匹配
             if (pathLower.Contains(query))
@@ -177,9 +211,7 @@ namespace CommandPalette
             // 層次 5：Fuzzy 匹配
             var fuzzyScore = CalculateFuzzyScore(query, nameLower);
             if (fuzzyScore > 0.3f)
-            {
                 return new SearchResult<AssetEntry>(asset, fuzzyScore * 0.5f, "fuzzy");
-            }
 
             return null;
         }
@@ -189,32 +221,28 @@ namespace CommandPalette
             var displayNameLower = window.DisplayName?.ToLower() ?? "";
             var typeNameLower = window.Type?.Name?.ToLower() ?? "";
             var categoryLower = window.Category?.ToLower() ?? "";
+            var tokens = SplitTokens(query);
 
             // 層次 1：精確匹配（DisplayName 或 TypeName）
             if (displayNameLower == query || typeNameLower == query)
-            {
                 return new SearchResult<EditorWindowEntry>(window, 1.0f, "name");
-            }
 
             // 層次 2：前綴匹配
             if (displayNameLower.StartsWith(query) || typeNameLower.StartsWith(query))
-            {
-                var score = 0.9f;
-                return new SearchResult<EditorWindowEntry>(window, score, "name");
-            }
+                return new SearchResult<EditorWindowEntry>(window, 0.9f, "name");
 
-            // 層次 3：包含匹配
+            // 層次 3：包含匹配（完整字串）
             if (displayNameLower.Contains(query) || typeNameLower.Contains(query))
-            {
-                var score = 0.8f;
-                return new SearchResult<EditorWindowEntry>(window, score, "name");
-            }
+                return new SearchResult<EditorWindowEntry>(window, 0.8f, "name");
+
+            // 層次 3.5：Multi-token 順序無關匹配
+            var tokenScore = Math.Max(ScoreAllTokens(tokens, displayNameLower), ScoreAllTokens(tokens, typeNameLower));
+            if (tokenScore > 0)
+                return new SearchResult<EditorWindowEntry>(window, tokenScore, "tokens");
 
             // 層次 4：Category 匹配
             if (categoryLower.Contains(query))
-            {
                 return new SearchResult<EditorWindowEntry>(window, 0.6f, "category");
-            }
 
             // 層次 5：Fuzzy 匹配
             var fuzzyScore = Math.Max(
@@ -222,9 +250,7 @@ namespace CommandPalette
                 CalculateFuzzyScore(query, typeNameLower)
             );
             if (fuzzyScore > 0.3f)
-            {
                 return new SearchResult<EditorWindowEntry>(window, fuzzyScore * 0.5f, "fuzzy");
-            }
 
             return null;
         }
@@ -233,42 +259,76 @@ namespace CommandPalette
         {
             var displayNameLower = menuItem.displayName?.ToLower() ?? "";
             var menuPathLower = menuItem.menuPath?.ToLower() ?? "";
-            var categoryLower = menuItem.category?.ToLower() ?? "";
+            var tokens = SplitTokens(query);
 
             // 層次 1：精確匹配
             if (displayNameLower == query)
-            {
                 return new SearchResult<MenuItemEntry>(menuItem, 1.0f, "name");
-            }
 
             // 層次 2：前綴匹配
             if (displayNameLower.StartsWith(query))
-            {
-                var score = 0.9f;
-                return new SearchResult<MenuItemEntry>(menuItem, score, "name");
-            }
+                return new SearchResult<MenuItemEntry>(menuItem, 0.9f, "name");
 
-            // 層次 3：包含匹配
+            // 層次 3：包含匹配（完整字串）
             if (displayNameLower.Contains(query))
-            {
-                var score = 0.8f;
-                return new SearchResult<MenuItemEntry>(menuItem, score, "name");
-            }
+                return new SearchResult<MenuItemEntry>(menuItem, 0.8f, "name");
+
+            // 層次 3.5：Multi-token 順序無關匹配
+            var tokenScore = ScoreAllTokens(tokens, displayNameLower);
+            if (tokenScore > 0)
+                return new SearchResult<MenuItemEntry>(menuItem, tokenScore, "tokens");
 
             // 層次 4：Path 匹配
             if (menuPathLower.Contains(query))
-            {
                 return new SearchResult<MenuItemEntry>(menuItem, 0.6f, "path");
-            }
 
             // 層次 5：Fuzzy 匹配
             var fuzzyScore = CalculateFuzzyScore(query, displayNameLower);
             if (fuzzyScore > 0.3f)
-            {
                 return new SearchResult<MenuItemEntry>(menuItem, fuzzyScore * 0.5f, "fuzzy");
-            }
 
             return null;
+        }
+
+        /// <summary>
+        /// 將 query 依空白拆成 token 陣列（過濾空字串）
+        /// </summary>
+        private static string[] SplitTokens(string query) =>
+            query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+        /// <summary>
+        /// Alphabetical 模式用：name 或 path 含全部 token 即通過過濾
+        /// </summary>
+        private static bool MatchesAllTokens(string[] tokens, string name, string path)
+        {
+            if (tokens.Length == 0) return true;
+            foreach (var token in tokens)
+            {
+                if (!string.IsNullOrEmpty(token) && !name.Contains(token) && !path.Contains(token))
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// 多 token 順序無關匹配：所有 token 均出現在 target 中時得分。
+        /// 單 token query 回傳 0（由上層 Contains 處理即可）。
+        /// 分數 = 0.75 + coverage * 0.1（coverage = token 總長 / target 長）
+        /// </summary>
+        private static float ScoreAllTokens(string[] tokens, string target)
+        {
+            if (tokens.Length < 2) return 0f;
+
+            var totalLen = 0;
+            foreach (var token in tokens)
+            {
+                if (string.IsNullOrEmpty(token)) continue;
+                if (!target.Contains(token)) return 0f;
+                totalLen += token.Length;
+            }
+
+            var coverage = (float)totalLen / target.Length;
+            return 0.75f + coverage * 0.1f;
         }
 
         /// <summary>

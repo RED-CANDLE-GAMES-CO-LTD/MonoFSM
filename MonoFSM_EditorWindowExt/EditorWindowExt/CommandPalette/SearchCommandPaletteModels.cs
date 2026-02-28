@@ -20,6 +20,15 @@ namespace CommandPalette
     }
 
     /// <summary>
+    ///     排序模式：ScoreBased = 權重分數排序；Alphabetical = 過濾後字典排序（Unity Project 風格）
+    /// </summary>
+    public enum SearchSortMode
+    {
+        ScoreBased,
+        Alphabetical
+    }
+
+    /// <summary>
     ///     資源類型定義
     /// </summary>
     public class AssetTypeDefinition
