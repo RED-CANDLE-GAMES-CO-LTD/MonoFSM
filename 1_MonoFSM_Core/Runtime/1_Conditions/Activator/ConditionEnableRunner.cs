@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Core.Condition
 {
-    public class ConditionEnableTarget : AbstractConditionActivateTarget
+    public class ConditionEnableRunner : AbstractConditionActivateRunner
     {
         //FIXME: Dropdown filter component in parent node?
         [FormerlySerializedAs("target")]

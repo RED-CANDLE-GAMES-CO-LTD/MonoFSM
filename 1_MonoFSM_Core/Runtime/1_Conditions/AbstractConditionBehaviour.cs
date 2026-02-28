@@ -26,6 +26,8 @@ public class ConditionGroup //AndGroup? //封裝的蠻好的...? 但是auto可�
     [AutoChildren(DepthOneOnly = true, _isSelfInclude = false)]
     [SerializeField]
     private AbstractConditionBehaviour[] _conditions; //&&
+
+    //這裡直接做 And OR 更方便？default And, 會沒注意到嗎，好像會耶
 }
 
 //還是Condition要用Is開頭？
@@ -148,7 +150,9 @@ public abstract class AbstractConditionBehaviour
             //FIXME: 關著表示不判...
 
             var finalResult = FinalResultInverted ? !IsValid : IsValid;
+#if UNITY_EDITOR
             RecordResult(finalResult);
+#endif
             return finalResult;
         }
     }

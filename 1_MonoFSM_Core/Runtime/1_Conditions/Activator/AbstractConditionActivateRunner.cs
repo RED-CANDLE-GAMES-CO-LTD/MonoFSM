@@ -11,7 +11,8 @@ namespace MonoFSM.Core.Condition
     //這個要整個Panel OnEnable的時候才會檢查一遍，不會隨時檢查
     //ActivateChecker
     public abstract class //IReturnToPool? IDespawn?
-    AbstractConditionActivateTarget : AbstractDescriptionBehaviour, IUpdateSimulate, IResetStart //, ISelectedInstanceUpdater //ISubmitHandler
+        AbstractConditionActivateRunner : AbstractDescriptionBehaviour, IUpdateSimulate,
+        IResetStart //, ISelectedInstanceUpdater //ISubmitHandler
     {
         protected override string DescriptionTag => "Condition Activate";
 

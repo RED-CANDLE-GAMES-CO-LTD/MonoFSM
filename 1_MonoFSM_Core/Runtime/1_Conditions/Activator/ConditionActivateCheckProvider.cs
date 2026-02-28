@@ -13,7 +13,7 @@ namespace _3_Script._0_RedCandleGamesUtilities.UICanvas.ActivateChecker
     {
         [PreviewInInspector]
         [AutoChildren]
-        private AbstractConditionActivateTarget[] conditionActivateTargets;
+        private AbstractConditionActivateRunner[] conditionActivateTargets;
 
         //FIXME: 這個應該可以抽象掉？
         // [PreviewInInspector] [Auto(false)] private UIControlGroup uiControlGroup;

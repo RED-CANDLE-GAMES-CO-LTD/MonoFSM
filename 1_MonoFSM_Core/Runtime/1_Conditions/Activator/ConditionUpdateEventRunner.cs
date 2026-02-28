@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Condition
 {
-    public class ConditionActivateEventTrigger : AbstractConditionActivateTarget
+    public class ConditionUpdateEventRunner : AbstractConditionActivateRunner
     {
         [CompRef] [Auto] private OnStateUpdateHandler _onStateUpdateHandler;
 
