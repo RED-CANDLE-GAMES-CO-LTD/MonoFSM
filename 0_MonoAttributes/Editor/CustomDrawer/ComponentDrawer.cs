@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using MonoFSM.Core;
@@ -19,6 +20,7 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
 {
     private InspectorProperty baseMemberProperty;
     private MonoBehaviour bindComp;
+    private List<Type> candidateTypes;
     private bool isArray =>
         Property.ValueEntry != null ? Property.ValueEntry.TypeOfValue.IsArray : false;
 
@@ -65,8 +67,17 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
             // Debug.Log("Found Parent MonoBehaviour Property:" + p);
             // Debug.Log("Value:" + p.ParentValues[0]);
             bindComp = p.ParentValues[0] as MonoBehaviour;
-            // bindComp = Property.ParentValues[0] as MonoBehaviour;
+        }
 
+        // 快取候選類型
+        if (Property.ValueEntry != null)
+        {
+            var type = Property.ValueEntry.TypeOfValue;
+            if (type.IsArray)
+                type = type.GetElementType();
+            candidateTypes = type.FilterSubClassOrImplementationFromDomain()
+                .Where(t => t.GetCustomAttributes(typeof(ObsoleteAttribute), true).Length == 0)
+                .ToList();
         }
     }
 
@@ -95,61 +106,68 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
             return;
         }
 
-        var type = Property.ValueEntry.TypeOfValue;
-        if (type.IsArray)
-        {
-            type = type.GetElementType();
-        }
-        //localization strings?
-        // var style = new GUIStyle(EditorStyles.toolbarButton);
+        if (candidateTypes == null || candidateTypes.Count == 0) return;
+
+        var buttonLabel = candidateTypes.Count == 1
+            ? "Add " + buttonStr + ":" + candidateTypes[0].Name
+            : "Search：Add" + buttonStr + ":" + Property.ValueEntry.TypeOfValue.Name;
+
         if (
             SirenixEditorGUI.SDFIconButton(
-                "Search：Add" + buttonStr + ":" + type.Name,
+                buttonLabel,
                 16,
                 SdfIconType.Plus
             )
         )
         {
-            // Debug.Log("Parent Value:" + baseMemberProperty.ParentValues[0]);
-            var selector = new ComponentTypeSelector(type);
-            // selector.EnableSingleClickTselector.EnableSingleClickToConfirm();oSelect();
-            // selector.SelectionChanged += col => { Debug.Log("SelectionChanged" + col.FirstOrDefault()); };
-            selector.SelectionConfirmed += col =>
+            // 只有一個候選，直接添加
+            if (candidateTypes.Count == 1)
             {
-                // Debug.Log(col);
-                // Debug.Log(col.FirstOrDefault());
-                var firstOrDefault = col.FirstOrDefault();
-                if (buttonStr == "Parent")
+                ConfirmSelection(candidateTypes[0], buttonStr);
+            }
+            else
+            {
+                var selector = new ComponentTypeSelector(Property.ValueEntry.TypeOfValue);
+                selector.SelectionConfirmed += col =>
                 {
-                    //add a new parent transform
+                    var firstOrDefault = col.FirstOrDefault();
+                    ConfirmSelection(firstOrDefault, buttonStr);
+                };
 
-                    var name = firstOrDefault.Name;
-                    if (!Attribute.nameTag.IsNullOrWhitespace())
-                        name = Attribute.nameTag + " " + firstOrDefault.Name; //FIXME: 重新命名的客製function?
-                    var newParent = new GameObject(name);
-                    newParent.transform.position = bindComp.transform.position;
-                    newParent.transform.SetParent(bindComp.transform.parent);
-                    newParent.transform.SetSiblingIndex(bindComp.transform.GetSiblingIndex());
-                    newParent.transform.localScale = bindComp.transform.localScale;
-                    newParent.transform.rotation = bindComp.transform.rotation;
-                    Undo.RegisterCreatedObjectUndo(
-                        newParent,
-                        "Add Parent Component" + firstOrDefault.Name
-                    );
-                    newParent.transform.AddComp(firstOrDefault);
-                    bindComp.transform.SetParent(newParent.transform);
-                    Selection.activeGameObject = newParent;
-                }
-                else if (buttonStr == "Child")
-                    AddChildComp(firstOrDefault);
-                else
-                {
-                    bindComp.AddComp(firstOrDefault);
-                }
-            };
+                selector.EnableSingleClickToConfirm();
+                selector.ShowInPopup();
+            }
+        }
+    }
 
-            selector.EnableSingleClickToConfirm();
-            selector.ShowInPopup();
+    private void ConfirmSelection(Type selectedType, string buttonStr)
+    {
+        if (selectedType == null) return;
+
+        if (buttonStr == "Parent")
+        {
+            var name = selectedType.Name;
+            if (!Attribute.nameTag.IsNullOrWhitespace())
+                name = Attribute.nameTag + " " + selectedType.Name;
+            var newParent = new GameObject(name);
+            newParent.transform.position = bindComp.transform.position;
+            newParent.transform.SetParent(bindComp.transform.parent);
+            newParent.transform.SetSiblingIndex(bindComp.transform.GetSiblingIndex());
+            newParent.transform.localScale = bindComp.transform.localScale;
+            newParent.transform.rotation = bindComp.transform.rotation;
+            Undo.RegisterCreatedObjectUndo(
+                newParent,
+                "Add Parent Component" + selectedType.Name
+            );
+            newParent.transform.AddComp(selectedType);
+            bindComp.transform.SetParent(newParent.transform);
+            Selection.activeGameObject = newParent;
+        }
+        else if (buttonStr == "Child")
+            AddChildComp(selectedType);
+        else
+        {
+            bindComp.AddComp(selectedType);
         }
     }
 

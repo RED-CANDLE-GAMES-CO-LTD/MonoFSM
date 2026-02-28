@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using _1_MonoFSM_Core.Runtime.Attributes;
 using Sirenix.OdinInspector;
@@ -171,67 +172,35 @@ namespace MonoFSM.Core.Editor
 
         private IEnumerable<GameObject> GetFilteredPrefabs()
         {
+            var cacheKey = _filterAttribute.RequiredComponentType;
+
+            // 快取命中：只載入已驗證的少數 prefab
+            if (PrefabFilterCache.TryGet(cacheKey, out var cachedGuids))
+            {
+                return cachedGuids
+                    .Select(guid => AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid)))
+                    .Where(p => p != null);
+            }
+
+            // 快取未命中：全掃描 + 驗證，結果存入快取
+            var searchFolders = new[] { "Assets", "Packages" };
+            var allGuids = AssetDatabase.FindAssets("t:Prefab", searchFolders);
+            var validGuids = new List<string>();
             var results = new List<GameObject>();
 
-            // 搜尋 Assets 和 Packages 資料夾
-            var searchFolders = new[] { "Assets", "Packages" };
-            var guids = AssetDatabase.FindAssets("t:Prefab", searchFolders);
-
-            foreach (var guid in guids)
+            foreach (var guid in allGuids)
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-
                 if (prefab != null && ValidatePrefab(prefab))
                 {
+                    validGuids.Add(guid);
                     results.Add(prefab);
                 }
             }
 
+            PrefabFilterCache.Set(cacheKey, validGuids);
             return results;
-            // var guids = AssetDatabase.FindAssets(searchFilter);
-            // Debug.Log($"[PrefabFilter] Found {guids.Length} assets with filter: {searchFilter}");
-            // var results = new List<GameObject>();
-            //
-            // var loadCount = 0;
-            // var validateCount = 0;
-            // var validCount = 0;
-            // var skipCount = 0;
-            //
-            // foreach (var guid in guids)
-            // {
-            //     var path = AssetDatabase.GUIDToAssetPath(guid);
-            //
-            //     // 早期過濾：檢查路徑是否為.prefab檔案
-            //     if (!path.EndsWith(".prefab"))
-            //     {
-            //         skipCount++;
-            //         continue;
-            //     }
-            //
-            //     var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            //     loadCount++;
-            //
-            //     if (prefab != null) // && ValidatePrefab(prefab))
-            //     {
-            //         results.Add(prefab);
-            //         validCount++;
-            //     }
-            //
-            //     validateCount++;
-            // }
-            //
-            // stopwatch.Stop();
-            // Debug.Log($"[PrefabFilter] 效能報告:\n" +
-            //           $"- 搜尋到 {guids.Length} 個資產\n" +
-            //           $"- 跳過非Prefab: {skipCount} 個\n" +
-            //           $"- LoadAsset: {loadCount} 次\n" +
-            //           $"- 驗證: {validateCount} 次\n" +
-            //           $"- 有效: {validCount} 個\n" +
-            //           $"- 總耗時: {stopwatch.ElapsedMilliseconds} ms\n" +
-            //           $"- 平均每個Load: {(loadCount > 0 ? (float)stopwatch.ElapsedMilliseconds / loadCount : 0):F2} ms");
-            //
-            // return results;
         }
 
         private bool ValidatePrefab(GameObject prefab)
@@ -261,8 +230,215 @@ namespace MonoFSM.Core.Editor
             if (string.IsNullOrEmpty(assetPath))
                 return "Unknown";
 
-            var folderPath = System.IO.Path.GetDirectoryName(assetPath);
+            var folderPath = Path.GetDirectoryName(assetPath);
             return string.IsNullOrEmpty(folderPath) ? "Assets" : folderPath;
+        }
+    }
+}
+
+/// <summary>
+/// Cache file 的 JSON 結構，包含 type 資訊以便 domain reload 後仍可正確更新
+/// </summary>
+[Serializable]
+internal class PrefabGuidCacheFile
+{
+    public string _typeAssemblyQualifiedName; // null 代表「不過濾」
+    public List<string> _guids = new();
+}
+
+/// <summary>
+/// PrefabFilter 快取：以 Component Type 為 key，存放已驗證通過的 prefab GUID 清單。
+/// 同時維護記憶體快取（session 內）與 Library/ 下的 JSON 檔案快取（跨 domain reload）。
+/// </summary>
+internal static class PrefabFilterCache
+{
+    private static readonly Dictionary<Type, List<string>> Cache = new();
+    private static readonly string CacheDir = Path.Combine("Library", "PrefabFilterCache");
+
+    // ------- 公開 API -------
+
+    /// <summary>先查記憶體，未命中再讀檔案</summary>
+    public static bool TryGet(Type type, out List<string> guids)
+    {
+        if (Cache.TryGetValue(type, out guids))
+            return true;
+
+        guids = LoadFromFile(type);
+        if (guids != null)
+        {
+            Cache[type] = guids;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>掃描完成後存入記憶體與檔案</summary>
+    public static void Set(Type type, List<string> guids)
+    {
+        Cache[type] = guids;
+        SaveToFile(type, guids);
+    }
+
+    /// <summary>prefab 被刪除時，從記憶體與所有 cache 檔案中移除該 GUID</summary>
+    public static void RemoveGuid(string guid)
+    {
+        foreach (var list in Cache.Values)
+            list.Remove(guid);
+
+        // 同步更新所有 cache 檔案（domain reload 後記憶體為空時仍能正確處理）
+        UpdateAllFilesRemoveGuid(guid);
+    }
+
+    /// <summary>prefab 被新增或修改時，重新驗證並同步記憶體與檔案</summary>
+    public static void RevalidatePrefab(string guid, GameObject prefab)
+    {
+        // 更新記憶體中已載入的 entry
+        foreach (var (type, list) in Cache)
+            ApplyRevalidation(type, guid, prefab, list);
+
+        // 更新所有 cache 檔案（處理 domain reload 後記憶體為空的情況）
+        UpdateAllFilesRevalidate(guid, prefab);
+    }
+
+    // ------- 私有：記憶體操作 -------
+
+    private static void ApplyRevalidation(Type type, string guid, GameObject prefab, List<string> list)
+    {
+        bool shouldBeInCache = type == null || prefab.GetComponent(type) != null;
+        bool isInCache = list.Contains(guid);
+
+        if (shouldBeInCache && !isInCache) list.Add(guid);
+        else if (!shouldBeInCache && isInCache) list.Remove(guid);
+    }
+
+    // ------- 私有：檔案操作 -------
+
+    private static string GetFilePath(Type type)
+    {
+        // 用 type 的全名做檔名，null type 用 "__all__"
+        var name = type == null ? "__all__" : type.FullName?.Replace('.', '_').Replace('+', '_') ?? type.Name;
+        return Path.Combine(CacheDir, $"{name}.json");
+    }
+
+    private static void SaveToFile(Type type, List<string> guids)
+    {
+        try
+        {
+            if (!Directory.Exists(CacheDir))
+                Directory.CreateDirectory(CacheDir);
+
+            var data = new PrefabGuidCacheFile
+            {
+                _typeAssemblyQualifiedName = type?.AssemblyQualifiedName,
+                _guids = guids,
+            };
+            File.WriteAllText(GetFilePath(type), JsonUtility.ToJson(data));
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[PrefabFilterCache] 儲存快取失敗: {e.Message}");
+        }
+    }
+
+    private static List<string> LoadFromFile(Type type)
+    {
+        try
+        {
+            var path = GetFilePath(type);
+            if (!File.Exists(path)) return null;
+
+            var data = JsonUtility.FromJson<PrefabGuidCacheFile>(File.ReadAllText(path));
+            if (data?._guids == null) return null;
+
+            // 過濾掉已刪除的 prefab
+            var valid = data._guids
+                .Where(g => !string.IsNullOrEmpty(AssetDatabase.GUIDToAssetPath(g)))
+                .ToList();
+
+            return valid.Count > 0 ? valid : null;
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[PrefabFilterCache] 載入快取失敗: {e.Message}");
+            return null;
+        }
+    }
+
+    private static void UpdateAllFilesRemoveGuid(string guid)
+    {
+        if (!Directory.Exists(CacheDir)) return;
+        foreach (var file in Directory.GetFiles(CacheDir, "*.json"))
+        {
+            try
+            {
+                var data = JsonUtility.FromJson<PrefabGuidCacheFile>(File.ReadAllText(file));
+                if (data?._guids == null) continue;
+                if (data._guids.Remove(guid))
+                    File.WriteAllText(file, JsonUtility.ToJson(data));
+            }
+            catch { /* ignore individual file errors */ }
+        }
+    }
+
+    private static void UpdateAllFilesRevalidate(string guid, GameObject prefab)
+    {
+        if (!Directory.Exists(CacheDir)) return;
+        foreach (var file in Directory.GetFiles(CacheDir, "*.json"))
+        {
+            try
+            {
+                var data = JsonUtility.FromJson<PrefabGuidCacheFile>(File.ReadAllText(file));
+                if (data?._guids == null) continue;
+
+                // 從檔案中還原 type
+                Type type = data._typeAssemblyQualifiedName != null
+                    ? Type.GetType(data._typeAssemblyQualifiedName)
+                    : null;
+
+                var tempList = new List<string>(data._guids);
+                ApplyRevalidation(type, guid, prefab, tempList);
+
+                if (tempList.Count != data._guids.Count || !tempList.SequenceEqual(data._guids))
+                {
+                    data._guids = tempList;
+                    File.WriteAllText(file, JsonUtility.ToJson(data));
+
+                    // 同步記憶體（若該 type 有載入）
+                    if (Cache.ContainsKey(type!))
+                        Cache[type!] = tempList;
+                }
+            }
+            catch { /* ignore individual file errors */ }
+        }
+    }
+}
+
+/// <summary>
+/// 監聽 prefab 資源異動，精細更新 PrefabFilterCache
+/// </summary>
+internal class PrefabCacheInvalidator : AssetPostprocessor
+{
+    static void OnPostprocessAllAssets(
+        string[] importedAssets,
+        string[] deletedAssets,
+        string[] movedAssets,
+        string[] movedFromAssetPaths)
+    {
+        foreach (var path in deletedAssets)
+        {
+            if (!path.EndsWith(".prefab")) continue;
+            var guid = AssetDatabase.AssetPathToGUID(path);
+            PrefabFilterCache.RemoveGuid(guid);
+        }
+
+        foreach (var path in importedAssets)
+        {
+            if (!path.EndsWith(".prefab")) continue;
+            var guid = AssetDatabase.AssetPathToGUID(path);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab != null)
+                PrefabFilterCache.RevalidatePrefab(guid, prefab);
         }
     }
 }
