@@ -85,7 +85,9 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         [PreviewInInspector] public List<RaycastHit> CachedHits => _cachedHits.Value;
 
         public RaycastHit CachedHit => CachedHits is { Count: > 0 } ? CachedHits[0] : default;
+        public VarBool _hasHitVar;
         public VarVector3 _hitPosVar;
+        public VarTransform _hitPosVarTransform;
         public Ray CachedRay => _cachedRay.Value;
 
         private IRaycastProcessor raycastProcessor =>
@@ -167,10 +169,17 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
                     // RaycastHit.point 是 readonly，透過反射或直接用 unsafe 不太好，
                     // 改用 _hitPosVar 記錄位置，並把 endPoint 更新
                     _hitPosVar?.SetValue(farPoint);
+                    if (_hitPosVarTransform != null && _hitPosVarTransform.Value != null)
+                        _hitPosVarTransform.Value.position = farPoint;
+                    _hasHitVar?.SetValue(false);
+                    //null?
                 }
                 else
                 {
                     _hitPosVar?.SetValue(hitInfo.point);
+                    if (_hitPosVarTransform != null && _hitPosVarTransform.Value != null)
+                        _hitPosVarTransform.Value.position = hitInfo.point;
+                    _hasHitVar?.SetValue(true);
                 }
                 //FIXME: 操作 list好嗎？
                 CachedHits.Add(hitInfo);
