@@ -4,7 +4,8 @@ using UnityEngine.InputSystem;
 namespace MonoFSM.Core
 {
     /// <summary>
-    ///     Condition that checks if a specific key is pressed.
+    ///  Condition that checks if a specific key is pressed.
+    ///  FIXME: 應該要 Debug mode才？
     /// </summary>
     public class IsKeyPressCheatCondition : AbstractConditionBehaviour //FIXME: parent的模組需要拔掉的話怎麼辦？
     {
