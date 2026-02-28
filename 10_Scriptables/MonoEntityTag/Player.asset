@@ -14,14 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _note: Character?
   _entityType:
-    _bindObject: {fileID: 0}
     _baseFilterTypeName: 
     _typeFullName: MonoFSM.Runtime.MonoEntity
     _assemblyName: MonoFSM.Core.Runtime
     typeName: MonoFSM.Runtime.MonoEntity, MonoFSM.Core.Runtime, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
   DataType:
-    _bindObject: {fileID: 0}
     _baseFilterTypeName: 
     _typeFullName: 
     _assemblyName: 
@@ -71,12 +69,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 802c6f4ed8cf24988820bec3cbc4981e, type: 2}
   - {fileID: 11400000, guid: 389d99d2f7c784b77b1a5c874826926e, type: 2}
   - {fileID: 11400000, guid: a4e9d64ece67941cdb9642af2929b4d5, type: 2}
+  - {fileID: 11400000, guid: 987357ecbfa794a80a9d4957ffdc7b2c, type: 2}
+  - {fileID: 11400000, guid: 49b1a1be5064c40fcb5697b89f7e219b, type: 2}
+  - {fileID: 11400000, guid: 23762f37d07174da09504e81abd40ea5, type: 2}
   containsSchemaTypeTags:
   - {fileID: 11400000, guid: df3fb43cb23784bb6a12c6ec2f9cf673, type: 2}
   - {fileID: 11400000, guid: 70087acafd7f1494c8d5f40d8718ccae, type: 2}
   - {fileID: 11400000, guid: daf4cf2ebd208418fbcfe4775cb366dc, type: 2}
   - {fileID: 11400000, guid: 09a948680ff8b415eb8fe671bf79e64d, type: 2}
   IsCollectionTag: 0
-  _allMonoDescriptable: []
   _stringKey: 
   Note: 

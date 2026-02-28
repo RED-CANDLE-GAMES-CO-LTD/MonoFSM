@@ -16,14 +16,12 @@ MonoBehaviour:
   _valueTypeTag: {fileID: 0}
   Note: 
   _variableType:
-    _bindObject: {fileID: 11400000}
     _baseFilterTypeName: 
     _typeFullName: MonoFSM.Variable.VarTransform
     _assemblyName: MonoFSM.Core.Runtime
     typeName: MonoFSM.Variable.VarTransform, MonoFSM.Core.Runtime, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
   _valueFilterType:
-    _bindObject: {fileID: 11400000}
     _baseFilterTypeName: 
     _typeFullName: UnityEngine.Transform
     _assemblyName: UnityEngine.CoreModule

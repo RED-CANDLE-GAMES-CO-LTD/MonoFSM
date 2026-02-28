@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0dd95d420d0f4628875cbf5008b05a70, type: 3}
-  m_Name: Grab Select
+  m_Name: '[Effect] Distance Select'
   m_EditorClassIdentifier: 
-  _note: "\u9019\u5565\u610F\u601D\uFF1F"
+  _note: "\u9264\u7D22/\u91CD\u529B\u69CD \u9078\u5230\u7684\u7269\u4EF6"

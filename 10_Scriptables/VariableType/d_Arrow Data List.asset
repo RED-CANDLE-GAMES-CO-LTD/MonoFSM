@@ -16,14 +16,12 @@ MonoBehaviour:
   _valueTypeTag: {fileID: 0}
   Note: 
   _variableType:
-    _bindObject: {fileID: 11400000}
     _baseFilterTypeName: 
     _typeFullName: _1_MonoFSM_Core.Runtime.MonoData.VarListData
     _assemblyName: MonoFSM.Core.Runtime
     typeName: _1_MonoFSM_Core.Runtime.MonoData.VarListData, MonoFSM.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   _valueFilterType:
-    _bindObject: {fileID: 11400000}
     _baseFilterTypeName: 
     _typeFullName: 'System.Collections.Generic.List`1[[GameData, MonoFSM.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]'

@@ -16,14 +16,12 @@ MonoBehaviour:
   _valueTypeTag: {fileID: 0}
   Note: "\u7834\u58DE\u7269\u4EF6\u7684\u7B97\u6CD5"
   _variableType:
-    _bindObject: {fileID: 11400000}
     _baseFilterTypeName: 
     _typeFullName: MonoFSM.Variable.VarFloat
     _assemblyName: MonoFSM.Core.Runtime
     typeName: MonoFSM.Variable.VarFloat, MonoFSM.Core.Runtime, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
   _valueFilterType:
-    _bindObject: {fileID: 11400000}
     _baseFilterTypeName: 
     _typeFullName: System.Single
     _assemblyName: mscorlib

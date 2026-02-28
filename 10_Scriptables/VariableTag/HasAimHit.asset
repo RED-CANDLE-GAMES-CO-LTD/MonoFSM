@@ -10,20 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c04251230671b427c952ae00fb192c5e, type: 3}
-  m_Name: IsHitting_VariableTag.asset
+  m_Name: HasAimHit
   m_EditorClassIdentifier: 
   _variableTypeTag: {fileID: 0}
   _valueTypeTag: {fileID: 0}
   Note: 
   _variableType:
-    _bindObject: {fileID: 11400000}
     _baseFilterTypeName: 
     _typeFullName: MonoFSM.Variable.VarBool
     _assemblyName: MonoFSM.Core.Runtime
     typeName: MonoFSM.Variable.VarBool, MonoFSM.Core.Runtime, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
   _valueFilterType:
-    _bindObject: {fileID: 11400000}
     _baseFilterTypeName: 
     _typeFullName: System.Boolean
     _assemblyName: mscorlib
