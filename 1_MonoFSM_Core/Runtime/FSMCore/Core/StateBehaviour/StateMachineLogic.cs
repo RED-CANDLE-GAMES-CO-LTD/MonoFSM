@@ -45,6 +45,7 @@ namespace Fusion.Addons.FSM
         private IStateMachineController _stateMachineController;
 
         // #endif
+        [SerializeField]
         private bool _backingEnableLogging = false;
 
         public bool EnableLogging
@@ -60,7 +61,8 @@ namespace Fusion.Addons.FSM
 
         public void RestoreState(int stateId)
         {
-            // Debug.Log($"Restoring state to ID {stateId} on {gameObject.name}", this);
+            if (EnableLogging)
+                Debug.Log($"Restoring state to ID {stateId} on {gameObject.name}", this);
             // Debug.Break();
             // StateMachines[0].ForceActivateState(stateId, true);
             stateIdToRestore = stateId;

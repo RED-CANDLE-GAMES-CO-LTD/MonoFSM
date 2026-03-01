@@ -24,7 +24,7 @@ public class ConditionGroup //AndGroup? //封裝的蠻好的...? 但是auto可�
 
     [CompRef]
     [AutoChildren(DepthOneOnly = true, _isSelfInclude = false)]
-    [SerializeField]
+    // [SerializeField]
     private AbstractConditionBehaviour[] _conditions; //&&
 
     //這裡直接做 And OR 更方便？default And, 會沒注意到嗎，好像會耶

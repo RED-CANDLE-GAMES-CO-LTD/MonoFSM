@@ -108,9 +108,13 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
 
         if (candidateTypes == null || candidateTypes.Count == 0) return;
 
+        var valueType = Property.ValueEntry.TypeOfValue;
+        if (valueType.IsArray)
+            valueType = valueType.GetElementType() ?? valueType;
+
         var buttonLabel = candidateTypes.Count == 1
             ? "Add " + buttonStr + ":" + candidateTypes[0].Name
-            : "Search：Add" + buttonStr + ":" + Property.ValueEntry.TypeOfValue.Name;
+            : "Search：Add" + buttonStr + ":" + valueType.Name;
 
         if (
             SirenixEditorGUI.SDFIconButton(
@@ -127,7 +131,7 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
             }
             else
             {
-                var selector = new ComponentTypeSelector(Property.ValueEntry.TypeOfValue);
+                var selector = new ComponentTypeSelector(valueType);
                 selector.SelectionConfirmed += col =>
                 {
                     var firstOrDefault = col.FirstOrDefault();

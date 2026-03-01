@@ -10,7 +10,7 @@ namespace MonoFSM.Animation
 {
     public abstract class AbstractAnimatorSetValueAction : AbstractStateAction
     {
-        [HideIf(nameof(_animatorRefSource))]
+        [HideIf(nameof(HasAnimatorSource))]
         [TitleGroup("Animator")]
         [BoxGroup("Animator/Animator")]
         [Required]
@@ -24,11 +24,22 @@ namespace MonoFSM.Animation
         [AutoChildren(DepthOneOnly = true)]
         private AnimatorRefSource _animatorRefSource;
 
+        [TitleGroup("Animator")] [DropDownRef] [SerializeField]
+        private AnimatorRefSource _externalAnimatorRefSource;
+
         [ValueDropdown(nameof(GetParameterNames))]
         public string _parameterName;
 
-        protected Animator Animator =>
+        [TitleGroup("Animator")]
+        [PropertyOrder(-1)]
+        [ShowInInspector]
+        protected Animator Animator => _externalAnimatorRefSource != null
+            ? _externalAnimatorRefSource.Value
+            :
             _animatorRefSource != null ? _animatorRefSource.Value : _animator;
+
+        private bool HasAnimatorSource =>
+            _animatorRefSource != null || _externalAnimatorRefSource != null;
 
         private bool _hasCheckedParameter;
         private bool _hasParameter;
@@ -40,12 +51,29 @@ namespace MonoFSM.Animation
                 yield return parameter.name;
         }
 
+        protected override bool HasError()
+        {
+            if (!HasParameter())
+            {
+                _errorMessage = $"Animator does not have parameter '{_parameterName}'";
+                return true;
+            }
+
+            return base.HasError();
+        }
+
         protected bool HasParameter()
         {
-            if (_hasCheckedParameter)
-                return _hasParameter;
-
-            _hasCheckedParameter = true;
+            // if (_hasCheckedParameter)
+            //     return _hasParameter;
+            //
+            // _hasCheckedParameter = true;
+            if (Animator == null)
+            {
+                _errorMessage = "Animator reference is null";
+                _hasParameter = false;
+                return false;
+            }
             foreach (var param in Animator.parameters)
             {
                 if (param.name == _parameterName)
@@ -55,6 +83,7 @@ namespace MonoFSM.Animation
                 }
             }
 
+            _errorMessage = $"Animator does not have parameter '{_parameterName}'";
             _hasParameter = false;
             return false;
         }

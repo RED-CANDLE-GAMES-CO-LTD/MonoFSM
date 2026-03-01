@@ -14,7 +14,7 @@ namespace MonoFSM.Animation
         protected override void OnActionExecuteImplement()
         {
             if (!TryGetAnimator(out var animator)) return;
-            animator.SetFloat(_parameterName, _floatValue.Value);
+            animator.SetFloat(_parameterName, _floatValue.Value, 0.1f, Time.deltaTime);
         }
     }
 }

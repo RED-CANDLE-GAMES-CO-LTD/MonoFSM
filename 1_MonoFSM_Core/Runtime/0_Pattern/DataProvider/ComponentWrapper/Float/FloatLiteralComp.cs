@@ -7,7 +7,8 @@ using UnityEngine.Serialization;
 namespace MonoFSM.DataProvider
 {
     //FloatConstant?
-    public class FloatLiteralComp : AbstractDescriptionBehaviour, IFloatProvider
+    //value
+    public class FloatLiteralComp : AbstractValueSource<float>, IFloatProvider
     {
         // [MCPExtractable]
         [FormerlySerializedAs("literal")] public float _literal;
@@ -30,7 +31,7 @@ namespace MonoFSM.DataProvider
 // #endif
 //         }
 
-        public float Value => _literal;
+        public override float Value => _literal;
         public Type ValueType => typeof(float);
 
         public string GetDescription()

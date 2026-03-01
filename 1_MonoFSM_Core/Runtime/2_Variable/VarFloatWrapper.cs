@@ -113,6 +113,7 @@ namespace MonoFSM.Variable
     [Serializable]
     public class VarFloatWrapper : VarWrapper<VarFloat, float>
     {
+
         public VarFloatWrapper() { }
 
         public VarFloatWrapper(float defaultValue)
@@ -146,6 +147,7 @@ namespace MonoFSM.Variable
     public class VarWrapper<TVar, TValue> : AbstractVarWrapper
         where TVar : AbstractMonoVariable
     {
+        public string Description => _var != null ? _var.Description : _tempValue.ToString();
         [BoxGroup("Var")]
         [HideIf("_var", null, false)]
         [ShowInInspector]

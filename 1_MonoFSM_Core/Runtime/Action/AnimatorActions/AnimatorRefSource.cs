@@ -5,9 +5,10 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.Action.AnimatorActions
 {
+    //怎麼共用就好了？每個都放 children很囉唆耶
     public class AnimatorRefSource : AbstractValueSource<Animator>
     {
-        
+
         [SerializeField]
         [DropDownRef]
         // [TypeFilter()]

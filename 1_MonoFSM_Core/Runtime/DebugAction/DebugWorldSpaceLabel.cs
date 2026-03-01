@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using MonoDebugSetting;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Foundation;
@@ -104,6 +103,7 @@ namespace _0_MonoDebug.Gizmo
             if (_bindingRigidbody == null)
                 Debug.LogError("DebugWorldSpaceLabel 找不到 Rigidbody，請確認 ParentEntity 有 Rigidbody 組件",
                     this);
+            gameObject.layer = LayerMask.NameToLayer("World UI");
         }
 
         // ========== Lifecycle ==========

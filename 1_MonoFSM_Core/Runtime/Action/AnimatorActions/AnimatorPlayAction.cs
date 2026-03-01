@@ -35,7 +35,7 @@ namespace MonoFSM.Animation
             ISerializableComponent,
             ITransitionCheckInvoker,
             IRenderBehaiour,
-            IOverrideHierarchyIcon
+            IOverrideHierarchyIcon, IHierarchyValueInfo
     {
         public override string Description =>
             animator
@@ -1037,5 +1037,7 @@ namespace MonoFSM.Animation
         public string IconName => "AnimatorState Icon";
         public bool IsDrawingIcon => true;
         public Texture2D CustomIcon => null;
+        public string ValueInfo => animator?.name;
+        public bool IsDrawingValueInfo => true;
     }
 }
