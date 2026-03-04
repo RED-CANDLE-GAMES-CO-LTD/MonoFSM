@@ -25,9 +25,14 @@ MonoFSM is a comprehensive Finite State Machine (FSM) framework for Unity, desig
 
 ## Installation
 
-### Prerequisites
+### Recommended
 
-Before installing MonoFSM, you must install the required dependencies:
+> **We recommend installing [MonoFSM_Core_Utility](https://github.com/RED-CANDLE-GAMES-CO-LTD/MonoFSM_Core_Utility) first.**
+> It provides editor tools that can automatically install and configure all required dependencies for you.
+
+### Manual Prerequisites
+
+If you prefer to install dependencies manually, follow the steps below:
 
 1. **Install Odin Inspector** (Paid)
    - Purchase and install [Odin Inspector](https://odininspector.com/) from the Asset Store
