@@ -28,14 +28,20 @@ MonoFSM is a comprehensive Finite State Machine (FSM) framework for Unity, desig
 ### Recommended
 
 > **We recommend installing [MonoFSM_Core_Utility](https://github.com/RED-CANDLE-GAMES-CO-LTD/MonoFSM_Core_Utility) first.**
-> It provides editor tools that can automatically install and configure all required dependencies for you.
+> It provides editor tools that can automatically install and configure the free/open-source dependencies for you.
+>
+> ⚠️ **Note**: Some plugins still require manual installation (see below).
 
-### Manual Prerequisites
+### Required Manual Installation
 
-If you prefer to install dependencies manually, follow the steps below:
+The following must always be installed manually regardless of whether you use MonoFSM_Core_Utility:
 
 1. **Install Odin Inspector** (Paid)
    - Purchase and install [Odin Inspector](https://odininspector.com/) from the Asset Store
+
+### Auto-installable via MonoFSM_Core_Utility
+
+The following dependencies can be installed automatically via the editor tools in [MonoFSM_Core_Utility](https://github.com/RED-CANDLE-GAMES-CO-LTD/MonoFSM_Core_Utility). You may also install them manually if preferred:
 
 2. **Install Unity Official Packages**
    - Open Package Manager → Unity Registry
