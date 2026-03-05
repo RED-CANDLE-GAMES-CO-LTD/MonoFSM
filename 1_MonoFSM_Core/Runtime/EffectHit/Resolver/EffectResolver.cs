@@ -34,15 +34,15 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return _parentEntity.GetSchema<T>();
         }
 
-        public MonoEntity ParentEntity
-        {
-            get
-            {
-                AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_parentEntity));
-                // this.EnsureComponentInParent(ref _parentEntity);
-                return _parentEntity;
-            }
-        }
+        // public MonoEntity ParentEntity
+        // {
+        //     get
+        //     {
+        //         AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_parentEntity));
+        //         // this.EnsureComponentInParent(ref _parentEntity);
+        //         return _parentEntity;
+        //     }
+        // }
 
         [ShowInDebugMode]
         protected GeneralEffectHitData _currentHitData; //FIXME: 和last差在哪？

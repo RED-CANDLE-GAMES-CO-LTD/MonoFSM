@@ -61,6 +61,11 @@ public class AutoParentAttribute : AutoFamilyAttribute
         var start = mb.transform;
         if (!_includeSelf)
             start = start.parent;
+        if (start == null)
+        {
+            // Debug.LogError($"[AutoParent] No parent found for {mb.gameObject} when trying to assign {componentType}.", mb);
+            return null;
+        }
         // Debug.Log("[AutoParent] GetTheSingleComponent" + start.gameObject + start.name,
         //     mb);
         return start.GetComponentInParent(LimitedType ?? componentType, true);

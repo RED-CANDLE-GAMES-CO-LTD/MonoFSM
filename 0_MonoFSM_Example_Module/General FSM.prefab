@@ -46,7 +46,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _note: 
-  _externalDicts: []
 --- !u!1 &567332959712725146
 GameObject:
   m_ObjectHideFlags: 0
@@ -175,8 +174,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::MonoFSM.Core.Runtime.ParentEntitySource
   _note: 
-  _conditionGroup:
-    _conditions: []
   _parentEntity: {fileID: 2870840079908465395}
 --- !u!1 &2050879134505444286
 GameObject:
@@ -227,6 +224,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5267f2df9256e49ff918c479e92d3518, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _backingEnableLogging: 0
   stateIdToRestore: -1
   anyState: {fileID: 0}
 --- !u!114 &1973556432026734445
@@ -267,7 +265,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour.StateFolder
   _note: 
-  _externalDicts: []
 --- !u!1 &3309332702119410497
 GameObject:
   m_ObjectHideFlags: 0
@@ -357,7 +354,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _note: 
-  _externalDicts: []
 --- !u!1 &3801494400675193616
 GameObject:
   m_ObjectHideFlags: 0
@@ -368,6 +364,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4997399105159172882}
   - component: {fileID: 5996834056165967361}
+  - component: {fileID: 2955636019488182533}
   m_Layer: 0
   m_Name: ViewRoot
   m_TagString: Untagged
@@ -404,6 +401,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::Note
   _noteType: 0
   note: "\u8981\u4E00\u500BViewRoot class"
+--- !u!114 &2955636019488182533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3801494400675193616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dc0ab7e06344b36b31e9cbea2899b15, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.MonoData.ViewRoot
 --- !u!1 &4082089536309548135
 GameObject:
   m_ObjectHideFlags: 0
@@ -737,7 +746,7 @@ MonoBehaviour:
   IsDontPlayWhenAnimatorDisabled: 0
   _skipWhenPlayingStateNames: []
   _canInterruptSameState: 1
-  doneEventLayerName: 
+  _clipLayerName: 
   _cachedClipLength: -1
   _isSkipOnRenderCheck: 0
 --- !u!1 &9020763545861940387

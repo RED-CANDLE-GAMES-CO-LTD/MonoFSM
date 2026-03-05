@@ -75,11 +75,11 @@ namespace MonoFSM.Core.Detection
         [ShowInDebugMode]
         public bool IsValid => _conditions.IsAllValid();
 
-        //FIXME: 多個會無法分辨誰造成的
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
         private AbstractDetectionSource[] _autoDetectionSources;
 
+        //不接受 external 嗎？
         // [SerializeField] private AbstractDetectionSource[] _externalSources;
 
         private AbstractDetectionSource[] _detectionSources;

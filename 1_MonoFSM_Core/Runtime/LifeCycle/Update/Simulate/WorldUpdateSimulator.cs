@@ -174,15 +174,39 @@ namespace MonoFSM.Core.Simulate
         }
 
         //FIXME: despawn都需要過這個？
+        /// <summary>
+        /// Deferred despawn: 加入待處理佇列，在下一次 Simulate 開頭統一處理
+        /// </summary>
         public void Despawn(MonoObj obj)
         {
             if (obj == null)
                 return;
-            // Return the object to the pool
-            //FIXME: 要先做事？OnReturnPool? OnDespawn
-            _spawnProcessor.Despawn(obj); //看實作
-            // Unregister the object from the world update simulator
-            UnregisterMonoObject(obj); //Fusion那邊直接despawn的咧？這樣又會做兩次？...
+            if (_pendingDespawns.Contains(obj))
+                return;
+            _pendingDespawns.Add(obj);
+            Debug.Log($"[Despawn] Queued deferred despawn: {obj.name}", obj);
+        }
+
+        /// <summary>
+        /// 立即執行 despawn（內部使用，由 ProcessPendingDespawns 呼叫）
+        /// </summary>
+        private void DespawnImmediate(MonoObj obj)
+        {
+            if (obj == null)
+                return;
+            _spawnProcessor.Despawn(obj);
+            UnregisterMonoObject(obj);
+        }
+
+        private void ProcessPendingDespawns()
+        {
+            if (_pendingDespawns.Count == 0)
+                return;
+
+            for (int i = 0; i < _pendingDespawns.Count; i++)
+                DespawnImmediate(_pendingDespawns[i]);
+
+            _pendingDespawns.Clear();
         }
 
         public void RegisterMonoObject(MonoObj target)
@@ -296,6 +320,7 @@ namespace MonoFSM.Core.Simulate
 
         // [PreviewInInspector] [AutoChildren] private IMonoObject[] _localMonoObjects; //FIXME這顆要掛在？
         private readonly HashSet<MonoObj> _monoObjectSet = new(); //這個是用來做reset的？還是要有一個MonoObjectRunner?
+        private readonly List<MonoObj> _pendingDespawns = new();
 #if UNITY_EDITOR
         // [PreviewInInspector] private IUpdateSimulate[] PreviewSimulators => _simulators.ToArray();
         [PreviewInInspector]
@@ -360,6 +385,8 @@ namespace MonoFSM.Core.Simulate
         {
             if (!IsReady)
                 return;
+
+            ProcessPendingDespawns();
 
             TimeScaleCheck();
             _currentUpdatingObjs.Clear();

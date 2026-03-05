@@ -6,6 +6,7 @@ namespace MonoFSM.Core.Condition
 {
     public class ConditionUpdateEventRunner : AbstractConditionActivateRunner
     {
+        //Required?
         [CompRef] [Auto] private OnStateUpdateHandler _onStateUpdateHandler;
 
         protected override void ActivateCheckImplement(bool isValid)

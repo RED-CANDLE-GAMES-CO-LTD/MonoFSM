@@ -260,6 +260,12 @@ internal static class PrefabFilterCache
     /// <summary>先查記憶體，未命中再讀檔案</summary>
     public static bool TryGet(Type type, out List<string> guids)
     {
+        if (type == null)
+        {
+            guids = null;
+            return false;
+        }
+
         if (Cache.TryGetValue(type, out guids))
             return true;
 
@@ -276,6 +282,7 @@ internal static class PrefabFilterCache
     /// <summary>掃描完成後存入記憶體與檔案</summary>
     public static void Set(Type type, List<string> guids)
     {
+        if (type == null) return;
         Cache[type] = guids;
         SaveToFile(type, guids);
     }

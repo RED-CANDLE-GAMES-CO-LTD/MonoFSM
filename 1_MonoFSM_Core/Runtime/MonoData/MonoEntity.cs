@@ -439,8 +439,16 @@ namespace MonoFSM.Runtime
                 }
             //
             foreach (var dealer in _dealers)
+            {
+                if (dealer._effectType == null)
+                {
+                    Debug.LogError($"Dealer {dealer.name} has null EffectType", dealer);
+                    continue;
+                }
                 if (_dealerTypeMap.TryAdd(dealer._effectType, dealer) == false)
                     Debug.LogWarning($"Dealer {dealer._effectType} already exists", dealer);
+            }
+
         }
 
         public void EnterSceneStart()

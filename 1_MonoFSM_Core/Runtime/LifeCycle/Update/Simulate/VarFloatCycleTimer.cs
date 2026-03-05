@@ -22,8 +22,8 @@ namespace MonoFSM.Core.Simulate
         [Tooltip("How many game-seconds pass per real-second. e.g. 60 = 1 real sec per game minute")]
         [SerializeField] private float _timeScale = 60f;
 
-        [Tooltip("Starting time as float (e.g. 8.0 = 08:00)")]
-        [SerializeField] private float _startTime = 8f;
+        [Tooltip("Starting time")] [SerializeField]
+        private TimeOfDay _startTime = new TimeOfDay { _hours = 8, _minutes = 0 };
 
         [ShowInInspector] [ReadOnly]
         private string CurrentTimeDisplay => _currentTime != null
@@ -44,7 +44,7 @@ namespace MonoFSM.Core.Simulate
 
         public void ResetStart()
         {
-            _currentTime.SetValue(_startTime, this);
+            _currentTime.SetValue(_startTime.ToFloat(), this);
         }
     }
 }

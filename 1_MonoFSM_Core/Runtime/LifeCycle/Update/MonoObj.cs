@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Auto.Utils;
+using Cysharp.Threading.Tasks;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
@@ -111,6 +113,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
             }
 
             //回傳root mono Obj
+            //下個 frame再做？
             WorldUpdateSimulator.Despawn(GetMonoObjRoot());
         }
 

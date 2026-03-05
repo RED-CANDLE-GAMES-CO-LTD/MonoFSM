@@ -248,7 +248,7 @@ namespace MonoFSM.Animation
                     return;
                 _stateLayerName = ac.layers[stateLayer].name;
 
-                // var layer = GetDoneEventLayerIndex();
+                // var layer = ClipLayerIndex;
                 // if (doneEventLayer == layer)
                 //     return;
                 //
@@ -348,10 +348,12 @@ namespace MonoFSM.Animation
             Undo.RecordObject(animatorOverrideController, "Override Clip");
             // Undo.RecordObject(this, "Override Clip");
 
-            var mappingState = originAnimatorController
-                .layers[stateLayer]
-                .stateMachine.states.First(s => s.state.name == StateName);
-            var baseClip = mappingState.state.motion as AnimationClip;
+            var clipLayer = ClipLayerIndex;
+            var stateMachine = AnimatorHelpler.GetStateMachine(originAnimatorController, clipLayer);
+            var mappingState = stateMachine.states.First(s => s.state.name == StateName);
+            var baseClip =
+                AnimatorHelpler.GetMotion(originAnimatorController, clipLayer, mappingState.state)
+                    as AnimationClip;
             var originalClip = animatorOverrideController[baseClip];
 
             var newClip = AssetDatabaseUtility.CopyAssetOrCreateToPrefabFolder(
@@ -399,11 +401,12 @@ namespace MonoFSM.Animation
                     return null;
                 try
                 {
-                    var state1 = animatorController
-                        .layers[stateLayer]
-                        .stateMachine.states.First(s => s.state.name == StateName)
-                        .state;
-                    return state1.motion as AnimationClip;
+                    var clipLayer = ClipLayerIndex;
+                    var stateMachine =
+                        AnimatorHelpler.GetStateMachine(animatorController, clipLayer);
+                    var state1 = stateMachine.states.First(s => s.state.name == StateName).state;
+                    return AnimatorHelpler.GetMotion(animatorController, clipLayer, state1) as
+                        AnimationClip;
                 }
                 catch
                 {
@@ -456,11 +459,12 @@ namespace MonoFSM.Animation
                     return null;
                 try
                 {
-                    var state = ac.layers[stateLayer]
-                        .stateMachine.states.First(s => s.state.name == StateName)
-                        .state;
+                    var clipLayer = ClipLayerIndex;
+                    var stateMachine = AnimatorHelpler.GetStateMachine(ac, clipLayer);
+                    var state = stateMachine.states.First(s => s.state.name == StateName).state;
 
-                    var originalClip = state.motion as AnimationClip;
+                    var originalClip =
+                        AnimatorHelpler.GetMotion(ac, clipLayer, state) as AnimationClip;
                     //有override controller但是沒有override clip
                     if (originalClip == overrideController[originalClip])
                         return null;
@@ -521,15 +525,12 @@ namespace MonoFSM.Animation
         private int _stateNameHash;
 
 #if UNITY_EDITOR
-        [HideIf(nameof(NoDoneEventTransition))]
-        [Header("Done")]
         [TitleGroup("Animator")]
+        [Tooltip("動畫 Clip 所在的 Layer（synced layer 時選 View Layer）。未設定則 fallback 到 stateLayer")]
         [ValueDropdown("GetLayerNames", IsUniqueList = true)]
 #endif
-        public string doneEventLayerName; //getter? onvalidate的時候，選的時候選string，存int？
-
-        // [HideIf(nameof(NoDoneEventTransition))] [TitleGroup("Animator")] [ShowInInspector] [ReadOnly] [SerializeField]
-        // private int doneEventLayer;
+        [FormerlySerializedAs("doneEventLayerName")]
+        public string _clipLayerName;
 
 
         [TitleGroup("Animator")]
@@ -571,7 +572,9 @@ namespace MonoFSM.Animation
             {
                 try
                 {
-                    var state = ac.layers[stateLayer].stateMachine.states
+                    var clipLayer = ClipLayerIndex;
+                    var stateMachine = AnimatorHelpler.GetStateMachine(ac, clipLayer);
+                    var state = stateMachine.states
                         .First(s => s.state.name == StateName).state;
                     stateSpeed = state.speed;
                 }
@@ -618,23 +621,16 @@ namespace MonoFSM.Animation
             }
         }
 
-        private int GetDoneEventLayerIndex()
+        private int ClipLayerIndex
         {
-            var names = GetLayerNames();
-
-            if (names == null)
-                return 0;
-
-            var index = 0;
-            foreach (var name in names)
+            get
             {
-                if (name == doneEventLayerName)
-                    return index;
+                if (string.IsNullOrEmpty(_clipLayerName))
+                    return stateLayer;
 
-                index++;
+                var idx = AnimatorHelpler.GetLayerIndex(animator, _clipLayerName);
+                return idx >= 0 ? idx : stateLayer;
             }
-
-            return 0;
         }
 
         public void SetPlaybackTime(float time)
@@ -664,7 +660,9 @@ namespace MonoFSM.Animation
 
         //FIXME: 錯了！抓到BUG 要cache? 切State後，StateTime就會重置了
         public bool IsDone => _stateBehaviour.StateTime >= ClipLength; // && IsPlayingCurrentClip();
-        public bool IsPassedRatio(float ratio) => _stateBehaviour.StateTime >= ClipLength * ratio;
+
+        public bool IsProgressPassedRatio(float ratio) =>
+            _stateBehaviour.StateTime >= ClipLength * ratio;
 
         // [SerializeField] private float clipDuration;
 
@@ -1029,7 +1027,8 @@ namespace MonoFSM.Animation
         public override void OnBeforePrefabSave()
         {
 #if UNITY_EDITOR
-            CalculateClipLength();
+            if (isActiveAndEnabled)
+                CalculateClipLength();
             base.OnBeforePrefabSave();
 #endif
         }
@@ -1037,7 +1036,7 @@ namespace MonoFSM.Animation
         public string IconName => "AnimatorState Icon";
         public bool IsDrawingIcon => true;
         public Texture2D CustomIcon => null;
-        public string ValueInfo => animator?.name;
+        public string ValueInfo => animator != null ? animator?.name : "";
         public bool IsDrawingValueInfo => true;
     }
 }

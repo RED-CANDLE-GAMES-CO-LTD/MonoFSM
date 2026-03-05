@@ -50,7 +50,8 @@ namespace MonoFSM.Foundation
             : _parentObj != null
                 ? _parentObj.gameObject.name + "." + ReformatedName
                 : ReformatedName;
-        public void DestroyItem()
+
+        public void DespawnParentObj()
         {
             simulator.Despawn(_parentObj);
         }

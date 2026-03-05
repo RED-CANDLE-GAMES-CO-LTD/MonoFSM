@@ -5,6 +5,7 @@ using MonoFSM.Core.Runtime;
 using MonoFSM.Runtime;
 using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
+using MonoFSM.Runtime.Interact.EffectHit;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -79,14 +80,9 @@ namespace MonoFSM.Core.Runtime
         [AutoParent]
         private IHitDataProvider _hitDataProvider;
 
-        public enum HitDataTargetType
-        {
-            Dealer,
-            Receiver,
-        }
-
         [FormerlySerializedAs("ownerType")]
-        public HitDataTargetType _targetType;
+        [FormerlySerializedAs("_targetType")]
+        public EffectHitTarget _targetType;
 
         // #if UNITY_EDITOR
         [PreviewInInspector]
@@ -112,11 +108,11 @@ namespace MonoFSM.Core.Runtime
             //第一次
             switch (_targetType)
             {
-                case HitDataTargetType.Dealer:
+                case EffectHitTarget.Dealer:
 
                     // Debug.Log(" HitDataVariableOwner.DealerOwner", hitData.Dealer.transform);
                     return _hitDataProvider.GetHitData().Dealer.transform.GetComponentInParent<T>();
-                case HitDataTargetType.Receiver:
+                case EffectHitTarget.Receiver:
                     // Debug.Log(" HitDataVariableOwner.ReceiverOwner", hitData.Receiver.transform);
                     return _hitDataProvider
                         .GetHitData()

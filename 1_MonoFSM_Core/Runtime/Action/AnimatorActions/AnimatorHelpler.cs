@@ -1,9 +1,35 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor.Animations;
 
 #if UNITY_EDITOR
 public static class AnimatorHelpler
 {
+    /// <summary>
+    /// 取得指定 layer 的 stateMachine，若為 synced layer 則回傳 source layer 的 stateMachine
+    /// </summary>
+    public static AnimatorStateMachine GetStateMachine(AnimatorController ac, int stateLayer)
+    {
+        var layer = ac.layers[stateLayer];
+        return layer.syncedLayerIndex >= 0
+            ? ac.layers[layer.syncedLayerIndex].stateMachine
+            : layer.stateMachine;
+    }
+
+    /// <summary>
+    /// 取得指定 state 的 motion，若為 synced layer 則優先取 override motion
+    /// </summary>
+    public static Motion GetMotion(AnimatorController ac, int stateLayer, AnimatorState state)
+    {
+        var layer = ac.layers[stateLayer];
+        if (layer.syncedLayerIndex >= 0)
+        {
+            var overrideMotion = layer.GetOverrideMotion(state);
+            return overrideMotion != null ? overrideMotion : state.motion;
+        }
+        return state.motion;
+    }
+
     public static IEnumerable<string> GetAnimatorStateNames(Animator animator, int stateLayer)
     {
         var ac = GetAnimatorController(animator);
@@ -12,7 +38,8 @@ public static class AnimatorHelpler
             return null;
 
         var names = new List<string>();
-        foreach (var state in ac.layers[stateLayer].stateMachine.states)
+        var stateMachine = GetStateMachine(ac, stateLayer);
+        foreach (var state in stateMachine.states)
         {
             names.Add(state.state.name);
         }

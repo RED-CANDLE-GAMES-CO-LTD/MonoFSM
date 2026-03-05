@@ -15,6 +15,6 @@ namespace MonoFSM.Core
         [AutoParent]
         private AnimatorPlayAction _action;
 
-        protected override bool IsValid => _action.IsPassedRatio(_exitRatio);
+        protected override bool IsValid => _action.IsProgressPassedRatio(_exitRatio);
     }
 }

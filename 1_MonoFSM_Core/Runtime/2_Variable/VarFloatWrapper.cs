@@ -51,6 +51,13 @@ namespace MonoFSM.Variable
         protected virtual bool HasOverrideHideValue => false;
     }
 
+    //varTransformWapper
+    [Serializable]
+    public class VarTransformWrapper : VarWrapper<VarTransform, Transform>
+    {
+        public bool HasValue => Value != null;
+    }
+
     // [InlineField]
     [Serializable]
     public class VarCompField<T>
@@ -148,24 +155,16 @@ namespace MonoFSM.Variable
         where TVar : AbstractMonoVariable
     {
         public string Description => _var != null ? _var.Description : _tempValue.ToString();
-        [BoxGroup("Var")]
         [HideIf("_var", null, false)]
         [ShowInInspector]
         [SerializeField]
         private TValue _tempValue;
 
         [ShowInDebugMode]
-        [BoxGroup("Var")]
         [SOConfig("VariableType")]
-        // [Required]
         public VariableTag _bindTag;
 
-        [BoxGroup("Var")]
-        // [Required]
         [Component]
-        // [InlineEditor] //失敗, 和Dropdown打架
-        // [ShowDrawerChain]
-
         public TVar _var;
 
         public VarWrapper() { }
@@ -184,17 +183,9 @@ namespace MonoFSM.Variable
                     return _tempValue;
                 return _var.Get<TValue>();
             }
-            // set
-            // {
-            //     if (_var == null)
-            //     {
-            //         _tempValue = value;
-            //         return;
-            //     }
-            //
-            //     _var.SetRaw(value, _var); //FIXME: 不好debug? wrapper要拿得到 parent object?
-            // }
         }
+
+
 
         public void SetValue(TValue value, Object byWho, string reason = "")
         {

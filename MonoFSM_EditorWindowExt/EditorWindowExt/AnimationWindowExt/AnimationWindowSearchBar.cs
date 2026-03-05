@@ -37,13 +37,15 @@ namespace MonoFSM.Editor.AnimationWindow
             else
             {
                 //去找animator play action來播？好像也沒什麼必要
-                var selection = Selection.activeGameObject;
-                if (selection != null)
-                {
-                    var animator = selection.GetComponentInChildren<Animator>();
-                    if (animator != null)
-                        Selection.activeGameObject = animator.gameObject;
-                }
+                // var selection = Selection.activeGameObject;
+                // if (selection != null)
+                // {
+                //     var animator = selection.GetComponentInChildren<Animator>();
+                //     if (animator != null)
+                //         Selection.activeGameObject = animator.gameObject;
+                // }
+                Debug.LogError(
+                    "Selected GameObject doesn't have IAnimatorPlayAction component in its children.");
             }
         }
 

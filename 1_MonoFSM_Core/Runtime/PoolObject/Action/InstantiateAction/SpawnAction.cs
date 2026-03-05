@@ -148,7 +148,7 @@ namespace MonoFSM.Core.LifeCycle
             if (_parentObj.WorldUpdateSimulator == null)
             {
                 Debug.LogError(
-                    "SpawnAction: No WorldUpdateSimulator found in _parentObj",
+                    $"SpawnAction:{name}, No WorldUpdateSimulator found in _parentObj",
                     _parentObj
                 );
                 Debug.Break();

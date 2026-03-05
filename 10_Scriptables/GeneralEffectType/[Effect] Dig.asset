@@ -10,6 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0dd95d420d0f4628875cbf5008b05a70, type: 3}
-  m_Name: "effect_Env Protect Shield \u8B77\u76FE \u5B89\u5168\u5340"
+  m_Name: '[Effect] Dig'
   m_EditorClassIdentifier: 
-  _note: 
+  _note: "\u6539\u6210\u7834\u58DE\uFF1F\u7136\u5F8C\u6709\u5C0D\u61C9\u52A0\u6210\u55CE\uFF1F\u9084\u662F\u5217\u8209\uFF1F"

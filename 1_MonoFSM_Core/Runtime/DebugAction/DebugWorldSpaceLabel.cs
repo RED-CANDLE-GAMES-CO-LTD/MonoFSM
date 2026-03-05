@@ -13,7 +13,7 @@ using UnityEditor;
 namespace _0_MonoDebug.Gizmo
 {
     [ExecuteAlways]
-    public class DebugWorldSpaceLabel : AbstractDescriptionBehaviour
+    public class DebugWorldSpaceLabel : AbstractWorldFollowBehaviour
     {
         protected override string DescriptionTag => "DebugLabel";
 #if UNITY_EDITOR
@@ -75,11 +75,15 @@ namespace _0_MonoDebug.Gizmo
 
         [ShowInDebugMode] Rigidbody _bindingRigidbody;
 
+        public override Transform FollowTransform => _followTarget != null ? _followTarget
+            : _bindingRigidbody != null ? _bindingRigidbody.transform : null;
+
         [HideIf("_externalVariable", null, false)] [Required] [AutoParent]
         public AbstractMonoVariable _variable;
 
         public AbstractMonoVariable _externalVariable;
 
+        [ShowInInspector]
         public AbstractMonoVariable currentVariable
         {
             get
@@ -122,9 +126,8 @@ namespace _0_MonoDebug.Gizmo
 
         void Update()
         {
-            // 跟隨 Rigidbody（維持原本行為，不含 offset）
-            if (_bindingRigidbody != null)
-                transform.position = _bindingRigidbody.transform.position;
+            if (FollowTransform != null)
+                transform.position = FollowTransform.position;
 
             UpdateOverlayLabel();
         }
@@ -398,11 +401,10 @@ namespace _0_MonoDebug.Gizmo
             if (!RuntimeDebugSetting.IsDebugMode)
                 return;
 
-            Vector3 labelPosition = transform.position + offset;
+            var labelPosition = transform.position + offset;
 
             Gizmos.color = GetDynamicColor();
             Gizmos.DrawSphere(labelPosition, 0.1f);
-
             Gizmos.color = Color.yellow;
             Gizmos.DrawLine(transform.position, labelPosition);
 
@@ -504,6 +506,7 @@ namespace _0_MonoDebug.Gizmo
                 _panelSettings.scaleMode = PanelScaleMode.ConstantPixelSize;
                 _panelSettings.clearColor = false;
                 _panelSettings.sortingOrder = 10000;
+
 
                 // 建立 GO + UIDocument
                 _overlayGo = new GameObject("[DebugLabelOverlay]");
