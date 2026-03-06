@@ -368,7 +368,18 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 // try
                 // {
                 Profiler.BeginSample("MonoObj.Simulate", item.gameObject);
-                item.Simulate(deltaTime);
+                try
+                {
+                    item.Simulate(deltaTime);
+                }
+                catch (Exception e)
+                {
+                    if (item is MonoBehaviour)
+                        Debug.LogException(e, item as MonoBehaviour);
+                    else
+                        Debug.LogException(e, this);
+                }
+
                 Profiler.EndSample();
                 // }
                 // catch (Exception e)

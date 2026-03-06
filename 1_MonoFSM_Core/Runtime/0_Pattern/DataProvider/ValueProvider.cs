@@ -103,13 +103,11 @@ namespace MonoFSM.Core.DataProvider
                     // this);
                     return _varEntity.EntityTag.GetVariableTagItems();
                 }
-                else
-                {
-                    Debug.LogError(
-                        "ValueProvider: Assigned VarEntity has no entity tag, returning empty variable tags.",
-                        this
-                    );
-                }
+// if(Application.isPlaying)
+//                 Debug.LogError(
+//                     "ValueProvider: Assigned VarEntity has no entity tag, returning empty variable tags.",
+//                     this
+//                 );
             }
 
             // Debug.Log(

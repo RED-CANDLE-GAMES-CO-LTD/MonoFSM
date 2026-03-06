@@ -57,6 +57,11 @@ namespace MonoFSM.Runtime
 
 
         [AutoChildren]
+        private ViewRoot _viewRoot;
+
+        public ViewRoot ViewRoot => _viewRoot;
+
+        [AutoChildren]
         private StateMachineLogic _fsmLogic;
 
         public StateMachineLogic FsmLogic

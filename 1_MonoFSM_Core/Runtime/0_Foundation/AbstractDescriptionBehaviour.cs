@@ -434,7 +434,11 @@ namespace MonoFSM.Foundation
                 // Debug.Log(
                 //     $"Description of {GetType()}: Description:{Description} process:{DescriptionPreprocess(Description)}",
                 //     this);
-                if (IsBracketsNeededForTag)
+                if (DescriptionTag == "")
+                {
+                    gameObject.name = $"{DescriptionPreprocess(Description)}";
+                }
+                else if (IsBracketsNeededForTag)
                     gameObject.name = $"[{DescriptionTag}] {DescriptionPreprocess(Description)}";
                 else
                     gameObject.name = $"{DescriptionTag} {DescriptionPreprocess(Description)}";

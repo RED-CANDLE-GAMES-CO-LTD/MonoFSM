@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using MonoFSM.Core.Attributes;
@@ -7,13 +6,11 @@ using MonoFSM.Runtime;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
-using Sirenix.Utilities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Profiling;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Compilation;
 #endif
 
 namespace MonoFSM.Core.Simulate
@@ -297,13 +294,31 @@ namespace MonoFSM.Core.Simulate
         }
 
         //世界進入點
-        public void WorldInit() //FIXME: 這個應該要什麼時間點做？
+        public void WorldInit()
         {
             Debug.Log("WorldUpdateSimulator WorldInit called.", this);
-            //SceneAwake可以自己做ㄅ？
             IsReady = true;
             SceneAwake();
             SceneStart();
+            WorldReset(); //這裡就可以了嗎？
+            // SceneStart 在 Unity Start() 中執行，確保所有 Awake 已完成
+        }
+
+        private void Start()
+        {
+            // if (IsReady)
+            // {
+            //
+            // }
+            // else
+            // {
+            //     Debug.LogError(
+            //         "WorldUpdateSimulator Start called before WorldInit. Ensure WorldInit is called to properly initialize the world.",
+            //         this
+            //     );
+            //     Debug.Break();
+            // }
+
         }
 
         public void WorldReset()
