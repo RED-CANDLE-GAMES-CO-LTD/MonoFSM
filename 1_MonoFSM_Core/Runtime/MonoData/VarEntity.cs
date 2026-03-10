@@ -19,7 +19,7 @@ namespace MonoFSM.Runtime.Variable
     [FormerlyNamedAs("VarBlackboard")]
     public class VarEntity : GenericUnityObjectVariable<MonoEntity>, IHierarchyValueInfo
     {
-        [HideIf(nameof(HasValueProvider))]
+        // [HideIf(nameof(HasValueProvider))]
         [FormerlySerializedAs("_MonoDescriptableTag")]
         [SOConfig("10_Flags/VarMono")]
         [BoxGroup("定義型別")]

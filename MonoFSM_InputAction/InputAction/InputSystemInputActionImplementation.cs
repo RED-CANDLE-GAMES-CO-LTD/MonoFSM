@@ -8,6 +8,8 @@ using UnityEngine.InputSystem;
 namespace MonoFSM_InputAction
 {
     //FIXME: 應該綁這個為主？DI IsPressed實作
+
+    //Lcoal的
     [RequireComponent(typeof(MonoInputAction))]
     public class InputSystemInputActionImplementation
         : AbstractDescriptionBehaviour,
@@ -24,45 +26,50 @@ namespace MonoFSM_InputAction
         [SerializeField]
         protected InputActionData _inputActionData;
 
+        // Cached input state（在 BeforeSimulate 中更新）
+        [ShowInDebugMode] private bool _cachedIsPressed;
+        [ShowInDebugMode] private bool _cachedWasPressed;
+        [ShowInDebugMode] private bool _cachedWasReleased;
+        [ShowInDebugMode] private Vector2 _cachedVec2;
+
+        private bool _previousIsPressed;
         // 時間追蹤欄位
         [ShowInInspector]
         private float _pressStartTime = -1f;
 
         [ShowInInspector]
         private float _lastPressedTime = -1f;
-        private bool _wasPressedLastFrame;
 
-        // private bool _readLocalVec2;
-
-        // private InputActionMap _inputActionMap;
         public InputAction myAction => _inputActionData?._inputAction?.action;
 
-        // public InputAction myAction =>
-        // _inputActionData && _inputActionData._inputAction != null
-        //     ? _localPlayerInput?.actions?[_inputActionData?._inputAction?.name] //好像不要用了？
-        //     : null;
-        // public InputAction myAction => _localPlayerInput.currentActionMap.FindAction(_inputActionData.inputAction.name);
+        //unity input system 的 action
 
-        bool IInputActionImplementation.IsLocalPressed =>
-            Application.isPlaying && (myAction.IsPressed() || myAction.WasPressedThisFrame());
+        Vector2 IInputActionImplementation.Vec2ValueCached => _cachedVec2;
 
-        //FIXME:
-        // [ShowInDebugMode]
-        Vector2 IInputActionImplementation.ReadLocalVec2 =>
-            ((IInputActionImplementation)this).IsVec2
-                ? myAction?.ReadValue<Vector2>() ?? Vector2.zero
-                : Vector2.zero;
-        Vector2 IInputActionImplementation.Vec2Value =>
-            ((IInputActionImplementation)this).ReadLocalVec2;
+        bool IInputActionImplementation.IsLocalPressed => myAction.IsPressed();
+
+        Vector2 IInputActionImplementation.ReadLocalVec2 => myAction.ReadValue<Vector2>();
+
+
+        Vector2 IInputActionImplementation.FetchVec2Value => myAction.ReadValue<Vector2>();
+
+        [ShowInDebugMode] bool IInputActionImplementation.FetchIsPressed => myAction.IsPressed();
 
         [ShowInInspector]
         bool IInputActionImplementation.IsVec2 =>
-            _inputActionData?._inputAction?.action?.expectedControlType == "Vector2";
+            myAction.expectedControlType == "Vector2";
 
-        [ShowInDebugMode]
-        bool IInputActionImplementation.IsPressed => myAction?.IsPressed() ?? false;
-        bool IInputActionImplementation.WasPressed => myAction.WasPressedThisFrame();
-        bool IInputActionImplementation.WasReleased => myAction.WasReleasedThisFrame();
+
+        bool IInputActionImplementation.FetchWasPressed =>
+            myAction.WasPressedThisFrame(); //盡量不要用？因為有cache了，直接用cache的就好
+
+        bool IInputActionImplementation.FetchWasReleased =>
+            myAction.WasReleasedThisFrame(); //盡量不要用？
+
+        bool IInputActionImplementation.IsPressedCached => _cachedIsPressed;
+
+        bool IInputActionImplementation.WasPressedCached => _cachedWasPressed;
+        bool IInputActionImplementation.WasReleasedCached => _cachedWasReleased;
 
         [ShowInDebugMode]
         float IInputActionImplementation.PressTime
@@ -72,8 +79,7 @@ namespace MonoFSM_InputAction
                 if (!Application.isPlaying || _pressStartTime < 0f)
                     return 0f;
 
-                bool isCurrentlyPressed = myAction?.IsPressed() ?? false;
-                if (isCurrentlyPressed)
+                if (_cachedIsPressed)
                     return ((IInputActionImplementation)this).GetCurrentTime() - _pressStartTime;
 
                 return 0f;
@@ -96,28 +102,39 @@ namespace MonoFSM_InputAction
         ) //走beforesimulate?
         { }
 
-        public void BeforeSimulate(float deltaTime)
+        void IBeforeSimulate.BeforeSimulate(float deltaTime)
         {
-            // if (!Application.isPlaying || myAction == null)
-            //     return;
-            //順序問題，會不會比較晚？
+            CacheLocalInput();
+        }
 
-            var isCurrentlyPressed = myAction.IsPressed();
+        /// <summary>
+        /// 從 Unity InputAction 讀取並 cache local input 狀態。
+        /// 子類可 override 以跳過（例如 Fusion proxy 不需要 cache local input）。
+        /// </summary>
+        protected virtual void CacheLocalInput()
+        {
+            // Cache raw input state
+            var rawIsPressed = ((IInputActionImplementation)this).FetchIsPressed;
+            _cachedIsPressed = rawIsPressed;
+            _cachedWasPressed = rawIsPressed && !_previousIsPressed;
+            _cachedWasReleased = !rawIsPressed && _previousIsPressed;
+
+            // Cache Vec2
+            _cachedVec2 = ((IInputActionImplementation)this).FetchVec2Value;
+
+            // 時間追蹤
             var currentTime = ((IInputActionImplementation)this).GetCurrentTime();
-
-            // 檢測按下事件
-            if (isCurrentlyPressed && !_wasPressedLastFrame)
+            if (_cachedWasPressed)
             {
                 _pressStartTime = currentTime;
                 _lastPressedTime = currentTime;
             }
-            // 檢測放開事件
-            else if (!isCurrentlyPressed && _wasPressedLastFrame)
+            else if (_cachedWasReleased)
             {
                 _pressStartTime = -1f;
             }
 
-            _wasPressedLastFrame = isCurrentlyPressed;
+            _previousIsPressed = rawIsPressed;
         }
     }
 }

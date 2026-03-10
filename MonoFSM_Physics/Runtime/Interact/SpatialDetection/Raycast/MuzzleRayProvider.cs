@@ -9,19 +9,17 @@ namespace MonoFSM.PhysicsWrapper
     /// </summary>
     public class MuzzleRayProvider : AbstractRayProvider
     {
-        // public VarVector3 _cameraRayHitPoint;
         public Transform _muzzleTransform;
         public float _dis = 10f;
+        public VarVector3 _cameraForwardVar;
+        public VarVector3 _cameraPositionVar;
 
         Vector3 cameraRayForwardPoint
         {
             get
             {
-                var mainCamera = Camera.main;
-                if (mainCamera == null) return Vector3.zero;
-                var origin = mainCamera.transform.position;
-                var end = origin + mainCamera.transform.forward * _dis;
-
+                var origin = _cameraPositionVar.Value;
+                var end = origin + _cameraForwardVar.Value * _dis;
                 return end;
             }
         }

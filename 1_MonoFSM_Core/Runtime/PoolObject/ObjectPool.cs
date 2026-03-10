@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using MonoFSM.Core.Simulate;
+using MonoFSM.Runtime;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
@@ -327,7 +329,8 @@ public class ObjectPool : IObjectPool
 #endif
         Object.DontDestroyOnLoad(obj);
         obj.SetBindingPool(_poolManager);
-        PoolManager.PreparePoolObjectImplementation(obj);
+        SceneLifecycleManager.PreparePoolObjectImplementation(obj,
+            _poolManager.GetComponent<WorldUpdateSimulator>());
         // Prepare implementation while object is disabled to control initialization order
 
         obj.gameObject.SetActive(true);

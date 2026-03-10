@@ -22,6 +22,7 @@ namespace MonoFSM.Core.Condition
         /// <param name="deltaTime"></param>
         public void Simulate(float deltaTime)
         {
+            //proxy不會跑唷
             ActivateCheck();
         }
 

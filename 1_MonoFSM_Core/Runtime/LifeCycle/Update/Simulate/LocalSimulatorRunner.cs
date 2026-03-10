@@ -79,7 +79,11 @@ namespace MonoFSM.Core.Simulate
 
         private void LateUpdate()
         {
-            _world.Render(Time.time - Time.fixedTime);
+            //FIXME: 沒測過
+            float timeSinceFixedUpdate = Time.time - Time.fixedTime;
+            float alpha = Mathf.Clamp01(timeSinceFixedUpdate / Time.fixedDeltaTime);
+            _world.Render(timeSinceFixedUpdate, alpha); //放這？
+            _world.AfterRender(); //放這？
             _world.AfterUpdate();
         }
 

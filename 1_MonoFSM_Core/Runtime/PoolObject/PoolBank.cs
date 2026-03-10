@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Foundation;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -10,7 +11,7 @@ using UnityEditor;
 #endif
 
 [RequireComponent(typeof(MonoObj))]
-public class PoolBank : MonoBehaviour, ISceneSavingCallbackReceiver, ISceneAwake
+public class PoolBank : AbstractDescriptionBehaviour, ISceneSavingCallbackReceiver, ISceneAwake
 {
     // [InlineButton("FindOrCreatePoolPrewarmData","Create")]
     [SOConfig("15_PoolManagerPrewarm")]
@@ -127,6 +128,8 @@ public class PoolBank : MonoBehaviour, ISceneSavingCallbackReceiver, ISceneAwake
         }
     }
 
+    PoolManager poolManager => _parentObj.WorldUpdateSimulator.Pool;
+
     public void EnterSceneAwake()
     {
         if (_bindPrewarmData == null)
@@ -135,9 +138,11 @@ public class PoolBank : MonoBehaviour, ISceneSavingCallbackReceiver, ISceneAwake
         Debug.Log("EnterSceneAwake?" + this.gameObject);
 
         Profiler.BeginSample("Prewarm GameLevel PoolObjects");
-        PoolManager.Instance.PrepareGlobalPrewarmData();
-        PoolManager.Instance.SetPrewarmData(_bindPrewarmData, this);
-        PoolManager.Instance.ReCalculatePools();
+
+        var pool = poolManager;
+        pool.PrepareGlobalPrewarmData();
+        pool.SetPrewarmData(_bindPrewarmData, this);
+        pool.ReCalculatePools();
         Profiler.EndSample();
 
         // 顯示動態 PoolBank 機制資訊
@@ -181,8 +186,8 @@ public class PoolBank : MonoBehaviour, ISceneSavingCallbackReceiver, ISceneAwake
     private Dictionary<PoolObject, int> GetProtectedObjectStats()
     {
         var stats = new Dictionary<PoolObject, int>();
-
-        foreach (var pool in PoolManager.Instance.allPools)
+        var pm = this.poolManager;
+        foreach (var pool in pm.allPools)
         {
             var protectedCount = 0;
             foreach (var obj in pool.OnUseObjs)

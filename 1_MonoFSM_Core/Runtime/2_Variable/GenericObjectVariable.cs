@@ -5,6 +5,7 @@ using _1_MonoFSM_Core.Runtime.Attributes;
 using MonoDebugSetting;
 using MonoFSM.Core.Attributes;
 using MonoFSM.EditorExtension;
+using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -79,6 +80,8 @@ namespace MonoFSM.Variable
         > _visitedVariables = new(() => new HashSet<GenericUnityObjectVariable<TValueType>>());
 
         private const int MAX_RECURSION_DEPTH = 10;
+
+        [CompRef] [Auto] private IVarValueSettingProcessor<TValueType> _beforeSetProcessor;
 
         public override bool IsValueExist => Value != null;
 
@@ -342,10 +345,9 @@ namespace MonoFSM.Variable
                 Debug.Break();
                 return;
             }
-            //沒有實作唷
-            //沒有ObjectField...
-            // Debug.Log("Set value to " + value, this);
-            //FIXME: 這需要分開嗎？在寫啥
+
+            _beforeSetProcessor?.BeforeSetValue(value);
+
             _tempValue = value;
             RecordSetbyWhoDebug(byWho, _tempValue, reason);
             // OnValueChanged?.Invoke(_currentValue); //多一個參數的版本

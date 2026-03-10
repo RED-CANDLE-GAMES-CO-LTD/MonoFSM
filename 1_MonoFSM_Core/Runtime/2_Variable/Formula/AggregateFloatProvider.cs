@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Variable;
 using MonoFSM.Runtime;
-using MonoFSM.Runtime.Attributes;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -52,41 +49,61 @@ namespace MonoFSM.Core.Formula
 
         public float GetValue()
         {
-            // if (_monoEntityListProvider == null || _variableToAggregate == null)
-            //     return 0f;
-            // var values = _monoEntityListProvider
-            //     .GetVar<VarListEntity>()
-            //     .GetList()
-            //     .Select(GetFloatFromDescriptable)
-            //     .ToList();
             if (_monoEntityList == null)
             {
                 Debug.LogError("MonoEntity list is not assigned.", this);
                 return 0f;
             }
 
-            if (_monoEntityList.Value == null)
+            var entities = _monoEntityList.Value;
+            if (entities == null)
                 return 0f;
-            //FIXME: 會GC
-            var values = _monoEntityList.Value.Select(GetFloatFromDescriptable)
-                .ToList();
 
+            var count = entities.Count;
+            if (count == 0)
+                return 0f;
 
-            if (values.Count == 0)
+            if (_operation == AggregationType.Count)
+                return count;
+
+            var sum = 0f;
+            var min = float.MaxValue;
+            var max = float.MinValue;
+            var hasValue = false;
+
+            for (var i = 0; i < count; i++)
+            {
+                var value = GetFloatFromDescriptable(entities[i]);
+                sum += value;
+
+                if (hasValue == false)
+                {
+                    min = value;
+                    max = value;
+                    hasValue = true;
+                    continue;
+                }
+
+                if (value < min)
+                    min = value;
+
+                if (value > max)
+                    max = value;
+            }
+
+            if (hasValue == false)
                 return 0f;
 
             switch (_operation)
             {
                 case AggregationType.Sum:
-                    return values.Sum();
+                    return sum;
                 case AggregationType.Average:
-                    return values.Average();
+                    return sum / count;
                 case AggregationType.Min:
-                    return values.Min();
+                    return min;
                 case AggregationType.Max:
-                    return values.Max();
-                case AggregationType.Count:
-                    return values.Count;
+                    return max;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

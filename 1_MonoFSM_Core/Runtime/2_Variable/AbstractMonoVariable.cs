@@ -130,7 +130,7 @@ namespace MonoFSM.Variable
 
         public void RemoveListener(IVarChangedListener target)
         {
-            _dataChangedListeners.Remove(target);
+            _dataChangedListeners?.Remove(target);
         }
 
         [ShowInDebugMode]

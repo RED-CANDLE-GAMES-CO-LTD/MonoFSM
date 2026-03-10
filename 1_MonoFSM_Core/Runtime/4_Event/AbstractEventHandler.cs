@@ -57,17 +57,17 @@ namespace MonoFSM.Core
             foreach (var eventReceiver in _eventReceivers)
             {
                 //如果有exception就會中斷掉？
-                try
-                {
+                // try
+                // {
                     if (eventReceiver.IsValid)
                         eventReceiver.EventReceived();
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError(
-                        $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
-                        eventReceiver as Object);
-                }
+                    // }
+                    // catch (System.Exception e)
+                    // {
+                    //     Debug.LogError(
+                    //         $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
+                    //         eventReceiver as Object);
+                    // }
 
             }
         }

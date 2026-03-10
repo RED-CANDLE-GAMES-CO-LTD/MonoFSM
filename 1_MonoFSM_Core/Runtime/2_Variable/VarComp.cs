@@ -34,6 +34,8 @@ namespace MonoFSM.Variable
             get => _defaultValue;
         } //用property?
 
+        public override Type ValueType => SiblingValueFilter() ?? Value?.GetType();
+
         protected override bool HasDefaultValueError()
         {
             if (_componentTypeTag == null || _componentTypeTag.Type == null || _defaultValue == null)

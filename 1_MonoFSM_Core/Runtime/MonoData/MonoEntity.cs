@@ -439,7 +439,9 @@ namespace MonoFSM.Runtime
                     // _receiverTypeSet.Add(receiver.EffectType);
                     if (!_receiverTypeMap.TryAdd(receiver._effectType, receiver))
                     {
-                        // Debug.Log("Receiver type already exists" + receiver._effectType, receiver);
+                        if (RuntimeDebugSetting.IsDebugMode)
+                            Debug.Log("Receiver type already exists" + receiver._effectType,
+                                receiver);
                     }
                 }
             //
@@ -450,8 +452,13 @@ namespace MonoFSM.Runtime
                     Debug.LogError($"Dealer {dealer.name} has null EffectType", dealer);
                     continue;
                 }
+
                 if (_dealerTypeMap.TryAdd(dealer._effectType, dealer) == false)
-                    Debug.LogWarning($"Dealer {dealer._effectType} already exists", dealer);
+                {
+                    if (RuntimeDebugSetting.IsDebugMode)
+                        Debug.LogWarning($"Dealer {dealer._effectType} already exists", dealer);
+                }
+
             }
 
         }

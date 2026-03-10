@@ -59,47 +59,47 @@ public class PoolObject : MonoBehaviour, ISceneAwake, IPoolableObject
         this.SetFilterForAssignPrefab();
     }
 
-    [BoxGroup("Pool 測試工具")]
-    [Button("借用到場景", ButtonSizes.Medium)]
-    [ShowIf("@!UnityEngine.Application.isPlaying || !this.isOnScene")]
-    [EnableIf("@UnityEngine.Application.isPlaying")]
-    private void TestBorrowToScene()
-    {
-        if (!Application.isPlaying)
-        {
-            PoolLogger.LogWarning("借用功能只能在 Runtime 時使用", this);
-            return;
-        }
-
-        if (PoolManager.Instance == null)
-        {
-            PoolLogger.LogError("找不到 PoolManager", this);
-            return;
-        }
-
-        // 在攝影機前方生成物件
-        Vector3 spawnPosition = Vector3.zero;
-        if (Camera.main != null)
-        {
-            spawnPosition = Camera.main.transform.position + Camera.main.transform.forward * 5f;
-        }
-
-        var borrowedObj = PoolManager.Instance.BorrowOrInstantiate(
-            OriginalPrefab != null ? OriginalPrefab : this,
-            spawnPosition,
-            Quaternion.identity,
-            null,
-            (poolObj) =>
-            {
-                PoolLogger.LogInfo($"成功借用物件: {poolObj.name}", poolObj);
-            }
-        );
-
-        if (borrowedObj != null)
-        {
-            PoolLogger.LogInfo($"借用物件到場景: {borrowedObj.name} 位置: {spawnPosition}", this);
-        }
-    }
+    // [BoxGroup("Pool 測試工具")]
+    // [Button("借用到場景", ButtonSizes.Medium)]
+    // [ShowIf("@!UnityEngine.Application.isPlaying || !this.isOnScene")]
+    // [EnableIf("@UnityEngine.Application.isPlaying")]
+    // private void TestBorrowToScene()
+    // {
+    //     if (!Application.isPlaying)
+    //     {
+    //         PoolLogger.LogWarning("借用功能只能在 Runtime 時使用", this);
+    //         return;
+    //     }
+    //
+    //     if (PoolManager.Instance == null)
+    //     {
+    //         PoolLogger.LogError("找不到 PoolManager", this);
+    //         return;
+    //     }
+    //
+    //     // 在攝影機前方生成物件
+    //     Vector3 spawnPosition = Vector3.zero;
+    //     if (Camera.main != null)
+    //     {
+    //         spawnPosition = Camera.main.transform.position + Camera.main.transform.forward * 5f;
+    //     }
+    //
+    //     var borrowedObj = PoolManager.Instance.BorrowOrInstantiate(
+    //         OriginalPrefab != null ? OriginalPrefab : this,
+    //         spawnPosition,
+    //         Quaternion.identity,
+    //         null,
+    //         (poolObj) =>
+    //         {
+    //             PoolLogger.LogInfo($"成功借用物件: {poolObj.name}", poolObj);
+    //         }
+    //     );
+    //
+    //     if (borrowedObj != null)
+    //     {
+    //         PoolLogger.LogInfo($"借用物件到場景: {borrowedObj.name} 位置: {spawnPosition}", this);
+    //     }
+    // }
 
     [BoxGroup("池測試工具")]
     [Button("歸還到池", ButtonSizes.Medium)]

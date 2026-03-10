@@ -18,12 +18,11 @@ public delegate void BeforeActiveHandler(PoolObject obj);
 /// 池管理器 - 管理所有物件池的建立、管理和生命週期
 /// </summary>
 [DefaultExecutionOrder(10000)] //晚點被destroy, 好像是對的喔
-public class PoolManager : SingletonBehaviour<PoolManager>, IPoolManager
+public class PoolManager : MonoBehaviour, IPoolManager
 {
-    public static void PreparePoolObjectImplementation(PoolObject obj)
-    {
-        SceneLifecycleManager.PreparePoolObjectImplementation(obj);
-    }
+    // public static void PreparePoolObjectImplementation(PoolObject obj)
+    // {
+    // }
 
     // public static void HandleGameLevelConfigSetting(MonoBehaviour level)
     // {
@@ -209,7 +208,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>, IPoolManager
         poolbjects.gameObject.SetActive(false);
 
         // Register this instance with the service locator
-        PoolServiceLocator.RegisterPoolManager(this);
+        // PoolServiceLocator.RegisterPoolManager(this);
 
         // Subscribe to scene unload event to handle cleanup before scene destruction
         SceneManager.sceneUnloaded += OnSceneUnloaded;
@@ -221,7 +220,7 @@ public class PoolManager : SingletonBehaviour<PoolManager>, IPoolManager
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
 
         // Clear services when manager is destroyed
-        PoolServiceLocator.ClearServices();
+        // PoolServiceLocator.ClearServices();
     }
 
     private void OnSceneUnloaded(Scene scene)
@@ -236,9 +235,9 @@ public class PoolManager : SingletonBehaviour<PoolManager>, IPoolManager
             globalPrewarmDataLogger = PoolBank.FindGlobalPrewarmData();
             //CleanUp 沒用的資料
 #if UNITY_EDITOR
-            Instance.globalPrewarmDataLogger.objectEntries.RemoveAll((a) => a.prefab == null);
-            Instance.globalPrewarmDataLogger.objectEntries.RemoveAll((a) => !a.prefab.IsGlobalPool);
-            EditorUtility.SetDirty(Instance.globalPrewarmDataLogger);
+            globalPrewarmDataLogger.objectEntries.RemoveAll((a) => a.prefab == null);
+            globalPrewarmDataLogger.objectEntries.RemoveAll((a) => !a.prefab.IsGlobalPool);
+            EditorUtility.SetDirty(globalPrewarmDataLogger);
 #endif
 
             if (globalPrewarmDataLogger == null)
@@ -724,27 +723,27 @@ public class PoolManager : SingletonBehaviour<PoolManager>, IPoolManager
     [MenuItem("Tools/Pool System/Log Protected Objects Report")]
     public static void LogProtectedObjectsReport()
     {
-        if (Instance != null)
-        {
-            Debug.Log(Instance.GetSystemProtectedObjectsReport());
-        }
-        else
-        {
-            Debug.LogWarning("PoolManager instance not found");
-        }
+        // if (Instance != null)
+        // {
+        //     Debug.Log(Instance.GetSystemProtectedObjectsReport());
+        // }
+        // else
+        // {
+        //     Debug.LogWarning("PoolManager instance not found");
+        // }
     }
 
     [MenuItem("Tools/Pool System/Validate System Integrity")]
     public static void ValidateSystem()
     {
-        if (Instance != null)
-        {
-            Instance.ValidateSystemIntegrity();
-        }
-        else
-        {
-            Debug.LogWarning("PoolManager instance not found");
-        }
+        // if (Instance != null)
+        // {
+        //     Instance.ValidateSystemIntegrity();
+        // }
+        // else
+        // {
+        //     Debug.LogWarning("PoolManager instance not found");
+        // }
     }
 #endif
 }

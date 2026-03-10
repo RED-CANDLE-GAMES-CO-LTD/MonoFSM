@@ -45,9 +45,10 @@ namespace MonoFSM.Core.Simulate
         GameObject gameObject { get; }
     }
 
-    public interface IBeforeRender
+
+    public interface IAfterRenderMono
     {
-        void BeforeRender();
+        void AfterRender();
         public bool isActiveAndEnabled { get; }
         GameObject gameObject { get; }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MonoFSM.Core.Simulate;
 using MonoFSMCore.Runtime.LifeCycle;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -16,7 +17,8 @@ namespace MonoFSM.Runtime
         /// <summary>
         /// 準備池物件的完整實作流程
         /// </summary>
-        public static void PreparePoolObjectImplementation(PoolObject obj)
+        public static void PreparePoolObjectImplementation(PoolObject obj,
+            WorldUpdateSimulator world)
         {
             if (obj.TryGetComponent<PrefabSerializeCache>(out var cache))
             {
@@ -27,6 +29,17 @@ namespace MonoFSM.Runtime
                 AutoAttributeManager.AutoReferenceAllChildren(obj.gameObject);
             }
 
+            //走MonoObj?
+            if (obj.TryGetComponent<MonoObj>(out var monoObj))
+            {
+                monoObj.SceneAwake(world);
+                monoObj.HandleSceneStart();
+                return;
+            }
+
+            Debug.LogError(
+                $"PoolObject {obj.name} is missing MonoObj component. Ensure that the prefab has a MonoObj component attached.",
+                obj);
             // HandleGameLevelAwakeReverse(obj.gameObject);
             HandleGameLevelAwake(obj.gameObject);
             // HandleGameLevelStartReverse(obj.gameObject);

@@ -187,7 +187,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _note: 
+  _valueChangedHandler: {fileID: 0}
   _varTag: {fileID: 11400000, guid: f3e869b98824c4cb39a7992ca59677c4, type: 2}
+  _needValueSource: 0
   _localField:
     ProductionValue: 0
     DevValue: 0
@@ -242,6 +244,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _priority: 0
   _checkPriorityOnExit: 1
+  _stateTags: []
 --- !u!1 &2577469902074061277
 GameObject:
   m_ObjectHideFlags: 0
@@ -378,6 +381,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &2402832881550321116
 CapsuleCollider:
@@ -538,6 +542,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8978333287589414221
 BoxCollider:
@@ -752,6 +757,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _note: 
   FinalResultInverted: 0
+  _resultHistory: []
   _varBool: {fileID: 7491830056626236414}
   targetValue: 1
 --- !u!1 &7162638603254434787
@@ -808,7 +814,9 @@ MonoBehaviour:
   startNormalizedTimeOffset: 0
   animatorEnterCrossFade: 0
   IsDontPlayWhenAnimatorDisabled: 0
-  doneEventLayerName: 
+  _skipWhenPlayingStateNames: []
+  _canInterruptSameState: 1
+  _clipLayerName: 
   _cachedClipLength: 0.33333334
   _isSkipOnRenderCheck: 0
 --- !u!1 &7897795064371669729
@@ -1217,7 +1225,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4082089536309548135, guid: 311a698ff643e467390ea4159efc6054, type: 3}
       propertyPath: m_Name
-      value: Interact Device
+      value: (Deprecated) Interact Repeat Device
       objectReference: {fileID: 0}
     - target: {fileID: 4470819081602396570, guid: 311a698ff643e467390ea4159efc6054, type: 3}
       propertyPath: m_Controller
@@ -1334,6 +1342,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   effectNameFilter: 
   effectNameUseRegEx: 0
+  excludeObjectsWithHighlightEffect: 0
   combineMeshes: 0
   alphaCutOff: 0
   alphaCutOffTextureName: 
@@ -1343,6 +1352,7 @@ MonoBehaviour:
   GPUInstancing: 1
   sortingPriority: 0
   optimizeSkinnedMesh: 1
+  skinnedMeshBakeInterval: 1
   depthClip: 0
   cameraDistanceFade: 0
   cameraDistanceFadeNear: 0
@@ -1359,6 +1369,7 @@ MonoBehaviour:
   extraCoveragePixels: 0
   minimumWidth: 0
   subMeshMask: -1
+  vertexTransformMode: 0
   overlay: 0
   overlayMode: 0
   overlayPattern: 0
@@ -1550,6 +1561,7 @@ MonoBehaviour:
   seeThroughOccluderCheckIndividualObjects: 0
   seeThroughDepthOffset: 0
   seeThroughMaxDepth: 0
+  seeThroughFadeRange: 0
   seeThroughIntensity: 0.8
   seeThroughTintAlpha: 0.5
   seeThroughTintColor: {r: 1, g: 0, b: 0, a: 1}
@@ -1605,8 +1617,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
   SortKey: 1084950006
-  ObjectInterest: 1
-  Flags: 262145
+  SendPriority: 1
+  Flags: 262146
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 3052843373747051486}
@@ -1643,4 +1655,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2615d364a70f4817830b874e07a6cc81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Fusion2::Fusion.Addons.FSM.NetworkStateMachineController
-  _enableLogging: 0

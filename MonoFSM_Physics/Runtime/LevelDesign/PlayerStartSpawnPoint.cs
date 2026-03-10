@@ -66,7 +66,7 @@ public class PlayerStartSpawnPoint
         return GetCurrentSpawnPoint();
     }
 
-    [Required]
+    [GUIColor(0.4f, 1f, 0.4f)]
     public Transform editorPlayerRef; //如果player是放在場景上
     public Transform oriSpawnRef;
 #if UNITY_EDITOR

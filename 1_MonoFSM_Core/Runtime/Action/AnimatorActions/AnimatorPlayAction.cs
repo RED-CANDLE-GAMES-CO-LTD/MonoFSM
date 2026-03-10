@@ -488,7 +488,7 @@ namespace MonoFSM.Animation
             NumberOfItemsBeforeEnablingSearch = 3)]
 #endif
         [SerializeField]
-        private List<string> _skipWhenPlayingStateNames = new();
+        private List<string> _skipWhenPlayingStateNames;
 
         private HashSet<int> _skipStateHashes;
         public bool _canInterruptSameState = true; //要不要可以打斷正在播的同一個state? 不同的state就算了，反正也不會播到
@@ -504,8 +504,8 @@ namespace MonoFSM.Animation
             if (_skipStateHashes == null)
             {
                 _skipStateHashes = new HashSet<int>();
-                foreach (var name in _skipWhenPlayingStateNames)
-                    _skipStateHashes.Add(Animator.StringToHash(name));
+                foreach (var sname in _skipWhenPlayingStateNames)
+                    _skipStateHashes.Add(Animator.StringToHash(sname));
             }
 
 

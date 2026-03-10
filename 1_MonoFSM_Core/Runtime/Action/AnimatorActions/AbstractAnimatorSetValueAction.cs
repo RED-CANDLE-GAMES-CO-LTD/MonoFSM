@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.Action.AnimatorActions;
+using MonoDebugSetting;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable.Attributes;
@@ -8,6 +9,9 @@ using UnityEngine;
 
 namespace MonoFSM.Animation
 {
+    public interface IRenderAction
+    {
+    }
     public abstract class AbstractAnimatorSetValueAction : AbstractStateAction
     {
         [HideIf(nameof(HasAnimatorSource))]
@@ -94,13 +98,19 @@ namespace MonoFSM.Animation
             if (animator == null || !animator.isActiveAndEnabled)
                 return false;
 
-            if (!HasParameter())
+#if UNITY_EDITOR
+            if (RuntimeDebugSetting.IsDebugMode)
             {
-                Debug.LogWarning(
-                    $"Animator parameter '{_parameterName}' does not exist on {animator.gameObject.name}",
-                    this);
-                return false;
+                if (!HasParameter())
+                {
+                    Debug.LogWarning(
+                        $"Animator parameter '{_parameterName}' does not exist on {animator.gameObject.name}",
+                        this);
+                    return false;
+                }
             }
+#endif
+
 
             return true;
         }

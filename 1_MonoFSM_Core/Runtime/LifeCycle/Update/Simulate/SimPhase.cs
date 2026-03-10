@@ -8,6 +8,7 @@ namespace MonoFSM.Core.Simulate
         AfterSimulate,
         Render,
         AfterUpdate,
-        BeforeRender
+        BeforeRender,
+        AfterRender,
     }
 }

@@ -10,12 +10,18 @@ namespace MonoFSM_InputAction
     public interface IInputActionImplementation
     {
         public int InputActionId { get; }
-        protected internal bool IsPressed { get; }
-        protected internal bool WasPressed { get; }
-        protected internal bool WasReleased { get; }
+        public bool FetchIsPressed { get; } //不給外部用？
+        protected bool FetchWasPressed { get; }
+        protected bool FetchWasReleased { get; }
+
+        protected internal bool IsPressedCached { get; }
+        protected internal bool WasPressedCached { get; }
+        protected internal bool WasReleasedCached { get; }
+        protected internal Vector2 Vec2ValueCached { get; }
+
         protected internal bool IsLocalPressed { get; }
         protected internal Vector2 ReadLocalVec2 { get; }
-        protected internal Vector2 Vec2Value { get; }
+        protected internal Vector2 FetchVec2Value { get; }
         protected internal bool IsVec2 { get; }
         protected internal float PressTime { get; } // 已按住的時間
         protected internal float LastPressedTime { get; } // 上次按下的時間戳
@@ -43,22 +49,20 @@ namespace MonoFSM_InputAction
         [Auto]
         private IInputActionImplementation _abstractInputActionImplementation;
 
-        //可能被network版的inputActionHandler override
         public Vector2 ReadValueVec2 =>
-            _abstractInputActionImplementation?.Vec2Value ?? Vector2.zero; //可以被Override
+            _abstractInputActionImplementation.Vec2ValueCached; //可以被Override
 
         //什麼時候需要用到？local直接接？
         [ShowInPlayMode]
-        public bool IsPressed => _abstractInputActionImplementation.IsPressed; //如果外掛
+        public bool IsPressed => _abstractInputActionImplementation.IsPressedCached; //如果外掛
 
         [ShowInPlayMode]
-        public bool WasPressed => _abstractInputActionImplementation.WasPressed;
+        public bool WasPressed => _abstractInputActionImplementation.WasPressedCached;
 
         // public abstract bool WasPressBuffered();
         [ShowInPlayMode]
-        public bool WasReleased => _abstractInputActionImplementation.WasReleased;
-
-        //FIXME: read Vector2 input, 混用? 還是要再抽一層？
+        public bool WasReleased => _abstractInputActionImplementation.WasReleasedCached;
+        
         public int InputActionId => _abstractInputActionImplementation.InputActionId; //還是monobehaviour自己assign就好？
 
         public bool IsReadingVec2 => _abstractInputActionImplementation.IsVec2;

@@ -5,6 +5,9 @@ using UnityEngine;
 namespace MonoFSM.Core.Update
 {
     // UI, local端的
+    /// <summary>
+    /// 什麼時候會用到？
+    /// </summary>
     public class ProxyUpdate : MonoBehaviour //會和local simulator衝突嗎？
     {
         //FIXME: 如果parent有local simulator就把自己關掉？

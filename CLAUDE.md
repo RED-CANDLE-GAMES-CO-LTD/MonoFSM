@@ -19,5 +19,7 @@
     * 當我提到關於 Condition,條件實作等，透過繼承 AbstractConditionBehaviour 來實現 (
       @MonoFSM/1_MonoFSM_Core/Runtime/1_Conditions/AbstractConditionBehaviour.c)
 * 可以用 Debug.Log 來讓我協助測試與除錯，適當保留檔案中的 Log 不要刪除，等到我說 ok 再刪除
+* Debug.Log 第二個參數記得加上 this，方便我點擊訊息後定位到程式碼位置
+* Debug 用的欄位可以加上 Odin 的 ShowInInspector，方便我在 Inspector 中觀察數值變化
 * 盡量不要用 awake 和 start, 用 ISceneAwake, ISceneStart 來取代
 * 我提到記下來或是記到skill時，預設使用 skill-creator 來把對應的知識記到 MonoFSM 的 Skill 裡

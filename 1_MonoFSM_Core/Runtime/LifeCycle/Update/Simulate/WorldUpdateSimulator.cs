@@ -45,7 +45,7 @@ namespace MonoFSM.Core.Simulate
     }
 
     //要當作世界系統中心嗎？但如果是runner旁邊的話，就不在scene上喔
-
+//每個world應該要有個PoolManager對吧？不要用singleton了
     //NOTE: 放在runner上!
     //場上可以有收集器？還是另外自己做掉?
     [DefaultExecutionOrder(10000)] //確保在所有Update之後執行
@@ -56,13 +56,13 @@ namespace MonoFSM.Core.Simulate
         //fsm reset?, simulate runner
         [Required]
         [CompRef]
-        [Auto]
+        // [Auto]
         private ISimulateRunner _simulateRunner;
 
         //FIXME: Spawn要不要過我？
         [Required]
         [CompRef]
-        [Auto]
+        // [Auto]
         private ISpawnProcessor _spawnProcessor; //logic Spawner, 和visual spawner要拆開？
 
         //interface dict?
@@ -74,6 +74,7 @@ namespace MonoFSM.Core.Simulate
         {
             _spawnProcessor = GetComponent<ISpawnProcessor>();
             _simulateRunner = GetComponent<ISimulateRunner>();
+            _poolManager = GetComponent<PoolManager>();
             // _simulators.AddRange(_localSimulators);
             // FIXME: 不需要了？
             _binder = GetComponent<MonoEntityBinder>();
@@ -83,7 +84,7 @@ namespace MonoFSM.Core.Simulate
         }
 
         [CompRef]
-        [Auto]
+        // [Auto]
         private MonoEntityBinder _binder;
 
         public static WorldUpdateSimulator GetWorldUpdateSimulator(MonoObj me)
@@ -128,10 +129,12 @@ namespace MonoFSM.Core.Simulate
             return obj?.gameObject;
         }
 
+        [Auto] PoolManager _poolManager;
+        public PoolManager Pool => _poolManager;
         public MonoObj SpawnVisual(MonoObj obj, Vector3 position, Quaternion rotation)
         {
             //FIXME: 還要做updateSimulator的註冊？
-            var newObj = PoolManager.Instance.BorrowOrInstantiate(obj, position, rotation);
+            var newObj = _poolManager.BorrowOrInstantiate(obj, position, rotation);
             AfterPoolSpawn(newObj);
             return newObj;
         }
@@ -141,7 +144,7 @@ namespace MonoFSM.Core.Simulate
             if (obj == null)
                 return;
             // Return the object to the pool
-            PoolManager.Instance.ReturnToPool(obj);
+            _poolManager.ReturnToPool(obj);
         }
 
         //全世界都該透過這個spawn? 只有世界上的東西要透過這個？local 的不用(ex: Canvas)
@@ -157,6 +160,7 @@ namespace MonoFSM.Core.Simulate
             }
 
             //Spawn Strategy? 透過 Fusion的PoolObject 系統...那何不都用他的就好?
+            //這裡可能去跑 poolObject 的初始化
             var result = _spawnProcessor.Spawn(obj, position, rotation);
             //FIXME: 在這裡做 Spawn後的初始化?
             // AfterPoolSpawn(result);
@@ -165,6 +169,7 @@ namespace MonoFSM.Core.Simulate
                 return null;
 
             //FIXME: spawner本來就該來call這個？順便call auto?
+            //太晚？EnterSceneStart 已經做完了？
             RegisterMonoObject(result);
 
             return result;
@@ -237,10 +242,7 @@ namespace MonoFSM.Core.Simulate
         {
             if (_monoObjectSet.Remove(target))
             {
-                // Debug.Log(
-                //     $"Unregistering MonoPoolObj: {target.name} from WorldUpdateSimulator.",
-                //     target
-                // );
+
                 target.ResetStateRestore(); //FIXME: 需要這行嗎？OnReturnToPool?
                 target.SetWorldUpdateSimulator(null); //清除引用
             }
@@ -256,7 +258,11 @@ namespace MonoFSM.Core.Simulate
 
         private void SceneAwake()
         {
-            //這個是用來做初始化的？
+            // Pass 1: 先建立所有 parent-child 關係，避免 HashSet 遍歷順序導致 child 被當成 root
+            foreach (var monoObject in _monoObjectSet)
+                monoObject.InitParentLinks();
+
+            // Pass 2: 初始化（child 已有正確的 _parentObj，會正確 early return）
             foreach (var monoObject in _monoObjectSet)
                 monoObject.SceneAwake(this);
             Debug.Log(
@@ -367,7 +373,9 @@ namespace MonoFSM.Core.Simulate
 
         private readonly List<MonoObj> _currentUpdatingObjs = new();
         private static float _deltaTime;
+
         public static float DeltaTime => _deltaTime * TimeScale;
+        public static float LocalAlpha { get; private set; }
 
         public static SimPhase CurrentPhase { get; private set; } = SimPhase.None;
 
@@ -499,7 +507,7 @@ namespace MonoFSM.Core.Simulate
 #endif
         public static void ManualResetLevel() //Cheat Reset?
         {
-            PoolManager.Instance.ReturnAllObjects();
+
 
             Debug.Log("ResetLevel CMD+Shift+R");
             var simulators = FindObjectsByType<WorldUpdateSimulator>(FindObjectsSortMode.None);
@@ -510,6 +518,8 @@ namespace MonoFSM.Core.Simulate
                 );
             else
             {
+                foreach (var simulator in simulators)
+                    simulator._poolManager.ReturnAllObjects();
                 foreach (var simulator in simulators)
                     //這樣就可以reset了
                     simulator.ResetLevelRestore();
@@ -528,15 +538,21 @@ namespace MonoFSM.Core.Simulate
                 if (monoObject is { isActiveAndEnabled: true })
                 {
                     Profiler.BeginSample("Render", monoObject);
-                    monoObject.BeforeRender();
+                    monoObject.AfterRender();
                     Profiler.EndSample();
                 }
         }
 
-        public void Render(float runnerLocalRenderTime)
+        /// <summary>
+        /// runnerLocalRenderTime已經乘過 local Alpha了？
+        /// </summary>
+        /// <param name="runnerLocalRenderTime"></param>
+        /// <param name="localAlpha"></param>
+        public void Render(float runnerLocalRenderTime, float localAlpha)
         {
             if (!IsReady)
                 return;
+            LocalAlpha = localAlpha;
             CurrentPhase = SimPhase.Render;
             foreach (var monoObject in _monoObjectSet)
                 if (monoObject is { isActiveAndEnabled: true })
@@ -556,5 +572,19 @@ namespace MonoFSM.Core.Simulate
         }
 
         //可以把一些常用的先直接列出來？
+        public void AfterRender()
+        {
+            CurrentPhase = SimPhase.AfterRender;
+            foreach (var monoObject in _monoObjectSet)
+                if (monoObject is { isActiveAndEnabled: true })
+                {
+                    if (monoObject.IsRenderSimulatesNeeded)
+                    {
+                        Profiler.BeginSample("Render", monoObject);
+                        monoObject.AfterRender();
+                        Profiler.EndSample();
+                    }
+                }
+        }
     }
 }

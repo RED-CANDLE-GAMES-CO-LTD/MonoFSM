@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor.Animations;
+
 
 #if UNITY_EDITOR
+using UnityEditor.Animations;
 public static class AnimatorHelpler
 {
     /// <summary>

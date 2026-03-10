@@ -10,6 +10,7 @@ using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace MonoFSM.Core.Runtime.Action
 {
@@ -130,8 +131,17 @@ namespace MonoFSM.Core.Runtime.Action
 
         protected abstract void OnActionExecuteImplement();
 
-        [Obsolete]
-        protected virtual void OnSpriteUpdateImplement() { }
+        public void OnActionRender()
+        {
+            if (!IsValid) return;
+            Profiler.BeginSample("AbstractStateAction OnActionRender", this);
+            OnRenderImplement();
+            Profiler.EndSample();
+        }
+
+        protected virtual void OnRenderImplement()
+        {
+        }
 
         // public async void OnActionExit()
         // {

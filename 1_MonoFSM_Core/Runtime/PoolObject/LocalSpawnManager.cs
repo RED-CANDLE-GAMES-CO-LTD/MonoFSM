@@ -20,7 +20,7 @@ namespace MonoFSM.Runtime
         public MonoObj Spawn(MonoObj obj, Vector3 position, Quaternion rotation)
         {
             //FIXME: 還要做updateSimulator的註冊？
-            var newObj = PoolManager.Instance.BorrowOrInstantiate(obj, position, rotation);
+            var newObj = _worldUpdateSimulator.Pool.BorrowOrInstantiate(obj, position, rotation);
             _worldUpdateSimulator.AfterPoolSpawn(newObj);
             return newObj;
         }
@@ -31,7 +31,7 @@ namespace MonoFSM.Runtime
                 return;
             Debug.Log("LocalSpawnManager: Despawning object " + obj, this);
             // Return the object to the pool
-            PoolManager.Instance.ReturnToPool(obj);
+            _worldUpdateSimulator.Pool.ReturnToPool(obj);
         }
     }
 }

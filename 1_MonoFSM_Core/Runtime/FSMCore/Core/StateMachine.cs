@@ -43,7 +43,9 @@ namespace Fusion.Addons.FSM
         public float StateTime => _activeStateId >= 0 ? GetStateTime() : 0f;
         public int StateTicks => _activeStateId >= 0 ? GetStateTicks() : 0;
 
-        public TState ActiveState => _activeStateId >= 0 ? _states[_activeStateId] : null;
+        public TState ActiveState => _activeStateId >= 0 && _states.Length > _activeStateId
+            ? _states[_activeStateId]
+            : null;
         public TState PreviousState => _previousStateId >= 0 ? _states[_previousStateId] : null;
 
         public bool IsPaused
@@ -265,7 +267,18 @@ namespace Fusion.Addons.FSM
                 }
 
                 if (_activeStateId >= 0)
+                {
+                    if (ActiveState == null)
+                    {
+                        Debug.LogError(
+                            $"OnRender: Active state with ID {_activeStateId} not found in the state machine {Name}"
+                            , _logic);
+                        return;
+                    }
+
                     ActiveState.OnEnterStateRender();
+                }
+
 
                 _lastRenderStateId = _activeStateId;
                 _lastRenderStateChangeTick = _stateChangeTick;

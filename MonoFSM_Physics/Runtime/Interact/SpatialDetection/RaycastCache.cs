@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MonoDebugSetting;
 using MonoFSM_Physics.Runtime.Interact.SpatialDetection;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
@@ -134,13 +135,24 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
                 }
         }
 
+        Vector3 _prevHitPos;
+        Vector3 _currHitPos;
         public QueryTriggerInteraction _queryTriggerInteraction = QueryTriggerInteraction.Collide;
 
         private void TryCast()
         {
+            // 2. 在計算新的 HitPoint 之前，先把當前的存為上一幀
+            _prevHitPos = _currHitPos;
             var ray = _rayProvider.GetRay();
             CachedHits.Clear();
             _cachedRay.Value = ray;
+            if (_cachedRay.Value.direction == Vector3.zero)
+            {
+                if (RuntimeDebugSetting.IsDebugMode)
+                    Debug.LogWarning("Ray direction is zero, skipping raycast.", this);
+                return;
+            }
+
             transform.rotation = Quaternion.LookRotation(_cachedRay.Value.direction);
             if (_raycastMode == RaycastMode.Single)
             {
@@ -257,21 +269,20 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 #endif
         public void Render(float deltaTime)
         {
-            //fIXME: 從 camera來的 ray, 一定很晚，所以這邊都是上個 frame的？但上個frame會怎麼樣嗎？
-            // TryCast();
-
-            // Debug.Log("[RaycastCache] Render Ray:" + _cachedRay.RenderValue, this);
+            // 3. 在 Render 階段進行平滑過渡
+            // 這裡需要取得你網路引擎 (Fusion) 的 Interpolation Alpha
+            // 假設你可以從你的 FSM 或是直接從 Runner 拿到 LocalAlpha：
+            // float alpha = 0.5f; // FIXME: 替換成真正的 Runner.LocalAlpha 或 FSM 算出的 Alpha
+            //
+            // Vector3 interpolatedPos = Vector3.Lerp(_prevHitPos, _currHitPos, alpha);
+            //
+            // // 4. 只在 Render 階段更新這個 Transform，UI 跟著它就不會抖了
+            // if (_hitPosVarTransform != null && _hitPosVarTransform.Value != null)
+            // {
+            //     _hitPosVarTransform.Value.position = interpolatedPos;
+            // }
         }
 
-        private void Update()
-        {
-            // TryCast();
-        }
-
-        private void LateUpdate()
-        {
-            // TryCast();
-        }
 
         public void EnterSceneAwake()
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Auto.Utils;
 using Cysharp.Threading.Tasks;
+using Fusion;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
@@ -61,7 +62,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
     [ScriptTiming(-20000)]
     [DisallowMultipleComponent]
     [FormerlyNamedAs("MonoPoolObj")]
-    public sealed class MonoObj : MonoBehaviour, IPrefabSerializeCacheOwner, IDropdownRoot
+    public sealed class MonoObj : MonoBehaviour, IPrefabSerializeCacheOwner, IDropdownRoot,
+        ISceneAwake
     {
         [ShowInInspector]
         [field: AutoChildren] //Children? //FIXME: 要弄成必定同一層，還是因為MonoObj 包一層 FSM的case很多？
@@ -92,7 +94,10 @@ namespace MonoFSMCore.Runtime.LifeCycle
         // set => _worldUpdateSimulator = value;
         public void SetWorldUpdateSimulator(WorldUpdateSimulator world)
         {
-            // Debug.Log("SetWorldUpdateSimulator" + name, this);
+            // if (world == null)
+            //     Debug.Log("Clearing WorldUpdateSimulator" + name, this);
+            // else
+            //     Debug.Log("Set WorldUpdateSimulator" + name + " world:" + world, this);
             _worldUpdateSimulator = world;
         }
 
@@ -109,6 +114,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
                     "WorldUpdateSimulator is not set. Cannot despawn MonoPoolObj.",
                     this
                 );
+
+                Destroy(gameObject); //直接刪掉，因為沒有模擬器可以處理了
                 return;
             }
 
@@ -168,9 +175,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [PreviewInDebugMode]
         [AutoChildren]
         private IAfterSimulate[] _afterSimulates;
-
         [PreviewInDebugMode] [AutoChildren] private IRenderSimulate[] _renderSimulates;
-        [PreviewInDebugMode] [AutoChildren] private IBeforeRender[] _beforeRenders;
+        [PreviewInDebugMode] [AutoChildren] private IAfterRenderMono[] _afterRenders;
 
         // [PreviewInInspector]
         // [AutoChildren]
@@ -185,23 +191,41 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [PreviewInDebugMode]
         private MonoObj _parentObj;
 
-        [SerializeField]
+        [AutoChildren] MonoObj[]
+            _childrenObjs;
+
+        // [SerializeField]
         private WorldUpdateSimulator _worldUpdateSimulator;
 
         public bool HasParent => _parentObj != null; //有_parentObj就表示是nested的pool object，不作用，交給parent處理
 
         private void Awake()
         {
-            if (transform.parent != null)
-                _parentObj = transform.parent.GetComponentInParent<MonoObj>(true);
+            // Init();
+            //把 PrefabSerializeCache 的實作拿過來？
+        }
+
+        public void InitParentLinks()
+        {
+            foreach (var item in _childrenObjs)
+            {
+                if (item == null || item == this)
+                    continue;
+                item._parentObj = this;
+            }
+        }
+
+        void Init()
+        {
+            InitParentLinks();
+
             if (HasParent)
                 return;
-#if UNITY_EDITOR
-            AutoAttributeManager.AutoReferenceAllChildren(gameObject);
-#endif
+// #if UNITY_EDITOR
+//             AutoAttributeManager.AutoReferenceAllChildren(gameObject);
+// #endif
             SortUpdateSimulates();
             //FIXME: prefab cache restore?
-            //把 PrefabSerializeCache 的實作拿過來？
         }
 
         private void SortUpdateSimulates()
@@ -228,8 +252,10 @@ namespace MonoFSMCore.Runtime.LifeCycle
         public void SceneAwake(WorldUpdateSimulator world) //可以自己sceneＡwake吧？
         {
             SetWorldUpdateSimulator(world);
+            Init();
             if (HasParent)
                 return;
+
             HandleIAwake();
             //這可以嗎？
             HandleIInstantiated(world); //和IAwake合併？
@@ -358,8 +384,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
             if (HasParent)
                 return;
             //如果proxy就跳過？
-            if (IsProxy)
-                return;
+            // if (IsProxy)
+            //     return;
             //要在state machine之後嗎？還是要可以排順序？
             foreach (var item in _updateSimulates) //更新順序？誰先誰後？
             {
@@ -521,20 +547,24 @@ namespace MonoFSMCore.Runtime.LifeCycle
 #endif
         }
 
-        public void BeforeRender()
+        public void AfterRender()
         {
             if (HasParent)
                 return;
             // if (!IsProxy)
             //     return;
-            foreach (var item in _beforeRenders) //如果 render有順序問題就哭惹？
+            foreach (var item in _afterRenders) //如果 render有順序問題就哭惹？
             {
                 if (item is not { isActiveAndEnabled: true })
                     continue;
                 Profiler.BeginSample("MonoObj.Render", item.gameObject);
-                item.BeforeRender();
+                item.AfterRender();
                 Profiler.EndSample();
             }
+        }
+
+        public void EnterSceneAwake()
+        {
         }
     }
 }

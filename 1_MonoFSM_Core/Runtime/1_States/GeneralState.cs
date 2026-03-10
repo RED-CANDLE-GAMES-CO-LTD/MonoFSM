@@ -29,7 +29,7 @@ public class GeneralState : MonoStateBehaviour
 
     public bool HasTag(StateTag tag) => _stateTags.Contains(tag);
 
-    public float statusTimer => Machine.StateTime;
+    [ShowInInspector] public float statusTimer => Machine?.StateTime ?? -1f;
 
     public bool TryActivateState() //FIXME: 拿掉這個
     {
