@@ -400,7 +400,7 @@ namespace MonoFSM.Foundation
         [AutoParent]
         protected MonoEntity _self; //FIXME: 每個都要嗎？
 
-        public MonoEntity ParentEntity
+        public MonoEntity SelfEntity
         {
             get
             {

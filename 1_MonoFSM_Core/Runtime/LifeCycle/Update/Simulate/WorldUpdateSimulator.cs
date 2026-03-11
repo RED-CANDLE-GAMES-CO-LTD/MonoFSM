@@ -546,9 +546,9 @@ namespace MonoFSM.Core.Simulate
         /// <summary>
         /// runnerLocalRenderTime已經乘過 local Alpha了？
         /// </summary>
-        /// <param name="runnerLocalRenderTime"></param>
+        /// <param name="deltaTime"></param>
         /// <param name="localAlpha"></param>
-        public void Render(float runnerLocalRenderTime, float localAlpha)
+        public void Render(float deltaTime, float localAlpha)
         {
             if (!IsReady)
                 return;
@@ -560,7 +560,7 @@ namespace MonoFSM.Core.Simulate
                     if (monoObject.IsRenderSimulatesNeeded)
                     {
                         Profiler.BeginSample("Render", monoObject);
-                        monoObject.Render(runnerLocalRenderTime);
+                        monoObject.Render(deltaTime * localAlpha);
                         Profiler.EndSample();
                     }
                 }

@@ -41,11 +41,6 @@ namespace MonoFSM.Core.Runtime
         // This class can be used to define a schema for MonoEntity,
         // which can be used to map variables and components automatically.
         // It can also be used to define a schema for a specific entity type.
-        [Required]
-        [PreviewInInspector]
-        [AutoParent]
-        private MonoEntity _parentEntity;
-        public MonoEntity BindEntity => _parentEntity;
 
         //FIXME: 好像不需要？什麼時候會用到？
         //會 auto mapping?還是重撈就好？
@@ -56,13 +51,13 @@ namespace MonoFSM.Core.Runtime
         [Button]
         public void Mapping()
         {
-            if (_parentEntity == null)
+            if (SelfEntity == null)
             {
                 Debug.LogError("Parent Entity 為空，無法執行 Mapping", this);
                 return;
             }
 
-            if (_parentEntity.VariableFolder == null)
+            if (SelfEntity.VariableFolder == null)
             {
                 Debug.LogError("VariableFolder 為空，無法執行 Mapping", this);
                 return;
@@ -225,7 +220,7 @@ namespace MonoFSM.Core.Runtime
         private void SetVarWrapperVariable(FieldInfo wrapperField, VariableTag variableTag)
         {
             // 根據 tag 尋找對應的變數
-            var existingVar = _parentEntity.VariableFolder.GetVariable(variableTag);
+            var existingVar = _self.VariableFolder.GetVariable(variableTag);
 
             var wrapperInstance = wrapperField.GetValue(this);
             var varField = wrapperField.FieldType.GetField("_var");
@@ -252,7 +247,7 @@ namespace MonoFSM.Core.Runtime
                 {
 #if UNITY_EDITOR
                     // 變數不存在，創建新的變數
-                    var newVar = _parentEntity.VariableFolder.CreateVariableWithTag(
+                    var newVar = _self.VariableFolder.CreateVariableWithTag(
                         varField.FieldType,
                         variableTag
                     );
@@ -272,7 +267,7 @@ namespace MonoFSM.Core.Runtime
         private AbstractMonoVariable CreateVariableForField(FieldInfo field, string tagName)
         {
             // 使用 VariableFolder 的 CreateVariable 方法來創建變數
-            return _parentEntity.VariableFolder.CreateVariable(field.FieldType, tagName);
+            return _self.VariableFolder.CreateVariable(field.FieldType, tagName);
         }
 #endif
 

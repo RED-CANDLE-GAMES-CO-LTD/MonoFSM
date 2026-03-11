@@ -49,7 +49,7 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.Action
         public void ArgEventReceived(GeneralEffectHitData arg)
         {
             //把thisFrameCollider.parentEntity拿出來就好了?
-            var monoEntity = arg.GeneralReceiver.ParentEntity;
+            var monoEntity = arg.GeneralReceiver.SelfEntity;
             if (_targetList == null)
                 Debug.LogError("EffectHitListOperationAction: Target list is null", this);
             switch (_effectHitState)

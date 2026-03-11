@@ -37,10 +37,10 @@ public class CreateCustomAssetWindow : EditorWindow
         }
 
         var items = MenuWrapper.Instance.ExtractSubmenus("Assets/Create");
-        foreach (var item in items)
-        {
-            Debug.Log(item);
-        }
+        // foreach (var item in items)
+        // {
+        //     Debug.Log(item);
+        // }
 
 
         var popup = CreateInstance<CreateCustomAssetWindow>();

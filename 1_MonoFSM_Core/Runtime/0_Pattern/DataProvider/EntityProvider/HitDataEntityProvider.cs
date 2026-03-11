@@ -48,10 +48,10 @@ public class HitDataEntityProvider : AbstractEntityProvider, IEntityValueProvide
             {
                 case HitDataVariableOwner.Dealer:
                     // Debug.Log(" HitDataVariableOwner.DealerOwner", hitData.Dealer.transform);
-                    return hitData.GeneralDealer.ParentEntity;
+                    return hitData.GeneralDealer.SelfEntity;
                 case HitDataVariableOwner.Receiver:
                     // Debug.Log(" HitDataVariableOwner.ReceiverOwner", hitData.Receiver.transform);
-                    return hitData.GeneralReceiver.ParentEntity;
+                    return hitData.GeneralReceiver.SelfEntity;
                 default:
                     throw new NotImplementedException();
             }

@@ -8,7 +8,7 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.ValueGetter
     public class GetBestMatchEntityFromDealer : AbstractValueSource<MonoEntity>
     {
         public override string Description => "GetBestMatch:" + _effectDealer.EffectType;
-        public override MonoEntity Value => _effectDealer?.BestMatchReceiver?.ParentEntity;
+        public override MonoEntity Value => _effectDealer?.BestMatchReceiver?.SelfEntity;
 
         [Required]
         [DropDownRef]

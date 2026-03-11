@@ -10,7 +10,7 @@ namespace MonoFSM_Physics.Runtime
         //FIXME: 第一個 frame 的effectDetector的raycast 是錯的喔！
         protected override void OnActionExecuteImplement()
         {
-            var schema = ParentEntity.GetSchema<ProjectileSchema>();
+            var schema = SelfEntity.GetSchema<ProjectileSchema>();
             var initVel = schema._initVel.Value;
             var rb = schema._rigidbody;
             var oriRbVel = rb.linearVelocity;

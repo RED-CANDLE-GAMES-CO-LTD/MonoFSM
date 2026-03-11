@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime.Vote;
 using MonoFSM.Variable.Attributes;
@@ -31,7 +32,7 @@ namespace MonoFSM.Core.Runtime.Action
     {
         // public MonoEntity ParentEntity => GetComponentInParent<MonoEntity>();
         // public MonoEntity ParentEntity => bindingState.ParentEntity;
-        public float DeltaTime => bindingState.DeltaTime;
+        public float DeltaTime => WorldUpdateSimulator.DeltaTime;
 
         // protected override bool HasError()
         // {
@@ -63,7 +64,7 @@ namespace MonoFSM.Core.Runtime.Action
         [AutoParent]
         // [SerializeField]
         //FIXME: 要做 DepthOnly1嗎？
-        protected AbstractEventHandler _actionParent;
+        protected IActionParent _actionParent;
 
         [HideInInlineEditors]
         // #if UNITY_EDITOR

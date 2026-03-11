@@ -436,7 +436,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
             }
         }
 
-        public void Render(float runnerLocalRenderTime)
+        public void Render(float deltaTimelocalAlpha)
         {
             if (HasParent)
                 return;
@@ -447,7 +447,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 if (item is not { isActiveAndEnabled: true })
                     continue;
                 Profiler.BeginSample("MonoObj.Render", item.gameObject);
-                item.Render(runnerLocalRenderTime);
+                item.Render(deltaTimelocalAlpha);
                 Profiler.EndSample();
             }
         }

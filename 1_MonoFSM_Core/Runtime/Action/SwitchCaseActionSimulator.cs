@@ -1,17 +1,18 @@
 using MonoFSM.Core.Simulate;
+using MonoFSM.Foundation;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action
 {
-    public class SwitchCaseActionSimulator : AbstractEventHandler, IUpdateSimulate
+    public class SwitchCaseActionSimulator : AbstractDescriptionBehaviour, IUpdateSimulate
     {
         protected override string DescriptionTag => "Switch Simulate";
 
         public override string Description => $"Switch ({_mode})";
 
         [SerializeField] private SwitchMode _mode = SwitchMode.FirstMatch;
-
+        
         [AutoChildren(DepthOneOnly = true)] [CompRef]
         private SwitchCase[] _cases;
 

@@ -77,7 +77,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             // Debug.Log("OnEffectHitEnter", this);
             this.Log("OnHitEnter");
             _currentHitData = data as GeneralEffectHitData;
-            var dealerEntity = _currentHitData.GeneralDealer.ParentEntity;
+            var dealerEntity = _currentHitData.GeneralDealer.SelfEntity;
             _enterNode?._hittingEntity?.SetValue(dealerEntity, this);
             _enterNode?.EventHandle(_currentHitData);
 

@@ -78,8 +78,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             foreach (var condition in _interactConditions)
             {
-                condition._sourceEntity = detector.ParentEntity;
-                condition._targetEntity = ParentEntity;
+                condition._sourceEntity = detector.SelfEntity;
+                condition._targetEntity = SelfEntity;
             }
 
             // return;

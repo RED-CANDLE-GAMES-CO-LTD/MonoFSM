@@ -363,7 +363,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4997399105159172882}
-  - component: {fileID: 5996834056165967361}
   - component: {fileID: 2955636019488182533}
   m_Layer: 0
   m_Name: ViewRoot
@@ -387,20 +386,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4855796471514997125}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5996834056165967361
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3801494400675193616}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: da00e78b230681a4996b6835aab48404, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: MonoFSM.Core.Runtime::Note
-  _noteType: 0
-  note: "\u8981\u4E00\u500BViewRoot class"
 --- !u!114 &2955636019488182533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -413,6 +398,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0dc0ab7e06344b36b31e9cbea2899b15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.MonoData.ViewRoot
+  _note: 
+  _ignoreReparent: 0
 --- !u!1 &4082089536309548135
 GameObject:
   m_ObjectHideFlags: 0
@@ -492,7 +479,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75a0d43424054f1abaf0be3b2bedd912, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _worldUpdateSimulator: {fileID: 0}
   _onResetStartHandler: {fileID: 0}
 --- !u!1 &4619145615866190664
 GameObject:

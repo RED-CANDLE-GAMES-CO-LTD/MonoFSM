@@ -11,7 +11,7 @@ namespace MonoFSM_Physics.Runtime
 
         protected override void OnActionExecuteImplement()
         {
-            var rb = ParentEntity.GetSchema<ProjectileSchema>()._rigidbody;
+            var rb = SelfEntity.GetSchema<ProjectileSchema>()._rigidbody;
             if (rb == null || rb.isKinematic)
                 return;
             var v = rb.linearVelocity;
