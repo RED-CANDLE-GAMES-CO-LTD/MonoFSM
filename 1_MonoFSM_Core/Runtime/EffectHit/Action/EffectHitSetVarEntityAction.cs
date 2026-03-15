@@ -53,8 +53,8 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.Action
             //FIXME: 不一定是Receiver啊...
             var monoEntity =
                 _effectHitTarget == EffectHitTarget.Receiver
-                    ? arg.GeneralReceiver.SelfEntity
-                    : arg.GeneralDealer.SelfEntity;
+                    ? arg.GeneralReceiver.BindEntity
+                    : arg.GeneralDealer.BindEntity;
             if (_targetVar == null)
             {
                 Debug.LogError("EffectHitSetVarEntityAction: Target variable is null", this);

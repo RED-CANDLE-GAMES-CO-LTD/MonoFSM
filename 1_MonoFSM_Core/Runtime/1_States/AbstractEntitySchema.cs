@@ -51,13 +51,13 @@ namespace MonoFSM.Core.Runtime
         [Button]
         public void Mapping()
         {
-            if (SelfEntity == null)
+            if (BindEntity == null)
             {
                 Debug.LogError("Parent Entity 為空，無法執行 Mapping", this);
                 return;
             }
 
-            if (SelfEntity.VariableFolder == null)
+            if (BindEntity.VariableFolder == null)
             {
                 Debug.LogError("VariableFolder 為空，無法執行 Mapping", this);
                 return;

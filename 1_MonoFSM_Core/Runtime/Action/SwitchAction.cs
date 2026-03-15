@@ -1,4 +1,5 @@
 using MonoFSM.Core.Attributes;
+using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ namespace MonoFSM.Core.Runtime.Action
         [SerializeField]
         private SwitchMode _mode = SwitchMode.FirstMatch;
 
+        [CompRef]
         [AutoChildren(DepthOneOnly = true)]
         private SwitchCase[] _cases;
 

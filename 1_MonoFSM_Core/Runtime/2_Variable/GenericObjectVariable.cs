@@ -258,7 +258,7 @@ namespace MonoFSM.Variable
                 }
             }
 
-            if (HasValueProvider) //FIXME: 和field 分開寫很鳥?
+            if (HasValueSource) //FIXME: 和field 分開寫很鳥?
             {
                 _valueDebugStatus = "Resolving from ValueProvider";
                 // Profiler.BeginSample("GetValueFromProvider" + valueSource);

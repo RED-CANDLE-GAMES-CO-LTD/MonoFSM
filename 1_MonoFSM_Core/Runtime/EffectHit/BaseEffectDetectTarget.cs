@@ -24,6 +24,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             }
         }
 
+        [GUIColor(0.4f, 0.8f, 0.5f)]
         [ShowInInspector]
         [Required]
         [AutoParent] private EffectDetectable _detectable;

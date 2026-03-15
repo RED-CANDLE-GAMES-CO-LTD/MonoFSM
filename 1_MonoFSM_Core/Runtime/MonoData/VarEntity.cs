@@ -34,7 +34,7 @@ namespace MonoFSM.Runtime.Variable
         {
             get
             {
-                var isProxy = HasValueProvider;
+                var isProxy = HasValueSource;
                 // Debug.Log("Get EntityTag from VarEntity isProxy:" + isProxy);
                 if (isProxy && valueSource is IEntityValueProvider entityValueSource)
                     return entityValueSource.entityTag;

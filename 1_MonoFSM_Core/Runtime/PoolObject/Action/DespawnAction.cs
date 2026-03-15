@@ -14,15 +14,12 @@ namespace MonoFSM.Runtime.ObjectPool
     /// </summary>
     public class DespawnAction : AbstractArgEventHandler<GeneralEffectHitData>
     {
-        [HideIf(nameof(_effectResolver))] [Required] [PreviewInInspector] [AutoParent]
-        private MonoObj _object;
-
         public EffectHitTarget _despawnTarget = EffectHitTarget.Receiver;
 
         protected override void OnActionExecuteImplement()
         {
-            // Debug.Log("ReturnToPoolAction", this);
-            _object.Despawn();
+            Debug.Log("DespawnAction", this);
+            _parentObj.Despawn();
             // WorldUpdateSimulator.CurrentTick
         }
 

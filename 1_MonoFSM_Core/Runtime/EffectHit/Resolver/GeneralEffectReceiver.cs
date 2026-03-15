@@ -20,10 +20,27 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             transform.localPosition = Vector3.zero;
         }
 
+        public override void ResetStateRestore()
+        {
+            base.ResetStateRestore();
+            _dealers.Clear();
+#if UNITY_EDITOR
+            _lastHitData = null;
+            _detectData = null;
+            _currentHitData = null;
+#endif
+        }
+
         //module不會有耶
         // [Component(AddComponentAt.Parent)]
-        [PreviewInInspector] [Required] [AutoParent]
+        [Required] [AutoParent]
         private EffectDetectable _detectable; //不一定是，IEffectDetectable?
+
+        [GUIColor(0.3f, 0.9f, 0.3f)]
+        [PreviewInInspector]
+        public EffectDetectable Detectable => _detectable?._bindingRoot != null
+            ? _detectable._bindingRoot as EffectDetectable
+            : _detectable;
 
         [Header("Best Match Settings")]
         [Tooltip("當 EffectType 設定為只觸發最佳匹配時，此值越高優先級越高")]
@@ -33,6 +50,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         // public  ValueSource; //FIXME: 拿來做什麼？
 
         //FIXME: 從GeneralEffectHitData？
+        //FIXME: 太多進入點了吧
         public GeneralEffectHitData GenerateEffectHitData(
             IEffectDealer dealer,
             BaseEffectDetectTarget receiverSourceObj
@@ -77,7 +95,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             // Debug.Log("OnEffectHitEnter", this);
             this.Log("OnHitEnter");
             _currentHitData = data as GeneralEffectHitData;
-            var dealerEntity = _currentHitData.GeneralDealer.SelfEntity;
+            var dealerEntity = _currentHitData.GeneralDealer.BindEntity;
             _enterNode?._hittingEntity?.SetValue(dealerEntity, this);
             _enterNode?.EventHandle(_currentHitData);
 
@@ -89,6 +107,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         public bool HasDealerOverlap => _dealers.Count > 0;
 
+        //FIXME: 會殘留...
         [GUIColor(0.3f, 0.9f, 0.3f)]
         [PreviewInInspector]
         private HashSet<GeneralEffectDealer> _dealers = new();
@@ -110,7 +129,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             this.Log("OnHitExit");
             _dealers.Remove(data.Dealer as GeneralEffectDealer);
-            _exitNode?.EventHandle(data as GeneralEffectHitData);
+            _exitNode?.EventHandle(data);
             _currentHitData = null;
             //FIXME: 要清掉 _hittingEntity 嗎？那好像不要放在enterNODe耶...而且
             //每個Dealer都要call好煩喔

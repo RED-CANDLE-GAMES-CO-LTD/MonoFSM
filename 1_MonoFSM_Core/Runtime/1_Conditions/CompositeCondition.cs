@@ -18,9 +18,14 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions
             _ => Color.white
         };
 
+        protected override bool HasError()
+        {
+            return base.HasError() || (_conditions == null || _conditions.Length < 1);
+        }
+
         [AutoChildren(DepthOneOnly = true, _isSelfInclude = false)]
         [CompRef]
-        [RequiredListLength(2, null)]
+        [RequiredListLength(1, null)]
         //可以是warning嗎？
         private AbstractConditionBehaviour[] _conditions;
 
@@ -30,6 +35,8 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions
         {
             get
             {
+                if (isActiveAndEnabled == false) //沒有開起來不算
+                    return false;
                 if (_conditions == null || _conditions.Length == 0)
                     return true;
 

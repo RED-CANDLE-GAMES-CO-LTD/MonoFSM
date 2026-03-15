@@ -21,12 +21,12 @@ namespace MonoFSM.Core
         where Tu : IValueOfKey<T>
         where T : IEquatable<string>
     {
+        [ShowInInspector] public MonoDict<T, Tu> _bindingRoot;
         protected virtual bool isLog => false;
 
         //如果在autoReference 之前就不會進來...hmmm!?
         //有點討厭：spawned, player spawned (自己做reference & sceneAwake?), SceneAwake, SceneStart (並沒有拿到player)
-        [CompRef]
-        [AutoChildren(DepthOneOnly = true)]
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
         // [SerializeField]
         protected Tu[] _collections; //disable也會被加進來
 
@@ -113,6 +113,7 @@ namespace MonoFSM.Core
                 Debug.LogWarning($"Key:{key} can't be added in {this}", this);
                 return;
             }
+
             if (Contains(key))
             {
                 //FIXME: 不確定要怎麼處理, mono tag一定會撞ㄅ
@@ -159,6 +160,7 @@ namespace MonoFSM.Core
                 Debug.LogError($"GetFrom {type} Dict, Not prepared", this);
                 return default;
             }
+
             //FIXME: 做得有點粗，要細再想一下
             var set = _typeDict.GetValueOrDefault(type);
             if (set != null && set.Count > 0)
@@ -196,6 +198,7 @@ namespace MonoFSM.Core
                 Debug.LogError($"GetFrom {key} Dict, Not prepared", this);
                 return default;
             }
+
             //FIXME:
             return _dict.GetValueOrDefault(key);
             // Debug.LogError($"Key:{key} not found in {this}",this);
@@ -248,6 +251,10 @@ namespace MonoFSM.Core
             }
 
             _dict.Clear();
+        }
+
+        protected virtual void AddFailImplement(Tu item)
+        {
         }
 
         protected abstract void AddImplement(Tu item);
@@ -312,7 +319,9 @@ namespace MonoFSM.Core
                 {
                     if (isLog)
                         Debug.Log($"Can't add {item}", item as Object);
+                    AddFailImplement(item);
                     continue;
+
                 }
 
                 Add(item.Key, item);

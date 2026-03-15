@@ -31,10 +31,7 @@ public class GeneralState : MonoStateBehaviour
 
     [ShowInInspector] public float statusTimer => Machine?.StateTime ?? -1f;
 
-    public bool TryActivateState() //FIXME: 拿掉這個
-    {
-        return Machine.TryActivateState(this);
-    }
+
 
     [Button("強制跳State (無視條件)")]
     private void TestGoToState()

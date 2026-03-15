@@ -35,14 +35,14 @@ namespace MonoFSM.Variable
             return ValueResolver.GetActiveValueSource(_valueSources, this);
         }
 
-        protected override bool HasValueProvider
+        protected override bool HasValueSource
         {
             get
             {
                 // Debug.Log("Check HasValueProvider in TypedMonoVariable");
                 AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_valueSources));
                 // Debug.Log("_valueSources.length" + _valueSources.Length);
-                return ValueResolver.HasValueProvider(_valueSources) || base.HasValueProvider;
+                return ValueResolver.HasValueProvider(_valueSources) || base.HasValueSource;
             }
         }
 

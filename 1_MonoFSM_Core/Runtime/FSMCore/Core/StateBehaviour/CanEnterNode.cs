@@ -6,6 +6,7 @@ namespace MonoFSM_Core.Runtime.StateBehaviour
     //怪怪的？如果只有一個進入條件？
     public class CanEnterNode : CompositeCondition, IHierarchyValueInfo //抽成一種ConditionNode? Decision Node? 和CompositionCondition根本一樣？
     {
+
         // [Tooltip("選擇條件組合的邏輯操作：AND (所有條件都必須滿足) 或 OR (至少一個條件滿足)")] [LabelText("操作類型")]
         // public CompositeOperationType _operationType = CompositeOperationType.And;
         //

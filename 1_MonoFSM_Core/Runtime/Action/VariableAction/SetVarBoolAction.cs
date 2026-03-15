@@ -38,7 +38,7 @@ namespace MonoFSM.Variable
             // return items;
         }
 
-        public bool IsVarExternal => _target?.SelfEntity != SelfEntity;
+        public bool IsVarExternal => _target?.BindEntity != BindEntity;
 
         [Required]
         //有辦法判斷不是
@@ -93,7 +93,7 @@ namespace MonoFSM.Variable
             SetValue(arg);
         }
 
-        public string ValueInfo => "Cross Ref:" + _target.SelfEntity.name; //highlight顏色？
+        public string ValueInfo => "Cross Ref:" + _target.BindEntity.name; //highlight顏色？
         public bool IsDrawingValueInfo => _target != null && IsVarExternal;
     }
 

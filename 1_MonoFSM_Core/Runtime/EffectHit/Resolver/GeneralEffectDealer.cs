@@ -93,17 +93,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         public bool CanHitReceiver(IEffectReceiver receiver)
         {
+            SetFailReason("Check");
             if (receiver == null)
             {
                 SetFailReason("Receiver is null");
+                // Debug.LogError("Receiver is null", this);
+                // Debug.Break();
                 return false;
             }
-            // if (!IsValid)
-            // {
-            //     return false;
-            // }
-            SetFailReason("Check");
-
             var r = (GeneralEffectReceiver)receiver;
             if (r._effectType != _effectType)
             {
@@ -241,7 +238,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (_proxyProvider != null)
                 proxyDealer.OnHitEnter(_currentHitData, detectData);
 
-            var receiverEntity = _currentHitData.GeneralReceiver.SelfEntity;
+            var receiverEntity = _currentHitData.GeneralReceiver.BindEntity;
             _enterNode?._hittingEntity?.SetValue(receiverEntity, this); //要先做
             _enterNode?.EventHandle(_currentHitData);
 
@@ -267,7 +264,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
             _exitNode?.EventHandle(data as GeneralEffectHitData);
             _receivers.Remove((GeneralEffectReceiver)data.Receiver);
-            _hittingEntities.Remove(hitData.GeneralReceiver.SelfEntity);
+            _hittingEntities.Remove(hitData.GeneralReceiver.BindEntity);
         }
 
         protected override string TypeTag => "Dealer";

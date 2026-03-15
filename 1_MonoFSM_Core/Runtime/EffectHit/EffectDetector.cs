@@ -59,7 +59,7 @@ namespace MonoFSM.Core.Detection
         : AbstractDescriptionBehaviour,
             IDefaultSerializable,
             IUpdateSimulate,
-            IDropdownRoot
+            IDropdownRoot, IResetStateRestore
     {
 
         //FIXME: 這個不好...會以為可以改name結果又跑掉？
@@ -221,14 +221,15 @@ namespace MonoFSM.Core.Detection
         {
             if (!IsValid || _detectionSources == null || _manualEffectDetectAction != null)
                 return;
-            DetectCheck();
+            DetectUpdateCheck();
         }
 
         [ShowInDebugMode]
         float _lastDetectCheckTime = 0f;
 
         [AutoParent] MonoContext _monoContext;
-        public void DetectCheck()
+
+        public void DetectUpdateCheck()
         {
             if (_monoContext == null)
             {
@@ -457,6 +458,10 @@ namespace MonoFSM.Core.Detection
 
                 this.Log($"Processing dealer: {dealer.name}");
                 var receiver = detectData.detectable.Get(dealer._effectType);
+                if (receiver == null)
+                {
+                    continue;
+                }
                 if (!dealer.CanHitReceiver(receiver))
                     continue;
 
@@ -543,5 +548,12 @@ namespace MonoFSM.Core.Detection
         // }
 
         protected override string DescriptionTag => "Detector";
+
+        public void ResetStateRestore()
+        {
+            //用不到？
+            _lastDetectedObjects.Clear();
+            _thisFrameDetectedObjects.Clear();
+        }
     }
 }

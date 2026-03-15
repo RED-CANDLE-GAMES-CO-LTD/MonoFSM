@@ -16,7 +16,7 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.Action
 
         protected override void OnActionExecuteImplement()
         {
-            _effectDetector.DetectCheck();
+            _effectDetector.DetectUpdateCheck();
         }
 
         public void EnterSceneAwake()

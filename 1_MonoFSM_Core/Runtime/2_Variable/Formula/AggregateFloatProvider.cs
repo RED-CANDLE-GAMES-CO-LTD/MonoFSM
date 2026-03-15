@@ -2,6 +2,7 @@ using System;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Variable;
+using MonoFSM.Foundation;
 using MonoFSM.Runtime;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
@@ -10,7 +11,7 @@ using UnityEngine;
 namespace MonoFSM.Core.Formula
 {
     //不同種valueProvider的聚合計算
-    public class AggregateFloatProvider : MonoBehaviour, IFloatProvider
+    public class AggregateFloatProvider : AbstractValueSource<float>
     {
         public enum AggregationType
         {
@@ -33,6 +34,7 @@ namespace MonoFSM.Core.Formula
 
         public VarList<MonoEntity> _monoEntityList;
 
+        [ShowInInspector] public int ItemCount => _monoEntityList?.Value?.Count ?? 0;
         //用VarListEntity?
 
         [SerializeField]
@@ -44,8 +46,7 @@ namespace MonoFSM.Core.Formula
         [SerializeField]
         private AggregationType _operation = AggregationType.Sum;
 
-        [ShowInPlayMode]
-        public float Value => GetValue();
+        public override float Value => GetValue();
 
         public float GetValue()
         {

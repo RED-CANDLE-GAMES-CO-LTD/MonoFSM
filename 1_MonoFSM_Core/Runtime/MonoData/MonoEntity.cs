@@ -61,6 +61,18 @@ namespace MonoFSM.Runtime
 
         public ViewRoot ViewRoot => _viewRoot;
 
+        // public void MountViewRoot(Transform mountPoint)
+        // {
+        //     if (_viewRoot != null)
+        //         _viewRoot.SetFollowTarget(mountPoint);
+        // }
+
+        public void UnmountViewRoot()
+        {
+            if (_viewRoot != null)
+                _viewRoot.ClearFollowTarget();
+        }
+
         [AutoChildren]
         private StateMachineLogic _fsmLogic;
 

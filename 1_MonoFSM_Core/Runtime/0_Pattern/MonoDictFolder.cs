@@ -45,16 +45,10 @@ namespace MonoFSM.Core
             if (dict != null && !_externalDicts.Contains(dict) && dict != this)
             {
                 _externalDicts.Add(dict);
-                // foreach (var item in dict.Collections)
-                // {
-                //     AddExternalImplement(item);
-                // }
+                dict._bindingRoot =
+                    this; //讓外部dict知道它被綁定到這個folder了，這樣就可以在Get裡面往上找bindingRoot拿到folder的external dicts
             }
         }
-
-        // protected virtual void AddExternalImplement(Tu item)
-        // {
-        // }
 
         public void RemoveExternalDict(MonoDict<T, Tu> dict)
         {
@@ -62,13 +56,13 @@ namespace MonoFSM.Core
                 _externalDicts.Remove(dict);
         }
 
-        public void AddExternalSource(object source)
+        public virtual void AddExternalSource(object source)
         {
             if (source is MonoDict<T, Tu> dict)
                 AddExternalDict(dict);
         }
 
-        public void RemoveExternalSource(object source)
+        public virtual void RemoveExternalSource(object source)
         {
             if (source is MonoDict<T, Tu> dict)
                 RemoveExternalDict(dict);
@@ -177,6 +171,7 @@ namespace MonoFSM.Core
         //     return GetWithExternal(dict => dict.Get(key));
         // }
 
+        //FIXME: external folder不會跑這個喔
         protected override void AddImplement(Tu item)
         {
         }

@@ -264,7 +264,7 @@ namespace EditorTool
             // string[] allProjectFlags = AssetDatabase.FindAssets("t:GameFlagBase", new[] { "Assets/10_Flags" });
             for (var i = 0; i < allProjectFlags.Length; i++)
             {
-                Debug.Log("Find Flag:" + i + "/" + allProjectFlags.Length);
+                // Debug.Log("Find Flag:" + i + "/" + allProjectFlags.Length);
                 var path = AssetDatabase.GUIDToAssetPath(allProjectFlags[i]);
                 //這步驟感覺有點貴...只弄一個folder?或是篩選一層類別？
                 var flag = AssetDatabase.LoadAssetAtPath<AbstractSOConfig>(path);

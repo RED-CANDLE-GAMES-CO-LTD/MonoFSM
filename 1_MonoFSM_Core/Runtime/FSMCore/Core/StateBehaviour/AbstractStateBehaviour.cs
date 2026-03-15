@@ -4,8 +4,10 @@ using Fusion.Addons.FSM;
 using MonoFSM_Core.Runtime.StateBehaviour;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Editor;
+using MonoFSM.Foundation;
 using MonoFSM.Runtime;
 using MonoFSM.Variable.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
 #endif
@@ -29,8 +31,17 @@ namespace MonoFSM.Core
         public float StateTime => _localStateTime;
         private float _localStateTime;
 
-        public StateMachineLogic context => _folder.bindingContext;
-        [AutoParent] private StateFolder _folder;
+        [AutoParent] MonoFSMOwner _owner;
+
+        protected StateMachineLogic context => _parentfolder.bindingRootFolder
+            ? _parentfolder.bindingRootFolder.bindingContext
+            : _parentfolder.bindingContext;
+
+        StateFolder bindingFolder => _parentfolder.bindingRootFolder
+            ? _parentfolder.bindingRootFolder
+            : _parentfolder;
+
+        [AutoParent] protected StateFolder _parentfolder;
 
 
         public MonoEntity ParentEntity =>
@@ -107,7 +118,13 @@ namespace MonoFSM.Core
                 return false;
             if (_canEnterNode == null)
                 return true;
-            return _canEnterNode.FinalResult;
+            var result = _canEnterNode.FinalResult;
+            if (result)
+            {
+                this.Log("Can Enter State: ", Name);
+            }
+
+            return result;
         }
 
         protected virtual bool CanExitState(TState nextState)
@@ -153,31 +170,42 @@ namespace MonoFSM.Core
                     if (!t.isActiveAndEnabled)
                         continue;
 
-                    if (CanTransition(ref t._transitionData) == true)
+                    if (CanTransition(ref t._transitionData))
                     {
                         //try catch 抓問題？
+                        _lastTransition = t;
                         if (Machine.TryActivateState(t.TargetState))
                             return;
                     }
                 }
 
             //anyState? 放最後？其他優先嗎
-            if (context.anyState != null)
+            foreach (var anyState in bindingFolder.AllAnyStates)
             {
-                var transitions = context.anyState._transitions;
+                var transitions = anyState._transitions;
                 foreach (var t in transitions)
                 {
                     if (!t.isActiveAndEnabled)
                         continue;
-                    if (context.anyState.CanTransition(ref t._transitionData))
-                        // Debug.Log($"[{Name}] ForceActivateState to {transition.TargetState.Name}", this);
+                    if (anyState.CanTransition(ref t._transitionData))
+                    {
+                        if (t.TargetState == this)
+                            continue; //anyState不應該轉自己，避免無限迴圈)
+                        Debug.Log($"anyState ForceActivateState to {t.TargetState.Name} with " + t,
+                            t);
+                        _lastTransition = t;
                         if (Machine.TryActivateState(t.TargetState))
                             return;
+                    }
+
                 }
             }
 
             OnFixedUpdate();
         }
+#if UNITY_EDITOR
+        [ShowInInspector] AbstractDescriptionBehaviour _lastTransition = null;
+#endif
 
         bool IState.CanExitState(IState nextState, bool isExplicitDeactivation)
         {

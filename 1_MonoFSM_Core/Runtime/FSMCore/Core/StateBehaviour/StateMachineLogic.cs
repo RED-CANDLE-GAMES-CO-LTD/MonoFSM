@@ -71,8 +71,8 @@ namespace Fusion.Addons.FSM
         //FIXME: 這個只有 fusion的會去restore?
         public int stateIdToRestore = -1;
 
-        [AutoChildren]
-        public AnyState anyState;
+        //FIXME: module pack也要？
+        // [AutoChildren] public AnyState anyState;
 
         [PreviewInDebugMode]
         public bool _stateMachinesCollected { get; protected set; }

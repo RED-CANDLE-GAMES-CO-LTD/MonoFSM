@@ -205,7 +205,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     //FIXME: 這個可以cache嗎...
 #endif
 
-    private bool HasLocalField => _bindData != null || HasValueProvider;
+    private bool HasLocalField => _bindData != null || HasValueSource;
 
     // [MCPExtractable]
     [FormerlySerializedAs("localField")]
@@ -214,7 +214,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     [HideIf(nameof(HasLocalField))]
     public TField _localField; // = new();
 
-    protected override bool HasValueProvider => _valueSources is { Length: > 0 };
+    protected override bool HasValueSource => _valueSources is { Length: > 0 };
 
     //這個值會被蓋掉???
 
@@ -463,6 +463,12 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         // Debug.Log("[Variable] Set" + value + "tempValue:" + tempValue + ", Value:" + CurrentValue, byWho);
         if (EqualityComparer<TType>.Default.Equals(tempValue, CurrentValue))
             return (false, tempValue); //沒有變化就不需要處理
+
+        if (valueSource is IValueSettable<TType> settableSource)
+        {
+            settableSource.SetValue(tempValue, byWho, null);
+            return (true, tempValue);
+        }
 
         // Profiler.BeginSample("Field SetCurrentValue");
         Field.SetCurrentValue(tempValue, byWho);

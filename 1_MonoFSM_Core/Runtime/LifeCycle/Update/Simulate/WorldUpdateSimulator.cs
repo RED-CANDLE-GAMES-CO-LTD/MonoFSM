@@ -196,6 +196,7 @@ namespace MonoFSM.Core.Simulate
         {
             if (obj == null)
                 return;
+            Debug.Log($"[DespawnImmediate] Processing despawn for: {obj.name}", obj);
             _spawnProcessor.Despawn(obj);
             UnregisterMonoObject(obj);
         }

@@ -39,7 +39,7 @@ namespace MonoFSM.Variable
             IDropdownRef,
             IValueGetter
     {
-        protected override string DescriptionTag => "Var";
+        protected override string DescriptionTag => HasValueSource ? "Getter" : "Var";
 
 #if UNITY_EDITOR
         [CompRef] [AutoChildren] DebugWorldSpaceLabel _debugWorldSpaceLabel;
@@ -52,6 +52,8 @@ namespace MonoFSM.Variable
         [AutoParent(includeSelf: false)] //不可以抓到自己！
         protected VarEntity _parentVarEntity; //我的parent如果有VarEntity, 去跟這個entity拿？
 
+        //varref
+        [GUIColor(0.4f, 1f, 0.4f)]
         [Header("Variable Reference, 從 Parent Entity 拿 Variable")]
         [ShowIf(nameof(HasParentVarEntity))]
         [ShowInInspector]
@@ -223,7 +225,7 @@ namespace MonoFSM.Variable
         protected bool IsHidingVarTag => _variableFolder == null && HasParentVarEntity == false; //local var就失敗耶...hmm
 
         protected bool IsHidingDefaultValue =>
-            HasValueProvider || HasParentVarEntity || _variableFolder == null;
+            HasValueSource || HasParentVarEntity || _variableFolder == null;
 
         //是一種Object Member的概念？
         [HideIf(nameof(IsHidingVarTag))]
@@ -630,6 +632,7 @@ namespace MonoFSM.Variable
 
         public override string Description => _varTag != null ? _varTag.name : ReformatedName;
 
+
         // set => description = value;
 
         //包進去override會爆掉捏
@@ -641,20 +644,23 @@ namespace MonoFSM.Variable
 
         [ShowInInspector] //FIXME: 這個show的話，可能會造成 value 重運算
         public abstract bool IsValueExist { get; }
-        protected virtual bool HasValueProvider => false;
+
+        protected virtual bool HasValueSource => false;
 
         [InfoBox(
             "此變數會使用 ValueProvider 或 Parent VarEntity 的值，無法設定預設值"
         )]
         [ShowInInspector]
         protected virtual bool HasProxyValue =>
-            HasValueProvider || (HasParentVarEntity && IsValueExist);
+            HasValueSource || (HasParentVarEntity && varRef != null);
+
 
         public VariableTag[] GetKeys()
         {
             return new[] { _varTag };
         }
 
+        //FIXME: 好像不該 override renmae? 應該是 override Description
         protected override void Rename()
         {
             //FIXME: 直接把繼承來的邏輯override掉囉
@@ -662,6 +668,7 @@ namespace MonoFSM.Variable
             UpdateTag();
             if (_varTag == null)
             {
+                base.Rename();
                 //     if (RuntimeDebugSetting.IsDebugMode)
                 //         Debug.LogError("No VarTag: " + this, this);
                 //FIXME: 自動改名的做法，從 field 的名字來 rename? ex: VarEntity下的VarFloat? 還是應該要繼續用tag?

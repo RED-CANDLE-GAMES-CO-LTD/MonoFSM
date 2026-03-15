@@ -180,19 +180,32 @@ namespace MonoFSM.Core.LifeCycle
 
             foreach (var preSpawnAction in _preSpawnActions)
                 preSpawnAction.AfterSpawn(newObj, position, rotation, hitData);
+
+
+            newObj.HandleAfterSpawn(position, rotation,
+                hitData); //讓spawn出來的物件自己的 IAfterSpawnProcess 也能處理
         }
 
         protected override void OnArgEventReceived(GeneralEffectHitData arg)
         {
             // base.EventReceived(arg);
             //噴Receiver的位置?
-            var receiverTrans = arg.Receiver.transform;
+            var receiverTrans = arg._receiverSourceObj.transform;
 
+            if (arg.hitPoint == null)
+                Debug.LogError(
+                    "SpawnAction received hitData with null hitPoint, using receiver's position instead",
+                    this);
+            //FIXME: 不要用 receiverTrans.position...
             var pos = arg.hitPoint ?? receiverTrans.position; //如果沒有hitPoint，就用Receiver的位置
-            // Debug.Log(
-            //     "SpawnAction EventReceived, pos: " + pos + ", hitPoint: " + arg.hitPoint,
-            //     this
-            // );
+            Debug.Log(
+                "SpawnAction EventReceived, pos: " + pos + ", hitPoint: " + arg.hitPoint,
+                this
+            );
+#if UNITY_EDITOR //Debug 用
+            transform.position = pos;
+            // Debug.Break();
+#endif
 
             //FIXME: arg是EffectHitData...point和normal都放過來嗎？
             var rotation = receiverTrans.rotation;

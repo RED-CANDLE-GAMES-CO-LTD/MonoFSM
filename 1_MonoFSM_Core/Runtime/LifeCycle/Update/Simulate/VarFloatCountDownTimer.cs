@@ -10,6 +10,7 @@ namespace MonoFSM.Core.Simulate
 {
     //0表示valid
     /// <summary>
+    /// 從 Time 到 0 的倒數計時器，時間到會觸發事件，可以重置到最大值或特定值。
     /// FIXME: fusion有 ticktimer
     /// 搭配 ResetTimerAction 使用
     /// </summary>
@@ -40,6 +41,8 @@ namespace MonoFSM.Core.Simulate
 
         public void ResetTimer()
         {
+            if (!isActiveAndEnabled)
+                return;
             //每一日可能還不依樣？
             SetTimer(currentTime.Max);
         }

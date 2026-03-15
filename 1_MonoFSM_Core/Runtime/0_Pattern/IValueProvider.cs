@@ -52,6 +52,11 @@ namespace MonoFSM.Core
         string Description { get; }
     }
 
+    public interface IValueSettable<in T>
+    {
+        void SetValue(T value, UnityEngine.Object byWho = null, string reason = null);
+    }
+
     public interface ICompProvider : IValueProvider
     {
         T1 IValueGetter.Get<T1>() //繼承關係的

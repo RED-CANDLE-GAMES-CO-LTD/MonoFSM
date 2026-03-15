@@ -385,6 +385,8 @@ namespace Fusion.Addons.FSM
 
         private float GetStateTime() //沒搞懂這是啥
         {
+            if (_tickProvider == null)
+                return -1;
             if (_tickProvider.IsStage || _interpolationTick == 0f)
                 return (_tickProvider.Tick - StateChangeTick) * _tickProvider.DeltaTime;
 

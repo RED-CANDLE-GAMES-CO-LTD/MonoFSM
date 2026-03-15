@@ -500,7 +500,7 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
 #if UNITY_EDITOR
         if (RuntimeDebugSetting.IsDebugMode && _isShowDebugLog)
             Debug.Log("[FlagField] Before Set lastValue:" + _currentValue + "set with:" + value,
-                owner);
+                byWho);
 #endif
 
         Profiler.BeginSample("IsCurrentValueEquals");

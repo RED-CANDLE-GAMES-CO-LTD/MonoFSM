@@ -8,6 +8,9 @@ namespace MonoFSM.Core
     //時間到就是true
     public class StateTimeUpCondition : AbstractConditionBehaviour
     {
+        public override string Description =>
+            $"{targetState} State Time Up: >= {_time}";
+
         [PreviewInInspector]
         [AutoParent] private GeneralState _parentState;
 

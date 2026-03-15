@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action
 {
+    /// <summary>
+    /// FIXME: 不該叫simulator
+    /// </summary>
     public class SwitchCaseActionSimulator : AbstractDescriptionBehaviour, IUpdateSimulate
     {
         protected override string DescriptionTag => "Switch Simulate";
@@ -12,7 +15,7 @@ namespace MonoFSM.Core.Runtime.Action
         public override string Description => $"Switch ({_mode})";
 
         [SerializeField] private SwitchMode _mode = SwitchMode.FirstMatch;
-        
+
         [AutoChildren(DepthOneOnly = true)] [CompRef]
         private SwitchCase[] _cases;
 

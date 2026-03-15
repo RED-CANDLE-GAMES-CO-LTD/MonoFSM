@@ -57,7 +57,8 @@ public class
         NoteType.NOTE => new Color(0.8f, 0.8f, 0.8f, 0.5f),
         //yellow
         NoteType.TODO => new Color(0.7f, 1f, 0.2f, 0.5f),
-        NoteType.FIXME => new Color(1f, 0.2f, 0.2f, 0.5f),
+        //橘色
+        NoteType.FIXME => new Color(1f, 0.3f, 0.5f, 0.5f),
         _ => Color.clear
     };
 

@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable.Condition
 {
-    public class VarBoolValueCondition : AbstractConditionBehaviour
+    public class VarBoolCompareCondition : AbstractConditionBehaviour
     {
         public override string Description => _varBool?.PathName + " == " + targetValue;
 

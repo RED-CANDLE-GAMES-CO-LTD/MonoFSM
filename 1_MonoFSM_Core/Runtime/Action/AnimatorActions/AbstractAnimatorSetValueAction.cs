@@ -28,6 +28,7 @@ namespace MonoFSM.Animation
         [AutoChildren(DepthOneOnly = true)]
         private AnimatorRefSource _animatorRefSource;
 
+        [HideIf(nameof(_animator))]
         [TitleGroup("Animator")] [DropDownRef] [SerializeField]
         private AnimatorRefSource _externalAnimatorRefSource;
 

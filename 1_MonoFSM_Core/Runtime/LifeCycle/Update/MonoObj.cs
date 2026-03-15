@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using Fusion;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.LifeCycle;
 using MonoFSM.Core.Simulate;
 using MonoFSM.CustomAttributes;
 using MonoFSM.Runtime;
@@ -322,9 +323,43 @@ namespace MonoFSMCore.Runtime.LifeCycle
             }
         }
 
-        [SerializeField]
+
+        [SerializeField] [AutoChildren] [CompRef]
+        SpawnEventHandler _onSpawnHandler;
+
+        public SpawnEventHandler OnSpawnHandler => _onSpawnHandler;
+
+
         [AutoChildren]
         [CompRef]
+        private IAfterSpawnProcess[] _afterSpawnProcesses;
+
+        /// <summary>
+        /// 被 spawn 後由 SpawnAction 呼叫，讓物件自身的 IAfterSpawnProcess 也能處理
+        /// </summary>
+        public void HandleAfterSpawn(Vector3 position, Quaternion rotation,
+            MonoFSM.Runtime.Interact.EffectHit.GeneralEffectHitData hitData)
+        {
+            OnSpawnHandler?.OnSpawn(this, position, rotation); //讓spawn出來的物件自己處理OnSpawn
+            if (_afterSpawnProcesses == null) return;
+            foreach (var process in _afterSpawnProcesses)
+            {
+                if (process == null) continue;
+                try
+                {
+                    process.AfterSpawn(this, position, rotation, hitData);
+                }
+                catch (System.Exception e)
+                {
+                    if (process is MonoBehaviour mb)
+                        Debug.LogException(e, mb);
+                    else
+                        Debug.LogException(e, this);
+                }
+            }
+        }
+
+        [SerializeField] [AutoChildren] [CompRef]
         private OnResetStartHandler _onResetStartHandler;
 
         private void HandleIResetStart()

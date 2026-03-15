@@ -1,9 +1,6 @@
 using MonoFSM.Core.Attributes;
-using MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable;
-using MonoFSM.Variable.Attributes;
-using MonoFSM.VarRefOld;
 using Sirenix.OdinInspector;
 using UnityEngine;
 

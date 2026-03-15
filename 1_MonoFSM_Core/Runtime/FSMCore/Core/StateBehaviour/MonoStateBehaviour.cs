@@ -16,5 +16,10 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
             Application.isPlaying && context && context.IsCurrentState(this);
 
         public string Key => Name;
+
+        public bool TryActivateState() //這會很越權嗎？
+        {
+            return Machine.TryActivateState(this);
+        }
     }
 }

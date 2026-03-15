@@ -448,9 +448,17 @@ public class PoolManager : MonoBehaviour, IPoolManager
     /// </summary>
     public void ReturnToPool(MonoObj obj)
     {
-        // PoolDictionary[obj.OriginalPrefab].ReturnToPool(prefab);
-        // throw new NotImplementedException("ReturnToPool for MonoPoolObj is not implemented yet.");
-        ReturnToPool(obj.GetComponent<PoolObject>());
+        if (obj.TryGetComponent<PoolObject>(out var poolObj))
+        {
+            ReturnToPool(poolObj);
+            return;
+        }
+
+        //fallback: if it's not a PoolObject, just deactivate it
+        obj.WorldUpdateSimulator.UnregisterMonoObject(obj);
+        obj.gameObject.SetActive(false); // destroy?
+        Debug.LogError(
+            $"Destroying object {obj.name} because it has no PoolObject component.");
     }
 
     //

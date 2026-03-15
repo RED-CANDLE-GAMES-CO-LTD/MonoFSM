@@ -30,8 +30,6 @@ namespace MonoFSM.Core.Runtime.Action
             IResetStateRestore
     // IArgEventReceiver<GeneralEffectHitData>
     {
-        // public MonoEntity ParentEntity => GetComponentInParent<MonoEntity>();
-        // public MonoEntity ParentEntity => bindingState.ParentEntity;
         public float DeltaTime => WorldUpdateSimulator.DeltaTime;
 
         // protected override bool HasError()

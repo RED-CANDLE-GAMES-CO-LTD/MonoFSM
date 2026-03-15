@@ -55,6 +55,7 @@ namespace MonoFSM.Variable.Condition
         [DropDownRef]
         public VarFloat _targetVariable; //hmm這種好麻煩喔，有showIf的就很不好做validation?
 
+        //FIXME: 怎麼做 less than half?
         [FormerlySerializedAs("targetValue")] [HideIf(nameof(_compareWithVariable))]
         public float _targetValue;
 

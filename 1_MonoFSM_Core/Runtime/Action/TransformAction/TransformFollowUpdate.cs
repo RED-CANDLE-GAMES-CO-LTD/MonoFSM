@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.Action.TransformAction
 {
+    /// <summary>
+    /// FIXME: TransformFollower?
+    /// </summary>
     public class TransformFollowUpdate : MonoBehaviour, IUpdateSimulate
     {
         public Transform _controlTransform; //來源transform

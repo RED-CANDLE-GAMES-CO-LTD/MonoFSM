@@ -39,7 +39,7 @@ public class PoolPrewarmData : ScriptableObject
     {
 #if UNITY_EDITOR
         // addressableRecords.RemoveAll((a) => a._assetReference == null || a._prefab == null);
-        
+
         foreach (var r in addressableRecords)
         {
             if (r._assetReference.AssetGUID == asset.AssetGUID)
@@ -52,7 +52,7 @@ public class PoolPrewarmData : ScriptableObject
 #endif
     }
 
-    
+
     public void UpdatePoolObjectEntry(PoolObject poolObject, int count)
     {
 #if UNITY_EDITOR
@@ -78,7 +78,7 @@ public class PoolPrewarmData : ScriptableObject
             DefaultMaximumCount = count
         };
         objectEntries.Add(newEntry);
-        Debug.LogError("Add new entry for " + poolObject.name);
+        Debug.LogError("Add new entry for " + poolObject.name, this);
         UnityEditor.EditorUtility.SetDirty(this);
 #endif
     }

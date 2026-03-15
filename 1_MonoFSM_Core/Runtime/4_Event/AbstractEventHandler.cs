@@ -4,6 +4,7 @@ using MonoFSM.Core.Runtime;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Foundation;
 using MonoFSM.Variable.Attributes;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -26,7 +27,8 @@ namespace MonoFSM.Core
     /// <seealso cref="IEventReceiver"/>
     /// <seealso cref="IEventReceiver{T}"/>
     /// <seealso cref="IActionParent"/>
-    public abstract class AbstractEventHandler : AbstractDescriptionBehaviour, IActionParent
+    public abstract class AbstractEventHandler : AbstractDescriptionBehaviour, IActionParent,
+        IResetStateRestore
     {
         protected override string DescriptionTag => "Event";
 
@@ -106,6 +108,11 @@ namespace MonoFSM.Core
             //     return;
 
             EventHandleImplement(arg);
+        }
+
+        public void ResetStateRestore()
+        {
+            _lastEventHandledTime = -1f;
         }
     }
 }

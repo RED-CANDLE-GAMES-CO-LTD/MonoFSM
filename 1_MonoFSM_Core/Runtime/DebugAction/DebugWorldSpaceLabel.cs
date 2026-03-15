@@ -101,7 +101,7 @@ namespace _0_MonoDebug.Gizmo
             base.Start();
             if (!Application.isPlaying)
                 return;
-            _bindingRigidbody = SelfEntity?.GetCompCache<Rigidbody>();
+            _bindingRigidbody = BindEntity?.GetCompCache<Rigidbody>();
             if (_bindingRigidbody == null)
                 _bindingRigidbody = GetComponentInParent<Rigidbody>();
             if (_bindingRigidbody == null)

@@ -23,6 +23,8 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         [Auto]
         private StateFolder _stateFolder;
 
+        public StateFolder stateFolder => _stateFolder;
+
         // private List<MonoStateBehaviour> _states => _stateFolder.Collections;
 
         [ShowInDebugMode]

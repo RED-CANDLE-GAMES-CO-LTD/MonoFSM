@@ -98,6 +98,7 @@ namespace MonoFSM.Variable
 
         public float AfterGetValueModifyCheck(float value) => value; //要再bound一次嗎？
 
+        [GUIColor(0.6f, 0.8f, 1f)]
         [FormerlySerializedAs("_isResetToMaxOnResetStart")]
         public bool _isResetToMaxOnRestore;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
+using MonoFSM.EditorExtension;
 using MonoFSM.Runtime;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
@@ -189,15 +190,28 @@ namespace MonoFSM.Core.Variable
 
         public List<T> Value => GetList();
 
+
         public List<T> GetList()
         {
-            if (IsReadOnly)
-                return _valueSourceProvider.Get<List<T>>();
+            if (HasProxyValue)
+            {
+                if (varRef != null)
+                    return varRef is VarList<T> varListRef
+                        ? varListRef.GetList()
+                        : throw new InvalidOperationException(
+                            "Referenced variable is not of type VarList<T>.");
+
+                if (IsReadOnly)
+                    return _valueSourceProvider.Get<List<T>>();
+            }
+
             EnsureActiveCollectionInitialized();
 
             //FIXME: 這裡應該都會GC
             if (_activeCollection is List<T> list)
                 return list;
+
+            //FIXME: 會轉型感覺沒效率
             if (_activeCollection is Queue<T> queue)
                 return queue.ToList();
             if (_activeCollection is HashSet<T> set)
@@ -495,31 +509,32 @@ namespace MonoFSM.Core.Variable
         public T Dequeue()
         {
             EnsureActiveCollectionInitialized();
-            if (_activeCollection is Queue<T> queue)
+            switch (_activeCollection)
             {
-                var item = queue.Dequeue();
-                OnValueChanged();
-                if (item == null)
-                    Debug.LogError("Dequeue returned null. This may indicate the queue was empty.");
-                return item;
-            }
-            else if (_activeCollection is List<T> list)
-            {
-                if (list.Count == 0)
+                case Queue<T> queue:
                 {
+                    var item = queue.Dequeue();
+                    OnValueChanged();
+                    if (item == null)
+                        Debug.LogError(
+                            "Dequeue returned null. This may indicate the queue was empty.");
+                    return item;
+                }
+                case List<T> { Count: 0 }:
                     Debug.LogError("Cannot dequeue from an empty List.");
                     return default;
+                case List<T> list:
+                {
+                    var item = list[0];
+                    list.RemoveAt(0);
+                    OnValueChanged();
+                    return item;
                 }
-
-                var item = list[0];
-                list.RemoveAt(0);
-                OnValueChanged();
-                return item;
+                default:
+                    throw new InvalidOperationException(
+                        "Dequeue is only available if the collection type is Queue."
+                    );
             }
-
-            throw new InvalidOperationException(
-                "Dequeue is only available if the collection type is Queue."
-            );
         }
 
         public T Peek()
@@ -577,7 +592,7 @@ namespace MonoFSM.Core.Variable
     }
 
     //不想定義型別
-    public abstract class AbstractVarList : AbstractMonoVariable
+    public abstract class AbstractVarList : AbstractMonoVariable, IHierarchyValueInfo
     {
         public override string StringValue => $"Count: {Count}";
         public override bool IsValueExist => Count > 0;
@@ -599,5 +614,7 @@ namespace MonoFSM.Core.Variable
         public abstract void Remove(object item);
 
         // public abstract void Clear();
+        public string ValueInfo => $"Count: {Count}";
+        public bool IsDrawingValueInfo => true;
     }
 }

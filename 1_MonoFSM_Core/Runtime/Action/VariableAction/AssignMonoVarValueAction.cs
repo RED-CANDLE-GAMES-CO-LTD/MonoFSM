@@ -5,7 +5,7 @@ using UnityEngine;
 namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
 {
     //SetObjectValue?
-    public class SetValueAction : AbstractStateAction
+    public class AssignMonoVarValueAction : AbstractStateAction
     {
         public override string Description => $"Set {_targetVar.name} to {_sourceVar.name}";
 
