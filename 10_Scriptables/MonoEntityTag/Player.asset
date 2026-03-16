@@ -73,6 +73,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 49b1a1be5064c40fcb5697b89f7e219b, type: 2}
   - {fileID: 11400000, guid: 23762f37d07174da09504e81abd40ea5, type: 2}
   - {fileID: 11400000, guid: d557984c270f14504948d250dd290823, type: 2}
+  - {fileID: 11400000, guid: 4fd9d139e2a464e5eadb7dbb221835e4, type: 2}
+  - {fileID: 11400000, guid: f78216d161d4f495db22846e52139f2e, type: 2}
   containsSchemaTypeTags:
   - {fileID: 11400000, guid: df3fb43cb23784bb6a12c6ec2f9cf673, type: 2}
   - {fileID: 11400000, guid: 70087acafd7f1494c8d5f40d8718ccae, type: 2}

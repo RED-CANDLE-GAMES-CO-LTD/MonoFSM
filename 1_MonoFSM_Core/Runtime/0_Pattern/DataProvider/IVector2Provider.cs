@@ -4,6 +4,8 @@ namespace MonoFSM.Core.DataProvider
 {
     public interface IVector2Provider : IValueProvider<Vector2> { }
 
+    public interface IVector3Provider : IValueProvider<Vector3> { }
+
     //不需要純
 
     // [InlineProperty]

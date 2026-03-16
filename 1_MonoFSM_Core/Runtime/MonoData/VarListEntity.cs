@@ -48,8 +48,8 @@ namespace MonoFSM.Core.Variable
         private object _activeCollection; // Runtime instance: List<T>, Queue<T>, or HashSet<T>
 
         //FIXME: 這個要弄成Field嗎...比較好reset?
-        [PreviewInInspector]
-        private int _currentIndex;
+        [SerializeField]
+        private VarIntWrapper _currentIndex;
 
         [PreviewInInspector]
         private int _lastIndex = -1;
@@ -65,8 +65,8 @@ namespace MonoFSM.Core.Variable
                 return;
             }
 
-            _lastIndex = _currentIndex;
-            _currentIndex = index;
+            _lastIndex = _currentIndex.Value;
+            _currentIndex.SetValue(index, this);
         }
 
         public override void GoToNext()
@@ -78,7 +78,7 @@ namespace MonoFSM.Core.Variable
                 return;
             }
 
-            var index = (_currentIndex + 1) % Count;
+            var index = (_currentIndex.Value + 1) % Count;
             SetIndex(index);
         }
 
@@ -91,7 +91,7 @@ namespace MonoFSM.Core.Variable
                 return;
             }
 
-            var index = (_currentIndex - 1 + Count) % Count;
+            var index = (_currentIndex.Value - 1 + Count) % Count;
             SetIndex(index);
         }
 
@@ -128,19 +128,19 @@ namespace MonoFSM.Core.Variable
             get
             {
                 //當前的index不合法時，返回default(T)
-                if (_currentIndex < 0)
+                if (_currentIndex.Value < 0)
                 {
                     // Debug.LogError("Current index is out of bounds.");
                     return default;
                 }
 
                 //當index超出範圍或集合為空時，返回default(T)
-                if (_currentIndex >= Count || Count == 0)
+                if (_currentIndex.Value >= Count || Count == 0)
                     // Debug.LogError($"Current index {_currentIndex} is out of bounds for collection of size {Count}.");
                     return default;
 
                 //FIXME: 只有list可以有這個？
-                return GetList()[_currentIndex];
+                return GetList()[_currentIndex.Value];
             }
         }
 
@@ -322,7 +322,7 @@ namespace MonoFSM.Core.Variable
         //給list? queue的話我Provider根本吃不到？ realtime type還會變...乾
         public override void ResetStateRestore()
         {
-            _currentIndex = _defaultIndex;
+            _currentIndex.SetValue(_defaultIndex, this);
             _lastIndex = -1;
             if (IsReadOnly)
                 return;
@@ -351,7 +351,7 @@ namespace MonoFSM.Core.Variable
                 }
 
             // 重置索引到預設值
-            _currentIndex = _defaultIndex;
+            _currentIndex.SetValue(_defaultIndex, this);
 
             // 通知變更（Clear() 已經調用過，但如果有恢復內容需要��次通知）
             if (_backingListForSerialization != null && _backingListForSerialization.Count > 0)
