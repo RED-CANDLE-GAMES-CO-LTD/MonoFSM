@@ -42,7 +42,7 @@ namespace MonoFSM.Variable
                 // Debug.Log("Check HasValueProvider in TypedMonoVariable");
                 AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_valueSources));
                 // Debug.Log("_valueSources.length" + _valueSources.Length);
-                return ValueResolver.HasValueProvider(_valueSources) || base.HasValueSource;
+                return ValueResolver.HasValueProvider(_valueSources); // || base.HasValueSource;
             }
         }
 

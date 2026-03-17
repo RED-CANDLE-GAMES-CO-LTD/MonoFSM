@@ -61,6 +61,7 @@ namespace MonoFSM.Runtime.Vote
 
         public override string StringValue => _vote.Result.ToString();
         public override bool IsValueExist => true;
+        protected override bool HasValueSource => false;
 
         public override void ResetStateRestore()
         {

@@ -3,6 +3,9 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace MonoFSM.Variable
 {
@@ -38,24 +41,30 @@ namespace MonoFSM.Variable
 
         private void Awake()
         {
-            if (_minValue == null && _maxValue == null)
+            if (_minValueWrapper._var == null && _maxValueWrapper._var == null)
                 Debug.LogError("VariableFloatBoundModifier has no min/max value set", this);
         }
 
-        [Component]
+        [SerializeField]
+        public VarFloatWrapper _minValueWrapper;
+
+        [SerializeField]
+        public VarFloatWrapper _maxValueWrapper;
+
+        // 保留舊欄位以相容既有 serialize data，待 migration 後可移除
+        [HideInInspector]
         [SerializeField]
         private VarFloat _minValue;
 
-        [Component]
+        [HideInInspector]
         [SerializeField]
         private VarFloat _maxValue;
 
         [ShowInInspector]
-        public float MinValue =>
-            _minValue?.Value ?? 0; //MaxVar != null ? MaxVar.CurrentValue : max;
+        public float MinValue => _minValueWrapper._var != null ? _minValueWrapper.Value : 0;
 
         [ShowInInspector]
-        public float MaxValue => _maxValue?.Value ?? Mathf.Infinity; //MinVar != null ? MinVar.CurrentValue : min;
+        public float MaxValue => _maxValueWrapper._var != null ? _maxValueWrapper.Value : Mathf.Infinity;
 
         public float Percentage => (_monoVar.CurrentValue - MinValue) / (MaxValue - MinValue);
 
@@ -98,6 +107,25 @@ namespace MonoFSM.Variable
 
         public float AfterGetValueModifyCheck(float value) => value; //要再bound一次嗎？
 
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            bool dirty = false;
+            if (_minValue != null && _minValueWrapper._var == null)
+            {
+                _minValueWrapper._var = _minValue;
+                dirty = true;
+            }
+            if (_maxValue != null && _maxValueWrapper._var == null)
+            {
+                _maxValueWrapper._var = _maxValue;
+                dirty = true;
+            }
+            if (dirty)
+                EditorUtility.SetDirty(this);
+        }
+#endif
+
         [GUIColor(0.6f, 0.8f, 1f)]
         [FormerlySerializedAs("_isResetToMaxOnResetStart")]
         public bool _isResetToMaxOnRestore;
@@ -115,10 +143,10 @@ namespace MonoFSM.Variable
             {
                 // Debug.Log("_maxValue.Field.ProductionValue" + _maxValue.Field.ProductionValue,
                 //     this);
-                return _maxValue != null ? _maxValue.CurrentValue : Mathf.Infinity;
+                return _maxValueWrapper._var != null ? _maxValueWrapper.Value : Mathf.Infinity;
             }
 
-            return _minValue != null ? _minValue.CurrentValue : 0;
+            return _minValueWrapper._var != null ? _minValueWrapper.Value : 0;
         }
     }
 }

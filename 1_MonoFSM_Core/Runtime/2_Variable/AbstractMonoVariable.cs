@@ -645,7 +645,7 @@ namespace MonoFSM.Variable
         [ShowInInspector] //FIXME: 這個show的話，可能會造成 value 重運算
         public abstract bool IsValueExist { get; }
 
-        protected virtual bool HasValueSource => false;
+        protected abstract bool HasValueSource { get; } //有ValueProvider或ParentVarEntity的值來源
 
         [InfoBox(
             "此變數會使用 ValueProvider 或 Parent VarEntity 的值，無法設定預設值"

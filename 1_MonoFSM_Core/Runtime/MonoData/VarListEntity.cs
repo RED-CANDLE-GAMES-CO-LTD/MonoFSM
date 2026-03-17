@@ -25,6 +25,9 @@ namespace MonoFSM.Core.Variable
         [AutoChildren(DepthOneOnly = true)]
         private IValueProvider<List<T>> _valueSourceProvider;
 
+        protected override bool HasValueSource => _valueSourceProvider != null;
+
+        [ShowInInspector]
         public bool IsReadOnly => _valueSourceProvider != null;
 
         public enum CollectionStorageType
@@ -127,20 +130,15 @@ namespace MonoFSM.Core.Variable
         {
             get
             {
-                //當前的index不合法時，返回default(T)
                 if (_currentIndex.Value < 0)
-                {
-                    // Debug.LogError("Current index is out of bounds.");
-                    return default;
-                }
-
-                //當index超出範圍或集合為空時，返回default(T)
-                if (_currentIndex.Value >= Count || Count == 0)
-                    // Debug.LogError($"Current index {_currentIndex} is out of bounds for collection of size {Count}.");
                     return default;
 
-                //FIXME: 只有list可以有這個？
-                return GetList()[_currentIndex.Value];
+                // 先取得 list，再對同一個 list 做 bounds check，避免 Count 與 GetList() 來源不同（HasProxyValue）
+                var list = GetList();
+                if (list == null || _currentIndex.Value >= list.Count)
+                    return default;
+
+                return list[_currentIndex.Value];
             }
         }
 
@@ -195,14 +193,13 @@ namespace MonoFSM.Core.Variable
         {
             if (HasProxyValue)
             {
+                if (IsReadOnly)
+                    return _valueSourceProvider.Get<List<T>>();
                 if (varRef != null)
                     return varRef is VarList<T> varListRef
                         ? varListRef.GetList()
                         : throw new InvalidOperationException(
                             "Referenced variable is not of type VarList<T>.");
-
-                if (IsReadOnly)
-                    return _valueSourceProvider.Get<List<T>>();
             }
 
             EnsureActiveCollectionInitialized();
