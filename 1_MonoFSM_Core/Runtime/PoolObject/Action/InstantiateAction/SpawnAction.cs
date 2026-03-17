@@ -28,7 +28,8 @@ namespace MonoFSM.Core.LifeCycle
     }
 
     //重寫FXPlayer
-    public class SpawnAction : AbstractArgEventHandler<GeneralEffectHitData>, IMonoObjectProvider //ICompProvider<MonoPoolObj>
+    public class SpawnAction : AbstractArgEventHandler<GeneralEffectHitData>, IMonoObjectProvider,
+        IPoolObjectPlayer //ICompProvider<MonoPoolObj>
     {
         //FIXME: 下面要有各種preProcess action?
         // [Required]
@@ -116,6 +117,7 @@ namespace MonoFSM.Core.LifeCycle
             Spawn(Prefab, spawnPos, rotation, null);
         }
 
+        [GUIColor(0.4f, 1f, 0.4f)]
         [PreviewInInspector]
         private MonoObj _lastSpawnedObj;
 
@@ -181,7 +183,7 @@ namespace MonoFSM.Core.LifeCycle
             foreach (var preSpawnAction in _preSpawnActions)
                 preSpawnAction.AfterSpawn(newObj, position, rotation, hitData);
 
-
+            newObj.GetComponent<PoolObject>().lastPlayer = this;
             newObj.HandleAfterSpawn(position, rotation,
                 hitData); //讓spawn出來的物件自己的 IAfterSpawnProcess 也能處理
         }
@@ -268,6 +270,9 @@ namespace MonoFSM.Core.LifeCycle
                 return null; //或許可以拋出異常？
             }
         }
+
+        //FIXME:
+        // public IFXPlayerOwner Owner { get; }
     }
 
     public interface ISpawnProcessor //想找一個static的對象來生成物件 (但不能真的static，multi peer的話)

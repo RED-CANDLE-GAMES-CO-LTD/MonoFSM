@@ -22,14 +22,14 @@ public interface IPoolBorrowOnEnable
     void OnBorrowFromPoolOnEnable();
 }
 
-public interface IFXPlayerOwner
+public interface IFXPlayerOwner //hmm
 {
     bool IsActive { get; }
 }
 
 public interface IPoolObjectPlayer
 {
-    IFXPlayerOwner Owner { get; }
+    // IFXPlayerOwner Owner { get; }
 }
 
 [RequireComponent(typeof(MonoObj))]
