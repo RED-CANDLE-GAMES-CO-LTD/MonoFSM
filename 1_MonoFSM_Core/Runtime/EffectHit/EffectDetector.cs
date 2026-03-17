@@ -353,45 +353,52 @@ namespace MonoFSM.Core.Detection
                 if (currentState)
                 {
                     // dealer 剛變有效，觸發 enter 事件
-                    // Debug.Log("Dealer state changed to valid, triggering enter event", dealer);
-                    TriggerEnterForDealerAndDetectable(dealer, detectable);
+                    TriggerEnterForDealerAndDetectable(dealer, detectable, detectData);
                 }
                 else
                 {
-                    //FIXME: exit的話應該 detectData 變null了？ 還是這邊就只管Dealer開關而已
-
                     // dealer 剛變無效，觸發 exit 事件
-                    TriggerExitForDealerAndDetectable(dealer, detectable);
+                    TriggerExitForDealerAndDetectable(dealer, detectable, detectData);
                 }
             }
         }
 
         private void TriggerEnterForDealerAndDetectable(
             GeneralEffectDealer dealer,
-            EffectDetectable detectable
+            EffectDetectable detectable,
+            DetectData detectData
         )
         {
-            // var detectData = new DetectData(this, detectable);
+            if (!dealer.IsValid)
+            {
+                dealer.SetFailReason("Dealer is not valid || condition not pass");
+                return;
+            }
+
             var receiver = detectable.Get(dealer._effectType);
+            if (receiver == null)
+                return;
             if (!dealer.CanHitReceiver(receiver))
                 return;
-            var detectData = _thisFrameDetectedObjects[detectable];
+
             var hitData = receiver.GenerateEffectHitData(dealer, detectData.detectedObject);
+            hitData.hitNormal = detectData.hitNormal;
+            hitData.hitPoint = detectData.hitPoint;
             dealer.OnHitEnter(hitData, detectData);
             receiver.OnEffectHitEnter(hitData, detectData);
         }
 
         private void TriggerExitForDealerAndDetectable(
             GeneralEffectDealer dealer,
-            EffectDetectable detectable
+            EffectDetectable detectable,
+            DetectData detectData
         )
         {
             var receiver = detectable.Get(dealer._effectType);
             if (!dealer.IsEnteredReceiver(receiver))
                 return;
 
-            //FIXME: exit 需要傳過去嗎？
-            var hitData = receiver.GenerateEffectHitData(dealer, null);
+            var hitData = receiver.GenerateEffectHitData(dealer, detectData.detectedObject);
             dealer.OnHitExit(hitData);
             receiver.OnEffectHitExit(hitData);
         }
@@ -449,29 +456,7 @@ namespace MonoFSM.Core.Detection
 
             this.Log($"TriggerEnterEventsForDetectable: {detectData.detectable.name}");
             foreach (var dealer in _dealers)
-            {
-                if (!dealer.IsValid)
-                {
-                    dealer.SetFailReason("Dealer is not valid || condition not pass");
-                    continue;
-                }
-
-                this.Log($"Processing dealer: {dealer.name}");
-                var receiver = detectData.detectable.Get(dealer._effectType);
-                if (receiver == null)
-                {
-                    continue;
-                }
-                if (!dealer.CanHitReceiver(receiver))
-                    continue;
-
-                var hitData = receiver.GenerateEffectHitData(dealer, detectData.detectedObject);
-                hitData.hitNormal = detectData.hitNormal;
-                hitData.hitPoint = detectData.hitPoint;
-
-                dealer.OnHitEnter(hitData, detectData);
-                receiver.OnEffectHitEnter(hitData, detectData);
-            }
+                TriggerEnterForDealerAndDetectable(dealer, detectData.detectable, detectData);
         }
 
         private void TriggerExitEventsForDetectable(
@@ -483,16 +468,7 @@ namespace MonoFSM.Core.Detection
                 return;
 
             foreach (var dealer in _dealers)
-            {
-                var receiver = detectable.Get(dealer._effectType);
-                if (!dealer.IsEnteredReceiver(receiver))
-                    continue;
-
-                var hitData = receiver.GenerateEffectHitData(dealer, detectData.detectedObject);
-                dealer.OnHitExit(hitData);
-                receiver.OnEffectHitExit(hitData);
-                // Debug.Log($"TriggerExitEventsForDetectable: {receiver.name}", receiver);
-            }
+                TriggerExitForDealerAndDetectable(dealer, detectable, detectData);
         }
 
         private bool CheckDealerStateChanges()

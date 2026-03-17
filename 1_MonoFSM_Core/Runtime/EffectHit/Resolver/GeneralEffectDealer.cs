@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Detection;
 using MonoFSM.Runtime.Interact.EffectHit.Resolver;
 using MonoFSM.Variable.Attributes;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -18,6 +18,18 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 //FIXME: 還是要可以帶一個變數會比較好 (或是一組變數？可以 remapping的？) 畢竟就算要 add force 之類的還是有可能會有多種力道之類的
     public class GeneralEffectDealer : EffectResolver, IEffectDealer
     {
+        public override void ResetStateRestore()
+        {
+            base.ResetStateRestore();
+            _lockedEntity = null;
+            _hittingEntities.Clear();
+        }
+
+        private void OnDisable()
+        {
+            _lockedEntity = null;
+        }
+
         // public VariableMonoDescriptableProvider proxyProvider;
         // public GeneralEffectType effectType;
         [Header("自動找EffectType相同的Dealer")] //[SerializeReference]
@@ -29,6 +41,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         [PreviewInInspector]
         private GeneralEffectDealer proxyDealer => _proxyProvider?.Value?.GetDealer(_effectType);
+
+        [Header("一次 Enable 只能打一個 Entity")] [SerializeField]
+        private bool _singleEntityPerEnable;
+
+        [ShowInDebugMode] private MonoEntity _lockedEntity;
 
         //互動時，兩個都可以執行耶，那EffectHitData怎麼算呢？ ex: 人dealer耗體力，斧頭dealer耗耐久
 
@@ -52,7 +69,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [AutoParent]
         private IBinder _binder;
 
-        public bool IsEnteredReceiver(IEffectReceiver receiver)
+        public bool IsEnteredReceiver(GeneralEffectReceiver receiver)
         {
             return _receivers.Contains(receiver);
         }
@@ -97,11 +114,15 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (receiver == null)
             {
                 SetFailReason("Receiver is null");
-                // Debug.LogError("Receiver is null", this);
-                // Debug.Break();
                 return false;
             }
             var r = (GeneralEffectReceiver)receiver;
+
+            if (_singleEntityPerEnable && _lockedEntity != null && r.BindEntity != _lockedEntity)
+            {
+                SetFailReason("SingleEntityPerEnable: already locked to another entity");
+                return false;
+            }
             if (r._effectType != _effectType)
             {
                 _candidateReceivers.Add(receiver); //什麼時候清掉？
@@ -239,15 +260,19 @@ namespace MonoFSM.Runtime.Interact.EffectHit
                 proxyDealer.OnHitEnter(_currentHitData, detectData);
 
             var receiverEntity = _currentHitData.GeneralReceiver.BindEntity;
+            if (_singleEntityPerEnable && _lockedEntity == null)
+                _lockedEntity = receiverEntity;
             _enterNode?._hittingEntity?.SetValue(receiverEntity, this); //要先做
             _enterNode?.EventHandle(_currentHitData);
 
             _receivers.Add(_currentHitData.GeneralReceiver);
-            _hittingEntities.Add(receiverEntity);
+            if (!_hittingEntities.Contains(receiverEntity))
+                _hittingEntities.Add(receiverEntity);
 
             _lastReceiver = data.Receiver as GeneralEffectReceiver;
         }
 
+        [ShowInInspector]
         private readonly List<MonoEntity> _hittingEntities = new();
 
         public List<MonoEntity> GetHittingEntities()
@@ -257,14 +282,29 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         public void OnHitExit(IEffectHitData data)
         {
-            var hitData = data as GeneralEffectHitData;
             //_receivers裡面要有才可以做這件事
             if (_proxyProvider != null)
                 proxyDealer.OnHitEnter(data);
 
-            _exitNode?.EventHandle(data as GeneralEffectHitData);
-            _receivers.Remove((GeneralEffectReceiver)data.Receiver);
-            _hittingEntities.Remove(hitData.GeneralReceiver.BindEntity);
+            var hitData = data as GeneralEffectHitData;
+            var exitReceiver = (GeneralEffectReceiver)data.Receiver;
+            _receivers.Remove(exitReceiver);
+            _exitNode?.EventHandle(hitData);
+
+            // 只有在沒有其他 receiver 指向同一 entity 時才從清單移除
+            var entity = exitReceiver.BindEntity;
+            bool entityStillActive = false;
+            foreach (var r in _receivers)
+            {
+                if (r.BindEntity == entity)
+                {
+                    entityStillActive = true;
+                    break;
+                }
+            }
+
+            if (!entityStillActive)
+                _hittingEntities.Remove(entity);
         }
 
         protected override string TypeTag => "Dealer";
