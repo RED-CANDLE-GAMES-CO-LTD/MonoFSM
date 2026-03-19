@@ -1,6 +1,7 @@
 using MonoFSM.Runtime;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSMCore.Runtime.LifeCycle;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Core.LifeCycle
@@ -10,6 +11,21 @@ namespace MonoFSM.Core.LifeCycle
     /// </summary>
     public class MountToHitTargetSpawnProcess : MonoBehaviour, IAfterSpawnProcess
     {
+        [ShowInInspector, ReadOnly, FoldoutGroup("Debug")]
+        private bool _isMounted;
+
+        [ShowInInspector, ReadOnly, FoldoutGroup("Debug")]
+        private MonoEntity _targetEntity;
+
+        [ShowInInspector, ReadOnly, FoldoutGroup("Debug")]
+        private MonoEntity _spawnedEntity;
+
+        [ShowInInspector, ReadOnly, FoldoutGroup("Debug")]
+        private Vector3 _mountPosition;
+
+        [ShowInInspector, ReadOnly, FoldoutGroup("Debug")]
+        private Quaternion _mountRotation;
+
         public void AfterSpawn(
             MonoObj obj,
             Vector3 position,
@@ -17,6 +33,10 @@ namespace MonoFSM.Core.LifeCycle
             GeneralEffectHitData hitData
         )
         {
+            _isMounted = false;
+            _targetEntity = null;
+            _spawnedEntity = null;
+
             if (hitData == null) return;
 
             var targetEntity = hitData.GeneralReceiver?.BindEntity;
@@ -42,6 +62,13 @@ namespace MonoFSM.Core.LifeCycle
 
             spawnedEntity.ViewRoot.SetFollowTarget(targetEntity.ViewRoot, position,
                 rotation);
+
+            _isMounted = true;
+            _targetEntity = targetEntity;
+            _spawnedEntity = spawnedEntity;
+            _mountPosition = position;
+            _mountRotation = rotation;
+
             Debug.Log(
                 $"[MountToHitTarget] Mounted {spawnedEntity.name} to {targetEntity.name} ViewRoot at {position}",
                 this);

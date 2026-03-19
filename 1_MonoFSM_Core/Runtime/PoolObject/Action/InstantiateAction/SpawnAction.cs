@@ -41,18 +41,16 @@ namespace MonoFSM.Core.LifeCycle
         // [Required] [SerializeField] private VarEntity _poolObjVar; //用來存取剛spawn的物件
         public override string Description => "Spawn " + (_poolObjFoldOut.Value != null
             ? _poolObjFoldOut.Value?.name
-            : _poolObjVar != null
-                ? _poolObjVar.Value?.name
                 : "null");
 
         [InlineField]
         [SerializeField]
         VarMonoObjFoldOut _poolObjFoldOut;
 
-        [Obsolete]
-        // [Required]
-        [SerializeField]
-        private VarMonoObj _poolObjVar; //不要用了？轉用_poolObjFoldOut?
+        // [Obsolete]
+        // // [Required]
+        // [SerializeField]
+        // private VarMonoObj _poolObjVar; //不要用了？轉用_poolObjFoldOut?
 
         [BoxGroup("Scale")]
         [HideIf(nameof(_scaleRatio))]
@@ -97,7 +95,7 @@ namespace MonoFSM.Core.LifeCycle
 
         [PreviewInDebugMode]
         private MonoObj Prefab =>
-            _poolObjFoldOut.Value != null ? _poolObjFoldOut.Value : _poolObjVar?.Value; // _poolObjProvider?.Get<MonoObj>();
+            _poolObjFoldOut.Value; // _poolObjProvider?.Get<MonoObj>();
 
         [CompRef]
         [AutoChildren]
