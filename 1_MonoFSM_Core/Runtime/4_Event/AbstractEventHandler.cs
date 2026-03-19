@@ -74,8 +74,7 @@ namespace MonoFSM.Core
             }
         }
 
-        [PreviewInDebugMode]
-        private float _lastEventHandledTime = -1f;
+        [PreviewInDebugMode] protected float _lastEventHandledTime = -1f;
 
         protected virtual void EventHandleImplement<T>(T arg)
         {

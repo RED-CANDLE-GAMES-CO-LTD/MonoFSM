@@ -135,6 +135,7 @@ namespace MonoFSM.Core.Runtime.Action
             if (!IsValid) return;
             Profiler.BeginSample("AbstractStateAction OnActionRender", this);
             OnRenderImplement();
+            AddEventTime(Time.time);
             Profiler.EndSample();
         }
 

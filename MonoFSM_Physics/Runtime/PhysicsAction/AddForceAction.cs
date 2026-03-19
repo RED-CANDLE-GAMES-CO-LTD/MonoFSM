@@ -33,11 +33,9 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
         // private IValueProvider<Vector3> _forceDirectionProvider;
         public VarVector3 _forceDirectionVar;
 
-        //FIXME:
         [Tooltip("力的大小")]
         [FormerlySerializedAs("_torqueMagnitude")]
-        [SerializeField]
-        private float _magnitude = 10f; //FIXME: 怎麼會放在receiver這邊？ 應該要去從 dealer那邊拿？
+        public VarFloatWrapper _magnitude = new VarFloatWrapper(10f);
 
         [Tooltip("力的施加模式")]
         [SerializeField]
@@ -157,25 +155,25 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
             // 如果有撞擊資料且包含法向量，優先使用
             // if (hitData?.hitNormal.HasValue == true)
             // {
-            //     return hitData.hitNormal.Value.normalized * _magnitude;
+            //     return hitData.hitNormal.Value.normalized * _magnitude.Value;
             // }
             if (hitData != null)
             {
                 if (hitData.hitDirection.HasValue)
                 {
-                    return hitData.hitDirection.Value.normalized * _magnitude;
+                    return hitData.hitDirection.Value.normalized * _magnitude.Value;
                 }
 
                 var start = hitData.GeneralDealer.transform.position;
                 var hitPoint = hitData.hitPoint.Value;
                 var dir = (hitPoint - start).normalized;
-                return dir * _magnitude;
+                return dir * _magnitude.Value;
             }
 
 
-            return _forceDirectionVar.GetValue() * _magnitude;
+            return _forceDirectionVar.GetValue() * _magnitude.Value;
             // 否則使用預設的力方向
-            // return _forceDirectionProvider.Get<Vector3>() * _magnitude;
+            // return _forceDirectionProvider.Get<Vector3>() * _magnitude.Value;
         }
 
         public void ArgEventReceived(GeneralEffectHitData arg)

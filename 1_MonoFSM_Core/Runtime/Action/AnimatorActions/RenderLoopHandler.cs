@@ -11,6 +11,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.AnimatorActions
 
         public void Render(float runnerLocalRenderTime)
         {
+            _lastEventHandledTime = Time.time;
             foreach (var action in _stateActions)
             {
                 action.OnActionRender();

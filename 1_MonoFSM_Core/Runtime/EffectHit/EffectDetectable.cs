@@ -56,7 +56,6 @@ namespace MonoFSM.Runtime.Interact.EffectHit
                 condition._sourceEntity = detector.BindEntity;
                 condition._targetEntity = BindEntity;
             }
-
             // return;
         }
 
@@ -91,6 +90,34 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 #if UNITY_EDITOR
             _debugDetectors.Clear();
 #endif
+        }
+
+        public override void OnBeforePrefabSave()
+        {
+            base.OnBeforePrefabSave();
+            var colliders = GetComponentsInChildren<Collider>(true);
+            foreach (var col in colliders)
+            {
+                if (col.isTrigger) //避免誤加
+                    continue;
+                if (col.GetComponentInParent<EffectDetector>() !=
+                    null) //略過有EffectDetector父物件的Collider，避免誤加TriggerDetectableTarget
+                {
+                    if (col.TryGetComponent(out TriggerDetectableTarget detectableTarget))
+                    {
+                        Destroy(detectableTarget);
+#if UNITY_EDITOR
+                        UnityEditor.EditorUtility.SetDirty(col);
+#endif
+                    }
+
+                    continue;
+                }
+
+                if (col.TryGetCompOrAdd<TriggerDetectableTarget>())
+                {
+                }
+            }
         }
     }
 }

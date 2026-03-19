@@ -23,12 +23,5 @@ namespace MonoFSM.Animation
             animator.SetFloat(_parameterName, _floatValue.Value, _dampTime, Time.deltaTime);
         }
 
-        protected override void OnRenderImplement()
-        {
-            if (!TryGetAnimator(out var animator)) return;
-            Profiler.BeginSample("AnimatorSetFloatAction SetFloat", this);
-            animator.SetFloat(_parameterName, _floatValue.Value, _dampTime, Time.deltaTime);
-            Profiler.EndSample();
-        }
     }
 }

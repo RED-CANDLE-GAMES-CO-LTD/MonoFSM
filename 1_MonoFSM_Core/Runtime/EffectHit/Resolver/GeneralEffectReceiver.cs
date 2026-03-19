@@ -36,7 +36,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [Required] [AutoParent]
         private EffectDetectable _detectable; //不一定是，IEffectDetectable?
 
-        [GUIColor(0.3f, 0.9f, 0.3f)]
+        [GUIColor(0.8f, 0.9f, 0.3f)]
         [PreviewInInspector]
         public EffectDetectable Detectable => _detectable?._bindingRoot != null
             ? _detectable._bindingRoot as EffectDetectable

@@ -17,8 +17,9 @@ namespace MonoFSM.Runtime.Variable
     //FIXME: 回到pool後，reference要清掉？還是是detector的責任？
 
     [FormerlyNamedAs("VarBlackboard")]
-    public class VarEntity : GenericUnityObjectVariable<MonoEntity>, IHierarchyValueInfo
+    public class VarEntity : GenericUnityObjectVariable<MonoEntity>
     {
+
         // [HideIf(nameof(HasValueProvider))]
         [FormerlySerializedAs("_MonoDescriptableTag")]
         [SOConfig("10_Flags/VarMono")]

@@ -62,7 +62,7 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
         public MonoInputAction inputAction =>
             _inputActionVar != null ? _inputActionVar._inputActionRef : _inputAction;
 
-        // [DropDownRef]
+        [HideIf(nameof(_inputAction))] [DropDownRef]
         public VarInputAction _inputActionVar;
         //可以再過一層？
 

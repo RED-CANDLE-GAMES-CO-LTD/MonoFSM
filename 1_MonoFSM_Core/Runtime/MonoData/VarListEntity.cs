@@ -191,7 +191,7 @@ namespace MonoFSM.Core.Variable
 
         public List<T> GetList()
         {
-            if (HasProxyValue)
+            if (HasProxySource)
             {
                 if (IsReadOnly)
                     return _valueSourceProvider.Get<List<T>>();

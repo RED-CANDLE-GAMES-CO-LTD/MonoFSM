@@ -10,7 +10,7 @@ namespace MonoFSM.Core.Variable
     public class VarMonoObj : GenericUnityObjectVariable<MonoObj>
     {
         //FIxME: 要區分Prefab和Runtime Object嗎？ 提示？
-        [HideIf(nameof(HasProxyValue))]
+        [HideIf(nameof(HasProxySource))]
         // [SOConfig("10_Flags/GameData", useVarTagRestrictType: true)] //FIXME: 痾，只有SO類才需要ㄅ
         [Required]
         [PrefabFilter(typeof(PoolObject))] //hmm?

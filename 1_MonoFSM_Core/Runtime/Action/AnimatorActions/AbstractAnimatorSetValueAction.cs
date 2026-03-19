@@ -9,9 +9,6 @@ using UnityEngine;
 
 namespace MonoFSM.Animation
 {
-    public interface IRenderAction
-    {
-    }
     public abstract class AbstractAnimatorSetValueAction : AbstractStateAction
     {
         [HideIf(nameof(HasAnimatorSource))]
@@ -28,9 +25,13 @@ namespace MonoFSM.Animation
         [AutoChildren(DepthOneOnly = true)]
         private AnimatorRefSource _animatorRefSource;
 
-        [HideIf(nameof(_animator))]
+
+        [HideIf(nameof(HasAnimatorOrRef))]
         [TitleGroup("Animator")] [DropDownRef] [SerializeField]
         private AnimatorRefSource _externalAnimatorRefSource;
+
+        bool HasAnimatorOrRef => _animator != null || _animatorRefSource != null ||
+                                 _externalAnimatorRefSource != null;
 
         [ValueDropdown(nameof(GetParameterNames))]
         public string _parameterName;
@@ -114,6 +115,11 @@ namespace MonoFSM.Animation
 
 
             return true;
+        }
+
+        protected override void OnRenderImplement()
+        {
+            OnActionExecuteImplement();
         }
     }
 }

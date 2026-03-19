@@ -56,11 +56,12 @@ namespace MonoFSM.Variable
         [GUIColor(0.4f, 1f, 0.4f)]
         [Header("Variable Reference, 從 Parent Entity 拿 Variable")]
         [ShowIf(nameof(HasParentVarEntity))]
-        [ShowInInspector]
+        [ShowInInspector] //TODO; runtime才會知道？
         protected AbstractMonoVariable varRef => _parentVarEntity?.Value?.GetVar(_varTag);
 
         //ver reference?
 
+        [ShowInInspector]
         public bool HasParentVarEntity
         {
             get
@@ -647,12 +648,13 @@ namespace MonoFSM.Variable
 
         protected abstract bool HasValueSource { get; } //有ValueProvider或ParentVarEntity的值來源
 
+        //FIXME: 有value和有 source是兩回事吧？HasProxySource?
         [InfoBox(
             "此變數會使用 ValueProvider 或 Parent VarEntity 的值，無法設定預設值"
         )]
         [ShowInInspector]
-        protected virtual bool HasProxyValue =>
-            HasValueSource || (HasParentVarEntity && varRef != null);
+        protected virtual bool HasProxySource =>
+            HasValueSource || (HasParentVarEntity);
 
 
         public VariableTag[] GetKeys()

@@ -87,7 +87,7 @@ namespace MonoFSM.Variable
 
         //FIXME: 繼承時想要加更多attribute
         // [Header("預設值")] [HideIf(nameof(_siblingDefaultValue))]
-        [HideIf(nameof(HasProxyValue))] public bool _isRuntimeOnly = false;
+        [HideIf(nameof(HasProxySource))] public bool _isRuntimeOnly = false;
 
         protected override bool HasError()
         {
@@ -122,7 +122,7 @@ namespace MonoFSM.Variable
 
         protected bool HideDefaultValue()
         {
-            return HasProxyValue || _isRuntimeOnly;
+            return HasProxySource || _isRuntimeOnly;
         }
 
         protected virtual bool HasDefaultValueError() => false;
@@ -328,6 +328,20 @@ namespace MonoFSM.Variable
         //     //這個trace好討厭...又跑下去，然後再上來internal
         //     SetValue<TValueType>((TValueType)value, byWho);
         // }
+
+
+        //開個後門
+        public void SetOverrideDefaultValue(TValueType value, Object byWho)
+        {
+            _beforeSetProcessor?.BeforeSetValue(value);
+            _tempValue = value;
+            _defaultValue = value;
+            OnValueChanged();
+#if UNITY_EDITOR
+            _lastSetByWho = byWho;
+#endif
+        }
+
         [ShowIf(nameof(_isRuntimeOnly))] [ShowInInspector]
         TValueType _tempValue;
         //怎麼那麼多種...
@@ -339,7 +353,7 @@ namespace MonoFSM.Variable
                 return;
             }
 
-            if (!_isRuntimeOnly)
+            if (!_isRuntimeOnly) //寫個 force SetValue?
             {
                 Debug.LogError("Cannot set value of a non-runtime-only variable", this);
                 Debug.Break();
@@ -381,8 +395,12 @@ namespace MonoFSM.Variable
 
         public override void ResetStateRestore()
         {
-            // if (_isRuntimeOnly)
-            //     SetValueInternal(_defaultValue, this, "ResetStateRestore");
+            //FIXME: 應該要清掉嗎？
+            if (_isRuntimeOnly && HasProxySource == false)
+            {
+                ClearValue();
+            }
+            // SetValueInternal(_defaultValue, this, "ResetStateRestore");
         }
 
         //FIXME: 和isConfig定位一樣？
