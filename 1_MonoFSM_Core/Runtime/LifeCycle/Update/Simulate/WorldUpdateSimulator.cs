@@ -162,8 +162,6 @@ namespace MonoFSM.Core.Simulate
             //Spawn Strategy? 透過 Fusion的PoolObject 系統...那何不都用他的就好?
             //這裡可能去跑 poolObject 的初始化
             var result = _spawnProcessor.Spawn(obj, position, rotation);
-            //FIXME: 在這裡做 Spawn後的初始化?
-            // AfterPoolSpawn(result);
 
             if (result == null)
                 return null;

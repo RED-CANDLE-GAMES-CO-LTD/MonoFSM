@@ -173,7 +173,9 @@ namespace MonoFSM.Core
                     if (CanTransition(ref t._transitionData))
                     {
                         //try catch 抓問題？
+#if UNITY_EDITOR
                         _lastTransition = t;
+#endif
                         if (Machine.TryActivateState(t.TargetState))
                             return;
                     }
@@ -193,7 +195,9 @@ namespace MonoFSM.Core
                             continue; //anyState不應該轉自己，避免無限迴圈)
                         Debug.Log($"anyState ForceActivateState to {t.TargetState.Name} with " + t,
                             t);
+#if UNITY_EDITOR
                         _lastTransition = t;
+#endif
                         if (Machine.TryActivateState(t.TargetState))
                             return;
                     }
