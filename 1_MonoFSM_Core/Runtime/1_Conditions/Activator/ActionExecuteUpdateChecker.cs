@@ -5,8 +5,10 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Condition
 {
-    public class UpdateSimulateActionRunner : AbstractConditionActivateRunner, IActionParent
+    //FIXME: 改名？
+    public class ActionExecuteUpdateChecker : AbstractConditionUpdateChecker, IActionParent
     {
+        //FIXME: 跑 renderAction?
         //Required?
         [CompRef] [AutoChildren] AbstractStateAction[] _actions;
         protected override void ActivateCheckImplement(bool isValid)

@@ -72,12 +72,9 @@ public abstract class AbstractConditionBehaviour
     //     }
     protected override string DescriptionTag => "Condition";
 
-    protected override string DescriptionPreprocess(string description)
-    {
-        //FIXME: formatName會把這個尬爛...
-        var text = base.DescriptionPreprocess(description);
-        return FinalResultInverted ? " \"Not\" " + text : text;
-    }
+    //FIXME: formatName會把這個尬爛...
+    public override string Description =>
+        FinalResultInverted ? "\"Not\" " + base.Description : base.Description;
 
     // protected override string Description =>
 
