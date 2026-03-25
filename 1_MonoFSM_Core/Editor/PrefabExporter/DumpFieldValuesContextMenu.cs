@@ -9,6 +9,30 @@ namespace MonoFSM.Editor
 {
     public static class DumpFieldValuesContextMenu
     {
+        [MenuItem("CONTEXT/Component/Revert GameObject Name to Prefab")]
+        static void RevertGameObjectNameToPrefab(MenuCommand command)
+        {
+            if (command.context is not Component component) return;
+
+            var go = component.gameObject;
+            if (!PrefabUtility.IsPartOfPrefabInstance(go))
+            {
+                Debug.LogWarning("This GameObject is not a prefab instance.", go);
+                return;
+            }
+
+            var serializedObject = new SerializedObject(go);
+            var nameProp = serializedObject.FindProperty("m_Name");
+            PrefabUtility.RevertPropertyOverride(nameProp, InteractionMode.UserAction);
+        }
+
+        [MenuItem("CONTEXT/Component/Revert GameObject Name to Prefab", true)]
+        static bool RevertGameObjectNameToPrefabValidate(MenuCommand command)
+        {
+            if (command.context is not Component component) return false;
+            return PrefabUtility.IsPartOfPrefabInstance(component.gameObject);
+        }
+
         [MenuItem("CONTEXT/MonoBehaviour/Dump Field Values")]
         static void DumpFieldValues(MenuCommand command)
         {

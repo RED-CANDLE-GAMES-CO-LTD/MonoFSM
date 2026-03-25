@@ -682,6 +682,7 @@ namespace MonoFSM.Variable
                 str = _parentVarEntity.name + "_" + str;
 
             name = str;
+            RevertNameOverrideIfMatchesPrefab(gameObject);
         }
 
         public Type GetRestrictType()

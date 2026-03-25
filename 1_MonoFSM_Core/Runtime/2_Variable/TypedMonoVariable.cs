@@ -46,6 +46,9 @@ namespace MonoFSM.Variable
             }
         }
 
+        public override string Description =>
+            HasValueSource ? valueSource.Description : base.Description;
+
         public abstract void CommitValue();
     }
 }

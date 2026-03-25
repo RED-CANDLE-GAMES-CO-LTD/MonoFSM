@@ -413,8 +413,6 @@ namespace MonoFSM.Foundation
         //介面上也顯示？textarea?
         public virtual string Description => GetType().Name;
 
-        protected virtual string DescriptionPreprocess(string text) => text;
-
         protected virtual string DescriptionTag => "";
 
 
@@ -436,13 +434,14 @@ namespace MonoFSM.Foundation
                 //     this);
                 if (DescriptionTag == "")
                 {
-                    gameObject.name = $"{DescriptionPreprocess(Description)}";
+                    gameObject.name = $"{Description}";
                 }
                 else if (IsBracketsNeededForTag)
-                    gameObject.name = $"[{DescriptionTag}] {DescriptionPreprocess(Description)}";
+                    gameObject.name = $"[{DescriptionTag}] {Description}";
                 else
-                    gameObject.name = $"{DescriptionTag} {DescriptionPreprocess(Description)}";
+                    gameObject.name = $"{DescriptionTag} {Description}";
                 EditorUtility.SetDirty(gameObject);
+                RevertNameOverrideIfMatchesPrefab();
             }
             catch (Exception e)
             {
@@ -453,6 +452,25 @@ namespace MonoFSM.Foundation
             }
 
 #endif
+        }
+
+        protected static void RevertNameOverrideIfMatchesPrefab(GameObject go)
+        {
+#if UNITY_EDITOR
+            if (!PrefabUtility.IsPartOfPrefabInstance(go)) return;
+
+            var source = PrefabUtility.GetCorrespondingObjectFromSource(go);
+            if (source == null || go.name != source.name) return;
+
+            var so = new SerializedObject(go);
+            var nameProp = so.FindProperty("m_Name");
+            PrefabUtility.RevertPropertyOverride(nameProp, InteractionMode.AutomatedAction);
+#endif
+        }
+
+        void RevertNameOverrideIfMatchesPrefab()
+        {
+            RevertNameOverrideIfMatchesPrefab(gameObject);
         }
 
         protected virtual bool IsBracketsNeededForTag => true;

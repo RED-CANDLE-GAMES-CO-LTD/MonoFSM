@@ -11,7 +11,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
     public class ViewRoot : AbstractDescriptionBehaviour, ISceneStart, IUpdateSimulate,
         IAfterRenderMono
     {
-        [SerializeField] private bool _ignoreReparent;
+        [SerializeField] private bool _ignoreReparent; //特殊的viewroot? ex: 角色？
         [PreviewInInspector] [AutoParent] private Animator _animator;
 
         // FollowTarget 掛載欄位

@@ -490,7 +490,8 @@ namespace MonoFSM.Runtime
         [Button]
         protected void BindModulePackFolders()
         {
-            if (_monoPackFolder == null || _monoPackFolder.ModulePacks.Length == 0) return;
+            if (_monoPackFolder == null || _monoPackFolder.ModulePacks == null ||
+                _monoPackFolder.ModulePacks.Length == 0) return;
 
             // 撈出 MonoEntity 直屬的所有 folder (不包含 ModulePack 下的)
             var entityFolders = GetEntityFolders();
