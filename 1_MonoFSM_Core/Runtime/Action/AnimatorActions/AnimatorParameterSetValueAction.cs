@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.Action.AnimatorActions;
 using MonoDebugSetting;
@@ -17,6 +18,7 @@ namespace MonoFSM.Animation
     /// <summary>
     ///     實驗性，還要整理
     /// </summary>
+    [Obsolete("用各種類別做")]
     public class AnimatorParameterSetValueAction : AbstractStateAction, ISceneStart
     {
         public enum ValueType
