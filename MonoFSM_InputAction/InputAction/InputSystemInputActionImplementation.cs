@@ -46,7 +46,9 @@ namespace MonoFSM_InputAction
 
         Vector2 IInputActionImplementation.Vec2ValueCached => _cachedVec2;
 
-        bool IInputActionImplementation.IsLocalPressed => myAction.IsPressed();
+        bool IInputActionImplementation.IsLocalPressed =>
+            myAction.IsPressed() ||
+            myAction.WasPressedThisFrame(); //mouse需要waspressedthisFrame, 會同frame放開？
 
         Vector2 IInputActionImplementation.ReadLocalVec2 => myAction.ReadValue<Vector2>();
 
@@ -115,7 +117,12 @@ namespace MonoFSM_InputAction
         {
             // Cache raw input state
             var rawIsPressed = ((IInputActionImplementation)this).FetchIsPressed;
+
             _cachedIsPressed = rawIsPressed;
+            //好像都可以？
+            // _cachedWasPressed =
+            //     ((IInputActionImplementation)this)
+            //     .FetchWasPressed;
             _cachedWasPressed = rawIsPressed && !_previousIsPressed;
             _cachedWasReleased = !rawIsPressed && _previousIsPressed;
 

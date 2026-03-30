@@ -13,6 +13,7 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
             WasPressed,
             IsPressed,
             WasReleased,
+            IsInBufferTime,
         }
 
         public InputActionType _inputActionType = InputActionType.WasPressed;
@@ -44,6 +45,8 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
                             inputAction.WasReleased
                         );
                         return inputAction.WasReleased;
+                    case InputActionType.IsInBufferTime:
+                        return inputAction.IsInBufferTime;
                     default:
                         return false;
                 }

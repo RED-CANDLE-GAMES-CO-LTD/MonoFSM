@@ -11,8 +11,8 @@ namespace MonoFSM_InputAction
     {
         public int InputActionId { get; }
         public bool FetchIsPressed { get; } //不給外部用？
-        protected bool FetchWasPressed { get; }
-        protected bool FetchWasReleased { get; }
+        public bool FetchWasPressed { get; }
+        public bool FetchWasReleased { get; }
 
         protected internal bool IsPressedCached { get; }
         protected internal bool WasPressedCached { get; }
@@ -62,7 +62,7 @@ namespace MonoFSM_InputAction
         // public abstract bool WasPressBuffered();
         [ShowInPlayMode]
         public bool WasReleased => _abstractInputActionImplementation.WasReleasedCached;
-        
+
         public int InputActionId => _abstractInputActionImplementation.InputActionId; //還是monobehaviour自己assign就好？
 
         public bool IsReadingVec2 => _abstractInputActionImplementation.IsVec2;
@@ -74,51 +74,36 @@ namespace MonoFSM_InputAction
         public float PressTime => _abstractInputActionImplementation?.PressTime ?? 0f;
 
         /// <summary>
+        /// 在 buffer 時間內且尚未被消費。勾選 _useBufferConsume 才生效。
+        /// </summary>
+        [ShowInPlayMode]
+        public bool IsInBufferTime => _useBufferConsume
+                                      && PressTime > 0 && PressTime < _bufferTime && !_isConsumed;
+
+        [SerializeField] bool _useBufferConsume;
+        [SerializeField] float _bufferTime = 0.5f;
+
+        bool _isConsumed;
+
+        /// <summary>
+        /// 標記此次 press 已被處理，IsInBufferTime 將回傳 false 直到下次 press 或 release。
+        /// </summary>
+        public void ConsumePress() => _isConsumed = true;
+
+        /// <summary>
         /// 上次按下的時間戳（Time.time）
         /// </summary>
         [ShowInPlayMode]
         public float LastPressedTime => _abstractInputActionImplementation?.LastPressedTime ?? -1f;
 
-        //FIXME: Debug last press time?
+        void Update()
+        {
+            if (!_useBufferConsume) return;
 
-
-        //FIXME: buffer queue坐在input還是action上？
-
-        // [PreviewInInspector] private float _lastPressTime = -1;
-        // private const float InputBufferTime = 0.25f;
-        // [PreviewInInspector] private List<float> _bufferedQueue = new(); //玩家過去按下的時間 ex: 連按兩下
-
-        // [PreviewInInspector]
-        // private bool WasPressLocalBuffered() //local time
-        // {
-        //     // _localPlayerInput.user
-        //     QueueCheck(Time.time);
-        //     return _bufferedQueue.Count > 0;
-        // }
-        //
-        // //TODO: 要自動更新還是拿取的時候更新？
-        // public bool WasPressLocalBuffered(float time)
-        // {
-        //     QueueCheck(time);
-        //     if (_bufferedQueue.Count > 0)
-        //         // Debug.Log("Buffered in Queue" + name);
-        //         return true;
-        //     else
-        //         return false;
-        // }
-
-        //FIXME: local還是可以做buffered input? 甚至就把buffered結果傳出去？
-
-        //TODO: 也可以做成個別時間檢查不remove?
-        // private void QueueCheck(float time)
-        // {
-        //     for (var i = 0; i < _bufferedQueue.Count; i++)
-        //         //已經超過buffer時間了
-        //         if (_bufferedQueue[i] + InputBufferTime < time)
-        //         {
-        //             _bufferedQueue.RemoveAt(i);
-        //             i--;
-        //         }
-        // }
+            // 新的 press 進來 → 重置 consume，允許新一輪判定
+            if (WasPressed) _isConsumed = false;
+            // release 後也重置，確保下次 press 可用
+            if (WasReleased) _isConsumed = false;
+        }
     }
 }
