@@ -1,22 +1,21 @@
 using System.Collections.Generic;
 using MonoFSM.Core.Detection;
 using MonoFSM.Core.Runtime.Interact.SpatialDetection;
-using Sirenix.Utilities;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
 {
-    public class RaycastDetectSource : AbstractDetectionSource
+    public class CastDetectSource : AbstractDetectionSource
     {
-        //FIXME: 應該用他的 layerMask
         [FormerlySerializedAs("_raycastDetector")]
+        [FormerlySerializedAs("_raycastCache")]
         [DropDownRef]
-        public RaycastCache _raycastCache;
+        public AbstractCastCache _castCache;
 
         public override List<DetectionResult> GetCurrentDetections()
         {
-            var cachedHits = _raycastCache.CachedHits;
+            var cachedHits = _castCache.CachedHits;
             _buffer.Clear();
             foreach (var hit in cachedHits)
             {
@@ -30,27 +29,23 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
 
         public override void UpdateDetection()
         {
-            //FIXME:  應該也用queue的方式處理enter exit事件？
-            //現在OnDetectEnterCheck比較係可以傳細節， Queued不行
             PhysicsUpdate();
         }
 
-        private void PhysicsUpdate() //network?
+        private void PhysicsUpdate()
         {
             _thisFrameColliders.Clear();
-            //FIXME:  TryCast();
-            //從hit拿collider
-            var cachedHits = _raycastCache.CachedHits;
+            var cachedHits = _castCache.CachedHits;
             if (cachedHits == null)
             {
                 Debug.LogError(
-                    "RaycastDetectSource: CachedHits is null. Make sure RaycastCache is properly set up.",
+                    "CastDetectSource: CachedHits is null. Make sure CastCache is properly set up.",
                     this);
                 return;
             }
 
             foreach (var hit in cachedHits)
-                _thisFrameColliders.Add(hit.collider); //這個有用嗎？
+                _thisFrameColliders.Add(hit.collider);
         }
     }
 }
