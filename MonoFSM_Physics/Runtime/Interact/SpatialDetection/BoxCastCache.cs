@@ -24,32 +24,21 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             return _boxCollider != null ? _boxCollider.size * 0.5f : _halfExtents;
         }
 
-        private readonly RaycastHit[] _boxCastResults = new RaycastHit[10];
-
         private IBoxCastProcessor boxCastProcessor =>
             _parentObj.WorldUpdateSimulator.GetCompCache<IBoxCastProcessor>();
 
-        protected override bool PerformCast(Ray ray, float distance, out RaycastHit hitInfo)
+        protected override int PerformCast(Ray ray, float distance, RaycastHit[] results)
         {
-            var hitCount = boxCastProcessor.BoxCastNonAlloc(
+            return boxCastProcessor.BoxCastNonAlloc(
                 ray.origin,
                 GetHalfExtents(),
                 ray.direction,
-                _boxCastResults,
+                results,
                 transform.rotation,
                 distance,
                 _hittingLayer,
                 _queryTriggerInteraction
             );
-
-            if (hitCount > 0)
-            {
-                hitInfo = _boxCastResults[0];
-                return true;
-            }
-
-            hitInfo = default;
-            return false;
         }
 
         protected override void DrawCastGizmo(Ray ray, float distance)

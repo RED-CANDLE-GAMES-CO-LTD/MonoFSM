@@ -11,12 +11,12 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         private IRaycastProcessor raycastProcessor =>
             _parentObj.WorldUpdateSimulator.GetCompCache<IRaycastProcessor>();
 
-        protected override bool PerformCast(Ray ray, float distance, out RaycastHit hitInfo)
+        protected override int PerformCast(Ray ray, float distance, RaycastHit[] results)
         {
-            return raycastProcessor.Raycast(
+            return raycastProcessor.RaycastNonAlloc(
                 ray.origin,
                 ray.direction,
-                out hitInfo,
+                results,
                 distance,
                 _hittingLayer,
                 _queryTriggerInteraction

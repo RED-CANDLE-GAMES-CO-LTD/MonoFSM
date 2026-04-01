@@ -86,12 +86,16 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 
         public QueryTriggerInteraction _queryTriggerInteraction = QueryTriggerInteraction.Collide;
 
+        public bool _singleHitOnly;
+
         [Required]
         [Auto]
         [CompRef]
         protected AbstractRayProvider _rayProvider;
 
         public bool _manualUpdateMode;
+
+        protected readonly RaycastHit[] _castResultsBuffer = new RaycastHit[20];
 
         Vector3 _prevHitPos;
         Vector3 _currHitPos;
@@ -156,11 +160,11 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             if (_isDrawDebugColor)
                 Debug.DrawLine(currentRay.origin, endPoint, _overrideGizmoColor, 10f);
 
-            var result = PerformCast(currentRay, distance, out var hitInfo);
+            var hitCount = PerformCast(currentRay, distance, _castResultsBuffer);
+            var actualCount = _singleHitOnly ? Mathf.Min(hitCount, 1) : hitCount;
 
-            if (!result)
+            if (actualCount <= 0)
             {
-                hitInfo = new RaycastHit();
                 var farPoint = currentRay.origin + currentRay.direction * distance;
                 _hitPosVar?.SetValue(farPoint);
                 if (_hitPosVarTransform != null && _hitPosVarTransform.Value != null)
@@ -169,25 +173,28 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             }
             else
             {
-                _hitPosVar?.SetValue(hitInfo.point);
+                for (var i = 0; i < actualCount; i++)
+                    CachedHits.Add(_castResultsBuffer[i]);
+
+                var firstHit = _castResultsBuffer[0];
+                _hitPosVar?.SetValue(firstHit.point);
                 if (_hitPosVarTransform != null && _hitPosVarTransform.Value != null)
-                    _hitPosVarTransform.Value.position = hitInfo.point;
+                    _hitPosVarTransform.Value.position = firstHit.point;
                 _hasHitVar?.SetValue(true);
             }
 
-            CachedHits.Add(hitInfo);
-
 #if UNITY_EDITOR
-            _debugHistoryObjs.Enqueue(hitInfo.collider);
+            var debugCollider = actualCount > 0 ? _castResultsBuffer[0].collider : null;
+            _debugHistoryObjs.Enqueue(debugCollider);
             if (_debugHistoryObjs.Count > 10)
                 _debugHistoryObjs.Dequeue();
 #endif
         }
 
         /// <summary>
-        ///     子類實作實際的物理 cast。回傳是否有命中。
+        ///     子類實作實際的物理 cast。回傳命中數量。
         /// </summary>
-        protected abstract bool PerformCast(Ray ray, float distance, out RaycastHit hitInfo);
+        protected abstract int PerformCast(Ray ray, float distance, RaycastHit[] results);
 
         // --- Gizmo ---
 
@@ -226,8 +233,8 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public override string Description => _rayProvider?.GetType().Name;
 
 #if UNITY_EDITOR
-        public string ValueInfo => "layer:" + _hittingLayer.value;
-        public bool IsDrawingValueInfo => true;
+        public override string ValueInfo => "layer:" + _hittingLayer.value;
+        public override bool IsDrawingValueInfo => true;
 #endif
     }
 }
