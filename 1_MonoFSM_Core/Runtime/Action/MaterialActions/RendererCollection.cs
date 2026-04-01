@@ -1,13 +1,17 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
-using VInspector;
 
-namespace Fusion.Addons.KCC._0_Gameplay.LineworkGlue
+namespace MonoFSM.Render
 {
     public class RendererCollection : MonoBehaviour
     {
         public RendererCollection _rendererCollectionRef;
 
         [ShowInInspector] [AutoChildren] private Renderer[] _renderers;
+
+        public Renderer[] Renderers => _rendererCollectionRef != null
+            ? _rendererCollectionRef.Renderers
+            : _renderers;
 
         public void SetRenderingLayerMask(uint mask)
         {

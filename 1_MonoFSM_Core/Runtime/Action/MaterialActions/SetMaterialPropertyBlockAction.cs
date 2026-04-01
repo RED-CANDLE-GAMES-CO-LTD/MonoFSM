@@ -1,4 +1,5 @@
 using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Render;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace MonoFSM.ParticleSystemActions
     public class SetMaterialPropertyBlockAction : AbstractStateAction
     {
         public override string Description =>
-            $"Set [{_propertyName}] ({_propertyType}) on [{(_renderer != null ? _renderer.name : "null")}]";
+            $"Set [{_propertyName}] ({_propertyType}) on [{(_rendererCollection != null ? _rendererCollection.name : _renderer != null ? _renderer.name : "null")}]";
 
         public enum PropertyType
         {
@@ -17,8 +18,11 @@ namespace MonoFSM.ParticleSystemActions
             Int
         }
 
-        [SerializeField] [DropDownRef] [Required]
+        [SerializeField] [DropDownRef]
         private Renderer _renderer;
+
+        [SerializeField] [DropDownRef]
+        private RendererCollection _rendererCollection;
 
         [SerializeField] private string _propertyName;
 
@@ -38,21 +42,39 @@ namespace MonoFSM.ParticleSystemActions
         private MaterialPropertyBlock _mpb;
         private int _propertyId;
 
+        [Button("Preview")]
         protected override void OnActionExecuteImplement()
         {
-            if (_renderer == null)
-            {
-                Debug.LogWarning("SetMaterialPropertyBlockAction: Renderer is null", this);
-                return;
-            }
-
             if (_mpb == null)
             {
                 _mpb = new MaterialPropertyBlock();
                 _propertyId = Shader.PropertyToID(_propertyName);
             }
 
-            _renderer.GetPropertyBlock(_mpb, _materialIndex);
+            if (_rendererCollection != null)
+            {
+                var renderers = _rendererCollection.Renderers;
+                if (renderers == null) return;
+
+                foreach (var r in renderers)
+                {
+                    if (r == null) continue;
+                    ApplyPropertyBlock(r);
+                }
+            }
+            else if (_renderer != null)
+            {
+                ApplyPropertyBlock(_renderer);
+            }
+            else
+            {
+                Debug.LogWarning("SetMaterialPropertyBlockAction: No Renderer or RendererCollection assigned", this);
+            }
+        }
+
+        private void ApplyPropertyBlock(Renderer renderer)
+        {
+            renderer.GetPropertyBlock(_mpb, _materialIndex);
 
             switch (_propertyType)
             {
@@ -67,7 +89,7 @@ namespace MonoFSM.ParticleSystemActions
                     break;
             }
 
-            _renderer.SetPropertyBlock(_mpb, _materialIndex);
+            renderer.SetPropertyBlock(_mpb, _materialIndex);
         }
     }
 }

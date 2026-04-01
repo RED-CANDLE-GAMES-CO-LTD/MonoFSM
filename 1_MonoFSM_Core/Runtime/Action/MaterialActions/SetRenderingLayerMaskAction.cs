@@ -1,6 +1,5 @@
-using Fusion.Addons.KCC;
-using Fusion.Addons.KCC._0_Gameplay.LineworkGlue;
 using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Render;
 using Sirenix.OdinInspector;
 
 namespace Gameplay
