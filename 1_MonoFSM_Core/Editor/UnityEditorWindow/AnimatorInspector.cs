@@ -61,7 +61,7 @@ public class AnimatorInspector : OdinEditor
 
     [TabGroup("Animator Controller")]
     [Button()]
-    private void CreateClipsForAllStatesOfLayer(int layerIndex = 0)
+    private void CreateClipsForAllStatesOfLayer(int layerIndex)
     {
         if (currentAnimatorController == null)
             return;
@@ -147,8 +147,8 @@ public class AnimatorInspector : OdinEditor
         Debug.Log("Logic Layer?" + baseLayer.name + baseLayer.stateMachine.name);
         EditorUtility.SetDirty(currentAnimatorController.layers[0].stateMachine);
         // Debug.Log("Set Layer 0 Name" + currentAnimatorController.layers[0].name);
-        
-        
+
+
         if (currentAnimatorController.layers.Length == 1)
         {
             currentAnimatorController.AddLayer("View Layer");
@@ -184,14 +184,14 @@ public class AnimatorInspector : OdinEditor
     private void CreateNewLayerAndCopyStatesFromBaseLayerAndRename(string name)
     {
         currentAnimatorController.AddLayer(name);
-        
-        
+
+
         var layer = new AnimatorControllerLayer
         {
             name = name,
             defaultWeight = 1,
             blendingMode = AnimatorLayerBlendingMode.Override,
-            
+
         };
         var stateMachine = new AnimatorStateMachine
         {
@@ -208,7 +208,7 @@ public class AnimatorInspector : OdinEditor
             //copy the position
             layer.stateMachine.states[^1].position = state.position;
         }
-        
+
 
         //add the new layer to the controller
         currentAnimatorController.AddLayer(layer);
@@ -219,7 +219,10 @@ public class AnimatorInspector : OdinEditor
     [Button()]
     private void CreateClipForAllStates()
     {
-        CreateClipsForAllStatesOfLayer(0);
-        CreateClipsForAllStatesOfLayer(1);
+        for (var i = 0; i < currentAnimatorController.layers.Length; i++)
+        {
+            // var layer = currentAnimatorController.layers[i];
+            CreateClipsForAllStatesOfLayer(i);
+        }
     }
 }

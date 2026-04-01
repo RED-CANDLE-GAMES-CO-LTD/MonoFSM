@@ -13,6 +13,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
     )]
     public class GeneralEffectType : ScriptableObject, IEffectType, IStringKey
     {
+        //FIXME: 應該要檢查該MonoEntity有沒有對應的variable欄位
 #if UNITY_EDITOR
         [TextArea]
         [SerializeField]

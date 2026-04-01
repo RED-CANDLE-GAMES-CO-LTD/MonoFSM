@@ -39,9 +39,10 @@ namespace MonoFSM.Animation
     {
         public override string Description =>
             animator
-                ? " " + animator.gameObject.name + ": " + "_" + StateName + " L:" + stateLayer
+                ? " " + animator.gameObject.name + ": " + StateName + " L:" + stateLayer
                 : "NO ANIMATOR";
-        protected override string DescriptionTag => "Anim";
+
+        protected override string DescriptionTag => "Play";
 
         protected override void Awake()
         {

@@ -2,20 +2,41 @@ using MonoFSM.Core.DataProvider;
 using MonoFSM.Foundation;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper.Float
 {
     /// <summary>
     /// 回傳 VarFloat 的百分比值 (CurrentValue - Min) / (Max - Min)，範圍 0~1
+    /// 可選 _maxOverride：未指定時用 VarFloat 自身的 Max，指定時用外部 ValueSource 的值作為 Max
     /// </summary>
     public class FloatPercentage : AbstractValueSource<float>, IFloatProvider
     {
-        protected override string DescriptionTag => "%";
+        // protected override string DescriptionTag => "%";
 
         [Required] [DropDownRef] public VarFloat _varFloat;
 
-        public override float Value => _varFloat != null ? _varFloat.Percentage : 0f;
+        [Tooltip("可選：覆蓋 Max 值的來源，未指定時使用 VarFloat 自身的 Max")] [SerializeField]
+        private AbstractValueSource<float> _maxOverride;
 
-        public override string Description => " of: " + _varFloat?.Description;
+        [Tooltip("勾選後回傳 1 - percentage")] [SerializeField]
+        private bool _invert;
+
+        private float Max => _maxOverride != null ? _maxOverride.Value : _varFloat.Max;
+
+        public override float Value
+        {
+            get
+            {
+                if (_varFloat == null) return 0f;
+                var range = Max - _varFloat.Min;
+                var pct = range > 0f ? (_varFloat.CurrentValue - _varFloat.Min) / range : 0f;
+                return _invert ? 1f - pct : pct;
+            }
+        }
+
+        public override string Description => (_invert ? "1-% of: " : "% of: ")
+            + _varFloat?.Description
+            + (_maxOverride != null ? " / " + _maxOverride.Description : "");
     }
 }

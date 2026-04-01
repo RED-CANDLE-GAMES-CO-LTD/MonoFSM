@@ -36,7 +36,7 @@ public abstract class AbstractConditionBehaviour
         IBoolProvider,
         IOverrideHierarchyIcon,
         // IValueProvider<bool>, //FIXME: 不該作為ValueProvider? 要的話另外轉換好了？
-        IHierarchyValueInfo, IValueProvider<bool>, IValueProvider<float>
+        IValueProvider<bool>, IValueProvider<float>
 {
 #if UNITY_EDITOR
     [ExcludeFromCodeCoverage]
@@ -184,8 +184,8 @@ public abstract class AbstractConditionBehaviour
     public bool Value => FinalResult;
 
     //interface & implementation的關係，所以我也可以說安裝一個schema, 然後下面再補variable....可能自動補掉就好了？(有就自動撈)
-    public virtual string ValueInfo => FinalResult.ToString();
-    public virtual bool IsDrawingValueInfo => Application.isPlaying;
+    public override string ValueInfo => FinalResult.ToString();
+    public override bool IsDrawingValueInfo => Application.isPlaying;
 
     float IValueProvider<float>.Value => IsTrue ? 1f : 0f;
 

@@ -6,6 +6,8 @@ namespace _1_MonoFSM_Core.Runtime.Action
 {
     public class SetEnableAction : AbstractStateAction
     {
+        public override string Description => "Set Enable: " + _component.GetType().Name + " to " +
+                                              (_isToggle ? "Toggle" : _enable.ToString());
         public Behaviour _component;
         public bool _isToggle;
         [HideIf(nameof(_isToggle), false)] public bool _enable;

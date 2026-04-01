@@ -51,7 +51,7 @@ namespace MonoFSM.Variable
             {
                 if (valueSource is IFloatBoundProvider boundProvider)
                     return boundProvider.Min;
-                return _boundModifier ? _boundModifier.MinValue : float.MinValue;
+                return _boundModifier ? _boundModifier.MinValue : 0;
             }
         }
 

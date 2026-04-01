@@ -120,7 +120,9 @@ namespace MonoFSM.Variable
     [Serializable]
     public class VarFloatWrapper : VarWrapper<VarFloat, float>
     {
-
+        public float Max => _var != null ? _var.Max : _maxValue;
+        public float Min => _var != null ? _var.Min : 0f;
+        public float _maxValue;
         public VarFloatWrapper() { }
 
         public VarFloatWrapper(float defaultValue)

@@ -17,6 +17,7 @@ namespace MonoFSM.EditorExtension
 #if UNITY_EDITOR
         public string ValueInfo { get; }
         public bool IsDrawingValueInfo { get; }
+        public string Note => "";
 #endif
     }
 }

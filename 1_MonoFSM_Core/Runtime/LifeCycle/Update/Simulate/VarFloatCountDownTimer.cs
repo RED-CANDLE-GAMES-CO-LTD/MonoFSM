@@ -16,14 +16,16 @@ namespace MonoFSM.Core.Simulate
     /// </summary>
     public class VarFloatCountDownTimer : AbstractDescriptionBehaviour, IUpdateSimulate, IResetStart
     {
+        public override bool IsDrawingValueInfo => true;
+        public override string ValueInfo => _currentTime.Value.ToString("F2");
+
         public override string Description =>
-            $"CountDownTimer: {currentTime.CurrentValue:F2} / {currentTime.Max:F2}";
+            $"CountDownTimer: {_currentTime.Value:F2} / {_currentTime.Max:F2}";
 
         [InfoBox(
             "This timer counts down from a specified value to zero. It can be reset to a maximum value or a specific value. It is used to control the timing of events in the game.")]
-        [DropDownRef]
-        [Component]
-        public VarFloat currentTime;
+        [SerializeField]
+        private VarFloatWrapper _currentTime = new();
 
         [Tooltip("時間到後是否自動重新開始")]
         [SerializeField] bool _autoRestart = false;
@@ -44,7 +46,7 @@ namespace MonoFSM.Core.Simulate
             if (!isActiveAndEnabled)
                 return;
             //每一日可能還不依樣？
-            SetTimer(currentTime.Max);
+            SetTimer(_currentTime.Max);
         }
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace MonoFSM.Core.Simulate
         public void SetTimer(float value)
         {
             // Debug.Log("ResetTimer:" + value, this);
-            currentTime.SetValue(value, this);
+            _currentTime.SetValue(value, this);
             _delayRemaining = _startDecayDelay.Value;
         }
 
@@ -73,7 +75,7 @@ namespace MonoFSM.Core.Simulate
         {
             if (!_conditions.IsAllValid())
                 return;
-            if (currentTime.CurrentValue > currentTime.Min)
+            if (_currentTime.Value > _currentTime.Min)
             {
                 // delay 階段：倒數 delay，不衰減
                 if (_delayRemaining > 0f)
@@ -82,14 +84,23 @@ namespace MonoFSM.Core.Simulate
                     return;
                 }
 
-                _lastTime = currentTime.CurrentValue;
+                _lastTime = _currentTime.Value;
                 float rate = _decayMultiplier.Value > 0f ? _decayMultiplier.Value : 1f;
-                currentTime.SetValue(currentTime.CurrentValue - rate * deltaTime, this);
+                _currentTime.SetValue(_currentTime.Value - rate * deltaTime, this);
 
                 // 檢測時間到（從 > Min 變成 <= Min）
-                if (currentTime.CurrentValue <= currentTime.Min)
+                if (_currentTime.Value <= _currentTime.Min)
                 {
                     OnTimeUp();
+                }
+            }
+
+            // 自動重新開始
+            if (_currentTime.Value <= _currentTime.Min)
+            {
+                if (_autoRestart)
+                {
+                    ResetTimer();
                 }
             }
         }
@@ -100,11 +111,7 @@ namespace MonoFSM.Core.Simulate
             _onTimeUpHandler?.EventHandle();
 
 
-            // 自動重新開始
-            if (_autoRestart)
-            {
-                ResetTimer();
-            }
+
         }
 
         public void AfterUpdate()

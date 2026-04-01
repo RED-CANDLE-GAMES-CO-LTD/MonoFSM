@@ -8,12 +8,13 @@ using UnityEngine;
 
 namespace MonoFSM.Runtime.ObjectPool
 {
-    //FIXME: Despawn action?
     /// <summary>
     ///     把自己回收掉
+    /// FIXME: Scene Obj Reset FSM有辦法回來嗎？p
     /// </summary>
     public class DespawnAction : AbstractArgEventHandler<GeneralEffectHitData>
     {
+        [ShowIf(nameof(_effectResolver))] //FIXME: 還是用Disable?
         public EffectHitTarget _despawnTarget = EffectHitTarget.Receiver;
 
         protected override void OnActionExecuteImplement()
@@ -27,6 +28,7 @@ namespace MonoFSM.Runtime.ObjectPool
         {
             switch (_despawnTarget)
             {
+                //去把對方物件給回收掉，很兇耶
                 case EffectHitTarget.Dealer:
                     arg.GeneralDealer.DespawnParentObj();
                     break;

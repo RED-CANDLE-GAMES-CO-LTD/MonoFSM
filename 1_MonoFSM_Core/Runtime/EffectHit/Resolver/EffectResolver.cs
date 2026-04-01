@@ -86,7 +86,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         // }
 
 #if UNITY_EDITOR
-        public override string Description => FormatName(_effectType?.name) + _note; //要包含Detector的名字嗎？ 遠距離 的 player
+        public override string Description =>
+            FormatName(_effectType?.name); //要包含Detector的名字嗎？ 遠距離 的 player
 #else
         public override string Description => FormatName(_effectType?.name);
 #endif
@@ -143,8 +144,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         // public bool IsValid => gameObject.activeSelf && _conditions.IsAllValid();
 
         public IActor Owner => GetComponentInParent<IActor>();
-        public string ValueInfo => IsValid ? "Valid" : "Invalid";
-        public bool IsDrawingValueInfo => Application.isPlaying && isActiveAndEnabled;
+        public override string ValueInfo => IsValid ? "On" : "Off";
+        public override bool IsDrawingValueInfo => Application.isPlaying && isActiveAndEnabled;
 
         public virtual void ResetStateRestore()
         {

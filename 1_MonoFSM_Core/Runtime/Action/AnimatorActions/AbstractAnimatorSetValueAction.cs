@@ -33,6 +33,7 @@ namespace MonoFSM.Animation
         bool HasAnimatorOrRef => _animator != null || _animatorRefSource != null ||
                                  _externalAnimatorRefSource != null;
 
+        [ValidateInput(nameof(ValidateParameterName), "Parameter not found in Animator")]
         [ValueDropdown(nameof(GetParameterNames))]
         public string _parameterName;
 
@@ -49,6 +50,17 @@ namespace MonoFSM.Animation
 
         private bool _hasCheckedParameter;
         private bool _hasParameter;
+
+        private bool ValidateParameterName(string paramName)
+        {
+            if (string.IsNullOrEmpty(paramName) || Animator == null) return false;
+            foreach (var param in Animator.parameters)
+            {
+                if (param.name == paramName) return true;
+            }
+
+            return false;
+        }
 
         private IEnumerable<string> GetParameterNames()
         {

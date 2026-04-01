@@ -98,7 +98,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             var colliders = GetComponentsInChildren<Collider>(true);
             foreach (var col in colliders)
             {
-                if (col.isTrigger) //避免誤加
+                if (col.isTrigger || !col.enabled) //避免誤加
                     continue;
                 if (col.GetComponentInParent<EffectDetector>() !=
                     null) //略過有EffectDetector父物件的Collider，避免誤加TriggerDetectableTarget
@@ -114,7 +114,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
                     continue;
                 }
 
-                if (col.TryGetCompOrAdd<TriggerDetectableTarget>())
+                if (col.enabled && col.TryGetCompOrAdd<TriggerDetectableTarget>())
                 {
                 }
             }

@@ -15,6 +15,7 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
             _inputAction != null ? _inputAction.name : "No InputAction";
 
         // protected override string DescriptionTag => "Vec2";
-        public override Vector2 Value => _inputAction.ReadValueVec2;
+        public override Vector2 Value =>
+            Application.isPlaying ? _inputAction.ReadValueVec2 : Vector2.zero;
     }
 }

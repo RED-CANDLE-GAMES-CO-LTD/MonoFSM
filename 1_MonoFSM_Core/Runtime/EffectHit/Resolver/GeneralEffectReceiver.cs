@@ -15,6 +15,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             IDetectDataProvider,
             IValueOfKey<GeneralEffectType>
     {
+        public override string ValueInfo =>
+            HasDealerOverlap ? base.ValueInfo + " Has Dealer!" : base.ValueInfo;
+
         private void OnValidate()
         {
             transform.localPosition = Vector3.zero;
