@@ -14,6 +14,7 @@ using MonoFSM.Runtime;
 using MonoFSM.Runtime.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
+using Sirenix.Utilities;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -30,7 +31,7 @@ namespace MonoFSM.Foundation
         : MonoBehaviour,
             IBeforePrefabSaveCallbackReceiver,
             IAfterPrefabStageOpenCallbackReceiver,
-            IDrawHierarchyBackGround
+            IDrawHierarchyBackGround, IHierarchyValueInfo
     {
         [HideIf(nameof(_parentObj))]
         [ShowIn(PrefabKind.PrefabInstance)]
@@ -57,11 +58,19 @@ namespace MonoFSM.Foundation
         }
         public WorldUpdateSimulator simulator => _parentObj.WorldUpdateSimulator;
 
-#if UNITY_EDITOR
+// #if UNITY_EDITOR
+
         [TextArea]
         [SerializeField]
         protected string _note; //這個應該要有另外的地方可以draw? 多component還會打架...
-#endif
+
+        public string Note => _note;
+
+        public virtual string ValueInfo => "";
+
+        public virtual bool IsDrawingValueInfo => false;
+// #endif
+
 
         /// <summary>
         ///     想要自己命名，又要帶有description tag的話就把Description改用這個
@@ -432,16 +441,26 @@ namespace MonoFSM.Foundation
                 // Debug.Log(
                 //     $"Description of {GetType()}: Description:{Description} process:{DescriptionPreprocess(Description)}",
                 //     this);
+                var nameStr = "";
                 if (DescriptionTag == "")
                 {
-                    gameObject.name = $"{Description}";
+                    nameStr = $"{Description}";
                 }
                 else if (IsBracketsNeededForTag)
-                    gameObject.name = $"[{DescriptionTag}] {Description}";
+                    nameStr = $"[{DescriptionTag}] {Description}";
                 else
-                    gameObject.name = $"{DescriptionTag} {Description}";
+                    nameStr = $"{DescriptionTag} {Description}";
+
+                //FIXME: 想要顯示，但animator控制的會吃掉...
+                // if (!_note.IsNullOrWhitespace())
+                //     nameStr += $" {_note}";
+                gameObject.name = nameStr;
+                Debug.Log(
+                    $"Renamed gameObject to: {gameObject.name} for {GetType().Name}",
+                    this
+                );
                 EditorUtility.SetDirty(gameObject);
-                RevertNameOverrideIfMatchesPrefab();
+                // RevertNameOverrideIfMatchesPrefab();
             }
             catch (Exception e)
             {
@@ -454,6 +473,7 @@ namespace MonoFSM.Foundation
 #endif
         }
 
+        //FIXME: 這個判定怪怪的？revert對嗎？比較？？？
         protected static void RevertNameOverrideIfMatchesPrefab(GameObject go)
         {
 #if UNITY_EDITOR
