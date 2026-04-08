@@ -15,6 +15,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             IDetectDataProvider,
             IValueOfKey<GeneralEffectType>
     {
+        protected override bool HasError()
+        {
+            return base.HasError() || Detectable == null;
+        }
+
         public override string ValueInfo =>
             HasDealerOverlap ? base.ValueInfo + " Has Dealer!" : base.ValueInfo;
 
@@ -36,9 +41,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         //module不會有耶
         // [Component(AddComponentAt.Parent)]
-        [Required] [AutoParent]
+
+        [AutoParent]
         private EffectDetectable _detectable; //不一定是，IEffectDetectable?
 
+        [Required]
         [GUIColor(0.8f, 0.9f, 0.3f)]
         [PreviewInInspector]
         public EffectDetectable Detectable => _detectable?._bindingRoot != null
