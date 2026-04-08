@@ -128,12 +128,13 @@ namespace EditorTool
             {
                 var prefabStage = PrefabStageUtility.GetCurrentPrefabStage();
                 var prefabRoot = prefabStage.prefabContentsRoot;
-                OnPrefabSaving(prefabRoot);
-                FindAllSOAndProcessSceneSave();
+                // OnPrefabSaving(prefabRoot);
+                Debug.Log("On Prefab CustomSave", prefabRoot);
+                OnCustomPrefabSaving(prefabRoot);
                 return;
             }
 
-            Debug.Log("On CustomSave");
+            Debug.Log("On Scene CustomSave");
             CustomFindSceneSavingAndProcess();
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
             AssetDatabase.SaveAssets();
@@ -168,6 +169,29 @@ namespace EditorTool
             // {
             //     savingObj.OnBeforeSceneSave();
             // }
+        }
+
+        private static void OnCustomPrefabSaving(GameObject prefab)
+        {
+            Debug.Log("OnCustomPrefabSaving");
+            var callbackObjs = new List<ICustomPrefabSaveCallbackReceiver>();
+            prefab.GetComponentsInChildren(true, callbackObjs);
+            callbackObjs.Reverse();
+            foreach (var callbackObj in callbackObjs)
+            {
+                if (callbackObj != null)
+                {
+                    try
+                    {
+                        callbackObj.OnCustomPrefabSave();
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError("OnCustomPrefabSave error", callbackObj as Object);
+                        Debug.LogError(e);
+                    }
+                }
+            }
         }
 
         private static void OnPrefabStageOpened(PrefabStage prefabStage)

@@ -38,4 +38,9 @@ namespace MonoFSM.Core
     {
         void OnAfterPrefabStageOpen();
     }
+
+    public interface ICustomPrefabSaveCallbackReceiver
+    {
+        void OnCustomPrefabSave();
+    }
 }
