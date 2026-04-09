@@ -41,8 +41,8 @@ namespace MonoFSM.Variable
 
         private void Awake()
         {
-            if (_minValueWrapper._var == null && _maxValueWrapper._var == null)
-                Debug.LogError("VariableFloatBoundModifier has no min/max value set", this);
+            // if (_minValueWrapper._var == null && _maxValueWrapper._var == null)
+            //     Debug.LogError("VariableFloatBoundModifier has no min/max value set", this);
         }
 
         [SerializeField]

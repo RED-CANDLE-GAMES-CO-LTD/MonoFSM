@@ -42,6 +42,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         //module不會有耶
         // [Component(AddComponentAt.Parent)]
 
+        [ShowInDebugMode]
         [AutoParent]
         private EffectDetectable _detectable; //不一定是，IEffectDetectable?
 

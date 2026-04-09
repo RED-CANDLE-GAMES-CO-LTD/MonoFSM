@@ -35,10 +35,9 @@ namespace MonoFSM.Foundation
         public abstract MonoEntityTag entityTag { get; }
     }
 
-    public abstract class AbstractValueSource<T> : AbstractGetter, IValueProvider<T>,
-        IHierarchyValueInfo //提供數值
+    public abstract class AbstractValueSource<T> : AbstractGetter, IValueProvider<T> //提供數值
     {
-        protected override string DescriptionTag => "=> (" + typeof(T).Name + ")";
+        protected override string DescriptionTag => "=>";
 
         [AutoParent]
         private MonoEntity _monoEntity;
@@ -50,8 +49,8 @@ namespace MonoFSM.Foundation
         public abstract T Value { get; }
 
         public override bool HasValue => !EqualityComparer<T>.Default.Equals(Value, default);
-        public string ValueInfo => HasValue ? Value.ToString() : "Null"; //TODO: list太肥了
-        public bool IsDrawingValueInfo => true;
+        public override string ValueInfo => HasValue ? Value.ToString() : "Null"; //TODO: list太肥了
+        public override bool IsDrawingValueInfo => true;
     }
 
     public static class ValueResolver

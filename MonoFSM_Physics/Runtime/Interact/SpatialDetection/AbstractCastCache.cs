@@ -62,6 +62,12 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         private Collider firstHitCollider =>
             CachedHits is { Count: > 0 } ? CachedHits[0].collider : null;
 
+        // 預分配的 list，每幀 Clear + Add 避免 GC
+        [ShowInInspector]
+        [ReadOnly]
+        [ListDrawerSettings(IsReadOnly = true)]
+        private readonly List<Collider> _hitColliders = new();
+
         private DualPhaseValue<List<RaycastHit>> _cachedHits = new();
 
         [PreviewInInspector] public List<RaycastHit> CachedHits => _cachedHits.Value;
@@ -126,6 +132,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             _cachedRay.Reset();
             _cachedHits.SimValue?.Clear();
             _cachedHits.RenderValue?.Clear();
+            _hitColliders.Clear();
 #if UNITY_EDITOR
             _debugHistoryObjs.Clear();
 #endif
@@ -161,7 +168,17 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
                 Debug.DrawLine(currentRay.origin, endPoint, _overrideGizmoColor, 10f);
 
             var hitCount = PerformCast(currentRay, distance, _castResultsBuffer);
+
+            // 依距離由近到遠排序（struct comparer 無 GC）
+            if (hitCount > 1)
+                System.Array.Sort(_castResultsBuffer, 0, hitCount, RaycastHitDistanceComparer.Instance);
+
             var actualCount = _singleHitOnly ? Mathf.Min(hitCount, 1) : hitCount;
+
+            // 更新 hit collider list（Clear + Add 無 GC）
+            _hitColliders.Clear();
+            for (var i = 0; i < actualCount; i++)
+                _hitColliders.Add(_castResultsBuffer[i].collider);
 
             if (actualCount <= 0)
             {
@@ -236,5 +253,18 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public override string ValueInfo => "layer:" + _hittingLayer.value;
         public override bool IsDrawingValueInfo => true;
 #endif
+    }
+
+    /// <summary>
+    ///     用 struct 實作 IComparer 以避免排序時產生 GC。
+    /// </summary>
+    public struct RaycastHitDistanceComparer : System.Collections.Generic.IComparer<RaycastHit>
+    {
+        public static readonly RaycastHitDistanceComparer Instance = new();
+
+        public int Compare(RaycastHit x, RaycastHit y)
+        {
+            return x.distance.CompareTo(y.distance);
+        }
     }
 }

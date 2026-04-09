@@ -5,6 +5,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Variable;
 using MonoFSM.Runtime;
 using MonoFSM.Runtime.Variable;
+using MonoFSM.Foundation;
 using MonoFSM.Runtime.Vote;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
@@ -18,6 +19,7 @@ namespace MonoFSM.Variable
     {
     }
 
+    //FIXME: 改成VarWrapper?
     [Serializable]
     public class VarMonoObjFoldOut : VarFoldOut<VarMonoObj, MonoObj>
     {
@@ -122,11 +124,44 @@ namespace MonoFSM.Variable
     {
         public float Max => _var != null ? _var.Max : _maxValue;
         public float Min => _var != null ? _var.Min : 0f;
+
+        [HideIf(nameof(HideMaxValue))]
         public float _maxValue;
+
+        [HideIf(nameof(HideValueSource))]
+        [Component]
+        public AbstractValueSource<float> _valueSource;
+
+        private bool HasValueSource => _valueSource != null;
+        private bool HideMaxValue => _var != null || HasValueSource;
+        private bool HideValueSource => _var != null;
+        protected override bool HideTempValue => _var != null || HasValueSource;
+        protected override bool HideVar => HasValueSource;
+
         public VarFloatWrapper() { }
 
         public VarFloatWrapper(float defaultValue)
             : base(defaultValue) { }
+
+        public override float Value
+        {
+            get
+            {
+                if (_var != null) return _var.Get<float>();
+                if (_valueSource != null && _valueSource.IsValid) return _valueSource.Value;
+                return base.Value;
+            }
+        }
+
+        public new void SetValue(float value, Object byWho, string reason = "")
+        {
+            if (HasValueSource && _var == null)
+            {
+                Debug.LogError($"[VarFloatWrapper] Cannot SetValue on read-only ValueSource: {_valueSource.name}", byWho);
+                return;
+            }
+            base.SetValue(value, byWho, reason);
+        }
     }
 
     [Serializable]
@@ -157,7 +192,7 @@ namespace MonoFSM.Variable
         where TVar : AbstractMonoVariable
     {
         public string Description => _var != null ? _var.Description : _tempValue.ToString();
-        [HideIf("_var", null, false)]
+        [HideIf(nameof(HideTempValue))]
         [ShowInInspector]
         [SerializeField]
         private TValue _tempValue;
@@ -166,8 +201,12 @@ namespace MonoFSM.Variable
         [SOConfig("VariableType")]
         public VariableTag _bindTag;
 
+        [HideIf(nameof(HideVar))]
         [Component]
         public TVar _var;
+
+        protected virtual bool HideTempValue => _var != null;
+        protected virtual bool HideVar => false;
 
         public VarWrapper() { }
 
@@ -177,7 +216,7 @@ namespace MonoFSM.Variable
         }
 
         [PreviewInInspector]
-        public TValue Value
+        public virtual TValue Value
         {
             get
             {

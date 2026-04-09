@@ -8,6 +8,11 @@ namespace MonoFSM.Core.Simulate
         bool isActiveAndEnabled { get; }
 
         GameObject gameObject { get; }
+
+        /// <summary>
+        /// 排序順序，數字越小越先執行。預設為0。
+        /// </summary>
+        int BeforeSimulateOrder => 0;
     }
 
     public interface IAfterSimulate

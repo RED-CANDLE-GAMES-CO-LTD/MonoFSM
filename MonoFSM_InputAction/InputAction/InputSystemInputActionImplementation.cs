@@ -17,6 +17,7 @@ namespace MonoFSM_InputAction
             IInputActionImplementation,
             IBeforeSimulate
     {
+        [Auto] private MonoInputAction _monoInputAction;
         // [Required]
         // [PreviewInInspector] [AutoParent] private PlayerInput _localPlayerInput;
         public int InputActionId => _inputActionData.actionID; //還是monobehaviour自己assign就好？
@@ -142,6 +143,9 @@ namespace MonoFSM_InputAction
             }
 
             _previousIsPressed = rawIsPressed;
+
+            // 通知 MonoInputAction 更新 consume 狀態
+            _monoInputAction.OnInputCached();
         }
     }
 }

@@ -8,8 +8,10 @@ namespace MonoFSM.Animation
     //IRenderAction?
     public class AnimatorSetFloatAction : AbstractAnimatorSetValueAction
     {
+        protected override string DescriptionTag => "Set";
+
         public override string Description =>
-            $"Set Animator Float [{_parameterName}] = {_floatValue}";
+            $"Float [{_parameterName}] = {_floatValue}";
 
         [SerializeField] private VarFloatWrapper _floatValue;
         public float _dampTime = 0.1f;

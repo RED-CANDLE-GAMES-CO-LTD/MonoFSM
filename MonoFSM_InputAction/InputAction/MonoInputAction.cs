@@ -96,7 +96,11 @@ namespace MonoFSM_InputAction
         [ShowInPlayMode]
         public float LastPressedTime => _abstractInputActionImplementation?.LastPressedTime ?? -1f;
 
-        void Update()
+        /// <summary>
+        /// 由 IInputActionImplementation 在 CacheLocalInput 結束後呼叫，
+        /// 確保在 input cache 更新後才重置 consume 狀態。
+        /// </summary>
+        internal void OnInputCached()
         {
             if (!_useBufferConsume) return;
 

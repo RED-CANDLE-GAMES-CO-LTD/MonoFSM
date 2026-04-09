@@ -231,17 +231,27 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         private void SortUpdateSimulates()
         {
-            if (_updateSimulates == null || _updateSimulates.Length <= 1)
-                return;
-            Array.Sort(
-                _updateSimulates,
-                (a, b) =>
-                {
-                    var orderA = a?.SimulateOrder ?? 0;
-                    var orderB = b?.SimulateOrder ?? 0;
-                    return orderA.CompareTo(orderB);
-                }
-            );
+            if (_updateSimulates is { Length: > 1 })
+                Array.Sort(
+                    _updateSimulates,
+                    (a, b) =>
+                    {
+                        var orderA = a?.SimulateOrder ?? 0;
+                        var orderB = b?.SimulateOrder ?? 0;
+                        return orderA.CompareTo(orderB);
+                    }
+                );
+
+            if (_beforeSimulates is { Length: > 1 })
+                Array.Sort(
+                    _beforeSimulates,
+                    (a, b) =>
+                    {
+                        var orderA = a?.BeforeSimulateOrder ?? 0;
+                        var orderB = b?.BeforeSimulateOrder ?? 0;
+                        return orderA.CompareTo(orderB);
+                    }
+                );
         }
 
         public void SpawnFromPool() //必定是root吧

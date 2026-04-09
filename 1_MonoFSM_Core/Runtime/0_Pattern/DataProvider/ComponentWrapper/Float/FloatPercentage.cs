@@ -1,6 +1,7 @@
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Foundation;
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -16,7 +17,9 @@ namespace _1_MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper.Float
 
         [Required] [DropDownRef] public VarFloat _varFloat;
 
-        [Tooltip("可選：覆蓋 Max 值的來源，未指定時使用 VarFloat 自身的 Max")] [SerializeField]
+        // [AutoChildren(DepthOneOnly = true)]
+        //FIXME: 用nested還是怪怪的感覺...
+        [CompRef] [Tooltip("可選：覆蓋 Max 值的來源，未指定時使用 VarFloat 自身的 Max")] [SerializeField]
         private AbstractValueSource<float> _maxOverride;
 
         [Tooltip("勾選後回傳 1 - percentage")] [SerializeField]

@@ -13,10 +13,18 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
         [DropDownRef]
         public AbstractCastCache _castCache;
 
+        public bool _onlyDetectFirst = true;
+
         public override List<DetectionResult> GetCurrentDetections()
         {
             var cachedHits = _castCache.CachedHits;
             _buffer.Clear();
+            if (_onlyDetectFirst && cachedHits.Count > 0)
+            {
+                _buffer.Add(new DetectionResult(cachedHits[0].collider.gameObject,
+                    cachedHits[0].point, cachedHits[0].normal));
+                return _buffer;
+            }
             foreach (var hit in cachedHits)
             {
                 if (hit.collider == null)
