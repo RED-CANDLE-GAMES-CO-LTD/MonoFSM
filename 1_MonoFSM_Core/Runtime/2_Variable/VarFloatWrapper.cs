@@ -122,6 +122,7 @@ namespace MonoFSM.Variable
     [Serializable]
     public class VarFloatWrapper : VarWrapper<VarFloat, float>
     {
+        //FIXME: 在這弄min max好像沒道理...?
         public float Max => _var != null ? _var.Max : _maxValue;
         public float Min => _var != null ? _var.Min : 0f;
 

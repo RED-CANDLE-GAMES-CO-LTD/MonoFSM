@@ -4,6 +4,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Detection;
 using MonoFSM.Runtime.Interact.EffectHit.Resolver;
+using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
@@ -53,6 +54,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         //FIXME: 要必須有嗎？如果null就表示可以當純偵測器...
         // [PropertyOrder(-1)]
         // public FloatValueSource ValueSource;
+        //FIXME: 還要可以把這個值取出, 從receiver那邊做？和tag拿var整合
+        public VarFloatWrapper _defaultValue;
 
         // [Auto]
         // // [PreviewInInspector]
@@ -73,6 +76,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             return _receivers.Contains(receiver);
         }
+
+        public bool HasReceiverOverlap => _receivers.Count > 0;
 
 
 

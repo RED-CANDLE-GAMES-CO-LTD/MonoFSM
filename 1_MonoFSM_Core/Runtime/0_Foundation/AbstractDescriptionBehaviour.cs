@@ -69,6 +69,8 @@ namespace MonoFSM.Foundation
         public virtual string ValueInfo => "";
 
         public virtual bool IsDrawingValueInfo => false;
+
+        public virtual bool IsDrawingNote => true;
 // #endif
 
 

@@ -20,12 +20,15 @@ namespace MonoFSM.Core.Simulate
         public override string ValueInfo => _currentTime.Value.ToString("F2");
 
         public override string Description =>
-            $"CountDownTimer: {_currentTime.Value:F2} / {_currentTime.Max:F2}";
+            $"CountDownTimer: {_currentTime.Value:F2} / {_timeMax.Value:F2}";
 
         [InfoBox(
             "This timer counts down from a specified value to zero. It can be reset to a maximum value or a specific value. It is used to control the timing of events in the game.")]
         [SerializeField]
         private VarFloatWrapper _currentTime = new();
+
+        [SerializeField] private VarFloatWrapper _timeMax = new(1f);
+        [SerializeField] private VarFloatWrapper _timeMin = new(0f);
 
         [Tooltip("時間到後是否自動重新開始")]
         [SerializeField] bool _autoRestart = false;
@@ -45,8 +48,7 @@ namespace MonoFSM.Core.Simulate
         {
             if (!isActiveAndEnabled)
                 return;
-            //每一日可能還不依樣？
-            SetTimer(_currentTime.Max);
+            SetTimer(_timeMax.Value);
         }
 
         /// <summary>
@@ -75,7 +77,7 @@ namespace MonoFSM.Core.Simulate
         {
             if (!_conditions.IsAllValid())
                 return;
-            if (_currentTime.Value > _currentTime.Min)
+            if (_currentTime.Value > _timeMin.Value)
             {
                 // delay 階段：倒數 delay，不衰減
                 if (_delayRemaining > 0f)
@@ -89,14 +91,14 @@ namespace MonoFSM.Core.Simulate
                 _currentTime.SetValue(_currentTime.Value - rate * deltaTime, this);
 
                 // 檢測時間到（從 > Min 變成 <= Min）
-                if (_currentTime.Value <= _currentTime.Min)
+                if (_currentTime.Value <= _timeMin.Value)
                 {
                     OnTimeUp();
                 }
             }
 
             // 自動重新開始
-            if (_currentTime.Value <= _currentTime.Min)
+            if (_currentTime.Value <= _timeMin.Value)
             {
                 if (_autoRestart)
                 {

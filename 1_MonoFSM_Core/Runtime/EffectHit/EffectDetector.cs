@@ -61,6 +61,7 @@ namespace MonoFSM.Core.Detection
             IUpdateSimulate,
             IDropdownRoot, IResetStateRestore
     {
+        
 
         //FIXME: 這個不好...會以為可以改name結果又跑掉？
         [SerializeField]

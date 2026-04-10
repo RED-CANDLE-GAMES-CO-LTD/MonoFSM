@@ -29,10 +29,12 @@ namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
         public float Min => _dropDownRef != null ? _dropDownRef.Min : float.MinValue;
         public float Max => _dropDownRef != null ? _dropDownRef.Max : float.MaxValue;
 
-        public override string Description => _dropDownRef?.PathName;
+        public string _previewName;
+        public override string Description => _dropDownRef ? _dropDownRef.PathName : _previewName;
 
         public void SetValue(float value, UnityEngine.Object byWho = null, string reason = null)
         {
+            this.Log("Set VarFloatRef Value: ", value);
             _dropDownRef?.SetValue(value, byWho, reason);
         }
     }
