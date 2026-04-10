@@ -123,46 +123,46 @@ namespace MonoFSM.Variable
     public class VarFloatWrapper : VarWrapper<VarFloat, float>
     {
         //FIXME: 在這弄min max好像沒道理...?
-        public float Max => _var != null ? _var.Max : _maxValue;
-        public float Min => _var != null ? _var.Min : 0f;
+        // public float Max => _var != null ? _var.Max : _maxValue;
+        // public float Min => _var != null ? _var.Min : 0f;
 
-        [HideIf(nameof(HideMaxValue))]
-        public float _maxValue;
+        // [HideIf(nameof(HideMaxValue))]
+        // public float _maxValue;
 
-        [HideIf(nameof(HideValueSource))]
-        [Component]
-        public AbstractValueSource<float> _valueSource;
-
-        private bool HasValueSource => _valueSource != null;
-        private bool HideMaxValue => _var != null || HasValueSource;
-        private bool HideValueSource => _var != null;
-        protected override bool HideTempValue => _var != null || HasValueSource;
-        protected override bool HideVar => HasValueSource;
-
+        // [HideIf(nameof(HideValueSource))]
+        // [Component]
+        // public AbstractValueSource<float> _valueSource;
+        //
+        // private bool HasValueSource => _valueSource != null;
+        // // private bool HideMaxValue => _var != null || HasValueSource;
+        // private bool HideValueSource => _var != null;
+        // protected override bool HideTempValue => _var != null || HasValueSource;
+        // protected override bool HideVar => HasValueSource;
+        //FIXME: 還是不要支援ValueSource直接 assign好了，reference不好 debug
         public VarFloatWrapper() { }
 
         public VarFloatWrapper(float defaultValue)
             : base(defaultValue) { }
 
-        public override float Value
-        {
-            get
-            {
-                if (_var != null) return _var.Get<float>();
-                if (_valueSource != null && _valueSource.IsValid) return _valueSource.Value;
-                return base.Value;
-            }
-        }
+        // public override float Value
+        // {
+        //     get
+        //     {
+        //         if (_var != null) return _var.Get<float>();
+        //         if (_valueSource != null && _valueSource.IsValid) return _valueSource.Value;
+        //         return base.Value;
+        //     }
+        // }
 
-        public new void SetValue(float value, Object byWho, string reason = "")
-        {
-            if (HasValueSource && _var == null)
-            {
-                Debug.LogError($"[VarFloatWrapper] Cannot SetValue on read-only ValueSource: {_valueSource.name}", byWho);
-                return;
-            }
-            base.SetValue(value, byWho, reason);
-        }
+        // public new void SetValue(float value, Object byWho, string reason = "")
+        // {
+        //     if (HasValueSource && _var == null)
+        //     {
+        //         Debug.LogError($"[VarFloatWrapper] Cannot SetValue on read-only ValueSource: {_valueSource.name}", byWho);
+        //         return;
+        //     }
+        //     base.SetValue(value, byWho, reason);
+        // }
     }
 
     [Serializable]

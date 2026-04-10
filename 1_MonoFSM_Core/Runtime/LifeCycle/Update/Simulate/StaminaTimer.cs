@@ -1,7 +1,8 @@
 using System;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Core.Attributes; // For DropDownRef, PreviewInInspector
-using MonoFSM.Variable; // For VarFloat, VarStat, VarBool
+using MonoFSM.Variable;
+using Sirenix.OdinInspector; // For VarFloat, VarStat, VarBool
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -10,8 +11,9 @@ using UnityEngine.Serialization;
 //FIXME: timer?TickTimer 情境code...
 //countdown timer?
 [DefaultExecutionOrder(100)]
-public class StaminaTimer : MonoBehaviour, IUpdateSimulate 
+public class StaminaTimer : MonoBehaviour, IUpdateSimulate
 {
+    public int SimulateOrder => 1000;
     [Header("Stamina Properties")]
     [Tooltip(
         "The VarFloat representing the current stamina value. This variable should also provide a 'Max' value (e.g., _currentValue.Max).")]
@@ -67,17 +69,18 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
         Pause // Recovery is paused (due to active consumption, waiting period, or stamina being full).
     }
 
-    [FormerlySerializedAs("countType")] [PreviewInInspector]
-    public CountType _countType = CountType.Pause; // Initial state.
+    // [FormerlySerializedAs("_countType")] [FormerlySerializedAs("countType")]
+    [PreviewInInspector] CountType _currentCountState = CountType.Pause; // Initial state.
 
     private float IncreaseSpeed => _recoverRateStat != null ? _recoverRateStat.FinalValue : 1f;
     private float WaitTimeToRecoverValue => _waitTimeToRecover != null ? _waitTimeToRecover.FinalValue : 0f;
 
     //FIXME:network怎麼處理？
-    // private void Update() 
+    // private void Update()
     // {
     //     Simulate(Time.deltaTime);
     // }
+    [ShowInInspector] float maxStamina => _currentValue.Max;
 
     public void Simulate(float deltaTime)
     {
@@ -91,7 +94,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
         // it's assumed that your `VarFloat` type has a `Max` property (e.g., `_currentValue.Max`).
         // If `VarFloat` does not have a `.Max` property, you will need to add a
         // separate `VarFloat _maxStaminaValue` field and use `_maxStaminaValue.CurrentValue` here.
-        var maxStamina = _currentValue.Max;
+
 
         // Debug.Log(
         //     $"Decreasing _currentValue.IsDecreasing{_currentValue.IsDecreasing}");
@@ -102,7 +105,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
         {
             // Debug.Log(
             //     $"Stamina is being consumed, pausing recovery. Current Stamina: {currentStamina}, Max Stamina: {maxStamina}");
-            _countType = CountType.Pause;
+            _currentCountState = CountType.Pause;
             _pauseTimeCounter = 0f;
             _recoveryAccumulator = 0f; // Reset accumulator on consumption.
             return; // Stop further processing for recovery this frame.
@@ -111,7 +114,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
         // 外部阻止恢復
         if (_isRecoveryBlocked.Value)
         {
-            _countType = CountType.Pause;
+            _currentCountState = CountType.Pause;
             _pauseTimeCounter = 0f;
             return;
         }
@@ -120,10 +123,10 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
         //     Debug.Log(
         //         $"Stamina timer update: Current Stamina: {currentStamina}, Max Stamina: {maxStamina}, CountType: {countType}");
 
-        switch (_countType)
+        switch (_currentCountState)
         {
             case CountType.Pause:
-                
+
                 // If stamina is not full, start/continue the wait timer.
                 if (currentStamina < maxStamina)
                 {
@@ -131,7 +134,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
 
                     if (_pauseTimeCounter >= WaitTimeToRecoverValue)
                     {
-                        _countType = CountType.Increase;
+                        _currentCountState = CountType.Increase;
                         _recoveryAccumulator = 0f; // Reset when starting to recover.
                     }
                     // pauseTimeCounter will naturally be reset when moving to Pause state later (e.g., when full)
@@ -181,7 +184,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
                     // If stamina becomes full as a result of recovery, transition to Pause.
                     if (_currentValue.CurrentValue >= maxStamina)
                     {
-                        _countType = CountType.Pause;
+                        _currentCountState = CountType.Pause;
                         _pauseTimeCounter = 0f; // Reset wait timer for the next cycle.
                         _recoveryAccumulator = 0f; // Reset accumulator.
                     }
@@ -189,7 +192,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
                 else // Should ideally not be in Increase state if already full, but as a safeguard:
                 {
                     _currentValue.SetValue(maxStamina, this); // Ensure it's clamped.
-                    _countType = CountType.Pause;
+                    _currentCountState = CountType.Pause;
                     _pauseTimeCounter = 0f;
                     _recoveryAccumulator = 0f; // Reset accumulator.
                 }

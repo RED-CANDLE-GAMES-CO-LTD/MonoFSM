@@ -2,6 +2,7 @@ using System;
 using MonoFSM.Condition;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Foundation;
+using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -27,7 +28,7 @@ namespace MonoFSM.Variable
 
         [BoxGroup("Modifier")]
         [SerializeField]
-        private VarFloat _valueVar;
+        private VarFloat _valueVar; //FIXME: 可以改成用VarFloatWrapper吧？
 
         [BoxGroup("Modifier")]
         [PreviewInInspector]
@@ -54,7 +55,7 @@ namespace MonoFSM.Variable
 
         private string sign => FinalValue >= 0 ? "+" : "-"; //這個是用來顯示的
 
-        public override string Description => _valueVar?.name + " " + _valueMultiplier;
+        public override string Description => _valueVar?.name + " " + ValueDescription;
 
         [ShowInInspector]
         private string ValueDescription =>
@@ -78,7 +79,8 @@ namespace MonoFSM.Variable
 
         protected override string DescriptionTag => "Stat M";
 
-        [PreviewInInspector]
+        // [PreviewInInspector]
+        [CompRef]
         [AutoChildren]
         AbstractConditionBehaviour[] _conditions;
 

@@ -129,9 +129,9 @@ namespace MonoFSM.Animation
             return true;
         }
 
-        protected override void OnRenderImplement()
-        {
-            OnActionExecuteImplement();
-        }
+        // protected override void OnRenderImplement()
+        // {
+        //     OnActionExecuteImplement();
+        // }
     }
 }

@@ -22,6 +22,10 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         [ShowIf(nameof(IsSource2Needed))]
         public VarFloat _source2Var;
 
+        [ShowIf(nameof(IsTransfer))]
+        [Tooltip("每次傳輸的固定量（不足時只傳剩餘量）")]
+        public VarFloatWrapper _transferAmount;
+
         // [AutoChildren] [CompRef]
         // private SourceValue2Ref _source2VariableProvider;
 
@@ -34,12 +38,15 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         //     return Arithmetic == ArithmeticType.AdditionAssign || Arithmetic == ArithmeticType.SubtractionAssign;
         // }
 
+        private bool IsTransfer => Arithmetic == ArithmeticType.Transfer;
+
         private bool IsSource2Needed()
         {
             if (_source1Var == null)
                 return false;
             return Arithmetic != ArithmeticType.AdditionAssign
-                && Arithmetic != ArithmeticType.SubtractionAssign;
+                && Arithmetic != ArithmeticType.SubtractionAssign
+                && Arithmetic != ArithmeticType.Transfer;
         }
 
         // public OperandType _setter;
@@ -80,6 +87,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
                 {
                     ArithmeticType.AdditionAssign => $"{targetDesc} += {source1Desc}",
                     ArithmeticType.SubtractionAssign => $"{targetDesc} -= {source1Desc}",
+                    ArithmeticType.Transfer => $"{source1Desc} --({_transferAmount?.Value})--> {targetDesc}",
                     _ =>
                         $"{targetDesc} = {source1Desc} {ArithmeticString} {_source2Var?.Description}",
                 };
@@ -104,7 +112,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
             Modulo,
             AdditionAssign,
             SubtractionAssign,
-            //+=,-=?
+            Transfer,
         }
 
         // protected override void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver)
@@ -119,9 +127,20 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
                 return;
             }
 
+            if (Arithmetic == ArithmeticType.Transfer)
+            {
+                float available = Mathf.Max(0f, _source1Var.CurrentValue - _source1Var.Min);
+                float actualTransfer = Mathf.Min(_transferAmount.Value, available);
+                if (actualTransfer <= 0f) return;
+
+                _source1Var.SetValue(_source1Var.CurrentValue - actualTransfer, this);
+                _targetVar.SetValue(_targetVar.CurrentValue + actualTransfer, this);
+                return;
+            }
+
             var targetValue = _targetVar.Value;
             var value1 = _source1Var.Value;
-            float result = 0;
+            float result;
             if (Arithmetic == ArithmeticType.AdditionAssign)
                 result = targetValue + value1;
             else if (Arithmetic == ArithmeticType.SubtractionAssign)

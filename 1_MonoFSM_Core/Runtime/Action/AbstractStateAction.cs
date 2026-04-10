@@ -32,10 +32,10 @@ namespace MonoFSM.Core.Runtime.Action
     {
         public float DeltaTime => WorldUpdateSimulator.DeltaTime;
 
-        // protected override bool HasError()
-        // {
-        //     return GetComponentInParent<IActionParent>(true) == null;
-        // }
+        protected override bool HasError() //FIXME: 會很貴嗎？
+        {
+            return GetComponentInParent<IActionParent>(true) == null;
+        }
 
         protected override string DescriptionTag => "Action";
 
@@ -141,6 +141,7 @@ namespace MonoFSM.Core.Runtime.Action
 
         protected virtual void OnRenderImplement()
         {
+            OnActionExecuteImplement(); //做一樣的事？
         }
 
         // public async void OnActionExit()

@@ -22,7 +22,7 @@ namespace MonoFSM.Variable.Condition
         [SerializeField] [DropDownRef] VarFloat _varFloat;
 
         [ShowIf(nameof(_boundType), BoundType.Percentage)]
-        public Operator _op;
+        public Operator _op = Operator.GreaterThan;
 
         [ShowIf(nameof(_boundType), BoundType.Percentage)]
         [Range(0f, 1f)]

@@ -279,6 +279,7 @@ namespace MonoFSM.Core.Simulate
         //從player進入？
         public void ResetLevelRestore()
         {
+            _levelStartTime = SimulationTime;
             //FIXME: Pool回收會
             // PoolManager.Instance.ReturnAllObjects(); //會把player也回收掉？
             foreach (var mono in _monoObjectSet)
@@ -398,6 +399,21 @@ namespace MonoFSM.Core.Simulate
 
         public static int CurrentTick { get; private set; }
         public static float SimulationTime { get; private set; }
+
+        public static float LevelSimulationTime
+        {
+            get
+            {
+                if (SimulationTime - _levelStartTime < 0)
+                {
+                    _levelStartTime = SimulationTime;
+                }
+
+                return SimulationTime - _levelStartTime;
+            }
+        }
+
+        private static float _levelStartTime;
 
         /// <summary>
         /// 需要依照環境決定怎麼simulate

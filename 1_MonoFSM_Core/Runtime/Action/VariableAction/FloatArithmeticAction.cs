@@ -1,3 +1,4 @@
+using System;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Runtime.Attributes;
@@ -7,6 +8,7 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
 {
+    [Obsolete]
     public class FloatArithmeticAction : AbstractStateAction
     {
         [ValueTypeValidate(typeof(VarFloat),IsVariableNeeded = true)] [SerializeField] [DropDownRef]
@@ -17,12 +19,14 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
 
         [InfoBox("$TypeValidationMessage", InfoMessageType.Warning, VisibleIf = "ShowTypeWarning")]
         [InfoBox("$TypeValidationMessage", InfoMessageType.None, VisibleIf = "ShowTypeInfo")]
-        [SerializeField] [DropDownRef] 
+        [SerializeField]
+        [DropDownRef]
         [ValueTypeValidate(typeof(float))] //,IsVariableNeeded = true錯了？
         private ValueProvider _operandProvider;
 
         [ShowIf(nameof(RequiresTwoOperands))]
-        [SerializeField] [DropDownRef] 
+        [SerializeField]
+        [DropDownRef]
         [ValueTypeValidate(typeof(float), ConditionalMethod = nameof(RequiresTwoOperands))]
         private ValueProvider _secondOperandProvider;
 
@@ -59,7 +63,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
                 var targetValueType = _targetVarProvider.ValueType;
                 if (targetValueType == null)
                     return "無法取得目標變數類型";
-                
+
                 if (!IsFloatCompatible(targetValueType))
                     return $"目標變數必須是 Float 類型，目前是：{targetValueType.Name}";
 
@@ -71,13 +75,13 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
                 {
                     if (_secondOperandProvider == null)
                         return "此運算需要第二個運算元";
-                    
+
                     var secondOperandType = _secondOperandProvider.ValueType;
                     if (secondOperandType == null || !IsFloatCompatible(secondOperandType))
                         return $"第二運算元類型不相容：{secondOperandType?.Name}";
                 }
 
-                return $"類型相容：{targetValueType.Name} {GetOperationSymbol()} {operandType.Name}" + 
+                return $"類型相容：{targetValueType.Name} {GetOperationSymbol()} {operandType.Name}" +
                        (RequiresTwoOperands() && _secondOperandProvider != null ? $" {GetOperationSymbol()} {_secondOperandProvider.ValueType.Name}" : "");
             }
         }

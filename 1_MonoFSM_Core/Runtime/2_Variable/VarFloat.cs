@@ -102,11 +102,10 @@ namespace MonoFSM.Variable
         /// </summary>
         /// <param name="lastValue"></param>
         /// <param name="currentValue"></param>
-        protected override void ValueCommited(float lastValue, float currentValue)
+        protected override void OnValueSet(float oldValue, float newValue)
         {
-            if (currentValue < lastValue)
-                _lastDecreasingTime =
-                    WorldUpdateSimulator.SimulationTime; //FIXME: 會有float太大的問題嗎？ //FIXME: 還是要往上問？
+            if (newValue < oldValue)
+                _lastDecreasingTime = WorldUpdateSimulator.SimulationTime;
         }
 
         [ShowInDebugMode]

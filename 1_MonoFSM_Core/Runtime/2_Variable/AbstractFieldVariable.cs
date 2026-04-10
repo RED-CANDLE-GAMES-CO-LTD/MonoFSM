@@ -120,6 +120,12 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     //可以用abstract比較好？但目前只用到VarFloat
     protected virtual void ValueCommited(TType lastValue, TType currentValue) { }
 
+    /// <summary>
+    /// 每次 SetValue 成功寫入後立即呼叫，oldValue 是寫入前的值，newValue 是寫入後的值。
+    /// 與 ValueCommited 不同：這裡是每次 SetValue 都會觸發，不是等到 CommitValue。
+    /// </summary>
+    protected virtual void OnValueSet(TType oldValue, TType newValue) { }
+
     // public override void SetValue(object value, MonoBehaviour byWho)
     // {
     //     SetValueInternal((TType)value, byWho);
@@ -438,6 +444,14 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     {
         Profiler.BeginSample("FieldVariable SetValueInternal");
 
+        // 如果有 ParentVarEntity，代理 SetValue 到 parent entity 的 Variable
+        if (varRef != null)
+        {
+            varRef.SetRaw(value, byWho);
+            Profiler.EndSample();
+            return;
+        }
+
         var (result, tempValue) = SetValueExecution(value, byWho as MonoBehaviour);
         if (result)
             RecordSetbyWhoDebug(byWho, tempValue, reason);
@@ -471,9 +485,12 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         }
 
         // Profiler.BeginSample("Field SetCurrentValue");
+        var oldValue = CurrentValue;
         Field.SetCurrentValue(tempValue, byWho);
         _isNull = false;
         // Profiler.EndSample();
+
+        OnValueSet(oldValue, tempValue);
 
         //什麼時候需要track? isTracking?
         // Profiler.BeginSample("TrackValue");

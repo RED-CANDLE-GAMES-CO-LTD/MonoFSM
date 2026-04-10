@@ -45,7 +45,7 @@ namespace MonoFSM.Variable.Condition
 
         // [DropDownRef]
         // public VarFloat _monoVarFloat;
-        [FormerlySerializedAs("op")] public Operator _op;
+        [FormerlySerializedAs("op")] public Operator _op = Operator.GreaterThan; //> 0最常見的組合
 
         [OnValueChanged(nameof(OnVariableChanged))]
         public bool _compareWithVariable;
