@@ -167,7 +167,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [AutoChildren]
         private IUpdateSimulate[] _updateSimulates;
 
-        public bool IsUpdateSimulatesNeeded => _updateSimulates.Length > 0;
+        public bool IsUpdateSimulatesNeeded => !IsCulling && _updateSimulates.Length > 0;
 
         [PreviewInDebugMode]
         [AutoChildren]
@@ -183,9 +183,9 @@ namespace MonoFSMCore.Runtime.LifeCycle
         // [AutoChildren]
         // private IAfterUpdate[] _updateSimulates;
 
-        public bool IsBeforeSimulatesNeeded => _beforeSimulates.Length > 0;
-        public bool IsAfterSimulatesNeeded => _afterSimulates.Length > 0;
-        public bool IsRenderSimulatesNeeded => _renderSimulates.Length > 0;
+        public bool IsBeforeSimulatesNeeded => !IsCulling && _beforeSimulates.Length > 0;
+        public bool IsAfterSimulatesNeeded => !IsCulling && _afterSimulates.Length > 0;
+        public bool IsRenderSimulatesNeeded => !IsCulling && _renderSimulates.Length > 0;
 
         //FIXME: PoolBeforeReturnToPool? OnReturnPool?
 
@@ -333,6 +333,10 @@ namespace MonoFSMCore.Runtime.LifeCycle
             }
         }
 
+        public GameObject _cullingHandle;
+
+        public bool IsCulling =>
+            _cullingHandle != null && !_cullingHandle.gameObject.activeSelf;
 
         [SerializeField] [AutoChildren] [CompRef]
         SpawnEventHandler _onSpawnHandler;

@@ -193,8 +193,8 @@ namespace MonoFSM.Core
                     {
                         if (t.TargetState == this)
                             continue; //anyState不應該轉自己，避免無限迴圈)
-                        Debug.Log($"anyState ForceActivateState to {t.TargetState.Name} with " + t,
-                            t);
+                        // Debug.Log($"anyState ForceActivateState to {t.TargetState.Name} with " + t,
+                        //     t);
 #if UNITY_EDITOR
                         _lastTransition = t;
 #endif

@@ -13,7 +13,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
     {
         public StateFolder bindingRootFolder => _bindingRoot as StateFolder;
         [NonSerialized] [ShowInInspector] List<AnyState> _allAnyStates = new();
-        public IReadOnlyList<AnyState> AllAnyStates => _allAnyStates;
+        public List<AnyState> AllAnyStates => _allAnyStates;
 
         [AutoChildren] private AnyState[] _anyStates;
         //parent folder?

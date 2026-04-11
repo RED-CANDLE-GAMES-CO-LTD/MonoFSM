@@ -233,8 +233,9 @@ namespace Fusion.Addons.FSM
             // Active state could be changed in state's fixed update
             // Do not update its child machines in that case
             var updateStateId = _activeStateId;
-
+            Profiler.BeginSample($"StateMachine.ActiveState.OnFixedUpdate");
             ActiveState.OnFixedUpdate();
+            Profiler.EndSample();
 
             // if (updateStateId == _activeStateId)
             //     for (var i = 0; i < ActiveState.ChildMachines.Length; i++)
