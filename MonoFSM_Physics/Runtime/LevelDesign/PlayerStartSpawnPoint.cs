@@ -15,8 +15,7 @@ public class PlayerStartSpawnPoint
     : AbstractDescriptionBehaviour,
         IUpdateSimulate,
         IBeforeBuildProcess,
-        IActionParent,
-        IResetStart
+        IActionParent
 {
     // public override string Description { get; }
     protected override string DescriptionTag => "SpawnPoint";
@@ -79,7 +78,25 @@ public class PlayerStartSpawnPoint
     {
         if (oriSpawnRef == null)
             return;
+
+#if UNITY_EDITOR
+        UnityEditor.Undo.RecordObject(transform, "Reset Spawn Point To Ori Pos");
+#endif
         transform.position = oriSpawnRef.position;
+        EventReceived(oriSpawnRef.position);
+    }
+
+    [ShowIf(nameof(oriSpawnRef))]
+    [Button]
+    public void MoveOriSpawnRefToCurrentPos()
+    {
+        if (oriSpawnRef == null)
+            return;
+
+#if UNITY_EDITOR
+        UnityEditor.Undo.RecordObject(oriSpawnRef, "Move OriSpawnRef To Current Pos");
+#endif
+        oriSpawnRef.position = transform.position;
     }
 
     //基本上就是瞬移玩家位置，
@@ -92,7 +109,12 @@ public class PlayerStartSpawnPoint
     [Button]
     private void CreateOriSpawnRef()
     {
-        oriSpawnRef = new GameObject("oriSpawnRef").transform;
+        var go = new GameObject("oriSpawnRef");
+#if UNITY_EDITOR
+        UnityEditor.Undo.RegisterCreatedObjectUndo(go, "Create Ori Spawn Ref");
+        UnityEditor.Undo.RecordObject(this, "Create Ori Spawn Ref");
+#endif
+        oriSpawnRef = go.transform;
         oriSpawnRef.SetParent(transform.parent);
         oriSpawnRef.position = transform.position;
         oriSpawnRef.TryGetCompOrAdd<GizmoMarker>();
@@ -137,12 +159,6 @@ public class PlayerStartSpawnPoint
         // _onPlayerSpawn.EventReceived(arg);
         if (editorPlayerRef)
             editorPlayerRef.position = arg;
-    }
-
-    public void ResetStart()
-    {
-        //Network player都還沒生成
-        // _onPlayerSpawn?.ArgEventReceived(transform.position);
     }
 
     public void Simulate(float deltaTime)

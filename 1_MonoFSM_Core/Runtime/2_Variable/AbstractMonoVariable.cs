@@ -100,6 +100,23 @@ namespace MonoFSM.Variable
                 Debug.LogWarning("VariableReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.");
             }
         }
+
+        [Button("Find References (New)"), PropertyOrder(-99)]
+        private void FindReferencesNew()
+        {
+            var windowType = System.Type.GetType(
+                "MonoFSM.Editor.ReferenceSystem.ComponentReferenceWindow, MonoFSM.Core.Editor");
+            if (windowType != null)
+            {
+                var method = windowType.GetMethod("ShowWindowWithTarget",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                method?.Invoke(null, new object[] { this });
+            }
+            else
+            {
+                Debug.LogWarning("ComponentReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.");
+            }
+        }
 #endif
 
         //FIXME: 這個不能被Debug「看」，不好用... AddListener 的形式比較好

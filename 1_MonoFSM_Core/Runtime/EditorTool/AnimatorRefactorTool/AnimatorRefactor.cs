@@ -14,7 +14,7 @@ namespace MonoFSM.Core.Editor
    public static class AnimatorRefactor
    {
 #if UNITY_EDITOR
-       private const string menuPath = "GameObject/MonoFSM Animation/Refactor 節點 #r";
+       private const string menuPath = "GameObject/MonoFSM Animation/Refactor 節點";
 
       // [InitializeOnLoadMethod]
       // static void Init()
@@ -158,16 +158,15 @@ namespace MonoFSM.Core.Editor
       {
           if (Selection.activeGameObject == null)
               return false;
+          var animator = Selection.activeGameObject.GetComponentInParent<Animator>();
+          if (animator == null)
+              return false;
 
-         var animator = Selection.activeGameObject.GetComponentInParent<Animator>();
-         if (animator == null)
-            return false;
+          if (animator.runtimeAnimatorController == null)
+              return false;
 
-         if (animator.runtimeAnimatorController == null)
-            return false;
-
-         selectingNode = Selection.activeGameObject;
-         return true;
+          selectingNode = Selection.activeGameObject;
+          return true;
       }
 
       private static GameObject selectingNode;

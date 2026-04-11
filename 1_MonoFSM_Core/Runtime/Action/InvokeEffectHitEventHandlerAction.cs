@@ -1,5 +1,5 @@
-using System;
-using Sirenix.OdinInspector;
+using MonoFSM.Core;
+using MonoFSM.Runtime.Interact.EffectHit;
 using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action
@@ -7,12 +7,10 @@ namespace MonoFSM.Core.Runtime.Action
     /// <summary>
     /// 將事件轉發到外部引用的 EventHandler。
     /// </summary>
-    [Obsolete]
-    public class InvokeEventHandlerAction : AbstractStateAction, IArgEventReceiver<IEffectHitData>
+    public class InvokeEffectHitEventHandlerAction : AbstractStateAction,
+        IArgEventReceiver<GeneralEffectHitData>
     {
-        [Required] //只限定manual?
-        [SerializeField]
-        private AbstractEventHandler _targetHandler;
+        [DropDownRef] [SerializeField] private ManualEventHandler _targetHandler;
 
         protected override void OnActionExecuteImplement()
         {
@@ -20,7 +18,7 @@ namespace MonoFSM.Core.Runtime.Action
                 _targetHandler.EventHandle();
         }
 
-        public void ArgEventReceived(IEffectHitData arg)
+        public void ArgEventReceived(GeneralEffectHitData arg)
         {
             if (_targetHandler != null)
                 _targetHandler.EventHandle(arg);
