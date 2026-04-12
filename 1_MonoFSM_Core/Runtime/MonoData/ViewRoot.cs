@@ -21,6 +21,8 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         [ShowInInspector] Vector3 _followViewOffset;
         [ShowInInspector] Quaternion _followViewRotOffset;
 
+        public Transform Root => transform.parent;
+
         protected override bool IsIgnoreRename => true;
 
         protected override void Awake()
@@ -58,14 +60,20 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             var parentVR = parentViewRoot;
             if (parentVR != null)
             {
-                _offsetPosition = parentVR.InverseTransformPoint(transform.position);
-                _offsetRotation = Quaternion.Inverse(parentVR.rotation) * transform.rotation;
+                // ViewRoot 相對於 parent ViewRoot 的 offset（AfterRender 用）
+                _offsetPosition = parentVR.transform.InverseTransformPoint(transform.position);
+                _offsetRotation = Quaternion.Inverse(parentVR.transform.rotation) * transform.rotation;
+                // Root 相對於 parent Root 的 offset（Simulate 用）
+                _rootOffsetPosition = parentVR.Root.InverseTransformPoint(Root.position);
+                _rootOffsetRotation = Quaternion.Inverse(parentVR.Root.rotation) * Root.rotation;
             }
         }
 
         MonoEntity _parentEntity;
         [ShowInInspector] Vector3 _offsetPosition;
         [ShowInInspector] Quaternion _offsetRotation;
+        [ShowInInspector] Vector3 _rootOffsetPosition;
+        [ShowInInspector] Quaternion _rootOffsetRotation;
         protected override void Start()
         {
             base.Start();
@@ -123,32 +131,32 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         //     //     this);
         // }
 
-        [ShowInPlayMode] public Transform parentViewRoot => _parentEntity?.ViewRoot?.transform;
+        [ShowInPlayMode] public ViewRoot parentViewRoot => _parentEntity?.ViewRoot;
 
         #region FollowTarget 掛載
 
         public void SetFollowTarget(ViewRoot target, Vector3 mountPosition,
             Quaternion mountRotation)
         {
-            _followTarget = target.transform.parent;
+            _followTarget = target.Root;
 
-            // 先把 parent (Animator/Rigidbody) 移到指定位置
-            if (transform.parent != null)
+            // 先把 Root (Animator/Rigidbody) 移到指定位置
+            if (Root != null)
             {
-                transform.parent.position = mountPosition;
-                transform.parent.rotation = mountRotation;
+                Root.position = mountPosition;
+                Root.rotation = mountRotation;
             }
             else
             {
                 Debug.LogError(
-                    $"[ViewRoot] '{name}' has no parent to follow target. FollowTarget mode requires the ViewRoot to have a parent (e.g. Animator).",
+                    $"[ViewRoot] '{name}' has no Root to follow target. FollowTarget mode requires the ViewRoot to have a parent (e.g. Animator).",
                     this);
             }
 
-            // 計算 parent 相對於 target 的 offset
-            _followParentOffset = _followTarget.InverseTransformPoint(transform.parent.position);
+            // 計算 Root 相對於 target 的 offset
+            _followParentOffset = _followTarget.InverseTransformPoint(Root.position);
             _followParentRotOffset =
-                Quaternion.Inverse(_followTarget.rotation) * transform.parent.rotation;
+                Quaternion.Inverse(_followTarget.rotation) * Root.rotation;
             _followViewOffset = target.transform.InverseTransformPoint(transform.position);
             _followViewRotOffset =
                 Quaternion.Inverse(target.transform.rotation) * transform.rotation;
@@ -163,11 +171,18 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         public void Simulate(float deltaTime)
         {
-            if (_followTarget == null) return;
+            if (_followTarget != null)
+            {
+                Root.position = _followTarget.TransformPoint(_followParentOffset);
+                Root.rotation = _followTarget.rotation * _followParentRotOffset;
+                return;
+            }
 
-            // Simulate：移動 parent (Animator) 跟隨目標，不做 interpolation
-            transform.parent.position = _followTarget.TransformPoint(_followParentOffset);
-            transform.parent.rotation = _followTarget.rotation * _followParentRotOffset;
+            // ParentEntity 模式：Root 直接跟隨 parent 的 Root
+            var parentVR = parentViewRoot;
+            if (parentVR == null) return;
+            Root.position = parentVR.Root.TransformPoint(_rootOffsetPosition);
+            Root.rotation = parentVR.Root.rotation * _rootOffsetRotation;
         }
 
         public void AfterRender()
@@ -184,8 +199,8 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             // 原本的 ParentEntity 跟隨邏輯
             var parentVR = parentViewRoot;
             if (parentVR == null) return;
-            transform.position = parentVR.TransformPoint(_offsetPosition);
-            transform.rotation = parentVR.rotation * _offsetRotation;
+            transform.position = parentVR.transform.TransformPoint(_offsetPosition);
+            transform.rotation = parentVR.transform.rotation * _offsetRotation;
         }
     }
 }

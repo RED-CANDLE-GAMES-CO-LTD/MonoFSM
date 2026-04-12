@@ -13,6 +13,8 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions.Activator
         [Required]
         public GameObject _target;
 
+        public GameObject[] _additionals;
+
         protected override void ActivateCheckImplement(bool isValid)
         {
             if (_target == null)
@@ -21,6 +23,10 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions.Activator
                 return;
             }
             _target.SetActive(isValid);
+            foreach (var additional in _additionals)
+            {
+                additional.SetActive(isValid);
+            }
         }
     }
 }

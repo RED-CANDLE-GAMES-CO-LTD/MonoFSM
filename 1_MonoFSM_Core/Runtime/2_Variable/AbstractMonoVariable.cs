@@ -698,7 +698,7 @@ namespace MonoFSM.Variable
             if (_parentVarEntity != null)
                 str = _parentVarEntity.name + "_" + str;
 
-            name = str;
+            name = $"[{DescriptionTag}] {str}";
             RevertNameOverrideIfMatchesPrefab(gameObject);
         }
 

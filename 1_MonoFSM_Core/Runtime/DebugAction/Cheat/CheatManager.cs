@@ -10,10 +10,11 @@ namespace MonoFSM.Core
         public void CheatKeyCheck()
         {
             if (Keyboard.current[Key.LeftMeta].isPressed ||
-                Keyboard.current[Key.LeftCtrl].isPressed &&
-                Keyboard.current[Key.R].wasPressedThisFrame)
+                Keyboard.current[Key.LeftCtrl].isPressed)
             {
-                WorldUpdateSimulator.ManualResetLevel();
+                if (
+                    Keyboard.current[Key.R].wasPressedThisFrame)
+                    WorldUpdateSimulator.ManualResetLevel();
                 // 在這裡執行作弊行為，例如增加分數、解鎖功能等
             }
         }
