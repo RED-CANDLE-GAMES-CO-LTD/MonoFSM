@@ -11,9 +11,10 @@ using Sirenix.OdinInspector;
 namespace MonoFSM.Variable.Condition
 {
     //選到一個任何MonoBehavior的bool property
-    public class BoolMonoBehaviorPropertyCondition : AbstractFieldConditionBehaviour<bool, MonoBehaviour>
+    public class
+        BoolMonoBehaviorPropertyCondition : AbstractFieldConditionBehaviour<bool, Component>
     {
-        protected override bool IsValid 
+        protected override bool IsValid
             => SourceValue == TargetValue;
     }
 
@@ -22,7 +23,7 @@ namespace MonoFSM.Variable.Condition
     {
         [FormerlySerializedAs("target")] public TSource sourceObject;
 
-        private IEnumerable<string> GetBoolPropertyNames() 
+        private IEnumerable<string> GetBoolPropertyNames()
             => sourceObject.GetType()
                 .GetProperties()
                 .Where(p => p.PropertyType == typeof(TField))
