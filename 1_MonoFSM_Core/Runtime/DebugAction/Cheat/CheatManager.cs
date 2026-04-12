@@ -9,7 +9,8 @@ namespace MonoFSM.Core
     {
         public void CheatKeyCheck()
         {
-            if (Keyboard.current[Key.LeftMeta].isPressed &&
+            if (Keyboard.current[Key.LeftMeta].isPressed ||
+                Keyboard.current[Key.LeftCtrl].isPressed &&
                 Keyboard.current[Key.R].wasPressedThisFrame)
             {
                 WorldUpdateSimulator.ManualResetLevel();
