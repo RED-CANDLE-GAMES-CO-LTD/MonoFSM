@@ -15,6 +15,7 @@ namespace MonoFSM.PhysicsWrapper
         private Vector3 cameraForward => _cameraForwardVar != null ? _cameraForwardVar.Value :
             Camera.main != null ? Camera.main.transform.forward : Vector3.forward;
 
+        //FIXME: 這個設計怪怪的吧？
         public Transform _originTransformForXZ;
 
         /// <summary>

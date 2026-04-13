@@ -373,14 +373,13 @@ namespace MonoFSMCore.Runtime.LifeCycle
             }
         }
 
-        [SerializeField] [AutoChildren] [CompRef]
-        private OnResetStartHandler _onResetStartHandler;
+        // [SerializeField] [AutoChildren] [CompRef]
+        // private OnResetStartHandler _onResetStartHandler; //FIXME: 好像不用reference了吧？
 
         private void HandleIResetStart()
         {
             if (HasParent)
                 return;
-            _onResetStartHandler?.EventHandle();
             foreach (var item in _resetStarts)
             {
                 if (item == null)

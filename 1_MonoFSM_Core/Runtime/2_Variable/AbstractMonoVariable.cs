@@ -48,7 +48,7 @@ namespace MonoFSM.Variable
         // [ShowIf(nameof(_parentVarEntity))] //有才顯示就好, 或是debugMode?
 
         //FIXME: 與其用parentEntity, 好像 是一個ValueSource -> GetVarFromEntity比較好？
-        [PreviewInInspector]
+        [PreviewInDebugMode]
         [AutoParent(includeSelf: false)] //不可以抓到自己！
         protected VarEntity _parentVarEntity; //我的parent如果有VarEntity, 去跟這個entity拿？
 

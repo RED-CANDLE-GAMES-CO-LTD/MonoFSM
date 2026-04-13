@@ -41,6 +41,7 @@ namespace MonoFSM.ParticleSystemActions
 
         private MaterialPropertyBlock _mpb;
         private int _propertyId;
+        
 
         [Button("Preview")]
         protected override void OnActionExecuteImplement()

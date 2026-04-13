@@ -5,20 +5,21 @@ using MonoFSM.Foundation;
 using MonoFSM.Runtime;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace _1_MonoFSM_Core.Runtime.MonoData
 {
     public class ViewRoot : AbstractDescriptionBehaviour, ISceneStart, IUpdateSimulate,
         IAfterRenderMono
     {
-        [SerializeField] private bool _ignoreReparent; //特殊的viewroot? ex: 角色？
+        [FormerlySerializedAs("_ignoreReparent")] [SerializeField]
+        private bool _ignoreStartReparent; //dynamic的應該要 ignore?
         [PreviewInInspector] [AutoParent] private Animator _animator;
 
-        // FollowTarget 掛載欄位
-        [ShowInInspector] Transform _followTarget;
-        [ShowInInspector] Vector3 _followParentOffset;
+        // 相對 _parentViewRoot 的 offset（Start 綁定 or SetFollowTarget 動態設定）
+        [ShowInInspector] Vector3 _followParentOffset; // Root 相對 parentVR.Root（Simulate 用）
         [ShowInInspector] Quaternion _followParentRotOffset;
-        [ShowInInspector] Vector3 _followViewOffset;
+        [ShowInInspector] Vector3 _followViewOffset; // View 相對 parentVR.transform（AfterRender 用）
         [ShowInInspector] Quaternion _followViewRotOffset;
 
         public Transform Root => transform.parent;
@@ -35,9 +36,9 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         public void EnterSceneStart()
         {
-            if (_ignoreReparent)
+            if (_ignoreStartReparent)
             {
-                enabled = false;
+                // enabled = false;
                 return;
             }
 
@@ -55,25 +56,20 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             }
 
             _parentEntity = parentEntity;
+            _parentViewRoot = _parentEntity?.ViewRoot;
+            if (_parentViewRoot != null) RecordOffsets(_parentViewRoot);
+        }
 
-            // 記錄相對於 parentViewRoot 的 offset（模擬 child 跟隨）
-            var parentVR = parentViewRoot;
-            if (parentVR != null)
-            {
-                // ViewRoot 相對於 parent ViewRoot 的 offset（AfterRender 用）
-                _offsetPosition = parentVR.transform.InverseTransformPoint(transform.position);
-                _offsetRotation = Quaternion.Inverse(parentVR.transform.rotation) * transform.rotation;
-                // Root 相對於 parent Root 的 offset（Simulate 用）
-                _rootOffsetPosition = parentVR.Root.InverseTransformPoint(Root.position);
-                _rootOffsetRotation = Quaternion.Inverse(parentVR.Root.rotation) * Root.rotation;
-            }
+        // 用當前世界座標記錄相對 target 的 offset（Root 用 Simulate、View 用 AfterRender）
+        void RecordOffsets(ViewRoot target)
+        {
+            _followParentOffset = target.Root.InverseTransformPoint(Root.position);
+            _followParentRotOffset = Quaternion.Inverse(target.Root.rotation) * Root.rotation;
+            _followViewOffset = target.transform.InverseTransformPoint(transform.position);
+            _followViewRotOffset = Quaternion.Inverse(target.transform.rotation) * transform.rotation;
         }
 
         MonoEntity _parentEntity;
-        [ShowInInspector] Vector3 _offsetPosition;
-        [ShowInInspector] Quaternion _offsetRotation;
-        [ShowInInspector] Vector3 _rootOffsetPosition;
-        [ShowInInspector] Quaternion _rootOffsetRotation;
         protected override void Start()
         {
             base.Start();
@@ -131,15 +127,14 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         //     //     this);
         // }
 
-        [ShowInPlayMode] public ViewRoot parentViewRoot => _parentEntity?.ViewRoot;
+        [ShowInPlayMode] public ViewRoot _parentViewRoot; //
 
         #region FollowTarget 掛載
 
         public void SetFollowTarget(ViewRoot target, Vector3 mountPosition,
             Quaternion mountRotation)
         {
-            _followTarget = target.Root;
-
+            _parentViewRoot = target;
             // 先把 Root (Animator/Rigidbody) 移到指定位置
             if (Root != null)
             {
@@ -153,54 +148,32 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
                     this);
             }
 
-            // 計算 Root 相對於 target 的 offset
-            _followParentOffset = _followTarget.InverseTransformPoint(Root.position);
-            _followParentRotOffset =
-                Quaternion.Inverse(_followTarget.rotation) * Root.rotation;
-            _followViewOffset = target.transform.InverseTransformPoint(transform.position);
-            _followViewRotOffset =
-                Quaternion.Inverse(target.transform.rotation) * transform.rotation;
+            RecordOffsets(target);
         }
 
         public void ClearFollowTarget()
         {
-            _followTarget = null;
+            _parentViewRoot = null;
         }
 
         #endregion
 
         public void Simulate(float deltaTime)
         {
-            if (_followTarget != null)
-            {
-                Root.position = _followTarget.TransformPoint(_followParentOffset);
-                Root.rotation = _followTarget.rotation * _followParentRotOffset;
-                return;
-            }
-
-            // ParentEntity 模式：Root 直接跟隨 parent 的 Root
-            var parentVR = parentViewRoot;
+            var parentVR = _parentViewRoot;
             if (parentVR == null) return;
-            Root.position = parentVR.Root.TransformPoint(_rootOffsetPosition);
-            Root.rotation = parentVR.Root.rotation * _rootOffsetRotation;
+            Root.position = parentVR.Root.TransformPoint(_followParentOffset);
+            Root.rotation = parentVR.Root.rotation * _followParentRotOffset;
         }
 
         public void AfterRender()
         {
-            // FollowTarget 模式
-            if (_followTarget != null)
-            {
-                // AfterRender：ViewRoot 做 localOffset 同步（interpolated）
-                transform.position = _followTarget.TransformPoint(_followViewOffset);
-                transform.rotation = _followTarget.rotation * _followViewRotOffset;
-                return;
-            }
-
-            // 原本的 ParentEntity 跟隨邏輯
-            var parentVR = parentViewRoot;
+            // ViewRoot 做 localOffset 同步（interpolated）
+            // 統一處理 Nested ViewRoot / FollowTarget (Dock, Socket) 兩種情境
+            var parentVR = _parentViewRoot;
             if (parentVR == null) return;
-            transform.position = parentVR.transform.TransformPoint(_offsetPosition);
-            transform.rotation = parentVR.transform.rotation * _offsetRotation;
+            transform.position = parentVR.transform.TransformPoint(_followViewOffset);
+            transform.rotation = parentVR.transform.rotation * _followViewRotOffset;
         }
     }
 }

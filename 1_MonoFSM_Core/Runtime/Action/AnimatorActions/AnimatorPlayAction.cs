@@ -186,7 +186,7 @@ namespace MonoFSM.Animation
         [BoxGroup("Animator/StateLayer")]
         [TitleGroup("Animator")]
         [DisableIf("@true")]
-        public int stateLayer; //FIXME: 做什麼用的?還要再講清楚? playerLayer
+        public int stateLayer; //只能選 source layer?
 
         // [ValueDropdown()]
 #if UNITY_EDITOR
@@ -201,7 +201,7 @@ namespace MonoFSM.Animation
         [ShowInInspector]
         [ValueDropdown(nameof(GetLayerNames))]
         [SerializeField]
-        private string _stateLayerName;
+        private string _stateLayerName; //只能選 source layer?
 #endif
 
         private int stateRange => animator.layerCount;
@@ -527,7 +527,7 @@ namespace MonoFSM.Animation
 
 #if UNITY_EDITOR
         [TitleGroup("Animator")]
-        [Tooltip("動畫 Clip 所在的 Layer（synced layer 時選 View Layer）。未設定則 fallback 到 stateLayer")]
+        [Title("動畫 Clip 所在的 Layer（synced layer 時選 View Layer）。未設定則 fallback 到 stateLayer")]
         [ValueDropdown("GetLayerNames", IsUniqueList = true)]
 #endif
         [FormerlySerializedAs("doneEventLayerName")]

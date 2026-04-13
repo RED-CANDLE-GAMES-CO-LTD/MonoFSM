@@ -84,9 +84,6 @@ namespace MonoFSM.Variable
         [CompRef] [Auto] private IVarValueSettingProcessor<TValueType> _beforeSetProcessor;
 
         public override bool IsValueExist => Value != null;
-
-        //FIXME: 繼承時想要加更多attribute
-        // [Header("預設值")] [HideIf(nameof(_siblingDefaultValue))]
         [HideIf(nameof(HasProxySource))] public bool _isRuntimeOnly = false;
 
         protected override bool HasError()
@@ -134,6 +131,8 @@ namespace MonoFSM.Variable
             VisibleIf = nameof(HasDefaultValueError))]
         [Required]
         [SerializeField]
+        [DropDownRef]
+        [Header("預設值")]
         protected TValueType _defaultValue; //ConfigSettingValue? //只有VarMonoObj才需要？
 
         /// <summary>

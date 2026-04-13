@@ -14,7 +14,6 @@ using MonoFSM.Runtime;
 using MonoFSM.Runtime.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
-using Sirenix.Utilities;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -33,6 +32,43 @@ namespace MonoFSM.Foundation
             IAfterPrefabStageOpenCallbackReceiver,
             IDrawHierarchyBackGround, IHierarchyValueInfo
     {
+        public Color BackgroundColor
+        {
+            get
+            {
+                if (HasError()) return new Color(1f, 0f, 0f, 0.3f); // 紅色
+                return _splitNoteKeyword switch
+                {
+                    "note:" => new Color(0.8f, 0.8f, 0.8f, 0.5f),
+                    // yellow-green
+                    "todo:" => new Color(0.7f, 1f, 0.2f, 0.5f),
+                    // 橘黃色
+                    "fixme:" => new Color(1f, 0.6f, 0.1f, 0.5f),
+                    _ => Color.clear
+                };
+            }
+        }
+
+        private string _splitNoteKeyword;
+
+        [ShowInDebugMode]
+        public bool IsDrawGUIHierarchyBackground
+        {
+            get
+            {
+                if (Application.isPlaying)
+                    return false;
+                if (HasError()) //還是用icon?
+                    return true;
+                if (!_splitNoteKeyword.IsNullOrEmpty())
+                    return true;
+                return false;
+            }
+        }
+
+        // public override bool IsDrawGUIHierarchyBackground =>
+        //     _note.Contains("error") || HasError(); //還是用icon?
+
         [HideIf(nameof(_parentObj))]
         [ShowIn(PrefabKind.PrefabInstance)]
         [RequiredIn(PrefabKind.PrefabInstance)]
@@ -60,9 +96,23 @@ namespace MonoFSM.Foundation
 
 // #if UNITY_EDITOR
 
+        [OnValueChanged(nameof(OnNoteChanged))]
         [TextArea]
         [SerializeField]
         protected string _note; //這個應該要有另外的地方可以draw? 多component還會打架...
+
+        void OnNoteChanged()
+        {
+            _splitNoteKeyword = "";
+            if (string.IsNullOrEmpty(_note)) return;
+            var lower = _note.ToLower();
+            if (lower.Contains("note:"))
+                _splitNoteKeyword = "note:";
+            else if (lower.Contains("todo:"))
+                _splitNoteKeyword = "todo:";
+            else if (lower.Contains("fixme:"))
+                _splitNoteKeyword = "fixme:";
+        }
 
         public string Note => _note;
 
@@ -499,6 +549,7 @@ namespace MonoFSM.Foundation
 
         protected virtual void Awake()
         {
+            OnNoteChanged();
         } //FIXME: 不該用這個？
 
         protected virtual void Start()
@@ -546,10 +597,9 @@ namespace MonoFSM.Foundation
         [PreviewInDebugMode]
         protected string _errorMessage;
 
-        public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
+        // public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
 
-        [ShowInDebugMode]
-        public bool IsDrawGUIHierarchyBackground => !Application.isPlaying && HasError(); //還是用icon?
+
         //FIXME: 動態做這個，bool IsNeedValid的Required? (配合啥？
 
         #region DebugMode Log (Zero GC)
