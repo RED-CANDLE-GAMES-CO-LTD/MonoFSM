@@ -1,5 +1,6 @@
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM_InputAction
@@ -81,6 +82,8 @@ namespace MonoFSM_InputAction
                                       && PressTime > 0 && PressTime < _bufferTime && !_isConsumed;
 
         [SerializeField] bool _useBufferConsume;
+
+        [ShowIf(nameof(_useBufferConsume))]
         [SerializeField] float _bufferTime = 0.5f;
 
         bool _isConsumed;

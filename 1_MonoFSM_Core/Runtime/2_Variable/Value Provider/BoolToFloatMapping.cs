@@ -15,27 +15,6 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
 
         //FIXME: 做一些防震盪？
         public override float Value => _boolVar?.IsTrue ?? false ? 1.0f : 0.0f;
-
-        // public T GetValue<T>()
-        // {
-        //     if (typeof(T) == typeof(bool))
-        //         return (T)(object)_boolVar.IsTrue;
-        //     if (typeof(T) == typeof(float))
-        //         return (T)(object)(_boolVar.IsTrue ? 1.0f : 0.0f);
-        //     return default;
-        // }
-
-        // public string GetDescription()
-        // {
-        //     return GetFloat().ToString();
-        // }
-        //
-        // public float GetFloat()
-        // {
-        //     //FIXME: lerp? 應該用這個做嗎？
-        //     return _boolVar.IsTrue ? 1.0f : 0.0f;
-        // }
-
-        // public string Description { get; }
+        public override string Description => _boolVar.Description + " to float (0~1)";
     }
 }

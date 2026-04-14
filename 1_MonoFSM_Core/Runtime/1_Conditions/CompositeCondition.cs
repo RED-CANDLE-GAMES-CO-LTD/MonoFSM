@@ -6,6 +6,8 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions
 {
     public class CompositeCondition : AbstractConditionBehaviour
     {
+
+
         [Tooltip("選擇條件組合的邏輯操作：AND (所有條件都必須滿足) 或 OR (至少一個條件滿足)")]
         [LabelText("操作類型")]
         [GUIColor(nameof(GetOperationTypeColor))]
@@ -29,7 +31,7 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions
         //可以是warning嗎？
         private AbstractConditionBehaviour[] _conditions;
 
-        public override string Description => ReformatedName;
+        public override string Description => _operationType.ToString();
 
         protected override bool IsValid
         {

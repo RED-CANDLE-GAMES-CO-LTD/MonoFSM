@@ -347,34 +347,37 @@ namespace MonoFSM.Variable
         //FIXME: 太卡了
         protected void RecordSetbyWhoDebug<T>(Object byWho, T tempValue, string reason = null)
         {
-            return;
-            //這個會gc, hmm
-            if (!RuntimeDebugSetting.IsDebugMode) //要再開一種？
-            {
+            if (!RuntimeDebugSetting.IsDebugMode)
                 return;
-            }
-#if UNITY_EDITOR
-            // 取得完整 call stack，跳過前 2 層 (RecordSetbyWho 和 SetValue)
-            var stackTrace = new System.Diagnostics.StackTrace(2, true);
-            var stackString = stackTrace.ToString();
-
-            var logMessage = string.IsNullOrEmpty(reason)
-                ? $"[Variable] Set {tempValue} byWho {byWho}"
-                : $"[Variable] Set {tempValue} byWho {byWho} reason: {reason}";
-            this.Log(logMessage + "\n" + stackString);
-
+            if (_byWhoQueue.Count > 10)
+                _byWhoQueue.Dequeue(); //保持最新的10個
             var byWhoData = new SetValueExecutionData
             {
                 _value = tempValue,
                 _byWho = byWho,
                 _time = Time.time,
                 _reason = reason,
-                _stackTrace = stackString,
+                _stackTrace = "",
             };
+            // return;
+            //這個會gc, hmm
+
             _byWhoQueue.Enqueue(byWhoData);
-            if (_byWhoQueue.Count > 10)
-                _byWhoQueue.Dequeue(); //保持最新的10個
-#endif
+                return;
+
+// #if UNITY_EDITOR
+//             // 取得完整 call stack，跳過前 2 層 (RecordSetbyWho 和 SetValue)
+//             var stackTrace = new System.Diagnostics.StackTrace(2, true);
+//             var stackString = stackTrace.ToString();
+//aW
+//             // var logMessage = string.IsNullOrEmpty(reason)
+//             //     ? $"[Variable] Set {tempValue} byWho {byWho}"
+//             //     : $"[Variable] Set {tempValue} byWho {byWho} reason: {reason}";
+//             // this.Log(logMessage + "\n" + stackString);
+//
+//             byWhoData._stackTrace = stackString;
+//             _byWhoQueue.Enqueue(byWhoData);
+// #endif
         }
 
         //abstract?

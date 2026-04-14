@@ -33,9 +33,11 @@ namespace MonoFSM.Animation
         bool HasAnimatorOrRef => _animator != null || _animatorRefSource != null ||
                                  _externalAnimatorRefSource != null;
 
-        [ValidateInput(nameof(ValidateParameterName), "Parameter not found in Animator")]
+        [ValidateInput(nameof(ValidateParameterName), "Parameter not found in Animator or type mismatch")]
         [ValueDropdown(nameof(GetParameterNames))]
         public string _parameterName;
+
+        protected abstract AnimatorControllerParameterType ExpectedParamType { get; }
 
         [TitleGroup("Animator")]
         [PropertyOrder(-1)]
@@ -56,7 +58,8 @@ namespace MonoFSM.Animation
             if (string.IsNullOrEmpty(paramName) || Animator == null) return false;
             foreach (var param in Animator.parameters)
             {
-                if (param.name == paramName) return true;
+                if (param.name == paramName)
+                    return param.type == ExpectedParamType;
             }
 
             return false;
@@ -66,7 +69,10 @@ namespace MonoFSM.Animation
         {
             if (Animator == null) yield break;
             foreach (var parameter in Animator.parameters)
-                yield return parameter.name;
+            {
+                if (parameter.type == ExpectedParamType)
+                    yield return parameter.name;
+            }
         }
 
         protected override bool HasError()
@@ -96,6 +102,12 @@ namespace MonoFSM.Animation
             {
                 if (param.name == _parameterName)
                 {
+                    if (param.type != ExpectedParamType)
+                    {
+                        _errorMessage = $"Parameter '{_parameterName}' type mismatch: expected {ExpectedParamType}, got {param.type}";
+                        _hasParameter = false;
+                        return false;
+                    }
                     _hasParameter = true;
                     return true;
                 }

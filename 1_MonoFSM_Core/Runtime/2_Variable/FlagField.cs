@@ -617,8 +617,6 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
         //     Debug.LogError("PLZ FIX ME, Assign Owner for function block!!" + owner, owner);
 
         // else
-        //FIXME: 要這樣用嗎？hmmm先不要？
-        // _currentValue = RuntimeDebugSetting.IsDebugMode ? DevValue : ProductionValue;
         if (Application.isPlaying == false)
         {
             if (EqualityComparer<T>.Default.Equals(DevValue, default) ||
@@ -627,7 +625,7 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
                 DevValue = ProductionValue;
             }
         }
-        _currentValue = ProductionValue;
+        _currentValue = RuntimeDebugSetting.IsDebugMode ? DevValue : ProductionValue;
         // Debug.Log("FlagField Init: " + _currentValue + " Mode: " + DebugSetting.IsDebugMode, owner);
         //沒有register耶？
     }

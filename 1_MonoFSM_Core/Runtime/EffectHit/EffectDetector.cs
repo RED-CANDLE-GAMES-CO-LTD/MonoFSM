@@ -61,7 +61,7 @@ namespace MonoFSM.Core.Detection
             IUpdateSimulate,
             IDropdownRoot, IResetStateRestore
     {
-        
+
 
         //FIXME: 這個不好...會以為可以改name結果又跑掉？
         [SerializeField]
@@ -73,8 +73,13 @@ namespace MonoFSM.Core.Detection
         [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionBehaviour[] _conditions;
 
-        [ShowInDebugMode]
+        [ShowInInspector]
+        [GUIColor("GetIsValidColor")]
         public bool IsValid => _conditions.IsAllValid();
+
+#if UNITY_EDITOR
+        private Color GetIsValidColor() => IsValid ? Color.white : Color.red;
+#endif
 
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]

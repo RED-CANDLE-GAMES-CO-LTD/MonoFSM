@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using MonoFSM.Animation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -23,6 +24,7 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
         private Vector2 _scrollPos;
         private string _searchFilter = "";
         private GameObject _sceneRoot;
+        private Animator _animatorFilter;
 
         // Foldout 狀態 (paramName -> foldout)
         private Dictionary<string, bool> _foldoutStates = new();
@@ -60,6 +62,9 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
         {
             var window = GetWindow<AnimatorParamReferenceWindow>("Animator Param Finder");
 
+            // 根據 context 類型自動設定 Animator Filter
+            window._animatorFilter = ResolveAnimator(context);
+
             var stage = PrefabStageUtility.GetCurrentPrefabStage();
             if (stage != null)
             {
@@ -75,6 +80,33 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
             }
 
             window.Repaint();
+        }
+
+        private static Animator ResolveAnimator(Component context)
+        {
+            if (context == null) return null;
+
+            // 直接從 Animator 右鍵
+            if (context is Animator animator)
+                return animator;
+
+            // 從 AbstractAnimatorSetValueAction 右鍵
+            if (context is AbstractAnimatorSetValueAction setValueAction)
+            {
+                var prop = typeof(AbstractAnimatorSetValueAction)
+                    .GetProperty("Animator", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                return prop?.GetValue(setValueAction) as Animator;
+            }
+
+            // 從 AnimatorParameterSetValueAction 右鍵
+            if (context is AnimatorParameterSetValueAction paramAction)
+            {
+                var prop = typeof(AnimatorParameterSetValueAction)
+                    .GetProperty("animator", BindingFlags.Instance | BindingFlags.NonPublic);
+                return prop?.GetValue(paramAction) as Animator;
+            }
+
+            return null;
         }
 
         private void OnEnable()
@@ -187,7 +219,8 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
         private void DrawSearchFilter()
         {
             EditorGUILayout.Space(3);
-            _searchFilter = EditorGUILayout.TextField("Filter", _searchFilter);
+            _animatorFilter = EditorGUILayout.ObjectField("Animator Filter", _animatorFilter, typeof(Animator), true) as Animator;
+            _searchFilter = EditorGUILayout.TextField("Param Filter", _searchFilter);
             EditorGUILayout.Space(3);
         }
 
@@ -217,6 +250,12 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
             foreach (var paramName in sortedParams)
             {
                 var infos = allCache[paramName];
+
+                // 套用 Animator 過濾
+                if (_animatorFilter != null)
+                    infos = infos.Where(i => i.TargetAnimator == _animatorFilter).ToList();
+
+                if (infos.Count == 0) continue;
 
                 if (!_foldoutStates.TryGetValue(paramName, out var foldout))
                     foldout = false;

@@ -6,6 +6,8 @@ namespace MonoFSM.Animation
 {
     public class AnimatorSetBoolAction : AbstractAnimatorSetValueAction
     {
+        protected override AnimatorControllerParameterType ExpectedParamType => AnimatorControllerParameterType.Bool;
+
         public override string Description =>
             $"Set Animator Bool [{_parameterName}] = {_boolValue}";
 

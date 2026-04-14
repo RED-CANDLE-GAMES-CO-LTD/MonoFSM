@@ -8,6 +8,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
         [SerializeField]
         private GeneralEffectDealer _dealer;
         protected override bool IsValid => _dealer.HasReceiverOverlap;
+
+        public override string Description =>
+            $"Dealer [{_dealer.Description}] hit any?";
     }
 }
 

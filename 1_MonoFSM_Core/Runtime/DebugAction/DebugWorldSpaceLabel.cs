@@ -74,6 +74,7 @@ namespace _0_MonoDebug.Gizmo
         GUIStyle _backgroundStyle;
 
         [ShowInDebugMode] Rigidbody _bindingRigidbody;
+        Vector3 _followOffset;
 
         public override Transform FollowTransform => _followTarget != null ? _followTarget
             : _bindingRigidbody != null ? _bindingRigidbody.transform : null;
@@ -127,7 +128,12 @@ namespace _0_MonoDebug.Gizmo
         void Update()
         {
             if (FollowTransform != null)
-                transform.position = FollowTransform.position;
+            {
+                if (Application.isPlaying)
+                    transform.position = FollowTransform.position + _followOffset;
+                else
+                    _followOffset = transform.position - FollowTransform.position;
+            }
 
             UpdateOverlayLabel();
         }

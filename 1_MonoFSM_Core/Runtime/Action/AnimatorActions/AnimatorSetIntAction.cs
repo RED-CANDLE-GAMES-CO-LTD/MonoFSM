@@ -6,6 +6,8 @@ namespace MonoFSM.Animation
 {
     public class AnimatorSetIntAction : AbstractAnimatorSetValueAction
     {
+        protected override AnimatorControllerParameterType ExpectedParamType => AnimatorControllerParameterType.Int;
+
         public override string Description =>
             $"Set Animator Int [{_parameterName}] = {_intValue}";
 

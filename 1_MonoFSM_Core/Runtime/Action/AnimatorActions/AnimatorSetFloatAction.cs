@@ -9,6 +9,7 @@ namespace MonoFSM.Animation
     public class AnimatorSetFloatAction : AbstractAnimatorSetValueAction
     {
         protected override string DescriptionTag => "AnimParam";
+        protected override AnimatorControllerParameterType ExpectedParamType => AnimatorControllerParameterType.Float;
 
         public override string Description =>
             $"Float ${_parameterName} = ${_floatValue}";
