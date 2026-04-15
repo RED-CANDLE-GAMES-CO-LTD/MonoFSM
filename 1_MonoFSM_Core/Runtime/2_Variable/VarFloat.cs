@@ -45,21 +45,32 @@ namespace MonoFSM.Variable
         public float Percentage => (CurrentValue - Min) / (Max - Min);
 
         //FIXME: 要editor time的時候GetComponent嗎？
+        [ShowInPlayMode]
         public float Min
         {
             get
             {
+                var varRefFloat = varRef as VarFloat;
+                if (varRefFloat != null)
+                {
+                    return varRefFloat.Min;
+                }
                 if (valueSource is IFloatBoundProvider boundProvider)
                     return boundProvider.Min;
                 return _boundModifier ? _boundModifier.MinValue : 0;
             }
         }
 
-        [FormerlyNamedAs("MaxTest")]
+        [ShowInPlayMode]
         public float Max
         {
             get
             {
+                var varRefFloat = varRef as VarFloat;
+                if (varRefFloat != null)
+                {
+                    return varRefFloat.Max;
+                }
                 if (valueSource is IFloatBoundProvider boundProvider)
                     return boundProvider.Max;
                 return _boundModifier ? _boundModifier.MaxValue : float.MaxValue;

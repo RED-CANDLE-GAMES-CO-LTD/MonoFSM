@@ -8,6 +8,9 @@ namespace MonoFSM.Animation
     {
         protected override AnimatorControllerParameterType ExpectedParamType => AnimatorControllerParameterType.Int;
 
+        public override bool IsDrawingValueInfo => true;
+        public override string ValueInfo => _parameterName + ":" + _intValue.Value;
+
         public override string Description =>
             $"Set Animator Int [{_parameterName}] = {_intValue}";
 

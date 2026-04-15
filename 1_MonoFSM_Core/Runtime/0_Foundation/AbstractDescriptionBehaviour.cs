@@ -79,14 +79,22 @@ namespace MonoFSM.Foundation
         [ShowInDebugMode] [AutoParent(getMadIfMissing: false)]
         MonoObj[] _parentObjs; //用array避免拿不到parentobj
 
-        public string PathName => _parentObjs != null && _parentObjs.Length > 0
-            ? $"{ReformatedName} (" + string.Join(
-                ".",
-                Array.ConvertAll(_parentObjs, obj => obj.gameObject.name).Reverse()
-            ) + ")"
-            : _parentObj != null
-                ? _parentObj.gameObject.name + "." + ReformatedName
-                : ReformatedName;
+        public string PathName
+        {
+            get
+            {
+                // 清掉 ReformatedName 中已有的 (...) 避免巢狀重複
+                var cleanName = Regex.Replace(ReformatedName, @"\s*\(.*?\)\s*", "").Trim();
+                if (_parentObjs != null && _parentObjs.Length > 0)
+                    return $"{cleanName} (" + string.Join(
+                        ".",
+                        Array.ConvertAll(_parentObjs, obj => obj.gameObject.name).Reverse()
+                    ) + ")";
+                if (_parentObj != null)
+                    return _parentObj.gameObject.name + "." + cleanName;
+                return ReformatedName;
+            }
+        }
 
         public void DespawnParentObj()
         {

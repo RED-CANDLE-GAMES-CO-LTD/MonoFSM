@@ -1,3 +1,4 @@
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Foundation;
 using MonoFSM.Variable;
@@ -25,6 +26,9 @@ namespace _1_MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper.Float
         [Tooltip("勾選後回傳 1 - percentage")] [SerializeField]
         private bool _invert;
 
+        [PreviewInInspector] private float Min => _varFloat != null ? _varFloat.Min : 0f;
+
+        [PreviewInInspector]
         private float Max => _maxOverride != null ? _maxOverride.Value : _varFloat.Max;
 
         public override float Value
@@ -32,8 +36,9 @@ namespace _1_MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper.Float
             get
             {
                 if (_varFloat == null) return 0f;
-                var range = Max - _varFloat.Min;
-                var pct = range > 0f ? (_varFloat.CurrentValue - _varFloat.Min) / range : 0f;
+                var range = Max - Min;
+                var pct = range > 0f ? (_varFloat.CurrentValue - Min) / range : 0f;
+                // var pct = _varFloat.Percentage;
                 return _invert ? 1f - pct : pct;
             }
         }

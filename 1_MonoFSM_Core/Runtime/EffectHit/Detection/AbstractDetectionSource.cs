@@ -81,7 +81,7 @@ namespace MonoFSM.Core.Detection
 
         public virtual void AfterDetection() { }
 
-        public string ValueInfo => "L:" + LayerMask.LayerToName(gameObject.layer);
-        public bool IsDrawingValueInfo => true;
+        public override string ValueInfo => "L:" + LayerMask.LayerToName(gameObject.layer);
+        public override bool IsDrawingValueInfo => true;
     }
 }

@@ -11,6 +11,9 @@ namespace MonoFSM.Animation
         protected override string DescriptionTag => "AnimParam";
         protected override AnimatorControllerParameterType ExpectedParamType => AnimatorControllerParameterType.Float;
 
+        public override bool IsDrawingValueInfo => true;
+        public override string ValueInfo => _parameterName + ":" + _floatValue.Value;
+
         public override string Description =>
             $"Float ${_parameterName} = ${_floatValue}";
 

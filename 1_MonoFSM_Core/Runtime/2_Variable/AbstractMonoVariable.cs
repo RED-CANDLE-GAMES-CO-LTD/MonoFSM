@@ -385,45 +385,43 @@ namespace MonoFSM.Variable
 
         protected AbstractMonoVariable GetProxyVarOrThis()
         {
-            if (_parentVarEntity != null) //用proxy
+            if (_parentVarEntity == null) return this; //用proxy
+            if (_parentVarEntity != this)
             {
-                if (_parentVarEntity != this)
+                Debug.Log("Proxy SetValue to parent entity", _parentVarEntity);
+                var targetVar = _parentVarEntity.Value.GetVar(_varTag);
+                if (targetVar == null)
                 {
-                    Debug.Log("Proxy SetValue to parent entity", _parentVarEntity);
-                    var targetVar = _parentVarEntity.Value.GetVar(_varTag);
-                    if (targetVar == null)
-                    {
-                        Debug.LogError(
-                            $"Parent entity {_parentVarEntity.name} has no var {_varTag.name}",
-                            this
-                        );
-                        return this;
-                    }
-
-                    if (targetVar == this)
-                    {
-                        Debug.LogError(
-                            "Variable's parent entity is self, possible misconfiguration.",
-                            this
-                        );
-                        Debug.Break();
-                        return this;
-                    }
-
-                    // targetVar.SetValue(value, byWho);
-
-                    return targetVar;
+                    Debug.LogError(
+                        $"Parent entity {_parentVarEntity.name} has no var {_varTag.name}",
+                        this
+                    );
+                    return this;
                 }
-                else
+
+                if (targetVar == this)
                 {
                     Debug.LogError(
                         "Variable's parent entity is self, possible misconfiguration.",
                         this
                     );
+                    Debug.Break();
+                    return this;
                 }
 
-                Debug.Break();
+                // targetVar.SetValue(value, byWho);
+
+                return targetVar;
             }
+            else
+            {
+                Debug.LogError(
+                    "Variable's parent entity is self, possible misconfiguration.",
+                    this
+                );
+            }
+
+            Debug.Break();
 
             return this;
         }
@@ -699,9 +697,9 @@ namespace MonoFSM.Variable
 
             var str = _varTag.name;
             if (_parentVarEntity != null)
-                str = _parentVarEntity.name + "_" + str;
+                str = _parentVarEntity.name + "." + str;
 
-            name = $"[{DescriptionTag}] {str}";
+            name = $"[{DescriptionTag}] {FormatName(str)}";
             RevertNameOverrideIfMatchesPrefab(gameObject);
         }
 

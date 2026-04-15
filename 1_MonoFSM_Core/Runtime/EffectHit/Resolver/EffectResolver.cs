@@ -144,7 +144,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         // public bool IsValid => gameObject.activeSelf && _conditions.IsAllValid();
 
         public IActor Owner => GetComponentInParent<IActor>();
-        public override string ValueInfo => IsValid ? "On" : "Off";
+        public override string ValueInfo => IsValid ? "Valid" : "Off";
         public override bool IsDrawingValueInfo => Application.isPlaying && isActiveAndEnabled;
 
         public virtual void ResetStateRestore()

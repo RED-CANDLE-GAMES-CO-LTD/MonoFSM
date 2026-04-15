@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _note: 
+  _bindingRoot: {fileID: 0}
 --- !u!1 &567332959712725146
 GameObject:
   m_ObjectHideFlags: 0
@@ -88,7 +89,7 @@ GameObject:
   - component: {fileID: 8388388469843436753}
   - component: {fileID: 2641676531158844801}
   m_Layer: 0
-  m_Name: d_this
+  m_Name: '[Getter] d_this'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -140,7 +141,7 @@ GameObject:
   - component: {fileID: 5056037886137724283}
   - component: {fileID: 8183961740039816131}
   m_Layer: 0
-  m_Name: => (MonoEntity) ParentEntitySource
+  m_Name: => ParentEntitySource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -226,7 +227,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _backingEnableLogging: 0
   stateIdToRestore: -1
-  anyState: {fileID: 0}
 --- !u!114 &1973556432026734445
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -265,6 +265,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour.StateFolder
   _note: 
+  _bindingRoot: {fileID: 0}
 --- !u!1 &3309332702119410497
 GameObject:
   m_ObjectHideFlags: 0
@@ -354,6 +355,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _note: 
+  _bindingRoot: {fileID: 0}
 --- !u!1 &3801494400675193616
 GameObject:
   m_ObjectHideFlags: 0
@@ -399,7 +401,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.MonoData.ViewRoot
   _note: 
-  _ignoreReparent: 0
+  _ignoreStartReparent: 0
+  _parentViewRoot: {fileID: 0}
 --- !u!1 &4082089536309548135
 GameObject:
   m_ObjectHideFlags: 0
@@ -479,7 +482,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75a0d43424054f1abaf0be3b2bedd912, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _onResetStartHandler: {fileID: 0}
+  _cullingHandle: {fileID: 0}
+  _onSpawnHandler: {fileID: 0}
 --- !u!1 &4619145615866190664
 GameObject:
   m_ObjectHideFlags: 0
@@ -511,6 +515,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4855796471514997125}
+  - {fileID: 1536133703058004699}
   m_Father: {fileID: 873855735939457434}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2699710344313110595
@@ -525,6 +530,51 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8bf7b89856784a32a2901cb05687447e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.MonoData.MonoContext
+--- !u!1 &4694409392857167619
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1536133703058004699}
+  - component: {fileID: 4372752038573322358}
+  m_Layer: 0
+  m_Name: '[Event] RenderLoop'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1536133703058004699
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4694409392857167619}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2827814410462917981}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4372752038573322358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4694409392857167619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bc612739b754bdda97d68118584b098, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.Action.AnimatorActions.RenderLoopHandler
+  _note: 
 --- !u!1 &4731588778212171276
 GameObject:
   m_ObjectHideFlags: 0
@@ -688,7 +738,7 @@ GameObject:
   - component: {fileID: 5849249115696725527}
   - component: {fileID: 5010657810671805049}
   m_Layer: 0
-  m_Name: '[Anim]  Animator: _Idle L:0'
+  m_Name: '[Play]  Animator: Idle L:0'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

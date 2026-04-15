@@ -7,6 +7,8 @@ namespace MonoFSM.Core.Detection
 {
     public class TriggerDetectorSource : AbstractDetectionSource
     {
+        public override string ValueInfo => "hit:" + _thisFrameColliders.Count;
+
         [Required]
         [CompRef]
         [SerializeField]

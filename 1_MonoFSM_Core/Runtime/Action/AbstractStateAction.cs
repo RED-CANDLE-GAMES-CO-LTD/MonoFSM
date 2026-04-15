@@ -34,7 +34,7 @@ namespace MonoFSM.Core.Runtime.Action
 
         protected override bool HasError() //FIXME: 會很貴嗎？
         {
-            return GetComponentInParent<IActionParent>(true) == null;
+            return GetComponentInParent<IActionParent>(true) == null || base.HasError();
         }
 
         protected override string DescriptionTag => "Action";

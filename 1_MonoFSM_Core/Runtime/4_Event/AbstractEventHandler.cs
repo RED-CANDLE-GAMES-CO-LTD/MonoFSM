@@ -59,17 +59,18 @@ namespace MonoFSM.Core
             foreach (var eventReceiver in _eventReceivers)
             {
                 //如果有exception就會中斷掉？
-                // try
-                // {
+                // 4/15, 對！以為detector出問題...
+                try
+                {
                     if (eventReceiver.IsValid)
                         eventReceiver.EventReceived();
-                    // }
-                    // catch (System.Exception e)
-                    // {
-                    //     Debug.LogError(
-                    //         $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
-                    //         eventReceiver as Object);
-                    // }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError(
+                        $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
+                        eventReceiver as Object);
+                }
 
             }
         }
@@ -82,17 +83,29 @@ namespace MonoFSM.Core
                 return;
             _lastEventHandledTime = Time.time;
             foreach (var eventReceiver in _eventReceivers)
-                //有參數的介面時
-                if (eventReceiver is IArgEventReceiver<T> argEventReceiver)
+            {
+                try
                 {
-                    if (argEventReceiver.IsValid)
-                        argEventReceiver.ArgEventReceived(arg); //在這裡delay?
+                    //有參數的介面時
+                    if (eventReceiver is IArgEventReceiver<T> argEventReceiver)
+                    {
+                        if (argEventReceiver.IsValid)
+                            argEventReceiver.ArgEventReceived(arg); //在這裡delay?
+                    }
+                    else
+                    {
+                        if (eventReceiver.IsValid)
+                            eventReceiver.EventReceived(); //在這裡delay?
+                    }
                 }
-                else
+                catch (System.Exception e) //因為eventhandle有error會導致後面觸發都壞掉
                 {
-                    if (eventReceiver.IsValid)
-                        eventReceiver.EventReceived(); //在這裡delay?
+                    Debug.LogError(
+                        $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
+                        eventReceiver as Object);
                 }
+            }
+
         }
 
         /// <summary>

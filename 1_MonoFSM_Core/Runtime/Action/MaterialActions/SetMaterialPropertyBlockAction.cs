@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Render;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace MonoFSM.ParticleSystemActions
 {
@@ -21,10 +23,12 @@ namespace MonoFSM.ParticleSystemActions
         [SerializeField] [DropDownRef]
         private Renderer _renderer;
 
+        [HideIf(nameof(_renderer))]
         [SerializeField] [DropDownRef]
         private RendererCollection _rendererCollection;
 
-        [SerializeField] private string _propertyName;
+        [SerializeField] [ValueDropdown(nameof(GetPropertyNames))]
+        private string _propertyName;
 
         [SerializeField] private int _materialIndex;
 
@@ -41,7 +45,49 @@ namespace MonoFSM.ParticleSystemActions
 
         private MaterialPropertyBlock _mpb;
         private int _propertyId;
-        
+
+#if UNITY_EDITOR
+        private IEnumerable<ValueDropdownItem<string>> GetPropertyNames()
+        {
+            var shader = GetShaderFromRenderer();
+            if (shader == null) yield break;
+
+            var targetType = _propertyType switch
+            {
+                PropertyType.Float => ShaderPropertyType.Float,
+                PropertyType.Color => ShaderPropertyType.Color,
+                PropertyType.Int => ShaderPropertyType.Int,
+                _ => ShaderPropertyType.Float
+            };
+
+            var count = shader.GetPropertyCount();
+            for (var i = 0; i < count; i++)
+            {
+                var type = shader.GetPropertyType(i);
+                if (type != targetType && !(targetType == ShaderPropertyType.Float &&
+                                            type == ShaderPropertyType.Range))
+                    continue;
+
+                var propName = shader.GetPropertyName(i);
+                var desc = shader.GetPropertyDescription(i);
+                var label = string.IsNullOrEmpty(desc) ? propName : $"{desc} ({propName})";
+                yield return new ValueDropdownItem<string>(label, propName);
+            }
+        }
+
+        private Shader GetShaderFromRenderer()
+        {
+            Renderer r = _renderer;
+            if (r == null && _rendererCollection != null)
+                r = _rendererCollection.GetComponentInChildren<Renderer>();
+            if (r == null) return null;
+
+            var mat = _materialIndex < r.sharedMaterials.Length
+                ? r.sharedMaterials[_materialIndex]
+                : null;
+            return mat != null ? mat.shader : null;
+        }
+#endif
 
         [Button("Preview")]
         protected override void OnActionExecuteImplement()
@@ -63,7 +109,8 @@ namespace MonoFSM.ParticleSystemActions
                     ApplyPropertyBlock(r);
                 }
             }
-            else if (_renderer != null)
+
+            if (_renderer != null)
             {
                 ApplyPropertyBlock(_renderer);
             }

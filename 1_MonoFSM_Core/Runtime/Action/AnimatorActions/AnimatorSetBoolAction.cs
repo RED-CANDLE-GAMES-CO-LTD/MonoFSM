@@ -8,6 +8,9 @@ namespace MonoFSM.Animation
     {
         protected override AnimatorControllerParameterType ExpectedParamType => AnimatorControllerParameterType.Bool;
 
+        public override bool IsDrawingValueInfo => true;
+        public override string ValueInfo => _parameterName + ":" + _boolValue.Value;
+
         public override string Description =>
             $"Set Animator Bool [{_parameterName}] = {_boolValue}";
 
@@ -15,6 +18,7 @@ namespace MonoFSM.Animation
 
         protected override void OnActionExecuteImplement()
         {
+
             if (!TryGetAnimator(out var animator)) return;
             animator.SetBool(_parameterName, _boolValue.Value);
         }

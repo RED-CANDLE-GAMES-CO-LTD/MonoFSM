@@ -1,5 +1,6 @@
 using System;
 using MonoFSM.Variable;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action.VariableAction
@@ -21,6 +22,7 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
             DecreaseByPercentage
         }
 
+        [Required]
         [DropDownRef] public VarFloat _targetVar;
         public BoundType _boundType = BoundType.Max;
 
