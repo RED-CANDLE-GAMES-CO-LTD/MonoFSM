@@ -9,8 +9,8 @@ namespace MonoFSM.Core
     {
         void OnHeavySceneSaving();
     }
-    
-    //FIXME: 
+
+    //FIXME:
     public interface ISceneSavingCallbackReceiver
     {
         void OnBeforeSceneSave();
@@ -18,6 +18,11 @@ namespace MonoFSM.Core
     public interface ISceneSavingAfterCallbackReceiver
     {
         void OnAfterSceneSave();
+    }
+
+    public interface IEditorResetToPlayTest
+    {
+        void OnEditorResetToPlayTest();
     }
 
     public interface IBeforeBuildProcess

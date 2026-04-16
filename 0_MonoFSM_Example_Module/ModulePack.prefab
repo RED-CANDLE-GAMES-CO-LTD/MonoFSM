@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7828838521124911077}
   - component: {fileID: 6889222059960297322}
-  - component: {fileID: 8398472042460750695}
   - component: {fileID: 3720337106458722872}
   m_Layer: 0
   m_Name: ModulePack
@@ -21,7 +20,7 @@ GameObject:
   m_IsActive: 1
 --- !u!4 &7828838521124911077
 Transform:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 8
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -40,7 +39,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6889222059960297322
 MonoBehaviour:
-  m_ObjectHideFlags: 0
+  m_ObjectHideFlags: 8
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
@@ -50,24 +49,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39eab40666ba4779ae774b1828491ff6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.LifeCycle.Update.MonoModulePack
-  _variableFolder: {fileID: 2979762296682355994}
-  _stateFolder: {fileID: 910800617987925505}
-  _detectable: {fileID: 3273652253079889805}
-  _folder: {fileID: 5020677785837437662}
---- !u!114 &8398472042460750695
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 37740487875403632}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: da00e78b230681a4996b6835aab48404, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: MonoFSM.Core.Runtime::Note
-  _noteType: 0
-  note: 
 --- !u!114 &3720337106458722872
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -83,6 +64,7 @@ MonoBehaviour:
   _targetComponent:
   - {fileID: 6889222059960297322}
   - {fileID: 7828838521124911077}
+  _lockComponents: 1
 --- !u!1 &4479695402948063043
 GameObject:
   m_ObjectHideFlags: 0
@@ -128,8 +110,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::VariableFolder
   _note: 
-  _collections: []
-  _externalDicts: []
+  _bindingRoot: {fileID: 0}
 --- !u!1 &4960872082592518203
 GameObject:
   m_ObjectHideFlags: 0
@@ -175,8 +156,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::MonoFSM.Variable.SchemaFolder
   _note: 
-  _collections: []
-  _externalDicts: []
+  _bindingRoot: {fileID: 0}
 --- !u!1 &7038124659114723330
 GameObject:
   m_ObjectHideFlags: 0
@@ -222,10 +202,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::MonoFSM.Runtime.Interact.EffectHit.EffectDetectable
   _note: 
-  _collections: []
-  _externalDicts: []
+  _bindingRoot: {fileID: 0}
   _effectDetectTargets: []
   _interactConditions: []
+  _debugDetectors: []
 --- !u!1 &7812791612260454411
 GameObject:
   m_ObjectHideFlags: 0
@@ -271,5 +251,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour.StateFolder
   _note: "transition\u8981\u5B89\u88DD\u5F8C\u624D\u80FD\u548C\u672C\u9AD4\u4E32\u63A5"
-  _collections: []
-  _externalDicts: []
+  _bindingRoot: {fileID: 0}

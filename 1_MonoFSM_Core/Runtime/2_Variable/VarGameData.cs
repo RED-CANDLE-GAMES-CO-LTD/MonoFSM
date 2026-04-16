@@ -2,6 +2,7 @@ using MonoFSM.Variable.FieldReference;
 
 namespace MonoFSM.Variable
 {
+    //FIXME: 不可以繼承 GenericUnityObjectVariable
     [FormerlyNamedAs("VarDescriptableData")]
     public class VarGameData : GenericUnityObjectVariable<GameData>
     {

@@ -15,7 +15,8 @@ public class PlayerStartSpawnPoint
     : AbstractDescriptionBehaviour,
         IUpdateSimulate,
         IBeforeBuildProcess,
-        IActionParent
+        IActionParent,
+        IEditorResetToPlayTest
 {
     // public override string Description { get; }
     protected override string DescriptionTag => "SpawnPoint";
@@ -208,5 +209,10 @@ public class PlayerStartSpawnPoint
             // player.transform.position = transform.position;
             // _onPlayerSpawn.EventReceived(transform.position);
         }
+    }
+
+    public void OnEditorResetToPlayTest()
+    {
+        ResetToOriPos();
     }
 }

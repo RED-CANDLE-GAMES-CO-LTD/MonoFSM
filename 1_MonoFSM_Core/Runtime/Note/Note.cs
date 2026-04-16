@@ -1,14 +1,17 @@
-﻿using MonoFSM.Editor.DesignTool;
+﻿using System;
+using MonoFSM.Editor.DesignTool;
 using MonoFSM.EditorExtension;
+using MonoFSM.Foundation;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 //Just for remind
 
 public class
-    Note : MonoBehaviour, IEditorOnly, IHierarchyValueInfo,
-    IDrawHierarchyBackGround //IOverrideHierarchyIcon
+    Note : AbstractDescriptionBehaviour, IEditorOnly //IOverrideHierarchyIcon
 {
+    public override string Description => $"[{_noteType}]";
 #if UNITY_EDITOR
     //FIXME: 用vHierarchyIcon來做?
     // [EnumToggleButtons]
@@ -22,6 +25,8 @@ public class
     // public Color TextColor = Color.white;
     // [ShowIf("IsShow")]
     // public int fontSize = 24;
+
+    protected override bool IsIgnoreRename => gameObject.GetComponentCount() > 1;
 
     [Button("開Issue")]
     void AddIssue()
@@ -41,29 +46,30 @@ public class
     [SerializeField]
     private NoteType _noteType = NoteType.NOTE;
 
+    [Obsolete]
     [TextArea(5, 100)]
-    [Title("意圖、Prompt")]
+    [Title("(舊規，搬到上面去) 意圖、Prompt")]
     public string note;
     // [ColorPalette] public Color bgColor = Color.yellow; //fixme:color 應該直接照著類型，和IDE這個註解一樣
 
 
     public string IconName => "_Help";
     public bool IsDrawingIcon => false;
-    public string ValueInfo => note;
-    public bool IsDrawingValueInfo => false; //TODO:
-
-    public Color BackgroundColor => _noteType switch
-    {
-        NoteType.NOTE => new Color(0.8f, 0.8f, 0.8f, 0.5f),
-        //yellow
-        NoteType.TODO => new Color(0.7f, 1f, 0.2f, 0.5f),
-        //橘色
-        NoteType.FIXME => new Color(1f, 0.3f, 0.5f, 0.5f),
-        _ => Color.clear
-    };
-
-    public bool IsDrawGUIHierarchyBackground =>
-        _noteType == NoteType.FIXME || _noteType == NoteType.TODO;
+    // public string ValueInfo => note;
+    // public bool IsDrawingValueInfo => false; //TODO:
+    //
+    // public Color BackgroundColor => _noteType switch
+    // {
+    //     NoteType.NOTE => new Color(0.8f, 0.8f, 0.8f, 0.5f),
+    //     //yellow
+    //     NoteType.TODO => new Color(0.7f, 1f, 0.2f, 0.5f),
+    //     //橘色
+    //     NoteType.FIXME => new Color(1f, 0.3f, 0.5f, 0.5f),
+    //     _ => Color.clear
+    // };
+    //
+    // public bool IsDrawGUIHierarchyBackground =>
+    //     _noteType == NoteType.FIXME || _noteType == NoteType.TODO;
 #endif
 }
 

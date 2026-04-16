@@ -221,7 +221,7 @@ public static class StartPointSelector
     }
 
     //還是走 OnCustomSave?
-    [MenuItem("RCGMaker/SpawnPoint/ResetToOriPos #_R", false, 3)]
+    // [MenuItem("RCGMaker/SpawnPoint/ResetToOriPos #_R", false, 3)]
     private static void DoMoveOriSpawnRefToCurrentPos()
     {
         var spawnPoint = GetCurrentSpawnPoint();

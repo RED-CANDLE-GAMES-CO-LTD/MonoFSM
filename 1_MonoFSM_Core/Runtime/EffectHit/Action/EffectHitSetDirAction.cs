@@ -9,6 +9,7 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.Action
     //FIXME: 然後呢？
     public class EffectHitSetDirAction : AbstractArgEventHandler<GeneralEffectHitData>
     {
+        //SetDirFromEffectHitAction
         [SerializeField]
         VarVector3 _direction;
 

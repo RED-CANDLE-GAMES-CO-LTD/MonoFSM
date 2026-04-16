@@ -7,7 +7,10 @@ namespace MonoFSM.Core
 {
     public class AnimationDoneCondition : AbstractConditionBehaviour
     {
-        [Range(-1, 1)] public float _exitRatio = -1;
+        [Range(0, 1)] public float _exitRatio = 0;
+
+        public override string Description =>
+            _exitRatio <= 0 ? "Anim Done" : "Anim Exit at: " + _exitRatio;
 
         [Button]
         void SetExitRatio()
@@ -16,7 +19,7 @@ namespace MonoFSM.Core
         }
 
         protected override bool IsValid =>
-            _exitRatio < 0 ? _action.IsDone : _action.IsProgressPassedRatio(_exitRatio);
+            _exitRatio <= 0 ? _action.IsDone : _action.IsProgressPassedRatio(_exitRatio);
 
         //沒有serialized, 所以editor check會誤判..
         [SerializeField]

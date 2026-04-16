@@ -514,7 +514,7 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
 #if UNITY_EDITOR
         //想要看誰改的，build不要看會memory leak
         _lastByWho = byWho;
-        if (Application.isPlaying == false)
+        if (!Application.isPlaying)
         {
             Debug.Log("FlagField Set CurrentValue Editor Mode: " + value);
             ProductionValue = value;

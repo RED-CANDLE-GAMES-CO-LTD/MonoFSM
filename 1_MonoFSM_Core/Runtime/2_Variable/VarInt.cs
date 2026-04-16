@@ -6,12 +6,12 @@ public interface IIntProvider
 }
 
 public class VarInt : AbstractFieldVariable<GameFlagInt, FlagFieldInt, int>, IIntProvider,
-    IStringTokenVar, IHierarchyValueInfo
+    IStringTokenVar
 {
     public int IntValue => CurrentValue;
 
     // public override GameFlagBase FinalData => BindData;
     public override bool IsValueExist => CurrentValue != 0;
-    public string ValueInfo => IntValue.ToString();
-    public bool IsDrawingValueInfo => true;
+    public override string ValueInfo => IntValue.ToString();
+    public override bool IsDrawingValueInfo => true;
 }

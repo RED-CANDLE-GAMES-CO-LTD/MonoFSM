@@ -104,6 +104,77 @@ namespace EditorTool
         //     // EditorUtility.ClearProgressBar();
         // }
 
+        [MenuItem("MonoFSM/Reset To PlayTest GameSetting #_R", false, 3)]
+        private static void ResetToPlayTest()
+        {
+            if (Application.isPlaying)
+                return;
+
+            Debug.Log("ResetToPlayTest");
+            ProcessSceneComponents<IEditorResetToPlayTest>(
+                obj => obj.OnEditorResetToPlayTest(),
+                progressBarLabel: "Reset To PlayTest"
+            );
+
+            // EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
+            // AssetDatabase.SaveAssets();
+            EditorUtility.ClearProgressBar();
+            Debug.Log("ResetToPlayTest Done");
+        }
+
+        /// <summary>
+        /// 掃描 active scene 中所有實作 T 的 MonoBehaviour，依序呼叫 action。
+        /// </summary>
+        private static void ProcessSceneComponents<T>(
+            Action<T> action,
+            bool reverseOrder = false,
+            bool setDirty = false,
+            string progressBarLabel = null
+        ) where T : class
+        {
+            var rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
+            var allComponents = new List<T>();
+            var temp = new List<T>();
+
+            foreach (var gobj in rootGameObjects)
+            {
+                temp.Clear();
+                gobj.GetComponentsInChildren(true, temp);
+                allComponents.AddRange(temp);
+            }
+
+            if (reverseOrder)
+                allComponents.Reverse();
+
+            var total = allComponents.Count;
+            for (var i = 0; i < total; i++)
+            {
+                var component = allComponents[i];
+                if (progressBarLabel != null)
+                {
+                    if (EditorUtility.DisplayCancelableProgressBar(
+                            progressBarLabel,
+                            $"{typeof(T).Name} {i + 1}/{total}",
+                            (float)(i + 1) / total
+                        ))
+                        return;
+                }
+
+                try
+                {
+                    action(component);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e, component as Object);
+                }
+
+                if (setDirty && component is Object unityObj)
+                    EditorUtility.SetDirty(unityObj);
+            }
+        }
+
+
         private static void OnSceneClosing(Scene scene, bool removingscene)
         {
             //要存？
@@ -139,18 +210,6 @@ namespace EditorTool
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
             AssetDatabase.SaveAssets();
         }
-
-        // [MenuItem("RCGs/檢查prewarm的Prefab有綁到Reference #_P")] //Shift + P
-        // private static void AutoBindForAllPrefabs()
-        // {
-        //     if (Application.isPlaying)
-        //         return;
-        //     // var prewarmData = Object.FindObjectOfType<PoolPrewarmData>();
-        //     // if (prewarmData != null)
-        //     // {
-        //     //     PoolObjectUtility.AutoBindForAllPrefabs(prewarmData);
-        //     // }
-        // }
 
         private static void OnPrefabSaving(GameObject prefab)
         {
@@ -311,107 +370,42 @@ namespace EditorTool
             }
         }
 
+
+
         private static void CustomFindSceneSavingAndProcess()
         {
-            //scriptable object也可以做這個？
-
             FindAllSOAndProcessSceneSave();
-            var rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
-            // EditorUtility.ClearProgressBar();
-            // StoreReferenceCacheOfScene();
+
             try
             {
-                foreach (var gobj in rootGameObjects)
-                {
-                    var heavyObjs = new List<ICustomHeavySceneSavingCallbackReceiver>();
-                    gobj.GetComponentsInChildren(true, heavyObjs);
-                    foreach (var heavyObj in heavyObjs)
-                        try
-                        {
-                            heavyObj.OnHeavySceneSaving();
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogError("heavyObj error", heavyObj as Object);
-                            // Debug.LogError(e, heavyObj as MonoBehaviour);
-                        }
+                // Heavy pass（無需 reverse / setDirty）
+                ProcessSceneComponents<ICustomHeavySceneSavingCallbackReceiver>(
+                    obj => obj.OnHeavySceneSaving(),
+                    progressBarLabel: "Scene Saving"
+                );
 
-                    var savingObjs = new List<ISceneSavingCallbackReceiver>();
-
-                    gobj.GetComponentsInChildren(true, savingObjs);
-                    savingObjs.Reverse(); //倒著叫才會從葉子到根, culling Group才會對
-                    // var savingObjs = gobj.GetComponentsInChildren<ISceneSavingCallbackReceiver>(true);
-
-                    // EditorUtility.DisplayProgressBar("Before Scene Saving", "Processing", 0);
-                    var i = 0;
-                    var total = savingObjs.Count;
-
-                    foreach (var savingObj in savingObjs)
-                    {
-                        i++;
-                        if (
-                            EditorUtility.DisplayCancelableProgressBar(
-                                "Scene Saving",
-                                "OnBeforeSceneSave" + i,
-                                (float)i / total
-                            )
-                        )
-                            return;
-
-                        try
-                        {
-                            savingObj.OnBeforeSceneSave();
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogError(e, savingObj as MonoBehaviour);
-                        }
-
-                        EditorUtility.SetDirty(savingObj as MonoBehaviour);
-                    }
-                }
+                // Before save pass：倒著叫才會從葉子到根, culling Group才會對
+                ProcessSceneComponents<ISceneSavingCallbackReceiver>(
+                    obj => obj.OnBeforeSceneSave(),
+                    reverseOrder: true,
+                    setDirty: true,
+                    progressBarLabel: "Scene Saving"
+                );
 
                 //會有些物件被重建，所以要重新抓
                 StoreReferenceCacheOfScene();
-                var afterSavingObjs = new List<ISceneSavingAfterCallbackReceiver>();
-                foreach (var gobj in rootGameObjects)
-                {
-                    var i = 0;
 
-                    gobj.GetComponentsInChildren(true, afterSavingObjs);
-                    //由下往上跑
-                    afterSavingObjs.Reverse();
-                    var total = afterSavingObjs.Count;
-                    foreach (var afterSaving in afterSavingObjs)
-                    {
-                        i++;
-                        if (
-                            EditorUtility.DisplayCancelableProgressBar(
-                                "Scene Saving",
-                                "OnAfterSceneSave" + i,
-                                (float)i / total
-                            )
-                        )
-                            return;
-
-                        try
-                        {
-                            afterSaving.OnAfterSceneSave();
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogError("afterSaving error" + afterSaving);
-                            Debug.LogError(e, afterSaving as MonoBehaviour);
-                        }
-
-                        EditorUtility.SetDirty(afterSaving as MonoBehaviour);
-                    }
-                }
+                // After save pass：同樣由下往上
+                ProcessSceneComponents<ISceneSavingAfterCallbackReceiver>(
+                    obj => obj.OnAfterSceneSave(),
+                    reverseOrder: true,
+                    setDirty: true,
+                    progressBarLabel: "Scene Saving"
+                );
             }
             catch (Exception e)
             {
                 Debug.LogError(e);
-                //show panel
                 EditorUtility.DisplayDialog("Error", e.Message, "ok");
             }
 

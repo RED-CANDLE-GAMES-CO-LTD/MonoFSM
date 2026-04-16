@@ -36,10 +36,11 @@ namespace MonoFSM.Foundation
         {
             get
             {
+
                 if (HasError()) return new Color(1f, 0f, 0f, 0.3f); // 紅色
                 return _splitNoteKeyword switch
                 {
-                    "note:" => new Color(0.8f, 0.8f, 0.8f, 0.5f),
+                    "note:" => new Color(0.7f, 0.7f, 0.9f, 0.5f),
                     // yellow-green
                     "todo:" => new Color(0.7f, 1f, 0.2f, 0.5f),
                     // 橘黃色
@@ -120,9 +121,24 @@ namespace MonoFSM.Foundation
                 _splitNoteKeyword = "todo:";
             else if (lower.Contains("fixme:"))
                 _splitNoteKeyword = "fixme:";
+            _cleanNote = _note.Replace("note:", "")
+                .Replace("todo:", "")
+                .Replace("fixme:", "")
+                .Trim();
         }
 
-        public string Note => _note;
+        private string _cleanNote;
+        bool _isNoteInitialized;
+
+        string GetNote()
+        {
+            OnNoteChanged();
+            _isNoteInitialized = true;
+            // Debug.Log("GetNote called, current _note: " + _note, this);
+            return _cleanNote;
+        }
+
+        public string Note => _isNoteInitialized == false ? GetNote() : _cleanNote;
 
         public virtual string ValueInfo => "";
 

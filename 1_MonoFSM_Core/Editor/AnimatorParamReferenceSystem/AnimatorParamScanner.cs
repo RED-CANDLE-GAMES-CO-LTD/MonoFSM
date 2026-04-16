@@ -46,6 +46,14 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
                 if (action == null) continue;
                 ScanAnimatorParameterSetValueAction(action);
             }
+
+            // 掃描 AnimatorPlayAction
+            var playActions = root.GetComponentsInChildren<AnimatorPlayAction>(true);
+            foreach (var action in playActions)
+            {
+                if (action == null) continue;
+                ScanAnimatorPlayAction(action);
+            }
         }
 
         /// <summary>
@@ -124,6 +132,30 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
             };
 
             AddToCache(paramName, info);
+        }
+
+        private static void ScanAnimatorPlayAction(AnimatorPlayAction action)
+        {
+            var stateName = action.stateName;
+            if (string.IsNullOrEmpty(stateName)) return;
+
+            // AnimatorPlayAction 的 _animator 是 public field
+            var animator = action._animator;
+
+            var fsmStateName = GetStateName(action);
+            var description = action.Description;
+
+            var info = new AnimatorParamInfo
+            {
+                ParameterName = stateName,
+                ActionComponent = action,
+                TargetAnimator = animator,
+                StateName = fsmStateName,
+                ActionTypeName = nameof(AnimatorPlayAction),
+                ActionDescription = description
+            };
+
+            AddToCache(stateName, info);
         }
 
         private static string GetStateName(Component action)

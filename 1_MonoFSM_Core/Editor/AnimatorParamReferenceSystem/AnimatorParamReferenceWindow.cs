@@ -49,6 +49,12 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
             ShowWindowAndScan(command.context as Component);
         }
 
+        [MenuItem("CONTEXT/AnimatorPlayAction/Find All Param Setters")]
+        private static void FindFromPlayAction(MenuCommand command)
+        {
+            ShowWindowAndScan(command.context as Component);
+        }
+
         [MenuItem("CONTEXT/Animator/Find All Param Setters")]
         private static void FindFromAnimator(MenuCommand command)
         {
@@ -104,6 +110,12 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
                 var prop = typeof(AnimatorParameterSetValueAction)
                     .GetProperty("animator", BindingFlags.Instance | BindingFlags.NonPublic);
                 return prop?.GetValue(paramAction) as Animator;
+            }
+
+            // 從 AnimatorPlayAction 右鍵
+            if (context is AnimatorPlayAction playAction)
+            {
+                return playAction._animator;
             }
 
             return null;
