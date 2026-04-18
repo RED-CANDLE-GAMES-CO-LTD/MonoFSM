@@ -41,6 +41,9 @@ namespace MonoFSM_InputAction
         [ShowInInspector]
         private float _lastPressedTime = -1f;
 
+        [ShowInInspector]
+        private float _lastPressDuration;
+
         public InputAction myAction => _inputActionData?._inputAction?.action;
 
         //unity input system 的 action
@@ -81,8 +84,8 @@ namespace MonoFSM_InputAction
             {
                 if (!Application.isPlaying || _pressStartTime < 0f)
                     return 0f;
-
-                if (_cachedIsPressed)
+//polling 算？
+                if (_cachedIsPressed || _cachedWasReleased)
                     return ((IInputActionImplementation)this).GetCurrentTime() - _pressStartTime;
 
                 return 0f;
@@ -91,6 +94,9 @@ namespace MonoFSM_InputAction
 
         [ShowInDebugMode]
         float IInputActionImplementation.LastPressedTime => _lastPressedTime;
+
+        [ShowInDebugMode]
+        float IInputActionImplementation.LastPressDuration => _lastPressDuration;
 
         /// <summary>
         /// 獲取當前時間 - 預設使用 Time.time，可在子類別中 override 使用 Runner.SimulationTime
@@ -139,6 +145,8 @@ namespace MonoFSM_InputAction
             }
             else if (_cachedWasReleased)
             {
+                if (_pressStartTime >= 0f)
+                    _lastPressDuration = currentTime - _pressStartTime;
                 _pressStartTime = -1f;
             }
 

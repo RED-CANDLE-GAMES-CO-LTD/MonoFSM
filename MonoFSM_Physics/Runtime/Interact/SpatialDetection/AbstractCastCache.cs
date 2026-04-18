@@ -35,23 +35,23 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         [SerializeField]
         protected Transform _cacheEndPoint;
 
-        protected bool IsHavingDistanceSource => _distanceSource != null;
+        // protected bool IsHavingDistanceSource => _distanceSource != null;
 
-        [HideIf(nameof(IsHavingDistanceSource))]
-        public float _distance = 30;
+        // [HideIf(nameof(IsHavingDistanceSource))]
+        public VarFloatWrapper _distance = new VarFloatWrapper(20);
 
-        [FormerlySerializedAs("_distanceProvider")]
-        [CompRef]
-        [Auto]
-        [SerializeField]
-        private DistanceSourceFromSpeed _distanceSource;
+        // [FormerlySerializedAs("_distanceProvider")]
+        // [CompRef]
+        // [Auto]
+        // [SerializeField]
+        // private DistanceSourceFromSpeed _distanceSource;
 
         [ShowInInspector]
         public float GetDistance()
         {
-            if (_distanceSource != null)
-                return _distanceSource.Distance;
-            return _distance;
+            // if (_distanceSource != null)
+            //     return _distanceSource.Distance;
+            return _distance.Value;
         }
 
         [FormerlySerializedAs("HittingLayer")]
@@ -77,6 +77,10 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public VarVector3 _hitPosVar;
         public VarTransform _hitPosVarTransform;
 
+        [ShowInInspector] public Vector3 rayOri => CachedRay.origin;
+        [ShowInInspector] public Vector3 rayDir => CachedRay.direction;
+
+        [ShowInInspector]
         public Ray CachedRay => _cachedRay.Value;
         [ShowInInspector] private DualPhaseValue<Ray> _cachedRay = new();
 

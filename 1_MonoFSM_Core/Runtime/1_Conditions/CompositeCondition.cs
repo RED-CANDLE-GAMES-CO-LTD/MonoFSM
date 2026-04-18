@@ -38,7 +38,7 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions
             get
             {
                 if (isActiveAndEnabled == false) //沒有開起來不算
-                    return false;
+                    return true;
                 if (_conditions == null || _conditions.Length == 0)
                     return true;
 

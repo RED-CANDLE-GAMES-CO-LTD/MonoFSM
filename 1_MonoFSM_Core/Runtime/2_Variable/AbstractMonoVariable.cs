@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 #if UNITY_EDITOR
 using _0_MonoDebug.Gizmo;
@@ -20,6 +21,7 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace MonoFSM.Variable
@@ -345,10 +347,13 @@ namespace MonoFSM.Variable
 #endif
 
         //FIXME: 太卡了
+        [Conditional("UNITY_EDITOR")]
         protected void RecordSetbyWhoDebug<T>(Object byWho, T tempValue, string reason = null)
         {
+#if UNITY_EDITOR
             if (!RuntimeDebugSetting.IsDebugMode)
                 return;
+
             if (_byWhoQueue.Count > 10)
                 _byWhoQueue.Dequeue(); //保持最新的10個
             var byWhoData = new SetValueExecutionData
@@ -363,7 +368,6 @@ namespace MonoFSM.Variable
             //這個會gc, hmm
 
             _byWhoQueue.Enqueue(byWhoData);
-                return;
 
 // #if UNITY_EDITOR
 //             // 取得完整 call stack，跳過前 2 層 (RecordSetbyWho 和 SetValue)
@@ -377,7 +381,7 @@ namespace MonoFSM.Variable
 //
 //             byWhoData._stackTrace = stackString;
 //             _byWhoQueue.Enqueue(byWhoData);
-// #endif
+#endif
         }
 
         //abstract?

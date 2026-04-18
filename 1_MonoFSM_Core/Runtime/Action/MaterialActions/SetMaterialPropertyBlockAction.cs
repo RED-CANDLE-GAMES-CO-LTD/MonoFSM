@@ -27,7 +27,10 @@ namespace MonoFSM.ParticleSystemActions
         [SerializeField] [DropDownRef]
         private RendererCollection _rendererCollection;
 
-        [SerializeField] [ValueDropdown(nameof(GetPropertyNames))]
+#if UNITY_EDITOR
+        [ValueDropdown(nameof(GetPropertyNames))]
+#endif
+        [SerializeField]
         private string _propertyName;
 
         [SerializeField] private int _materialIndex;

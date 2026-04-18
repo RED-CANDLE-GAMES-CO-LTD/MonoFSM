@@ -495,6 +495,7 @@ namespace MonoFSM.Foundation
             }
         }
 
+        //FIXME: 可以 Editor only?
         //介面上也顯示？textarea?
         public virtual string Description => GetType().Name;
 

@@ -7,6 +7,7 @@ namespace MonoFSM.Core.Detection
 {
     public class TriggerDetectorSource : AbstractDetectionSource
     {
+        //FIXME: 一鍵添加 Sphere Collider
         public override string ValueInfo => "hit:" + _thisFrameColliders.Count;
 
         [Required]

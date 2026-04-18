@@ -11,8 +11,19 @@ using UnityEngine.Serialization;
 public class
     Note : AbstractDescriptionBehaviour, IEditorOnly //IOverrideHierarchyIcon
 {
+    public enum NoteType
+    {
+        NOTE,
+        TODO,
+        FIXME,
+    }
+
+//FIXME 可以拔掉了嗎？
+    [GUIColor("BackgroundColor")] [SerializeField]
+    private NoteType _noteType = NoteType.NOTE;
     public override string Description => $"[{_noteType}]";
 #if UNITY_EDITOR
+
     //FIXME: 用vHierarchyIcon來做?
     // [EnumToggleButtons]
     //FIXME: hoverable note, 不要直接顯示
@@ -35,16 +46,8 @@ public class
         this.AddChildrenComponent<Issue>("issue");
     }
 
-    public enum NoteType
-    {
-        NOTE,
-        TODO,
-        FIXME,
-    }
 
-    [GUIColor("BackgroundColor")]
-    [SerializeField]
-    private NoteType _noteType = NoteType.NOTE;
+
 
     [Obsolete]
     [TextArea(5, 100)]

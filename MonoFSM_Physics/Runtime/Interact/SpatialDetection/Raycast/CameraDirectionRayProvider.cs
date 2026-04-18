@@ -16,6 +16,7 @@ namespace MonoFSM.PhysicsWrapper
             Camera.main != null ? Camera.main.transform.forward : Vector3.forward;
 
         //FIXME: 這個設計怪怪的吧？
+        //override transform 在平面的位置...
         public Transform _originTransformForXZ;
 
         /// <summary>

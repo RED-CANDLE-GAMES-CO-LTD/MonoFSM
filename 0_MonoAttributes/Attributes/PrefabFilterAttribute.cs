@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.Attributes
 {
-    //FIXME: 沒做完，應該是AI寫的
     /// <summary>
     /// 用於過濾Prefab的Attribute
     /// 可以根據Prefab上的Component類型來過濾下拉選單中的選項

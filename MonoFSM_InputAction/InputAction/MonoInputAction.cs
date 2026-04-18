@@ -26,6 +26,7 @@ namespace MonoFSM_InputAction
         protected internal bool IsVec2 { get; }
         protected internal float PressTime { get; } // 已按住的時間
         protected internal float LastPressedTime { get; } // 上次按下的時間戳
+        protected internal float LastPressDuration { get; } // 最近一次 press→release 的總時長
 
         /// <summary>
         /// 獲取當前時間（由實作層決定時間源：Time.time 或 Runner.SimulationTime）
@@ -98,6 +99,12 @@ namespace MonoFSM_InputAction
         /// </summary>
         [ShowInPlayMode]
         public float LastPressedTime => _abstractInputActionImplementation?.LastPressedTime ?? -1f;
+
+        /// <summary>
+        /// 最近一次完整 press→release 的總按壓時長（秒）。尚未有完整釋放過則為 0。
+        /// </summary>
+        [ShowInPlayMode]
+        public float LastPressDuration => _abstractInputActionImplementation?.LastPressDuration ?? 0f;
 
         /// <summary>
         /// 由 IInputActionImplementation 在 CacheLocalInput 結束後呼叫，
