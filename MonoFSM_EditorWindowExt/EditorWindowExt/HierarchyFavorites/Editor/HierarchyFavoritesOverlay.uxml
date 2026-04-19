@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement name="root" class="favorites-root">
+        <ui:Label name="title" text="Hierarchy Favorites" class="favorites-title" />
+        <ui:ScrollView name="scroll" class="favorites-scroll">
+            <ui:VisualElement name="entries" class="favorites-entries" />
+        </ui:ScrollView>
+        <ui:Label name="empty-hint" text="No HierarchyFavoritesHolder in current scene / prefab." class="favorites-empty" />
+    </ui:VisualElement>
+</ui:UXML>

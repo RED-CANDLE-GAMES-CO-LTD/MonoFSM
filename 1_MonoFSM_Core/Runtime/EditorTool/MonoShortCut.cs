@@ -1,3 +1,4 @@
+using System;
 using MonoFSM.Foundation;
 using MonoFSM.EditorExtension;
 using UnityEngine;
@@ -7,6 +8,7 @@ namespace MonoFSM.Core
     /// <summary>
     /// <see cref="MonoShortCutInspector"/>
     /// </summary>
+    [Obsolete]
     public class MonoShortCut : AbstractDescriptionBehaviour, IEditorOnly, IHierarchyButton
     {
         [SerializeField] public GameObject targetGameObject;
