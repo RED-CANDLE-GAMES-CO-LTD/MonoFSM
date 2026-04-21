@@ -32,7 +32,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
     //1. 先回狀態
     public interface IResetStateRestore //新規用這個，現在和上面都有call, exitLevelAndDestroy是為了換場景很煩可以拔掉
     {
-        void ResetStateRestore();
+        void ResetStateRestore(bool isHardReset);
     }
 
     //2. 再跑這個
@@ -66,6 +66,11 @@ namespace MonoFSMCore.Runtime.LifeCycle
     public sealed class MonoObj : MonoBehaviour, IPrefabSerializeCacheOwner, IDropdownRoot,
         ISceneAwake
     {
+        private bool _isAwakeActive = true;
+
+        [Auto] private PoolObject _poolObject;
+
+        [ShowInInspector] public bool isSceneObj => _poolObject == null || !_poolObject.IsFromPool;
         [ShowInInspector]
         [field: AutoChildren] //Children? //FIXME: 要弄成必定同一層，還是因為MonoObj 包一層 FSM的case很多？
         public MonoEntity Entity { get; }
@@ -256,12 +261,16 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         public void SpawnFromPool() //必定是root吧
         {
-            ResetStateRestore();
+            ResetStateRestore(false);
             ResetStart();
         }
 
         public void SceneAwake(WorldUpdateSimulator world) //可以自己sceneＡwake吧？
         {
+            if (gameObject.activeSelf == false) //原本 scene上就關掉的物件 (測試用
+            {
+                _isAwakeActive = false; //不參與 reset activate
+            }
             SetWorldUpdateSimulator(world);
             Init();
             if (HasParent)
@@ -296,24 +305,24 @@ namespace MonoFSMCore.Runtime.LifeCycle
             }
         }
 
-        public void ResetStateRestore() //還是要分兩階，先還原，再開始？ 還是說有這種dependency本身就不好...? life cycle集中化
+        public void
+            ResetStateRestore(
+                bool isHardReset) //還是要分兩階，先還原，再開始？ 還是說有這種dependency本身就不好...? life cycle集中化
         {
             if (HasParent)
                 return;
-            HandleIResetStateRestore();
-        }
 
-        public void ResetStart()
-        {
-            if (HasParent)
-                return;
-            HandleIResetStart();
-        }
+            //在 scene 上的物件，回到初始狀態 (打開來)
+            if (isSceneObj)
+            {
+                if (_isAwakeActive && gameObject.activeSelf == false) //原本打開的物件
+                {
+                    gameObject.SetActive(true);
+                    WorldUpdateSimulator
+                        .RegisterMonoObject(this); //回到pool的物件會被despawn刪掉，回到scene上的物件才需要註冊
+                }
+            }
 
-        private void HandleIResetStateRestore()
-        {
-            if (HasParent)
-                return;
             // Debug.Log("[MonoObj] HandleIResetStateRestore", this);
             foreach (var item in _resetStateRestores)
             {
@@ -321,7 +330,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
                     continue;
                 try
                 {
-                    item.ResetStateRestore();
+                    item.ResetStateRestore(isHardReset);
                 }
                 catch (Exception e)
                 {
@@ -332,6 +341,14 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 }
             }
         }
+
+        public void ResetStart()
+        {
+            if (HasParent)
+                return;
+            HandleIResetStart();
+        }
+
 
         public GameObject _cullingHandle;
 

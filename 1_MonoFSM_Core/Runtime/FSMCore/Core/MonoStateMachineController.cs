@@ -38,7 +38,8 @@ namespace Fusion.Addons.FSM
         {
             Initialize();
 #if FUSION2
-            Debug.LogError("應該用networked的MonoStateMachineController，這個只是local用的", this);
+            //不一定？
+            Debug.Log("需要用networked的MonoStateMachineController嗎？ 這個只是local用的", this);
 #endif
         }
 

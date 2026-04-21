@@ -531,7 +531,7 @@ namespace MonoFSM.Core.Detection
 
         protected override string DescriptionTag => "Detector";
 
-        public void ResetStateRestore()
+        public void ResetStateRestore(bool IsHardReset)
         {
             //用不到？
             _lastDetectedObjects.Clear();

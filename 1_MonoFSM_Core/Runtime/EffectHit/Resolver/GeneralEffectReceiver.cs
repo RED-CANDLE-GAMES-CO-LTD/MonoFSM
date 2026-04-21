@@ -28,9 +28,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             transform.localPosition = Vector3.zero;
         }
 
-        public override void ResetStateRestore()
+        public override void ResetStateRestore(bool IsHardReset)
         {
-            base.ResetStateRestore();
+            base.ResetStateRestore(false);
             _dealers.Clear();
 #if UNITY_EDITOR
             _lastHitData = null;

@@ -147,7 +147,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public override string ValueInfo => IsValid ? "Valid" : "Off";
         public override bool IsDrawingValueInfo => Application.isPlaying && isActiveAndEnabled;
 
-        public virtual void ResetStateRestore()
+        public virtual void ResetStateRestore(bool IsHardReset)
         {
             _currentHitData = null;
         }

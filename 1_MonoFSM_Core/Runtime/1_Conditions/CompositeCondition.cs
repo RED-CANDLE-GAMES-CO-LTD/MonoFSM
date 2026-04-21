@@ -31,7 +31,9 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions
         //可以是warning嗎？
         private AbstractConditionBehaviour[] _conditions;
 
-        public override string Description => _operationType.ToString();
+        protected override string DescriptionTag => "if " + _operationType.ToString().ToUpper();
+
+        public override string Description => FormatName(name);
 
         protected override bool IsValid
         {

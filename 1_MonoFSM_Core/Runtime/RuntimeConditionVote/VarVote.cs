@@ -63,7 +63,7 @@ namespace MonoFSM.Runtime.Vote
         public override bool IsValueExist => true;
         protected override bool HasValueSource => false;
 
-        public override void ResetStateRestore()
+        public override void ResetStateRestore(bool IsHardReset)
         {
             _vote.ClearValue();
         }

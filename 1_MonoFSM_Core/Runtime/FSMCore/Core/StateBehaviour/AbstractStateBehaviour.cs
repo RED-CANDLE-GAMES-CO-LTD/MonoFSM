@@ -16,12 +16,16 @@ namespace MonoFSM.Core
 {
     //FIXME: TState還有意義嗎？直接確定是 MonoBehaviourState就好？
     public abstract class AbstractStateBehaviour<TState>
-        : MonoBehaviour,
+        : AbstractDescriptionBehaviour,
             IState,
             IOwnedState<TState>
         where TState : AbstractStateBehaviour<TState>
     {
         // PUBLIC MEMBERS
+        public override string Description => ReformatedName;
+
+        protected override string DescriptionTag => "State";
+
 
         [ShowInPlayMode]
         public int StateId { get; set; }

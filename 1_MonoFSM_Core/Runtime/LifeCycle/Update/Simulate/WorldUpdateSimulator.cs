@@ -195,8 +195,11 @@ namespace MonoFSM.Core.Simulate
             if (obj == null)
                 return;
             Debug.Log($"[DespawnImmediate] Processing despawn for: {obj.name}", obj);
+            //FIXME: 不是 pool 生出來的可以關掉就好嗎？
             _spawnProcessor.Despawn(obj);
-            UnregisterMonoObject(obj);
+
+            //FIXME: 還是不該反註冊？ 省 for loop?
+            UnregisterMonoObject(obj); //這個hmm?
         }
 
         private void ProcessPendingDespawns()
@@ -214,10 +217,6 @@ namespace MonoFSM.Core.Simulate
         {
             if (_monoObjectSet.Add(target))
             {
-                // Debug.Log(
-                //     $"Registering MonoPoolObj: {target.name} in WorldUpdateSimulator.",
-                //     target
-                // );
                 target.SetWorldUpdateSimulator(this);
                 //重置狀態
                 // target.ResetStateRestore();
@@ -239,11 +238,16 @@ namespace MonoFSM.Core.Simulate
 
         public void UnregisterMonoObject(MonoObj target)
         {
+            // if (target.IsSceneObj)
+            // {
+            //     return;
+            // }
             if (_monoObjectSet.Remove(target))
             {
+                target.ResetStateRestore(false); //FIXME: 需要這行嗎？OnReturnToPool?
+                //還是不要清？這樣才可以回來？
+                // target.SetWorldUpdateSimulator(null); //清除引用
 
-                target.ResetStateRestore(); //FIXME: 需要這行嗎？OnReturnToPool?
-                target.SetWorldUpdateSimulator(null); //清除引用
             }
             else
             {
@@ -277,13 +281,13 @@ namespace MonoFSM.Core.Simulate
         }
 
         //從player進入？
-        public void ResetLevelRestore()
+        public void ResetLevelRestore(bool isHardReset = false)
         {
             _levelStartTime = SimulationTime;
             //FIXME: Pool回收會
             // PoolManager.Instance.ReturnAllObjects(); //會把player也回收掉？
             foreach (var mono in _monoObjectSet)
-                mono.ResetStateRestore();
+                mono.ResetStateRestore(isHardReset);
             Debug.Log(
                 $"WorldUpdateSimulator ResetStateRestore called with {_monoObjectSet.Count} MonoPoolObjs.",
                 this
@@ -520,11 +524,10 @@ namespace MonoFSM.Core.Simulate
             // ManualResetLevel();
         }
 #endif
-        public static void ManualResetLevel() //Cheat Reset?
+
+        public static void ManualResetLevel(bool isHardReset = false) //Cheat Reset?
         {
-
-
-            Debug.Log("ResetLevel CMD+Shift+R");
+            Debug.Log("ResetLevel CMD+Shift+R isHardReset:" + isHardReset);
             var simulators = FindObjectsByType<WorldUpdateSimulator>(FindObjectsSortMode.None);
             //FIXME: 會拿到Temporary Runner Prefab所以才全拿
             if (simulators.Length == 0)
@@ -537,7 +540,7 @@ namespace MonoFSM.Core.Simulate
                     simulator._poolManager.ReturnAllObjects();
                 foreach (var simulator in simulators)
                     //這樣就可以reset了
-                    simulator.ResetLevelRestore();
+                    simulator.ResetLevelRestore(isHardReset);
                 foreach (var simulator in simulators)
                     //這樣就可以reset了
                     simulator.ResetLevelStart();

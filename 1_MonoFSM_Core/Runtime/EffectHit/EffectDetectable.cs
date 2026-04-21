@@ -85,7 +85,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [AutoParent] Rigidbody _rb;
         public Rigidbody rb => _rb;
 
-        public void ResetStateRestore()
+        public void ResetStateRestore(bool IsHardReset)
         {
 #if UNITY_EDITOR
             _debugDetectors.Clear();

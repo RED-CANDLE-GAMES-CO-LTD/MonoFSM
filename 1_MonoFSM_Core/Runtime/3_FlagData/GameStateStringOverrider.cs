@@ -25,7 +25,7 @@ public abstract class GameStateOverrider<TGameState, TFlagField, TType> : MonoBe
     [InlineEditor()]
     public TGameState flag;
 
-    public void ResetStateRestore()
+    public void ResetStateRestore(bool IsHardReset)
     {
         flag.CurrentValue = OverrideValue;
     }

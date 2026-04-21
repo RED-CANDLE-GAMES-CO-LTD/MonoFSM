@@ -712,7 +712,7 @@ namespace MonoFSM.Variable
             return _varTag?.ValueFilterType;
         }
 
-        public abstract void ResetStateRestore();
+        public abstract void ResetStateRestore(bool IsHardReset);
         // public abstract void ResetToDefaultValue();
     }
 }

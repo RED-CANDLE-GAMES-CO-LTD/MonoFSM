@@ -122,7 +122,7 @@ namespace MonoFSM.Core
             EventHandleImplement(arg);
         }
 
-        public void ResetStateRestore()
+        public void ResetStateRestore(bool IsHardReset)
         {
             _lastEventHandledTime = -1f;
         }

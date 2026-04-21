@@ -17,7 +17,8 @@ namespace MonoFSM.ParticleSystemActions
         {
             Float,
             Color,
-            Int
+            Int,
+            Bool
         }
 
         [SerializeField] [DropDownRef]
@@ -46,6 +47,9 @@ namespace MonoFSM.ParticleSystemActions
         [SerializeField] [ShowIf(nameof(_propertyType), PropertyType.Int)]
         private VarIntWrapper _intValue;
 
+        [SerializeField] [ShowIf(nameof(_propertyType), PropertyType.Bool)]
+        private VarBoolWrapper _boolValue;
+
         private MaterialPropertyBlock _mpb;
         private int _propertyId;
 
@@ -60,6 +64,7 @@ namespace MonoFSM.ParticleSystemActions
                 PropertyType.Float => ShaderPropertyType.Float,
                 PropertyType.Color => ShaderPropertyType.Color,
                 PropertyType.Int => ShaderPropertyType.Int,
+                PropertyType.Bool => ShaderPropertyType.Float,
                 _ => ShaderPropertyType.Float
             };
 
@@ -137,6 +142,9 @@ namespace MonoFSM.ParticleSystemActions
                     break;
                 case PropertyType.Int:
                     _mpb.SetInt(_propertyId, _intValue.Value);
+                    break;
+                case PropertyType.Bool:
+                    _mpb.SetFloat(_propertyId, _boolValue.Value ? 1f : 0f);
                     break;
             }
 

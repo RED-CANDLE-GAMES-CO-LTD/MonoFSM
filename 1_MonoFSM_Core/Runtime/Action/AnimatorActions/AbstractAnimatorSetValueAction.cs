@@ -42,7 +42,7 @@ namespace MonoFSM.Animation
         [TitleGroup("Animator")]
         [PropertyOrder(-1)]
         [ShowInInspector]
-        protected Animator Animator => _externalAnimatorRefSource != null
+        protected Animator ResolvedAnimator => _externalAnimatorRefSource != null
             ? _externalAnimatorRefSource.Value
             :
             _animatorRefSource != null ? _animatorRefSource.Value : _animator;
@@ -55,8 +55,8 @@ namespace MonoFSM.Animation
 
         private bool ValidateParameterName(string paramName)
         {
-            if (string.IsNullOrEmpty(paramName) || Animator == null) return false;
-            foreach (var param in Animator.parameters)
+            if (string.IsNullOrEmpty(paramName) || ResolvedAnimator == null) return false;
+            foreach (var param in ResolvedAnimator.parameters)
             {
                 if (param.name == paramName)
                     return param.type == ExpectedParamType;
@@ -67,8 +67,40 @@ namespace MonoFSM.Animation
 
         private IEnumerable<string> GetParameterNames()
         {
-            if (Animator == null) yield break;
-            foreach (var parameter in Animator.parameters)
+            if (ResolvedAnimator == null) yield break;
+
+            AnimatorControllerParameter[] parameters = null;
+            try
+            {
+                parameters = ResolvedAnimator.parameters;
+            }
+            catch (System.Exception)
+            {
+            }
+
+#if UNITY_EDITOR
+            if ((parameters == null || parameters.Length == 0) && !Application.isPlaying)
+            {
+                var runtimeController = ResolvedAnimator.runtimeAnimatorController;
+                if (runtimeController != null)
+                {
+                    if (runtimeController is AnimatorOverrideController overrideController)
+                    {
+                        runtimeController = overrideController.runtimeAnimatorController;
+                    }
+
+                    if (runtimeController is UnityEditor.Animations.AnimatorController
+                        editorController)
+                    {
+                        parameters = editorController.parameters;
+                    }
+                }
+            }
+#endif
+
+            if (parameters == null) yield break;
+
+            foreach (var parameter in parameters)
             {
                 if (parameter.type == ExpectedParamType)
                     yield return parameter.name;
@@ -92,13 +124,14 @@ namespace MonoFSM.Animation
             //     return _hasParameter;
             //
             // _hasCheckedParameter = true;
-            if (Animator == null)
+            if (ResolvedAnimator == null)
             {
                 _errorMessage = "Animator reference is null";
                 _hasParameter = false;
                 return false;
             }
-            foreach (var param in Animator.parameters)
+
+            foreach (var param in ResolvedAnimator.parameters)
             {
                 if (param.name == _parameterName)
                 {
@@ -120,7 +153,7 @@ namespace MonoFSM.Animation
 
         protected bool TryGetAnimator(out Animator animator)
         {
-            animator = Animator;
+            animator = ResolvedAnimator;
             if (animator == null || !animator.isActiveAndEnabled)
                 return false;
 

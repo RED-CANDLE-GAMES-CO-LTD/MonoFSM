@@ -1,5 +1,6 @@
 using MonoFSM.Core.Attributes;
 using MonoFSM.Foundation;
+using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -30,6 +31,19 @@ namespace MonoFSM.Core.Runtime.Action
             {
                 if (action == null) continue;
                 if (action.IsValid)
+                    action.EventReceived();
+            }
+        }
+
+        public void ExecuteActions(GeneralEffectHitData arg)
+        {
+            foreach (var action in _actions)
+            {
+                if (action == null) continue;
+                if (!action.IsValid) continue;
+                if (action is IArgEventReceiver<GeneralEffectHitData> argReceiver)
+                    argReceiver.ArgEventReceived(arg);
+                else
                     action.EventReceived();
             }
         }

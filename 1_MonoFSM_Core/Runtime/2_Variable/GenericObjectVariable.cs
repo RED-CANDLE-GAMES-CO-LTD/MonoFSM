@@ -392,7 +392,7 @@ namespace MonoFSM.Variable
             //     SetValueInternal(Value, this, "EnterSceneStart");
         }
 
-        public override void ResetStateRestore()
+        public override void ResetStateRestore(bool IsHardReset)
         {
             //FIXME: 應該要清掉嗎？
             if (_isRuntimeOnly && HasProxySource == false)

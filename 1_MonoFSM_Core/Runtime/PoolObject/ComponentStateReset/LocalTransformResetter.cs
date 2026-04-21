@@ -61,7 +61,7 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
             _isKinematic = _rigidbody.isKinematic;
     }
 
-    public void ResetStateRestore()
+    public void ResetStateRestore(bool IsHardReset)
     {
         if (ParameterInitCheck()) //第一次記下來？還是分開感覺比較好？
         {

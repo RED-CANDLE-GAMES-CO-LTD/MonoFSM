@@ -161,7 +161,7 @@ public class GameObjectActivateVoter : MonoBehaviour, IResetStateRestore
 
     [PreviewInInspector] public bool VoteResult => _voteResult;
 
-    public void ResetStateRestore()
+    public void ResetStateRestore(bool IsHardReset)
     {
         // dict.Clear();
         // _voteResult = true;

@@ -34,7 +34,8 @@ public interface IPoolObjectPlayer
 
 [RequireComponent(typeof(MonoObj))]
 [DisallowMultipleComponent]
-public class PoolObject : MonoBehaviour, ISceneAwake, IPoolableObject
+public class
+    PoolObject : MonoBehaviour, ISceneAwake, IPoolableObject //可以順便管 active state?
 {
     // public MonoReferenceCache _monoReferenceCache; //要是prefab asset才需要
 
@@ -641,6 +642,7 @@ public class PoolObject : MonoBehaviour, ISceneAwake, IPoolableObject
         }
     }
 
+    [ShowInInspector]
     public bool IsFromPool => _bindingPoolManager != null;
 
     [AutoChildren(false)]
@@ -707,6 +709,7 @@ public class PoolObject : MonoBehaviour, ISceneAwake, IPoolableObject
     //  public bool Log= false;
     public void EnterSceneAwake()
     {
+
         //可能可以拔掉
         //收斂情境：hitData不需要跟著
         if (InitPosType == ShootFrom.HitData)
@@ -758,6 +761,9 @@ public class PoolObject : MonoBehaviour, ISceneAwake, IPoolableObject
     //     _monoReferenceCache.RootObj = gameObject;
     //     _monoReferenceCache.StoreReferenceCache();
     // }
+
+
+    private bool _isAwakeActive = true;
 }
 
 public interface TransformResetOverrider

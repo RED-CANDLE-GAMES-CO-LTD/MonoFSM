@@ -180,11 +180,18 @@ namespace MonoFSM.Core.Runtime.Action
         [Auto]
         private DelayActionModifier _delayActionModifier;
 
+#if UNITY_EDITOR
+        [Button]
+        void ForceExecute()
+        {
+            EventReceived();
+        }
+#endif
         public void EventReceived()
         {
             if (_delayActionModifier == null)
             {
-                AddEventTime(Time.time);
+                AddEventTime(Time.time); //FIXME: hmm這個會騙人耶, 該吃arg的結果跑一般的以為有正確執行
                 OnActionExecuteImplement();
                 return;
             }
@@ -211,7 +218,7 @@ namespace MonoFSM.Core.Runtime.Action
 
         public virtual void Resume() { }
 
-        public virtual void ResetStateRestore()
+        public virtual void ResetStateRestore(bool isHardReset)
         {
 #if UNITY_EDITOR
             _lastEventReceivedTimes.Clear();

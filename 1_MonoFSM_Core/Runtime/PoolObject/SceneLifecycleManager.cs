@@ -97,7 +97,7 @@ namespace MonoFSM.Runtime
 
                 try
                 {
-                    item.ResetStateRestore();
+                    item.ResetStateRestore(false);
                 }
                 catch (Exception e)
                 {

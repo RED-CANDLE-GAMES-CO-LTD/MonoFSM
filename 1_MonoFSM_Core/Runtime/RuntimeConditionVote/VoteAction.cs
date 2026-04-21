@@ -50,10 +50,10 @@ namespace MonoFSM.Runtime.Vote
 
         private bool _isPrepared = false;
 
-        public override void ResetStateRestore()
+        public override void ResetStateRestore(bool isHardReset)
         {
             _isPrepared = true;
-            base.ResetStateRestore();
+            base.ResetStateRestore(false);
         }
     }
 }

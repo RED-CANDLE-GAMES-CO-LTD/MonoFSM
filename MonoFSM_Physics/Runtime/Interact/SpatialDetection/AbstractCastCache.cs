@@ -131,7 +131,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         {
         }
 
-        public void ResetStateRestore()
+        public void ResetStateRestore(bool IsHardReset)
         {
             _cachedRay.Reset();
             _cachedHits.SimValue?.Clear();

@@ -146,9 +146,9 @@ namespace MonoFSM.Variable
 
         public override bool IsValueExist => Field.CurrentValue != 0f; //  CurrentValue != 0f;
 
-        public override void ResetStateRestore()
+        public override void ResetStateRestore(bool IsHardReset)
         {
-            base.ResetStateRestore();
+            base.ResetStateRestore(false);
 
             // 如果有 overrider 且需要覆蓋，使用 overrider 提供的值
             if (_restoreValueOverrider is not { ShouldOverrideRestoreValue: true }) return;

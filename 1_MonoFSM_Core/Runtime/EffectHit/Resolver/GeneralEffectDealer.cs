@@ -22,9 +22,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public override string ValueInfo =>
             _receivers.Count > 0 ? _receivers.Count.ToString() : base.ValueInfo;
 
-        public override void ResetStateRestore()
+        public override void ResetStateRestore(bool IsHardReset)
         {
-            base.ResetStateRestore();
+            base.ResetStateRestore(false);
             _lockedEntity = null;
             _hittingEntities.Clear();
         }

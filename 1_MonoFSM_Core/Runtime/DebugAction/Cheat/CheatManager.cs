@@ -14,7 +14,15 @@ namespace MonoFSM.Core
             {
                 if (
                     Keyboard.current[Key.R].wasPressedThisFrame)
-                    WorldUpdateSimulator.ManualResetLevel();
+                {
+                    if (
+                        Keyboard.current[Key.LeftShift].isPressed)
+                        WorldUpdateSimulator.ManualResetLevel(true);
+                    else
+                    {
+                        WorldUpdateSimulator.ManualResetLevel();
+                    }
+                }
                 // 在這裡執行作弊行為，例如增加分數、解鎖功能等
             }
         }

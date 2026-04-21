@@ -12,7 +12,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
 
         protected override void OnActionExecuteImplement()
         {
-            _targetVariable.ResetStateRestore();
+            _targetVariable.ResetStateRestore(false);
         }
     }
 }

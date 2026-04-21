@@ -1,4 +1,5 @@
 using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace MonoFSM.Core.Runtime.Action
         AllMatch
     }
 
-    public class SwitchAction : AbstractStateAction
+    public class SwitchAction : AbstractStateAction, IArgEventReceiver<GeneralEffectHitData>
     {
         public override string Description => $"Switch ({_mode})";
 
@@ -23,6 +24,17 @@ namespace MonoFSM.Core.Runtime.Action
         private SwitchCase[] _cases;
 
         protected override void OnActionExecuteImplement()
+        {
+            ExecuteSwitch(null);
+        }
+
+        void IArgEventReceiver<GeneralEffectHitData>.ArgEventReceived(GeneralEffectHitData arg)
+        {
+            AddEventTime(Time.time);
+            ExecuteSwitch(arg);
+        }
+
+        private void ExecuteSwitch(GeneralEffectHitData arg)
         {
             SwitchCase defaultCase = null;
             bool anyMatched = false;
@@ -41,7 +53,10 @@ namespace MonoFSM.Core.Runtime.Action
                 if (!switchCase.IsConditionMet)
                     continue;
 
-                switchCase.ExecuteActions();
+                if (arg != null)
+                    switchCase.ExecuteActions(arg);
+                else
+                    switchCase.ExecuteActions();
                 anyMatched = true;
 
                 if (_mode == SwitchMode.FirstMatch)
@@ -49,7 +64,12 @@ namespace MonoFSM.Core.Runtime.Action
             }
 
             if (!anyMatched && defaultCase != null)
-                defaultCase.ExecuteActions();
+            {
+                if (arg != null)
+                    defaultCase.ExecuteActions(arg);
+                else
+                    defaultCase.ExecuteActions();
+            }
         }
     }
 }

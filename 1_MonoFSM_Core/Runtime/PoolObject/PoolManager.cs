@@ -450,15 +450,18 @@ public class PoolManager : MonoBehaviour, IPoolManager
     {
         if (obj.TryGetComponent<PoolObject>(out var poolObj))
         {
-            ReturnToPool(poolObj);
-            return;
+            if (poolObj.IsFromPool)
+            {
+                ReturnToPool(poolObj);
+                return;
+            }
         }
 
         //fallback: if it's not a PoolObject, just deactivate it
         obj.WorldUpdateSimulator.UnregisterMonoObject(obj);
         obj.gameObject.SetActive(false); // destroy?
         Debug.LogError(
-            $"Destroying object {obj.name} because it has no PoolObject component.");
+            $"Deactive object {obj.name} because it has no PoolObject component.");
     }
 
     //

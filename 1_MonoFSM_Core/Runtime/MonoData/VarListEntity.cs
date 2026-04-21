@@ -317,7 +317,7 @@ namespace MonoFSM.Core.Variable
 
         //FIXME: 這裡有給ValueType耶
         //給list? queue的話我Provider根本吃不到？ realtime type還會變...乾
-        public override void ResetStateRestore()
+        public override void ResetStateRestore(bool IsHardReset)
         {
             _currentIndex.SetValue(_defaultIndex, this);
             _lastIndex = -1;

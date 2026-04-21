@@ -110,7 +110,7 @@ namespace EditorTool
             if (Application.isPlaying)
                 return;
 
-            Debug.Log("ResetToPlayTest");
+            // Debug.Log("ResetToPlayTest");
             ProcessSceneComponents<IEditorResetToPlayTest>(
                 obj => obj.OnEditorResetToPlayTest(),
                 progressBarLabel: "Reset To PlayTest"
@@ -119,7 +119,7 @@ namespace EditorTool
             // EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
             // AssetDatabase.SaveAssets();
             EditorUtility.ClearProgressBar();
-            Debug.Log("ResetToPlayTest Done");
+            // Debug.Log("ResetToPlayTest Done");
         }
 
         /// <summary>

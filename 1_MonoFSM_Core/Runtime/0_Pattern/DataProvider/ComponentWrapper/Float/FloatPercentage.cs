@@ -26,25 +26,55 @@ namespace _1_MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper.Float
         [Tooltip("勾選後回傳 1 - percentage")] [SerializeField]
         private bool _invert;
 
+        private bool _isEvaluating;
+
         [PreviewInInspector] private float Min => _varFloat != null ? _varFloat.Min : 0f;
 
         [PreviewInInspector]
-        private float Max => _maxOverride != null ? _maxOverride.Value : _varFloat.Max;
+        private float Max => _maxOverride != null ? _maxOverride.Value :
+            _varFloat ? _varFloat.Max : Mathf.Infinity;
 
         public override float Value
         {
             get
             {
                 if (_varFloat == null) return 0f;
-                var range = Max - Min;
-                var pct = range > 0f ? (_varFloat.CurrentValue - Min) / range : 0f;
-                // var pct = _varFloat.Percentage;
-                return _invert ? 1f - pct : pct;
+
+                // 防禦性檢查：避免互相 reference 造成的無窮迴圈
+                if (_isEvaluating)
+                {
+                    Debug.LogError(
+                        $"[FloatPercentage] Infinite loop detected in {name}! Returning 0.", this);
+                    return 0f;
+                }
+
+                _isEvaluating = true;
+                try
+                {
+                    var range = Max - Min;
+                    var pct = range > 0f ? (_varFloat.CurrentValue - Min) / range : 0f;
+                    return _invert ? 1f - pct : pct;
+                }
+                finally
+                {
+                    _isEvaluating = false;
+                }
             }
         }
 
         public override string Description => (_invert ? "1-% of: " : "% of: ")
             + _varFloat?.Description
             + (_maxOverride != null ? " / " + _maxOverride.Description : "");
+
+        private void OnValidate()
+        {
+            if (_varFloat != null && _varFloat == GetComponentInParent<VarFloat>())
+            {
+                Debug.LogWarning(
+                    $"[FloatPercentage] _varFloat references parent VarFloat ({_varFloat.name}), which is not allowed to prevent infinite loops. Field cleared.",
+                    this);
+                _varFloat = null;
+            }
+        }
     }
 }

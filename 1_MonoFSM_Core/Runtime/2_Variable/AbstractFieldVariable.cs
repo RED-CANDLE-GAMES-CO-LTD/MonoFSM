@@ -615,7 +615,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         throw new NotImplementedException();
     }
 
-    public override void ResetStateRestore() //應該放下去，然後這裡override實作？
+    public override void ResetStateRestore(bool IsHardReset) //應該放下去，然後這裡override實作？
     {
         //FIXME: if not init, restore? 應該要弄個ISceneAwake?
         // _localField.Init(TestMode.Production, this);

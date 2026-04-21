@@ -23,19 +23,53 @@ namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
 
         [Required] [DropDownRef] public VarFloat _dropDownRef;
 
-        public override float Value => _dropDownRef != null ? _dropDownRef.Value : 0f;
+        [Tooltip("選擇要回傳 VarFloat 的哪種數值")]
+        public VarFloatValueType _valueType = VarFloatValueType.CurrentValue;
+
+        public override float Value => _dropDownRef != null ? GetValueByType() : 0f;
+
+        private float GetValueByType()
+        {
+            switch (_valueType)
+            {
+                case VarFloatValueType.Min:
+                    return _dropDownRef.Min;
+                case VarFloatValueType.Max:
+                    return _dropDownRef.Max;
+                case VarFloatValueType.Percentage:
+                    return _dropDownRef.Percentage;
+                case VarFloatValueType.CurrentValue:
+                default:
+                    return _dropDownRef.Value;
+            }
+        }
+
         public Type ValueType => typeof(float);
 
         public float Min => _dropDownRef != null ? _dropDownRef.Min : float.MinValue;
         public float Max => _dropDownRef != null ? _dropDownRef.Max : float.MaxValue;
 
         public string _previewName;
-        public override string Description => _dropDownRef ? _dropDownRef.PathName : _previewName;
 
+        public override string Description =>
+            _dropDownRef ? $"{_dropDownRef.PathName} ({_valueType})" : _previewName;
+
+        private bool ShowWarning() => _valueType != VarFloatValueType.CurrentValue;
+
+        [InfoBox("注意: 透過變數寫入數值時, 永遠只會寫入到 CurrentValue, 不受選擇的 \'_valueType\' 影響",
+            InfoMessageType.Warning, "ShowWarning")]
         public void SetValue(float value, UnityEngine.Object byWho = null, string reason = null)
         {
             this.Log("Set VarFloatRef Value: ", value);
             _dropDownRef?.SetValue(value, byWho, reason);
         }
+    }
+
+    public enum VarFloatValueType
+    {
+        CurrentValue,
+        Min,
+        Max,
+        Percentage
     }
 }

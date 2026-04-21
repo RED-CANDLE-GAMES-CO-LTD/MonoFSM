@@ -16,7 +16,7 @@ public class PlayerStartSpawnPoint
         IUpdateSimulate,
         IBeforeBuildProcess,
         IActionParent,
-        IEditorResetToPlayTest
+        IEditorResetToPlayTest, IResetStateRestore
 {
     // public override string Description { get; }
     protected override string DescriptionTag => "SpawnPoint";
@@ -34,6 +34,12 @@ public class PlayerStartSpawnPoint
         return FindObjectsByType<PlayerStartSpawnPoint>(FindObjectsSortMode.None)
             .OrderBy(sp => sp.transform.GetSiblingIndex())
             .ToArray();
+    }
+
+    private LogicAnimator _playerAnimator;
+
+    public void MovePlayerToSpawnPointPos()
+    {
     }
 
     // 靜態方法來獲取當前選中的SpawnPoint
@@ -215,4 +221,13 @@ public class PlayerStartSpawnPoint
     {
         ResetToOriPos();
     }
+
+    public void ResetStateRestore(bool isHardReset)
+    {
+        // _onResetState.EventHandle();
+        if (isHardReset)
+            _playerTeleporter?.EventReceived();
+    }
+
+    private AbstractEventHandler _onResetState;
 }
