@@ -226,7 +226,9 @@ public class PlayerStartSpawnPoint
     {
         // _onResetState.EventHandle();
         if (isHardReset)
-            _playerTeleporter?.EventReceived();
+            _playerTeleporter?.ArgEventReceived(oriSpawnRef != null
+                ? oriSpawnRef.position
+                : transform.position);
     }
 
     private AbstractEventHandler _onResetState;

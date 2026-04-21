@@ -238,13 +238,14 @@ namespace MonoFSM.Core.Simulate
 
         public void UnregisterMonoObject(MonoObj target)
         {
-            // if (target.IsSceneObj)
-            // {
-            //     return;
-            // }
+            if (target.isSceneObj)
+            {
+                return;
+            }
             if (_monoObjectSet.Remove(target))
             {
-                target.ResetStateRestore(false); //FIXME: 需要這行嗎？OnReturnToPool?
+                //FIXME: 需要這行嗎？OnReturnToPool?
+                target.ResetStateRestore(false);
                 //還是不要清？這樣才可以回來？
                 // target.SetWorldUpdateSimulator(null); //清除引用
 

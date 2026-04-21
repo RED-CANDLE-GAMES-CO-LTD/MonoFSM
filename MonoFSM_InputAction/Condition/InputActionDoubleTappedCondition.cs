@@ -1,5 +1,6 @@
 using MonoFSM_InputAction;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Simulate;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -14,15 +15,17 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
                 if (_inputAction == null)
                     return false;
 
-                //FIXME: 沒考慮network?這樣好像不太對..時間應該跟誰拿？TimeProvider.time?
+                // 使用 WorldUpdateSimulator.SimulationTime，與 MonoInputAction.LastPressedTime 時間源一致，
+                // 在 Fusion 下 Runner.SimulationTime 會被 tick 驅動，支援 resimulation。
+                var currentTime = WorldUpdateSimulator.SimulationTime;
+
                 if (_inputAction.WasPressed)
                 {
-                    var currentTime = Time.time;
-
                     if (_lastPressTime > 0 && currentTime - _lastPressTime <= _doubleTapTimeWindow)
                     {
                         this.Log("InputActionDoubleTappedCondition: Double tap detected!");
-                        _lastPressTime = -1; // 重置以避免三連擊被判定為兩次雙擊
+                        // _lastPressTime = -1; // 重置以避免三連擊被判定為兩次雙擊
+                        _lastPressTime = currentTime;
                         return true;
                     }
 
@@ -30,7 +33,7 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
                 }
 
                 // 如果超過時間窗口，重置計時器
-                if (_lastPressTime > 0 && Time.time - _lastPressTime > _doubleTapTimeWindow)
+                if (_lastPressTime > 0 && currentTime - _lastPressTime > _doubleTapTimeWindow)
                     _lastPressTime = -1;
 
                 return false;

@@ -17,22 +17,27 @@ namespace MonoFSM.Runtime.Action.VariableAction
 
         public VarFloatWrapper _rateVar = new(1f);
 
+        public float _multiplier = 1f;
+
         [Tooltip("啟用後從 Source 扣除等量值加到 Target（不足時只傳剩餘量）")]
         public bool _transfer;
 
         [ShowIf(nameof(_transfer))] [Required] public VarFloat _sourceVar;
 
-        private string RateSign => _rateVar != null && _rateVar.Value >= 0 ? "+=" : "-=";
+        private float EffectiveRate => (_rateVar != null ? _rateVar.Value : 0f) * _multiplier;
 
-        private string RateDesc => _rateVar != null
-            ? Mathf.Abs(_rateVar.Value).ToString(CultureInfo.InvariantCulture)
-            : "null";
+        private string MultiplierSign => _multiplier >= 0 ? "+=" : "-=";
+
+        private string MultiplierDesc =>
+            Mathf.Abs(_multiplier).ToString(CultureInfo.InvariantCulture);
+
+        private string RateVarDesc => _rateVar != null ? _rateVar.Description : "null";
 
         [PreviewInInspector]
         public override string Description =>
             _transfer
-                ? $"{(_sourceVar != null ? _sourceVar.Description : "null")} --({RateDesc}/s)--> {(_targetVar != null ? _targetVar.Description : "null")}"
-                : $"{(_targetVar != null ? _targetVar.Description : "null")} {RateSign} {RateDesc} * dt";
+                ? $"{(_sourceVar != null ? _sourceVar.Description : "null")} --({RateVarDesc} x{MultiplierDesc}/s)--> {(_targetVar != null ? _targetVar.Description : "null")}"
+                : $"{(_targetVar != null ? _targetVar.Description : "null")} {MultiplierSign} {RateVarDesc} x{MultiplierDesc} * dt";
 
         protected override void OnActionExecuteImplement()
         {
@@ -53,7 +58,7 @@ namespace MonoFSM.Runtime.Action.VariableAction
                     return;
                 }
 
-                float desired = Mathf.Abs(_rateVar.Value) * DeltaTime;
+                float desired = Mathf.Abs(EffectiveRate) * DeltaTime;
                 float available = Mathf.Max(0f, _sourceVar.CurrentValue - _sourceVar.Min);
                 float actual = Mathf.Min(desired, available);
                 if (actual <= 0f) return;
@@ -63,7 +68,7 @@ namespace MonoFSM.Runtime.Action.VariableAction
                 return;
             }
 
-            _targetVar.SetValue(_targetVar.Value + _rateVar.Value * DeltaTime, this);
+            _targetVar.SetValue(_targetVar.Value + EffectiveRate * DeltaTime, this);
         }
     }
 }

@@ -100,7 +100,10 @@ namespace Fusion.Addons.FSM
         public bool ForceActivateState(int stateId, bool allowReset = false)
         {
             if (stateId == _activeStateId && allowReset == false)
+            {
                 return false;
+            }
+
 
             ChangeState(stateId);
             return true;

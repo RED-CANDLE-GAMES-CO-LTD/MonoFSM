@@ -130,7 +130,7 @@ namespace Fusion.Addons.FSM
             for (var i = 0; i < _fsmLogic.StateMachines.Count; i++)
             {
                 Profiler.BeginSample(
-                    $"MonoStateMachineController.FixedUpdate ({_fsmLogic.StateMachines[i].Name})"
+                    $"MonoStateMachineController.FixedUpdate", _fsmLogic
                 );
 
                 _fsmLogic.StateMachines[i].FixedUpdate(); // Assuming IStateMachine can handle null Runner
@@ -145,8 +145,8 @@ namespace Fusion.Addons.FSM
             for (var i = 0; i < _fsmLogic.StateMachines.Count; i++)
             {
                 Profiler.BeginSample(
-                    $"MonoStateMachineController.Render ({_fsmLogic.StateMachines[i].Name})"
-                );
+                    $"MonoStateMachineController.Render",
+                    _fsmLogic);
                 _fsmLogic.StateMachines[i].Render();
                 Profiler.EndSample();
             }

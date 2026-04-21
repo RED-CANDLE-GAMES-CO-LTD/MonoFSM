@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Auto.Utils;
 using Cysharp.Threading.Tasks;
 using Fusion;
+using MonoDebugSetting;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.LifeCycle;
@@ -317,9 +318,13 @@ namespace MonoFSMCore.Runtime.LifeCycle
             {
                 if (_isAwakeActive && gameObject.activeSelf == false) //原本打開的物件
                 {
+                    //WorldUpdateSimulator 沒有註冊的話也不會跑這個喔！
+                    if (RuntimeDebugSetting.IsDebugMode)
+                        Debug.Log("ResetStateRestore: Reactivating GameObject " + name, this);
+                    // Debug.Break();
                     gameObject.SetActive(true);
-                    WorldUpdateSimulator
-                        .RegisterMonoObject(this); //回到pool的物件會被despawn刪掉，回到scene上的物件才需要註冊
+                    // WorldUpdateSimulator
+                    //     .RegisterMonoObject(this); //回到pool的物件會被despawn刪掉，回到scene上的物件才需要註冊
                 }
             }
 

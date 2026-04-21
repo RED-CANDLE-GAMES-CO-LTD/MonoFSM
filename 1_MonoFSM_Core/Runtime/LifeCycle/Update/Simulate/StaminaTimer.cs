@@ -82,8 +82,18 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
     // }
     [ShowInInspector] float maxStamina => _currentValue.Max;
 
+    [InlineField] [AutoNested] [SerializeField]
+    ConditionGroup _conditionGroup;
+
     public void Simulate(float deltaTime)
     {
+        if (_conditionGroup.IsValid == false)
+        {
+            _currentCountState = CountType.Pause;
+            _pauseTimeCounter = 0f;
+            return;
+        }
+
         // Debug.Log(
         //     $"Simulating StaminaTimer with deltaTime: {deltaTime}, CurrentValue: {_currentValue.CurrentValue}, CountType: {countType}");
         //FIXME: 不要用varfloat, 直接知道？ value modifying order (才知道誰先誰後< 自動恢復應該最早)
@@ -111,6 +121,7 @@ public class StaminaTimer : MonoBehaviour, IUpdateSimulate
             return; // Stop further processing for recovery this frame.
         }
 
+        //fixme: 都用condition就好了？
         // 外部阻止恢復
         if (_isRecoveryBlocked.Value)
         {

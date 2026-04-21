@@ -17,6 +17,7 @@ using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
+//FIXME: 沒有放  [AutoNested] 就撈不到？
 [Serializable]
 public class ConditionGroup //AndGroup? //封裝的蠻好的...? 但是auto可能會遇到問題...
 {
