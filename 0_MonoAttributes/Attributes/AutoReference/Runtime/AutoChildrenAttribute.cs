@@ -38,6 +38,19 @@ public class AutoChildrenAttribute : AutoFamilyAttribute
     /// </summary>
     public bool includeInactive = true;
 
+    /// <summary>
+    /// 遞迴抓取時，遇到掛著此 Component Type 的節點就停止往下鑽（scope boundary）。
+    /// 用於 nested MonoObj：讓 root 的 scope 只收直屬 scope 內的 component，nested child 的 scope 由 child 自己管。
+    /// null = 無邊界（原本行為）。
+    /// </summary>
+    public Type StopAtType = null;
+
+    /// <summary>
+    /// 搭配 <see cref="StopAtType"/>：邊界節點本身是否納入結果。
+    /// true 適合用來抓「直屬 child boundary node」的情境。
+    /// </summary>
+    public bool IncludeStopNode = false;
+
     public AutoChildrenAttribute(bool logMissingAsError = false)
         : base(logMissingAsError) { }
 
@@ -61,6 +74,12 @@ public class AutoChildrenAttribute : AutoFamilyAttribute
             }
 
             return null;
+        }
+
+        if (StopAtType != null)
+        {
+            var targetType = LimitedType ?? componentType;
+            return CollectWithBoundarySingle(mb.transform, targetType, StopAtType, IncludeStopNode, isRoot: true);
         }
 
         var result = mb.GetComponentInChildren(LimitedType ?? componentType, includeInactive);
@@ -96,6 +115,16 @@ public class AutoChildrenAttribute : AutoFamilyAttribute
             return dest as object[];
         }
 
+        if (StopAtType != null)
+        {
+            var targetType = LimitedType ?? componentType;
+            var list = new List<Component>();
+            CollectWithBoundary(mb.transform, targetType, StopAtType, IncludeStopNode, includeInactive, list, isRoot: true);
+            var dest = Array.CreateInstance(componentType, list.Count);
+            Array.Copy(list.ToArray(), dest, list.Count);
+            return dest as object[];
+        }
+
         // if (TargetType != null)
         // {
         //     Debug.Log("TargetType is not null" + TargetType, mb);
@@ -109,5 +138,54 @@ public class AutoChildrenAttribute : AutoFamilyAttribute
         var destinationArray = Array.CreateInstance(componentType, results.Length);
         Array.Copy(results, destinationArray, results.Length);
         return destinationArray as object[]; //Array.ConvertAll(results, item => Convert.ChangeType(item, componentType));
+    }
+
+    /// <summary>
+    /// Scope-aware DFS：遞迴蒐集 target component，遇到 boundary 節點時根據 includeBoundary 決定是否收該節點自己，然後停止往下鑽。
+    /// root 本身一定會被掃（不視為 boundary）。
+    /// </summary>
+    private static void CollectWithBoundary(Transform t, Type targetType, Type boundary, bool includeBoundary, bool includeInactive, List<Component> output, bool isRoot)
+    {
+        if (!includeInactive && !t.gameObject.activeInHierarchy)
+            return;
+
+        if (!isRoot && t.GetComponent(boundary) != null)
+        {
+            if (includeBoundary)
+            {
+                var comps = t.GetComponents(targetType);
+                if (comps != null && comps.Length > 0) output.AddRange(comps);
+            }
+            return; //boundary 的子樹不進入
+        }
+
+        var own = t.GetComponents(targetType);
+        if (own != null && own.Length > 0) output.AddRange(own);
+
+        foreach (Transform child in t)
+            CollectWithBoundary(child, targetType, boundary, includeBoundary, includeInactive, output, isRoot: false);
+    }
+
+    private static object CollectWithBoundarySingle(Transform t, Type targetType, Type boundary, bool includeBoundary, bool isRoot)
+    {
+        if (!isRoot && t.GetComponent(boundary) != null)
+        {
+            if (includeBoundary)
+            {
+                var comp = t.GetComponent(targetType);
+                if (comp != null) return comp;
+            }
+            return null; //boundary 的子樹不進入
+        }
+
+        var own = t.GetComponent(targetType);
+        if (own != null) return own;
+
+        foreach (Transform child in t)
+        {
+            var found = CollectWithBoundarySingle(child, targetType, boundary, includeBoundary, isRoot: false);
+            if (found != null) return found;
+        }
+        return null;
     }
 }

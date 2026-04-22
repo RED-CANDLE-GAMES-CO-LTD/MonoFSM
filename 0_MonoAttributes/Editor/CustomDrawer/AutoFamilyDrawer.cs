@@ -139,15 +139,6 @@ namespace MonoFSM.Core
                 AutoUtils.SetSerialized(Property.ValueEntry, Attribute, mb, componentType);
             else
                 AutoUtils.SetPrivate(field, belongObj, Property, Attribute, mb, componentType);
-            // Debug.Log(
-            //     "AutoFamily Set: "
-            //     + Property.Name
-            //     + " to "
-            //     + Property.ValueEntry.WeakSmartValue
-            //     + " in "
-            //     + mb,
-            //     mb
-            // );
         }
 
         protected override void DrawPropertyLayout(GUIContent label)

@@ -9,6 +9,7 @@ using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.LifeCycle;
 using MonoFSM.Core.Simulate;
+using MonoFSM.Culling;
 using MonoFSM.CustomAttributes;
 using MonoFSM.Runtime;
 using MonoFSM.Variable.Attributes;
@@ -170,36 +171,52 @@ namespace MonoFSMCore.Runtime.LifeCycle
         private IInstantiated[] _instantiateds;
 
         [PreviewInDebugMode]
-        [AutoChildren]
+        [AutoChildren(StopAtType = typeof(MonoObj))]
         private IUpdateSimulate[] _updateSimulates;
 
-        public bool IsUpdateSimulatesNeeded => !IsCulling && _updateSimulates.Length > 0;
-
         [PreviewInDebugMode]
-        [AutoChildren]
+        [AutoChildren(StopAtType = typeof(MonoObj))]
         private IBeforeSimulate[] _beforeSimulates;
 
         [PreviewInDebugMode]
-        [AutoChildren]
+        [AutoChildren(StopAtType = typeof(MonoObj))]
         private IAfterSimulate[] _afterSimulates;
-        [PreviewInDebugMode] [AutoChildren] private IRenderSimulate[] _renderSimulates;
-        [PreviewInDebugMode] [AutoChildren] private IAfterRenderMono[] _afterRenders;
+
+        [PreviewInDebugMode] [AutoChildren(StopAtType = typeof(MonoObj))] private IRenderSimulate[] _renderSimulates;
+        [PreviewInDebugMode] [AutoChildren(StopAtType = typeof(MonoObj))] private IAfterRenderMono[] _afterRenders;
 
         // [PreviewInInspector]
         // [AutoChildren]
         // private IAfterUpdate[] _updateSimulates;
 
-        public bool IsBeforeSimulatesNeeded => !IsCulling && _beforeSimulates.Length > 0;
-        public bool IsAfterSimulatesNeeded => !IsCulling && _afterSimulates.Length > 0;
-        public bool IsRenderSimulatesNeeded => !IsCulling && _renderSimulates.Length > 0;
+        //遞迴檢查 scope + 所有直屬 child subtree，任一有 item 且該 node 未被 cull 就回 true
+        //Root cull → false; 否則自己 scope 空但 child 有東西也要回 true（不然 WorldUpdateSimulator 會 skip 整個 tree）
+        public bool IsUpdateSimulatesNeeded => CheckPhaseNeededRecursive(self => self._updateSimulates);
+        public bool IsBeforeSimulatesNeeded => CheckPhaseNeededRecursive(self => self._beforeSimulates);
+        public bool IsAfterSimulatesNeeded => CheckPhaseNeededRecursive(self => self._afterSimulates);
+        public bool IsRenderSimulatesNeeded => CheckPhaseNeededRecursive(self => self._renderSimulates);
+
+        private bool CheckPhaseNeededRecursive<T>(Func<MonoObj, T[]> getList) where T : class
+        {
+            if (IsCulling) return false;
+            var list = getList(this);
+            if (list != null && list.Length > 0) return true;
+            if (_childrenObjs == null) return false;
+            for (var i = 0; i < _childrenObjs.Length; i++)
+            {
+                var c = _childrenObjs[i];
+                if (c != null && c != this && c.CheckPhaseNeededRecursive(getList)) return true;
+            }
+            return false;
+        }
 
         //FIXME: PoolBeforeReturnToPool? OnReturnPool?
 
         [PreviewInDebugMode]
         private MonoObj _parentObj;
 
-        [AutoChildren] MonoObj[]
-            _childrenObjs;
+        [AutoChildren(StopAtType = typeof(MonoObj), IncludeStopNode = true)]
+        MonoObj[] _childrenObjs;
 
         // [SerializeField]
         private WorldUpdateSimulator _worldUpdateSimulator;
@@ -214,11 +231,15 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         public void InitParentLinks()
         {
+            //_childrenObjs 現在只含直屬 child MonoObj（StopAtType = typeof(MonoObj), IncludeStopNode = true）
+            //遞迴 walk down，讓每個 MonoObj 的 _parentObj 指向直屬 parent
+            if (_childrenObjs == null) return;
             foreach (var item in _childrenObjs)
             {
                 if (item == null || item == this)
                     continue;
                 item._parentObj = this;
+                item.InitParentLinks();
             }
         }
 
@@ -354,8 +375,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
             HandleIResetStart();
         }
 
-
-        public GameObject _cullingHandle;
+        [AutoChildren(StopAtType = typeof(MonoObj))] public CullingActiveHandle _cullingHandle;
 
         public bool IsCulling =>
             _cullingHandle != null && !_cullingHandle.gameObject.activeSelf;
@@ -430,21 +450,26 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 return;
             if (IsProxy)
                 return;
-            foreach (var item in _beforeSimulates)
+            TickBeforeSimulatePhase(deltaTime);
+        }
+
+        private void TickBeforeSimulatePhase(float deltaTime)
+        {
+            if (IsCulling) return; //我被 cull → 整棵子樹跳過
+            if (_beforeSimulates != null)
             {
-                if (item is not { isActiveAndEnabled: true })
-                    continue;
-                // try
-                // {
-                item.BeforeSimulate(deltaTime);
-                // }
-                // catch (Exception e)
-                // {
-                //     if (item is MonoBehaviour)
-                //         Debug.LogError(e.Message + "\n" + e.StackTrace, item as MonoBehaviour);
-                //     else
-                //         Debug.LogError(e.Message + "\n" + e.StackTrace);
-                // }
+                foreach (var item in _beforeSimulates)
+                {
+                    if (item is not { isActiveAndEnabled: true })
+                        continue;
+                    item.BeforeSimulate(deltaTime);
+                }
+            }
+            if (_childrenObjs == null) return;
+            for (var i = 0; i < _childrenObjs.Length; i++)
+            {
+                var c = _childrenObjs[i];
+                if (c != null && c != this) c.TickBeforeSimulatePhase(deltaTime);
             }
         }
 
@@ -456,35 +481,38 @@ namespace MonoFSMCore.Runtime.LifeCycle
             //如果proxy就跳過？
             // if (IsProxy)
             //     return;
-            //要在state machine之後嗎？還是要可以排順序？
-            foreach (var item in _updateSimulates) //更新順序？誰先誰後？
-            {
-                if (item is not { IsValid: true })
-                    continue;
-                // try
-                // {
-                Profiler.BeginSample("MonoObj.Simulate", item.gameObject);
-                try
-                {
-                    item.Simulate(deltaTime);
-                }
-                catch (Exception e)
-                {
-                    if (item is MonoBehaviour)
-                        Debug.LogException(e, item as MonoBehaviour);
-                    else
-                        Debug.LogException(e, this);
-                }
+            TickSimulatePhase(deltaTime);
+        }
 
-                Profiler.EndSample();
-                // }
-                // catch (Exception e)
-                // {
-                //     if (item is MonoBehaviour)
-                //         Debug.LogError(e.Message + "\n" + e.StackTrace, item as MonoBehaviour);
-                //     else
-                //         Debug.LogError(e.Message + "\n" + e.StackTrace);
-                // }
+        private void TickSimulatePhase(float deltaTime)
+        {
+            if (IsCulling) return; //我被 cull → 整棵子樹跳過
+            if (_updateSimulates != null)
+            {
+                foreach (var item in _updateSimulates)
+                {
+                    if (item is not { IsValid: true })
+                        continue;
+                    Profiler.BeginSample("MonoObj.Simulate", item.gameObject);
+                    try
+                    {
+                        item.Simulate(deltaTime);
+                    }
+                    catch (Exception e)
+                    {
+                        if (item is MonoBehaviour)
+                            Debug.LogException(e, item as MonoBehaviour);
+                        else
+                            Debug.LogException(e, this);
+                    }
+                    Profiler.EndSample();
+                }
+            }
+            if (_childrenObjs == null) return;
+            for (var i = 0; i < _childrenObjs.Length; i++)
+            {
+                var c = _childrenObjs[i];
+                if (c != null && c != this) c.TickSimulatePhase(deltaTime);
             }
         }
 
@@ -494,15 +522,28 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 return;
             if (IsProxy)
                 return;
-            // Debug.Log("MonoObj AfterSimulate " + name, this);
-            foreach (var item in _afterSimulates)
-            {
-                if (item is not { isActiveAndEnabled: true })
-                    continue;
+            TickAfterSimulatePhase(deltaTime);
+        }
 
-                Profiler.BeginSample("MonoObj.AfterUpdate", item.gameObject);
-                item.AfterSimulate(deltaTime);
-                Profiler.EndSample();
+        private void TickAfterSimulatePhase(float deltaTime)
+        {
+            if (IsCulling) return; //我被 cull → 整棵子樹跳過
+            if (_afterSimulates != null)
+            {
+                foreach (var item in _afterSimulates)
+                {
+                    if (item is not { isActiveAndEnabled: true })
+                        continue;
+                    Profiler.BeginSample("MonoObj.AfterUpdate", item.gameObject);
+                    item.AfterSimulate(deltaTime);
+                    Profiler.EndSample();
+                }
+            }
+            if (_childrenObjs == null) return;
+            for (var i = 0; i < _childrenObjs.Length; i++)
+            {
+                var c = _childrenObjs[i];
+                if (c != null && c != this) c.TickAfterSimulatePhase(deltaTime);
             }
         }
 
@@ -510,15 +551,28 @@ namespace MonoFSMCore.Runtime.LifeCycle
         {
             if (HasParent)
                 return;
-            // if (!IsProxy)
-            //     return;
-            foreach (var item in _renderSimulates) //如果 render有順序問題就哭惹？
+            TickRenderPhase(deltaTimelocalAlpha);
+        }
+
+        private void TickRenderPhase(float deltaTimelocalAlpha)
+        {
+            if (IsCulling) return; //我被 cull → 整棵子樹跳過
+            if (_renderSimulates != null)
             {
-                if (item is not { isActiveAndEnabled: true })
-                    continue;
-                Profiler.BeginSample("MonoObj.Render", item.gameObject);
-                item.Render(deltaTimelocalAlpha);
-                Profiler.EndSample();
+                foreach (var item in _renderSimulates) //如果 render有順序問題就哭惹？
+                {
+                    if (item is not { isActiveAndEnabled: true })
+                        continue;
+                    Profiler.BeginSample("MonoObj.Render", item.gameObject);
+                    item.Render(deltaTimelocalAlpha);
+                    Profiler.EndSample();
+                }
+            }
+            if (_childrenObjs == null) return;
+            for (var i = 0; i < _childrenObjs.Length; i++)
+            {
+                var c = _childrenObjs[i];
+                if (c != null && c != this) c.TickRenderPhase(deltaTimelocalAlpha);
             }
         }
 
@@ -621,15 +675,28 @@ namespace MonoFSMCore.Runtime.LifeCycle
         {
             if (HasParent)
                 return;
-            // if (!IsProxy)
-            //     return;
-            foreach (var item in _afterRenders) //如果 render有順序問題就哭惹？
+            TickAfterRenderPhase();
+        }
+
+        private void TickAfterRenderPhase()
+        {
+            if (IsCulling) return; //我被 cull → 整棵子樹跳過
+            if (_afterRenders != null)
             {
-                if (item is not { isActiveAndEnabled: true })
-                    continue;
-                Profiler.BeginSample("MonoObj.Render", item.gameObject);
-                item.AfterRender();
-                Profiler.EndSample();
+                foreach (var item in _afterRenders) //如果 render有順序問題就哭惹？
+                {
+                    if (item is not { isActiveAndEnabled: true })
+                        continue;
+                    Profiler.BeginSample("MonoObj.Render", item.gameObject);
+                    item.AfterRender();
+                    Profiler.EndSample();
+                }
+            }
+            if (_childrenObjs == null) return;
+            for (var i = 0; i < _childrenObjs.Length; i++)
+            {
+                var c = _childrenObjs[i];
+                if (c != null && c != this) c.TickAfterRenderPhase();
             }
         }
 

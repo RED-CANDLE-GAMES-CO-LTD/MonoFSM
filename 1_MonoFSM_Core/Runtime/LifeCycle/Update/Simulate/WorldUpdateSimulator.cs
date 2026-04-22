@@ -348,6 +348,7 @@ namespace MonoFSM.Core.Simulate
         private readonly HashSet<MonoObj> _monoObjectSet = new(); //這個是用來做reset的？還是要有一個MonoObjectRunner?
         private readonly List<MonoObj> _pendingDespawns = new();
 #if UNITY_EDITOR
+        [ShowInInspector] int monoObjCount => _monoObjectSet.Count;
         // [PreviewInInspector] private IUpdateSimulate[] PreviewSimulators => _simulators.ToArray();
         [PreviewInInspector]
         private MonoObj[] PreviewMonoObjects => _monoObjectSet.ToArray();
@@ -489,6 +490,27 @@ namespace MonoFSM.Core.Simulate
             // foreach (var simulator in _simulators)
             //     if (simulator is { isActiveAndEnabled: true })
             //         simulator.Simulate(deltaTime);
+        }
+
+        [ShowInInspector] private readonly List<MonoObj> _previewObj = new();
+        [ShowInInspector] int PreviewUpdatingCount => _previewObj.Count;
+
+        [Button]
+        void GetCurrentRunningObj()
+        {
+            var count = 0;
+            _previewObj.Clear();
+            foreach (var monoObject in _currentUpdatingObjs)
+            {
+                if (monoObject is not { isActiveAndEnabled: true }) continue;
+                if (monoObject.IsUpdateSimulatesNeeded)
+                {
+                    _previewObj.Add(monoObject);
+                    count++;
+                }
+            }
+
+            Debug.Log($"Current updating MonoObjects count: {count}", this);
         }
 
         public void AfterUpdate()

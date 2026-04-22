@@ -50,7 +50,9 @@ namespace MonoFSM.Foundation
 
         public override bool HasValue =>
             !EqualityComparer<T>.Default.Equals(Value, default); //FIXME: float == 0 會被當成 null?
-        public override string ValueInfo => HasValue ? Value.ToString() : "Null"; //TODO: list太肥了
+
+        public override string ValueInfo =>
+            isActiveAndEnabled && HasValue ? Value.ToString() : "Null"; //TODO: list太肥了
         public override bool IsDrawingValueInfo => true;
     }
 

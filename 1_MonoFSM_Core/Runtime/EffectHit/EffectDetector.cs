@@ -5,6 +5,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.EffectHit;
 using MonoFSM.Core.Simulate;
 using MonoFSM.CustomAttributes;
+using MonoFSM.EditorExtension;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
@@ -61,7 +62,7 @@ namespace MonoFSM.Core.Detection
             IUpdateSimulate,
             IDropdownRoot, IResetStateRestore
     {
-        public override string ValueInfo => "detect:" + _thisFrameDetectedObjects.Count;
+        public override string ValueInfo => "objs: " + _thisFrameDetectedObjects.Count;
 
         //FIXME: 這個不好...會以為可以改name結果又跑掉？
         [SerializeField]
@@ -75,7 +76,10 @@ namespace MonoFSM.Core.Detection
 
         [ShowInInspector]
         [GUIColor("GetIsValidColor")]
-        public bool IsValid => _conditions.IsAllValid();
+        public bool IsValid => gameObject.activeInHierarchy && _conditions.IsAllValid();
+
+        public override bool IsDrawingValueInfo => true;
+
 
 #if UNITY_EDITOR
         private Color GetIsValidColor() => IsValid ? Color.white : Color.red;
@@ -233,6 +237,8 @@ namespace MonoFSM.Core.Detection
         [ShowInDebugMode]
         float _lastDetectCheckTime = 0f;
 
+        [ShowInInspector]
+        [Required]
         [AutoParent] MonoContext _monoContext;
 
         public void DetectUpdateCheck()
