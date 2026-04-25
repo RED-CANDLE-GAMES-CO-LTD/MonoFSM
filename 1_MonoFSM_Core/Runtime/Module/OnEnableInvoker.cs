@@ -4,6 +4,9 @@ using MonoFSM.Variable.Attributes;
 using UnityEngine;
 
 //XX EnableInoker 自動命名？
+
+//持續檢查, 觀察 Enable Handle的狀態
+//拆得很細，但有點太胖？
 public class OnEnableInvoker : MonoBehaviour, IUpdateSimulate
 {
     [CompRef]
@@ -13,31 +16,31 @@ public class OnEnableInvoker : MonoBehaviour, IUpdateSimulate
     [CompRef]
     [AutoChildren]
     private OnDisableHandler _onDisableHandler;
+    //
+    // private bool _isCachedEnabled;
+    // private bool _isCachedDisabled;
 
-    private bool _isCachedEnabled;
-    private bool _isCachedDisabled;
-
-    [CompRef]
+    // [CompRef]
     [SerializeField]
     EnableHandle _enableHandle;
 
     private bool isTriggeringEnable =>
-        _enableHandle != null ? _enableHandle.isCachedEnabled : _isCachedEnabled;
+        _enableHandle != null && _enableHandle.isCachedEnabled;
 
     private bool isTriggeringDisable =>
-        _enableHandle != null ? _enableHandle.isCachedDisabled : _isCachedDisabled;
+        _enableHandle != null && _enableHandle.isCachedDisabled;
 
-    private void OnEnable() //這個東西的事件反而不穩定？用update自己檢查？
-    {
-        this.Log("OnEnable");
-        _isCachedEnabled = true;
-    }
-
-    private void OnDisable()
-    {
-        _isCachedDisabled = true;
-        this.Log("OnDisable");
-    }
+    // private void OnEnable() //這個東西的事件反而不穩定？用update自己檢查？
+    // {
+    //     this.Log("OnEnable");
+    //     _isCachedEnabled = true;
+    // }
+    //
+    // private void OnDisable()
+    // {
+    //     _isCachedDisabled = true;
+    //     this.Log("OnDisable");
+    // }
 
     public void Simulate(float deltaTime)
     {
@@ -47,19 +50,17 @@ public class OnEnableInvoker : MonoBehaviour, IUpdateSimulate
             if (_enableHandle != null)
                 _enableHandle._isCachedEnabled = false;
 
-            _isCachedEnabled = false;
             if (_onEnableHandler.gameObject.activeSelf)
                 _onEnableHandler.EventHandle();
             else
                 Debug.LogError("OnEnableNode is not active", this);
         }
 
-        if (_isCachedDisabled && _onDisableHandler != null)
+        if (isTriggeringDisable && _onDisableHandler != null)
         {
             if (_enableHandle != null)
                 _enableHandle._isCachedDisabled = false;
 
-            _isCachedDisabled = false;
             if (_onDisableHandler.gameObject.activeSelf)
                 _onDisableHandler.EventHandle();
             else

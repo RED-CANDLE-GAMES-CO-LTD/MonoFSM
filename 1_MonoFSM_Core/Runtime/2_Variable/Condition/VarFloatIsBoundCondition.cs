@@ -28,6 +28,10 @@ namespace MonoFSM.Variable.Condition
         [Range(0f, 1f)]
         public float _targetPercentage;
 
+        [ShowIf(nameof(_boundType), BoundType.Percentage)]
+        [ShowInInspector]
+        private float CurrentPercentage => _varFloat != null ? _varFloat.Percentage : 0f;
+
         protected override bool IsValid
         {
             get

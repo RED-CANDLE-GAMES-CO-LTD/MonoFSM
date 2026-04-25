@@ -71,6 +71,7 @@ namespace MonoFSM.Variable.Condition
                     ? (_targetVariable?.Value ?? 0f)
                     : _targetValue;
 
+                //TODO: A-B > C?
                 return ArithmeticHelper.CompareValues(value, compareValue, _op);
             }
         }

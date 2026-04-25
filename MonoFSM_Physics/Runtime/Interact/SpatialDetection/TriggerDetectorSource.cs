@@ -7,9 +7,21 @@ namespace MonoFSM.Core.Detection
 {
     public class TriggerDetectorSource : AbstractDetectionSource
     {
+        protected override void Awake()
+        {
+            base.Awake();
+            if (_collider.isTrigger == false)
+                Debug.LogError(
+                    "Collider must be set as trigger for TriggerDetectorSource to work properly.",
+                    this);
+        }
         //FIXME: 一鍵添加 Sphere Collider
+
+        //FIXME: 檢查是不是 trigger
         public override string ValueInfo => "hit:" + _thisFrameColliders.Count;
 
+        [InfoBox("Collider is Not Trigger!", InfoMessageType.Error,
+            "@_collider != null && !_collider.isTrigger")]
         [Required]
         [CompRef]
         [SerializeField]
@@ -24,6 +36,7 @@ namespace MonoFSM.Core.Detection
         [CompRef]
         [Auto]
         Rigidbody _optionalRigidbody;
+
 
         private void OnTriggerStay(Collider other)
         {

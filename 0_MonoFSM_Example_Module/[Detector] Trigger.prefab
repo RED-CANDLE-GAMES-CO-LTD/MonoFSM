@@ -142,6 +142,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::MonoFSM.Runtime.Interact.EffectHit.GeneralEffectDealer
   _note: 
   _effectType: {fileID: 0}
+  _singleEntityPerEnable: 0
+  _defaultValue:
+    _tempValue: 0
+    _bindTag: {fileID: 0}
+    _var: {fileID: 0}
 --- !u!1 &8542459492077439460
 GameObject:
   m_ObjectHideFlags: 0
