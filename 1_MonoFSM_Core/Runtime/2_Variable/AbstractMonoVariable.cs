@@ -83,7 +83,6 @@ namespace MonoFSM.Variable
 
         public Texture2D CustomIcon =>
             EditorGUIUtility.ObjectContent(null, GetType()).image as Texture2D; //雞掰！
-        //UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.rcgmaker.fsm/RCGMakerFSMCore/Runtime/2_Variable/VarFloatIcon.png");
 
         [Button("Find References"), PropertyOrder(-100)]
         private void FindReferences()

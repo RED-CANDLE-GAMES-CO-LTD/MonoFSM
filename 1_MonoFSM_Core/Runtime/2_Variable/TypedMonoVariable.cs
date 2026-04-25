@@ -46,6 +46,7 @@ namespace MonoFSM.Variable
             }
         }
 
+        [ShowInInspector]
         public override string Description =>
             HasValueSource ? valueSource.Description : base.Description;
 

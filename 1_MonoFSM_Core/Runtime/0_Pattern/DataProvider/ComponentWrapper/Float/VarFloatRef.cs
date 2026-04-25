@@ -52,7 +52,7 @@ namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
         public string _previewName;
 
         public override string Description =>
-            _dropDownRef ? $"{_dropDownRef.PathName} ({_valueType})" : _previewName;
+            _dropDownRef ? $"{_dropDownRef.name}.{_valueType}" : _previewName;
 
         private bool ShowWarning() => _valueType != VarFloatValueType.CurrentValue;
 

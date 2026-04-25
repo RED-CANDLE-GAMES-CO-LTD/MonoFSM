@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.Action
 {
+    //FIXME: 不好...會不好回查 reference?
     public class SetGameObjectActiveAction : AbstractStateAction
     {
         public override string Description => "SetActive: " + (_target != null ? _target.name : "null") + " to " +
