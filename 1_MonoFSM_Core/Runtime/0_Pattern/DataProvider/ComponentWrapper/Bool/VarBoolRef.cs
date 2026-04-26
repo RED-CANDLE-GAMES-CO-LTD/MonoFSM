@@ -24,7 +24,7 @@ namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
         public override bool Value => _dropDownRef != null && _dropDownRef.Value;
         public bool IsTrue => Value;
 
-        public override string Description => _dropDownRef?.PathName;
+        public override string Description => _dropDownRef?.Description;
 
         public void SetValue(bool value, Object byWho = null, string reason = null)
         {

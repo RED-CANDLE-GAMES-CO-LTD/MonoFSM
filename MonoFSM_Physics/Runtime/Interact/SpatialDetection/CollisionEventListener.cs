@@ -1,33 +1,25 @@
-using System.Collections.Generic;
-using MonoFSM.Core.Attributes;
-using MonoFSM.Core.Detection;
-using MonoFSM.Variable.Attributes;
+using MonoFSM.Core;
+using MonoFSM.Variable;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
 {
-    //FIXME: 蛤？？
     public class CollisionEventListener : MonoBehaviour
     {
-        [CompRef]
-        [Auto]
-        private Rigidbody _rigidbody;
-
-        private readonly HashSet<CollisionDetectorSource> _registeredDetectors = new();
-
-        public void RegisterDetector(CollisionDetectorSource detectorSource)
+        void OnCollisionEnter(Collision collision)
         {
-            _registeredDetectors.Add(detectorSource);
+            Debug.Log("Collision Enter: " + collision.gameObject.name);
+            if (_collisionImpluseMagnitude != null)
+                _collisionImpluseMagnitude.SetValue(collision.impulse.magnitude);
+            _abstractEventHandler.EventHandle(collision); //float?
+
         }
 
-        private void OnCollisionStay(Collision collision)
-        {
-            // 直接轉發給所有註冊的detector，讓它們自己處理
-            foreach (var detectorSource in _registeredDetectors)
-                detectorSource.OnCollisionStay(collision);
-        }
+        // public VarVector3 _collisionRelativeVelocity;
+        [FormerlySerializedAs("_collisionVelocityMagnitude")]
+        public VarFloat _collisionImpluseMagnitude;
 
-        [ShowInDebugMode]
-        private GameObject _lastCollisionEnterObj;
+        public OnCollisionHandler _abstractEventHandler;
     }
 }

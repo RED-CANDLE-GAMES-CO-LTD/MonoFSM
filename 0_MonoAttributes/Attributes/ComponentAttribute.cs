@@ -14,7 +14,7 @@ public enum AddComponentAt
 [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = true)]
 [Conditional("UNITY_EDITOR")]
 [IncludeMyAttributes]
-[PreviewInInspector]
+// [PreviewInInspector]
 //rename AddCompAttribute??
 //FIXME: 好像不該能夠掛在function上？
 public class ComponentAttribute : ShowInInspectorAttribute //ShowInInspectorAttribute很重要
