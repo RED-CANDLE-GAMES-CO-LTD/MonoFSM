@@ -9,7 +9,7 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
     {
         void OnCollisionEnter(Collision collision)
         {
-            Debug.Log("Collision Enter: " + collision.gameObject.name);
+            // Debug.Log("Collision Enter: " + collision.gameObject.name);
             if (_collisionImpluseMagnitude != null)
                 _collisionImpluseMagnitude.SetValue(collision.impulse.magnitude);
             _abstractEventHandler.EventHandle(collision); //float?

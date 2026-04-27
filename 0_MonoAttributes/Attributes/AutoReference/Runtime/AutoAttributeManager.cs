@@ -88,17 +88,55 @@ public class AutoAttributeManager : MonoBehaviour
         return roots.SelectMany(go => go.GetComponentsInChildren<Transform>(true)).Count();
     }
 
+    [Title("Reference Cache")]
+    [SerializeField]
+    [Tooltip("勾選後 Awake 只讀 cache 不重爬 scene；Editor 端的 scene-open/domain-reload sweep 也會跳過。需要先按 Bake Reference Cache。")]
+    private bool _useCacheOnly;
+
+    public bool UseCacheOnly => _useCacheOnly;
+
     public MonoReferenceCache monoReferenceCache = new();
+
+    [PropertyOrder(-2)]
+    [Button("Bake Reference Cache", ButtonSizes.Large)]
+    [GUIColor(0.6f, 1f, 0.6f)]
+    private void BakeReferenceCache()
+    {
+        monoReferenceCache.RootObj = null; // 用整個 active scene
+        monoReferenceCache.SaveReferenceCache();
+        Debug.Log(
+            $"[Auto] Bake done. monoValueCaches:{monoReferenceCache.MonoValueCachesCount}, monos:{monoReferenceCache.CachedMonoBehavioursCount}",
+            this
+        );
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+        if (gameObject.scene.IsValid())
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(gameObject.scene);
+#endif
+    }
 
     private void Awake()
     {
-        //FIXME: build cache 要在Editor可以測
+        if (_useCacheOnly)
+        {
+            if (
+                monoReferenceCache?.CachedMonoBehaviours == null
+                || monoReferenceCache.CachedMonoBehaviours.Length == 0
+            )
+            {
+                Debug.LogWarning(
+                    "[Auto] _useCacheOnly=true 但沒有 cache，fallback 用 SweepScene。請先按 Bake Reference Cache。",
+                    this
+                );
+                SweepScene();
+                return;
+            }
+
+            monoReferenceCache.RestoreReferenceCacheToMonoFields();
+            return;
+        }
+
         SweepScene();
-        // #if UNITY_EDITOR
-        //         SweepScene();
-        // #else
-        //         monoReferenceCache.RestoreReferenceCacheToMonoFields();
-        // #endif
     }
 
     private void OnDestroy()

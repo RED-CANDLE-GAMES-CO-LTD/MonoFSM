@@ -22,16 +22,6 @@ namespace MonoFSM.Core.Formula
             Count,
         }
 
-        // [AutoChildren] [CompRef] [Required] [Tooltip("The component that provides the list of objects to process.")]
-        // private IMonoDescriptableListProvider _inputProvider;
-
-        // [ValueTypeValidate(typeof(List<MonoEntity>))] //var -> VarListEntity, value-> MonoEntity
-        // // [Auto]
-        // // [CompRef]
-        // [Tooltip("The MonoEntity list provider to use for aggregation.")]
-        // [SerializeField]
-        // private ValueProvider _monoEntityListProvider; //FIXME: 應該改用VarList?
-
         public VarList<MonoEntity> _monoEntityList;
 
         [ShowInInspector] public int ItemCount => _monoEntityList?.Value?.Count ?? 0;
@@ -151,7 +141,7 @@ namespace MonoFSM.Core.Formula
             return 0f;
         }
 
-        public string Description =>
+        public override string Description =>
             $"{_operation} of '{_variableToAggregate?.name}' from '{_monoEntityList?.name}'";
     }
 }

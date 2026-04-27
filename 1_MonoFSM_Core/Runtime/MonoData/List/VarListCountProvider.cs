@@ -1,13 +1,14 @@
 using System;
 using MonoFSM.Core.DataProvider;
+using MonoFSM.Foundation;
 using UnityEngine;
 
 namespace MonoFSM.Core.Variable.Providers
 {
-    public class VarListCountProvider : MonoBehaviour, IValueProvider<float>
+    public class VarListCountProvider : AbstractValueSource<float>, IValueProvider<float>
     {
         [DropDownRef] [SerializeField] private AbstractVarList _varList;
-        public string Description => $"{_varList?.name}'s Count";
-        public float Value => _varList.Count;
+        public override string Description => $"{_varList?.name}'s Count";
+        public override float Value => _varList.Count;
     }
 }

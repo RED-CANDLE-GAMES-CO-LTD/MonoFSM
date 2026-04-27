@@ -19,7 +19,7 @@ public class AutoAttributeManagerEditor : UnityEditor.AssetModificationProcessor
         // EditorApplication.hierarchyChanged += OnHierarchyChanged;
         EditorSceneManager.sceneOpened += OnSceneOpened;
         // Domain reload 後延遲解析一次
-        ScheduleResolve();
+        // ScheduleResolve();
         EditorApplication.playModeStateChanged += PlayModeChanged;
     }
 
@@ -28,7 +28,7 @@ public class AutoAttributeManagerEditor : UnityEditor.AssetModificationProcessor
         if (obj == PlayModeStateChange.EnteredEditMode)
         {
             // 回到 Editor
-            ScheduleResolve();
+            // ScheduleResolve();
         }
     }
 
@@ -65,6 +65,17 @@ public class AutoAttributeManagerEditor : UnityEditor.AssetModificationProcessor
     {
         _resolveScheduled = false;
         if (Application.isPlaying) return;
+
+        // 若場景中的 AutoAttributeManager 勾了 _useCacheOnly，跳過這次 sweep
+        var managers = UnityEngine.Object.FindObjectsByType<AutoAttributeManager>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None
+        );
+        if (managers != null && managers.Length > 0 &&
+            managers.Any(m => m != null && m.UseCacheOnly))
+        {
+            return;
+        }
 
         var mbs = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(
             FindObjectsInactive.Include,
