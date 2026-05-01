@@ -36,7 +36,7 @@ namespace MonoFSM.Core.LifeCycle
                 }
             }
 
-            Debug.Log($"[UnmountViewRoot] Unmounted {source.name}", this);
+            // Debug.Log($"[UnmountViewRoot] Unmounted {source.name}", this);
         }
     }
 }

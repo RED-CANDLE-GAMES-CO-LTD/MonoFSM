@@ -9,7 +9,7 @@ using UnityEngine.Serialization;
 //暫時override某個值
 //PlayerDieAnimState, 但沒得選有點髒
 //用另一個Config給值。好像還行
-public class GameStateStringOverrider : GameStateOverrider<GameFlagString, FlagFieldString, string>
+public class GameStateStringOverrider : GameStateOverrider<GameDataString, FlagFieldString, string>
 {
 }
 

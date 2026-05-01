@@ -18,8 +18,10 @@ namespace MonoFSM.Core
             _exitRatio = 0.75f;
         }
 
-        protected override bool IsValid =>
-            _action && _exitRatio <= 0 ? _action.IsDone : _action.IsProgressPassedRatio(_exitRatio);
+        protected override bool IsValid => _action != null &&
+                                           (_exitRatio <= 0
+                                               ? _action.IsDone
+                                               : _action.IsProgressPassedRatio(_exitRatio));
 
         //沒有serialized, 所以editor check會誤判..
         [SerializeField]

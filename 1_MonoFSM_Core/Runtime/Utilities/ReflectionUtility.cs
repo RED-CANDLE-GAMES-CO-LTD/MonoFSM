@@ -629,7 +629,7 @@ namespace MonoFSM.Core.Utilities
                 }
                 else
                 {
-                    Debug.Log($"靜態型別：{memberType} 來自屬性 {prop.Name}");
+                    // Debug.Log($"靜態型別：{memberType} 來自屬性 {prop.Name}");
                 }
             }
             else if (member is FieldInfo field)
@@ -703,9 +703,9 @@ namespace MonoFSM.Core.Utilities
                     if (varTag?.ValueFilterType != null)
                     {
                         // 返回VarTag的RestrictType！
-                        Debug.Log(
-                            $"動態型別：{varTag.ValueFilterType} 來自 VarTag {varTagField.Name}"
-                        );
+                        // Debug.Log(
+                        //     $"動態型別：{varTag.ValueFilterType} 來自 VarTag {varTagField.Name}"
+                        // );
                         return varTag.ValueFilterType;
                     }
                 }

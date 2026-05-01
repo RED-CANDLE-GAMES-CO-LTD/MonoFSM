@@ -1,3 +1,4 @@
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime.Interact.EffectHit;
@@ -21,6 +22,9 @@ namespace MonoFSM.Core.Runtime.Action
         [CompRef] [AutoChildren(DepthOneOnly = true)]
         private IEventReceiver[] _actions;
 
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
+        private IRenderBehaiour[] _renderBehaiours;
+
         public bool IsDefault => _isDefault;
 
         public bool IsConditionMet => !_isDefault && _conditions.IsAllValid();
@@ -32,6 +36,15 @@ namespace MonoFSM.Core.Runtime.Action
                 if (action == null) continue;
                 if (action.IsValid)
                     action.EventReceived();
+            }
+        }
+
+        public void Render()
+        {
+            foreach (var renderBehaiour in _renderBehaiours)
+            {
+                if (renderBehaiour == null) continue;
+                renderBehaiour.OnRender();
             }
         }
 

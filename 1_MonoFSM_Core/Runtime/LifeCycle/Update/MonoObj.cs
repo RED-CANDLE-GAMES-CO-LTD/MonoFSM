@@ -73,6 +73,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [Auto] private PoolObject _poolObject;
 
         [ShowInInspector] public bool isSceneObj => _poolObject == null || !_poolObject.IsFromPool;
+        [ShowInInspector] public bool isPoolObj => _poolObject != null && _poolObject.IsFromPool;
         [ShowInInspector]
         [field: AutoChildren] //Children? //FIXME: 要弄成必定同一層，還是因為MonoObj 包一層 FSM的case很多？
         public MonoEntity Entity { get; }
@@ -344,8 +345,9 @@ namespace MonoFSMCore.Runtime.LifeCycle
                         Debug.Log("ResetStateRestore: Reactivating GameObject " + name, this);
                     // Debug.Break();
                     gameObject.SetActive(true);
-                    // WorldUpdateSimulator
-                    //     .RegisterMonoObject(this); //回到pool的物件會被despawn刪掉，回到scene上的物件才需要註冊
+                    WorldUpdateSimulator
+                        .RegisterMonoObject(this);
+                    // //回到pool的物件會被despawn刪掉，回到scene上的物件才需要註冊
                 }
             }
 
@@ -444,11 +446,18 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         [ShowInInspector] public bool IsProxy { get; set; } //沒在用？？
 
+        //被 WorldUpdateSimulator 註冊後就不再反註冊；despawn 只把這個 flag 關掉，
+        //各個 Simulate phase 在 root 層用此 flag 決定是否要跑。
+        //ResetStateRestore 等 reset 流程仍會 iterate 整個 set，不受此 flag 影響。
+        [ShowInInspector] public bool IsActiveInSimulator { get; set; } = true;
+
         public void BeforeSimulate(float deltaTime)
         {
             if (HasParent)
                 return;
             if (IsProxy)
+                return;
+            if (!IsActiveInSimulator)
                 return;
             TickBeforeSimulatePhase(deltaTime);
         }
@@ -481,6 +490,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
             //如果proxy就跳過？
             // if (IsProxy)
             //     return;
+            if (!IsActiveInSimulator)
+                return;
             TickSimulatePhase(deltaTime);
         }
 
@@ -522,6 +533,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 return;
             if (IsProxy)
                 return;
+            if (!IsActiveInSimulator)
+                return;
             TickAfterSimulatePhase(deltaTime);
         }
 
@@ -550,6 +563,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
         public void Render(float deltaTimelocalAlpha)
         {
             if (HasParent)
+                return;
+            if (!IsActiveInSimulator)
                 return;
             TickRenderPhase(deltaTimelocalAlpha);
         }
@@ -655,6 +670,55 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 return;
         }
 
+        [Button("Check Update Status")]
+        private void CheckUpdateStatus()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.LogWarning("[MonoObj] CheckUpdateStatus 需在 Play Mode 下執行", this);
+                return;
+            }
+
+            var root = GetMonoObjRoot();
+            var assignedWorld = WorldUpdateSimulator;
+            var allWorlds = FindObjectsByType<WorldUpdateSimulator>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            WorldUpdateSimulator owningWorld = null;
+            foreach (var w in allWorlds)
+            {
+                if (w != null && w.IsRegistered(root))
+                {
+                    owningWorld = w;
+                    break;
+                }
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"[MonoObj] Update Status for '{name}'");
+            sb.AppendLine($"  HasParent: {HasParent} (root='{root.name}')");
+            sb.AppendLine(
+                $"  Assigned WorldUpdateSimulator: {(assignedWorld != null ? assignedWorld.name : "<null>")}");
+            sb.AppendLine($"  Found in scene: {allWorlds.Length} WorldUpdateSimulator(s)");
+            sb.AppendLine(
+                $"  Registered in: {(owningWorld != null ? owningWorld.name : "<NONE — 不會被更新>")}");
+            if (assignedWorld != null && owningWorld != assignedWorld)
+                sb.AppendLine("  ⚠ Assigned 與實際註冊的 simulator 不一致");
+            sb.AppendLine($"  IsActiveInSimulator: {IsActiveInSimulator}");
+            sb.AppendLine($"  IsCulling: {IsCulling}");
+            sb.AppendLine($"  IsProxy: {IsProxy}");
+            sb.AppendLine(
+                $"  Phase needed — Before:{IsBeforeSimulatesNeeded}  Update:{IsUpdateSimulatesNeeded}  After:{IsAfterSimulatesNeeded}  Render:{IsRenderSimulatesNeeded}");
+
+            var willUpdate = owningWorld != null && !HasParent && IsActiveInSimulator && !IsCulling;
+            sb.AppendLine($"  => 會被 WorldUpdateSimulator 更新嗎？ {(willUpdate ? "YES" : "NO")}");
+
+            if (owningWorld != null)
+                Debug.Log(sb.ToString(), this);
+            else
+                Debug.LogWarning(sb.ToString(), this);
+        }
+
         [Button("Rename to Prefab Name")]
         private void RenameToPrefabName()
         {
@@ -674,6 +738,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
         public void AfterRender()
         {
             if (HasParent)
+                return;
+            if (!IsActiveInSimulator)
                 return;
             TickAfterRenderPhase();
         }

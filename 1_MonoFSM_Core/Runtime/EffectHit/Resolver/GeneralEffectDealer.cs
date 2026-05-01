@@ -80,7 +80,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return _receivers.Contains(receiver);
         }
 
-        public bool HasReceiverOverlap => _receivers.Count > 0;
+        public bool HasReceiverOverlap => isActiveAndEnabled && _receivers.Count > 0;
 
 
 

@@ -9,7 +9,7 @@ namespace _1_MonoFSM_Core.Runtime.Action
     public class SetGameObjectActiveAction : AbstractStateAction
     {
         public override string Description => "SetActive: " + (_target != null ? _target.name : "null") + " to " +
-                                              (_isToggle ? "Toggle" : _active.Value.ToString());
+                                              (_isToggle ? "Toggle" : _active.Description);
 
         public GameObject _target;
         public GameObject[] _addTargets;

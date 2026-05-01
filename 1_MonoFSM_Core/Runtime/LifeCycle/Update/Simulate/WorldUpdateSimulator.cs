@@ -213,8 +213,13 @@ namespace MonoFSM.Core.Simulate
             _pendingDespawns.Clear();
         }
 
+        public bool IsRegistered(MonoObj target) =>
+            target != null && _monoObjectSet.Contains(target);
+
+        public int RegisteredCount => _monoObjectSet.Count;
         public void RegisterMonoObject(MonoObj target)
         {
+            if (target == null) return;
             if (_monoObjectSet.Add(target))
             {
                 target.SetWorldUpdateSimulator(this);
@@ -222,6 +227,9 @@ namespace MonoFSM.Core.Simulate
                 // target.ResetStateRestore();
                 // target.ResetStart();
             }
+
+            //不論是新加入還是已存在（被 despawn 後 re-spawn），都把 update flag 開回來
+            target.IsActiveInSimulator = true;
         }
 
         //FIXME: local的沒有接到？
@@ -238,25 +246,20 @@ namespace MonoFSM.Core.Simulate
 
         public void UnregisterMonoObject(MonoObj target)
         {
-            if (target.isSceneObj)
+            if (target == null) return;
+            // if (target.isSceneObj)
+            // return;
+            // 不再從 set 中移除，僅關閉 update flag；reset list 仍會 iterate 全 set
+            if (target.IsActiveInSimulator)
             {
-                return;
-            }
-            if (_monoObjectSet.Remove(target))
-            {
+                target.IsActiveInSimulator = false;
                 //FIXME: 需要這行嗎？OnReturnToPool?
-                target.ResetStateRestore(false);
-                //還是不要清？這樣才可以回來？
-                // target.SetWorldUpdateSimulator(null); //清除引用
-
-            }
-            else
-            {
-                //現在 Despawn 時可能會call兩次，避免？
-                // Debug.LogError(
-                //     $"Attempted to unregister MonoPoolObj: {target.name}, but it was not found in the WorldUpdateSimulator set.",
-                //     target
-                // );
+                // target.ResetStateRestore(false);
+                if (target.isPoolObj)
+                {
+                    _monoObjectSet.Remove(target);
+                    target.SetWorldUpdateSimulator(null); //清除引用
+                }
             }
         }
 

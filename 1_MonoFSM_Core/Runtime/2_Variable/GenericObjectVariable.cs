@@ -312,13 +312,13 @@ namespace MonoFSM.Variable
 
         public override void CommitValue()
         {
-            Profiler.BeginSample("GenericUnityObjectVariable<TValueType>.CommitValue", this);
-            Profiler.BeginSample("GetValue");
+            // Profiler.BeginSample("GenericUnityObjectVariable<TValueType>.CommitValue", this);
+            // Profiler.BeginSample("GetValue");
             _lastValue = Value;
-            Profiler.EndSample();
+            // Profiler.EndSample();
             if (_lastValue != null)
                 _lastNonNullValue = _lastValue;
-            Profiler.EndSample();
+            // Profiler.EndSample();
         }
 
         //FIXME: 不該留這個API

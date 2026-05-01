@@ -35,9 +35,9 @@ namespace MonoFSM.Core.Condition
 
         public void ActivateCheck()
         {
-            Profiler.BeginSample("ConditionActivateCheck");
+            // Profiler.BeginSample("ConditionActivateCheck");
             var result = _conditionGroup.IsValid;
-            Profiler.EndSample();
+            // Profiler.EndSample();
 
             ActivateCheckImplement(result);
         }

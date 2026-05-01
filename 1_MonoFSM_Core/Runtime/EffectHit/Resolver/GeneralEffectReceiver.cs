@@ -116,7 +116,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 #endif
         }
 
-        public bool HasDealerOverlap => _dealers.Count > 0;
+        public bool HasDealerOverlap => isActiveAndEnabled && _dealers.Count > 0;
 
         //FIXME: 會殘留...
         [GUIColor(0.3f, 0.9f, 0.3f)]

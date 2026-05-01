@@ -11,8 +11,8 @@ namespace Fusion.Addons.FSM
     //Local版的？
     [DisallowMultipleComponent]
     [RequireComponent(typeof(StateMachineLogic))] // Ensure StateMachineLogic is present
-    public class MonoStateMachineController : MonoBehaviour, IStateMachineController
-    // IUpdateSimulate
+    public class MonoStateMachineController : MonoBehaviour, IStateMachineController,
+        IUpdateSimulate
     {
         public IReadOnlyList<IStateMachine> StateMachines => _fsmLogic.StateMachines;
 
@@ -59,13 +59,13 @@ namespace Fusion.Addons.FSM
         }
 
         //FIXME: 全部都從LocalSimulatorRunner打過來？
-        private void FixedUpdate()
-        {
-            if (_fsmLogic._manualUpdateMode || !_initialized)
-                return;
-
-            FixedUpdateInternal();
-        }
+        // private void FixedUpdate()
+        // {
+        //     if (_fsmLogic._manualUpdateMode || !_initialized)
+        //         return;
+        //
+        //     FixedUpdateInternal();
+        // }
 
         private void OnDestroy()
         {
@@ -93,18 +93,18 @@ namespace Fusion.Addons.FSM
             _initialized = true;
         }
 
-        public void SetManualUpdate(bool manualUpdate)
-        {
-            _fsmLogic.SetManualUpdateMode(manualUpdate);
-        }
-
-        public void ManualFixedUpdate()
-        {
-            if (!_fsmLogic._manualUpdateMode)
-                throw new InvalidOperationException("Manual update is not turned on");
-
-            FixedUpdateInternal();
-        }
+        // public void SetManualUpdate(bool manualUpdate)
+        // {
+        //     _fsmLogic.SetManualUpdateMode(manualUpdate);
+        // }
+        //
+        // public void ManualFixedUpdate()
+        // {
+        //     if (!_fsmLogic._manualUpdateMode)
+        //         throw new InvalidOperationException("Manual update is not turned on");
+        //
+        //     FixedUpdateInternal();
+        // }
 
         public void ManualRender()
         {
@@ -162,5 +162,9 @@ namespace Fusion.Addons.FSM
         // {
         //     throw new NotImplementedException();
         // }
+        public void Simulate(float deltaTime)
+        {
+            FixedUpdateInternal();
+        }
     }
 }

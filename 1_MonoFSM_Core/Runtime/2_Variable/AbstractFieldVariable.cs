@@ -108,13 +108,13 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     public override void CommitValue()
     {
         this.Log("CommitValue", this);
-        Profiler.BeginSample("Field.CommitValue");
+        // Profiler.BeginSample("Field.CommitValue");
         var (last, current) = Field.CommitValue();
-        Profiler.EndSample();
+        // Profiler.EndSample();
         this.Log("CommitValue Commited", current, "Last Value", last, this);
-        Profiler.BeginSample("ValueCommited");
+        // Profiler.BeginSample("ValueCommited");
         ValueCommited(last, current);
-        Profiler.EndSample();
+        // Profiler.EndSample();
     }
 
     //可以用abstract比較好？但目前只用到VarFloat

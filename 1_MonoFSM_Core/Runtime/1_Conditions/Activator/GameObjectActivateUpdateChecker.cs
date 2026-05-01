@@ -22,10 +22,13 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions.Activator
                 Debug.LogError("GameObjectActivateChecker: Target is null", this);
                 return;
             }
-            _target.SetActive(isValid);
+
+            if (_target.activeSelf != isValid)
+                _target.SetActive(isValid);
             foreach (var additional in _additionals)
             {
-                additional.SetActive(isValid);
+                if (additional.activeSelf != isValid)
+                    additional.SetActive(isValid);
             }
         }
     }

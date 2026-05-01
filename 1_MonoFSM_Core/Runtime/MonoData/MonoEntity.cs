@@ -504,6 +504,8 @@ namespace MonoFSM.Runtime
             foreach (var pack in _monoPackFolder.ModulePacks)
             {
                 if (pack == null) continue;
+                if (pack.gameObject.activeSelf == false)
+                    continue;
                 if (pack.GetComponentInParent<MonoEntity>() != this) //有別人就不算
                     continue;
 

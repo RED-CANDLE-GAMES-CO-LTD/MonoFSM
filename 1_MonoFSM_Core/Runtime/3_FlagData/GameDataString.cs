@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewBoolFlag", menuName = "GameFlag/String", order = 1)]
-public class GameFlagString : AbstractScriptableData<FlagFieldString, string> // GameFlagBase
+[CreateAssetMenu(fileName = "NewGameDataStr", menuName = "GameData/String", order = 1)]
+public class GameDataString : AbstractScriptableData<FlagFieldString, string> // GameFlagBase
 {
     // public FlagFieldString field;
     //

@@ -153,6 +153,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         public void ClearFollowTarget()
         {
+            // Debug.Log($"[ViewRoot] '{name}' cleared follow target.", this);
             _parentViewRoot = null;
         }
 

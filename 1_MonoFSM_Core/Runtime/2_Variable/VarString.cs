@@ -1,7 +1,8 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class VarString : AbstractFieldVariable<GameFlagString, FlagFieldString, string>,
+//有需要把字串寫進去的case嗎？還是其實只要static就好了
+public class VarString : AbstractFieldVariable<GameDataString, FlagFieldString, string>,
     IStringTokenVar
 {
     // public override GameFlagBase FinalData => BindData;

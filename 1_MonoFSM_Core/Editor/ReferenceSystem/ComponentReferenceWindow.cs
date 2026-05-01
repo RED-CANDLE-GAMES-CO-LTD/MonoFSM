@@ -36,6 +36,13 @@ namespace MonoFSM.Editor.ReferenceSystem
             GetWindow<ComponentReferenceWindow>("Reference Finder");
         }
 
+        [MenuItem("CONTEXT/Component/Find References")]
+        private static void FindReferencesContext(MenuCommand command)
+        {
+            if (command.context != null)
+                ShowWindowWithTarget(command.context);
+        }
+
         /// <summary>
         /// 開啟視窗並直接查找指定的 Object
         /// </summary>

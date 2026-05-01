@@ -226,7 +226,7 @@ public class GameData
         if (_dataFunctions == null && _dataFunctionList == null) //如果onchange清掉咧？
             return;
         _dataFunctionDict.Clear();
-        Debug.Log($"Rebuilding data function dict for {name}", this);
+        // Debug.Log($"Rebuilding data function dict for {name}", this);
         if (_dataFunctions != null && _dataFunctions.Length > 0)
             foreach (var dataFunction in _dataFunctions)
             {

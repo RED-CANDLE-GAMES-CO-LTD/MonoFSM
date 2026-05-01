@@ -88,12 +88,12 @@ namespace MonoFSM.Variable
         private void FindReferences()
         {
             // 透過反射呼叫 Editor Window，避免 Runtime 直接引用 Editor namespace
-            var windowType = System.Type.GetType(
+            var windowType = Type.GetType(
                 "MonoFSM.Editor.VariableReferenceSystem.VariableReferenceWindow, MonoFSM.Core.Editor");
             if (windowType != null)
             {
                 var method = windowType.GetMethod("ShowWindowWithVariable",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    BindingFlags.Public | BindingFlags.Static);
                 method?.Invoke(null, new object[] { this });
             }
             else

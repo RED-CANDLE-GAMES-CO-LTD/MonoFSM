@@ -67,9 +67,9 @@ namespace MonoFSM.Core.LifeCycle
             source.ViewRoot.SetFollowTarget(target.ViewRoot, _mountPoint.position,
                 _mountPoint.rotation);
 
-            Debug.Log(
-                $"[MountViewRoot] Mounted {source.name} to {target.name} at {_mountPoint.position}",
-                this);
+            // Debug.Log(
+            //     $"[MountViewRoot] Mounted {source.name} to {target.name} at {_mountPoint.position}",
+            //     this);
         }
     }
 }

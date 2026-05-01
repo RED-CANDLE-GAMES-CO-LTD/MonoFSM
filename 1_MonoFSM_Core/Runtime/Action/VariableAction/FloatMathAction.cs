@@ -7,6 +7,7 @@ using UnityEngine;
 namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 {
     // //最完整的應該用這個
+    //FIXME: 想要 wrapper?
     public class FloatMathAction : AbstractStateAction
     {
         [Required]

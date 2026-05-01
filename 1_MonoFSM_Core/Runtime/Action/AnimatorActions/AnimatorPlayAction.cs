@@ -23,7 +23,7 @@ namespace MonoFSM.Animation
     //小心從init routing來，會直接播結束的frame，要從transition上知道這件事
     //documentation要放哪？
 
-
+//FIXME: 不該叫做Action
     //FIXME: 把StateAction拔掉？ AnimatorPlayBehaviour? IRenderBehaviour?
     // [HelpURL("https://www.notion.so/AnimatorPlayA-061be2a2d4e5414e88e84f1ed80d8ea2")]
     [Searchable]
@@ -654,7 +654,7 @@ namespace MonoFSM.Animation
 
         [ShowInPlayMode]
         private float CurrentPlayingNormalizedTime =>
-            animator.GetCurrentAnimatorStateInfo(stateLayer).normalizedTime;
+            animator?.GetCurrentAnimatorStateInfo(stateLayer).normalizedTime ?? -1;
 
         [AutoParent]
         private MonoStateBehaviour _stateBehaviour; //這個是State的行為，還是要有個StateAction來做事情

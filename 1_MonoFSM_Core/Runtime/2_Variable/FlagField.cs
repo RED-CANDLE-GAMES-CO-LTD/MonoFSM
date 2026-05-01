@@ -617,15 +617,21 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
         //     Debug.LogError("PLZ FIX ME, Assign Owner for function block!!" + owner, owner);
 
         // else
+#if UNITY_EDITOR
         if (Application.isPlaying == false)
         {
             if (EqualityComparer<T>.Default.Equals(DevValue, default) ||
                 EqualityComparer<T>.Default.Equals(DevValue, _currentValue))
             {
                 DevValue = ProductionValue;
+                _currentValue = DevValue;
             }
+
+            _currentValue = ProductionValue;
         }
-        _currentValue = RuntimeDebugSetting.IsDebugMode ? DevValue : ProductionValue;
+        else
+#endif
+            _currentValue = RuntimeDebugSetting.IsDebugMode ? DevValue : ProductionValue;
         // Debug.Log("FlagField Init: " + _currentValue + " Mode: " + DebugSetting.IsDebugMode, owner);
         //沒有register耶？
     }

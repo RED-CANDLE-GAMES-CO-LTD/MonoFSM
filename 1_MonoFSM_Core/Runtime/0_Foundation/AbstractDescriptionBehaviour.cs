@@ -29,6 +29,7 @@ namespace MonoFSM.Foundation
     public abstract class AbstractDescriptionBehaviour
         : MonoBehaviour,
             IBeforePrefabSaveCallbackReceiver,
+            ICustomPrefabSaveCallbackReceiver,
             IAfterPrefabStageOpenCallbackReceiver,
             IDrawHierarchyBackGround, IHierarchyValueInfo
     {
@@ -500,7 +501,7 @@ namespace MonoFSM.Foundation
         public virtual string Description => GetType().Name;
 
         protected virtual string DescriptionTag => "";
-
+        protected virtual bool IsRenameOnlyWhenCustomSave => false;
 
         protected virtual bool IsIgnoreRename => false;
 
@@ -587,6 +588,8 @@ namespace MonoFSM.Foundation
 #if UNITY_EDITOR
             AutoAttributeManager.AutoReference(this); //有些field需要autoChildren容易造成 description null
             CheckNullOfRequiredFields(isPrefabStage: true, isShowError: true);
+            if (IsRenameOnlyWhenCustomSave)
+                return;
             Rename();
 #endif
         }
@@ -731,5 +734,11 @@ namespace MonoFSM.Foundation
         }
 
         #endregion
+
+        public void OnCustomPrefabSave()
+        {
+            if (IsRenameOnlyWhenCustomSave)
+                Rename();
+        }
     }
 }

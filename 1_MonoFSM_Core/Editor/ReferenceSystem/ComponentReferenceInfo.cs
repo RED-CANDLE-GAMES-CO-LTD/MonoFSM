@@ -57,6 +57,8 @@ namespace MonoFSM.Editor.ReferenceSystem
         };
 
         public string ComponentDisplayName =>
-            ReferencingComponent != null ? ReferencingComponent.GetType().Name : "(null)";
+            ReferencingComponent != null
+                ? $"{ReferencingComponent.gameObject.name} ({ReferencingComponent.GetType().Name})"
+                : "(null)";
     }
 }
