@@ -60,6 +60,7 @@ public class GeneralState : MonoStateBehaviour
         context.RestoreState(StateId);
     }
 
+    //FIXME: 要區分 render 和 一般的？ 同一份code怎麼區分？從 MonoObj 去判 authority嗎？
     protected virtual void OnStateEnter() { }
 
     protected override void OnEnterState()

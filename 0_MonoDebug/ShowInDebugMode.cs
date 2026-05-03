@@ -8,7 +8,7 @@ namespace MonoFSM.Core.Attributes
     [GUIColor(1, 1, 0, 1)]
     [IncludeMyAttributes]
     [ShowInInspector]
-    // [ShowIf("@" + nameof(RuntimeDebugSetting) + "." + nameof(RuntimeDebugSetting.IsDebugMode))]
+    [ShowIf("@" + nameof(RuntimeDebugSetting) + "." + nameof(RuntimeDebugSetting.IsDebugMode))]
     // [UsedImplicitly]
     [MeansImplicitUse]
     public class ShowInDebugMode : Attribute

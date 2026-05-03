@@ -142,6 +142,7 @@ namespace MonoFSM.Core
 
         protected virtual void OnExitState() { }
 
+        //FIXME: 要實作這個
         protected virtual void OnEnterStateRender() { }
 
         protected virtual void OnRender() { }
