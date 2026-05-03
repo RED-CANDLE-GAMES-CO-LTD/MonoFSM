@@ -1,3 +1,4 @@
+using _1_MonoFSM_Core.Runtime.MonoData;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -39,6 +40,9 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
         // }
     }
 
+    [AutoChildren] ViewRoot _viewRoot;
+
+
     private bool ParameterInitCheck()
     {
         if (_isResetParameterInit)
@@ -63,6 +67,8 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
 
     public void ResetStateRestore(bool IsHardReset)
     {
+        if (_viewRoot._parentViewRoot != null) return; //有parent就不reset，等parent reset的時候一起reset就好
+        
         if (ParameterInitCheck()) //第一次記下來？還是分開感覺比較好？
         {
             transform.SetParent(_initParent);
