@@ -35,7 +35,13 @@ namespace MonoFSM.Core.Runtime.Action
         protected override bool HasError() //FIXME: 會很貴嗎？
         {
             //only one
-            return transform.parent.GetComponent<IActionParent>() == null || base.HasError();
+            if (transform.parent.GetComponent<IActionParent>() == null)
+            {
+                _errorMessage = "No direct action parent found";
+                return true;
+            }
+
+            return base.HasError();
             // return GetComponentInParent<IActionParent>(true) == null || base.HasError();
         }
 
@@ -63,7 +69,7 @@ namespace MonoFSM.Core.Runtime.Action
         [PreviewInInspector]
         [AutoParent]
         // [SerializeField]
-        //FIXME: 要做 DepthOnly1嗎？
+        //FIXME: 應該要做 DepthOnly1嗎？
         protected IActionParent _actionParent;
 
         [HideInInlineEditors]

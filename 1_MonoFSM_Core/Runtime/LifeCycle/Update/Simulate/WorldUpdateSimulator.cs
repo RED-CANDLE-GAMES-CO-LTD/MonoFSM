@@ -386,6 +386,13 @@ namespace MonoFSM.Core.Simulate
         public static float DeltaTime => _deltaTime * TimeScale;
         public static float LocalAlpha { get; private set; }
 
+        /// <summary>
+        /// 目前 Simulate phase 是否為 Fusion 的 resimulation tick。
+        /// 由 driver（如 FusionSimulatorRunner）在 FixedUpdateNetwork 開頭設定。
+        /// 用於讓某些不該在 resim 重複推進的邏輯（如 SplineMover 沿路徑前進）跳過。
+        /// </summary>
+        public static bool IsResimulation { get; set; }
+
         public static SimPhase CurrentPhase { get; private set; } = SimPhase.None;
 
         public void BeforeSimulate(float time, float deltaTime, int tick)

@@ -27,7 +27,7 @@ namespace MonoFSM.Core.Runtime.Action
 
         public bool IsDefault => _isDefault;
 
-        public bool IsConditionMet => !_isDefault && _conditions.IsAllValid();
+        [ShowInInspector] public bool IsConditionMet => _conditions.IsAllValid();
 
         public void ExecuteActions()
         {
@@ -43,8 +43,7 @@ namespace MonoFSM.Core.Runtime.Action
         {
             foreach (var renderBehaiour in _renderBehaiours)
             {
-                if (renderBehaiour == null) continue;
-                renderBehaiour.OnRender();
+                renderBehaiour?.OnRender();
             }
         }
 

@@ -646,6 +646,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
             var iLevelStarts = new List<ISceneStart>(_sceneStarts);
             iLevelStarts.Reverse();
 
+            // Debug.Log("HandleSceneStart " + name, this);
             foreach (var item in iLevelStarts)
             {
                 if (item == null)
@@ -653,6 +654,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 try
                 {
                     item.EnterSceneStart();
+                    // Debug.Log("EnterSceneStart " + item, item as MonoBehaviour);
                 }
                 catch (Exception e)
                 {

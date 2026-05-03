@@ -8,6 +8,20 @@ namespace MonoFSM_InputAction
     //UnityMonoInputAction / RewireMonoInputAction
     //FIXME:好像包的有點亂，這個又要polling local, 又要提供處理完的?
     //寫錯啦！應該給一個能串接的對象，然後實作抽出去
+    /// <summary>
+    ///     Optional partner component that overrides MonoInputAction's local buffer logic.
+    ///     掛在同一個 GameObject 上，MonoInputAction 偵測到後會自動委派 IsInBufferTime / ConsumePress 等。
+    ///     用於 Fusion 等需要 rollback-safe 計時的情境。
+    /// </summary>
+    public interface IInputBufferProvider
+    {
+        bool IsInBufferTime { get; }
+        void ConsumePress();
+        float PressTime { get; }
+        float LastPressDuration { get; }
+        float LastPressedTime { get; }
+    }
+
     public interface IInputActionImplementation
     {
         public int InputActionId { get; }
@@ -51,6 +65,23 @@ namespace MonoFSM_InputAction
         [Auto]
         private IInputActionImplementation _abstractInputActionImplementation;
 
+        // Optional partner，沒掛時走下方本地 buffer 邏輯。手動 lazy lookup 避免 [Auto] missing 噴 log。
+        [ShowInInspector] private IInputBufferProvider _bufferProvider;
+        private bool _bufferProviderLookedUp;
+
+        private IInputBufferProvider BufferProvider
+        {
+            get
+            {
+                if (!_bufferProviderLookedUp)
+                {
+                    _bufferProvider = GetComponent<IInputBufferProvider>();
+                    _bufferProviderLookedUp = true;
+                }
+                return _bufferProvider;
+            }
+        }
+
         public Vector2 ReadValueVec2 =>
             _abstractInputActionImplementation.Vec2ValueCached; //可以被Override
 
@@ -73,14 +104,15 @@ namespace MonoFSM_InputAction
         /// 已按住的時間（秒）
         /// </summary>
         [ShowInPlayMode]
-        public float PressTime => _abstractInputActionImplementation?.PressTime ?? 0f;
+        public float PressTime => BufferProvider?.PressTime
+            ?? _abstractInputActionImplementation?.PressTime ?? 0f;
 
         /// <summary>
         /// 在 buffer 時間內且尚未被消費。勾選 _useBufferConsume 才生效。
         /// </summary>
         [ShowInPlayMode]
-        public bool IsInBufferTime => _useBufferConsume
-                                      && PressTime > 0 && PressTime < _bufferTime && !_isConsumed;
+        public bool IsInBufferTime => BufferProvider?.IsInBufferTime
+            ?? (_useBufferConsume && PressTime > 0 && PressTime < _bufferTime && !_isConsumed);
 
         [SerializeField] bool _useBufferConsume;
 
@@ -92,25 +124,31 @@ namespace MonoFSM_InputAction
         /// <summary>
         /// 標記此次 press 已被處理，IsInBufferTime 將回傳 false 直到下次 press 或 release。
         /// </summary>
-        public void ConsumePress() => _isConsumed = true;
+        public void ConsumePress()
+        {
+            if (BufferProvider != null) BufferProvider.ConsumePress();
+            else _isConsumed = true;
+        }
 
         /// <summary>
         /// 上次按下的時間戳（Time.time）
         /// </summary>
         [ShowInPlayMode]
-        public float LastPressedTime => _abstractInputActionImplementation?.LastPressedTime ?? -1f;
+        public float LastPressedTime => BufferProvider?.LastPressedTime
+            ?? _abstractInputActionImplementation?.LastPressedTime ?? -1f;
 
         /// <summary>
         /// 最近一次完整 press→release 的總按壓時長（秒）。尚未有完整釋放過則為 0。
         /// </summary>
         [ShowInPlayMode]
-        public float LastPressDuration => _abstractInputActionImplementation?.LastPressDuration ?? 0f;
+        public float LastPressDuration => BufferProvider?.LastPressDuration
+            ?? _abstractInputActionImplementation?.LastPressDuration ?? 0f;
 
         /// <summary>
         /// 由 IInputActionImplementation 在 CacheLocalInput 結束後呼叫，
         /// 確保在 input cache 更新後才重置 consume 狀態。
         /// </summary>
-        internal void OnInputCached()
+        public void OnInputCached()
         {
             if (!_useBufferConsume) return;
 

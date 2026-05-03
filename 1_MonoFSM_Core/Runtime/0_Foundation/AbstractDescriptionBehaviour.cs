@@ -482,7 +482,7 @@ namespace MonoFSM.Foundation
             return true; // 預設為驗證
         }
 
-        [ShowInDebugMode]
+        [ShowInInspector]
         [AutoParent]
         protected MonoEntity _self; //FIXME: 每個都要嗎？
 
@@ -621,8 +621,10 @@ namespace MonoFSM.Foundation
 #endif
         }
 
+        [ShowIf(nameof(HasError))]
         [InfoBox("$_errorMessage", InfoMessageType.Error, "$HasError")]
-        [PreviewInDebugMode]
+        // [PreviewInDebugMode]
+        [ShowInInspector]
         protected string _errorMessage;
 
         // public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);

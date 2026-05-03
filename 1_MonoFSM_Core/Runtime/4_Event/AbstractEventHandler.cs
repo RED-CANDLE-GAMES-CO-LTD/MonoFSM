@@ -82,6 +82,8 @@ namespace MonoFSM.Core
             if (!gameObject.activeSelf)
                 return;
             _lastEventHandledTime = Time.time;
+            if (_eventReceivers == null)
+                return;
             foreach (var eventReceiver in _eventReceivers)
             {
                 try

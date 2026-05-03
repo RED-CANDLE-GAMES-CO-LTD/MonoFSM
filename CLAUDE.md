@@ -2,11 +2,11 @@
 * 當我提出需求時，先回應我清楚度 1-10分，當問題不清楚時(<7)，請要求我提供更多資訊
 * 當你創建的檔案超出 500 行時，應進行 refactor 或是需要拆模組到其他檔案
 * 新增/修改 C# script 後的必要流程（不可跳過）：
-  1. `refresh_unity` (compile: request, wait_for_ready: true)
+    1. `compile` (compile: request, wait_for_ready: true)
   2. `read_console` (types: error) 確認無編譯錯誤
   3. 有錯就修，修完重複 1~2，沒錯才繼續
   4. 若檔案在 Rider 中有開啟，用 `getDiagnostics` 做進一步檢查
-* 此專案使用 Odin Inspector, 編輯器工具盡量使用已有的Attribute (已搭配AttributeDrawer)
+* 此專案使用 Odin Inspector, 編輯器工具盡量使用已有的 Attribute (已搭配AttributeDrawer)
     * ex: 1_MonoFSM_Core/Runtime/Attributes/CompRefAttribute.cs
   * Editor工具如果不是非常複雜的情況也是用 Odin Inspector 做就好，如果需要 EdtiorWindow 時也要用OdinEditorWindow
 * SerializedField 和 public field 以底線開頭命名

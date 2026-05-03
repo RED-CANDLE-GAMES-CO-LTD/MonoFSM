@@ -17,7 +17,7 @@ namespace MonoFSM_InputAction
             IInputActionImplementation,
             IBeforeSimulate
     {
-        [Auto] private MonoInputAction _monoInputAction;
+        [Auto] protected MonoInputAction _monoInputAction;
         // [Required]
         // [PreviewInInspector] [AutoParent] private PlayerInput _localPlayerInput;
         public int InputActionId => _inputActionData.actionID; //還是monobehaviour自己assign就好？
@@ -28,10 +28,10 @@ namespace MonoFSM_InputAction
         protected InputActionData _inputActionData;
 
         // Cached input state（在 BeforeSimulate 中更新）
-        [ShowInDebugMode] private bool _cachedIsPressed;
-        [ShowInDebugMode] private bool _cachedWasPressed;
-        [ShowInDebugMode] private bool _cachedWasReleased;
-        [ShowInDebugMode] private Vector2 _cachedVec2;
+        [ShowInDebugMode] protected bool _cachedIsPressed;
+        [ShowInDebugMode] protected bool _cachedWasPressed;
+        [ShowInDebugMode] protected bool _cachedWasReleased;
+        [ShowInDebugMode] protected Vector2 _cachedVec2;
 
         private bool _previousIsPressed;
         // 時間追蹤欄位

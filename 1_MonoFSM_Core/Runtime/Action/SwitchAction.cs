@@ -30,12 +30,12 @@ namespace MonoFSM.Core.Runtime.Action
 
         void IArgEventReceiver<GeneralEffectHitData>.ArgEventReceived(GeneralEffectHitData arg)
         {
-            AddEventTime(Time.time);
             ExecuteSwitch(arg);
         }
 
         private void ExecuteSwitch(GeneralEffectHitData arg)
         {
+            AddEventTime(Time.time);
             SwitchCase defaultCase = null;
             bool anyMatched = false;
 
@@ -61,14 +61,6 @@ namespace MonoFSM.Core.Runtime.Action
 
                 if (_mode == SwitchMode.FirstMatch)
                     return;
-            }
-
-            if (!anyMatched && defaultCase != null)
-            {
-                if (arg != null)
-                    defaultCase.ExecuteActions(arg);
-                else
-                    defaultCase.ExecuteActions();
             }
         }
     }

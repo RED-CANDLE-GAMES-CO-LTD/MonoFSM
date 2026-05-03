@@ -47,8 +47,8 @@ namespace MonoFSM.Core.Runtime.Action
                     return;
             }
 
-            if (!anyMatched && defaultCase != null)
-                defaultCase.ExecuteActions();
+            // if (!anyMatched && defaultCase != null)
+            //     defaultCase.ExecuteActions();
         }
 
         //FIXME: 要每種特別做嗎？
@@ -62,11 +62,11 @@ namespace MonoFSM.Core.Runtime.Action
                 if (switchCase == null || !switchCase.gameObject.activeSelf)
                     continue;
 
-                if (switchCase.IsDefault)
-                {
-                    defaultCase = switchCase;
-                    continue;
-                }
+                // if (switchCase.IsDefault)
+                // {
+                //     defaultCase = switchCase;
+                //     continue;
+                // }
 
                 if (!switchCase.IsConditionMet)
                     continue;
@@ -77,9 +77,9 @@ namespace MonoFSM.Core.Runtime.Action
                 if (_mode == SwitchMode.FirstMatch)
                     return;
             }
-
-            if (!anyMatched && defaultCase != null)
-                defaultCase.Render();
+            //
+            // if (!anyMatched && defaultCase != null)
+            //     defaultCase.Render();
         }
     }
 }

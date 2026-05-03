@@ -34,6 +34,8 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             _animator.writeDefaultValuesOnDisable = false;
         }
 
+        [ShowInInspector] private Transform _entityParentTransform;
+        [ShowInInspector] bool _sceneStarted = false;
         public void EnterSceneStart()
         {
             if (_ignoreStartReparent)
@@ -43,21 +45,20 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             }
 
             //這裡做失敗QQ, 沒搞懂？ worldUpdateSimulator比全部都早？(singleton?) 所以應該是要有個場景上的物件管理start load完？
-            var parentTransform = BindEntity.transform.parent;
-            if (parentTransform == null) return;
+            _entityParentTransform = BindEntity.transform.parent;
+            if (_entityParentTransform == null) return;
 
-            var parentEntity = parentTransform.GetComponentInParent<MonoEntity>();
+            //FIXME: client竟然會關著？行為不一致？
+            var parentEntity = _entityParentTransform.GetComponentInParent<MonoEntity>(true);
             if (parentEntity == null)
             {
-                // Debug.LogError(
-                //     $"[ViewRoot] Parent of '{name}' is not part of a MonoEntity. ViewRoot requires a parent MonoEntity to function properly.",
-                //     this);
                 return;
             }
-
             _parentEntity = parentEntity;
             _parentViewRoot = _parentEntity?.ViewRoot;
-            if (_parentViewRoot != null) RecordOffsets(_parentViewRoot);
+            RecordOffsets(_parentViewRoot);
+
+            _sceneStarted = true;
         }
 
         // 用當前世界座標記錄相對 target 的 offset（Root 用 Simulate、View 用 AfterRender）
@@ -69,6 +70,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             _followViewRotOffset = Quaternion.Inverse(target.transform.rotation) * transform.rotation;
         }
 
+        [ShowInInspector]
         MonoEntity _parentEntity;
         protected override void Start()
         {
@@ -167,14 +169,15 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             Root.rotation = parentVR.Root.rotation * _followParentRotOffset;
         }
 
+        [ShowInInspector] float _lastRenderTick = -1;
         public void AfterRender()
         {
             // ViewRoot 做 localOffset 同步（interpolated）
             // 統一處理 Nested ViewRoot / FollowTarget (Dock, Socket) 兩種情境
-            var parentVR = _parentViewRoot;
-            if (parentVR == null) return;
-            transform.position = parentVR.transform.TransformPoint(_followViewOffset);
-            transform.rotation = parentVR.transform.rotation * _followViewRotOffset;
+            if (_parentViewRoot == null) return;
+            transform.position = _parentViewRoot.transform.TransformPoint(_followViewOffset);
+            transform.rotation = _parentViewRoot.transform.rotation * _followViewRotOffset;
+            _lastRenderTick = WorldUpdateSimulator.CurrentTick;
         }
     }
 }
