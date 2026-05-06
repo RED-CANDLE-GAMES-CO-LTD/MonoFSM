@@ -446,9 +446,12 @@ public class ObjectPool : IObjectPool
         AllObjs = new List<PoolObject>();
         DisabledObjs = new List<PoolObject>();
         OnUseObjs = new HashSet<PoolObject>();
-        if (_bindingEntry == null || _bindingEntry.prefab == null)
+        //[Fusion] INetworkObjectProvider.AcquireInstance threw an exception for [Prefab 168]: UnityEngine.MissingReferenceException: The object of type 'PoolObject' has been destroyed but you are still trying to access it.
+
+        if (_bindingEntry.prefab == null)
         {
-            Debug.LogError("ObjectPool Init Error: bindingEntry or prefab is null");
+            Debug.LogError("ObjectPool Init Error: prefab is null" +
+                           _bindingEntry.DefaultMaximumCount);
             return;
         }
 

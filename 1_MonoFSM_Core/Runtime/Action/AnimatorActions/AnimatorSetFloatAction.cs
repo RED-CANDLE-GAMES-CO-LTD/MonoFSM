@@ -6,7 +6,7 @@ using UnityEngine.Profiling;
 namespace MonoFSM.Animation
 {
     //IRenderAction?
-    public class AnimatorSetFloatAction : AbstractAnimatorSetValueAction
+    public class AnimatorSetFloatAction : AbstractAnimatorSetParamAction
     {
         protected override string DescriptionTag => "AnimParam";
         protected override AnimatorControllerParameterType ExpectedParamType => AnimatorControllerParameterType.Float;
@@ -20,14 +20,20 @@ namespace MonoFSM.Animation
         [SerializeField] private VarFloatWrapper _floatValue;
         public float _dampTime = 0.1f;
 
+        public override void OnEnterRenderImplement()
+        {
+            OnRenderImplement();
+        }
+
         /// <summary>
         /// 本來就要在render時 set了？應該在這裡自己做掉？
         /// </summary>
-        protected override void OnActionExecuteImplement()
+        public override void OnRenderImplement()
         {
             if (!TryGetAnimator(out var animator)) return;
             animator.SetFloat(_parameterName, _floatValue.Value, _dampTime, Time.deltaTime);
         }
+
 
     }
 }

@@ -300,6 +300,17 @@ namespace MonoFSM.Variable
         [ShowInDebugMode]
         private Queue<SetValueExecutionData> _byWhoQueue = new(); //沒有人清，resetrestore要清掉嗎？先不要好了
 
+        public struct NetworkTickSnapshot
+        {
+            public int _tick;
+            public bool _isForward;
+            public bool _isResim;
+        }
+
+        // 由網路模組（如 MonoFSM.Fusion2）在 BeforeTick / FUN 時 push 進來；MonoFSM Core 不依賴 Fusion。
+        // 沒有 runner 時為 null。push 模式比 pull (掃 NetworkRunner.Instances) 便宜。
+        public static NetworkTickSnapshot? _networkTickSnapshot;
+
         [Serializable]
         public struct SetValueExecutionData
         {
@@ -307,13 +318,20 @@ namespace MonoFSM.Variable
             public object _value; //可能被attribute processor給處理到，好像有點太過侵入？
             public Object _byWho;
             public float _time;
+            public int _tick;        // NetworkRunner.Tick（沒有 runner 時為 -1）
+            public bool _hasNetwork; // 是否有抓到 runner
+            public bool _isForward;  // Runner.IsForward
+            public bool _isResim;    // Runner.IsResimulation
             public string _reason; //記錄 set 的原因
             public string _stackTrace; //完整的 call stack
 
             [Button]
             void LogStackTrace()
             {
-                Debug.Log(_stackTrace, _byWho);
+                var net = _hasNetwork
+                    ? $"tick={_tick} forward={_isForward} resim={_isResim}"
+                    : "no-runner";
+                Debug.Log($"[{_time:F2}s | {net}] {_reason}\n{_stackTrace}", _byWho);
             }
         }
 
@@ -344,7 +362,7 @@ namespace MonoFSM.Variable
         //     Debug.Log(sb.ToString(), this);
         // }
 #endif
-
+        [SerializeField] private bool _isLogStackTrace = false;
         //FIXME: 太卡了
         [Conditional("UNITY_EDITOR")]
         protected void RecordSetbyWhoDebug<T>(Object byWho, T tempValue, string reason = null)
@@ -355,18 +373,30 @@ namespace MonoFSM.Variable
 
             if (_byWhoQueue.Count > 10)
                 _byWhoQueue.Dequeue(); //保持最新的10個
+
+            var stackString = "_isLogStackTrace = false";
+            if (_isLogStackTrace)
+            {
+                var stackTrace = new StackTrace(5, true);
+                stackString = stackTrace.ToString();
+            }
+            var snap = _networkTickSnapshot;
             var byWhoData = new SetValueExecutionData
             {
                 _value = tempValue,
                 _byWho = byWho,
                 _time = Time.time,
+                _hasNetwork = snap.HasValue,
+                _tick = snap?._tick ?? -1,
+                _isForward = snap?._isForward ?? false,
+                _isResim = snap?._isResim ?? false,
                 _reason = reason,
-                _stackTrace = "",
+                _stackTrace = stackString,
             };
             // return;
             //這個會gc, hmm
 
-            _byWhoQueue.Enqueue(byWhoData);
+
 
 // #if UNITY_EDITOR
 //             // 取得完整 call stack，跳過前 2 層 (RecordSetbyWho 和 SetValue)
@@ -380,6 +410,7 @@ namespace MonoFSM.Variable
 //
 //             byWhoData._stackTrace = stackString;
 //             _byWhoQueue.Enqueue(byWhoData);
+            _byWhoQueue.Enqueue(byWhoData);
 #endif
         }
 

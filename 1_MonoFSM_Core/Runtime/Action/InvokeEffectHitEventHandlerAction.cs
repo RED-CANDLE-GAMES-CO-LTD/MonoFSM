@@ -1,3 +1,4 @@
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core;
 using MonoFSM.Runtime.Interact.EffectHit;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace MonoFSM.Core.Runtime.Action
     /// 將事件轉發到外部引用的 EventHandler。
     /// </summary>
     public class InvokeEffectHitEventHandlerAction : AbstractStateAction,
-        IArgEventReceiver<GeneralEffectHitData>
+        IArgEventReceiver<GeneralEffectHitData>, IRenderBehaiour
     {
         [DropDownRef] [SerializeField] private ManualEventHandler _targetHandler;
 
@@ -22,6 +23,15 @@ namespace MonoFSM.Core.Runtime.Action
         {
             if (_targetHandler != null)
                 _targetHandler.EventHandle(arg);
+        }
+
+        public void OnEnterRender()
+        {
+            _targetHandler?.EnterRenderInvoke();
+        }
+
+        public void OnRender()
+        {
         }
     }
 }

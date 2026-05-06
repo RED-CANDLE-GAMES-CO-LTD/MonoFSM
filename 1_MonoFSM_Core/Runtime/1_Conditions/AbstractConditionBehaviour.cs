@@ -120,6 +120,9 @@ public abstract class AbstractConditionBehaviour
     [Conditional("UNITY_EDITOR")]
     private void RecordResult(bool result)
     {
+        if (_resultHistory.Count > 0 && _cachedFinalResult == result)
+            return;
+
         _cachedFinalResult = result;
         if (_resultHistory.Count >= 10)
             _resultHistory.RemoveAt(0);

@@ -1,6 +1,7 @@
 using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
 using MonoFSM.Variable.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action
@@ -25,7 +26,7 @@ namespace MonoFSM.Core.Runtime.Action
         {
             SwitchCase defaultCase = null;
             bool anyMatched = false;
-
+            _lastSimulateTime = Time.time;
             foreach (var switchCase in _cases)
             {
                 if (switchCase == null || !switchCase.gameObject.activeSelf)
@@ -51,9 +52,13 @@ namespace MonoFSM.Core.Runtime.Action
             //     defaultCase.ExecuteActions();
         }
 
+        [ShowInInspector] private float _lastSimulateTime;
+
+        [ShowInInspector] private float _lastRenderTime;
         //FIXME: 要每種特別做嗎？
         public void Render(float runnerLocalRenderTime)
         {
+            _lastRenderTime = Time.time;
             SwitchCase defaultCase = null;
             bool anyMatched = false;
 

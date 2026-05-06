@@ -332,7 +332,7 @@ namespace MonoFSM.Variable
         //開個後門
         public void SetOverrideDefaultValue(TValueType value, Object byWho)
         {
-            _beforeSetProcessor?.BeforeSetValue(value);
+            _beforeSetProcessor?.BeforeSetValueCallback(value);
             _tempValue = value;
             _defaultValue = value;
             OnValueChanged();
@@ -359,7 +359,7 @@ namespace MonoFSM.Variable
                 return;
             }
 
-            _beforeSetProcessor?.BeforeSetValue(value);
+            _beforeSetProcessor?.BeforeSetValueCallback(value);
 
             _tempValue = value;
             RecordSetbyWhoDebug(byWho, _tempValue, reason);

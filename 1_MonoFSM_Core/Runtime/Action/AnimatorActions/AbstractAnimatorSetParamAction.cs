@@ -1,15 +1,17 @@
 using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.Action.AnimatorActions;
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoDebugSetting;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Foundation;
 using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Animation
 {
-    public abstract class AbstractAnimatorSetValueAction : AbstractStateAction
+    public abstract class AbstractAnimatorSetParamAction : AbstractRenderBehaviour
     {
         [HideIf(nameof(HasAnimatorSource))]
         [TitleGroup("Animator")]
@@ -178,5 +180,13 @@ namespace MonoFSM.Animation
         // {
         //     OnActionExecuteImplement();
         // }
+        public virtual void OnEnterRender()
+        {
+            // throw new System.NotImplementedException();
+        }
+
+        public virtual void OnRender()
+        {
+        }
     }
 }

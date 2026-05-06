@@ -48,7 +48,7 @@ namespace MonoFSM_InputAction
 
         //unity input system 的 action
 
-        Vector2 IInputActionImplementation.Vec2ValueCached => _cachedVec2;
+        // Vector2 IInputActionImplementation.Vec2ValueCached => _cachedVec2;
 
         bool IInputActionImplementation.IsLocalPressed =>
             myAction.IsPressed() ||
@@ -72,10 +72,10 @@ namespace MonoFSM_InputAction
         bool IInputActionImplementation.FetchWasReleased =>
             myAction.WasReleasedThisFrame(); //盡量不要用？
 
-        bool IInputActionImplementation.IsPressedCached => _cachedIsPressed;
-
-        bool IInputActionImplementation.WasPressedCached => _cachedWasPressed;
-        bool IInputActionImplementation.WasReleasedCached => _cachedWasReleased;
+        // bool IInputActionImplementation.IsPressedCached => _cachedIsPressed;
+        //
+        // bool IInputActionImplementation.WasPressedCached => _cachedWasPressed;
+        // bool IInputActionImplementation.WasReleasedCached => _cachedWasReleased;
 
         [ShowInDebugMode]
         float IInputActionImplementation.PressTime
@@ -113,7 +113,7 @@ namespace MonoFSM_InputAction
 
         void IBeforeSimulate.BeforeSimulate(float deltaTime)
         {
-            CacheLocalInput();
+            CacheLocalInput(); //hmm這是錯的喔
         }
 
         /// <summary>

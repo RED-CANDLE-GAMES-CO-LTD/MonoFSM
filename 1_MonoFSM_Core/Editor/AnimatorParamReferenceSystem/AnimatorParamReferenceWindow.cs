@@ -97,9 +97,9 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
                 return animator;
 
             // 從 AbstractAnimatorSetValueAction 右鍵
-            if (context is AbstractAnimatorSetValueAction setValueAction)
+            if (context is AbstractAnimatorSetParamAction setValueAction)
             {
-                var prop = typeof(AbstractAnimatorSetValueAction)
+                var prop = typeof(AbstractAnimatorSetParamAction)
                     .GetProperty("Animator", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
                 return prop?.GetValue(setValueAction) as Animator;
             }

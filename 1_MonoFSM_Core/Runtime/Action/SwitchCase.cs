@@ -29,8 +29,12 @@ namespace MonoFSM.Core.Runtime.Action
 
         [ShowInInspector] public bool IsConditionMet => _conditions.IsAllValid();
 
+        [ShowInInspector] private float _lastSimulateTime;
+
+        [ShowInInspector] private float _lastRenderTime;
         public void ExecuteActions()
         {
+            _lastSimulateTime = Time.time;
             foreach (var action in _actions)
             {
                 if (action == null) continue;
@@ -41,6 +45,7 @@ namespace MonoFSM.Core.Runtime.Action
 
         public void Render()
         {
+            _lastRenderTime = Time.time;
             foreach (var renderBehaiour in _renderBehaiours)
             {
                 renderBehaiour?.OnRender();

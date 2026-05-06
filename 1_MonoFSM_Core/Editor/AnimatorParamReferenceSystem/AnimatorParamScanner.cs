@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using MonoFSM.Animation;
 using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Foundation;
 using UnityEngine;
 
 namespace MonoFSM.Editor.AnimatorParamReferenceSystem
@@ -32,7 +33,8 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
             _cachedRoot = root;
 
             // 掃描 AbstractAnimatorSetValueAction 子類
-            var setValueActions = root.GetComponentsInChildren<AbstractAnimatorSetValueAction>(true);
+            var setValueActions =
+                root.GetComponentsInChildren<AbstractAnimatorSetParamAction>(true);
             foreach (var action in setValueActions)
             {
                 if (action == null) continue;
@@ -82,18 +84,19 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
             return _paramCache;
         }
 
-        private static void ScanAbstractAnimatorSetValueAction(AbstractAnimatorSetValueAction action)
+        private static void ScanAbstractAnimatorSetValueAction(
+            AbstractAnimatorSetParamAction action)
         {
             var paramName = action._parameterName;
             if (string.IsNullOrEmpty(paramName)) return;
 
             // 透過 reflection 取得 Animator property
-            var animatorProp = typeof(AbstractAnimatorSetValueAction)
+            var animatorProp = typeof(AbstractAnimatorSetParamAction)
                 .GetProperty("Animator", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             var animator = animatorProp?.GetValue(action) as Animator;
 
             var stateName = GetStateName(action);
-            var description = (action as AbstractStateAction)?.Description;
+            var description = action.Description;
 
             var info = new AnimatorParamInfo
             {

@@ -27,6 +27,7 @@ namespace MonoFSM.Core.LifeCycle
         ); //對著某個東西spawn?
     }
 
+    //FIXME: 把Visual獨立拆出來
     //重寫FXPlayer
     public class SpawnAction : AbstractArgEventHandler<GeneralEffectHitData>, IMonoObjectProvider,
         IPoolObjectPlayer //ICompProvider<MonoPoolObj>

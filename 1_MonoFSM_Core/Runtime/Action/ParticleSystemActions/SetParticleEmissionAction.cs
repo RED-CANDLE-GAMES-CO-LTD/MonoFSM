@@ -1,3 +1,4 @@
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
@@ -6,7 +7,7 @@ using UnityEngine;
 
 namespace MonoFSM.ParticleSystemActions
 {
-    public class SetParticleEmissionAction : AbstractStateAction
+    public class SetParticleEmissionAction : AbstractRenderBehaviour
     {
         public override string Description =>
             $"Set emission {(_enabled.Description)} on [{(_particleSystem != null ? _particleSystem.name : "null")}]";
@@ -16,7 +17,13 @@ namespace MonoFSM.ParticleSystemActions
 
         [SerializeField] private VarBoolWrapper _enabled;
 
-        protected override void OnActionExecuteImplement()
+
+        public override void OnEnterRenderImplement()
+        {
+            OnRenderImplement();
+        }
+
+        public override void OnRenderImplement()
         {
             if (_particleSystem == null)
             {

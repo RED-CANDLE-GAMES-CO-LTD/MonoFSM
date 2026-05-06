@@ -7,6 +7,7 @@ namespace RCGInputAction
     /// <summary>
     /// 消費指定 MonoInputAction 的 buffer press，防止同一次 press 重複觸發。
     /// 放在 State 的 OnEnter action 中使用。
+    /// FIXME: 這也是 input 類，要把 input相關action 獨立出來嗎？讓EventHandler獨立判定觸發
     /// </summary>
     public class ConsumeInputPressAction : AbstractStateAction
     {

@@ -223,6 +223,7 @@ namespace MonoFSM.Core.Simulate
             if (_monoObjectSet.Add(target))
             {
                 target.SetWorldUpdateSimulator(this);
+                //所有 children都要？
                 //重置狀態
                 // target.ResetStateRestore();
                 // target.ResetStart();
@@ -237,10 +238,15 @@ namespace MonoFSM.Core.Simulate
         {
             if (target == null)
                 return;
-            //FIXME: 在這auto?
+            //來之前就auto過了
 
-            //這個是用來做初始化的？
-            RegisterMonoObject(target);
+            //把下面的children也都註冊進去
+            foreach (var obj in target.ChildrenObjs)
+            {
+                RegisterMonoObject(obj);
+            }
+
+
             target.SpawnFromPool(); //ISceneAwake叫兩次？
         }
 

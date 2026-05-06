@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MonoFSM.Animation
 {
-    public class AnimatorSetIntAction : AbstractAnimatorSetValueAction
+    public class AnimatorSetIntAction : AbstractAnimatorSetParamAction
     {
         protected override AnimatorControllerParameterType ExpectedParamType => AnimatorControllerParameterType.Int;
 
@@ -16,10 +16,16 @@ namespace MonoFSM.Animation
 
         [SerializeField] private VarIntWrapper _intValue;
 
-        protected override void OnActionExecuteImplement()
+
+        public override void OnEnterRenderImplement()
         {
             if (!TryGetAnimator(out var animator)) return;
             animator.SetInteger(_parameterName, _intValue.Value);
+        }
+
+        public override void OnRenderImplement()
+        {
+            OnEnterRenderImplement();
         }
     }
 }

@@ -19,7 +19,7 @@ namespace MonoFSM.Variable
 
     public interface IVarValueSettingProcessor<in T>
     {
-        public void BeforeSetValue(T value);
+        public void BeforeSetValueCallback(T value);
     }
 
     /// <summary>

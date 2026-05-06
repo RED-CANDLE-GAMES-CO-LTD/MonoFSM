@@ -29,10 +29,11 @@ namespace MonoFSM_InputAction
         public bool FetchWasPressed { get; }
         public bool FetchWasReleased { get; }
 
-        protected internal bool IsPressedCached { get; }
-        protected internal bool WasPressedCached { get; }
-        protected internal bool WasReleasedCached { get; }
-        protected internal Vector2 Vec2ValueCached { get; }
+        //FIXME: cached都不對
+        // protected internal bool IsPressedCached { get; }
+        // protected internal bool WasPressedCached { get; }
+        // protected internal bool WasReleasedCached { get; }
+        // protected internal Vector2 Vec2ValueCached { get; }
 
         protected internal bool IsLocalPressed { get; }
         protected internal Vector2 ReadLocalVec2 { get; }
@@ -83,18 +84,18 @@ namespace MonoFSM_InputAction
         }
 
         public Vector2 ReadValueVec2 =>
-            _abstractInputActionImplementation.Vec2ValueCached; //可以被Override
+            _abstractInputActionImplementation.FetchVec2Value;
 
         //什麼時候需要用到？local直接接？
-        [ShowInPlayMode]
-        public bool IsPressed => _abstractInputActionImplementation.IsPressedCached; //如果外掛
+        [ShowInPlayMode] public bool IsPressed => _abstractInputActionImplementation.FetchIsPressed;
 
         [ShowInPlayMode]
-        public bool WasPressed => _abstractInputActionImplementation.WasPressedCached;
+        public bool WasPressed =>
+            _abstractInputActionImplementation.FetchWasPressed;
 
         // public abstract bool WasPressBuffered();
         [ShowInPlayMode]
-        public bool WasReleased => _abstractInputActionImplementation.WasReleasedCached;
+        public bool WasReleased => _abstractInputActionImplementation.FetchWasReleased;
 
         public int InputActionId => _abstractInputActionImplementation.InputActionId; //還是monobehaviour自己assign就好？
 
@@ -127,7 +128,7 @@ namespace MonoFSM_InputAction
         public void ConsumePress()
         {
             if (BufferProvider != null) BufferProvider.ConsumePress();
-            else _isConsumed = true;
+            else _isConsumed = true; //FIXME: 這個local 的isConsumed應該是虛設喔
         }
 
         /// <summary>

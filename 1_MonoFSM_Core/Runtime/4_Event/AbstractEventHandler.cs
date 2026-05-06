@@ -1,4 +1,4 @@
-using System.Threading;
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime;
 using MonoFSM.Core.Runtime.Action;
@@ -35,10 +35,17 @@ namespace MonoFSM.Core
         public override string Description => GetType().Name.Replace("Handler", "");
 
         // GetType().Name.Replace("Handler", ""); //要都叫做 OnXXX ?
-
+        //FIXME: 先做一個繞開
+        public bool
+            _forceExecuteWithoutStateAuthority;
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
         protected IEventReceiver[] _eventReceivers; //IActions
+
+        [CompRef] [ShowInInspector] [AutoChildren(DepthOneOnly = true)]
+        protected IRenderBehaiour[] _renderActions;
+
+        [CompRef] [ShowInInspector] [Auto] protected IRenderSyncProvider _renderSyncProvider;
 
         [InfoBox("目前不是所有EntityProvider都是合法的喔")]
         [CompRef]
@@ -46,50 +53,107 @@ namespace MonoFSM.Core
         //FIXME: 要有篩選機制？靠Drawer去找囉？
         private AbstractEntityProvider[] _entityProviders;
 
+        public void EnterRenderInvoke()
+        {
+            _lastRenderEventTime = Time.time;
+            //如果有T可以自己留著？好像不行...沒地方接 object 硬轉
+            foreach (var action in _renderActions)
+            {
+                action.OnEnterRender();
+            }
+        }
+
+        public void EnterArgRenderInvoke<T>(T arg)
+        {
+            _lastRenderEventTime = Time.time;
+            foreach (var action in _renderActions)
+            {
+                if (action is IArgRenderBehaviour<T> argAction)
+                {
+                    argAction.OnArgEnterRender(arg);
+                }
+                else
+                {
+                    action.OnEnterRender();
+                }
+            }
+        }
+
         /// <summary>
         /// Call all event receivers' <see cref="IEventReceiver.EventReceived"/> method.
         /// </summary>
         public virtual void EventHandle()
         {
-            // if (!isActiveAndEnabled) //FIXME: 打開的瞬間，我還沒打開？
+            EventHandleImplement(0, true);
+            // // if (!isActiveAndEnabled) //FIXME: 打開的瞬間，我還沒打開？
+            // //     return;
+            // if (!gameObject.activeSelf)
             //     return;
-            if (!gameObject.activeSelf)
-                return;
-            _lastEventHandledTime = Time.time;
-            foreach (var eventReceiver in _eventReceivers)
-            {
-                //如果有exception就會中斷掉？
-                // 4/15, 對！以為detector出問題...
-                try
-                {
-                    if (eventReceiver.IsValid)
-                        eventReceiver.EventReceived();
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError(
-                        $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
-                        eventReceiver as Object);
-                }
+            // _lastRenderEventTime = Time.time;
+            // if (!_parentObj.HasStateAuthority && !_forceExecuteWithoutStateAuthority)
+            //     return;
+            // _lastSimulateEventTime = Time.time;
+            //
+            // foreach (var eventReceiver in _eventReceivers)
+            // {
+            //     //如果有exception就會中斷掉？
+            //     // 4/15, 對！以為detector出問題...
+            //     try
+            //     {
+            //         if (eventReceiver.IsValid)
+            //             eventReceiver.EventReceived();
+            //     }
+            //     catch (System.Exception e)
+            //     {
+            //         Debug.LogError(
+            //             $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
+            //             eventReceiver as Object);
+            //     }
+            // }
 
-            }
         }
 
-        [PreviewInDebugMode] protected float _lastEventHandledTime = -1f;
+        [PreviewInDebugMode]
+        protected float _lastSimulateEventTime = -1f; //FIXME: 還要區分 render 和 state?
 
-        protected virtual void EventHandleImplement<T>(T arg)
+        [PreviewInDebugMode]
+        protected float _lastRenderEventTime = -1f; //FIXME: 還要區分 render 和 state?
+
+        protected virtual void EventHandleImplement<T>(T arg, bool ignoreArg = false)
         {
             if (!gameObject.activeSelf)
                 return;
-            _lastEventHandledTime = Time.time;
-            if (_eventReceivers == null)
+
+            // 如果有掛載網路同步組件，就交由它接管 Render 觸發 (這解決了 Proxy 沒特效與本地重複觸發的問題)
+            if (_renderSyncProvider != null)
+            {
+                if (ignoreArg)
+                    _renderSyncProvider.RequestRenderSync();
+                else
+                    _renderSyncProvider.RequestRenderSync(arg);
+            }
+            else
+            {
+                if (ignoreArg)
+                {
+                    EnterRenderInvoke();
+                }
+                else
+                {
+                    EnterArgRenderInvoke(arg);
+                }
+            }
+
+
+            if (!_parentObj.HasStateAuthority && !_forceExecuteWithoutStateAuthority)
                 return;
+            _lastSimulateEventTime = Time.time;
             foreach (var eventReceiver in _eventReceivers)
             {
                 try
                 {
                     //有參數的介面時
-                    if (eventReceiver is IArgEventReceiver<T> argEventReceiver)
+                    if (!ignoreArg && eventReceiver is IArgEventReceiver<T> argEventReceiver)
                     {
                         if (argEventReceiver.IsValid)
                             argEventReceiver.ArgEventReceived(arg); //在這裡delay?
@@ -126,7 +190,8 @@ namespace MonoFSM.Core
 
         public void ResetStateRestore(bool IsHardReset)
         {
-            _lastEventHandledTime = -1f;
+            _lastSimulateEventTime = -1;
+            _lastRenderEventTime = -1;
         }
     }
 }

@@ -463,7 +463,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     private (bool, TType) SetValueExecution(TType value, MonoBehaviour byWho)
     {
         // if (_beforeSetProcessor != null)
-        _beforeSetProcessor?.BeforeSetValue(value); //練線處理？
+        _beforeSetProcessor?.BeforeSetValueCallback(value); //練線處理？
         // lastValueSetter = byWho;
         var tempValue = value;
         //先檢查會被修改

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MonoFSM.Animation
 {
-    public class AnimatorSetBoolAction : AbstractAnimatorSetValueAction
+    public class AnimatorSetBoolAction : AbstractAnimatorSetParamAction
     {
         protected override AnimatorControllerParameterType ExpectedParamType => AnimatorControllerParameterType.Bool;
 
@@ -16,11 +16,18 @@ namespace MonoFSM.Animation
 
         [SerializeField] private VarBoolWrapper _boolValue;
 
-        protected override void OnActionExecuteImplement()
+        public override void OnEnterRenderImplement()
         {
-
             if (!TryGetAnimator(out var animator)) return;
             animator.SetBool(_parameterName, _boolValue.Value);
+
         }
+
+        public override void OnRenderImplement()
+        {
+            OnEnterRenderImplement();
+        }
+
+
     }
 }

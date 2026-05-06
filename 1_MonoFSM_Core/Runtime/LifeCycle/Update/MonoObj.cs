@@ -65,6 +65,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
     [ScriptTiming(-20000)]
     [DisallowMultipleComponent]
     [FormerlyNamedAs("MonoPoolObj")]
+    [Searchable]
     public sealed class MonoObj : MonoBehaviour, IPrefabSerializeCacheOwner, IDropdownRoot,
         ISceneAwake
     {
@@ -147,6 +148,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
             // Debug.Log("MonoObj OnDestroy" + name, this);
         }
 
+        [ShowInDebugMode]
+        public bool HasStateAuthority { get; set; } //FIXME: IsSimulate? 除了 proxy 好像都應該照跑才對？
         [PreviewInDebugMode]
         [AutoChildren]
         private ISceneAwake[] _sceneAwakes;
@@ -216,8 +219,26 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [PreviewInDebugMode]
         private MonoObj _parentObj;
 
+        //只拿一層，太醜了？
+        [ShowInInspector]
         [AutoChildren(StopAtType = typeof(MonoObj), IncludeStopNode = true)]
+        MonoObj[] _childrenObjsWhatDebug;
+
+        [ShowInInspector] [AutoChildren]
         MonoObj[] _childrenObjs;
+
+        public MonoObj[] ChildrenObjs => _childrenObjs;
+
+        public void AssignStateAuthorityForAll(bool state)
+        {
+            HasStateAuthority = state;
+            foreach (var obj in _childrenObjs)
+            {
+                obj.HasStateAuthority = state;
+            }
+
+            Debug.Log($"Assigned HasStateAuthority={state} for {name} and all children.", this);
+        }
 
         // [SerializeField]
         private WorldUpdateSimulator _worldUpdateSimulator;
@@ -379,6 +400,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         [AutoChildren(StopAtType = typeof(MonoObj))] public CullingActiveHandle _cullingHandle;
 
+        //有而且關著
+        [ShowInInspector]
         public bool IsCulling =>
             _cullingHandle != null && !_cullingHandle.gameObject.activeSelf;
 
@@ -485,10 +508,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
         //理論上沒有註冊就不會call到這個
         public void Simulate(float deltaTime)
         {
-            if (HasParent)
-                return;
-            //如果proxy就跳過？
-            // if (IsProxy)
+            // if (HasParent)
             //     return;
             if (!IsActiveInSimulator)
                 return;
@@ -519,20 +539,22 @@ namespace MonoFSMCore.Runtime.LifeCycle
                     Profiler.EndSample();
                 }
             }
-            if (_childrenObjs == null) return;
-            for (var i = 0; i < _childrenObjs.Length; i++)
-            {
-                var c = _childrenObjs[i];
-                if (c != null && c != this) c.TickSimulatePhase(deltaTime);
-            }
+
+            //FIXME: children自己就會被註冊了吧？
+            // if (_childrenObjs == null) return;
+            // for (var i = 0; i < _childrenObjs.Length; i++)
+            // {
+            //     var c = _childrenObjs[i];
+            //     if (c != null && c != this) c.TickSimulatePhase(deltaTime);
+            // }
         }
 
         public void AfterSimulate(float deltaTime)
         {
-            if (HasParent)
-                return;
-            if (IsProxy)
-                return;
+            // if (HasParent)
+            //     return;
+            // if (IsProxy)
+            //     return;
             if (!IsActiveInSimulator)
                 return;
             TickAfterSimulatePhase(deltaTime);
@@ -552,18 +574,18 @@ namespace MonoFSMCore.Runtime.LifeCycle
                     Profiler.EndSample();
                 }
             }
-            if (_childrenObjs == null) return;
-            for (var i = 0; i < _childrenObjs.Length; i++)
-            {
-                var c = _childrenObjs[i];
-                if (c != null && c != this) c.TickAfterSimulatePhase(deltaTime);
-            }
+            // if (_childrenObjs == null) return;
+            // for (var i = 0; i < _childrenObjs.Length; i++)
+            // {
+            //     var c = _childrenObjs[i];
+            //     if (c != null && c != this) c.TickAfterSimulatePhase(deltaTime);
+            // }
         }
 
         public void Render(float deltaTimelocalAlpha)
         {
-            if (HasParent)
-                return;
+            // if (HasParent)
+            //     return;
             if (!IsActiveInSimulator)
                 return;
             TickRenderPhase(deltaTimelocalAlpha);
@@ -583,21 +605,21 @@ namespace MonoFSMCore.Runtime.LifeCycle
                     Profiler.EndSample();
                 }
             }
-            if (_childrenObjs == null) return;
-            for (var i = 0; i < _childrenObjs.Length; i++)
-            {
-                var c = _childrenObjs[i];
-                if (c != null && c != this) c.TickRenderPhase(deltaTimelocalAlpha);
-            }
+            // if (_childrenObjs == null) return;
+            // for (var i = 0; i < _childrenObjs.Length; i++)
+            // {
+            //     var c = _childrenObjs[i];
+            //     if (c != null && c != this) c.TickRenderPhase(deltaTimelocalAlpha);
+            // }
         }
 
         //需要這個嗎？還是 AfterSimulate就好了？
         public void AfterUpdate()
         {
-            if (HasParent)
-                return;
-            if (IsProxy)
-                return;
+            // if (HasParent)
+            //     return;
+            // if (IsProxy)
+            //     return;
             // foreach (var item in _updateSimulates)
             // {
             //     if (item is not { isActiveAndEnabled: true })
@@ -739,8 +761,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         public void AfterRender()
         {
-            if (HasParent)
-                return;
+            // if (HasParent)
+            //     return;
             if (!IsActiveInSimulator)
                 return;
             TickAfterRenderPhase();
@@ -760,12 +782,12 @@ namespace MonoFSMCore.Runtime.LifeCycle
                     Profiler.EndSample();
                 }
             }
-            if (_childrenObjs == null) return;
-            for (var i = 0; i < _childrenObjs.Length; i++)
-            {
-                var c = _childrenObjs[i];
-                if (c != null && c != this) c.TickAfterRenderPhase();
-            }
+            // if (_childrenObjs == null) return;
+            // for (var i = 0; i < _childrenObjs.Length; i++)
+            // {
+            //     var c = _childrenObjs[i];
+            //     if (c != null && c != this) c.TickAfterRenderPhase();
+            // }
         }
 
         public void EnterSceneAwake()
