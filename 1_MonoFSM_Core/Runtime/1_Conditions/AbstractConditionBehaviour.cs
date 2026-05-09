@@ -12,6 +12,7 @@ using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 #if UNITY_EDITOR
+using MonoFSM.Core.Simulate;
 using UnityEditor;
 #endif
 using UnityEngine;
@@ -109,9 +110,10 @@ public abstract class AbstractConditionBehaviour
     [Serializable]
     private struct ConditionResultRecord
     {
-        public float _time;
+        public int _tick;
         public bool _result;
-        public override string ToString() => $"[{_time:F2}] {_result}";
+        public bool _isResim;
+        public override string ToString() => $"[{_tick}] {_result}";
     }
 
     [ShowInDebugMode] [SerializeField]
@@ -126,7 +128,11 @@ public abstract class AbstractConditionBehaviour
         _cachedFinalResult = result;
         if (_resultHistory.Count >= 10)
             _resultHistory.RemoveAt(0);
-        _resultHistory.Add(new ConditionResultRecord { _time = Time.time, _result = result });
+        _resultHistory.Add(new ConditionResultRecord
+        {
+            _tick = WorldUpdateSimulator.CurrentTick, _result = result,
+            _isResim = WorldUpdateSimulator.IsResimulation
+        });
     }
 #endif
     public bool FinalResult

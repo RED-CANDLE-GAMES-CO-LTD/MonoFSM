@@ -35,7 +35,7 @@ namespace MonoFSM.Core.Runtime.Action
 
         private void ExecuteSwitch(GeneralEffectHitData arg)
         {
-            AddEventTime(Time.time);
+            AddEventRecord();
             SwitchCase defaultCase = null;
             bool anyMatched = false;
 

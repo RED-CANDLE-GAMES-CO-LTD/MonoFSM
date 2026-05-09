@@ -21,14 +21,14 @@ namespace MonoFSM.Core.Runtime.Action
         void IArgEventReceiver<T>.ArgEventReceived(T arg)
         {
             //FIXME: 要做delay嗎？
-            AddEventTime(Time.time);
+            AddEventRecord();
             OnArgEventReceived(arg);
         }
 
         protected abstract void OnArgEventReceived(T arg);
 #if UNITY_EDITOR
-        public string ValueInfo => "evt:" + lastEventReceivedTime.ToString("F2");
-        public bool IsDrawingValueInfo => lastEventReceivedTime != -1f;
+        public string ValueInfo => "evt:" + lastEventReceivedRecord;
+        public bool IsDrawingValueInfo => _lastEventReceivedRecords.Count > 0;
 #else
         public string ValueInfo => "";
         public bool IsDrawingValueInfo => false;

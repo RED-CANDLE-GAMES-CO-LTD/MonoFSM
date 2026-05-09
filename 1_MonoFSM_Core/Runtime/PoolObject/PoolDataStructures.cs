@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using MonoFSM.AddressableAssets;
+using Sirenix.OdinInspector;
 
 /// <summary>
 /// Pool 管理需求記錄
@@ -33,7 +34,10 @@ public class PoolObjectRequestRecords
 [System.Serializable]
 public class PoolObjectEntry
 {
+    // [OnValueChanged(nameof(OnPrefabChanged))]
     public PoolObject prefab;
+
+    public string _cacheName;
     public int DefaultMaximumCount = 1;
 
     public void Clear()

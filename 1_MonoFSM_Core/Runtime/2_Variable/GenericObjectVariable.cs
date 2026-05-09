@@ -359,6 +359,9 @@ namespace MonoFSM.Variable
                 return;
             }
 
+            if (value == Value) //一樣不處理
+                return;
+
             _beforeSetProcessor?.BeforeSetValueCallback(value);
 
             _tempValue = value;

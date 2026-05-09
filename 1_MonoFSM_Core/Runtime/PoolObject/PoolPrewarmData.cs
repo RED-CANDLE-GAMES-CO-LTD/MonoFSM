@@ -75,6 +75,7 @@ public class PoolPrewarmData : ScriptableObject
         var newEntry = new PoolObjectEntry
         {
             prefab = poolObject,
+            _cacheName = poolObject.name,
             DefaultMaximumCount = count
         };
         objectEntries.Add(newEntry);

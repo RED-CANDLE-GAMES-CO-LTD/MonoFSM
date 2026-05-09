@@ -450,7 +450,7 @@ public class ObjectPool : IObjectPool
 
         if (_bindingEntry.prefab == null)
         {
-            Debug.LogError("ObjectPool Init Error: prefab is null" +
+            Debug.LogError("ObjectPool Init Error: prefab is null, maxcount:" +
                            _bindingEntry.DefaultMaximumCount);
             return;
         }

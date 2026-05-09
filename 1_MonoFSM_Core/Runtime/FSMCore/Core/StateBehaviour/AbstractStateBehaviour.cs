@@ -3,6 +3,7 @@ using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
 using MonoFSM_Core.Runtime.StateBehaviour;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Simulate;
 using MonoFSM.Editor;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime;
@@ -32,8 +33,9 @@ namespace MonoFSM.Core
         public StateMachine<TState> Machine { get; set; }
         public virtual string Name => gameObject.name;
         public int Priority => _priority;
-        public float StateTime => _localStateTime;
-        private float _localStateTime;
+        public float StateTime => Machine == null
+            ? 0f
+            : (WorldUpdateSimulator.CurrentTick - Machine.StateChangeTick) * DeltaTime;
 
         [AutoParent] MonoFSMOwner _owner;
 
@@ -93,6 +95,12 @@ namespace MonoFSM.Core
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
         private OnStateExitHandler _onStateExit;
+
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
+        private OnStateEnterRenderHandler _onStateEnterRender;
+
+        [CompRef] [AutoChildren(DepthOneOnly = true)]
+        private OnStateExitRenderHandler _onStateExitRender;
 
         // Support for direct AbstractStateLifeCycleHandler children
         [CompRef]
@@ -168,7 +176,6 @@ namespace MonoFSM.Core
                 }
             }
 
-            _localStateTime += DeltaTime;
             if (_transitions != null)
                 foreach (var t in _transitions)
                 {
@@ -246,7 +253,6 @@ namespace MonoFSM.Core
 
         void IState.OnEnterState()
         {
-            _localStateTime = 0f;
             OnEnterState();
 
             // Traditional Handler approach
@@ -293,6 +299,9 @@ namespace MonoFSM.Core
                 if (renderAction.isActiveAndEnabled)
                     renderAction.OnEnterRender();
             }
+
+            if (_onStateEnterRender != null && _onStateEnterRender.isActiveAndEnabled)
+                _onStateEnterRender.EnterRenderInvoke();
         }
 
         void IState.OnRender()
@@ -306,7 +315,9 @@ namespace MonoFSM.Core
         void IState.OnExitStateRender()
         {
             OnExitStateRender();
-            //FIXME: 需要這個嗎？
+
+            if (_onStateExitRender != null && _onStateExitRender.isActiveAndEnabled)
+                _onStateExitRender.EnterRenderInvoke();
         }
 
         //FIXME: 先把childMachines拔掉？

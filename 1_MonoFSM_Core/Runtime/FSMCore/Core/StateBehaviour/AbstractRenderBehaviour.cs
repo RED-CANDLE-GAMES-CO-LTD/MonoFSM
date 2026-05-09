@@ -9,7 +9,12 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
     public abstract class AbstractRenderBehaviour : AbstractDescriptionBehaviour, IRenderBehaiour
     {
         [ShowInInspector] [Required] [AutoParent]
-        RenderInvoker _renderInvoker;
+        IRenderInvoker _iRenderInvoker;
+
+        protected override bool HasError()
+        {
+            return _iRenderInvoker == null || base.HasError();
+        }
 
         protected override string DescriptionTag => "Render";
         [ShowInDebugMode] private float _lastRenderTime;
@@ -18,6 +23,8 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 
         public virtual void OnRenderImplement()
         {
+            //沒override就當作一樣的事
+            OnEnterRenderImplement();
         }
 
         public void OnEnterRender()

@@ -7,6 +7,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime.Vote;
+using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
@@ -131,7 +132,7 @@ namespace MonoFSM.Core.Runtime.Action
         //
         //     _delay = false;
         //     // this.AddTask(OnStateEnterImplement, delayActionModifier.delayTime);
-        //     AddEventTime(Time.time);
+        //     AddEventRecord();
         //     OnActionExecuteImplement();
         //     Debug.Log($"Action Executed: {name} {renamePostfix} at {lastEventReceivedTime}", this);
         // }
@@ -143,7 +144,7 @@ namespace MonoFSM.Core.Runtime.Action
             if (!IsValid) return;
             Profiler.BeginSample("AbstractStateAction OnActionRender", this);
             OnRenderImplement();
-            AddEventTime(Time.time);
+            AddEventRecord();
             Profiler.EndSample();
         }
 
@@ -172,12 +173,23 @@ namespace MonoFSM.Core.Runtime.Action
             bindingState.GetStateExitCancellationTokenSource();
 
 #if UNITY_EDITOR
-        [PreviewInDebugMode]
-        protected Queue<float> _lastEventReceivedTimes = new();
+        [Serializable]
+        public struct EventReceivedRecord
+        {
+            public int _tick;
+            public bool _isForward;
+
+            public override string ToString() => $"tick={_tick} forward={_isForward}";
+        }
 
         [PreviewInDebugMode]
-        protected float lastEventReceivedTime =>
-            _lastEventReceivedTimes.Count > 0 ? _lastEventReceivedTimes.Last() : -1f;
+        protected Queue<EventReceivedRecord> _lastEventReceivedRecords = new();
+
+        [PreviewInDebugMode]
+        protected EventReceivedRecord lastEventReceivedRecord =>
+            _lastEventReceivedRecords.Count > 0
+                ? _lastEventReceivedRecords.Last()
+                : default;
 
         private const int MaxEventTimeRecords = 10;
 #endif
@@ -199,7 +211,7 @@ namespace MonoFSM.Core.Runtime.Action
         {
             if (_delayActionModifier == null)
             {
-                AddEventTime(Time.time); //FIXME: hmm這個會騙人耶, 該吃arg的結果跑一般的以為有正確執行
+                AddEventRecord(); //FIXME: hmm這個會騙人耶, 該吃arg的結果跑一般的以為有正確執行
                 OnActionExecuteImplement();
                 return;
             }
@@ -211,7 +223,7 @@ namespace MonoFSM.Core.Runtime.Action
                 delayTime,
                 t =>
                 {
-                    t.AddEventTime(Time.time);
+                    t.AddEventRecord();
                     if (t.gameObject.activeSelf)
                         OnActionExecuteImplement();
                 }
@@ -229,24 +241,29 @@ namespace MonoFSM.Core.Runtime.Action
         public virtual void ResetStateRestore(bool isHardReset)
         {
 #if UNITY_EDITOR
-            _lastEventReceivedTimes.Clear();
+            _lastEventReceivedRecords.Clear();
 #endif
             _delay = false;
         }
 
 #if UNITY_EDITOR
-        protected void AddEventTime(float time)
+        protected void AddEventRecord()
         {
-            _lastEventReceivedTimes.Enqueue(time);
+            var snap = AbstractMonoVariable._networkTickSnapshot;
+            _lastEventReceivedRecords.Enqueue(new EventReceivedRecord
+            {
+                _tick = snap?._tick ?? WorldUpdateSimulator.CurrentTick,
+                _isForward = snap?._isForward ?? true,
+            });
 
             // 保持最多10個記錄
-            while (_lastEventReceivedTimes.Count > MaxEventTimeRecords)
-                _lastEventReceivedTimes.Dequeue();
+            while (_lastEventReceivedRecords.Count > MaxEventTimeRecords)
+                _lastEventReceivedRecords.Dequeue();
         }
 #else
-        protected void AddEventTime(float time)
+        protected void AddEventRecord()
         {
-            // Release模式下不記錄時間
+            // Release模式下不記錄
         }
 #endif
     }

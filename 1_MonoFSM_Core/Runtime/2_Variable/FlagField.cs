@@ -68,6 +68,12 @@ public class FlagFieldVector3 : FlagField<Vector3>
 }
 
 [Serializable]
+public class FlagFieldQuaternion : FlagField<Quaternion>
+{
+    protected override bool IsCurrentValueEquals(Quaternion value) => _currentValue == value;
+}
+
+[Serializable]
 public class ValueChangedListener<T>
 {
     public void Clear()

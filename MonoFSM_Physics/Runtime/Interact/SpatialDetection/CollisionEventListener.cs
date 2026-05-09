@@ -7,6 +7,7 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
 {
     public class CollisionEventListener : MonoBehaviour
     {
+        //FIXME: photon 還沒準備好診麼辦？
         void OnCollisionEnter(Collision collision)
         {
             // Debug.Log("Collision Enter: " + collision.gameObject.name);

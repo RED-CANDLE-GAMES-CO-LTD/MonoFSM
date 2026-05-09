@@ -419,7 +419,7 @@ namespace MonoFSM.Core.Simulate
                 }
         }
 
-        public static int CurrentTick { get; private set; }
+        public static int CurrentTick { get; set; }
         public static float SimulationTime { get; private set; }
 
         public static float LevelSimulationTime
@@ -610,6 +610,7 @@ namespace MonoFSM.Core.Simulate
             if (!IsReady)
                 return;
             LocalAlpha = localAlpha;
+            _deltaTime = deltaTime;
             CurrentPhase = SimPhase.Render;
             foreach (var monoObject in _monoObjectSet)
                 if (monoObject is { isActiveAndEnabled: true })

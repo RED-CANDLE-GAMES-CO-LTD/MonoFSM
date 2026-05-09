@@ -1,20 +1,21 @@
 using System.Collections.Generic;
 using MonoFSM.Variable.Attributes;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Core.Detection
 {
-    public class TriggerDetectorSource : AbstractDetectionSource
+    public class TriggerDetectorSource : AbstractDetectionSource, ISceneAwake
     {
-        protected override void Awake()
-        {
-            base.Awake();
-            if (_collider.isTrigger == false)
-                Debug.LogError(
-                    "Collider must be set as trigger for TriggerDetectorSource to work properly.",
-                    this);
-        }
+        // protected override void Awake()
+        // {
+        //     base.Awake();
+        //     if (_collider.isTrigger == false)
+        //         Debug.LogError(
+        //             "Collider must be set as trigger for TriggerDetectorSource to work properly.",
+        //             this);
+        // }
         //FIXME: 一鍵添加 Sphere Collider
 
         //FIXME: 檢查是不是 trigger
@@ -24,7 +25,7 @@ namespace MonoFSM.Core.Detection
             "@_collider != null && !_collider.isTrigger")]
         [Required]
         [CompRef]
-        [SerializeField]
+        // [SerializeField]
         [Auto]
         private Collider _collider;
 
@@ -86,5 +87,9 @@ namespace MonoFSM.Core.Detection
         }
 
         //FIXME: Gizmo?
+        public void EnterSceneAwake()
+        {
+            _collider.isTrigger = true;
+        }
     }
 }

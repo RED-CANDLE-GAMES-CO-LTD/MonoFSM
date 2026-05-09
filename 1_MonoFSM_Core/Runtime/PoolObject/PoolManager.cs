@@ -502,6 +502,7 @@ public class PoolManager : MonoBehaviour, IPoolManager
                     var emergencyEntry = new PoolObjectEntry
                     {
                         prefab = currentPool._prefab,
+                        _cacheName = currentPool._prefab.name,
                         DefaultMaximumCount = protectedCount,
                     };
                     allPools[i]._bindingEntry = emergencyEntry;
@@ -624,6 +625,7 @@ public class PoolManager : MonoBehaviour, IPoolManager
                 return new PoolObjectEntry
                 {
                     prefab = prefab,
+                    _cacheName = prefab.name,
                     DefaultMaximumCount = Mathf.Max(
                         1,
                         protectedCount

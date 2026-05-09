@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using MonoDebugSetting;
+using MonoFSM.Core.Simulate;
 using UnityEngine;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
@@ -28,8 +29,6 @@ namespace Fusion.Addons.FSM
         }
 
         public string Name { get; private set; }
-
-        // public NetworkRunner Runner { get; private set; } //FIXME: 被強迫network了!
 
         public bool? EnableLogging { get; set; }
 
@@ -352,7 +351,7 @@ namespace Fusion.Addons.FSM
             _previousStateId = _activeStateId;
             _activeStateId = stateId;
             // Debug.Log("activeStateId" + _activeStateId);
-            if (RuntimeDebugSetting.IsDebugMode)
+            // if (RuntimeDebugSetting.IsDebugMode)
                 LogStateChange();
 
             Profiler.BeginSample("Exit State");
@@ -418,8 +417,9 @@ namespace Fusion.Addons.FSM
 
             var activeStateName = ActiveState != null ? ActiveState.Name : "None";
             var previousStateName = PreviousState != null ? PreviousState.Name : "None";
+
             Debug.Log(
-                $"{_logic.gameObject.name} - <color=#F04C4C>State Machine <b>{Name}</b>: Change State to <b>{activeStateName}</b></color> - Previous: {previousStateName}, Tick: {_tickProvider.Tick}",
+                $"{_logic.gameObject.name} - <color=#F04C4C>State Machine <b>{Name}</b>: Change State to <b>{activeStateName}</b></color> - Previous: {previousStateName}, Tick: {WorldUpdateSimulator.CurrentTick} IsResim{WorldUpdateSimulator.IsResimulation}",
                 _logic
             );
         }
@@ -437,7 +437,7 @@ namespace Fusion.Addons.FSM
                 return; // Logging is specifically disabled for this machine
 
             Debug.Log(
-                $"{_logic.gameObject.name} - <color=#F04C4C>State Machine <b>{Name}</b>: Machine <b>RESET</b></color> - Tick: {_tickProvider.Tick}",
+                $"{_logic.gameObject.name} - <color=#F04C4C>State Machine <b>{Name}</b>: Machine <b>RESET</b></color> - Tick: {WorldUpdateSimulator.CurrentTick}",
                 _logic
             );
         }

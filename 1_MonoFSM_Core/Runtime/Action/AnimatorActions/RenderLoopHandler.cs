@@ -14,6 +14,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.AnimatorActions
             _lastRenderEventTime = Time.time;
             foreach (var action in _renderActions)
             {
+                if (!action.isActiveAndEnabled) continue;
                 action.OnRender();
             }
         }

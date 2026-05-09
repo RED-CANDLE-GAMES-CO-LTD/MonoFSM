@@ -43,7 +43,7 @@ namespace MonoFSM.Core.Simulate
         int SimulateOrder => 0;
     }
 
-    public interface IRenderSimulate : RenderInvoker
+    public interface IRenderSimulate : IRenderInvoker
     {
         void Render(float runnerLocalRenderTime);
         bool isActiveAndEnabled { get; }

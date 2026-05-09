@@ -636,9 +636,14 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         if (HasParentVar) //local的沒差
             return;
         if (_varTag == null) //nested的可以不用有？
+        {
             Debug.LogError("No VarTag: " + this, this);
-        else
+        }
+        else if (name != _varTag.name)
+        {
             name = _varTag.name;
+        }
+
     }
 }
 

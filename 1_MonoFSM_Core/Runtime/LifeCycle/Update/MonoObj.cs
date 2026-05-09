@@ -186,7 +186,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [AutoChildren(StopAtType = typeof(MonoObj))]
         private IAfterSimulate[] _afterSimulates;
 
-        [PreviewInDebugMode] [AutoChildren(StopAtType = typeof(MonoObj))] private IRenderSimulate[] _renderSimulates;
+        [PreviewInDebugMode] [AutoChildren(StopAtType = typeof(MonoObj))]
+        private IRenderSimulate[] _renderSimulates;
         [PreviewInDebugMode] [AutoChildren(StopAtType = typeof(MonoObj))] private IAfterRenderMono[] _afterRenders;
 
         // [PreviewInInspector]
@@ -237,7 +238,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 obj.HasStateAuthority = state;
             }
 
-            Debug.Log($"Assigned HasStateAuthority={state} for {name} and all children.", this);
+            // Debug.Log($"Assigned HasStateAuthority={state} for {name} and all children.", this);
         }
 
         // [SerializeField]

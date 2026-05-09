@@ -1,3 +1,4 @@
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
@@ -6,7 +7,7 @@ using UnityEngine;
 namespace _1_MonoFSM_Core.Runtime.Action
 {
     //FIXME: 不好...會不好回查 reference?
-    public class SetGameObjectActiveAction : AbstractStateAction
+    public class SetGameObjectActiveAction : AbstractStateAction, IRenderBehaiour
     {
         public override string Description => "SetActive: " + (_target != null ? _target.name : "null") + " to " +
                                               (_isToggle ? "Toggle" : _active.Description);
@@ -30,6 +31,19 @@ namespace _1_MonoFSM_Core.Runtime.Action
             {
                 go.SetActive(value);
             }
+        }
+
+        /// <summary>
+        /// 有點髒，但好像不能說錯？還是應該把SFX類的獨立出來 (但在做一樣的事)
+        /// </summary>
+        public void OnEnterRender() //這樣好嗎？
+        {
+            OnActionExecuteImplement();
+        }
+
+        public void OnRender()
+        {
+            OnActionExecuteImplement();
         }
     }
 }
