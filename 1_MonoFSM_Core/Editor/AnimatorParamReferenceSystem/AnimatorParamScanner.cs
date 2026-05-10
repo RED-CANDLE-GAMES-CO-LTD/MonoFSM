@@ -92,7 +92,8 @@ namespace MonoFSM.Editor.AnimatorParamReferenceSystem
 
             // 透過 reflection 取得 Animator property
             var animatorProp = typeof(AbstractAnimatorSetParamAction)
-                .GetProperty("Animator", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                .GetProperty("ResolvedAnimator",
+                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
             var animator = animatorProp?.GetValue(action) as Animator;
 
             var stateName = GetStateName(action);
