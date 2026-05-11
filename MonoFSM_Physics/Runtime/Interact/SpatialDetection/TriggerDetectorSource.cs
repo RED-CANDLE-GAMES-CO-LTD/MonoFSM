@@ -89,7 +89,8 @@ namespace MonoFSM.Core.Detection
         //FIXME: Gizmo?
         public void EnterSceneAwake()
         {
-            _collider.isTrigger = true;
+            if (_collider != null)
+                _collider.isTrigger = true;
         }
     }
 }

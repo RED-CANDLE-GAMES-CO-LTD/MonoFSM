@@ -84,10 +84,10 @@ public class DropDownRefAttributeDrawer : OdinAttributeDrawer<DropDownRefAttribu
             filterType = filterType.GetElementType();
         }
 
-        Debug.Log(
-            $"[DropDownRef] ShowSelector base={Property.ValueEntry.BaseValueType?.FullName}, dyn={dynType?.FullName}, filter={filterType?.FullName}",
-            _bindComp
-        );
+        // Debug.Log(
+        //     $"[DropDownRef] ShowSelector base={Property.ValueEntry.BaseValueType?.FullName}, dyn={dynType?.FullName}, filter={filterType?.FullName}",
+        //     _bindComp
+        // );
 
         // var currentComp = Property.ValueEntry.WeakSmartValue as Component;
         //draw SDFIcon down arrow to the right of the button
