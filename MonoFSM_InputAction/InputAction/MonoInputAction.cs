@@ -84,7 +84,7 @@ namespace MonoFSM_InputAction
         }
 
         public Vector2 ReadValueVec2 =>
-            _abstractInputActionImplementation.FetchVec2Value;
+            _abstractInputActionImplementation?.FetchVec2Value ?? Vector2.zero;
 
         //什麼時候需要用到？local直接接？
         [ShowInPlayMode] public bool IsPressed => _abstractInputActionImplementation.FetchIsPressed;
