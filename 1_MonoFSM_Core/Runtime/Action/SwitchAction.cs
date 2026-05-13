@@ -1,3 +1,4 @@
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
@@ -12,7 +13,8 @@ namespace MonoFSM.Core.Runtime.Action
         AllMatch
     }
 
-    public class SwitchAction : AbstractStateAction, IArgEventReceiver<GeneralEffectHitData>
+    public class SwitchAction : AbstractStateAction, IArgEventReceiver<GeneralEffectHitData>,
+        IRenderBehaiour
     {
         public override string Description => $"Switch ({_mode})";
 
@@ -62,6 +64,39 @@ namespace MonoFSM.Core.Runtime.Action
                 if (_mode == SwitchMode.FirstMatch)
                     return;
             }
+        }
+
+        //FIXME: 應該跑這個嗎...?
+        public void OnEnterRender()
+        {
+            SwitchCase defaultCase = null;
+            bool anyMatched = false;
+
+            foreach (var switchCase in _cases)
+            {
+                if (switchCase == null || !switchCase.gameObject.activeSelf)
+                    continue;
+
+                if (switchCase.IsDefault)
+                {
+                    defaultCase = switchCase;
+                    continue;
+                }
+
+                if (!switchCase.IsConditionMet)
+                    continue;
+
+
+                switchCase.OnEnterRender();
+
+                if (_mode == SwitchMode.FirstMatch)
+                    return;
+            }
+        }
+
+        public void OnRender()
+        {
+            // throw new System.NotImplementedException();
         }
     }
 }

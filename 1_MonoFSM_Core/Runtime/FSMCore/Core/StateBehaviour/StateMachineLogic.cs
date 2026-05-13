@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
@@ -63,13 +64,32 @@ namespace Fusion.Addons.FSM
         {
             if (EnableLogging)
                 Debug.Log($"Restoring state to ID {stateId} on {gameObject.name}", this);
-            // Debug.Break();
-            // StateMachines[0].ForceActivateState(stateId, true);
-            stateIdToRestore = stateId;
+            if (_owners != null)
+                foreach (var owner in _owners)
+                    if (owner != null)
+                        owner.RestoreState(stateId);
         }
 
-        //FIXME: 這個只有 fusion的會去restore?
-        public int stateIdToRestore = -1;
+        public bool HasPendingRestore()
+        {
+            if (_owners == null) return false;
+            foreach (var owner in _owners)
+                if (owner != null && owner.stateIdToRestore != -1)
+                    return true;
+            return false;
+        }
+
+        public void RestoreAllPending()
+        {
+            if (_owners == null) return;
+            foreach (var owner in _owners)
+            {
+                if (owner == null) continue;
+                if (owner.stateIdToRestore == -1) continue;
+                owner.ForceActivateState(owner.stateIdToRestore, true);
+                owner.stateIdToRestore = -1;
+            }
+        }
 
         //FIXME: module pack也要？
         // [AutoChildren] public AnyState anyState;
@@ -80,11 +100,13 @@ namespace Fusion.Addons.FSM
 
         public bool IsCurrentState(IState state)
         {
-            if (state == null)
-                return false;
-            if (!_stateMachinesCollected)
-                return false;
-            return _stateMachinesInternal[0].ActiveState == state;
+            if (state == null) return false;
+            if (!_stateMachinesCollected) return false;
+            if (_owners == null) return false;
+            foreach (var owner in _owners)
+                if (owner != null && owner.IsCurrentState(state))
+                    return true;
+            return false;
         }
 
         [ShowInInspector]
@@ -92,10 +114,9 @@ namespace Fusion.Addons.FSM
         {
             get
             {
-                if (!_stateMachinesCollected)
-                    return null;
-                // if (_stateMachinesInternal.Count == 0) return null;
-                return _stateMachinesInternal[0].PreviousState;
+                if (!_stateMachinesCollected) return null;
+                if (_owners == null || _owners.Length == 0) return null;
+                return _owners[0]?.PreviousState;
             }
         }
 
@@ -104,10 +125,9 @@ namespace Fusion.Addons.FSM
         {
             get
             {
-                if (!_stateMachinesCollected)
-                    return null;
-                // if (_stateMachinesInternal.Count == 0) return null;
-                return _stateMachinesInternal[0].ActiveState;
+                if (!_stateMachinesCollected) return null;
+                if (_owners == null || _owners.Length == 0) return null;
+                return _owners[0]?.CurrentState;
             }
         }
 
@@ -124,6 +144,8 @@ namespace Fusion.Addons.FSM
             _manualUpdateMode = manualUpdate;
         }
 
+        [SerializeField] MonoFSMOwner[] _owners;
+
         //FIXME: 到處亂叫，不爽, InitializeLogic & CollectStateMachines
         public void CollectStateMachines()
         {
@@ -132,8 +154,10 @@ namespace Fusion.Addons.FSM
                 _statePool.Clear();
 
             // Get IStateMachineOwner components from children of this GameObject.
-            var owners = GetComponentsInChildren<IStateMachineOwner>(true);
-
+            // var owners = GetComponentsInChildren<IStateMachineOwner>(true);
+            if (_owners.Length == 0)
+                _owners = GetComponentsInChildren<MonoFSMOwner>(true);
+            var owners = _owners;
             // Assuming ListPool is a static utility class available.
             // If not, replace with: var tempMachines = new List<IStateMachine>(32);
             // var tempMachines = new List<IStateMachine>(32); // Placeholder if ListPool is not found
@@ -141,7 +165,8 @@ namespace Fusion.Addons.FSM
 
             for (var i = 0; i < owners.Length; i++)
             {
-                owners[i].CollectStateMachines(tempMachines);
+                var owner = owners[i] as IStateMachineOwner;
+                owner.CollectStateMachines(tempMachines);
                 CheckCollectedMachines(owners[i], tempMachines);
 
                 for (var j = 0; j < tempMachines.Count; j++)

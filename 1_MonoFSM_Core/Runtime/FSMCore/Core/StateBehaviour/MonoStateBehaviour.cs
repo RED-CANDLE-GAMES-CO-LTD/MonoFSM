@@ -13,7 +13,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         public bool IsFullRect => false;
 
         public bool IsDrawGUIHierarchyBackground =>
-            Application.isPlaying && context && context.IsCurrentState(this);
+            Application.isPlaying && Owner && Owner.IsCurrentState(this);
 
         public string Key => Name;
 

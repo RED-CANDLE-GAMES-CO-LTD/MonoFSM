@@ -12,14 +12,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
     //想要HFSM?
     public class MonoFSMOwner : MonoBehaviour, IStateMachineOwner
     {
-        // //只撈一層就是了
-        // [SerializeField]
-        // [CompRef]
-        // [AutoChildren(DepthOneOnly = true)]
-        // private MonoStateBehaviour[] _states; //SerializeField的話就可以略過不跑？
-
         [CompRef]
-        // [AutoChildren(DepthOneOnly = true)]
         [Auto]
         private StateFolder _stateFolder;
 
@@ -48,6 +41,29 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         public int GetCurrentStateId()
         {
             return _fsm.ActiveStateId;
+        }
+
+        public IState CurrentState => _fsm?.ActiveState;
+        public IState PreviousState => _fsm?.PreviousState;
+        public float DeltaTime { get; set; }
+
+        public bool IsCurrentState(IState state)
+        {
+            if (state == null || _fsm == null)
+                return false;
+            return _fsm.ActiveState == state;
+        }
+
+        public int stateIdToRestore = -1;
+
+        public void RestoreState(int stateId)
+        {
+            stateIdToRestore = stateId;
+        }
+
+        public void ForceActivateState(int stateId, bool allowReset = true)
+        {
+            _fsm?.ForceActivateState(stateId, allowReset);
         }
 
         //serialize state id? 用int就好？

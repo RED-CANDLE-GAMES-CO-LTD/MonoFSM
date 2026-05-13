@@ -1,3 +1,4 @@
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
 using MonoFSM.Core;
 using Sirenix.OdinInspector;
@@ -10,7 +11,7 @@ namespace MonoFSM.Core
         [Required]
         [DropDownRef]
         [SerializeField]
-        private StateMachineLogic _fsmLogic;
+        private MonoFSMOwner _fsmOwner;
 
         [Required]
         [SerializeField]
@@ -20,8 +21,8 @@ namespace MonoFSM.Core
         {
             get
             {
-                if (_fsmLogic == null) return false;
-                var current = _fsmLogic.CurrentState as GeneralState;
+                if (_fsmOwner == null) return false;
+                var current = _fsmOwner.CurrentState as GeneralState;
                 return current != null && current.HasTag(_tag);
             }
         }

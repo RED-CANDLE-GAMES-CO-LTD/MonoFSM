@@ -6,19 +6,14 @@ namespace MonoFSM.Core
 {
     public class IsStateCondition : AbstractConditionBehaviour
     {
-        // [PreviewInInspector]
-        // [AutoParent] StateMachineOwner _owner;
-        [Required]
-        [DropDownRef]
-        [SerializeField]
-        private StateMachineLogic _fsmLogic; //FIXME: logic要自動抓到吧？會跨FSM嗎？感覺也很髒
-
         [Required]
         [DropDownRef]
         [SerializeField]
         GeneralState _targetState;
 
-        protected override bool IsValid => _fsmLogic.IsCurrentState(_targetState);
+        protected override bool IsValid =>
+            _targetState != null && _targetState.Owner != null &&
+            _targetState.Owner.IsCurrentState(_targetState);
 
         //_owner.FsmContext.currentStateType == _targetState;
         public override string Description => $"Is {_targetState?.name}";

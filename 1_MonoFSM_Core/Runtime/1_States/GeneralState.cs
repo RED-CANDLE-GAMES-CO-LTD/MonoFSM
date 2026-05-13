@@ -57,7 +57,8 @@ public class GeneralState : MonoStateBehaviour
     {
         Debug.Log($"ForceActivateState to {Name}", this);
         // 使用 RestoreState 機制，會在網路同步後執行，避免被 ReadNetworkData 覆蓋
-        context.RestoreState(StateId);
+        Owner.RestoreState(StateId);
+        // context.RestoreState(StateId);
     }
 
     //FIXME: 要區分 render 和 一般的？ 同一份code怎麼區分？從 MonoObj 去判 authority嗎？

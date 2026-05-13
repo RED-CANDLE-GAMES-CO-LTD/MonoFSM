@@ -18,8 +18,9 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         [AutoChildren] private AnyState[] _anyStates;
         //parent folder?
         [AutoParent] MonoEntity _owningEntity;
-        [Auto] private StateMachineLogic _context;
-        public StateMachineLogic bindingContext => _owningEntity.StateFolder._context;
+
+        // [Auto] private StateMachineLogic _context;
+        // public StateMachineLogic bindingContext => _owningEntity.StateFolder._context;
         protected override string DescriptionTag => "StateFolder";
 
         public override void EnterSceneAwake()

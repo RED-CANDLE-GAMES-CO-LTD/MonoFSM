@@ -689,6 +689,7 @@ namespace MonoFSM.Animation
 
         private bool _hasAnimationPlaySuccess;
 
+        [ShowInPlayMode]
         public bool IsPlayingCurrentClip()
         {
             // var layer = doneEventLayer; //FIXME: 搞屁啊？
@@ -869,6 +870,11 @@ namespace MonoFSM.Animation
         private bool IsValid =>
             animator != null && animator.isActiveAndEnabled && _conditions.IsAllValid();
 
+        [ShowInDebugMode] private float _lastOnEnterRenderTime;
+
+        [ShowInDebugMode] private float _lastOnRenderTime;
+        //FIXME: 差在哪？
+
         public void OnEnterRender() //transition更早就判定？導致done錯了？
         {
             // Debug.Log("Play Animation State");
@@ -938,6 +944,7 @@ namespace MonoFSM.Animation
                 );
             }
 
+            _lastOnRenderTime = Time.time;
             // FIXME: 不要update 0就不會造成這個onenable了？
             // 是什麼情境一定要OnEnable?
             // animator.Update(0);
@@ -1010,6 +1017,7 @@ namespace MonoFSM.Animation
                 );
             }
 
+            _lastOnRenderTime = Time.time;
             // var info = animator.GetCurrentAnimatorStateInfo(doneEventLayer);
 
             // if (!IsPlayingCurrentClip())

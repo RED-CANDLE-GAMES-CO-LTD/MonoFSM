@@ -35,13 +35,15 @@ namespace MonoFSM.Core
         public int Priority => _priority;
         public float StateTime => Machine == null
             ? 0f
-            : (WorldUpdateSimulator.CurrentTick - Machine.StateChangeTick) * DeltaTime;
+            : (WorldUpdateSimulator.CurrentTick - Machine.StateChangeTick) *
+              WorldUpdateSimulator.DeltaTime;
 
         [AutoParent] MonoFSMOwner _owner;
+        public MonoFSMOwner Owner => _owner;
 
-        protected StateMachineLogic context => _parentfolder.bindingRootFolder
-            ? _parentfolder.bindingRootFolder.bindingContext
-            : _parentfolder.bindingContext;
+        // protected StateMachineLogic context => _parentfolder.bindingRootFolder
+        //     ? _parentfolder.bindingRootFolder.bindingContext
+        //     : _parentfolder.bindingContext;
 
         StateFolder bindingFolder => _parentfolder.bindingRootFolder
             ? _parentfolder.bindingRootFolder
@@ -50,8 +52,8 @@ namespace MonoFSM.Core
         [AutoParent] protected StateFolder _parentfolder;
 
 
-        public MonoEntity ParentEntity =>
-            context.ParentEntity; //extension method一路往上問？ vs直接GetComponentInParent?
+        public MonoEntity ParentEntity => BindEntity;
+        // context.ParentEntity; //extension method一路往上問？ vs直接GetComponentInParent?
 
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
@@ -60,7 +62,6 @@ namespace MonoFSM.Core
         [CompRef] [AutoChildren(DepthOneOnly = true)]
         private CanExitNode _canExitNode;
 
-        public float DeltaTime => context.DeltaTime;
 
         //  PRIVATE MEMBERS
 

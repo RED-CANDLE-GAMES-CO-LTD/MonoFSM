@@ -52,6 +52,15 @@ namespace MonoFSM.Core.Runtime.Action
             }
         }
 
+        public void OnEnterRender()
+        {
+            _lastRenderTime = Time.time;
+            foreach (var renderBehaiour in _renderBehaiours)
+            {
+                renderBehaiour?.OnEnterRender();
+            }
+        }
+
         public void ExecuteActions(GeneralEffectHitData arg)
         {
             foreach (var action in _actions)

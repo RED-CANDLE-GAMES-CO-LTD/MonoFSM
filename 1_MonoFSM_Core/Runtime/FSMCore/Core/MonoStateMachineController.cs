@@ -121,12 +121,8 @@ namespace Fusion.Addons.FSM
                 return;
 
 
-            if (_fsmLogic.stateIdToRestore != -1)
-            {
-                //FIXME: 只有單一fsm, nested應該是假的沒有實作？
-                _fsmLogic.StateMachines[0].ForceActivateState(_fsmLogic.stateIdToRestore, true);
-                _fsmLogic.stateIdToRestore = -1; // Reset after restoring
-            }
+            if (_fsmLogic.HasPendingRestore())
+                _fsmLogic.RestoreAllPending();
             for (var i = 0; i < _fsmLogic.StateMachines.Count; i++)
             {
                 Profiler.BeginSample(
