@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using _1_MonoFSM_Core.Runtime.Attributes;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Foundation;
+using MonoFSM.Variable.TypeTag;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -15,7 +18,22 @@ namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
     /// </summary>
     public abstract class AbstractComponentPropertyValueSource<T> : AbstractValueSource<T>
     {
-        [Required] public Component _sourceObject;
+        [Header("類型限制")]
+        [SerializeField]
+        [Tooltip("限定 Component 的類型，會影響 _sourceObject dropdown 篩選")]
+        [SOConfig("TypeTag")]
+        private CompTypeTag _componentTypeTag;
+
+        private Type SourceObjectTypeFilter()
+        {
+            if (_componentTypeTag != null && _componentTypeTag.Type != null)
+                return _componentTypeTag.Type;
+            return typeof(Component);
+        }
+
+        [Required]
+        [DropDownRef(null, nameof(SourceObjectTypeFilter))]
+        public Component _sourceObject;
 
         private IEnumerable<string> GetPropertyNames()
             => _sourceObject != null

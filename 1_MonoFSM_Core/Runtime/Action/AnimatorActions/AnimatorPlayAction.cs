@@ -561,6 +561,7 @@ namespace MonoFSM.Animation
         [Button]
         private void CalculateClipLength()
         {
+            //FIXME: blendTree?
             if (CurrentClip == null)
             {
                 Debug.LogError("CurrentClip is null, cannot calculate length", this);

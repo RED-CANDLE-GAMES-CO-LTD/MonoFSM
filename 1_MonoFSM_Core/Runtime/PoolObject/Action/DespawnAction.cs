@@ -14,7 +14,7 @@ namespace MonoFSM.Runtime.ObjectPool
     /// </summary>
     public class DespawnAction : AbstractArgEventHandler<GeneralEffectHitData>
     {
-        [ShowIf(nameof(_effectResolver))] //FIXME: 還是用Disable?
+        // [ShowIf(nameof(_effectResolver))] //FIXME: 還是用Disable?
         public EffectHitTarget _despawnTarget = EffectHitTarget.Receiver;
 
         protected override void OnActionExecuteImplement()

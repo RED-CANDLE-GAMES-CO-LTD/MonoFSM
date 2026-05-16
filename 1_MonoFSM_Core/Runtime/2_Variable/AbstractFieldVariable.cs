@@ -637,7 +637,8 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
             return;
         if (_varTag == null) //nested的可以不用有？
         {
-            Debug.LogError("No VarTag: " + this, this);
+            if (RuntimeDebugSetting.IsDebugMode)
+                Debug.LogError("No VarTag: " + this, this);
         }
         else if (name != _varTag.name)
         {

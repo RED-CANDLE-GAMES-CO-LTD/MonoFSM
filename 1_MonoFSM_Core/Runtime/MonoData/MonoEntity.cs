@@ -49,7 +49,8 @@ namespace MonoFSM.Runtime
         //hmm view還是不同步？只有state需要，另外寫view?
         //effect感覺需要同步？要不然debug會看不懂？
         //install後有個搬移的過程？但這樣資料就會不同步了(ex: override)
-
+        [AutoParent] private MonoObj _bindObj;
+        public MonoObj BindObj => _bindObj;
         private void Awake()
         {
             BindModulePackFolders(); //FIXME: 可以在這嗎？

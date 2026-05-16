@@ -33,7 +33,7 @@ namespace MonoFSM.Foundation
             IAfterPrefabStageOpenCallbackReceiver,
             IDrawHierarchyBackGround, IHierarchyValueInfo
     {
-        public Color BackgroundColor
+        public virtual Color BackgroundColor
         {
             get
             {
@@ -54,7 +54,7 @@ namespace MonoFSM.Foundation
         private string _splitNoteKeyword;
 
         [ShowInDebugMode]
-        public bool IsDrawGUIHierarchyBackground
+        public virtual bool IsDrawGUIHierarchyBackground
         {
             get
             {

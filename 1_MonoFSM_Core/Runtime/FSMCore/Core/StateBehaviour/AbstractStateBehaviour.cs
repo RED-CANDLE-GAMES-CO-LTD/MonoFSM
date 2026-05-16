@@ -41,10 +41,6 @@ namespace MonoFSM.Core
         [AutoParent] MonoFSMOwner _owner;
         public MonoFSMOwner Owner => _owner;
 
-        // protected StateMachineLogic context => _parentfolder.bindingRootFolder
-        //     ? _parentfolder.bindingRootFolder.bindingContext
-        //     : _parentfolder.bindingContext;
-
         StateFolder bindingFolder => _parentfolder.bindingRootFolder
             ? _parentfolder.bindingRootFolder
             : _parentfolder;

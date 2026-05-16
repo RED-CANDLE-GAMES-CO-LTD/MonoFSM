@@ -26,13 +26,21 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         protected override bool IsIgnoreRename => true;
 
-        protected override void Awake()
+        // protected override void Awake()
+        // {
+        //     base.Awake();
+        //
+        // }
+
+        protected override void Start()
         {
-            base.Awake();
+            base.Start();
             // Debug.Log($"[ViewRoot] Awake: '{name}'", this);
             _animator.keepAnimatorStateOnDisable = true; //保持動畫狀態，避免重啟後閃回default state
             _animator.writeDefaultValuesOnDisable = false;
+            // ReparentToRoot(); //這裡沒問題喔
         }
+
 
         [ShowInInspector] private Transform _entityParentTransform;
         [ShowInInspector] bool _sceneStarted = false;
@@ -72,11 +80,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         [ShowInInspector]
         MonoEntity _parentEntity;
-        protected override void Start()
-        {
-            base.Start();
-            // ReparentToRoot(); //這裡沒問題喔
-        }
+
 
         // [Button]
         // void ReparentToRoot()

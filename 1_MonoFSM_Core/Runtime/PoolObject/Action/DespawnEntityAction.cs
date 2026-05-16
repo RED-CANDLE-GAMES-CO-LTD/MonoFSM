@@ -12,7 +12,7 @@ namespace MonoFSM.Runtime.ObjectPool
         protected override void OnActionExecuteImplement()
         {
             Debug.Log("DespawnAction: Despawning entity " + _despawnEntity.Value, this);
-            _despawnEntity.Value.GetCompCache<MonoObj>().Despawn();
+            _despawnEntity.Value.BindObj.Despawn();
         }
     }
 }

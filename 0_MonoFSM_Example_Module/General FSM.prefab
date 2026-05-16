@@ -126,6 +126,7 @@ MonoBehaviour:
   _note: 
   _valueChangedHandler: {fileID: 0}
   _varTag: {fileID: 11400000, guid: fe6f95997618b40b382e095deabd42ea, type: 2}
+  _isLogStackTrace: 0
   _needValueSource: 0
   _isRuntimeOnly: 0
   _defaultValue: {fileID: 0}
@@ -226,7 +227,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _backingEnableLogging: 0
-  stateIdToRestore: -1
+  _owners: []
 --- !u!114 &1973556432026734445
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,6 +240,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea38b0e4a8b84009afda99607ca9e769, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stateIdToRestore: -1
 --- !u!114 &6211675861463662160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -607,6 +609,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.Action.AnimatorActions.RenderLoopHandler
   _note: 
+  _forceExecuteWithoutStateAuthority: 0
 --- !u!1 &4731588778212171276
 GameObject:
   m_ObjectHideFlags: 0
@@ -652,6 +655,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88d42bb89d3c54ee5bb15d2fd2014077, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _note: 
   _priority: 0
   _checkPriorityOnExit: 1
   _stateTags: []
@@ -666,7 +670,7 @@ GameObject:
   - component: {fileID: 2722481800610883426}
   - component: {fileID: 4377014297404095105}
   m_Layer: 0
-  m_Name: '[State] init '
+  m_Name: '[State] init'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -700,6 +704,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88d42bb89d3c54ee5bb15d2fd2014077, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _note: 
   _priority: 0
   _checkPriorityOnExit: 1
   _stateTags: []
