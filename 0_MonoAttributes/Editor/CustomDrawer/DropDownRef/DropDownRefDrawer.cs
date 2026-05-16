@@ -421,6 +421,46 @@ public class DropDownRefAttributeDrawer : OdinAttributeDrawer<DropDownRefAttribu
             true
         ); //GUILayout.Width(EditorGUIUtility.currentViewWidth) 這個會太肥噴掉
 
+        // 支援拖 GameObject 進來時自動抓取對應 Component（依 getterDynamicType() 過濾）
+        var fieldRect = GUILayoutUtility.GetLastRect();
+        var dynamicFilterType = getterDynamicType();
+        if (typeof(Component).IsAssignableFrom(dynamicFilterType)
+            && fieldRect.Contains(Event.current.mousePosition))
+        {
+            var evt = Event.current;
+            if (evt.type == EventType.DragUpdated || evt.type == EventType.DragPerform)
+            {
+                Component extracted = null;
+                foreach (var dragged in DragAndDrop.objectReferences)
+                {
+                    GameObject go = null;
+                    if (dragged is GameObject g)
+                        go = g;
+                    else if (dragged is Component c)
+                        go = c.gameObject;
+
+                    if (go == null)
+                        continue;
+
+                    extracted = go.GetComponent(dynamicFilterType);
+                    if (extracted != null)
+                        break;
+                }
+
+                if (extracted != null)
+                {
+                    DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+                    if (evt.type == EventType.DragPerform)
+                    {
+                        DragAndDrop.AcceptDrag();
+                        newObj = extracted;
+                        GUI.changed = true;
+                        evt.Use();
+                    }
+                }
+            }
+        }
+
         // Debug.Log("Property.ValueEntry.BaseValueType:" + Property.ValueEntry.BaseValueType);
         // Debug.Log("Property.ValueEntry.TypeOfValue:" + Property.ValueEntry.TypeOfValue);
         if (newObj == _bindComp)
