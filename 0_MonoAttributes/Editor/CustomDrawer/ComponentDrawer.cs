@@ -114,7 +114,7 @@ public class ComponentAttributeDrawer : OdinAttributeDrawer<ComponentAttribute>
 
         var buttonLabel = candidateTypes.Count == 1
             ? "Add " + buttonStr + ":" + candidateTypes[0].Name
-            : "Search：Add" + buttonStr + ":" + valueType.Name;
+            : "Search: Add" + buttonStr + ":" + valueType.Name;
 
         if (
             SirenixEditorGUI.SDFIconButton(

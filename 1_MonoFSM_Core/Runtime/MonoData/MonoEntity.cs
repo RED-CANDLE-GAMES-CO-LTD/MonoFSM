@@ -85,6 +85,38 @@ namespace MonoFSM.Runtime
                 return _fsmLogic;
             }
         }
+        //自己的 sub-scope binder (opt-in，掛在自己 GameObject 上)
+        //有的話，children entities 會註冊到這裡，作為 nested lookup 的根
+        [Auto(logMissingAsError: false)]
+        [PreviewInInspector]
+        MonoEntityBinder _ownBinder;
+
+        public MonoEntityBinder OwnBinder => _ownBinder;
+
+        //parent scope binder：往上找最近一個 binder (跳過 self 的 _ownBinder)
+        //有的話優先註冊到這裡，做出 entity 的 hierarchy scope
+        [AutoParent(getMadIfMissing: false, includeSelf: false)]
+        [PreviewInInspector]
+        MonoEntityBinder _parentBinder;
+
+        /// <summary>
+        /// 從 self 的 sub-scope (_ownBinder) 取得對應 tag 的 nested MonoEntity (children)
+        /// </summary>
+        public MonoEntity GetSubEntity(MonoEntityTag tag)
+        {
+            if (_ownBinder == null || tag == null) return null;
+            return _ownBinder.Get(tag);
+        }
+
+        /// <summary>
+        /// 從 self 所屬的 scope (_parentBinder) 取得對應 tag 的 peer MonoEntity (同層 siblings)
+        /// </summary>
+        public MonoEntity GetSiblingEntity(MonoEntityTag tag)
+        {
+            if (_parentBinder == null || tag == null) return null;
+            return _parentBinder.Get(tag);
+        }
+
         //FIXME: nested? MonoEntity dictionary?
         public void OnInstantiated(WorldUpdateSimulator world)
         {
@@ -93,15 +125,23 @@ namespace MonoFSM.Runtime
             //掉在外面就不能註冊了，binder是不是不好？
             //從world去bind?
             //FIXME: 哪些要註冊？localplayer才需要？
-            _worldBinder = world.GetComponent<MonoEntityBinder>();
-            if (_worldBinder)
+
+            //優先註冊到最近的 parent binder (nested scope)，fallback 回 world binder
+            var targetBinder = _parentBinder;
+            if (targetBinder == null)
             {
-                // Debug.Log("Registering MonoEntity to WorldBinder: " + name, this);
-                _worldBinder.Add(DefaultTag, this); //註冊法
+                _worldBinder = world.GetComponent<MonoEntityBinder>();
+                targetBinder = _worldBinder;
+            }
+
+            if (targetBinder != null)
+            {
+                // Debug.Log($"Registering MonoEntity to Binder: {targetBinder.name}", this);
+                targetBinder.Add(DefaultTag, this);
             }
             else
                 Debug.LogError(
-                    "MonoDescriptableBinder not found in parent, cannot register to world binder",
+                    "MonoEntityBinder not found in parent nor world, cannot register",
                     this
                 );
             // GetComponent<MonoDescriptableBinder>().Add(DescriptableTag, this);

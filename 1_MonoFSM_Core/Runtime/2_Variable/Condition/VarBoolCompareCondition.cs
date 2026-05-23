@@ -8,6 +8,19 @@ namespace MonoFSM.Variable.Condition
 {
     public class VarBoolCompareCondition : AbstractConditionBehaviour
     {
+        [ConditionPreset("Bool == true", Category = "Bool", Priority = 90, ColorHex = "#88D070")]
+        private static void Preset_True(VarBoolCompareCondition c)
+        {
+            c.targetValue = true;
+        }
+
+        [ConditionPreset("Bool == false", Category = "Bool", Priority = 90, ColorHex = "#E07070")]
+        private static void Preset_False(VarBoolCompareCondition c)
+        {
+            c.targetValue = false;
+        }
+
+
         public override string Description => _varBool?.PathName + " == " + targetValue;
 
         /// <summary>

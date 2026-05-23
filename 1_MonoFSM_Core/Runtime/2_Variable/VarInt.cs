@@ -1,4 +1,7 @@
-﻿using MonoFSM.EditorExtension;
+using MonoFSM.Core.Attributes;
+using MonoFSM.EditorExtension;
+using MonoFSM.Variable;
+using UnityEngine;
 
 public interface IIntProvider
 {
@@ -14,4 +17,18 @@ public class VarInt : AbstractFieldVariable<GameFlagInt, FlagFieldInt, int>, IIn
     public override bool IsValueExist => CurrentValue != 0;
     public override string ValueInfo => IntValue.ToString();
     public override bool IsDrawingValueInfo => true;
+
+    [Component(AddComponentAt.Same)]
+    [AutoChildren(false)]
+    [SerializeField]
+    private VariableIntBoundModifier _boundModifier;
+
+    [ShowInPlayMode]
+    public int Min => _boundModifier ? _boundModifier.MinValue : 0;
+
+    [ShowInPlayMode]
+    public int Max => _boundModifier ? _boundModifier.MaxValue : int.MaxValue;
+
+    public bool IsMax => CurrentValue >= Max;
+    public bool IsMin => CurrentValue <= Min;
 }

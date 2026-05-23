@@ -9,11 +9,15 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
     public class MonoStateBehaviour : AbstractStateBehaviour<MonoStateBehaviour>, IDrawDetail,
         IValueOfKey<string>
     {
-        public override Color BackgroundColor => HierarchyResource.CurrentStateColor;
+        public override Color BackgroundColor => Application.isPlaying
+            ? HierarchyResource.CurrentStateColor
+            : base.BackgroundColor;
         public bool IsFullRect => false;
 
         public override bool IsDrawGUIHierarchyBackground =>
-            Application.isPlaying && Owner && Owner.IsCurrentState(this);
+            Application.isPlaying
+                ? (Owner && Owner.IsCurrentState(this))
+                : base.IsDrawGUIHierarchyBackground;
 
         public string Key => Name;
 

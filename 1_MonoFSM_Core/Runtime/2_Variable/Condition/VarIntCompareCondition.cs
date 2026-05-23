@@ -3,14 +3,14 @@ namespace MonoFSM.Variable.Condition
     public class VarIntCompareCondition : AbstractConditionBehaviour
     {
         protected override bool IsValid =>
-            ArithmeticHelper.CompareValues(_varInt != null ? _varInt.Value : 0, _targetValue, _op);
+            ArithmeticHelper.CompareValues(_varInt.Value, _targetValue.Value, _op);
 
-        [DropDownRef] public VarInt _varInt; //改用 wrapper?
+        public VarIntWrapper _varInt;
         public Operator _op;
-        public int _targetValue;
+        public VarIntWrapper _targetValue;
 
         public override string Description =>
-            $"{_varInt?.name} {ArithmeticHelper.OperatorDescription(_op)} {_targetValue}";
+            $"{_varInt} {ArithmeticHelper.OperatorDescription(_op)} {_targetValue}";
     }
 
     public static class ArithmeticHelper

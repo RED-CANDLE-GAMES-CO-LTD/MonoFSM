@@ -20,6 +20,8 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.ValueGetter
                 ? $"Get hitting entities from {_effectDealer.name}"
                 : "No EffectDealer";
 
+        public override string ValueInfo => Value.Count.ToString();
+
         protected override string DescriptionTag => "GetList";
 
         public override List<MonoEntity> Value =>

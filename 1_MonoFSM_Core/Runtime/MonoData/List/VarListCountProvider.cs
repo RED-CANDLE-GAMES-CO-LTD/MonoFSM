@@ -5,10 +5,18 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Variable.Providers
 {
-    public class VarListCountProvider : AbstractValueSource<float>, IValueProvider<float>
+    // [Obsolete("Use VarListCountIntProvider instead; wrap with IntToFloatValueSource if float is needed.")]
+    // public class VarListCountProvider : AbstractValueSource<float>, IValueProvider<float>
+    // {
+    //     [DropDownRef] [SerializeField] private AbstractVarList _varList;
+    //     public override string Description => $"{_varList?.name}'s Count";
+    //     public override float Value => _varList?.Count ?? -1;
+    // }
+
+    public class VarListCountProvider : AbstractValueSource<int>, IValueProvider<int>
     {
         [DropDownRef] [SerializeField] private AbstractVarList _varList;
         public override string Description => $"{_varList?.name}'s Count";
-        public override float Value => _varList.Count;
+        public override int Value => _varList?.Count ?? -1;
     }
 }

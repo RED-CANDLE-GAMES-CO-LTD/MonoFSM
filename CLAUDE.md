@@ -23,3 +23,4 @@
 * Debug 用的欄位可以加上 Odin 的 ShowInInspector，方便我在 Inspector 中觀察數值變化
 * 盡量不要用 awake 和 start, 用 ISceneAwake, ISceneStart 來取代
 * 我提到記下來或是記到skill時，預設使用 skill-creator 來把對應的知識記到 MonoFSM 的 Skill 裡
+* 有不確定的名詞時先從 skill 了解

@@ -246,7 +246,17 @@ namespace MonoFSM.Variable
         protected bool IsHidingDefaultValue =>
             HasValueSource || HasParentVarEntity || _variableFolder == null;
 
+        //有 parent entity 但沒設 varTag → proxy lookup 不可能成立
+        // [ShowInInspector]
+        // [PropertyOrder(-2)]
+
+        protected bool IsMissingVarTagForProxy => HasParentVarEntity && _varTag == null;
+
         //是一種Object Member的概念？
+        [InfoBox(
+            "已設定 Parent VarEntity 作為 proxy 來源，但缺少 VarTag。請設定 VarTag 才能從 parent entity 找到對應 variable。",
+            InfoMessageType.Error,
+            VisibleIf = nameof(IsMissingVarTagForProxy))]
         [HideIf(nameof(IsHidingVarTag))]
         [FormerlySerializedAs("varTag")]
         // [MCPExtractable]

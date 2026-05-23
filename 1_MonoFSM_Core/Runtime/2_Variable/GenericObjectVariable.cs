@@ -227,6 +227,15 @@ namespace MonoFSM.Variable
                 }
                 else
                 {
+                    if (_varTag == null)
+                    {
+                        Debug.LogError(
+                            $"{name} has ParentVarEntity but no VarTag to resolve variable",
+                            this
+                        );
+                        _valueDebugStatus = "VarTag is null";
+                        return null;
+                    }
                     var targetVar = _parentVarEntity.Value.GetVar(_varTag);
                     if (targetVar == null)
                     {

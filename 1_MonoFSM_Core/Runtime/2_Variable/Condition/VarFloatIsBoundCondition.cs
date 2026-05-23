@@ -1,3 +1,4 @@
+using MonoFSM.Condition;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -5,6 +6,19 @@ namespace MonoFSM.Variable.Condition
 {
     public class VarFloatIsBoundCondition : AbstractConditionBehaviour
     {
+        [ConditionPreset("Float Max", Category = "Float", Priority = 100, ColorHex = "#FFB347")]
+        private static void Preset_Max(VarFloatIsBoundCondition c)
+        {
+            c._boundType = BoundType.Max;
+        }
+
+        [ConditionPreset("Float Min", Category = "Float", Priority = 100, ColorHex = "#FFB347")]
+        private static void Preset_Min(VarFloatIsBoundCondition c)
+        {
+            c._boundType = BoundType.Min;
+        }
+
+
         public override string Description => _varFloat != null
             ? _boundType == BoundType.Percentage
                 ? _varFloat.name + " % " + ArithmeticHelper.OperatorDescription(_op) + " " + (_targetPercentage * 100f).ToString("F0") + "%"

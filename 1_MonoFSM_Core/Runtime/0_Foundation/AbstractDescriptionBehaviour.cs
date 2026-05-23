@@ -482,7 +482,7 @@ namespace MonoFSM.Foundation
             return true; // 預設為驗證
         }
 
-        [ShowInInspector]
+        [ShowInDebugMode]
         [AutoParent]
         protected MonoEntity _self; //FIXME: 每個都要嗎？
 

@@ -1,11 +1,18 @@
 using Fusion.Addons.FSM;
+using MonoFSM.Condition;
+using MonoFSM.Variable.Condition;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Core
 {
+
     public class IsStateCondition : AbstractConditionBehaviour
     {
+        [ConditionPreset("Is State", Category = "State", Priority = 100, ColorHex = "#FFB347")]
+        private static void Preset_State(IsStateCondition c)
+        {
+        }
         [Required]
         [DropDownRef]
         [SerializeField]
