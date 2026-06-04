@@ -9,9 +9,11 @@ namespace MonoFSM.Core
     {
         public void CheatKeyCheck()
         {
+
             if (Keyboard.current[Key.LeftMeta].isPressed ||
                 Keyboard.current[Key.LeftCtrl].isPressed)
             {
+                //重置關卡
                 if (
                     Keyboard.current[Key.R].wasPressedThisFrame)
                 {

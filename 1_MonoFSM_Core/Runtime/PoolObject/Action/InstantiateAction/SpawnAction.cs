@@ -189,6 +189,11 @@ namespace MonoFSM.Core.LifeCycle
 
         protected override void OnArgEventReceived(GeneralEffectHitData arg)
         {
+            if (arg._receiverSourceObj == null)
+            {
+                OnActionExecuteImplement();
+                return;
+            }
             // base.EventReceived(arg);
             //噴Receiver的位置?
             var receiverTrans = arg._receiverSourceObj.transform;
@@ -278,5 +283,14 @@ namespace MonoFSM.Core.LifeCycle
     {
         MonoObj Spawn(MonoObj obj, Vector3 position, Quaternion rotation);
         public void Despawn(MonoObj obj);
+    }
+
+    /// <summary>
+    /// ManualResetLevel（測試用重置）時讓 SpawnProcessor 有機會把被 despawn 的物件還原
+    /// ex: FusionSpawnProcessor 重新 RegisterSceneObjects 被 Runner.Despawn 掉的 scene NetworkObject
+    /// </summary>
+    public interface ILevelResetSpawnHandler
+    {
+        void OnBeforeLevelReset();
     }
 }

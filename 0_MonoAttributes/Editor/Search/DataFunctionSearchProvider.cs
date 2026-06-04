@@ -262,9 +262,9 @@ namespace MonoFSM.Core.Editor.Search
 
         private static IEnumerable<string> GetDataFunctionNames(GameData gameData)
         {
-            if (gameData._dataFunctionList != null)
+            if (gameData.DataFunctions != null)
             {
-                foreach (var df in gameData._dataFunctionList)
+                foreach (var df in gameData.DataFunctions)
                 {
                     if (df != null)
                         yield return df.GetType().Name;

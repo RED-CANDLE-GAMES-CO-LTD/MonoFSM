@@ -577,6 +577,10 @@ namespace MonoFSM.Core.Simulate
             {
                 foreach (var simulator in simulators)
                     simulator._poolManager.ReturnAllObjects();
+                //讓 SpawnProcessor 還原被 despawn 的物件（ex: Fusion scene NetworkObject 重新註冊）
+                foreach (var simulator in simulators)
+                    if (simulator._spawnProcessor is ILevelResetSpawnHandler resetHandler)
+                        resetHandler.OnBeforeLevelReset();
                 foreach (var simulator in simulators)
                     //這樣就可以reset了
                     simulator.ResetLevelRestore(isHardReset);

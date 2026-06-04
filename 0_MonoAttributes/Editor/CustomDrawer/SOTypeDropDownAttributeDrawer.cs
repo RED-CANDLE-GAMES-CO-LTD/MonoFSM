@@ -98,21 +98,59 @@ namespace MonoFSM.Core.Editor
 
             // 繪製帶過濾功能的選擇器
             // var objValue = Property.ValueEntry.WeakSmartValue as Object;
+            var totalRect = EditorGUILayout.BeginVertical();
             DrawFilteredSelector(label, currentValue);
             GUI.backgroundColor =
                 Property.ValueEntry.WeakSmartValue == null
                     ? new Color(0.2f, 0.2f, 0.3f, 0.1f)
                     : new Color(0.35f, 0.3f, 0.1f, 0.2f);
 
+            EditorGUI.BeginChangeCheck();
             var newObj = SirenixEditorFields.UnityObjectField(
                 currentValue,
                 Property.ValueEntry.TypeOfValue,
                 false
             );
-            Property.ValueEntry.WeakSmartValue = newObj;
+            if (EditorGUI.EndChangeCheck())
+                Property.ValueEntry.WeakSmartValue = newObj;
             // CallNextDrawer(label);
             GUI.backgroundColor = Color.white;
+            EditorGUILayout.EndVertical();
+
+            // 整個區塊（dropdown 按鈕列 + object field）都支援拖放
+            HandleDragAndDrop(totalRect);
             //需要call next drawer嗎？
+        }
+
+        /// <summary>
+        ///     處理整個欄位區塊的拖放，讓使用者把 Project 中的 SO 直接拖到欄位上
+        /// </summary>
+        private void HandleDragAndDrop(Rect dropArea)
+        {
+            var evt = Event.current;
+            if (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform)
+                return;
+            if (!dropArea.Contains(evt.mousePosition))
+                return;
+
+            var dragged = DragAndDrop.objectReferences;
+            if (dragged == null || dragged.Length != 1)
+                return;
+
+            var draggedObj = dragged[0];
+            var fieldType = Property.ValueEntry.TypeOfValue;
+            if (!fieldType.IsInstanceOfType(draggedObj))
+                return;
+
+            DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+
+            if (evt.type == EventType.DragPerform)
+            {
+                DragAndDrop.AcceptDrag();
+                Property.ValueEntry.WeakSmartValue = draggedObj;
+                evt.Use();
+                GUIHelper.RequestRepaint();
+            }
         }
 
         private void DrawFilteredSelector(GUIContent label, Object currentValue)

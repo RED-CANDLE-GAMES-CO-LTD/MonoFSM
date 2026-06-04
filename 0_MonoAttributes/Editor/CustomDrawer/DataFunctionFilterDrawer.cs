@@ -169,9 +169,9 @@ namespace MonoFSM.Core.Editor
                 return false;
 
             // 檢查 _dataFunctionList
-            if (gameData._dataFunctionList != null)
+            if (gameData.DataFunctions != null)
             {
-                foreach (var df in gameData._dataFunctionList)
+                foreach (var df in gameData.DataFunctions)
                 {
                     if (df != null && dataFunctionType.IsAssignableFrom(df.GetType()))
                         return true;

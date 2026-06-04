@@ -52,7 +52,11 @@ namespace MonoFSM.Variable
             if (_localStatModifiers == null)
                 return;
             foreach (var statModifier in _localStatModifiers)
+            {
+
                 RegisterModifier(statModifier);
+            }
+
         }
 
         protected override void Awake()
@@ -135,8 +139,14 @@ namespace MonoFSM.Variable
             _lastBaseValue = BaseValue;
             var tempValue = ValueAfterApplyModifier(); //主要算
             if (_modifiers != null)
+            {
                 foreach (var modifier in _modifiers)
+                {
+
                     tempValue = modifier.AfterGetValueModifyCheck(tempValue);
+                }
+            }
+
             _value = tempValue;
 
             if (_lastValue != _value)

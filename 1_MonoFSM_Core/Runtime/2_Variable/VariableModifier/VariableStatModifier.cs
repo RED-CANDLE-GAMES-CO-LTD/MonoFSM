@@ -84,8 +84,7 @@ namespace MonoFSM.Variable
         [AutoChildren]
         AbstractConditionBehaviour[] _conditions;
 
-        [PreviewInInspector]
-        public bool IsValid => _conditions.IsAllValid();
+        [PreviewInInspector] public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid();
 
         //FIXME: 怪怪的？
         public bool IsDirty =>

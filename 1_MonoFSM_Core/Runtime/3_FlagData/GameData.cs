@@ -181,13 +181,14 @@ public class GameData
     // private AbstractDataFunction[] _dataFunctionsArray;
 
     //FIXME: 還是用 AbstractDataFunction 比較好？
-    [OnCollectionChanged(nameof(RebuildDataFunctionDict))] [SerializeReference]
-    public List<AbstractDataFunction> _dataFunctionList = new();
+    // [OnCollectionChanged(nameof(RebuildDataFunctionDict))] [SerializeReference]
+    // public List<AbstractDataFunction> _dataFunctionList = new();
 
     [OnCollectionChanged(nameof(RebuildDataFunctionDict))] [SerializeReference]
     //empty
     private AbstractDataFunction[] _dataFunctions = Array.Empty<AbstractDataFunction>();
 
+    public AbstractDataFunction[] DataFunctions => _dataFunctions;
     private readonly Dictionary<Type, AbstractDataFunction> _dataFunctionDict = new();
     [ShowInDebugMode] public int dataFunctionCount => _dataFunctionDict.Count;
 
@@ -223,7 +224,7 @@ public class GameData
     private void RebuildDataFunctionDict()
     {
         // return;
-        if (_dataFunctions == null && _dataFunctionList == null) //如果onchange清掉咧？
+        if (_dataFunctions == null) //如果onchange清掉咧？
             return;
         _dataFunctionDict.Clear();
         // Debug.Log($"Rebuilding data function dict for {name}", this);
@@ -242,20 +243,20 @@ public class GameData
                     Debug.LogError($"Duplicate data function of type {type} found in {name}", this);
             }
 
-        if (_dataFunctionList != null && _dataFunctionList.Count > 0)
-            foreach (var dataFunction in _dataFunctionList)
-            {
-                if (dataFunction == null)
-                {
-                    Debug.LogError("DataFunction is null in " + name, this);
-                    continue;
-                }
-
-                dataFunction.SetOwner(this);
-                var type = dataFunction.GetType();
-                if (!_dataFunctionDict.TryAdd(type, dataFunction))
-                    Debug.LogError($"Duplicate data function of type {type} found in {name}", this);
-            }
+        // if (_dataFunctionList != null && _dataFunctionList.Count > 0)
+        //     foreach (var dataFunction in _dataFunctionList)
+        //     {
+        //         if (dataFunction == null)
+        //         {
+        //             Debug.LogError("DataFunction is null in " + name, this);
+        //             continue;
+        //         }
+        //
+        //         dataFunction.SetOwner(this);
+        //         var type = dataFunction.GetType();
+        //         if (!_dataFunctionDict.TryAdd(type, dataFunction))
+        //             Debug.LogError($"Duplicate data function of type {type} found in {name}", this);
+        //     }
     }
 
     public async void PreloadSprite()
