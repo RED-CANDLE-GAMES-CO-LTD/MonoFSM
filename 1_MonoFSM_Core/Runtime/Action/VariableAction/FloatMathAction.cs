@@ -23,7 +23,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         [Tooltip("每次傳輸的固定量（不足時只傳剩餘量）")]
         public VarFloatWrapper _transferAmount;
 
-        public ArithmeticType Arithmetic;
+        public ArithmeticType Arithmetic = ArithmeticType.AdditionAssign; //default 最常用
 
         private bool IsTransfer => Arithmetic == ArithmeticType.Transfer;
 

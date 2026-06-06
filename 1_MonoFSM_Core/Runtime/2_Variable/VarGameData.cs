@@ -8,7 +8,15 @@ namespace MonoFSM.Variable
     {
         protected override bool HasError() //額外寫validation好嗎?
         {
-            return base.HasError() || (Value == null && _defaultValue == null);
+            if (base.HasError())
+                return true;
+            //ProxySource / runtime-only 時 _defaultValue 本來就會被隱藏跳過，不該再判紅
+            if (!HideDefaultValue() && Value == null && _defaultValue == null)
+            {
+                _errorMessage = "Value 與 _defaultValue 皆為 null，需指定預設值";
+                return true;
+            }
+            return false;
         }
         // /// <summary>
         // /// 返回動態型別，讓反射系統能看到實際的子類別成員

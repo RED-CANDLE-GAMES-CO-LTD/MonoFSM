@@ -89,6 +89,13 @@ public class DropDownRefAttributeDrawer : OdinAttributeDrawer<DropDownRefAttribu
         //     _bindComp
         // );
 
+        //非 Component（如 ScriptableObject asset, ex: GameData）不能用 component selector，改開 asset selector
+        if (!typeof(Component).IsAssignableFrom(filterType))
+        {
+            ShowAssetSelector(filterType);
+            return;
+        }
+
         // var currentComp = Property.ValueEntry.WeakSmartValue as Component;
         //draw SDFIcon down arrow to the right of the button
         var buttonText = _bindComp ? _bindComp.name : "None";
@@ -114,6 +121,73 @@ public class DropDownRefAttributeDrawer : OdinAttributeDrawer<DropDownRefAttribu
         if (GUILayout.Button("+Var", GUILayout.Width(50), GUILayout.Height(18)))
         {
             CreateVarAtParentMonoEntity(filterType);
+        }
+    }
+
+    /// <summary>
+    /// ScriptableObject / 非 Component 型別用的 asset dropdown，
+    /// 從 AssetDatabase 列出該型別（含子類）的所有 asset
+    /// </summary>
+    private void ShowAssetSelector(Type filterType)
+    {
+        var current = Property.ValueEntry.WeakSmartValue as Object;
+        var buttonText = current != null ? current.name : "None";
+        if (
+            SirenixEditorGUI.SDFIconButton(
+                buttonText,
+                16,
+                SdfIconType.CaretDownFill,
+                IconAlignment.RightEdge
+            )
+        )
+        {
+            var assets = AssetDatabase
+                .FindAssets($"t:{filterType.Name}")
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Select(path => AssetDatabase.LoadAssetAtPath(path, filterType))
+                .Where(a => a != null)
+                .OrderBy(a => a.name);
+
+            var selector = new GenericSelector<Object>(null, false, a => a.name, assets);
+            selector.SelectionTree.Config.DrawSearchToolbar = true;
+            selector.SelectionConfirmed += col =>
+            {
+                Property.ValueEntry.WeakSmartValue = col.FirstOrDefault();
+            };
+            //單擊直接套用，跟 component selector 的單擊確認體驗一致
+            selector.SelectionChanged += col =>
+            {
+                Property.ValueEntry.WeakSmartValue = col.FirstOrDefault();
+            };
+            selector.EnableSingleClickToSelect();
+            selector.ShowInPopup();
+        }
+
+        //讓 dropdown 按鈕本身也接受拖放 asset
+        var buttonRect = GUILayoutUtility.GetLastRect();
+        HandleAssetDragAndDrop(buttonRect, filterType);
+    }
+
+    private void HandleAssetDragAndDrop(Rect dropRect, Type filterType)
+    {
+        var evt = Event.current;
+        if (evt.type != EventType.DragUpdated && evt.type != EventType.DragPerform)
+            return;
+        if (!dropRect.Contains(evt.mousePosition))
+            return;
+
+        var dragged = DragAndDrop
+            .objectReferences.FirstOrDefault(o => o != null && filterType.IsInstanceOfType(o));
+        if (dragged == null)
+            return;
+
+        DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+        if (evt.type == EventType.DragPerform)
+        {
+            DragAndDrop.AcceptDrag();
+            Property.ValueEntry.WeakSmartValue = dragged;
+            GUI.changed = true;
+            evt.Use();
         }
     }
 
