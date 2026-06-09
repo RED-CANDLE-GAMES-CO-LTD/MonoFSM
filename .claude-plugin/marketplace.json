@@ -1,0 +1,13 @@
+{
+  "name": "monofsm-local",
+  "owner": {
+    "name": "Jerryee Chan"
+  },
+  "plugins": [
+    {
+      "name": "monofsm",
+      "source": "./",
+      "description": "MonoFSM 有限狀態機框架的使用指南與相關工具 skill"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "monofsm",
+  "displayName": "MonoFSM Framework",
+  "description": "MonoFSM 有限狀態機框架的使用指南與相關工具 skill",
+  "version": "1.0.0",
+  "keywords": ["fsm", "state-machine", "unity", "monofsm"]
+}
