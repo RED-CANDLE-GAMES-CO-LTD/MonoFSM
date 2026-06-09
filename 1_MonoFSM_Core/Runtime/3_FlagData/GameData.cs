@@ -175,8 +175,9 @@ public class GameData
         IFieldPathRootTypeProvider, IItemData
 {
     [FormerlySerializedAs("descriptableTag")]
-    public MonoEntityTag _entityTag;
+    public MonoEntityTag _entityTag; //fixme: 有需要這個嗎？
 
+    public LocalizedString titleStr; //FIXME: 應該用interface？但這樣怎麼用別人的...從主專案再接過去嗎
     // [SerializeReference]
     // private AbstractDataFunction[] _dataFunctionsArray;
 
@@ -366,11 +367,13 @@ public class GameData
     }
 
 #if UNITY_EDITOR
+    [ShowInDebugMode]
     [ShowInInspector]
     [BoxGroup("CopyFrom")]
     private GameData toCopySource;
 
     //FIXME: 改成升級成不同type？meta id保留
+    [ShowInDebugMode]
     [BoxGroup("CopyFrom")]
     [Button]
     private void CopyFrom()
@@ -444,7 +447,7 @@ public class GameData
 
     //FIXME: 這個用到I2, 有點悲劇
     //FIXME: 以前這四個都是localized string
-    public LocalizedString titleStr; //FIXME: 應該用interface？但這樣怎麼用別人的...從主專案再接過去嗎
+
     public LocalizedString descriptionStr;
     public LocalizedString typeStr;
     public LocalizedString summaryStr;

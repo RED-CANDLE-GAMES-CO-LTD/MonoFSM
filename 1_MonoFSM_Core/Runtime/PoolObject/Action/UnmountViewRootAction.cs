@@ -34,6 +34,9 @@ namespace MonoFSM.Core.LifeCycle
                 {
                     rb.isKinematic = false;
                 }
+
+                // 還原 Mount 時關掉的 colliders（Mount 沒關就是 no-op）
+                source.ViewRoot?.RestoreCollidersAfterUnmount();
             }
 
             // Debug.Log($"[UnmountViewRoot] Unmounted {source.name}", this);

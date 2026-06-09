@@ -241,7 +241,9 @@ namespace MonoFSM.Variable
         //proxy variable or local variable;
         //FIXME: 為什麼_variableFolder要hide?
         [ShowInDebugMode]
-        protected bool IsHidingVarTag => _variableFolder == null && HasParentVarEntity == false; //local var就失敗耶...hmm
+        // protected bool IsHidingVarTag => _variableFolder == null && HasParentVarEntity == false; //local var就失敗耶...hmm
+        protected bool IsHidingVarTag =>
+            _variableFolder == null && HasValueSource; //local var就失敗耶...hmm
 
         protected bool IsHidingDefaultValue =>
             HasValueSource || HasParentVarEntity || _variableFolder == null;
@@ -257,7 +259,7 @@ namespace MonoFSM.Variable
             "已設定 Parent VarEntity 作為 proxy 來源，但缺少 VarTag。請設定 VarTag 才能從 parent entity 找到對應 variable。",
             InfoMessageType.Error,
             VisibleIf = nameof(IsMissingVarTagForProxy))]
-        [HideIf(nameof(IsHidingVarTag))]
+        [HideIf(nameof(IsHidingVarTag))] //FIXME: 什麼時候算是localvariable?
         [FormerlySerializedAs("varTag")]
         // [MCPExtractable]
         [OnValueChanged(nameof(UpdateTag))]
@@ -470,17 +472,6 @@ namespace MonoFSM.Variable
             return this;
         }
 
-        //FIXME: 用Var來Set, 就可以實作Typing了耶？
-        //SetValueStruct?
-        // public void SetValue<T>(T value, Object byWho)
-        // {
-        //     // SetValueInternal(value, byWho);
-        //     OnValueChanged();
-        //
-        //     // OnValueChangedRaw?.Invoke(); //通知有人改變了
-        //     //FIXME: 如果還有什麼需要處理的？
-        // }
-
         public bool Equals(AbstractSourceValueRef sourceValueRef)
         {
             if (sourceValueRef == null)
@@ -512,141 +503,22 @@ namespace MonoFSM.Variable
             return EqualityComparer<T>.Default.Equals(v, value);
         }
 
-        // public void SetValueByValueProvider(IValueProvider provider, Object byWho)
-        // {
-        //     if (provider == null)
-        //     {
-        //         Debug.LogError("SetValueByValueProvider: provider is null", this);
-        //         return;
-        //     }
-        //
-        //     var type = provider.ValueType;
-        //
-        //     if (type == typeof(int))
-        //     {
-        //         SetValue(provider.Get<int>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(float))
-        //     {
-        //         SetValue(provider.Get<float>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(string))
-        //     {
-        //         SetValue(provider.Get<string>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(bool))
-        //     {
-        //         SetValue(provider.Get<bool>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(Vector2))
-        //     {
-        //         SetValue(provider.Get<Vector2>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(Vector3))
-        //     {
-        //         SetValue(provider.Get<Vector3>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(Vector4))
-        //     {
-        //         SetValue(provider.Get<Vector4>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(Quaternion))
-        //     {
-        //         SetValue(provider.Get<Quaternion>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (typeof(Object).IsAssignableFrom(type))
-        //     {
-        //         SetValue(provider.Get<Object>(), byWho);
-        //         return;
-        //     }
-        //
-        //     Debug.LogError("SetValueByValueProvider: Unsupported type " + type, this);
-        //     SetValue(provider.Get<object>(), byWho);
-        // }
-
-        // public void SetValueByRef(AbstractSourceValueRef sourceValueRef, Object byWho)
-        // {
-        //     if (sourceValueRef == null)
-        //     {
-        //         Debug.LogError("SetValue: sourceValueRef is null", this);
-        //         return;
-        //     }
-        //
-        //     var type = sourceValueRef.ValueType;
-        //
-        //     if (type == typeof(int))
-        //     {
-        //         SetValue(sourceValueRef.GetValue<int>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(float))
-        //     {
-        //         SetValue(sourceValueRef.GetValue<float>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(string))
-        //     {
-        //         SetValue(sourceValueRef.GetValue<string>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(bool))
-        //     {
-        //         SetValue(sourceValueRef.GetValue<bool>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(Vector2))
-        //     {
-        //         SetValue(sourceValueRef.GetValue<Vector2>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(Vector3))
-        //     {
-        //         SetValue(sourceValueRef.GetValue<Vector3>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(Vector4))
-        //     {
-        //         SetValue(sourceValueRef.GetValue<Vector4>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (type == typeof(Quaternion))
-        //     {
-        //         SetValue(sourceValueRef.GetValue<Quaternion>(), byWho);
-        //         return;
-        //     }
-        //
-        //     if (typeof(Object).IsAssignableFrom(type))
-        //     {
-        //         SetValue(sourceValueRef.GetValue<Object>(), byWho);
-        //         return;
-        //     }
-        //
-        //     Debug.LogError("SetValue: Unsupported type " + type, this);
-        //     SetValue(sourceValueRef.GetValue<object>(), byWho);
-        // }
+        /// <summary>
+        /// 比較此 Variable 與另一個 Variable 的 Value 是否相等。
+        /// 這層沒有型別資訊，只能用 ValueType 判斷型別不同即不相等，相同型別走可能裝箱的後備路徑。
+        /// 具型別的子類別 <see cref="TypedMonoVariable{T}" /> 會 override 走泛型比較，避免裝箱與轉型。
+        /// </summary>
+        public virtual bool EqualsVar(AbstractMonoVariable other)
+        {
+            if (other == null)
+                return false;
+            if (ReferenceEquals(other, this))
+                return true;
+            if (other.ValueType != ValueType)
+                return false;
+            //無型別參數的後備路徑（可能裝箱）
+            return Equals(other.GetValue<object>());
+        }
 
         public object GetProperty(string knownFieldName)
         {
@@ -708,7 +580,36 @@ namespace MonoFSM.Variable
         [ShowInInspector] //FIXME: 這個show的話，可能會造成 value 重運算
         public abstract bool IsValueExist { get; }
 
-        protected abstract bool HasValueSource { get; } //有ValueProvider或ParentVarEntity的值來源
+        //value source 機制：所有變數共用（TypedMonoVariable / VarList 都繼承這套），
+        //一致地撿任何 child IValueProvider（含 GetVarFromParentEntitySource）。
+        [SerializeField]
+        private bool _needValueSource = false;
+
+        protected bool IsNeedValueSourceButNone() => _needValueSource && valueSource == null;
+
+        [InfoBox("需要一個ValueProvider來提供數值", InfoMessageType.Error,
+            VisibleIf = nameof(IsNeedValueSourceButNone))]
+        [CompRef]
+        [AutoChildren(DepthOneOnly = true, _isSelfInclude = true)]
+        protected IValueProvider[] _valueSources;
+
+        protected IValueProvider valueSource => GetActiveValueSource();
+
+        protected IValueProvider GetActiveValueSource()
+        {
+            AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_valueSources));
+            return ValueResolver.GetActiveValueSource(_valueSources, this);
+        }
+
+        //有ValueProvider或ParentVarEntity的值來源
+        protected virtual bool HasValueSource
+        {
+            get
+            {
+                AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_valueSources));
+                return ValueResolver.HasValueProvider(_valueSources);
+            }
+        }
 
         //FIXME: 有value和有 source是兩回事吧？HasProxySource?
         [InfoBox(
@@ -733,8 +634,7 @@ namespace MonoFSM.Variable
             if (_varTag == null)
             {
                 base.Rename();
-                //     if (RuntimeDebugSetting.IsDebugMode)
-                //         Debug.LogError("No VarTag: " + this, this);
+
                 //FIXME: 自動改名的做法，從 field 的名字來 rename? ex: VarEntity下的VarFloat? 還是應該要繼續用tag?
                 return;
             }

@@ -163,6 +163,35 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             _parentViewRoot = null;
         }
 
+        // Mount 時被關掉的 colliders（Unmount 只還原這些，避免動到本來就 disabled 的）
+        [ShowInPlayMode]
+        readonly System.Collections.Generic.List<Collider> _collidersDisabledOnMount = new();
+
+        /// <summary>
+        /// 關掉 root 底下所有 enabled 的 collider，並記錄起來供 Unmount 還原
+        /// </summary>
+        public void DisableCollidersForMount(Transform root)
+        {
+            _collidersDisabledOnMount.Clear();
+            foreach (var col in root.GetComponentsInChildren<Collider>())
+            {
+                if (!col.enabled) continue;
+                col.enabled = false;
+                _collidersDisabledOnMount.Add(col);
+            }
+        }
+
+        /// <summary>
+        /// 還原 Mount 時關掉的 colliders（沒記錄就是 no-op）
+        /// </summary>
+        public void RestoreCollidersAfterUnmount()
+        {
+            foreach (var col in _collidersDisabledOnMount)
+                if (col != null)
+                    col.enabled = true;
+            _collidersDisabledOnMount.Clear();
+        }
+
         #endregion
 
         public void Simulate(float deltaTime)

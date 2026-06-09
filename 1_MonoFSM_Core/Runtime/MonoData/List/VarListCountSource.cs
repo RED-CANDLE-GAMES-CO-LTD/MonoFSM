@@ -13,7 +13,7 @@ namespace MonoFSM.Core.Variable.Providers
     //     public override float Value => _varList?.Count ?? -1;
     // }
 
-    public class VarListCountProvider : AbstractValueSource<int>, IValueProvider<int>
+    public class VarListCountSource : AbstractValueSource<int>, IValueProvider<int>
     {
         [DropDownRef] [SerializeField] private AbstractVarList _varList;
         public override string Description => $"{_varList?.name}'s Count";

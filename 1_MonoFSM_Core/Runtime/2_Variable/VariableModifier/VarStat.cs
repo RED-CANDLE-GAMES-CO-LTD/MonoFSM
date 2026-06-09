@@ -18,6 +18,10 @@ namespace MonoFSM.Variable
         private float _lastBaseValue;
         private float _value;
 
+        //遞迴保護：當 StatModifier 的 _valueVar 形成循環依賴（繞回自己）時，
+        //重入計算會直接回傳上一次快取的 _value，避免 StackOverflow
+        private bool _isCalculating;
+
         [ShowInPlayMode]
         public float ToBaseValueRatio => CurrentValue / BaseValue;
 
@@ -134,26 +138,38 @@ namespace MonoFSM.Variable
         [Button]
         private float ForceCalValues()
         {
-            _isDirty = false;
-            _lastValue = _value;
-            _lastBaseValue = BaseValue;
-            var tempValue = ValueAfterApplyModifier(); //主要算
-            if (_modifiers != null)
+            //遞迴保護：循環依賴時回傳上一次快取值，打斷無限遞迴
+            if (_isCalculating)
+                return _value;
+
+            _isCalculating = true;
+            try
             {
-                foreach (var modifier in _modifiers)
+                _isDirty = false;
+                _lastValue = _value;
+                _lastBaseValue = BaseValue;
+                var tempValue = ValueAfterApplyModifier(); //主要算
+                if (_modifiers != null)
                 {
+                    foreach (var modifier in _modifiers)
+                    {
 
-                    tempValue = modifier.AfterGetValueModifyCheck(tempValue);
+                        tempValue = modifier.AfterGetValueModifyCheck(tempValue);
+                    }
                 }
+
+                _value = tempValue;
+
+                if (_lastValue != _value)
+                    OnValueChanged();
+
+                //所有人polling ecs?
+                return _value;
             }
-
-            _value = tempValue;
-
-            if (_lastValue != _value)
-                OnValueChanged();
-
-            //所有人polling ecs?
-            return _value;
+            finally
+            {
+                _isCalculating = false;
+            }
         }
 
         private float CalValueAfterModifier(IReadOnlyList<IStatModifer> statModifiers)

@@ -66,6 +66,8 @@ namespace MonoFSM.Core
         public void EnterArgRenderInvoke<T>(T arg)
         {
             _lastRenderEventTime = Time.time;
+            if (_renderActions == null)
+                return;
             foreach (var action in _renderActions)
             {
                 if (action is IArgRenderBehaviour<T> argAction)
@@ -119,7 +121,7 @@ namespace MonoFSM.Core
         [PreviewInDebugMode]
         protected float _lastRenderEventTime = -1f; //FIXME: 還要區分 render 和 state?
 
-        protected virtual void EventHandleImplement<T>(T arg, bool ignoreArg = false)
+        private void EventHandleImplement<T>(T arg, bool ignoreArg = false)
         {
             if (!gameObject.activeSelf)
                 return;

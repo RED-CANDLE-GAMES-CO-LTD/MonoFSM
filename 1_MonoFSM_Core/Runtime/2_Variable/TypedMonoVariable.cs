@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MonoFSM.Core;
 using MonoFSM.Foundation;
 using MonoFSM.Variable.Attributes;
@@ -10,40 +11,8 @@ namespace MonoFSM.Variable
     {
         protected override bool HasError()
         {
+            //_valueSources / valueSource / HasValueSource / IsNeedValueSourceButNone 已上移到 AbstractMonoVariable
             return base.HasError() || IsNeedValueSourceButNone();
-        }
-
-        bool IsNeedValueSourceButNone()
-        {
-            return (_needValueSource && valueSource == null);
-        }
-
-        [SerializeField] bool _needValueSource = false; //用comp?
-
-        [InfoBox("需要一個ValueProvider來提供數值", InfoMessageType.Error,
-            VisibleIf = nameof(IsNeedValueSourceButNone))]
-        [CompRef]
-        [AutoChildren(DepthOneOnly = true, _isSelfInclude = true)]
-        protected IValueProvider[] _valueSources;
-
-        protected IValueProvider valueSource => GetActiveValueSource();
-
-        //hierarchy會不知道要撈？還是開prefab時都先撈一下？
-        protected IValueProvider GetActiveValueSource()
-        {
-            AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_valueSources));
-            return ValueResolver.GetActiveValueSource(_valueSources, this);
-        }
-
-        protected override bool HasValueSource
-        {
-            get
-            {
-                // Debug.Log("Check HasValueProvider in TypedMonoVariable");
-                AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_valueSources));
-                // Debug.Log("_valueSources.length" + _valueSources.Length);
-                return ValueResolver.HasValueProvider(_valueSources); // || base.HasValueSource;
-            }
         }
 
         [ShowInInspector]
@@ -51,5 +20,22 @@ namespace MonoFSM.Variable
             HasValueSource ? valueSource.Description : base.Description;
 
         public abstract void CommitValue();
+
+        /// <summary>
+        /// 在已知型別 <typeparamref name="T" /> 的這一層比較兩個 Variable 的 Value。
+        /// 型別相符時 <see cref="AbstractMonoVariable.GetValue{T}" /> 走 Unsafe.As / reference 判斷，不會裝箱；
+        /// 再交給 <see cref="EqualityComparer{T}" /> 比較，全程無轉型。
+        /// </summary>
+        public override bool EqualsVar(AbstractMonoVariable other)
+        {
+            if (other == null)
+                return false;
+            if (ReferenceEquals(other, this))
+                return true;
+            //型別不同直接視為不相等，避免用錯誤型別重新詮釋記憶體
+            if (other.ValueType != ValueType)
+                return false;
+            return EqualityComparer<T>.Default.Equals(GetValue<T>(), other.GetValue<T>());
+        }
     }
 }

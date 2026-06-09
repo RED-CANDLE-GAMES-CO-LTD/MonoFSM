@@ -6,6 +6,7 @@ using MonoFSM.Runtime.Item_BuildSystem.MonoDescriptables;
 namespace MonoFSM.Core.DataProvider
 {
     //FIXME: 改名？
+    [Obsolete]
     public interface IGameDataProvider //
     {
         // public DescriptableData GetGameData();

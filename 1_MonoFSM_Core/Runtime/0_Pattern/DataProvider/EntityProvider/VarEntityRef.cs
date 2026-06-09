@@ -13,7 +13,7 @@ namespace MonoFSM.Core.Runtime
     // [Obsolete]
     public class VarEntityRef : AbstractValueSource<MonoEntity>
     {
-        public override string Description => $"Var Entity: {_varEntity?.name ?? "None"}";
+        public override string Description => $"{_varEntity?.name ?? "None"}";
 
         // [ValueTypeValidate(typeof(MonoEntity))] [SerializeField]
         // private ValueProvider _varEntityProvider;

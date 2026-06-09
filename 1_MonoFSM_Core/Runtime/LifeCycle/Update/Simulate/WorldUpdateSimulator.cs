@@ -135,6 +135,9 @@ namespace MonoFSM.Core.Simulate
         {
             //FIXME: 還要做updateSimulator的註冊？
             var newObj = _poolManager.BorrowOrInstantiate(obj, position, rotation);
+            //純 local visual 一律有 authority（pool 重用可能殘留舊值），要在 SpawnFromPool 之前設好
+            if (newObj != null)
+                newObj.AssignStateAuthorityForAll(true);
             AfterPoolSpawn(newObj);
             return newObj;
         }
@@ -222,6 +225,7 @@ namespace MonoFSM.Core.Simulate
             if (target == null) return;
             if (_monoObjectSet.Add(target))
             {
+                _monoObjectSetDirty = true;
                 target.SetWorldUpdateSimulator(this);
                 //所有 children都要？
                 //重置狀態
@@ -263,7 +267,8 @@ namespace MonoFSM.Core.Simulate
                 // target.ResetStateRestore(false);
                 if (target.isPoolObj)
                 {
-                    _monoObjectSet.Remove(target);
+                    if (_monoObjectSet.Remove(target))
+                        _monoObjectSetDirty = true;
                     target.SetWorldUpdateSimulator(null); //清除引用
                 }
             }
@@ -356,6 +361,24 @@ namespace MonoFSM.Core.Simulate
         // [PreviewInInspector] [AutoChildren] private IMonoObject[] _localMonoObjects; //FIXME這顆要掛在？
         private readonly HashSet<MonoObj> _monoObjectSet = new(); //這個是用來做reset的？還是要有一個MonoObjectRunner?
         private readonly List<MonoObj> _pendingDespawns = new();
+
+        //迭代用 snapshot：避免 Render 中 SpawnVisual 註冊新 MonoObj 時 "Collection was modified"
+        //只在 set 有增減時重建（dirty flag），不會每幀 ToList 產生 GC
+        private readonly List<MonoObj> _iterationSnapshot = new();
+        private bool _monoObjectSetDirty = true;
+
+        private List<MonoObj> GetIterationSnapshot()
+        {
+            if (_monoObjectSetDirty)
+            {
+                _iterationSnapshot.Clear();
+                foreach (var obj in _monoObjectSet)
+                    _iterationSnapshot.Add(obj);
+                _monoObjectSetDirty = false;
+            }
+
+            return _iterationSnapshot;
+        }
 #if UNITY_EDITOR
         [ShowInInspector] int monoObjCount => _monoObjectSet.Count;
         // [PreviewInInspector] private IUpdateSimulate[] PreviewSimulators => _simulators.ToArray();
@@ -452,17 +475,13 @@ namespace MonoFSM.Core.Simulate
             _currentUpdatingObjs.Clear();
 
 #if UNITY_EDITOR //FIXME: 亂call destroy可能導致這個
-            foreach (var mono in _monoObjectSet)
+            if (_monoObjectSet.RemoveWhere(mono => mono == null) > 0)
             {
-                if (mono == null)
-                {
-                    Debug.LogError(
-                        "A MonoPoolObj in the WorldUpdateSimulator set is null. It might have been destroyed without unregistering. Removing it from the set.",
-                        this
-                    );
-                    //FIXME: 不能這樣，要有個toRemove list
-                    _monoObjectSet.Remove(mono);
-                }
+                Debug.LogError(
+                    "A MonoPoolObj in the WorldUpdateSimulator set is null. It might have been destroyed without unregistering. Removing it from the set.",
+                    this
+                );
+                _monoObjectSetDirty = true;
             }
 #endif
 
@@ -534,7 +553,10 @@ namespace MonoFSM.Core.Simulate
             if (!IsReady)
                 return;
             CurrentPhase = SimPhase.AfterUpdate;
-            foreach (var monoObject in _monoObjectSet)
+            var objs = GetIterationSnapshot();
+            for (var i = 0; i < objs.Count; i++)
+            {
+                var monoObject = objs[i];
                 if (monoObject is { isActiveAndEnabled: true })
                 {
                     if (monoObject.IsUpdateSimulatesNeeded)
@@ -544,6 +566,7 @@ namespace MonoFSM.Core.Simulate
                         Profiler.EndSample();
                     }
                 }
+            }
 
             // else
             //     Debug.LogWarning("A mono object is null or not active and enabled, skipping after update.");
@@ -595,13 +618,17 @@ namespace MonoFSM.Core.Simulate
             if (!IsReady)
                 return;
             CurrentPhase = SimPhase.BeforeRender;
-            foreach (var monoObject in _monoObjectSet)
+            var objs = GetIterationSnapshot();
+            for (var i = 0; i < objs.Count; i++)
+            {
+                var monoObject = objs[i];
                 if (monoObject is { isActiveAndEnabled: true })
                 {
                     Profiler.BeginSample("Render", monoObject);
                     monoObject.AfterRender();
                     Profiler.EndSample();
                 }
+            }
         }
 
         /// <summary>
@@ -616,7 +643,11 @@ namespace MonoFSM.Core.Simulate
             LocalAlpha = localAlpha;
             _deltaTime = deltaTime;
             CurrentPhase = SimPhase.Render;
-            foreach (var monoObject in _monoObjectSet)
+            //snapshot 迭代：Render 中 SpawnVisual 註冊新 MonoObj 不會打斷迭代，新物件下一輪才開始更新
+            var objs = GetIterationSnapshot();
+            for (var i = 0; i < objs.Count; i++)
+            {
+                var monoObject = objs[i];
                 if (monoObject is { isActiveAndEnabled: true })
                 {
                     if (monoObject.IsRenderSimulatesNeeded)
@@ -626,6 +657,7 @@ namespace MonoFSM.Core.Simulate
                         Profiler.EndSample();
                     }
                 }
+            }
         }
 
         public T GetCompCache<T>()
@@ -637,7 +669,10 @@ namespace MonoFSM.Core.Simulate
         public void AfterRender()
         {
             CurrentPhase = SimPhase.AfterRender;
-            foreach (var monoObject in _monoObjectSet)
+            var objs = GetIterationSnapshot();
+            for (var i = 0; i < objs.Count; i++)
+            {
+                var monoObject = objs[i];
                 if (monoObject is { isActiveAndEnabled: true })
                 {
                     if (monoObject.IsRenderSimulatesNeeded)
@@ -647,6 +682,7 @@ namespace MonoFSM.Core.Simulate
                         Profiler.EndSample();
                     }
                 }
+            }
         }
     }
 }

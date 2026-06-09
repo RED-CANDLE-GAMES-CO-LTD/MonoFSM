@@ -2,10 +2,8 @@ using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.EffectHit.Action;
 using _1_MonoFSM_Core.Runtime.MonoData;
 using MonoFSM.Core.Attributes;
-using MonoFSM.Core.EffectHit;
 using MonoFSM.Core.Simulate;
 using MonoFSM.CustomAttributes;
-using MonoFSM.EditorExtension;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
@@ -62,7 +60,8 @@ namespace MonoFSM.Core.Detection
             IUpdateSimulate,
             IDropdownRoot, IResetStateRestore
     {
-        public override string ValueInfo => "objs: " + _thisFrameDetectedObjects.Count;
+        public override string ValueInfo =>
+            "valid:" + _conditions.IsAllValid() + ",objs:" + _thisFrameDetectedObjects.Count;
 
         //FIXME: 這個不好...會以為可以改name結果又跑掉？
         [SerializeField]
@@ -74,15 +73,15 @@ namespace MonoFSM.Core.Detection
         [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionBehaviour[] _conditions;
 
-        [ShowInInspector]
-        [GUIColor("GetIsValidColor")]
-        public bool IsValid => gameObject.activeInHierarchy && _conditions.IsAllValid();
+        // [ShowInInspector]
+        // [GUIColor("GetIsValidColor")]
+        // public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid();
 
         public override bool IsDrawingValueInfo => true;
 
 
 #if UNITY_EDITOR
-        private Color GetIsValidColor() => IsValid ? Color.white : Color.red;
+        private Color GetIsValidColor() => _conditions.IsAllValid() ? Color.white : Color.red;
 #endif
 
         [CompRef]
@@ -229,11 +228,14 @@ namespace MonoFSM.Core.Detection
         //注意：目前關掉也會持續判定喔，這樣exit才會正確判
         public void Simulate(float deltaTime)
         {
-            if (!IsValid || _detectionSources == null || _manualEffectDetectAction != null)
+            _lastSimulateTime = Time.time;
+            if (!_conditions.IsAllValid() || _detectionSources == null ||
+                _manualEffectDetectAction != null)
                 return;
             DetectUpdateCheck();
         }
 
+        [ShowInDebugMode] private float _lastSimulateTime = 0;
         [ShowInDebugMode]
         float _lastDetectCheckTime = 0f;
 
@@ -294,7 +296,7 @@ namespace MonoFSM.Core.Detection
                         }
 
                         var detectable = result.targetObject.Detectable;
-                        if (detectable != null && IsValid)
+                        if (detectable != null && _conditions.IsAllValid())
                         {
                             //FIXME: 需要的話Detector也可以判才對
                             detectable.CanBeInteractedBy(this); //還是應該是assign而不是回傳，condition是

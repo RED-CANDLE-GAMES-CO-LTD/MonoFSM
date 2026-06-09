@@ -72,8 +72,7 @@ namespace MonoFSM.Foundation
         //     _note.Contains("error") || HasError(); //還是用icon?
 
         [HideIf(nameof(_parentObj))]
-        [ShowIn(PrefabKind.PrefabInstance)]
-        [RequiredIn(PrefabKind.PrefabInstance)]
+        [ShowInDebugMode]
         // [ShowInInspector]
         [AutoParent]
         protected MonoObj _parentObj; //FIXME: 會拿不到root的耶...好麻煩啊

@@ -51,10 +51,11 @@ namespace MonoFSM.Runtime
         //install後有個搬移的過程？但這樣資料就會不同步了(ex: override)
         [AutoParent] private MonoObj _bindObj;
         public MonoObj BindObj => _bindObj;
-        private void Awake()
-        {
-            BindModulePackFolders(); //FIXME: 可以在這嗎？
-        }
+        // private void Awake()
+        // {
+        //     //network 想要提早做這件事？還是應該要IsceneAwake就好
+        //     BindModulePackFolders(); //FIXME: 可以在這嗎？
+        // }
 
 
         [AutoChildren]
@@ -155,6 +156,7 @@ namespace MonoFSM.Runtime
             //FIXME :會漏掉嗎？
             FillVarTagsToMonoDescriptableTag();
             FillSchemaTypesToMonoEntityTag();
+            //這有用嗎？
             BindModulePackFolders();
         }
 
@@ -374,7 +376,8 @@ namespace MonoFSM.Runtime
             }
             if (_receiverTypeMap.TryGetValue(effectType, out var receiver) == false)
             {
-                Debug.LogError($"Receiver \"{effectType}\" not found in {name}", this);
+                if (RuntimeDebugSetting.IsDebugMode)
+                    Debug.LogError($"Receiver \"{effectType}\" not found in {name}", this);
                 return null;
             }
 
@@ -481,7 +484,7 @@ namespace MonoFSM.Runtime
 
         public void EnterSceneAwake()
         {
-
+            BindModulePackFolders();
             // _receiverTypeSet = new HashSet<GeneralEffectType>();
             // Debug.Log("EnterSceneAwake: " +name,this); //跑兩次？
 
@@ -529,7 +532,7 @@ namespace MonoFSM.Runtime
         /// 將所有 MonoModulePack 中的 Folder 自動綁定到 MonoEntity 的 Folder 作為 external sources
         /// </summary>
         [Button]
-        protected void BindModulePackFolders()
+        public void BindModulePackFolders()
         {
             if (_monoPackFolder == null || _monoPackFolder.ModulePacks == null ||
                 _monoPackFolder.ModulePacks.Length == 0) return;
@@ -545,9 +548,10 @@ namespace MonoFSM.Runtime
             foreach (var pack in _monoPackFolder.ModulePacks)
             {
                 if (pack == null) continue;
+                //這個runtime不會開關，純粹當作註解掉跳過的感覺
                 if (pack.gameObject.activeSelf == false)
                     continue;
-                if (pack.GetComponentInParent<MonoEntity>() != this) //有別人就不算
+                if (pack.GetComponentInParent<MonoEntity>(true) != this) //有別人就不算
                     continue;
 
                 foreach (var sourceFolder in pack.GetAllFolders())

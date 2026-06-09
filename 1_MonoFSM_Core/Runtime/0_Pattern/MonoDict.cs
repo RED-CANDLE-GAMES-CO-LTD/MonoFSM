@@ -26,7 +26,8 @@ namespace MonoFSM.Core
 
         //如果在autoReference 之前就不會進來...hmmm!?
         //有點討厭：spawned, player spawned (自己做reference & sceneAwake?), SceneAwake, SceneStart (並沒有拿到player)
-        [CompRef] [AutoChildren(DepthOneOnly = true)]
+        [CompRef] [AutoChildren]
+        // [AutoChildren(DepthOneOnly = true)] //fixme: 什麼情況要depth only 1?
         // [SerializeField]
         protected Tu[] _collections; //disable也會被加進來
 

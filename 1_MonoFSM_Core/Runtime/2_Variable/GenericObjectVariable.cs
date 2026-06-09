@@ -203,6 +203,17 @@ namespace MonoFSM.Variable
             //要擋掉嗎？那Editor Time就都不要顯示？
             // if (!Application.isPlaying)
             //     return DefaultValue;
+
+            // value source（含自己掛的 child IValueProvider，如 GetVarFromParentEntitySource）優先於
+            // _parentVarEntity proxy：避免 subtree 內有 VarEntity 時，所有後代 Var 被強制進 proxy 模式
+            // 而吃不到自己的來源。proxy 保留為 fallback。
+            if (HasValueSource)
+            {
+                _valueDebugStatus = "Resolving from ValueProvider";
+                var rst = valueSource?.Get<TValueType>(); //Editor可以拿吧？
+                return rst;
+            }
+
             if (HasParentVarEntity)
             {
                 _valueDebugStatus = "Resolving from ParentVarEntity";
@@ -264,15 +275,6 @@ namespace MonoFSM.Variable
                         _valueDebugStatus = $"Resolved from ParentVarEntity: {targetVar.name}";
                     return targetVar.GetValue<TValueType>();
                 }
-            }
-
-            if (HasValueSource) //FIXME: 和field 分開寫很鳥?
-            {
-                _valueDebugStatus = "Resolving from ValueProvider";
-                // Profiler.BeginSample("GetValueFromProvider" + valueSource);
-                var rst = valueSource?.Get<TValueType>(); //Editor可以拿吧？
-                // Profiler.EndSample();
-                return rst;
             }
 
             if (Application.isPlaying == false)

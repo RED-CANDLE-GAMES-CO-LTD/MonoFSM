@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Auto.Utils;
-using Cysharp.Threading.Tasks;
-using Fusion;
 using MonoDebugSetting;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
@@ -11,6 +8,7 @@ using MonoFSM.Core.LifeCycle;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Culling;
 using MonoFSM.CustomAttributes;
+using MonoFSM.EditorExtension;
 using MonoFSM.Runtime;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Variable.FieldReference;
@@ -67,7 +65,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
     [FormerlyNamedAs("MonoPoolObj")]
     [Searchable]
     public sealed class MonoObj : MonoBehaviour, IPrefabSerializeCacheOwner, IDropdownRoot,
-        ISceneAwake
+        ISceneAwake, IHierarchyValueInfo
     {
         private bool _isAwakeActive = true;
 
@@ -516,14 +514,16 @@ namespace MonoFSMCore.Runtime.LifeCycle
             TickSimulatePhase(deltaTime);
         }
 
+        [ShowInInspector] float _lastSimulateTime;
         private void TickSimulatePhase(float deltaTime)
         {
             if (IsCulling) return; //我被 cull → 整棵子樹跳過
             if (_updateSimulates != null)
             {
+                _lastSimulateTime = Time.realtimeSinceStartup;
                 foreach (var item in _updateSimulates)
                 {
-                    if (item is not { IsValid: true })
+                    if (item is not { IsUpdating: true })
                         continue;
                     Profiler.BeginSample("MonoObj.Simulate", item.gameObject);
                     try
@@ -794,5 +794,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
         public void EnterSceneAwake()
         {
         }
+
+        public string ValueInfo => IsCulling ? "Culling" : "Updating";
+        public bool IsDrawingValueInfo => Application.isPlaying;
     }
 }

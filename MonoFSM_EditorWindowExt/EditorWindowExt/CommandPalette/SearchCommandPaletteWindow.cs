@@ -46,7 +46,7 @@ namespace CommandPalette
         private Vector2 _dragStartPos;
         private bool _isDragging;
 
-        // 排序模式
+        // 排序模式（首次預設 Score，之後由 EditorPref 記住；按鈕點擊切換）
         private SearchSortMode _sortMode = SearchSortMode.ScoreBased;
         private const string SortModePrefKey = "CommandPalette_SortMode";
         private const string SearchStringPrefKey = "CommandPalette_SearchString";
@@ -267,7 +267,7 @@ namespace CommandPalette
                     break;
 
                 case KeyCode.Tab:
-                    ToggleSortMode();
+                    JumpToNextGroup();
                     Event.current.Use();
                     break;
 
@@ -319,6 +319,41 @@ namespace CommandPalette
             if (_searchField != null) _searchField.SetFocus();
         }
 
+        /// <summary>
+        /// Tab：將選取項跳到「下一組」的第一個可選取項（循環）。
+        /// 分組順序依 _flatRows 實際排列（各分組於 BuildFlatRows 中連續排列）。
+        /// </summary>
+        private void JumpToNextGroup()
+        {
+            if (_selectableCount == 0) return;
+
+            var groupFirsts = new List<int>(); // 每組第一個可選取項的 selectableIndex
+            var selectedGroup = -1;            // 目前選取項所在的組 index
+            SearchMode? lastCategory = null;
+
+            foreach (var row in _flatRows)
+            {
+                if (row._isHeader) continue;
+                if (lastCategory == null || row._category != lastCategory.Value)
+                {
+                    lastCategory = row._category;
+                    groupFirsts.Add(row._selectableIndex);
+                }
+
+                if (row._selectableIndex == _selectedIndex)
+                    selectedGroup = groupFirsts.Count - 1;
+            }
+
+            if (groupFirsts.Count == 0) return;
+
+            var nextGroup = (selectedGroup + 1) % groupFirsts.Count;
+            GUIUtility.keyboardControl = 0;
+            _selectedIndex = groupFirsts[nextGroup];
+            ScrollToSelected();
+            PingSelectedAsset();
+            Repaint();
+        }
+
         private void DrawSearchField()
         {
             if (_searchField == null)
@@ -338,7 +373,7 @@ namespace CommandPalette
                 PerformUnifiedSearch();
             }
 
-            // 排序模式切換按鈕
+            // 排序模式切換按鈕（Tab 已改為跳組，排序切換改由此按鈕點擊）
             var btnRect = new Rect(position.width - btnWidth - 5, 5, btnWidth, 18);
             var btnLabel = _sortMode == SearchSortMode.ScoreBased ? "Score" : "A-Z";
             var btnColor = _sortMode == SearchSortMode.ScoreBased

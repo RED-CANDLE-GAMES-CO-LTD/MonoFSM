@@ -12,7 +12,7 @@ namespace MonoFSM.Runtime.ObjectPool
         protected override void OnActionExecuteImplement()
         {
             // Debug.Log($"SetVarListIndexAction: Setting index {_index} on VarList {_varList.name}", this);
-            _varList.SetIndex(_index);
+            _varList.SetCurrentIndexTo(_index);
         }
 
         public override string Description => $"Set VarList Index: {_varList.name} to {_index}";

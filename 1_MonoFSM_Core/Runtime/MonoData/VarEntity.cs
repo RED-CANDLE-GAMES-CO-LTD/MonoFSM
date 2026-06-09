@@ -28,6 +28,13 @@ namespace MonoFSM.Runtime.Variable
         [SerializeField]
         private MonoEntityTag _monoEntityTag; //FIXME: Expected MonoEntityTag, but can be null?
 
+        protected override void Rename()
+        {
+            if (_monoEntityTag != null && HasProxySource)
+                name = $"Get<{_monoEntityTag.name}>";
+            else
+                base.Rename();
+        }
         //FIXME: 好像會需要getter喔，從source來的話
 
         [PreviewInInspector]

@@ -28,7 +28,18 @@ namespace MonoFSM.Variable
 
         [BoxGroup("Modifier")]
         [SerializeField]
-        private VarFloat _valueVar; //FIXME: 可以改成用VarFloatWrapper吧？
+        [ValidateInput(nameof(ValidateValueVarNotAncestor),
+            "_valueVar 不可指向自己 parent 鏈上的 VarFloat/VarStat，會造成循環依賴 (StackOverflow)")]
+        private VarFloatWrapper _valueVarRef = new(1f); //預設常數值 1，沿用舊的 null fallback 行為
+
+        //modifier 掛在某個 VarStat 底下；若 _valueVar 是該 VarStat 或其祖先，
+        //計算 stat 時會透過此 modifier 繞回自己，造成無限遞迴
+        private bool ValidateValueVarNotAncestor(VarFloatWrapper wrapper)
+        {
+            if (wrapper?._var == null)
+                return true;
+            return !transform.IsChildOf(wrapper._var.transform);
+        }
 
         [BoxGroup("Modifier")]
         [PreviewInInspector]
@@ -38,7 +49,7 @@ namespace MonoFSM.Variable
             {
                 if (IsDirty || Application.isPlaying == false)
                 {
-                    _cachedProviderValue = _valueVar?.Value ?? 1f;
+                    _cachedProviderValue = _valueVarRef.Value;
                     _cachedFinalValue = _cachedProviderValue * _valueMultiplier;
                 }
 
@@ -55,7 +66,7 @@ namespace MonoFSM.Variable
 
         private string sign => FinalValue >= 0 ? "+" : "-"; //這個是用來顯示的
 
-        public override string Description => _valueVar?.name + " " + ValueDescription;
+        public override string Description => _valueVarRef + " " + ValueDescription;
 
         [ShowInInspector]
         private string ValueDescription =>
@@ -63,7 +74,7 @@ namespace MonoFSM.Variable
             {
                 StatModType.Flat => $"{sign}{Mathf.Abs(FinalValue)}",
                 StatModType.PercentAdd => $"{sign}{Mathf.Abs(FinalValue) * 100}%",
-                StatModType.PercentMult => $"*{FinalValue * 100}%",
+                StatModType.PercentMult => $"* {FinalValue * 100}%",
                 _ => throw new ArgumentOutOfRangeException(),
             }; //FIXME: 用value不對ㄅ provider的資訊
 
@@ -88,7 +99,7 @@ namespace MonoFSM.Variable
 
         //FIXME: 怪怪的？
         public bool IsDirty =>
-            Application.isPlaying ? _cachedProviderValue != _valueVar?.Value : false;
+            Application.isPlaying ? _cachedProviderValue != _valueVarRef.Value : false;
 
         //FIXME: 監聽condition才觸發dirty? 很貴耶...
         //bool condition?

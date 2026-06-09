@@ -21,6 +21,9 @@ namespace MonoFSM.Runtime
         {
             //FIXME: 還要做updateSimulator的註冊？
             var newObj = _worldUpdateSimulator.Pool.BorrowOrInstantiate(obj, position, rotation);
+            //local spawn 一律有 authority（pool 重用可能殘留舊值），要在 SpawnFromPool 之前設好
+            if (newObj != null)
+                newObj.AssignStateAuthorityForAll(true);
             _worldUpdateSimulator.AfterPoolSpawn(newObj);
             return newObj;
         }

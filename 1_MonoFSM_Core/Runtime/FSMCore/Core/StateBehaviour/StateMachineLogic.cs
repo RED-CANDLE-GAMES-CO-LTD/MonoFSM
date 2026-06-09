@@ -149,6 +149,21 @@ namespace Fusion.Addons.FSM
         //FIXME: 到處亂叫，不爽, InitializeLogic & CollectStateMachines
         public void CollectStateMachines()
         {
+            //先確保 ModulePack folder 已合併進 entity folders
+            //Fusion 在 attach 時查 DynamicWordCount 就會打進來，比 Awake 還早；
+            //root inactive 時 MonoEntity.Awake 更是完全不會跑，不能依賴 Awake 時序
+            var entity = _parentEntity != null
+                ? _parentEntity
+                : GetComponentInParent<MonoEntity>(true);
+            if (entity != null)
+            {
+                Debug.Log(
+                    $"StateMachineLogic: Binding module pack folders for entity {entity.name}",
+                    this);
+                entity.BindModulePackFolders();
+            }
+
+
             _stateMachinesInternal.Clear();
             if (_statePool != null)
                 _statePool.Clear();

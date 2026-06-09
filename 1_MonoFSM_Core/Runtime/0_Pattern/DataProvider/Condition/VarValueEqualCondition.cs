@@ -3,35 +3,30 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Variable;
 using MonoFSM.VarRefOld;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.DataProvider.Condition
 {
-    //ex: FloatCompareCondition
-    [Obsolete]
     public class VarValueEqualCondition : AbstractConditionBehaviour //
     {
-        //可能想要比Value vs Vlue,
-        // [Component][PreviewInInspector] IVariableProvider _sourceVariableProvider;
-        // [Component][PreviewInInspector] IVariableProvider _targetVariableProvider;
-        [AutoChildren]
-        [Component]
-        [PreviewInInspector]
-        private TargetVarRef _targetVarRef;
+        [DropDownRef] [SerializeField] private AbstractMonoVariable _targetVarRef;
+        [DropDownRef] [SerializeField] private AbstractMonoVariable _sourceValueRef;
 
-        [AutoChildren]
-        [Component]
-        [PreviewInInspector]
-        private SourceValueRef _sourceValueRef;
+        [Tooltip("勾選時，當兩者的值都為 null（不存在）時不算 Valid")] [SerializeField]
+        private bool _treatBothNullAsInvalid = true;
 
-        private AbstractMonoVariable targetVariable => _targetVarRef.VarRaw;
-
-        // AbstractMonoVariable sourceVariable => _sourceValueRef?.VarRaw;
-
-        protected override bool IsValid => throw new NotImplementedException(); //targetVariable.objectValue == _sourceValueRef.objectValue; //這感覺不對啊？
+        protected override bool IsValid
+        {
+            get
+            {
+                if (_treatBothNullAsInvalid
+                    && !_targetVarRef.IsValueExist
+                    && !_sourceValueRef.IsValueExist)
+                    return false;
+                return _targetVarRef.EqualsVar(_sourceValueRef);
+            }
+        }
 
         public override string Description => $"{_sourceValueRef} == {_targetVarRef}";
-        // targetVariable?.objectValue != null &&
-        //                                   _sourceValueRef?.GetValue() ==
-        //                                 targetVariable?.objectValue;
     }
 }

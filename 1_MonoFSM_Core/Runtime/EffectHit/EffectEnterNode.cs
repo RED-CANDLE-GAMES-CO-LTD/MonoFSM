@@ -20,7 +20,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             base.Rename();
 #if UNITY_EDITOR
-            if (_hittingEntity != null)
+            if (_hittingEntity != null &&
+                _hittingEntity.transform.parent == transform) //這樣才是local variable
             {
                 _hittingEntity.gameObject.name = "[local] hittingEntity";
                 _hittingEntity._isRuntimeOnly = true;

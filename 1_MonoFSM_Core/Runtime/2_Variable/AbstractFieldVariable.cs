@@ -220,7 +220,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     [HideIf(nameof(HasLocalField))]
     public TField _localField; // = new();
 
-    protected override bool HasValueSource => _valueSources is { Length: > 0 };
+    //HasValueSource 已上移到 AbstractMonoVariable（行為相同：ValueResolver.HasValueProvider(_valueSources)）
 
     //這個值會被蓋掉???
 

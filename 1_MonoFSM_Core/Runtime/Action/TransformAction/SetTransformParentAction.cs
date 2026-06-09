@@ -1,3 +1,4 @@
+using System;
 using MonoFSM.Core;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Runtime.Attributes;
@@ -8,6 +9,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.TransformAction
 {
     //FIXME: state exit要收回 (對稱性)
     //FIXME: 改用VarTransform?
+    [Obsolete]
     public class SetTransformParentAction : AbstractStateLifeCycleHandler
     {
         private Transform _oriParent; //FIXME: 不對..

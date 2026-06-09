@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3320728773181333074}
   - component: {fileID: 9117042319697469769}
   m_Layer: 0
-  m_Name: '[RCGPoolBank]'
+  m_Name: '[PoolBank]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

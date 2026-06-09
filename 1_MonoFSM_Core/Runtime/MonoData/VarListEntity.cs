@@ -6,10 +6,10 @@ using MonoFSM.Core.DataProvider;
 using MonoFSM.EditorExtension;
 using MonoFSM.Runtime;
 using MonoFSM.Variable;
-using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.Variable
@@ -21,14 +21,94 @@ namespace MonoFSM.Core.Variable
     //FIXME: 用的到set或queue嗎？ 還是乾脆把List做完就好，其他要用再說另外實作？
     public class VarList<T> : AbstractVarList, ISerializationCallbackReceiver, IResetStateRestore
     {
-        [CompRef]
-        [AutoChildren(DepthOneOnly = true)]
-        private IValueProvider<List<T>> _valueSourceProvider;
+        // value source（_valueSources / valueSource / HasValueSource）已上移到 AbstractMonoVariable，
+        // 與其他變數共用同一套，可撿任何 child IValueProvider（含 GetVarFromParentEntitySource）。
+        // 取值用 valueSource.Get<List<T>>()。
 
-        protected override bool HasValueSource => _valueSourceProvider != null;
+        // [ShowInInspector]
+        // public bool IsReadOnly => HasValueSource;
 
-        [ShowInInspector]
-        public bool IsReadOnly => _valueSourceProvider != null;
+        /// <summary>
+        /// 從 ParentEntity 解析出的 proxy VarList（varRef 機制）。
+        /// 有值時所有讀寫、index 操作都轉發給它；value source 優先於 varRef。
+        /// </summary>
+        // re-entrancy guard：VarList 不像 GenericObjectVariable 有 recursion guard，
+        // 若 value-source / proxy 接成參照環（例如 X 的 source 讀 L、L 的 source 又繞回 X），
+        // 沿 ProxyVarList→CurrentListItem 會無限遞迴 → StackOverflow → Unity 不寫 log 直接閃退。
+        // 同一顆 instance 重入時直接回 null，把環降級成可被看見的 null 而非 crash。
+        [NonSerialized] private bool _resolvingProxy;
+
+        [ShowInPlayMode]
+        private VarList<T> ProxyVarList
+        {
+            get
+            {
+                if (_resolvingProxy)
+                {
+                    Debug.LogError(
+                        "VarList ProxyVarList re-entrant：value-source/proxy 接成參照環，已中止以避免 StackOverflow。請檢查接線。",
+                        this);
+                    return null;
+                }
+
+                _resolvingProxy = true;
+                try
+                {
+                    // value source 有兩種：
+                    //   (A) computed-list source（如 ListEntityFromEffectDealer）→ 只給純 List<T>、
+                    //       沒有 index/cursor，不走這裡，由讀取方法用 ValueSourceList 取內容、疊本地 index。
+                    //   (B) var-resolving source（如 GetVarFromParentEntitySource，tag 指向另一顆完整
+                    //       VarList）→ 實作 IVariableProvider，能解析出來源 VarList<T> 本身，
+                    //       當完整 proxy 用（index/cursor/寫入全部 forward）。
+                    // 優先序：value-source-var(B) → varRef。
+                    if (valueSource is IVariableProvider varProvider)
+                    {
+                        var sourceVar = varProvider.GetVar<VarList<T>>();
+                        if (sourceVar != null)
+                        {
+                            if (ReferenceEquals(sourceVar, this))
+                            {
+                                Debug.LogError(
+                                    "VarList value source resolved to self, possible misconfiguration.",
+                                    this);
+                                return null;
+                            }
+
+                            return sourceVar;
+                        }
+                    }
+
+                    var resolved = varRef;
+                    if (resolved == null)
+                        return null;
+                    if (ReferenceEquals(resolved, this))
+                    {
+                        Debug.LogError(
+                            "VarList proxy resolved to self, possible misconfiguration.",
+                            this);
+                        return null;
+                    }
+
+                    if (resolved is VarList<T> varList)
+                        return varList;
+                    Debug.LogError(
+                        $"Referenced variable {resolved.name} is not VarList<{typeof(T).Name}>.",
+                        this);
+                    return null;
+                }
+                finally
+                {
+                    _resolvingProxy = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// value source 提供的唯讀集合內容（純 List&lt;T&gt;）。HasValueSource 為 true 但當下沒有
+        /// 任何 IsValid 的 provider 時，valueSource 會是 null → 回傳 null，呼叫端需自行 null guard。
+        /// index/cursor（RawIndex）仍走 local，等於對這顆 computed list 疊一個本地游標。
+        /// </summary>
+        private List<T> ValueSourceList => valueSource?.Get<List<T>>();
 
         public enum CollectionStorageType
         {
@@ -50,16 +130,62 @@ namespace MonoFSM.Core.Variable
         [ShowInPlayMode]
         private object _activeCollection; // Runtime instance: List<T>, Queue<T>, or HashSet<T>
 
+        /// <summary>
+        /// 選配：掛在 children 的 index 游標變數。存在時 index 改用這顆 first-class Var，
+        /// UI binder / Condition 可直接綁，改值會走 OnValueChangedHandler；
+        /// 沒掛則 fallback 到下方的 _currentIndex wrapper。
+        /// </summary>
+        [ShowInInspector] [AutoChildren(DepthOneOnly = true)]
+        private VarIntIndex _indexVar;
+
         //FIXME: 這個要弄成Field嗎...比較好reset?
+        [FormerlySerializedAs("_currentIndex")]
+        [HideIf(nameof(_indexVar))]
         [SerializeField]
-        private VarIntWrapper _currentIndex;
+        private VarIntWrapper _currentIndexVar;
+
+        // index 讀寫統一收斂點：有掛 _indexVar 走它，否則用 wrapper fallback
+        [ShowInInspector]
+        private int RawIndex => _indexVar != null ? _indexVar.CurrentValue : _currentIndexVar.Value;
+
+        private void SetRawIndex(int index)
+        {
+            if (_indexVar != null)
+                _indexVar.SetValue(index, this);
+            else
+                _currentIndexVar.SetValue(index, this);
+        }
 
         [PreviewInInspector]
         private int _lastIndex = -1;
         public int _defaultIndex;
 
-        public override void SetIndex(int index)
+        [ShowInInspector]
+        public override int CurrentIndex
         {
+            get
+            {
+                var proxy = ProxyVarList;
+                if (proxy != null)
+                    return proxy.CurrentIndex;
+                return RawIndex;
+            }
+        }
+
+        // proxy 模式（var-resolving value source 或 varRef）下，集合與 index 真正的 source 都在
+        // proxy 那顆 VarList，本地 _indexVar 存的值會 stale。讓子層的 VarIntIndex 能據此判斷
+        // 該讀 owner.CurrentIndex(→forward 給 proxy) 還是本地值，避免外部 binder 拿到舊 index。
+        public override bool IsProxy => ProxyVarList != null;
+
+        public override void SetCurrentIndexTo(int index)
+        {
+            var proxy = ProxyVarList;
+            if (proxy != null)
+            {
+                proxy.SetCurrentIndexTo(index);
+                return;
+            }
+
             if (index < 0 || index >= Count)
             {
                 Debug.LogError(
@@ -68,40 +194,61 @@ namespace MonoFSM.Core.Variable
                 return;
             }
 
-            _lastIndex = _currentIndex.Value;
-            _currentIndex.SetValue(index, this);
+            _lastIndex = RawIndex;
+            SetRawIndex(index);
         }
 
         public override void GoToNext()
         {
-            EnsureActiveCollectionInitialized();
-            if (Count == 0)
+            var proxy = ProxyVarList;
+            if (proxy != null)
             {
-                SetIndex(-1);
+                proxy.GoToNext();
                 return;
             }
 
-            var index = (_currentIndex.Value + 1) % Count;
-            SetIndex(index);
+            EnsureActiveCollectionInitialized();
+            if (Count == 0)
+            {
+                SetCurrentIndexTo(-1);
+                return;
+            }
+
+            var index = (RawIndex + 1) % Count;
+            SetCurrentIndexTo(index);
         }
 
         public override void GoToPrevious()
         {
-            EnsureActiveCollectionInitialized();
-            if (Count == 0)
+            var proxy = ProxyVarList;
+            if (proxy != null)
             {
-                SetIndex(-1);
+                proxy.GoToPrevious();
                 return;
             }
 
-            var index = (_currentIndex.Value - 1 + Count) % Count;
-            SetIndex(index);
+            EnsureActiveCollectionInitialized();
+            if (Count == 0)
+            {
+                SetCurrentIndexTo(-1);
+                return;
+            }
+
+            var index = (RawIndex - 1 + Count) % Count;
+            SetCurrentIndexTo(index);
         }
 
         public T GetFirstOrDefault()
         {
-            if (IsReadOnly)
-                return _valueSourceProvider.Value.FirstOrDefault();
+            var proxy = ProxyVarList;
+            if (proxy != null)
+                return proxy.GetFirstOrDefault();
+            if (HasValueSource)
+            {
+                var sourceList = ValueSourceList;
+                return sourceList is { Count: > 0 } ? sourceList[0] : default;
+            }
+
             EnsureActiveCollectionInitialized();
             if (_activeCollection is List<T> list && list.Count > 0)
                 return list[0];
@@ -117,6 +264,9 @@ namespace MonoFSM.Core.Variable
         {
             get
             {
+                var proxy = ProxyVarList;
+                if (proxy != null)
+                    return proxy.LastItem;
                 if (_lastIndex < 0)
                     return default;
                 if (Count == 0)
@@ -130,22 +280,44 @@ namespace MonoFSM.Core.Variable
         {
             get
             {
-                if (_currentIndex.Value < 0)
+                var proxy = ProxyVarList;
+                if (proxy != null)
+                    return proxy.CurrentListItem;
+                if (RawIndex < 0)
                     return default;
 
                 // 先取得 list，再對同一個 list 做 bounds check，避免 Count 與 GetList() 來源不同（HasProxyValue）
                 var list = GetList();
-                if (list == null || _currentIndex.Value >= list.Count)
+                if (list == null || RawIndex >= list.Count)
                     return default;
 
-                return list[_currentIndex.Value];
+                return list[RawIndex];
             }
+        }
+
+        /// <summary>
+        /// 取得指定 index 的項目；index 為 -1 時回傳 current index 的項目
+        /// </summary>
+        public T GetItemAt(int index)
+        {
+            if (index < 0)
+                return CurrentListItem;
+
+            var list = GetList();
+            if (list == null || index >= list.Count)
+                return default;
+            return list[index];
         }
 
         public IEnumerable<T> CurrentItems
         {
             get
             {
+                var proxy = ProxyVarList;
+                if (proxy != null)
+                    return proxy.CurrentItems;
+                if (HasValueSource)
+                    return ValueSourceList ?? Enumerable.Empty<T>();
                 EnsureActiveCollectionInitialized();
                 if (_activeCollection is IEnumerable<T> enumerable)
                     return enumerable;
@@ -159,6 +331,11 @@ namespace MonoFSM.Core.Variable
         {
             get
             {
+                var proxy = ProxyVarList;
+                if (proxy != null)
+                    return proxy.CurrentCollection;
+                if (HasValueSource)
+                    return ValueSourceList ?? (IReadOnlyCollection<T>)Array.Empty<T>();
                 EnsureActiveCollectionInitialized();
                 if (_activeCollection is IReadOnlyCollection<T> collection)
                     return collection;
@@ -191,16 +368,11 @@ namespace MonoFSM.Core.Variable
 
         public List<T> GetList()
         {
-            if (HasProxySource)
-            {
-                if (IsReadOnly)
-                    return _valueSourceProvider.Get<List<T>>();
-                if (varRef != null)
-                    return varRef is VarList<T> varListRef
-                        ? varListRef.GetList()
-                        : throw new InvalidOperationException(
-                            "Referenced variable is not of type VarList<T>.");
-            }
+            var proxy = ProxyVarList;
+            if (proxy != null)
+                return proxy.GetList();
+            if (HasValueSource)
+                return ValueSourceList;
 
             EnsureActiveCollectionInitialized();
 
@@ -220,6 +392,9 @@ namespace MonoFSM.Core.Variable
 
         public HashSet<T> GetHashSet()
         {
+            var proxy = ProxyVarList;
+            if (proxy != null)
+                return proxy.GetHashSet();
             EnsureActiveCollectionInitialized();
             if (_activeCollection is HashSet<T> hashSet)
                 return hashSet;
@@ -230,6 +405,9 @@ namespace MonoFSM.Core.Variable
 
         public Queue<T> GetQueue()
         {
+            var proxy = ProxyVarList;
+            if (proxy != null)
+                return proxy.GetQueue();
             EnsureActiveCollectionInitialized();
             if (_activeCollection is Queue<T> queue)
                 return queue;
@@ -240,7 +418,9 @@ namespace MonoFSM.Core.Variable
 
         private void EnsureActiveCollectionInitialized()
         {
-            if (IsReadOnly)
+            // 直接讀 _valueSources 欄位，不走 HasValueSource（它會呼叫 AutoReferenceFieldEditor →
+            // Application.isPlaying，序列化期間 OnAfterDeserialize 呼叫會丟 UnityException）
+            if (_valueSources is { Length: > 0 })
                 return;
             if (
                 _activeCollection != null
@@ -319,9 +499,11 @@ namespace MonoFSM.Core.Variable
         //給list? queue的話我Provider根本吃不到？ realtime type還會變...乾
         public override void ResetStateRestore(bool IsHardReset)
         {
-            _currentIndex.SetValue(_defaultIndex, this);
+            SetRawIndex(_defaultIndex);
             _lastIndex = -1;
-            if (IsReadOnly)
+            // value source：內容由 source 計算，本地沒有集合可 reset（index 游標已在上面重置）
+            // proxy(varRef) 模式：集合與游標都在 parent，由 parent 自己 reset
+            if (HasValueSource || ProxyVarList != null)
                 return;
             EnsureActiveCollectionInitialized();
 
@@ -348,7 +530,7 @@ namespace MonoFSM.Core.Variable
                 }
 
             // 重置索引到預設值
-            _currentIndex.SetValue(_defaultIndex, this);
+            SetRawIndex(_defaultIndex);
 
             // 通知變更（Clear() 已經調用過，但如果有恢復內容需要��次通知）
             if (_backingListForSerialization != null && _backingListForSerialization.Count > 0)
@@ -368,6 +550,8 @@ namespace MonoFSM.Core.Variable
         // public override object objectValue => _activeCollection;
 
         public override Object CurrentRawObject => CurrentListItem as Object;
+
+        public override Object GetRawObjectAt(int index) => GetItemAt(index) as Object;
 
         // protected void SetValueInternal<T1>(T1 value, Object byWho = null)
         // {
@@ -399,11 +583,17 @@ namespace MonoFSM.Core.Variable
 
         public void Add(T item)
         {
-            if (IsReadOnly)
+            var proxy = ProxyVarList;
+            if (proxy != null)
+            {
+                proxy.Add(item);
+                return;
+            }
+
+            if (HasValueSource)
             {
                 Debug.LogError(
-                    "Cannot add item directly when a value source provider is set. The collection is read-only."
-                );
+                    "VarList 有 computed value source 時為唯讀（內容由 source 計算），無法 Add。", this);
                 return;
             }
             EnsureActiveCollectionInitialized();
@@ -420,13 +610,53 @@ namespace MonoFSM.Core.Variable
             OnValueChanged();
         }
 
-        public void Remove(T item)
+        public void SetItemAt(int index, T item)
         {
-            if (IsReadOnly)
+            var proxy = ProxyVarList;
+            if (proxy != null)
+            {
+                proxy.SetItemAt(index, item);
+                return;
+            }
+
+            if (HasValueSource)
             {
                 Debug.LogError(
-                    "Cannot add item directly when a value source provider is set. The collection is read-only."
+                    "VarList 有 computed value source 時為唯讀（內容由 source 計算），無法 SetItemAt。", this);
+                return;
+            }
+
+            EnsureActiveCollectionInitialized();
+            if (_activeCollection is List<T> list)
+            {
+                if (index < 0 || index >= list.Count)
+                {
+                    Debug.LogError($"Index {index} out of bounds (Count: {list.Count}).", this);
+                    return;
+                }
+
+                list[index] = item;
+                OnValueChanged();
+            }
+            else
+                throw new NotSupportedException(
+                    "SetItemAt is only supported for List storage type."
                 );
+        }
+
+        public void Remove(T item)
+        {
+            var proxy = ProxyVarList;
+            if (proxy != null)
+            {
+                proxy.Remove(item);
+                return;
+            }
+
+            if (HasValueSource)
+            {
+                Debug.LogError(
+                    "VarList 有 computed value source 時為唯讀（內容由 source 計算），無法 Remove。", this);
                 return;
             }
             EnsureActiveCollectionInitialized();
@@ -449,11 +679,17 @@ namespace MonoFSM.Core.Variable
 
         public override void ClearValue()
         {
-            if (IsReadOnly)
+            var proxy = ProxyVarList;
+            if (proxy != null)
+            {
+                proxy.ClearValue();
+                return;
+            }
+
+            if (HasValueSource)
             {
                 Debug.LogError(
-                    "Cannot add item directly when a value source provider is set. The collection is read-only."
-                );
+                    "VarList 有 computed value source 時為唯讀（內容由 source 計算），無法 ClearValue。", this);
                 return;
             }
             EnsureActiveCollectionInitialized();
@@ -477,12 +713,11 @@ namespace MonoFSM.Core.Variable
         {
             get
             {
-                if (IsReadOnly)
-                {
-                    var valueList = _valueSourceProvider?.Value;
-                    if (valueList != null)
-                        return valueList.Count;
-                }
+                var proxy = ProxyVarList;
+                if (proxy != null)
+                    return proxy.Count;
+                if (HasValueSource)
+                    return ValueSourceList?.Count ?? 0;
 
                 EnsureActiveCollectionInitialized();
                 if (_activeCollection is List<T> list)
@@ -497,6 +732,11 @@ namespace MonoFSM.Core.Variable
 
         public IEnumerable<T> GetItems()
         {
+            var proxy = ProxyVarList;
+            if (proxy != null)
+                return proxy.GetItems();
+            if (HasValueSource)
+                return ValueSourceList ?? Enumerable.Empty<T>();
             EnsureActiveCollectionInitialized();
             if (_activeCollection is IEnumerable<T> enumerable)
                 return enumerable;
@@ -505,6 +745,16 @@ namespace MonoFSM.Core.Variable
 
         public T Dequeue()
         {
+            var proxy = ProxyVarList;
+            if (proxy != null)
+                return proxy.Dequeue();
+
+            if (HasValueSource)
+            {
+                Debug.LogError(
+                    "VarList 有 computed value source 時為唯讀（內容由 source 計算），無法 Dequeue。", this);
+                return default;
+            }
             EnsureActiveCollectionInitialized();
             switch (_activeCollection)
             {
@@ -536,6 +786,9 @@ namespace MonoFSM.Core.Variable
 
         public T Peek()
         {
+            var proxy = ProxyVarList;
+            if (proxy != null)
+                return proxy.Peek();
             EnsureActiveCollectionInitialized();
             if (_activeCollection is Queue<T> queue)
                 return queue.Peek();
@@ -546,6 +799,11 @@ namespace MonoFSM.Core.Variable
 
         public bool Contains(T item)
         {
+            var proxy = ProxyVarList;
+            if (proxy != null)
+                return proxy.Contains(item);
+            if (HasValueSource)
+                return ValueSourceList?.Contains(item) ?? false;
             EnsureActiveCollectionInitialized();
             if (_activeCollection is List<T> list)
                 return list.Contains(item);
@@ -598,7 +856,21 @@ namespace MonoFSM.Core.Variable
         // public override object objectValue => _list;
         [ShowInPlayMode]
         public abstract Object CurrentRawObject { get; }
-        public abstract void SetIndex(int index);
+
+        /// <summary>
+        /// 取得指定 index 的項目；index 為 -1 時回傳 current index 的項目
+        /// </summary>
+        public abstract Object GetRawObjectAt(int index);
+
+        public abstract int CurrentIndex { get; }
+
+        /// <summary>
+        /// 是否處於 proxy 模式（內容與 index 由另一顆 VarList 提供：var-resolving value source 或 varRef）。
+        /// 供子層 VarIntIndex 判斷 index 該讀 owner.CurrentIndex 還是本地值。
+        /// </summary>
+        public abstract bool IsProxy { get; }
+
+        public abstract void SetCurrentIndexTo(int index);
         public abstract void GoToNext();
         public abstract void GoToPrevious();
 
@@ -611,7 +883,7 @@ namespace MonoFSM.Core.Variable
         public abstract void Remove(object item);
 
         // public abstract void Clear();
-        public string ValueInfo => $"Count: {Count}";
-        public bool IsDrawingValueInfo => true;
+        public override string ValueInfo => $"Count: {Count}";
+        public override bool IsDrawingValueInfo => true;
     }
 }

@@ -12,17 +12,26 @@ namespace MonoFSM.Core
         // [Obsolete]
         // [SerializeField]
         // private KeyCode _keyCode;
-        public override string Description => $"Was Key Pressed: {_key}";
+        public override string Description =>
+            _isPress ? $"Is Key Pressed: {_key}" : $"Was Key Pressed: {_key}";
 
         [SerializeField]
         private Key _key;
+
+        [SerializeField]
+        [Tooltip("勾選：持續按住 (isPressed)；不勾：這一幀按下 (wasPressedThisFrame)")]
+        private bool _isPress;
 
         // [CompRef]
         // [AutoParent]
         // private IConditionChangeListener _parentConditionChangeListener;
 
         // private bool _lastIsValid = false;
-        protected override bool IsValid => _key > 0 && Keyboard.current[_key].wasPressedThisFrame;
+        protected override bool IsValid =>
+            _key > 0
+            && (_isPress
+                ? Keyboard.current[_key].isPressed
+                : Keyboard.current[_key].wasPressedThisFrame);
 
         //VarStat應該不會update...怎麼監聽？需要update? IConditionUpdater?
         // private void Update()

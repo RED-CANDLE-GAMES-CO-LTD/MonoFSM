@@ -88,6 +88,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 29f042ea219f044cb83db5c2b8d2187a, type: 2}
   - {fileID: 11400000, guid: bf314d8014b71407dafa7298bec07772, type: 2}
   - {fileID: 11400000, guid: 41159beee3ee44acaaa53f3120304d67, type: 2}
+  - {fileID: 11400000, guid: 91862b420984c4289b7b5b0563464892, type: 2}
+  - {fileID: 11400000, guid: 698be29a18ebe49cebd1e32540122b4c, type: 2}
   containsSchemaTypeTags:
   - {fileID: 11400000, guid: df3fb43cb23784bb6a12c6ec2f9cf673, type: 2}
   - {fileID: 11400000, guid: 70087acafd7f1494c8d5f40d8718ccae, type: 2}

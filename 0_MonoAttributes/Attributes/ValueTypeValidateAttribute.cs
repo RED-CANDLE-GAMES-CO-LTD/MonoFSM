@@ -22,7 +22,6 @@ namespace MonoFSM.Runtime.Attributes
     ///
     /// 或者使用 ValueTypeValidateWithInfoBox 複合屬性。
     /// </summary>
-    [Obsolete] //應該不要用ValueProvider
     [IncludeMyAttributes]
     [AttributeUsage(AttributeTargets.Field)]
     public class ValueTypeValidateAttribute : Attribute

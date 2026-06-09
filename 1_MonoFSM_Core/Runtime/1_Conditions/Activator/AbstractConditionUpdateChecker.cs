@@ -16,6 +16,9 @@ namespace MonoFSM.Core.Condition
     {
         protected override string DescriptionTag => "Condition Activate";
 
+        [Tooltip("即使物件被Disable了，也要檢查嗎")] public bool _forceCheckWhenDisabled;
+        bool IUpdateSimulate.IsUpdating => isActiveAndEnabled || _forceCheckWhenDisabled;
+
         /// <summary>
         /// 要不要做成disable還會檢查的simulate?
         /// </summary>
@@ -23,9 +26,11 @@ namespace MonoFSM.Core.Condition
         public void Simulate(float deltaTime)
         {
             //proxy不會跑唷
+            _lastCheckTime = Time.time;
             ActivateCheck();
         }
 
+        [ShowInDebugMode] float _lastCheckTime;
 
         [InlineField]
         [AutoNested]

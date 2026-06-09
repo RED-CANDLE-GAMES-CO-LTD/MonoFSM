@@ -38,48 +38,7 @@ namespace MonoFSM.Core
         private string GenerateFileName(string fileName)
         {
             //FIXME: vartag的話應該用原本變數的名字, 但名字誰先誰後？
-            var parentObject = Property.ParentValues[0];
-            var propertyName = Property.Name;
-            // var actualType = GetActualConfigType(configType);
-            // var typeOfValue = Property.ValueEntry.TypeOfValue; //這是用property type, 而不是實際想要的type
-            var prefix = "d"; //scriptableObject 前綴
-            //FIXME: 用interface做？
-            // if (configType == typeof(VariableTag))
-            // {
-            //     prefix = "v";
-            // }
-            // else if (configType == typeof(MonoEntityTag))
-            // {
-            //     prefix = "E";
-            // }
-
-            var postfix = fileName;
-
-            // if (parentObject is ScriptableObject sObj)
-            // {
-            //     postfix = sObj.name;
-            //     // return $"[{configType.Name}]_{sObj.name}";
-            // }
-            // else if (parentObject is Component parentComp)
-            // {
-            //     if (parentComp)
-            //     {
-            //         var gObj = parentComp.gameObject;
-            //         postfix = gObj.name;
-            //         // return $"[{configType.Name}]_{gObj.name}";
-            //     }
-            //     else
-            //     {
-            //         postfix = Property.Name;
-            //         // return $"[{configType.Name}]_0_{Property.Name}";
-            //     }
-            // }
-            // else
-            // {
-            //
-            //     // return $"[{configType.Name}]_Unknown";
-            // }
-            return $"{prefix}_{postfix}";
+            return SOAssetCreator.GenerateFileName(fileName);
         }
 
         /// <summary>
@@ -90,14 +49,7 @@ namespace MonoFSM.Core
             string defaultFileName
         )
         {
-            var config = SOPathSettingConfig.Instance;
-
-            // 使用新的分離式 API
-            var basePath = config.GetBasePathForType(configType);
-            var relativePath = config.GetRelativePathForType(configType, Attribute.SubFolderPath);
-
-            // 建立 ScriptableObject
-            return configType.CreateScriptableObjectAt(basePath, relativePath, defaultFileName);
+            return SOAssetCreator.Create(configType, defaultFileName, Attribute.SubFolderPath);
         }
 
         /// <summary>
