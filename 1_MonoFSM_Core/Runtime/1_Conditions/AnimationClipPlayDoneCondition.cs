@@ -6,7 +6,8 @@ using UnityEngine;
 namespace MonoFSM.Core
 {
     /// <summary>
-    /// 對應 AnimationClipPlayAction 的播放完成條件（同 AnimationDoneCondition 之於 AnimatorPlayAction）。
+    /// 對應 IClipPlayProgress（AnimationClipPlayAction / RootMotionClipMoveAction）的播放完成條件
+    /// （同 AnimationDoneCondition 之於 AnimatorPlayAction）。
     /// _exitRatio &gt; 0 時改為「播放進度超過比例」即成立。
     /// </summary>
     public class AnimationClipPlayDoneCondition : AbstractConditionBehaviour
@@ -27,10 +28,9 @@ namespace MonoFSM.Core
                                                ? _action.IsDone
                                                : _action.IsProgressPassedRatio(_exitRatio));
 
-        [SerializeField]
         [Required]
         [CompRef]
         [AutoParent]
-        private AnimationClipPlayAction _action;
+        private IClipPlayProgress _action;
     }
 }

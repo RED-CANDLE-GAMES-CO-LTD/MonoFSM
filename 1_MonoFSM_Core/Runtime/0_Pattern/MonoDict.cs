@@ -54,6 +54,8 @@ namespace MonoFSM.Core
             return _dict.ContainsKey(key);
         }
 
+        [ShowInDebugMode] public int Count => _dict.Count;
+
         protected readonly Dictionary<T, Tu> _dict = new();
 
         protected readonly Dictionary<string, Tu>
@@ -334,7 +336,7 @@ namespace MonoFSM.Core
         protected override void Awake()
         {
             base.Awake();
-            PrepareDictCheck();
+            PrepareDictCheck(); //FIXME:有危險！auto可能還沒做耶！
         }
 
         public virtual void EnterSceneAwake()

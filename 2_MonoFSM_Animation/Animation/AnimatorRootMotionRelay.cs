@@ -3,7 +3,7 @@ using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-public class RootMotionRelay
+public class AnimatorRootMotionRelay
     : MonoBehaviour,
         IOverrideHierarchyIcon,
         IDrawHierarchyBackGround,

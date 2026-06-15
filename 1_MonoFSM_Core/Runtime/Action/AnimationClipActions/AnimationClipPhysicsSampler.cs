@@ -18,14 +18,30 @@ namespace MonoFSM.Animation
     public class AnimationClipPhysicsSampler : MonoBehaviour, IUpdateSimulate, ISceneAwake
     {
         [Auto] Animator _animator;
+        [Auto] AnimatorControlModeHandle _controlModeHandle;
 
         private void Awake()
         {
+            // 有 AnimatorControlModeHandle 時由它統一管理 animator.enabled；沒有才維持舊行為自己關
+            if (_controlModeHandle == null)
+                _controlModeHandle = GetComponent<AnimatorControlModeHandle>();
+            if (_controlModeHandle != null)
+            {
+                if (_controlModeHandle.Mode != AnimatorPoseMode.ScriptSampled)
+                    Debug.LogError(
+                        "[AnimationClipPhysicsSampler] AnimatorControlModeHandle 模式不是 ScriptSampled，Animator 會跟 sampler 搶 pose",
+                        this);
+                return;
+            }
+
             if (_animator != null) _animator.enabled = false;
         }
 
         [Tooltip("要跟隨動畫 pose 的 Rigidbody（自動收集子層），會被設為 kinematic + FreezeAll")] [AutoChildren]
         private Rigidbody[] _rigidbodies;
+
+        [Tooltip("取樣後的 pose 後處理（如 AnimationClipTargetWarper），自動收集子層")] [AutoChildren]
+        private IAnimationSampleModifier[] _sampleModifiers;
 
         [ShowInInspector] private readonly List<AnimationClipPlayAction> _actions = new();
 
@@ -72,7 +88,16 @@ namespace MonoFSM.Animation
 
             _lastSampleTime = _activeAction.LogicSampleTime;
             _activeAction.Clip.SampleAnimation(gameObject, _lastSampleTime);
+            ApplySampleModifiers(_activeAction, _lastSampleTime);
             SyncRigidbodies();
+        }
+
+        private void ApplySampleModifiers(AnimationClipPlayAction action, float sampleTime)
+        {
+            if (_sampleModifiers == null)
+                return;
+            for (var i = 0; i < _sampleModifiers.Length; i++)
+                _sampleModifiers[i]?.OnPostSample(gameObject, action, sampleTime);
         }
 
         private void SyncRigidbodies()

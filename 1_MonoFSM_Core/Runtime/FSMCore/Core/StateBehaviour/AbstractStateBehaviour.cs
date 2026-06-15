@@ -19,7 +19,7 @@ namespace MonoFSM.Core
     public abstract class AbstractStateBehaviour<TState>
         : AbstractDescriptionBehaviour,
             IState,
-            IOwnedState<TState>
+            IOwnedState<TState>, IRenderInvoker
         where TState : AbstractStateBehaviour<TState>
     {
         // PUBLIC MEMBERS

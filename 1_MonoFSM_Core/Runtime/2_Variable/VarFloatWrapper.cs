@@ -36,9 +36,10 @@ namespace MonoFSM.Variable
     public class VarFoldOut<TVarType, TValueType>
         where TVarType : AbstractMonoVariable //用attribute processor幫她加inlinefield
     {
-        [SerializeField] bool _isVarNeeded;
+        // [SerializeField] bool _isVarNeeded;
 
-        [ShowIf(nameof(_isVarNeeded))] [SerializeField]
+        // [ShowIf(nameof(_isVarNeeded))]
+        [SerializeField]
         private TVarType _var;
 
         [HideIf(nameof(HideConstValue))] [SerializeField]

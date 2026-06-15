@@ -18,7 +18,8 @@ namespace MonoFSM.Animation
     /// 需要 kinematic Rigidbody 物理推擠時，搭配 AnimationClipPhysicsSampler（Simulate 階段取樣）。
     /// </summary>
     [Searchable]
-    public class AnimationClipPlayAction : AbstractDescriptionBehaviour, IRenderBehaiour, ISceneAwake
+    public class AnimationClipPlayAction : AbstractDescriptionBehaviour, IRenderBehaiour, ISceneAwake,
+        IClipPlayProgress
     {
         public override string Description =>
             $"Clip [{(_clip != null ? _clip.name : "?")}] on [{(SampleRoot != null ? SampleRoot.name : "?")}]";
@@ -90,10 +91,16 @@ namespace MonoFSM.Animation
         public bool IsProgressPassedRatio(float ratio) =>
             _clip != null && _stateBehaviour.StateTime * _speed >= _clip.length * ratio;
 
+        // SampleRoot 子層的 pose 後處理（如 AnimationClipTargetWarper），render 取樣後也要套用
+        private IAnimationSampleModifier[] _sampleModifiers;
+
         public void EnterSceneAwake()
         {
             if (_physicsSampler != null)
                 _physicsSampler.Register(this);
+            var root = SampleRoot;
+            if (root != null)
+                _sampleModifiers = root.GetComponentsInChildren<IAnimationSampleModifier>(true);
         }
 
         // IRenderBehaiour：視覺取樣（proxy 端也會跑，吃插值後的 StateTime）
@@ -110,7 +117,11 @@ namespace MonoFSM.Animation
             var root = SampleRoot;
             if (_clip == null || root == null)
                 return;
-            _clip.SampleAnimation(root.gameObject, RenderSampleTime);
+            var sampleTime = RenderSampleTime;
+            _clip.SampleAnimation(root.gameObject, sampleTime);
+            if (_sampleModifiers != null)
+                for (var i = 0; i < _sampleModifiers.Length; i++)
+                    _sampleModifiers[i]?.OnPostSample(root.gameObject, this, sampleTime);
         }
 
 #if UNITY_EDITOR
@@ -151,6 +162,10 @@ namespace MonoFSM.Animation
             AnimationMode.BeginSampling();
             AnimationMode.SampleAnimationClip(root.gameObject, _clip, _previewTime);
             AnimationMode.EndSampling();
+            // 編輯期也套用 warp 等後處理：場景擺一個測試 target 就能拉滑桿直接預覽 warp 後軌跡
+            // （改動的 transform 屬性同為 clip 取樣對象，AnimationMode 結束時會一併還原）
+            foreach (var modifier in root.GetComponentsInChildren<IAnimationSampleModifier>(true))
+                modifier.OnPostSample(root.gameObject, this, _previewTime);
             SceneView.RepaintAll();
         }
 

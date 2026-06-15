@@ -3,16 +3,20 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime;
+using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace _1_MonoFSM_Core.Runtime.MonoData
 {
+    /// <summary>
+    /// 跟隨parent 的 view
+    /// </summary>
     public class ViewRoot : AbstractDescriptionBehaviour, ISceneStart, IUpdateSimulate,
         IAfterRenderMono
     {
-        [FormerlySerializedAs("_ignoreReparent")] [SerializeField]
+        [Tooltip("物理物件不該一開始被reparet")] [FormerlySerializedAs("_ignoreReparent")] [SerializeField]
         private bool _ignoreStartReparent; //dynamic的應該要 ignore?
         [PreviewInInspector] [AutoParent] private Animator _animator;
 
@@ -22,7 +26,9 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         [ShowInInspector] Vector3 _followViewOffset; // View 相對 parentVR.transform（AfterRender 用）
         [ShowInInspector] Quaternion _followViewRotOffset;
 
-        public Transform Root => transform.parent;
+        //FIXME: 要檢查上面有Rigidbody?
+        public Transform Root =>
+            transform.parent; //通常會有個 Animator/Rigidbody 在 parent 當 Root，ViewRoot 本身只負責 localOffset 的同步
 
         protected override bool IsIgnoreRename => true;
 
@@ -62,9 +68,10 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             {
                 return;
             }
-            _parentEntity = parentEntity;
-            _parentViewRoot = _parentEntity?.ViewRoot;
-            RecordOffsets(_parentViewRoot);
+
+            _attachToEntityWrapper.SetValue(parentEntity, this);
+            // _parentViewRoot = _parentEntity?.ViewRoot;
+            RecordOffsets(AttachToViewRoot);
 
             _sceneStarted = true;
         }
@@ -78,69 +85,23 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             _followViewRotOffset = Quaternion.Inverse(target.transform.rotation) * transform.rotation;
         }
 
-        [ShowInInspector]
-        MonoEntity _parentEntity;
+        public VarEntityWrapper _attachToEntityWrapper;
+
+        //又不想寫特歸code? VarViewRoot? 帶了Component type,
+        //最佳解是什麼？
+        [ShowInPlayMode] public ViewRoot AttachToViewRoot => _attachToEntityWrapper.Value?.ViewRoot;
+        // public VarComp _followViewRootVar; //為了連線?, 有點髒...
 
 
-        // [Button]
-        // void ReparentToRoot()
-        // {
-        //     if (_ignoreReparent) return;
-        //
-        //
-        //
-        //     // 找 parent entity 自己的 ViewRoot（排除 nested entity 的）
-        //     ViewRoot parentViewRoot = null;
-        //     foreach (var vr in _parentEntity.GetComponentsInChildren<ViewRoot>(true))
-        //     {
-        //         if (vr.GetComponentInParent<MonoEntity>() == _parentEntity)
-        //         {
-        //             parentViewRoot = vr;
-        //             break;
-        //         }
-        //     }
-        //
-        //     if (parentViewRoot == null)
-        //     {
-        //         Debug.LogWarning($"[ViewRoot] Parent '{_parentEntity.name}' has no ViewRoot", this);
-        //         return;
-        //     }
-        //
-        //     if (_animator.isInitialized == false)
-        //     {
-        //         Debug.LogError(
-        //             $"[ViewRoot] Animator on '{name}' is not initialized. Make sure it has a valid controller and is enabled at least once before scene start.",
-        //             this);
-        //         // Debug.Break();
-        //         _animator.Rebind();
-        //     }
-        //
-        //     if (_animator.keepAnimatorStateOnDisable == false)
-        //     {
-        //         Debug.LogError(
-        //             $"[ViewRoot] Animator on '{name}' does not have 'Keep Animator State On Disable' enabled. This may cause animation issues after reparenting.",
-        //             this);
-        //         Debug.Break();
-        //     }
-        //
-        //     // worldPositionStays = true 保持世界座標不變
-        //     //小心！動畫裡有key到ViewRoot的position/rotation的話 reparent 會跑掉
-        //     transform.SetParent(parentViewRoot.transform, true);
-        //
-        //
-        //     // Debug.Log(
-        //     //     $"[ViewRoot] Reparented '{ParentEntity.name}' ViewRoot under '{parentEntity.name}' ViewRoot",
-        //     //     this);
-        // }
-
-        [ShowInPlayMode] public ViewRoot _parentViewRoot; //
 
         #region FollowTarget 掛載
 
         public void SetFollowTarget(ViewRoot target, Vector3 mountPosition,
             Quaternion mountRotation)
         {
-            _parentViewRoot = target;
+            _attachToEntityWrapper.SetValue(target.BindEntity, this);
+            // AttachToViewRoot = target;
+            // _followViewRootVar?.SetValue(target, this); //為了連線
             // 先把 Root (Animator/Rigidbody) 移到指定位置
             if (Root != null)
             {
@@ -160,7 +121,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         public void ClearFollowTarget()
         {
             // Debug.Log($"[ViewRoot] '{name}' cleared follow target.", this);
-            _parentViewRoot = null;
+            _attachToEntityWrapper.ClearValue();
         }
 
         // Mount 時被關掉的 colliders（Unmount 只還原這些，避免動到本來就 disabled 的）
@@ -196,7 +157,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         public void Simulate(float deltaTime)
         {
-            var parentVR = _parentViewRoot;
+            var parentVR = AttachToViewRoot;
             if (parentVR == null) return;
             Root.position = parentVR.Root.TransformPoint(_followParentOffset);
             Root.rotation = parentVR.Root.rotation * _followParentRotOffset;
@@ -207,9 +168,9 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         {
             // ViewRoot 做 localOffset 同步（interpolated）
             // 統一處理 Nested ViewRoot / FollowTarget (Dock, Socket) 兩種情境
-            if (_parentViewRoot == null) return;
-            transform.position = _parentViewRoot.transform.TransformPoint(_followViewOffset);
-            transform.rotation = _parentViewRoot.transform.rotation * _followViewRotOffset;
+            if (AttachToViewRoot == null) return;
+            transform.position = AttachToViewRoot.transform.TransformPoint(_followViewOffset);
+            transform.rotation = AttachToViewRoot.transform.rotation * _followViewRotOffset;
             _lastRenderTick = WorldUpdateSimulator.CurrentTick;
         }
     }

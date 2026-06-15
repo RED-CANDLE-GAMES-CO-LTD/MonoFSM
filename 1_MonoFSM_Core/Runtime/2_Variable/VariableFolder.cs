@@ -17,69 +17,78 @@ public abstract class AbstractFolder : MonoBehaviour
 
 public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>, IAfterSimulate
 {
-    private Dictionary<VariableTag, AbstractMonoVariable> _varMap = new();
+    // private Dictionary<VariableTag, AbstractMonoVariable> _varMap = new();
 
     private Dictionary<string, AbstractMonoVariable> _nameMap = new();
 
     private bool _initialized;
 
-    public override void EnterSceneAwake()
-    {
-        base.EnterSceneAwake();
-        RebuildVariableMap();
-    }
+    // public override void EnterSceneAwake()
+    // {
+    //     base.EnterSceneAwake();
+    //     // RebuildVariableMap();
+    // }
 
 
-    [Button]
-    public void RebuildVariableMap()
-    {
-        _varMap.Clear();
-        _nameMap.Clear();
-        var variables = GetComponentsInChildren<AbstractMonoVariable>(true);
-        foreach (var v in variables)
-        {
-            if (v == null) continue;
-
-            if (v._varTag != null && !_varMap.ContainsKey(v._varTag))
-            {
-                _varMap.Add(v._varTag, v);
-            }
-
-            if (!string.IsNullOrEmpty(v.name))
-            {
-                // Assuming we want to look up by the variable name (e.g. "[Var] Health")
-                // Or maybe the user logic cleans up the name.
-                // For now, using the gameObject name or a property if available.
-                // Assuming gameObject name for now as the key if no other ID exists.
-                if (!_nameMap.ContainsKey(v.name))
-                {
-                    _nameMap.Add(v.name, v);
-                }
-            }
-        }
-
-        _initialized = true;
-    }
+    // [Button]
+    // public void RebuildVariableMap()
+    // {
+    //     // _varMap.Clear();
+    //     _nameMap.Clear();
+    //     var variables = GetComponentsInChildren<AbstractMonoVariable>(true);
+    //     foreach (var v in variables)
+    //     {
+    //         if (v == null) continue;
+    //         //FIXME: 想要做很狂的GetVar系統，任何var用tag就可以拿到
+    //         // // 和 collection 的 Add 路徑共用同一套判定，proxy var 不該被 GetVar 解析到
+    //         // if (!IsAddValid(v)) continue;
+    //         if (v._varTag != null)
+    //         {
+    //             _varMap.TryAdd(v._varTag, v);
+    //         }
+    //
+    //         if (!string.IsNullOrEmpty(v.name))
+    //         {
+    //             // Assuming we want to look up by the variable name (e.g. "[Var] Health")
+    //             // Or maybe the user logic cleans up the name.
+    //             // For now, using the gameObject name or a property if available.
+    //             // Assuming gameObject name for now as the key if no other ID exists.
+    //             _nameMap.TryAdd(v.name, v);
+    //         }
+    //     }
+    //
+    //     _initialized = true;
+    // }
 
     //FIXME: external dict?
     protected override bool IsStringDictEnable => true;
 
     protected override bool IsAddValid(AbstractMonoVariable value)
     {
-        if (value.HasParentVarEntity)
+        if (_dict.ContainsKey(value
+                ._varTag)) //FIXME: 這裡是要丟錯誤還是覆寫？目前先丟錯誤，因為tag重複很可能是設計問題（不確定的tag對應不確定的變數），而且tag重複的話GetVar就會撈到不確定的變數了
+        {
+            Debug.LogError(
+                $"[VariableFolder] Variable with tag '{value._varTag.name}' already exists in folder '{name}'. Please ensure each variable has a unique tag.",
+                value);
             return false;
+        }
+
+        //現在很深喔，所有下面的變數包含getter都撈出來
+        // if (value.HasParentVarEntity)
+        //     return false;
         return true;
     }
     public AbstractMonoVariable GetVariable(VariableTag type)
     {
-        if (!_initialized) RebuildVariableMap();
-        if (type != null && _varMap.TryGetValue(type, out var v)) return v;
+        // if (!_initialized) RebuildVariableMap();
+        // if (type != null && _varMap.TryGetValue(type, out var v)) return v;
         return Get(type);
     }
 
     public AbstractMonoVariable GetVariable(string varName)
     {
-        if (!_initialized) RebuildVariableMap();
+        // if (!_initialized) RebuildVariableMap();
         if (!string.IsNullOrEmpty(varName) && _nameMap.TryGetValue(varName, out var v)) return v;
 
         var local = Get(varName);

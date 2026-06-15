@@ -4,13 +4,14 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 // [RequireComponent(typeof(Rigidbody))]
-public class RigidbodyMotionCustomReceiver
+public class RigidbodyRootMotionCustomReceiver
     : MonoBehaviour,
         IRootMotionReceiver,
         IUpdateSimulate,
         IOverrideHierarchyIcon,
         IDrawHierarchyBackGround,
-        IHierarchyValueInfo
+        IHierarchyValueInfo,
+        IAfterSimulate
 {
     [Required]
     [ShowInInspector]
@@ -21,8 +22,7 @@ public class RigidbodyMotionCustomReceiver
     private Vector3 pendingPosition;
     private Quaternion pendingRotation = Quaternion.identity;
 
-    [Auto]
-    private RootMotionRelay _relay;
+    [Auto] private AnimatorRootMotionRelay _relay;
 
     public void OnProcessRootMotion(Vector3 deltaPosition, Quaternion deltaRotation)
     {
@@ -55,8 +55,16 @@ public class RigidbodyMotionCustomReceiver
 
     public void Simulate(float deltaTime)
     {
+
+    }
+
+    public void AfterSimulate(float deltaTime)
+    {
         if (pendingPosition != Vector3.zero || pendingRotation != Quaternion.identity)
         {
+            // Debug.Log(
+            //     $"Applying pending root motion to Rigidbody: ΔPos={pendingPosition}, ΔRot={pendingRotation.eulerAngles}",
+            //     this);
             rb.MovePosition(rb.position + pendingPosition);
             rb.MoveRotation(rb.rotation * pendingRotation);
 
@@ -64,6 +72,4 @@ public class RigidbodyMotionCustomReceiver
             pendingRotation = Quaternion.identity;
         }
     }
-
-    public void AfterUpdate() { }
 }

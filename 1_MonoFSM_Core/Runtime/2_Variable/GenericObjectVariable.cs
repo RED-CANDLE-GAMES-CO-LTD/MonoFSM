@@ -323,8 +323,11 @@ namespace MonoFSM.Variable
 
         public override void CommitValue()
         {
+
             // Profiler.BeginSample("GenericUnityObjectVariable<TValueType>.CommitValue", this);
             // Profiler.BeginSample("GetValue");
+
+            //FIXME: get only不開拿？
             _lastValue = Value;
             // Profiler.EndSample();
             if (_lastValue != null)

@@ -67,7 +67,7 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
 
     public void ResetStateRestore(bool IsHardReset)
     {
-        if (_viewRoot._parentViewRoot != null) return; //有parent就不reset，等parent reset的時候一起reset就好
+        if (_viewRoot.AttachToViewRoot != null) return; //有parent就不reset，等parent reset的時候一起reset就好
         
         if (ParameterInitCheck()) //第一次記下來？還是分開感覺比較好？
         {

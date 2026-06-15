@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action
 {
-    public class SwitchCase : AbstractDescriptionBehaviour, IActionParent
+    public class SwitchCase : AbstractDescriptionBehaviour, IActionParent, IRenderInvoker
     {
         protected override string DescriptionTag => "Case";
 

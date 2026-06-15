@@ -7,7 +7,7 @@ using UnityEngine;
 namespace _1_MonoFSM_Core.Runtime.Action.AnimatorActions
 {
     //FIXME: 乾淨的AbstractDescriptor就好？
-    public class RenderLoopHandler : AbstractEventHandler, IRenderSimulate
+    public class RenderLoopHandler : AbstractEventHandler, IRenderSimulate, IRenderInvoker
     {
         public void Render(float runnerLocalRenderTime)
         {

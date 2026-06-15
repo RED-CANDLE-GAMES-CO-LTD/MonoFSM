@@ -31,6 +31,11 @@ namespace MonoFSM.Runtime
         bool IsAddValid();
     }
 
+    public interface IParentEntityProvider //BindEntityProvider?
+    {
+        public MonoEntity ParentEntity { get; }
+    }
+
     //FIXME: 必定需要MonoObj?
     // [SelectionBase]
     // [RequireComponent(typeof(MonoObj))]

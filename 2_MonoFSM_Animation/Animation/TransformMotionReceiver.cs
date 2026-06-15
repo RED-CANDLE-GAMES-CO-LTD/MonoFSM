@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class TransformMotionReceiver : MonoBehaviour, IRootMotionReceiver, IOverrideHierarchyIcon, IDrawHierarchyBackGround, IHierarchyValueInfo
 {
-    [Auto]
-    private RootMotionRelay _relay;
+    [Auto] private AnimatorRootMotionRelay _relay;
 
     public void OnProcessRootMotion(Vector3 deltaPosition, Quaternion deltaRotation)
     {

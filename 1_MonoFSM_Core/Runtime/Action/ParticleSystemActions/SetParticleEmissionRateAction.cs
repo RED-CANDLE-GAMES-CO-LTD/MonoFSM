@@ -1,3 +1,4 @@
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
@@ -9,8 +10,11 @@ namespace MonoFSM.ParticleSystemActions
     /// <summary>
     /// 設定 ParticleSystem 的 Emission Rate Over Time。
     /// </summary>
-    public class SetParticleEmissionRateAction : AbstractStateAction
+    public class SetParticleEmissionRateAction : AbstractRenderBehaviour
     {
+        public override string ValueInfo => "rate:" + _rateOverTime.Value * _multiplier;
+        public override bool IsDrawingValueInfo => true;
+
         public override string Description =>
             $"Set emission rate over time to {_rateOverTime.Description} x{_multiplier} on [{(_particleSystem != null ? _particleSystem.name : "null")}]";
 
@@ -20,7 +24,7 @@ namespace MonoFSM.ParticleSystemActions
         [SerializeField] private VarFloatWrapper _rateOverTime;
         public float _multiplier = 1;
 
-        protected override void OnActionExecuteImplement()
+        public override void OnEnterRenderImplement()
         {
             if (_particleSystem == null)
             {

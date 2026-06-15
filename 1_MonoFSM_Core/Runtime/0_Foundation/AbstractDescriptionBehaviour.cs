@@ -31,7 +31,7 @@ namespace MonoFSM.Foundation
             IBeforePrefabSaveCallbackReceiver,
             ICustomPrefabSaveCallbackReceiver,
             IAfterPrefabStageOpenCallbackReceiver,
-            IDrawHierarchyBackGround, IHierarchyValueInfo
+            IDrawHierarchyBackGround, IHierarchyValueInfo, IParentEntityProvider
     {
         public virtual Color BackgroundColor
         {
@@ -485,6 +485,7 @@ namespace MonoFSM.Foundation
         [AutoParent]
         protected MonoEntity _self; //FIXME: 每個都要嗎？
 
+        MonoEntity IParentEntityProvider.ParentEntity => BindEntity;
         public MonoEntity BindEntity
         {
             get

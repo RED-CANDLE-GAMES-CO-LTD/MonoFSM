@@ -45,7 +45,7 @@ namespace MonoFSM.Core.LifeCycle
 
             if (target == null)
             {
-                Debug.LogWarning("[MountViewRoot] Target entity is null", this);
+                Debug.LogError("[MountViewRoot] Target entity is null", this);
                 return;
             }
 

@@ -157,9 +157,9 @@ namespace Fusion.Addons.FSM
                 : GetComponentInParent<MonoEntity>(true);
             if (entity != null)
             {
-                Debug.Log(
-                    $"StateMachineLogic: Binding module pack folders for entity {entity.name}",
-                    this);
+                // Debug.Log(
+                //     $"StateMachineLogic: Binding module pack folders for entity {entity.name}",
+                //     this);
                 entity.BindModulePackFolders();
             }
 

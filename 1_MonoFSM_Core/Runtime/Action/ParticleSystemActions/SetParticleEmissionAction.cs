@@ -9,6 +9,9 @@ namespace MonoFSM.ParticleSystemActions
 {
     public class SetParticleEmissionAction : AbstractRenderBehaviour
     {
+        public override bool IsDrawingValueInfo => true;
+        public override string ValueInfo => "Emission: " + (_enabled.Value ? "On" : "Off");
+
         public override string Description =>
             $"Set emission {(_enabled.Description)} on [{(_particleSystem != null ? _particleSystem.name : "null")}]";
 

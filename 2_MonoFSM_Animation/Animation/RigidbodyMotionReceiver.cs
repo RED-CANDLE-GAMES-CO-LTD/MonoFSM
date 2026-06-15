@@ -18,8 +18,7 @@ public class RigidbodyMotionReceiver
     private Vector3 pendingPosition;
     private Quaternion pendingRotation = Quaternion.identity;
 
-    [Auto]
-    private RootMotionRelay _relay;
+    [Auto] private AnimatorRootMotionRelay _relay;
 
     private void Awake()
     {

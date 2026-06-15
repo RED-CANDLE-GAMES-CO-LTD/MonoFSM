@@ -11,8 +11,7 @@ public class Rigidbody2DMotionReceiver : MonoBehaviour, IRootMotionReceiver, IOv
     private Vector2 pendingPosition;
     private float pendingRotation;
 
-    [Auto]
-    private RootMotionRelay _relay;
+    [Auto] private AnimatorRootMotionRelay _relay;
 
     private void Awake()
     {
