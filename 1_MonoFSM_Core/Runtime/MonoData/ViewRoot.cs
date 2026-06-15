@@ -28,8 +28,9 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         //FIXME: 要檢查上面有Rigidbody?
         public Transform Root =>
-            transform.parent; //通常會有個 Animator/Rigidbody 在 parent 當 Root，ViewRoot 本身只負責 localOffset 的同步
+            _bindRb.transform; //通常會有個 Animator/Rigidbody 在 parent 當 Root，ViewRoot 本身只負責 localOffset 的同步
 
+        [AutoParent] private Rigidbody _bindRb;
         protected override bool IsIgnoreRename => true;
 
         // protected override void Awake()
