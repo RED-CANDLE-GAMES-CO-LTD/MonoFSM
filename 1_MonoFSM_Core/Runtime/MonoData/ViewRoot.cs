@@ -28,8 +28,13 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         //FIXME: 要檢查上面有Rigidbody?
         public Transform Root =>
-            _bindRb.transform; //通常會有個 Animator/Rigidbody 在 parent 當 Root，ViewRoot 本身只負責 localOffset 的同步
+            _bindRb != null
+                ? _bindRb.transform
+                : _bindAnim != null
+                    ? _bindAnim.transform
+                    : _bindRb.transform.parent;
 
+        [AutoParent] private Animator _bindAnim;
         [AutoParent] private Rigidbody _bindRb;
         protected override bool IsIgnoreRename => true;
 
@@ -82,6 +87,8 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         {
             _followParentOffset = target.Root.InverseTransformPoint(Root.position);
             _followParentRotOffset = Quaternion.Inverse(target.Root.rotation) * Root.rotation;
+
+            //FIXME: 為什麼 view 的 offset 要分開？
             _followViewOffset = target.transform.InverseTransformPoint(transform.position);
             _followViewRotOffset = Quaternion.Inverse(target.transform.rotation) * transform.rotation;
         }
@@ -97,10 +104,14 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         #region FollowTarget 掛載
 
+        [ShowInInspector] private Transform _mountPointTarget; //FIXME: 這個也要連線同步？ anchor?
+
+        //FIXME: rotation的處理？現在只有用相對位置
         public void SetFollowTarget(ViewRoot target, Vector3 mountPosition,
-            Quaternion mountRotation)
+            Quaternion mountRotation, Transform mountPointTarget = null)
         {
             _attachToEntityWrapper.SetValue(target.BindEntity, this);
+            _mountPointTarget = mountPointTarget;
             // AttachToViewRoot = target;
             // _followViewRootVar?.SetValue(target, this); //為了連線
             // 先把 Root (Animator/Rigidbody) 移到指定位置
@@ -116,6 +127,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
                     this);
             }
 
+            //為什麼要？
             RecordOffsets(target);
         }
 
@@ -123,6 +135,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         {
             // Debug.Log($"[ViewRoot] '{name}' cleared follow target.", this);
             _attachToEntityWrapper.ClearValue();
+            _mountPointTarget = null;
         }
 
         // Mount 時被關掉的 colliders（Unmount 只還原這些，避免動到本來就 disabled 的）
@@ -160,6 +173,13 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         {
             var parentVR = AttachToViewRoot;
             if (parentVR == null) return;
+
+            if (_mountPointTarget != null)
+            {
+                Root.position = _mountPointTarget.position;
+                Root.rotation = _mountPointTarget.rotation;
+                return;
+            }
             Root.position = parentVR.Root.TransformPoint(_followParentOffset);
             Root.rotation = parentVR.Root.rotation * _followParentRotOffset;
         }
@@ -170,9 +190,16 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             // ViewRoot 做 localOffset 同步（interpolated）
             // 統一處理 Nested ViewRoot / FollowTarget (Dock, Socket) 兩種情境
             if (AttachToViewRoot == null) return;
+            _lastRenderTick = WorldUpdateSimulator.CurrentTick;
+            if (_mountPointTarget != null)
+            {
+                Root.position = _mountPointTarget.position;
+                Root.rotation = _mountPointTarget.rotation;
+                return;
+            }
             transform.position = AttachToViewRoot.transform.TransformPoint(_followViewOffset);
             transform.rotation = AttachToViewRoot.transform.rotation * _followViewRotOffset;
-            _lastRenderTick = WorldUpdateSimulator.CurrentTick;
+
         }
     }
 }

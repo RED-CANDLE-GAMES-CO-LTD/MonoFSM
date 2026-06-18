@@ -195,9 +195,15 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [PreviewInInspector]
         private HashSet<GeneralEffectReceiver> _receivers = new();
 
+        //FIXME: 沒有清掉？
         [Header("Condition不符合的")]
         [PreviewInDebugMode]
         private HashSet<IEffectReceiver> _candidateReceivers = new();
+
+        public void ClearCandidateReceivers()
+        {
+            _candidateReceivers.Clear();
+        }
 
         [PreviewInInspector]
         private GeneralEffectReceiver _lastReceiver;

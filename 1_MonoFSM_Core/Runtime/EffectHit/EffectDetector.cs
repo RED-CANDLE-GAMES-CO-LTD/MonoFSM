@@ -362,6 +362,7 @@ namespace MonoFSM.Core.Detection
             foreach (var kvp in dealerStateChanges)
             {
                 var dealer = kvp.Key;
+                dealer.ClearCandidateReceivers();
                 var currentState = kvp.Value.currentState;
 
                 if (currentState)

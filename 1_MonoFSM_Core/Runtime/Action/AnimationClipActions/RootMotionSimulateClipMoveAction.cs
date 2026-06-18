@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
@@ -6,7 +7,6 @@ using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
-using System.Collections.Generic;
 using UnityEditor;
 #endif
 
@@ -34,8 +34,18 @@ namespace MonoFSM.Animation
 
         protected override string DescriptionTag => "RootMotionClip";
 
+
         [TitleGroup("Clip")] [Required] [ValueDropdown(nameof(GetAnimatorClips))] [SerializeField]
         private AnimationClip _clip;
+
+        // ValueDropdown 引用此方法，attribute 在 build 也存在，因此方法不可包在 #if UNITY_EDITOR 內
+        private IEnumerable<AnimationClip> GetAnimatorClips()
+        {
+            if (_animatorRoot == null) return null;
+            var animator = _animatorRoot.GetComponent<Animator>();
+            if (animator == null || animator.runtimeAnimatorController == null) return null;
+            return animator.runtimeAnimatorController.animationClips;
+        }
 
         [TitleGroup("Warp")]
         [Tooltip("要趨近的目標點，可由程式在 runtime 設定（TargetTransform property）。不設定就是純 root motion")]
@@ -329,16 +339,6 @@ namespace MonoFSM.Animation
         }
 
 #if UNITY_EDITOR
-        // ===== Animator Clip 下拉選單 =====
-
-        private IEnumerable<AnimationClip> GetAnimatorClips()
-        {
-            if (_animatorRoot == null) return null;
-            var animator = _animatorRoot.GetComponent<Animator>();
-            if (animator == null || animator.runtimeAnimatorController == null) return null;
-            return animator.runtimeAnimatorController.animationClips;
-        }
-
         // ===== Edit Mode Preview（AnimationMode 取樣，停止後自動還原 pose）=====
 
         private static bool _isPreviewOwnedByRootMotionAction;

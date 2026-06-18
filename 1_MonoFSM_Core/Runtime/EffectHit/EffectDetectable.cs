@@ -22,21 +22,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             IResetStateRestore //關係
     {
         protected override bool IsIgnoreRename => true;
-        //可能不只一個？
-        // [Obsolete("只是拿來新增用的button？其實不一定需要？")]
 
         //TODO: 如果想要永遠都把EffectDetectable打開，然後去關Collider (DetectHitBox?)要可以支援group node, 這樣就不是depth only 1了
         [CompRef]
         // [AutoChildren(DepthOneOnly = true)]
-        [AutoChildren]
+        // [AutoChildren]
+        [AutoChildren(StopAtType = typeof(EffectDetectable))]
         [SerializeField]
         private BaseEffectDetectTarget[] _effectDetectTargets; //FIXME:不該？
-
-        // [AutoParent] private StateMachineOwner owner;
-        //
-        // public StateMachineOwner Owner => owner;
-
-
 
         public GameObject TargetObject => gameObject;
         public bool IsValid => gameObject.activeInHierarchy && _interactConditions.IsAllValid();
@@ -82,10 +75,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         }
 
         protected override string DescriptionTag => "-> EffectDetectable 接收";
-        [AutoParent] Rigidbody _rb;
-        public Rigidbody rb => _rb;
 
-        public void ResetStateRestore(bool IsHardReset)
+        [AutoParent] private Rigidbody _rb;
+        // public Rigidbody rb => _rb;
+
+        public void ResetStateRestore(bool isHardReset)
         {
 #if UNITY_EDITOR
             _debugDetectors.Clear();

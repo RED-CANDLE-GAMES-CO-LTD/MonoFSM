@@ -7,10 +7,7 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Runtime.Interact.EffectHit.Condition
 {
-    //FIXME: 這個是MonoDescribable下面有Receiver有EffectType
-    //可以被 xx Effect 作用
-
-    public class IsEffectTypeInMonoDescriptableCondition : AbstractConditionBehaviour
+    public class IsEffectDealerOrReceiverCondition : AbstractConditionBehaviour
     {
         public enum EffectSide
         {
@@ -18,6 +15,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
             Receiver,
         }
 
+        public override string Description =>
+            $"Is [{effectSide}] Of Type [{effectType.name}] under [{(_targetEntityDescriptableVar.name)}]";
 
         [FormerlySerializedAs("_targetBlackboardDescriptableVar")]
         [FormerlySerializedAs("_targetMonoDescriptableVar")]
@@ -41,5 +40,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
                     return _targetEntityDescriptableVar.Value.HasReceiverType(effectType);
             }
         }
+
+
     }
 }

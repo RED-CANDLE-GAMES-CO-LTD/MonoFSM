@@ -8,5 +8,6 @@ namespace MonoFSM_InputAction
     {
         [DropDownRef] public MonoInputAction _inputActionRef;
         protected override string DescriptionTag => "VarInput";
+        public override string Description => _inputActionRef?.name ?? "None";
     }
 }

@@ -85,7 +85,7 @@ namespace MonoFSM.Core.LifeCycle
                 source.ViewRoot.DisableCollidersForMount(source.transform);
 
             source.ViewRoot.SetFollowTarget(target.ViewRoot, mountPoint.position,
-                mountPoint.rotation);
+                mountPoint.rotation,mountPoint);
 
             // Debug.Log(
             //     $"[MountViewRoot] Mounted {source.name} to {target.name} at {_mountPoint.position}",

@@ -43,6 +43,7 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.Resolver
         [Required]
         public GeneralEffectType _effectType;
 
+//FIXME: 可以從有DirectReference的那個拿吧
         protected override void OnActionExecuteImplement()
         {
             var dealer = _dealerSource == SourceMode.DirectReference
@@ -55,6 +56,8 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.Resolver
 
             if (dealer == null || receiver == null)
             {
+                //不一定有嗎？
+                //install vs use
                 Debug.LogError($"[ForceTriggerEffect] dealer={dealer}, receiver={receiver}", this);
                 return;
             }
