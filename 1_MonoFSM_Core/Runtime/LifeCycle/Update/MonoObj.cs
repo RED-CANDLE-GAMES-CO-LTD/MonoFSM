@@ -67,6 +67,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
     public sealed class MonoObj : MonoBehaviour, IPrefabSerializeCacheOwner, IDropdownRoot,
         ISceneAwake, IHierarchyValueInfo
     {
+        [ShowInInspector]
         private bool _isAwakeActive = true;
 
         [Auto] private PoolObject _poolObject;
@@ -352,10 +353,10 @@ namespace MonoFSMCore.Runtime.LifeCycle
             ResetStateRestore(
                 bool isHardReset) //還是要分兩階，先還原，再開始？ 還是說有這種dependency本身就不好...? life cycle集中化
         {
-            if (HasParent)
-                return;
+
 
             //在 scene 上的物件，回到初始狀態 (打開來)
+            //FIXME: 這段需要任何 MonoObj都檢查對吧？
             if (isSceneObj)
             {
                 if (_isAwakeActive && gameObject.activeSelf == false) //原本打開的物件
@@ -371,6 +372,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 }
             }
 
+            if (HasParent)
+                return;
             // Debug.Log("[MonoObj] HandleIResetStateRestore", this);
             foreach (var item in _resetStateRestores)
             {

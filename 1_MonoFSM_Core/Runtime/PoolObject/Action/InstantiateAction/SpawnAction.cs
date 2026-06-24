@@ -40,9 +40,7 @@ namespace MonoFSM.Core.LifeCycle
         // private ValueProvider _poolObjProvider; //使用VarPoolObj來存儲目標物件
 
         // [Required] [SerializeField] private VarEntity _poolObjVar; //用來存取剛spawn的物件
-        public override string Description => "Spawn " + (_poolObjFoldOut.Value != null
-            ? _poolObjFoldOut.Value?.name
-                : "null");
+        public override string Description => "Spawn " + (_poolObjFoldOut.Description);
 
         [InlineField]
         [SerializeField]
@@ -182,7 +180,11 @@ namespace MonoFSM.Core.LifeCycle
             foreach (var preSpawnAction in _preSpawnActions)
                 preSpawnAction.AfterSpawn(newObj, position, rotation, hitData);
 
-            newObj.GetComponent<PoolObject>().lastPlayer = this;
+            var pobj = newObj.GetComponent<PoolObject>();
+            if (pobj == null)
+                Debug.LogError("SpawnAction: Spawned object does not have a PoolObject component",
+                    this);
+            pobj.lastPlayer = this;
             newObj.HandleAfterSpawn(position, rotation,
                 hitData); //讓spawn出來的物件自己的 IAfterSpawnProcess 也能處理
         }

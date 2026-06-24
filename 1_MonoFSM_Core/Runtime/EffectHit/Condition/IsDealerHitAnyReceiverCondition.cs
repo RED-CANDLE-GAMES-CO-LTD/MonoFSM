@@ -7,10 +7,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
         [DropDownRef]
         [SerializeField]
         private GeneralEffectDealer _dealer;
-        protected override bool IsValid => _dealer.HasReceiverOverlap;
+
+        protected override bool IsValid => _dealer?.HasReceiverOverlap ?? false;
 
         public override string Description =>
-            $"Dealer ${_dealer.Description} hit any?";
+            $"Dealer ${_dealer?.Description} hit any?";
     }
 }
 

@@ -29,6 +29,9 @@ namespace MonoFSM.Variable
         protected override bool HasOverrideHideValue => true;
 
         public override MonoObj Value => HasVar ? base.Value : _constObjValue;
+
+        public string Description => HasVar ? _var.Description :
+            _constObjValue != null ? _constObjValue.name : "null";
     }
 
     //這啥？定位一樣？
@@ -39,8 +42,7 @@ namespace MonoFSM.Variable
         // [SerializeField] bool _isVarNeeded;
 
         // [ShowIf(nameof(_isVarNeeded))]
-        [SerializeField]
-        private TVarType _var;
+        [SerializeField] protected TVarType _var;
 
         [HideIf(nameof(HideConstValue))] [SerializeField]
         private TValueType _constValue;

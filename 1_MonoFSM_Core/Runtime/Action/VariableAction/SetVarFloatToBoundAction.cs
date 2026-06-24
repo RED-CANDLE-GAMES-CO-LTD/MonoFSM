@@ -31,6 +31,12 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
 
         protected override void OnActionExecuteImplement()
         {
+            if (_targetVar == null)
+            {
+                Debug.LogError($"[SetVarFloatToBoundAction] Target variable is null in {name}",
+                    this);
+                return;
+            }
             var range = _targetVar.Max - _targetVar.Min;
 
             switch (_boundType)

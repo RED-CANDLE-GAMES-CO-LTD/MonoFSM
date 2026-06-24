@@ -4,6 +4,7 @@ using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime;
 using MonoFSM.Variable;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -14,7 +15,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
     /// 跟隨parent 的 view
     /// </summary>
     public class ViewRoot : AbstractDescriptionBehaviour, ISceneStart, IUpdateSimulate,
-        IAfterRenderMono
+        IAfterRenderMono, IResetStateRestore
     {
         [Tooltip("物理物件不該一開始被reparet")] [FormerlySerializedAs("_ignoreReparent")] [SerializeField]
         private bool _ignoreStartReparent; //dynamic的應該要 ignore?
@@ -79,7 +80,26 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             // _parentViewRoot = _parentEntity?.ViewRoot;
             RecordOffsets(AttachToViewRoot);
 
+            // 把 SceneStart 的 attach 當成 baseline 快照，ResetStateRestore 還原用
+            SnapshotSceneStartBaseline(parentEntity);
+
             _sceneStarted = true;
+        }
+
+        // === ResetStateRestore baseline（只記 SceneStart 時 mount 的，動態 mount 不記）===
+        [ShowInInspector] private MonoEntity _sceneStartAttachEntity;
+        Vector3 _baselineParentOffset;
+        Quaternion _baselineParentRotOffset;
+        Vector3 _baselineViewOffset;
+        Quaternion _baselineViewRotOffset;
+
+        void SnapshotSceneStartBaseline(MonoEntity attachEntity)
+        {
+            _sceneStartAttachEntity = attachEntity;
+            _baselineParentOffset = _followParentOffset;
+            _baselineParentRotOffset = _followParentRotOffset;
+            _baselineViewOffset = _followViewOffset;
+            _baselineViewRotOffset = _followViewRotOffset;
         }
 
         // 用當前世界座標記錄相對 target 的 offset（Root 用 Simulate、View 用 AfterRender）
@@ -200,6 +220,28 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             transform.position = AttachToViewRoot.transform.TransformPoint(_followViewOffset);
             transform.rotation = AttachToViewRoot.transform.rotation * _followViewRotOffset;
 
+        }
+
+        public void ResetStateRestore(bool isHardReset)
+        {
+            // 還原 Mount 時關掉的 collider（沒記錄就是 no-op）
+            RestoreCollidersAfterUnmount();
+
+            if (_sceneStartAttachEntity != null)
+            {
+                // SceneStart 有 attach → 還原成 baseline（同時蓋掉任何動態 mount）
+                _attachToEntityWrapper.SetValue(_sceneStartAttachEntity, this);
+                _mountPointTarget = null;
+                _followParentOffset = _baselineParentOffset;
+                _followParentRotOffset = _baselineParentRotOffset;
+                _followViewOffset = _baselineViewOffset;
+                _followViewRotOffset = _baselineViewRotOffset;
+            }
+            else
+            {
+                // 純動態 mount（SceneStart 沒 attach）→ 清掉
+                ClearFollowTarget();
+            }
         }
     }
 }
