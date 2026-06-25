@@ -31,6 +31,20 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
                 Debug.LogError("MonoFSMOwner must be a child of StateMachineOwner.", this);
                 return;
             }
+
+            if (owner.transform.parent == null)
+            {
+                Debug.LogError("MonoFSMOwner owner.transform.parent = null", this);
+            }
+
+            if (_stateFolder == null)
+                _stateFolder = GetComponent<StateFolder>();
+
+            if (_stateFolder == null)
+            {
+                Debug.LogError("MonoFSMOwner state folder not found", this);
+            }
+
             //FIXME: 這個沒有nested喔
             //FIXME 會很早call, register networkObject時， word count
             _fsm = new StateMachine<MonoStateBehaviour>(owner.transform.parent.name,

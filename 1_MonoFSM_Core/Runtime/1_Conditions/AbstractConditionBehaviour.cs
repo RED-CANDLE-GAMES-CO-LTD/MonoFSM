@@ -72,7 +72,7 @@ public abstract class AbstractConditionBehaviour
     //             Debug.LogError(e,this);
     //         }
     //     }
-    protected override string DescriptionTag => FinalResultInverted ? "Not" : "If";
+    protected override string DescriptionTag => FinalResultInverted ? "If ! " : "If";
 
     //FIXME: formatName會把這個尬爛...
     // public override string Description =>

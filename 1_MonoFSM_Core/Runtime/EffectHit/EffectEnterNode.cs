@@ -10,6 +10,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
     // 用這個觸發action?
     public sealed class EffectEnterNode : AbstractEventHandler
     {
+        [AutoParent] private EffectResolver _parentResolver;
         //local variable, 這在這個enter下的生命週期
         // [Required]
         [Component] //[Component?
@@ -23,7 +24,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (_hittingEntity != null &&
                 _hittingEntity.transform.parent == transform) //這樣才是local variable
             {
-                _hittingEntity.gameObject.name = "[local] hittingEntity";
+                _hittingEntity.gameObject.name =
+                    "[local] " + _parentResolver._effectType.name + " hitEntity";
                 _hittingEntity._isRuntimeOnly = true;
                 EditorUtility.SetDirty(_hittingEntity.gameObject);
             }

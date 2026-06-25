@@ -22,6 +22,11 @@ namespace MonoFSM.Core.Simulate
         public override string Description =>
             $"CountDownTimer: {_currentTime.Value:F2} / {_timeMax.Value:F2}";
 
+        /// <summary>
+        /// 時間到（倒數到 Min，0 表示 valid）。搭配 IsTimerUpCondition 使用。
+        /// </summary>
+        public bool IsTimerUp => _currentTime.Value <= _timeMin.Value;
+
         [InfoBox(
             "This timer counts down from a specified value to zero. It can be reset to a maximum value or a specific value. It is used to control the timing of events in the game.")]
         [SerializeField]

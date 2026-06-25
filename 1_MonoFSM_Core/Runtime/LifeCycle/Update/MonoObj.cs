@@ -120,7 +120,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
             if (WorldUpdateSimulator == null)
             {
                 Debug.LogError(
-                    "WorldUpdateSimulator is not set. Cannot despawn MonoPoolObj.",
+                    "WorldUpdateSimulator is not set. Cannot despawn MonoPoolObj." + name,
                     this
                 );
 
@@ -130,7 +130,9 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
             //回傳root mono Obj
             //下個 frame再做？
-            WorldUpdateSimulator.Despawn(GetMonoObjRoot());
+            //FIXME: 為什麼之前寫root?
+            // WorldUpdateSimulator.Despawn(GetMonoObjRoot());
+            WorldUpdateSimulator.Despawn(this);
         }
 
         private MonoObj GetMonoObjRoot()

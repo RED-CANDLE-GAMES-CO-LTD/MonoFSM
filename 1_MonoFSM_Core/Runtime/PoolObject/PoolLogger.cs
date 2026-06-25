@@ -1,4 +1,5 @@
 using System;
+using MonoDebugSetting;
 using UnityEngine;
 
 /// <summary>
@@ -23,7 +24,8 @@ public static class PoolLogger
     /// </summary>
     public static void LogInfo(string message, UnityEngine.Object context = null)
     {
-        Debug.Log($"{LOG_PREFIX} {message}", context);
+        if (RuntimeDebugSetting.IsDebugMode)
+            Debug.Log($"{LOG_PREFIX} {message}", context);
     }
 
     /// <summary>

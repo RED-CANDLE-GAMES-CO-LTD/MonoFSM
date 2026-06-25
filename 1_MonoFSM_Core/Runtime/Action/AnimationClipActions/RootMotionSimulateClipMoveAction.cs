@@ -199,9 +199,9 @@ namespace MonoFSM.Animation
             _clip != null && _stateBehaviour.StateTime >= _clip.length * ratio;
 
         // Debug 觀察用
-        [ShowInInspector] private Vector3 _debugAnimDelta;
-        [ShowInInspector] private Vector3 _debugWarpCorrection;
-        [ShowInInspector] private float _debugStateTime;
+        [PreviewInDebugMode] private Vector3 _debugAnimDelta;
+        [PreviewInDebugMode] private Vector3 _debugWarpCorrection;
+        [PreviewInDebugMode] private float _debugStateTime;
 
         private Vector3 EvalLocalPos(float t)
         {

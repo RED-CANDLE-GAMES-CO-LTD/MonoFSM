@@ -9,19 +9,21 @@ namespace _1_MonoFSM_Core.Runtime.Action.TransformAction
     {
         public VarFloat _percentageValue;
         public Transform _target;
-        public int _mappingScaleMax;
+        public float _mappingScaleMin;
+        public float _mappingScaleMax;
         public bool _applyOnYOnly;
 
         public override void OnEnterRenderImplement()
         {
             if (_target == null)
                 return;
+            var mappedScale = Mathf.Lerp(_mappingScaleMin, _mappingScaleMax, _percentageValue.Value);
             if (!_applyOnYOnly)
-                _target.localScale = Vector3.one * _percentageValue.Value * _mappingScaleMax;
+                _target.localScale = Vector3.one * mappedScale;
             else
             {
                 var scale = _target.localScale;
-                scale.y = _percentageValue.Value * _mappingScaleMax;
+                scale.y = mappedScale;
                 _target.localScale = scale;
             }
         }

@@ -9,7 +9,8 @@ using UnityEngine;
 //FIXME: 放在這，還是應該放在init state
 /// <summary>
 /// transform memory?
-///
+/// 重置位置
+/// 也會處理 rb
 /// </summary>
 public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
 {
@@ -65,10 +66,10 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
             _isKinematic = _rigidbody.isKinematic;
     }
 
-    public void ResetStateRestore(bool IsHardReset)
+    public void ResetStateRestore(bool isHardReset)
     {
         if (_viewRoot.AttachToViewRoot != null) return; //有parent就不reset，等parent reset的時候一起reset就好
-        
+
         if (ParameterInitCheck()) //第一次記下來？還是分開感覺比較好？
         {
             transform.SetParent(_initParent);

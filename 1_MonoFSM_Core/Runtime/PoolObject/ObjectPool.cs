@@ -300,7 +300,7 @@ public class ObjectPool : IObjectPool
             obj.gameObject.SetActive(true);
 
             //這裡才是真的onBorrow
-            // obj.PoolObjectResetAndStart();
+            obj.PoolObjectResetAndStart();
             return obj;
         }
         else

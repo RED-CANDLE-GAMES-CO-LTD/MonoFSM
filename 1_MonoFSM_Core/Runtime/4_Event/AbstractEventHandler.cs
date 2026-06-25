@@ -123,6 +123,8 @@ namespace MonoFSM.Core
 
         private void EventHandleImplement<T>(T arg, bool ignoreArg = false)
         {
+            if (_parentObj.IsCulling) //FIXME: 有需要分visual和logic culling?
+                return;
             if (!gameObject.activeSelf)
                 return;
 
@@ -146,7 +148,10 @@ namespace MonoFSM.Core
                 }
             }
 
-
+            if (_parentObj == null)
+            {
+                Debug.LogError("No ParentObj" + name, this);
+            }
             if (!_parentObj.HasStateAuthority && !_forceExecuteWithoutStateAuthority)
                 return;
             _lastSimulateEventTime = Time.time;
@@ -190,7 +195,7 @@ namespace MonoFSM.Core
             EventHandleImplement(arg);
         }
 
-        public void ResetStateRestore(bool IsHardReset)
+        public void ResetStateRestore(bool isHardReset)
         {
             _lastSimulateEventTime = -1;
             _lastRenderEventTime = -1;

@@ -184,7 +184,7 @@ public class
     [Tooltip("自動回收的延遲時間（秒）")]
     [Min(0.01f)]
     [SerializeField]
-    private float _autoRecycleDelay = 3f;
+    private float _autoRecycleDelay = 1f;
 
     [BoxGroup("延遲自動回收")]
     [ShowIf("_enableAutoRecycle")]
@@ -484,7 +484,7 @@ public class
 
         if (!ct.IsCancellationRequested && this != null && isOnScene)
         {
-            PoolLogger.LogInfo($"Auto recycle triggered after {_autoRecycleDelay}s", this);
+            // PoolLogger.LogInfo($"Auto recycle triggered after {_autoRecycleDelay}s", this);
             Recycle();
         }
     }

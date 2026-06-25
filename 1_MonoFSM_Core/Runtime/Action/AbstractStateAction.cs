@@ -89,53 +89,9 @@ namespace MonoFSM.Core.Runtime.Action
 
         protected virtual string renamePostfix => "";
 
-        //FIXME: 還是不要用這個好了
-        // [AutoParent]
-        // private DelayActionModifier delayActionModifier;
-
-        private bool _delay; //FIXME:
+        // private bool _delay; //FIXME:
 
         protected virtual bool ForceExecuteInValid => false;
-
-        //FIXME: 不會走這了？
-        // public async void OnActionExecute()
-        // {
-        //     if (!gameObject.activeSelf)
-        //         return;
-        //     if (_delay)
-        //         Debug.LogError("Delay 還沒結束又DELAY 死罪", this);
-        //
-        //     // _delay = false;
-        //     //TODO: conditions
-        //     if (!IsValid && !ForceExecuteInValid)
-        //         return; //not valid也要用字串？
-        //
-        //     _delay = true;
-        //     if (delayActionModifier != null)
-        //         try
-        //         {
-        //             //FIXME: 這個delay用unitask不好，時間軸和fsm錯開了
-        //             //有點像sequence? 如果另外包好像還行？
-        //             await UniTask.Delay(
-        //                 TimeSpan.FromSeconds(delayActionModifier.delayTime),
-        //                 DelayType.DeltaTime,
-        //                 PlayerLoopTiming.Update,
-        //                 cancellationTokenSource.Token
-        //             );
-        //         }
-        //         catch (OperationCanceledException)
-        //         {
-        //             _delay = false;
-        //             // Debug.LogError("Delay Cancelled" + e, this);
-        //             return;
-        //         }
-        //
-        //     _delay = false;
-        //     // this.AddTask(OnStateEnterImplement, delayActionModifier.delayTime);
-        //     AddEventRecord();
-        //     OnActionExecuteImplement();
-        //     Debug.Log($"Action Executed: {name} {renamePostfix} at {lastEventReceivedTime}", this);
-        // }
 
         protected abstract void OnActionExecuteImplement();
 
@@ -152,18 +108,7 @@ namespace MonoFSM.Core.Runtime.Action
         {
             OnActionExecuteImplement(); //做一樣的事？
         }
-
-        // public async void OnActionExit()
-        // {
-        //     if (!IsValid) return;
-        //     if (delayActionModifier != null) await UniTask.Delay(TimeSpan.FromSeconds(delayActionModifier.delayTime));
-        //     OnStateExitImplement();
-        // }
-        //
-        // protected virtual void OnStateExitImplement()
-        // {
-        // }
-
+        
         public virtual MonoBehaviour VoteOwner => nearestBinder as MonoBehaviour;
 
         [AutoParent]
@@ -243,7 +188,7 @@ namespace MonoFSM.Core.Runtime.Action
 #if UNITY_EDITOR
             _lastEventReceivedRecords.Clear();
 #endif
-            _delay = false;
+            // _delay = false;
         }
 
 #if UNITY_EDITOR

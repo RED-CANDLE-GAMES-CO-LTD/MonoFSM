@@ -12,6 +12,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
 
         public override string Description =>
             $"Dealer ${_dealer?.Description} hit any?";
+
+        //FIXME: 要檢查gameObject是不是關的？但有可能動畫控制？hmmmm註解和動畫控制分不清楚
     }
 }
 

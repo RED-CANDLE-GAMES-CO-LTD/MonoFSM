@@ -51,6 +51,17 @@ namespace MonoFSM.Runtime
 
     public static class MonoDescriptableBinderExtension
     {
+        //避免每個 frame 對同一個找不到的 tag 瘋狂噴 error，只報一次
+        private static readonly System.Collections.Generic.HashSet<MonoEntityTag> _loggedMissingTags =
+            new();
+
+        //關閉 Domain Reload 時 static 不會自動清，進 play mode 時重置，確保每次 play 都還能報一次
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetLoggedMissingTags()
+        {
+            _loggedMissingTags.Clear();
+        }
+
         public static MonoEntityBinder GetMonoBinder(this MonoBehaviour mono)
         {
             return mono.GetComponentInParent<MonoEntityBinder>();
@@ -156,13 +167,19 @@ namespace MonoFSM.Runtime
             var descriptable = binder.Get(tag);
             if (descriptable == null)
             {
-                if (Application.isPlaying)
+                //同一個 tag 只報一次，避免每 frame 評估 condition 時瘋狂洗版
+                if (Application.isPlaying && _loggedMissingTags.Add(tag))
                     Debug.LogError(
                         $"No MonoDescriptable found with tag: {tag} (MonoBehaviour: {mono?.name}, Binder: {binder?.name})",
                         mono
                     );
                 // Debug.LogError("No MonoDescriptable found tag:" + tag, mono);
                 // Debug.LogError("No MonoDescriptable found of tag: " + tag, binder);
+            }
+            else
+            {
+                //找到了就把記錄清掉，下次再消失時還能再報一次
+                _loggedMissingTags.Remove(tag);
             }
 
             // Debug.Log("GetGlobalInstance " + tag, descriptable);

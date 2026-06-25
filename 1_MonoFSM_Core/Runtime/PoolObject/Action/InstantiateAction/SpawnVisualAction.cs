@@ -13,7 +13,7 @@ namespace MonoFSM.Core.LifeCycle
     /// Visual-only Spawn Action，跑在 Render Tier (OnEnterRender)。
     /// 不參與 Simulate / 網路同步，純粹用於特效、預覽物件等視覺呈現。
     /// </summary>
-    public class SpawnVisualAction : AbstractRenderBehaviour
+    public class SpawnVisualAction : AbstractRenderBehaviour, IPoolObjectPlayer
     {
         public override string Description =>
             "SpawnVisual " + (_poolObjFoldOut?.Value != null ? _poolObjFoldOut.Value.name : "?");
@@ -83,6 +83,7 @@ namespace MonoFSM.Core.LifeCycle
 
             newObj.gameObject.SetActive(true);
             _lastSpawnedObj = newObj;
+            newObj.GetComponent<PoolObject>().lastPlayer = this;
         }
     }
 }

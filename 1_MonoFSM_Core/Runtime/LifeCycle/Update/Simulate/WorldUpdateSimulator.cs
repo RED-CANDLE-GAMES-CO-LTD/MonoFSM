@@ -197,7 +197,7 @@ namespace MonoFSM.Core.Simulate
         {
             if (obj == null)
                 return;
-            Debug.Log($"[DespawnImmediate] Processing despawn for: {obj.name}", obj);
+            // Debug.Log($"[DespawnImmediate] Processing despawn for: {obj.name}", obj);
             //FIXME: 不是 pool 生出來的可以關掉就好嗎？
             _spawnProcessor.Despawn(obj);
 
