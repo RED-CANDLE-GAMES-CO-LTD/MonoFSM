@@ -23,6 +23,16 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         [Tooltip("每次傳輸的固定量（不足時只傳剩餘量）")]
         public VarFloatWrapper _transferAmount;
 
+        [FoldoutGroup("倍率調整")]
+        [HideIf(nameof(IsTransfer))]
+        [Tooltip("套用到 source 讀值的倍率（source1、source2 都會乘）")]
+        public VarFloatWrapper _sourceModifier = new(1f);
+
+        [FoldoutGroup("倍率調整")]
+        [HideIf(nameof(IsTransfer))]
+        [Tooltip("套用到 target 讀值的倍率（Assign 系列計算前先乘）")]
+        public VarFloatWrapper _targetModifier = new(1f);
+
         public ArithmeticType Arithmetic = ArithmeticType.AdditionAssign; //default 最常用
 
         private bool IsTransfer => Arithmetic == ArithmeticType.Transfer;
@@ -67,8 +77,10 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
         {
             get
             {
-                var targetDesc = _targetVar != null ? _targetVar.Description : "null";
-                var source1Desc = _source1Var != null ? _source1Var.Description : "null";
+                var srcMod = !Mathf.Approximately(_sourceModifier.Value, 1f) ? $"*{_sourceModifier.Value}" : "";
+                var tgtMod = !Mathf.Approximately(_targetModifier.Value, 1f) ? $"*{_targetModifier.Value}" : "";
+                var targetDesc = (_targetVar != null ? _targetVar.Description : "null") + tgtMod;
+                var source1Desc = (_source1Var != null ? _source1Var.Description : "null") + srcMod;
 
                 return Arithmetic switch
                 {
@@ -76,7 +88,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
                     ArithmeticType.SubtractionAssign => $"{targetDesc} -= {source1Desc}",
                     ArithmeticType.Transfer => $"{source1Desc} --({_transferAmount?.Value})--> {targetDesc}",
                     _ =>
-                        $"{targetDesc} = {source1Desc} {ArithmeticString} {_source2Var?.Description}",
+                        $"{targetDesc} = {source1Desc} {ArithmeticString} {_source2Var?.Description}{srcMod}",
                 };
             }
         }
@@ -125,8 +137,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
                 return;
             }
 
-            var targetValue = _targetVar.Value;
-            var value1 = _source1Var.Value;
+            var targetValue = _targetVar.Value * _targetModifier.Value;
+            var value1 = _source1Var.Value * _sourceModifier.Value;
             float result;
             if (Arithmetic == ArithmeticType.AdditionAssign)
                 result = targetValue + value1;
@@ -134,7 +146,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
                 result = targetValue - value1;
             else
             {
-                var value2 = _source2Var.Value;
+                var value2 = _source2Var.Value * _sourceModifier.Value;
                 result = Calculate(value1, value2);
             }
 

@@ -24,25 +24,7 @@ public interface IReferenceTarget //FIXME: 這樣只有我自己寫的型別可�
 [Searchable]
 public class GeneralState : MonoStateBehaviour
 {
-#if UNITY_EDITOR
-    [Button("Find References (New)"), PropertyOrder(-99)]
-    private void FindReferencesNew()
-    {
-        var windowType = System.Type.GetType(
-            "MonoFSM.Editor.ReferenceSystem.ComponentReferenceWindow, MonoFSM.Core.Editor");
-        if (windowType != null)
-        {
-            var method = windowType.GetMethod("ShowWindowWithTarget",
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-            method?.Invoke(null, new object[] { this });
-        }
-        else
-        {
-            Debug.LogWarning(
-                "ComponentReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.");
-        }
-    }
-#endif
+    //Find References 按鈕已上移至 AbstractDescriptionBehaviour 共用
     [SerializeField] [SOConfig("StateTags")]
     private List<StateTag> _stateTags = new();
 

@@ -396,17 +396,15 @@ namespace MonoFSM.Core.Simulate
 
         private void TimeScaleCheck()
         {
-            if (Debug.isDebugBuild)
-            {
-                // Debug.Log(
-                //     $"WorldUpdateSimulator Simulate called with deltaTime: {deltaTime}, TimeScale: {TimeScale}",
-                //     this
-                // );
-                if (Keyboard.current.digit0Key.IsPressed() || Mouse.current.middleButton.isPressed)
-                    TimeScale = 5f;
-                else
-                    TimeScale = 1f;
-            }
+            // if (Debug.isDebugBuild)
+            // {
+            //     // Debug.Log(
+            //     //     $"WorldUpdateSimulator Simulate called with deltaTime: {deltaTime}, TimeScale: {TimeScale}",
+            //     //     this
+            //     // );
+            //
+            // }
+
         }
 
         private readonly List<MonoObj> _currentUpdatingObjs = new();
@@ -436,7 +434,7 @@ namespace MonoFSM.Core.Simulate
                     if (monoObject.IsBeforeSimulatesNeeded)
                     {
                         Profiler.BeginSample("BeforeSimulate", monoObject);
-                        monoObject.BeforeSimulate(deltaTime);
+                        monoObject.BeforeSimulate(DeltaTime);
                         Profiler.EndSample();
                     }
                 }
@@ -498,7 +496,7 @@ namespace MonoFSM.Core.Simulate
                     if (monoObject.IsUpdateSimulatesNeeded)
                     {
                         Profiler.BeginSample("Simulate", monoObject);
-                        monoObject.Simulate(deltaTime);
+                        monoObject.Simulate(DeltaTime);
                         Profiler.EndSample();
                     }
                 }
@@ -513,7 +511,7 @@ namespace MonoFSM.Core.Simulate
                     if (monoObject.IsAfterSimulatesNeeded)
                     {
                         Profiler.BeginSample("AfterSimulate", monoObject);
-                        monoObject.AfterSimulate(deltaTime);
+                        monoObject.AfterSimulate(DeltaTime);
                         Profiler.EndSample();
                     }
                 }
@@ -653,7 +651,7 @@ namespace MonoFSM.Core.Simulate
                     if (monoObject.IsRenderSimulatesNeeded)
                     {
                         Profiler.BeginSample("Render", monoObject);
-                        monoObject.Render(deltaTime * localAlpha);
+                        monoObject.Render(DeltaTime * localAlpha);
                         Profiler.EndSample();
                     }
                 }

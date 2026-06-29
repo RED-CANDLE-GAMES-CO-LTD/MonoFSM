@@ -29,9 +29,11 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             IRenderSimulate,
             ISceneAwake
     {
+        //FIXME: 這要幹嘛？
         [SerializeField]
         protected Transform _cacheOrigin;
 
+        //FIXME: 這要幹嘛？
         [SerializeField]
         protected Transform _cacheEndPoint;
 
@@ -205,10 +207,14 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             }
 
 #if UNITY_EDITOR
-            var debugCollider = actualCount > 0 ? _castResultsBuffer[0].collider : null;
-            _debugHistoryObjs.Enqueue(debugCollider);
-            if (_debugHistoryObjs.Count > 10)
-                _debugHistoryObjs.Dequeue();
+            if (RuntimeDebugSetting.IsDebugMode)
+            {
+                var debugCollider = actualCount > 0 ? _castResultsBuffer[0].collider : null;
+                _debugHistoryObjs.Enqueue(debugCollider);
+                if (_debugHistoryObjs.Count > 10)
+                    _debugHistoryObjs.Dequeue();
+            }
+
 #endif
         }
 
@@ -251,7 +257,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 
         // --- Info ---
 
-        public override string Description => _rayProvider?.GetType().Name;
+        // public override string Description => _rayProvider?.GetType().Name;
 
 #if UNITY_EDITOR
         public override string ValueInfo => "layer:" + _hittingLayer.value;

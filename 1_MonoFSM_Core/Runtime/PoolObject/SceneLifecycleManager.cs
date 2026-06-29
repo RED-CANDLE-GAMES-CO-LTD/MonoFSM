@@ -88,9 +88,9 @@ namespace MonoFSM.Runtime
             //FIXME: cache?
             gObj.GetComponentsInChildren(true, levelResets);
             levelResets.Reverse();
-            Debug.Log(
-                $"LevelResetChildrenReload found {levelResets.Count} IResetStateRestore in Root: {gObj.name}",
-                gObj);
+            // Debug.Log(
+            //     $"LevelResetChildrenReload found {levelResets.Count} IResetStateRestore in Root: {gObj.name}",
+            //     gObj);
             foreach (var item in levelResets)
             {
                 if (item == null) continue;

@@ -138,6 +138,8 @@ public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>,
         foreach (var variable in _collections)
         {
             // Profiler.BeginSample($"Commit in loop");
+            if (variable.HasProxySource)
+                continue;
             if (variable is ISettable settableVariable)
                 settableVariable.CommitValue();
             // Profiler.EndSample();

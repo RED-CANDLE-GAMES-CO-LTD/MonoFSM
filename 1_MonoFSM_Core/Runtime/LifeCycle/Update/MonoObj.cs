@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Auto.Utils;
 using MonoDebugSetting;
+using MonoFSM;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.LifeCycle;
@@ -221,6 +222,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [PreviewInDebugMode]
         private MonoObj _parentObj;
 
+        public MonoObj ParentObj => _parentObj;
+
         //只拿一層，太醜了？
         [ShowInInspector]
         [AutoChildren(StopAtType = typeof(MonoObj), IncludeStopNode = true)]
@@ -406,8 +409,13 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         //有而且關著
         [ShowInInspector]
-        public bool IsCulling =>
-            _cullingHandle != null && !_cullingHandle.gameObject.activeSelf;
+        public bool IsCulling => isActiveAndEnabled == false ||
+                                 (!_isIgnoreParentObjCulling && HasParent &&
+                                  _parentObj.IsCulling) ||
+                                 _cullingHandle != null && !_cullingHandle.gameObject.activeSelf;
+
+//FIXME: ignore parent culling? 要給這個性質嗎...
+        public bool _isIgnoreParentObjCulling = false;
 
         [SerializeField] [AutoChildren] [CompRef]
         SpawnEventHandler _onSpawnHandler;
@@ -575,9 +583,9 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 {
                     if (item is not { isActiveAndEnabled: true })
                         continue;
-                    Profiler.BeginSample("MonoObj.AfterUpdate", item.gameObject);
+                    // Profiler.BeginSample("MonoObj.AfterUpdate", item.gameObject);
                     item.AfterSimulate(deltaTime);
-                    Profiler.EndSample();
+                    // Profiler.EndSample();
                 }
             }
             // if (_childrenObjs == null) return;
@@ -802,5 +810,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         public string ValueInfo => IsCulling ? "Culling" : "Updating";
         public bool IsDrawingValueInfo => Application.isPlaying;
+
+        [PreviewInInspector] [AutoChildren] private CullingPivot _cullingPivot;
+        public Transform Pivot => _cullingPivot.transform;
     }
 }

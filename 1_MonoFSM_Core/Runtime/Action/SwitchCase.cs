@@ -13,6 +13,8 @@ namespace MonoFSM.Core.Runtime.Action
         protected override string DescriptionTag => "Case";
 
         public override string Description => _isDefault ? "Default" : base.Description;
+        public override string ValueInfo => "" + IsConditionMet;
+        public override bool IsDrawingValueInfo => true;
 
         [SerializeField] private bool _isDefault;
 

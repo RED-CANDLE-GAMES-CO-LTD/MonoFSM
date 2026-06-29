@@ -84,8 +84,9 @@ namespace MonoFSM.Variable
         public Texture2D CustomIcon =>
             EditorGUIUtility.ObjectContent(null, GetType()).image as Texture2D; //雞掰！
 
-        [Button("Find References"), PropertyOrder(-100)]
-        private void FindReferences()
+        //Variable 專屬的反射查找（VariableReferenceWindow）；泛用的 Find References 已上移至 AbstractDescriptionBehaviour
+        [Button("Find Variable References"), PropertyOrder(-100)]
+        private void FindVariableReferences()
         {
             // 透過反射呼叫 Editor Window，避免 Runtime 直接引用 Editor namespace
             var windowType = Type.GetType(
@@ -99,23 +100,6 @@ namespace MonoFSM.Variable
             else
             {
                 Debug.LogWarning("VariableReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.");
-            }
-        }
-
-        [Button("Find References (New)"), PropertyOrder(-99)]
-        private void FindReferencesNew()
-        {
-            var windowType = System.Type.GetType(
-                "MonoFSM.Editor.ReferenceSystem.ComponentReferenceWindow, MonoFSM.Core.Editor");
-            if (windowType != null)
-            {
-                var method = windowType.GetMethod("ShowWindowWithTarget",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                method?.Invoke(null, new object[] { this });
-            }
-            else
-            {
-                Debug.LogWarning("ComponentReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.");
             }
         }
 #endif
@@ -616,7 +600,7 @@ namespace MonoFSM.Variable
             "此變數會使用 ValueProvider 或 Parent VarEntity 的值，無法設定預設值"
         )]
         [ShowInInspector]
-        protected virtual bool HasProxySource =>
+        public virtual bool HasProxySource =>
             HasValueSource || (HasParentVarEntity);
 
 

@@ -8,23 +8,6 @@ namespace MonoFSM.Core
     /// </summary>
     public class ManualEventHandler : AbstractEventHandler
     {
-#if UNITY_EDITOR
-        [Button("Find References"), PropertyOrder(-100)]
-        private void FindReferences()
-        {
-            var windowType = System.Type.GetType(
-                "MonoFSM.Editor.ReferenceSystem.ComponentReferenceWindow, MonoFSM.Core.Editor");
-            if (windowType != null)
-            {
-                var method = windowType.GetMethod("ShowWindowWithTarget",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                method?.Invoke(null, new object[] { this });
-            }
-            else
-            {
-                Debug.LogWarning("ComponentReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.");
-            }
-        }
-#endif
+        //Find References 按鈕已上移至 AbstractDescriptionBehaviour 共用
     }
 }

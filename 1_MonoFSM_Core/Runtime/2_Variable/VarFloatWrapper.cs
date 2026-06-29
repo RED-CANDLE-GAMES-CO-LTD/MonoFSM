@@ -20,6 +20,7 @@ namespace MonoFSM.Variable
     }
 
     //FIXME: 改成VarWrapper?
+    //這個是專門用來弄Prefab的？
     [Serializable]
     public class VarMonoObjFoldOut : VarFoldOut<VarMonoObj, MonoObj>
     {

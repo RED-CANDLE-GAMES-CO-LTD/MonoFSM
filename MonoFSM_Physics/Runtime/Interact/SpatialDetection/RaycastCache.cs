@@ -24,5 +24,6 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         }
 
         protected override string DescriptionTag => "Raycast";
+        // protected override bool IsIgnoreRename => true;
     }
 }

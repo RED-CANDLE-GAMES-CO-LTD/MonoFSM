@@ -27,6 +27,15 @@ namespace MonoFSM.Core
                 }
                 // 在這裡執行作弊行為，例如增加分數、解鎖功能等
             }
+
+            if (Keyboard.current.digit0Key.IsPressed() || Mouse.current.middleButton.isPressed)
+            {
+                WorldUpdateSimulator.TimeScale = 5f;
+                Debug.Log(" WorldUpdateSimulator.TimeScale = 5f;");
+            }
+
+            else
+                WorldUpdateSimulator.TimeScale = 1f;
         }
 
         public void Simulate(float deltaTime)

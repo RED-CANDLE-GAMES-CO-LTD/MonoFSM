@@ -19,7 +19,7 @@ namespace MonoFSM.Core.Runtime.Action.ComponentPropertyAction
     /// 成對用法：Enter 勾 _cacheOriginalLayer 把原 layer 存進 VarInt；Exit 用另一個同 Action 勾 _fromVar 從該 VarInt 還原。
     /// RendererCollection 模式下 cache 讀取第一個 renderer 的 layer 當代表（預設集合內 layer 一致）。
     /// </summary>
-    public class SetGameObjectLayerAction : AbstractStateAction
+    public class SetGameObjectLayerAction : AbstractStateAction //FIXME: 應該要是 render action?
     {
         [SerializeField] private RendererCollection _rendererCollection;
 

@@ -62,6 +62,12 @@ public class PoolPrewarmData : ScriptableObject
             {
                 if (count > entry.DefaultMaximumCount)
                 {
+                    if (count > 50)
+                    {
+                        Debug.LogError("> 50 Too many items for " + poolObject.name, this);
+                        return;
+                    }
+
                     Debug.LogError("Update max count for " + poolObject.name + " from " + entry.DefaultMaximumCount +
                                    " to " + count, this);
                     entry.DefaultMaximumCount = count;

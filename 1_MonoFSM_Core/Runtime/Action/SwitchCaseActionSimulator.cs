@@ -8,6 +8,7 @@ namespace MonoFSM.Core.Runtime.Action
 {
     /// <summary>
     /// FIXME: 不該叫simulator
+    /// FIXME: RenderLoopHandler + SwitchAction就好了？
     /// 和 AbstractConditionActivateRunner 整合？
     /// </summary>
     public class SwitchCaseActionSimulator : AbstractDescriptionBehaviour, IUpdateSimulate,

@@ -32,7 +32,8 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         public virtual void OnRenderImplement()
         {
             //沒override就當作一樣的事
-            OnEnterRenderImplement();
+            //FIXME: 這個好嗎？會被狂call?
+            // OnEnterRenderImplement();
         }
 
         public void OnEnterRender()

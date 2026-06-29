@@ -650,6 +650,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
 public interface ISettable //FIXME: 有點蠢
 {
+    //如果有 proxy value就return? 要用一個bool?
     void CommitValue();
 
     //FIXME: 用T?

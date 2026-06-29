@@ -36,6 +36,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
             );
         }
 
+        [OnValueChanged(nameof(Rename))]
         [Required]
         [DropDownRef]
         public MonoStateBehaviour _target;

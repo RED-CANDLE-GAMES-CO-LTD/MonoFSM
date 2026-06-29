@@ -323,7 +323,6 @@ namespace MonoFSM.Variable
 
         public override void CommitValue()
         {
-
             // Profiler.BeginSample("GenericUnityObjectVariable<TValueType>.CommitValue", this);
             // Profiler.BeginSample("GetValue");
 

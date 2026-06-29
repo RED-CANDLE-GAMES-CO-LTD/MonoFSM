@@ -551,6 +551,28 @@ namespace MonoFSM.Foundation
 #endif
         }
 
+#if UNITY_EDITOR
+        //所有 AbstractDescriptionBehaviour 共用：透過反射開啟 ComponentReferenceWindow，避免 Runtime 直接引用 Editor namespace
+        [Button("Find References"), PropertyOrder(-99)]
+        private void FindReferences()
+        {
+            var windowType = Type.GetType(
+                "MonoFSM.Editor.ReferenceSystem.ComponentReferenceWindow, MonoFSM.Core.Editor");
+            if (windowType != null)
+            {
+                var method = windowType.GetMethod("ShowWindowWithTarget",
+                    BindingFlags.Public | BindingFlags.Static);
+                method?.Invoke(null, new object[] { this });
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "ComponentReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.",
+                    this);
+            }
+        }
+#endif
+
         //FIXME: 這個判定怪怪的？revert對嗎？比較？？？
         protected static void RevertNameOverrideIfMatchesPrefab(GameObject go)
         {

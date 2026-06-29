@@ -4,8 +4,7 @@ using UnityEngine;
 namespace MonoFSM.Variable
 {
     public class VarVector2
-        : AbstractFieldVariable<GameDataVector2, FlagFieldVector2, Vector2>,
-            IHierarchyValueInfo
+        : AbstractFieldVariable<GameDataVector2, FlagFieldVector2, Vector2>
     {
         public override string ValueInfo => CurrentValue.ToString();
         public override bool IsDrawingValueInfo => true;

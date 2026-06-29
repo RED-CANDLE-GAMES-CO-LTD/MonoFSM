@@ -1,12 +1,14 @@
 using MonoFSM_InputAction;
 using Sirenix.OdinInspector;
+using UnityEngine;
 
 namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Scripts.Input
 {
     //FIXME: move不能用這個
     public class InputActionWasPressedCondition : AbstractConditionBehaviour
     {
-        public override string Description => $"{inputAction?.name} {_inputActionType}";
+        public override string Description =>
+            $"{inputAction?.name ?? _monoInput?.name} {_inputActionType}";
 
         public enum InputActionType
         {
@@ -62,11 +64,14 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
         [DropDownRef]
         public MonoInputAction _inputAction;
 
-        public MonoInputAction inputAction =>
-            _inputActionVar != null ? _inputActionVar._inputActionRef : _inputAction;
+        public MonoInputAction inputAction => _monoInput != null ? _monoInput.Value :
+            _inputActionVar != null ? _inputActionVar.InputAction : _inputAction;
 
         [HideIf(nameof(_inputAction))] [DropDownRef]
         public VarInputAction _inputActionVar;
+
+        [HideIf(nameof(_inputAction))] [DropDownRef] [SerializeField]
+        VarMonoInput _monoInput;
         //可以再過一層？
 
         //resolve 去哪找？往上找

@@ -13,11 +13,13 @@ namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
     {
         [Required] [DropDownRef] public VarStat _dropDownRef;
 
-        public override float Value => _dropDownRef != null ? _dropDownRef.Field.CurrentValue : 0f;
+        public override float Value =>
+            _dropDownRef != null ? _dropDownRef.Field.CurrentValue : 0f; //是 current不是 Final!
 
         public float Min => _dropDownRef != null ? _dropDownRef.Min : 0f;
         public float Max => _dropDownRef != null ? _dropDownRef.Max : float.MaxValue;
 
-        public override string Description => _dropDownRef?.Name + ".BaseValue";
+        public override string Description =>
+            _dropDownRef?.Name + ".BaseValue"; //FIXME: 不是baseValue啊？
     }
 }

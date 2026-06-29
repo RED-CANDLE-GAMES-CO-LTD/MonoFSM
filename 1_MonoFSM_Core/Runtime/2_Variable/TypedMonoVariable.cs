@@ -17,7 +17,7 @@ namespace MonoFSM.Variable
 
         [ShowInInspector]
         public override string Description =>
-            HasValueSource ? valueSource.Description : base.Description;
+            HasValueSource ? valueSource?.Description : base.Description;
 
         public abstract void CommitValue();
 

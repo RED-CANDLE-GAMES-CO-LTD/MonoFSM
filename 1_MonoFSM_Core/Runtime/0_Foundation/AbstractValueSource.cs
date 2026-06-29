@@ -52,7 +52,7 @@ namespace MonoFSM.Foundation
             !EqualityComparer<T>.Default.Equals(Value, default); //FIXME: float == 0 會被當成 null?
 
         public override string ValueInfo =>
-            isActiveAndEnabled && HasValue ? Value.ToString() : "Null"; //TODO: list太肥了
+            isActiveAndEnabled && HasValue ? Value?.ToString() : "Null"; //TODO: list太肥了
         public override bool IsDrawingValueInfo => true;
     }
 
