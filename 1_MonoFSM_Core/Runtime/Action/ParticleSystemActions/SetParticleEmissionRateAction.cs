@@ -35,5 +35,10 @@ namespace MonoFSM.ParticleSystemActions
             var emission = _particleSystem.emission;
             emission.rateOverTime = _rateOverTime.Value * _multiplier;
         }
+
+        public override void OnRenderImplement()
+        {
+            OnEnterRenderImplement();
+        }
     }
 }

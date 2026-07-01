@@ -6,8 +6,10 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 {
-    public abstract class AbstractRenderBehaviour : AbstractDescriptionBehaviour, IRenderBehaiour
+    public abstract class AbstractRenderBehaviour : AbstractDescriptionBehaviour, IRenderBehaiour,
+        ISceneStart
     {
+
         [ShowInInspector] [Required] [AutoParent]
         IRenderInvoker _iRenderInvoker;
 
@@ -55,6 +57,12 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
                 return;
             _lastRenderTime = Time.time;
             OnRenderImplement();
+        }
+
+        public void EnterSceneStart()
+        {
+            //初始化要先跑一下？
+            // OnEnterRender();
         }
     }
 }
