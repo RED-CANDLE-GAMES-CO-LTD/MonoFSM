@@ -18,8 +18,8 @@ namespace MonoFSM.Core
         [DropDownRef]
         [SerializeField] private VarFloatCountDownTimer _timer;
 
-        [ShowInInspector] private bool _isTimerUp => _timer != null && _timer.IsTimerUp;
+        [ShowInInspector] private bool IsTimerUp => IsValid;
 
-        protected override bool IsValid => _timer != null && _timer.IsTimerUp;
+        protected override bool IsValid => isActiveAndEnabled && _timer != null && _timer.IsTimerUp;
     }
 }

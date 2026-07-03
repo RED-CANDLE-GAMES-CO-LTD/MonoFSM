@@ -407,6 +407,8 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
                 if (varRef != null)
                     return varRef.Get<TType>();
 
+                if (HasProxySource) //有proxy卻拿不到，不給
+                    return default;
                 // Profiler.BeginSample("FieldVariable CurrentValue", this);
                 var tempValue = _localField.CurrentValue;
 

@@ -53,6 +53,8 @@ namespace MonoFSM.Variable.Condition
 
         //FIXME: 會有需求要比對其他東西嗎？
         // protected override IVariableField listenField => _varBool.Field;
-        protected override bool IsValid => _varBool?.CurrentValue == targetValue;
+        protected override bool IsValid =>
+            (_varBool?.isActiveAndEnabled ?? false) && _varBool?.CurrentValue == targetValue;
+        //FIXME: 要判斷有沒有開著嗎？
     }
 }

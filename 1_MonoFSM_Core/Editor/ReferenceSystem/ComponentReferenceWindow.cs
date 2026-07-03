@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace MonoFSM.Editor.ReferenceSystem
         [MenuItem("Tools/MonoFSM/Component Reference Finder")]
         public static void ShowWindow()
         {
-            GetWindow<ComponentReferenceWindow>("Reference Finder");
+            GetWindow<ComponentReferenceWindow>("Component Reference Finder");
         }
 
         [MenuItem("CONTEXT/Component/Find References")]
@@ -261,8 +262,7 @@ namespace MonoFSM.Editor.ReferenceSystem
                 if (_localReferences.Count == 0)
                     EditorGUILayout.LabelField("No local references found.", EditorStyles.miniLabel);
                 else
-                    foreach (var refInfo in _localReferences)
-                        DrawReferenceItem(refInfo);
+                    DrawReferencesByCategory(_localReferences);
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -277,8 +277,7 @@ namespace MonoFSM.Editor.ReferenceSystem
                 if (_crossEntityReferences.Count == 0)
                     EditorGUILayout.LabelField("No cross-entity references found.", EditorStyles.miniLabel);
                 else
-                    foreach (var refInfo in _crossEntityReferences)
-                        DrawReferenceItem(refInfo);
+                    DrawReferencesByCategory(_crossEntityReferences);
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -286,14 +285,61 @@ namespace MonoFSM.Editor.ReferenceSystem
             EditorGUILayout.EndScrollView();
         }
 
+        /// <summary>
+        /// 依 Category 分組繪製，Action（較重要）排最前
+        /// </summary>
+        private void DrawReferencesByCategory(List<ComponentReferenceInfo> references)
+        {
+            foreach (ReferenceCategory category in System.Enum.GetValues(typeof(ReferenceCategory)))
+            {
+                var count = references.Count(r => r.Category == category);
+                if (count == 0) continue;
+
+                var headerStyle = new GUIStyle(EditorStyles.miniBoldLabel)
+                {
+                    normal = { textColor = GetCategoryColor(category) }
+                };
+                EditorGUILayout.LabelField($"{CategoryHeaderLabel(category)} ({count})",
+                    headerStyle);
+
+                foreach (var refInfo in references)
+                    if (refInfo.Category == category)
+                        DrawReferenceItem(refInfo);
+
+                EditorGUILayout.Space(3);
+            }
+        }
+
+        private static string CategoryHeaderLabel(ReferenceCategory category) => category switch
+        {
+            ReferenceCategory.Action => "⚡ Actions",
+            ReferenceCategory.Condition => "❓ Conditions",
+            ReferenceCategory.Getter => "👁 Getters",
+            _ => "Others"
+        };
+
+        private static Color GetCategoryColor(ReferenceCategory category) => category switch
+        {
+            ReferenceCategory.Action => new Color(1f, 0.6f, 0.2f),
+            ReferenceCategory.Condition => new Color(0.4f, 0.7f, 1f),
+            ReferenceCategory.Getter => new Color(0.5f, 0.85f, 0.5f),
+            _ => Color.gray
+        };
+
         private void DrawReferenceItem(ComponentReferenceInfo refInfo)
         {
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(refInfo.ComponentDisplayName, EditorStyles.boldLabel);
-            GUILayout.FlexibleSpace();
-            GUILayout.Label($"[{refInfo.TypeDisplayName}]", EditorStyles.miniLabel);
+            var titleStyle = new GUIStyle(EditorStyles.boldLabel) { wordWrap = true };
+            GUILayout.Label(refInfo.ComponentDisplayName, titleStyle, GUILayout.ExpandWidth(true));
+
+            var tagStyle = new GUIStyle(EditorStyles.miniLabel)
+            {
+                normal = { textColor = GetCategoryColor(refInfo.Category) }
+            };
+            GUILayout.Label($"[{refInfo.CategoryDisplayName}]", tagStyle, GUILayout.ExpandWidth(false));
+            GUILayout.Label($"[{refInfo.TypeDisplayName}]", EditorStyles.miniLabel, GUILayout.ExpandWidth(false));
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.LabelField($"Field: {refInfo.FieldPath}", EditorStyles.miniLabel);

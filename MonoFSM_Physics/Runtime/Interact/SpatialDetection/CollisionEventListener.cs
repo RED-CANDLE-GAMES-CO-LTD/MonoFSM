@@ -13,13 +13,26 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
     {
 #if UNITY_EDITOR
         [ShowInInspector] float _lastCollisionTime;
+        [ShowInInspector] float _lastRelativeVelocity; //最近一次碰撞的相對速度，方便調門檻
 #endif
+        [Header("碰撞事件過濾")]
+        [SerializeField] private float _minRelativeVelocity = 1.5f; //低於此相對速度的碰撞不觸發
+        [SerializeField] private float _cooldownDuration = 0.15f; //兩次觸發之間的最小間隔（秒）
+        private float _lastTriggerTime = float.MinValue;
+
         //FIXME: photon 還沒準備好診麼辦？
         void OnCollisionEnter(Collision collision)
         {
 #if UNITY_EDITOR
             _lastCollisionTime = Time.time;
+            _lastRelativeVelocity = collision.relativeVelocity.magnitude;
 #endif
+            if (collision.relativeVelocity.magnitude < _minRelativeVelocity)
+                return;
+            if (Time.time - _lastTriggerTime < _cooldownDuration)
+                return;
+            _lastTriggerTime = Time.time;
+
             // Debug.Log("Collision Enter: " + collision.gameObject.name);
             if (_collisionImpluseMagnitude != null)
                 _collisionImpluseMagnitude.SetValue(collision.impulse.magnitude);

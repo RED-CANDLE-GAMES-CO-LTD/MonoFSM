@@ -16,6 +16,17 @@ namespace MonoFSM.Editor.ReferenceSystem
         ValueProvider
     }
 
+    /// <summary>
+    /// 引用者的角色分類 — Action（會執行行為，較重要）優先顯示
+    /// </summary>
+    public enum ReferenceCategory
+    {
+        Action,
+        Condition,
+        Getter,
+        Other
+    }
+
     public class ComponentReferenceInfo
     {
         /// <summary>
@@ -47,6 +58,19 @@ namespace MonoFSM.Editor.ReferenceSystem
         /// 引用來源所屬的 MonoEntity
         /// </summary>
         public MonoEntity OwnerEntity;
+
+        /// <summary>
+        /// 引用者的角色分類
+        /// </summary>
+        public ReferenceCategory Category;
+
+        public string CategoryDisplayName => Category switch
+        {
+            ReferenceCategory.Action => "Action",
+            ReferenceCategory.Condition => "Condition",
+            ReferenceCategory.Getter => "Getter",
+            _ => "Other"
+        };
 
         public string TypeDisplayName => Type switch
         {

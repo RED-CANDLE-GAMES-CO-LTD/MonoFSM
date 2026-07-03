@@ -40,7 +40,7 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions
             get
             {
                 if (isActiveAndEnabled == false) //沒有開起來不算
-                    return true;
+                    return true; //FIXME: 關著當作過！雖然好像很怪？
                 if (_conditions == null || _conditions.Length == 0)
                     return true;
 

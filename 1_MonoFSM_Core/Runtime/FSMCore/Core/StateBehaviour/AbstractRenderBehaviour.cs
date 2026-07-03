@@ -29,6 +29,8 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         protected override string DescriptionTag => "Render";
         [ShowInDebugMode] private float _lastRenderTime;
         [ShowInDebugMode] private float _lastEnterRenderTime;
+
+        //fixme: 改 protected
         public abstract void OnEnterRenderImplement();
 
         public virtual void OnRenderImplement()
@@ -40,7 +42,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 
         public void OnEnterRender()
         {
-            if (isActiveAndEnabled == false)
+            if (isActiveAndEnabled == false) //FIXME: 要有個bypass的方式？ checkWhileDisable?
                 return;
             if (IsConditionValid == false)
                 return;

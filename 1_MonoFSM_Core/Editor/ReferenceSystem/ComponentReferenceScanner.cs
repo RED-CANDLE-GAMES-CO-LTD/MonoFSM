@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using MonoFSM.Animation;
 using MonoFSM.Core.DataProvider;
+using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Runtime;
 using MonoFSM.Variable;
 using UnityEngine;
@@ -144,8 +146,22 @@ namespace MonoFSM.Editor.ReferenceSystem
                 Scope = (ownerEntity == targetEntity && ownerEntity != null)
                     ? ReferenceScope.Local
                     : ReferenceScope.CrossEntity,
-                OwnerEntity = ownerEntity
+                OwnerEntity = ownerEntity,
+                Category = GetCategory(referencingComponent, type)
             };
+        }
+
+        private static ReferenceCategory GetCategory(Component comp, ReferenceType type)
+        {
+            // AnimatorPlayAction 不繼承 AbstractStateAction，需另外判斷
+            if (comp is AbstractStateAction || comp is AnimatorPlayAction)
+                return ReferenceCategory.Action;
+            if (comp is AbstractConditionBehaviour)
+                return ReferenceCategory.Condition;
+            // 透過 VarWrapper / ValueProvider 引用的非 Action/Condition 元件視為讀值
+            if (type is ReferenceType.VarWrapper or ReferenceType.ValueProvider)
+                return ReferenceCategory.Getter;
+            return ReferenceCategory.Other;
         }
 
         private static void AddToCache(Object target, ComponentReferenceInfo info)

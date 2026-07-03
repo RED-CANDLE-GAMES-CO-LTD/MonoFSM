@@ -191,10 +191,12 @@ namespace MonoFSM.Core
             //FIXME:會需要condition嗎?
             // if (!isActiveAndEnabled) //哇....整個關掉就沒了...要開洞嗎？還是要保持關掉就不觸發？
             //     return;
-
+            if (_conditionFolder.IsValid == false)
+                return;
             EventHandleImplement(arg);
         }
 
+        [SerializeField] private ConditionGroup _conditionFolder;
         public void ResetStateRestore(bool isHardReset)
         {
             _lastSimulateEventTime = -1;
