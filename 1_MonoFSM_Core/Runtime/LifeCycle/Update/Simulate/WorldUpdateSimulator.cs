@@ -187,7 +187,7 @@ namespace MonoFSM.Core.Simulate
             if (_pendingDespawns.Contains(obj))
                 return;
             _pendingDespawns.Add(obj);
-            // Debug.Log($"[Despawn] Queued deferred despawn: {obj.name}", obj);
+            Debug.Log($"[Despawn] Queued deferred despawn: {obj.name}", obj);
         }
 
         /// <summary>
@@ -597,7 +597,7 @@ namespace MonoFSM.Core.Simulate
             else
             {
                 foreach (var simulator in simulators)
-                    simulator._poolManager.ReturnAllObjects();
+                    simulator._poolManager.ReturnAllObjects(); //FIXME: 這個把玩家有回收了
                 //讓 SpawnProcessor 還原被 despawn 的物件（ex: Fusion scene NetworkObject 重新註冊）
                 foreach (var simulator in simulators)
                     if (simulator._spawnProcessor is ILevelResetSpawnHandler resetHandler)

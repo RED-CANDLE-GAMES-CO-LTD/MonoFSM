@@ -56,13 +56,20 @@ public class ObjectPool : IObjectPool
             OnUseObjs.Remove(p);
     }
 
+    //現在只有Manual Reset時走這裡
     public void ReturnAllObjects()
     {
         var StillOnUses = new List<PoolObject>();
         StillOnUses.AddRange(OnUseObjs);
 
         for (var i = 0; i < StillOnUses.Count; i++)
+        {
+            var obj = StillOnUses[i];
+            if (obj._preventResetRecycle)
+                continue;
             StillOnUses[i].Recycle();
+        }
+
     }
 
     public void ReturnAllObjects(Scene scene)

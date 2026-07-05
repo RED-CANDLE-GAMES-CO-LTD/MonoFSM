@@ -600,6 +600,7 @@ public class
         }
     }
 
+    [Tooltip("測試用，Reset時不要回收")] public bool _preventResetRecycle = false;
     public void Recycle()
     {
         CancelAutoRecycle();
