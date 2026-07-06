@@ -22,7 +22,7 @@ namespace MonoFSM.Variable
 
     public interface AbstractVariableModifier<T>
     {
-        T BeforeSetValueModifyCheck(T value);
+        T BeforeSetValueModifyCheck(T value, T beforeSetValue);
         T AfterGetValueModifyCheck(T value);
     }
 
@@ -103,7 +103,8 @@ namespace MonoFSM.Variable
                 value = MaxValue;
         }
 
-        public float BeforeSetValueModifyCheck(float value) => SetOperation(value);
+        public float BeforeSetValueModifyCheck(float value, float currentValue) =>
+            SetOperation(value);
 
         public float AfterGetValueModifyCheck(float value) => value; //要再bound一次嗎？
 

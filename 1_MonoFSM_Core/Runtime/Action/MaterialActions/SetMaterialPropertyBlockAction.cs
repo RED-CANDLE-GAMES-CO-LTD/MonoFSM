@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using MonoFSM.Core.Runtime.Action;
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Render;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 
 namespace MonoFSM.ParticleSystemActions
 {
-    public class SetMaterialPropertyBlockAction : AbstractStateAction
+    public class SetMaterialPropertyBlockAction : AbstractRenderBehaviour
     {
         public override string Description =>
             $"Set [{_propertyName}] ({_propertyType}) on [{(_rendererCollection != null ? _rendererCollection.name : _renderer != null ? _renderer.name : "null")}]";
@@ -98,7 +98,7 @@ namespace MonoFSM.ParticleSystemActions
 #endif
 
         [Button("Preview")]
-        protected override void OnActionExecuteImplement()
+        public override void OnEnterRenderImplement()
         {
             if (_mpb == null)
             {
@@ -126,6 +126,11 @@ namespace MonoFSM.ParticleSystemActions
             {
                 Debug.LogWarning("SetMaterialPropertyBlockAction: No Renderer or RendererCollection assigned", this);
             }
+        }
+
+        public override void OnRenderImplement()
+        {
+            OnEnterRenderImplement();
         }
 
         private void ApplyPropertyBlock(Renderer renderer)

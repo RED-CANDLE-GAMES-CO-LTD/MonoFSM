@@ -62,7 +62,7 @@ namespace MonoFSM.Variable
                 value = MaxValue;
         }
 
-        public int BeforeSetValueModifyCheck(int value) => SetOperation(value);
+        public int BeforeSetValueModifyCheck(int value, int currentValue) => SetOperation(value);
 
         public int AfterGetValueModifyCheck(int value) => value;
 

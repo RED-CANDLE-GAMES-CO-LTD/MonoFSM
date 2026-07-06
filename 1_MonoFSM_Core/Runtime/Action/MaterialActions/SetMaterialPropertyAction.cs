@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using MonoFSM.Core.Runtime.Action;
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -11,7 +11,7 @@ namespace MonoFSM.ParticleSystemActions
     /// 直接 reference Material 設定屬性（不透過 MaterialPropertyBlock）
     /// 注意：會修改到 Material 資產本身（若為 shared material）
     /// </summary>
-    public class SetMaterialPropertyAction : AbstractStateAction
+    public class SetMaterialPropertyAction : AbstractRenderBehaviour
     {
         public override string Description =>
             $"Set [{_propertyName}] ({_propertyType}) on Material [{(_material != null ? _material.name : "null")}]";
@@ -84,7 +84,7 @@ namespace MonoFSM.ParticleSystemActions
 #endif
 
         [Button("Preview")]
-        protected override void OnActionExecuteImplement()
+        public override void OnEnterRenderImplement()
         {
             if (_material == null)
             {
@@ -113,6 +113,11 @@ namespace MonoFSM.ParticleSystemActions
                     _material.SetFloat(_propertyId, _boolValue.Value ? 1f : 0f);
                     break;
             }
+        }
+
+        public override void OnRenderImplement()
+        {
+            OnEnterRenderImplement();
         }
     }
 }

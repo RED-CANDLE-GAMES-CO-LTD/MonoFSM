@@ -533,10 +533,10 @@ namespace MonoFSM.Foundation
                 // if (!_note.IsNullOrWhitespace())
                 //     nameStr += $" {_note}";
                 gameObject.name = nameStr;
-                Debug.Log(
-                    $"Renamed gameObject to: {gameObject.name} for {GetType().Name}",
-                    this
-                );
+                // Debug.Log(
+                //     $"Renamed gameObject to: {gameObject.name} for {GetType().Name}",
+                //     this
+                // );
                 EditorUtility.SetDirty(gameObject);
                 // RevertNameOverrideIfMatchesPrefab();
             }

@@ -56,6 +56,10 @@ namespace MonoFSM.Core.LifeCycle
             // Debug.Log($"PreviewDataRenderer: Spawn preview {prefab.name}", this);
         }
 
+        public override void OnRenderImplement()
+        {
+        }
+
         public void ClearPreview()
         {
             if (_currentInstance != null && _parentObj != null)

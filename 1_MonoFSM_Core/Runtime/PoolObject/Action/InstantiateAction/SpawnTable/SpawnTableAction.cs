@@ -26,7 +26,9 @@ namespace MonoFSM.Core.SpawnTable
 
         [SerializeField] private Transform _spawnPosition;
 
-        [SerializeField] [Tooltip("若為 true 則使用 SpawnVisual（僅視覺效果，不進行網路同步）")]
+        [SerializeField]
+        [Tooltip("全域 override：若為 true 則整張表都用 SpawnVisual（僅視覺、不網路同步）。" +
+                 "若只想混用個別項目，改在 SpawnTableEntry 逐項勾選 _isSpawningVisual")]
         public bool _isSpawningVisual;
 
         [BoxGroup("Scatter")]
@@ -135,8 +137,10 @@ namespace MonoFSM.Core.SpawnTable
                     var spawnPos = basePos + rot * offset; // 旋轉 offset
                     offsetIndex++;
 
+                    // 全域 override 或該項自己標記為 visual，就走純視覺生成（不需 NetworkObject）
+                    var spawnVisual = _isSpawningVisual || entry._isSpawningVisual;
                     MonoObj newObj;
-                    if (_isSpawningVisual)
+                    if (spawnVisual)
                         newObj = _parentObj.WorldUpdateSimulator.SpawnVisual(entry._prefab, spawnPos, rot);
                     else
                         newObj = _parentObj.WorldUpdateSimulator.Spawn(entry._prefab, spawnPos, rot);

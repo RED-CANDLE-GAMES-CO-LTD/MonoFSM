@@ -7,7 +7,7 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
 {
     public class SetVarFloatToBoundAction : AbstractStateAction
     {
-        public override string Description => "Set $" + _targetVar?.name + " " +
+        public override string Description => "Set $" + _targetVar?.name + " -> " +
                                               _boundType +
                                               (_boundType >= BoundType.SetToPercentage
                                                   ? $" {_percentage * 100f:0}%"

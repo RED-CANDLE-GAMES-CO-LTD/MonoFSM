@@ -19,6 +19,7 @@ namespace MonoFSM.Runtime.Action.VariableAction
 
         public float _multiplier = 1f;
 
+        //FIXME:這個應該有錯？
         [Tooltip("啟用後從 Source 扣除等量值加到 Target（不足時只傳剩餘量）")]
         public bool _transfer;
 
@@ -58,17 +59,23 @@ namespace MonoFSM.Runtime.Action.VariableAction
                     return;
                 }
 
+
+                //FIXME: 這個沒有處理到VarFloat本身有modifier...要先從source把值拿出來才知道？
                 float desired = Mathf.Abs(EffectiveRate) * DeltaTime;
                 float available = Mathf.Max(0f, _sourceVar.CurrentValue - _sourceVar.Min);
                 float actual = Mathf.Min(desired, available);
                 if (actual <= 0f) return;
 
-                _sourceVar.SetValue(_sourceVar.CurrentValue - actual, this);
-                _targetVar.SetValue(_targetVar.CurrentValue + actual, this);
+                // _sourceVar.SetValue(_sourceVar.CurrentValue - actual, this);
+                _sourceVar.AddBy(-actual, this); //FIXME: 可能會想要消耗更多喔？應該是結果論？
+                // _targetVar.SetValue(_targetVar.CurrentValue + actual, this);
+                _targetVar.AddBy(actual, this);
+
                 return;
             }
 
-            _targetVar.SetValue(_targetVar.Value + EffectiveRate * DeltaTime, this);
+            _targetVar.AddBy(EffectiveRate * DeltaTime, this);
+            // _targetVar.SetValue(_targetVar.Value + EffectiveRate * DeltaTime, this);
         }
     }
 }

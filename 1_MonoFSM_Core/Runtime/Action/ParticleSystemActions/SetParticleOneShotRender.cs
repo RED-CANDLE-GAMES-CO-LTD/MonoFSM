@@ -10,6 +10,10 @@ namespace MonoFSM.ParticleSystemActions
             //就 set active? 還是放在particle上就好不要做成renderBehaviour?
         }
 
+        public override void OnRenderImplement()
+        {
+        }
+
         public void EnterSceneAwake()
         {
             //FIXME; 把root particle改 disable callback?

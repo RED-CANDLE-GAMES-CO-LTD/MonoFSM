@@ -33,13 +33,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         //fixme: 改 protected
         public abstract void OnEnterRenderImplement();
 
-        public virtual void OnRenderImplement()
-        {
-            //沒override就當作一樣的事
-            //FIXME: 這個好嗎？會被狂call?
-            // OnEnterRenderImplement();
-        }
-
+        public abstract void OnRenderImplement();
         public void OnEnterRender()
         {
             if (isActiveAndEnabled == false) //FIXME: 要有個bypass的方式？ checkWhileDisable?

@@ -85,5 +85,10 @@ namespace MonoFSM.Core.LifeCycle
             _lastSpawnedObj = newObj;
             newObj.GetComponent<PoolObject>().lastPlayer = this;
         }
+
+        public override void OnRenderImplement()
+        {
+            //應該用不到對ㄅ
+        }
     }
 }

@@ -14,12 +14,13 @@ namespace MonoFSM.Core.LifeCycle
     public class MountViewRootAction : AbstractStateAction
     {
         [SerializeField] private VarEntityWrapper _sourceEntity;
-        [SerializeField] private VarEntityWrapper _targetEntity;
+        [SerializeField] private VarEntityWrapper _targetEntity; //FIXME:自動撈parent的嗎？要隔兩層
 
         //優先用 VarTransform（沒接 _var 時 wrapper 的 tempValue 也可直接拖 Transform）
         [SerializeField] private VarTransformWrapper _mountPointVar;
 
         //legacy: 舊場景/prefab 序列化的直接引用，_mountPointVar 沒值時 fallback
+        //FIXME: mountPoint一定要放到viewroot下？
         [HideIf(nameof(HasMountPointVar))]
         [SerializeField] private Transform _mountPoint;
 

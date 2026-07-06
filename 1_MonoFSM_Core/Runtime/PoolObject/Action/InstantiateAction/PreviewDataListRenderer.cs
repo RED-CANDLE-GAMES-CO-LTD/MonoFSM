@@ -77,6 +77,10 @@ namespace MonoFSM.Core.LifeCycle
             }
         }
 
+        public override void OnRenderImplement()
+        {
+        }
+
         private void ClearSlot(int i)
         {
             if (_currentInstances[i] != null && _parentObj != null)

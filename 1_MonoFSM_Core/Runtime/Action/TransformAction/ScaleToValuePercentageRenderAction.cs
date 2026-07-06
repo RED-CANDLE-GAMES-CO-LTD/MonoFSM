@@ -27,5 +27,10 @@ namespace _1_MonoFSM_Core.Runtime.Action.TransformAction
                 _target.localScale = scale;
             }
         }
+
+        public override void OnRenderImplement()
+        {
+            OnEnterRenderImplement();
+        }
     }
 }

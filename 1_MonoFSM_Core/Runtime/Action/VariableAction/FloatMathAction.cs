@@ -141,16 +141,24 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
             var value1 = _source1Var.Value * _sourceModifier.Value;
             float result;
             if (Arithmetic == ArithmeticType.AdditionAssign)
-                result = targetValue + value1;
+            {
+                // result = targetValue + value1;
+                _targetVar.AddBy(value1, this); //直接用AddBy，避免modifier被套用兩次
+            }
+
             else if (Arithmetic == ArithmeticType.SubtractionAssign)
-                result = targetValue - value1;
+            {
+                _targetVar.AddBy(-value1, this);
+            }
+            // result = targetValue - value1;
             else
             {
                 var value2 = _source2Var.Value * _sourceModifier.Value;
                 result = Calculate(value1, value2);
+                _targetVar.SetValue(result, this);
             }
 
-            _targetVar.SetValue(result, this);
+
             // var dealerValue = dealerVariableProvider.GetValueFrom(dealer);
             // var receiverValue = receiverVariableProvider.GetValueFrom(receiver);
             // Debug.Log(

@@ -38,6 +38,22 @@ namespace MonoFSM.Variable
         //FIXME: 需要一個reset value source? 回到maxValue or minValue之類的...?
         // public override GameFlagBase FinalData => BindData;
 
+        [Auto] VarFloatChangeModifier _changeModifier; //SetValue要過這個嗎，感覺很容易出bug
+
+        public void AddBy(float delta, Object byWhot)
+        {
+            if (_changeModifier != null)
+            {
+                delta = _changeModifier.ProcessDelta(delta);
+                // Debug.Log(
+                //     $"VarFloat '{name}' AddBy: delta={delta}, byWhot={byWhot}, CurrentValue={CurrentValue}",
+                //     this
+                // );
+            }
+
+            SetValue(Value + delta, byWhot, "ChangeBy");
+        }
+
         [ShowInDebugMode]
         public int IntValue => Mathf.CeilToInt(CurrentValue);
 
@@ -141,8 +157,8 @@ namespace MonoFSM.Variable
         // }
         // public float Value => CurrentValue;
 
-        public string ValueInfo => CurrentValue.ToString(CultureInfo.CurrentCulture) ?? "";
-        public bool IsDrawingValueInfo => true;
+        public override string ValueInfo => CurrentValue.ToString(CultureInfo.CurrentCulture) ?? "";
+        public override bool IsDrawingValueInfo => true;
 
         public override bool IsValueExist => Field.CurrentValue != 0f; //  CurrentValue != 0f;
 

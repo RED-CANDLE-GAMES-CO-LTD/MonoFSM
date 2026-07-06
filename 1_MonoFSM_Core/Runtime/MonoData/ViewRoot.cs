@@ -213,6 +213,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             _lastRenderTick = WorldUpdateSimulator.CurrentTick;
             if (_mountPointTarget != null)
             {
+                //FIXME: 這沒有跟到view吧...
                 Root.position = _mountPointTarget.position;
                 Root.rotation = _mountPointTarget.rotation;
                 return;

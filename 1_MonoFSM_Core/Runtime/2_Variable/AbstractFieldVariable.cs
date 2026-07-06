@@ -467,13 +467,14 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         // if (_beforeSetProcessor != null)
         _beforeSetProcessor?.BeforeSetValueCallback(value); //練線處理？
         // lastValueSetter = byWho;
+
         var tempValue = value;
         //先檢查會被修改
 
         Profiler.BeginSample("BeforeSetValueModifyCheck", this);
         if (_modifiers != null)
             foreach (var modifier in _modifiers)
-                tempValue = modifier.BeforeSetValueModifyCheck(tempValue);
+                tempValue = modifier.BeforeSetValueModifyCheck(tempValue, CurrentValue);
         Profiler.EndSample();
         //after?
         // Debug.Log("[Variable] Set" + value + "tempValue:" + tempValue + ", Value:" + CurrentValue, byWho);

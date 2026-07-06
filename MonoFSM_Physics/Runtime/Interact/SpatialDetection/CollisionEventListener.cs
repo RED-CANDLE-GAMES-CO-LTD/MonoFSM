@@ -2,6 +2,7 @@ using MonoFSM.Core;
 using MonoFSM.Runtime;
 using MonoFSM.Runtime.Variable;
 using MonoFSM.Variable;
+using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -9,6 +10,7 @@ using UnityEngine.Serialization;
 namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
 {
     //FIXME: 要和EffectDetect整合？
+    //必須裝載rigidbody上
     public class CollisionEventListener : MonoBehaviour, IParentEntityProvider
     {
 #if UNITY_EDITOR
@@ -57,7 +59,7 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
                 }
 
                 //從這裡接好醜？
-                _hittingEntity
+                _hittingEntity?
                     .SetValue(
                         entity); //TODO: 這裡是碰撞到的物件，還是碰撞到的物件的 parent entity？要不要改成兩個變數分別存？（或 collision 直接丟出去讓 handler 自己決定要不要從裡面取？）
                 //FIXME: gen effectHitData?
@@ -67,15 +69,16 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
             //可能打到地板喔
             _abstractEventHandler._hitPosition?.SetValue(collision.contacts[0].point);
             _abstractEventHandler.EventHandle(collision); //float?
-
         }
 
+        //FIXME: 從這裡接出來超怪，從CollisionHandler還可以？
         [SerializeField] VarEntity _hittingEntity;
 
         // public VarVector3 _collisionRelativeVelocity;
         [FormerlySerializedAs("_collisionVelocityMagnitude")]
         public VarFloat _collisionImpluseMagnitude;
 
+        [DropDownRef]
         public OnCollisionHandler _abstractEventHandler;
         [AutoParent] private MonoEntity _parentEntity;
         public MonoEntity ParentEntity => _parentEntity;

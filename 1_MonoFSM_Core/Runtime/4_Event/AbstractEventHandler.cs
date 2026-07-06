@@ -28,7 +28,7 @@ namespace MonoFSM.Core
     /// <seealso cref="IEventReceiver{T}"/>
     /// <seealso cref="IActionParent"/>
     public abstract class AbstractEventHandler : AbstractDescriptionBehaviour, IActionParent,
-        IResetStateRestore
+        IResetStateRestore, IRenderInvoker
     {
         protected override string DescriptionTag => "Event";
 
@@ -81,48 +81,17 @@ namespace MonoFSM.Core
             }
         }
 
-        /// <summary>
-        /// Call all event receivers' <see cref="IEventReceiver.EventReceived"/> method.
-        /// </summary>
-        public virtual void EventHandle()
-        {
-            EventHandleImplement(0, true);
-            // // if (!isActiveAndEnabled) //FIXME: 打開的瞬間，我還沒打開？
-            // //     return;
-            // if (!gameObject.activeSelf)
-            //     return;
-            // _lastRenderEventTime = Time.time;
-            // if (!_parentObj.HasStateAuthority && !_forceExecuteWithoutStateAuthority)
-            //     return;
-            // _lastSimulateEventTime = Time.time;
-            //
-            // foreach (var eventReceiver in _eventReceivers)
-            // {
-            //     //如果有exception就會中斷掉？
-            //     // 4/15, 對！以為detector出問題...
-            //     try
-            //     {
-            //         if (eventReceiver.IsValid)
-            //             eventReceiver.EventReceived();
-            //     }
-            //     catch (System.Exception e)
-            //     {
-            //         Debug.LogError(
-            //             $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
-            //             eventReceiver as Object);
-            //     }
-            // }
 
-        }
 
-        [PreviewInDebugMode]
-        protected float _lastSimulateEventTime = -1f; //FIXME: 還要區分 render 和 state?
+        [PreviewInDebugMode] protected float _lastSimulateEventTime = -1f;
 
-        [PreviewInDebugMode]
-        protected float _lastRenderEventTime = -1f; //FIXME: 還要區分 render 和 state?
+        [PreviewInDebugMode] protected float _lastRenderEventTime = -1f;
 
+        //FIXME: override怎麼處理？
         private void EventHandleImplement<T>(T arg, bool ignoreArg = false)
         {
+            if (_conditionFolder.IsValid == false)
+                return;
             if (_parentObj.IsCulling) //FIXME: 有需要分visual和logic culling?
                 return;
             if (!gameObject.activeSelf)
@@ -174,7 +143,7 @@ namespace MonoFSM.Core
                 catch (System.Exception e) //因為eventhandle有error會導致後面觸發都壞掉
                 {
                     Debug.LogError(
-                        $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.StackTrace}",
+                        $"Exception occurred while handling event in {eventReceiver.GetType().Name}: {e.Message}\n{e.InnerException?.Message}\n{e.StackTrace}",
                         eventReceiver as Object);
                 }
             }
@@ -191,11 +160,17 @@ namespace MonoFSM.Core
             //FIXME:會需要condition嗎?
             // if (!isActiveAndEnabled) //哇....整個關掉就沒了...要開洞嗎？還是要保持關掉就不觸發？
             //     return;
-            if (_conditionFolder.IsValid == false)
-                return;
+
             EventHandleImplement(arg);
         }
 
+        /// <summary>
+        /// Call all event receivers' <see cref="IEventReceiver.EventReceived"/> method.
+        /// </summary>
+        public virtual void EventHandle()
+        {
+            EventHandleImplement(0, true);
+        }
         [SerializeField] private ConditionGroup _conditionFolder;
         public void ResetStateRestore(bool isHardReset)
         {

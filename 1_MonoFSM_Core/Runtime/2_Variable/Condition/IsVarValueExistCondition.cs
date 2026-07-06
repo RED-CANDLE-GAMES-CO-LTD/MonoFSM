@@ -4,7 +4,7 @@ namespace MonoFSM.Variable.Condition
 {
     public class IsVarValueExistCondition : AbstractConditionBehaviour
     {
-        public override string Description => $"Is {unityObjectVariable} exist?";
+        public override string Description => $"Is {unityObjectVariable.name} exist?";
 
         [DropDownRef]
         public AbstractMonoVariable unityObjectVariable;

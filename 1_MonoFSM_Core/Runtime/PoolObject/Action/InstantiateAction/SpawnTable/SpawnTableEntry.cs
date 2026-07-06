@@ -18,6 +18,10 @@ namespace MonoFSM.Core.SpawnTable
         [PrefabFilter(typeof(PoolObject))]
         public MonoObj _prefab;
 
+        [Tooltip("若為 true 則此項用 SpawnVisual（僅本地視覺、不需 NetworkObject）；" +
+                 "prefab 沒有 NetworkObject 時務必勾選，否則走網路生成會噴 No NetworkObject component")]
+        public bool _isSpawningVisual;
+
         [Min(0)] [Tooltip("權重（用於 Single/PickN 模式）")]
         public float _weight = 1f;
 
