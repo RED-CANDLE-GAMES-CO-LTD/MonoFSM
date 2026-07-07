@@ -403,6 +403,25 @@ namespace MonoFSM.Core.Detection
             receiver.OnEffectHitEnter(hitData, detectData);
         }
 
+        //重疊期間每幀觸發：重用 enter 時的 hitData，只刷新 hitPoint/hitNormal（不 new、不需 pool）
+        private void TriggerStayForDealerAndDetectable(
+            GeneralEffectDealer dealer,
+            EffectDetectable detectable,
+            DetectData detectData
+        )
+        {
+            var receiver = detectable.Get(dealer._effectType);
+            if (receiver == null || !dealer.IsEnteredReceiver(receiver))
+                return;
+            if (!receiver.TryGetHitDataFor(dealer, out var hitData))
+                return;
+
+            hitData.hitPoint = detectData.hitPoint;
+            hitData.hitNormal = detectData.hitNormal;
+            dealer.OnHitStay(hitData);
+            receiver.OnEffectHitStay(hitData, detectData);
+        }
+
         private void TriggerExitForDealerAndDetectable(
             GeneralEffectDealer dealer,
             EffectDetectable detectable,
@@ -413,7 +432,9 @@ namespace MonoFSM.Core.Detection
             if (!dealer.IsEnteredReceiver(receiver))
                 return;
 
-            var hitData = receiver.GenerateEffectHitData(dealer, detectData.detectedObject);
+            //優先重用 enter 時的 hitData，找不到才 new（例：ForceDirectEffectHit 已先移除）
+            if (!receiver.TryGetHitDataFor(dealer, out var hitData))
+                hitData = receiver.GenerateEffectHitData(dealer, detectData.detectedObject);
             dealer.OnHitExit(hitData);
             receiver.OnEffectHitExit(hitData);
         }
@@ -439,6 +460,13 @@ namespace MonoFSM.Core.Detection
                     detectable._debugDetectors.Add(this);
 #endif
                 }
+            }
+
+            // 持續重疊的物件（previous和current都有）→ Stay 事件，刷新 hit 資訊
+            foreach (var kvp in currentDetected)
+            {
+                if (previousDetected.ContainsKey(kvp.Key))
+                    TriggerStayEventsForDetectable(kvp.Value);
             }
 
             // 找出離開的物件（在previous但不在current）
@@ -472,6 +500,15 @@ namespace MonoFSM.Core.Detection
             this.Log($"TriggerEnterEventsForDetectable: {detectData.detectable.name}");
             foreach (var dealer in _dealers)
                 TriggerEnterForDealerAndDetectable(dealer, detectData.detectable, detectData);
+        }
+
+        private void TriggerStayEventsForDetectable(DetectData detectData)
+        {
+            if (_dealers == null)
+                return;
+
+            foreach (var dealer in _dealers)
+                TriggerStayForDealerAndDetectable(dealer, detectData.detectable, detectData);
         }
 
         private void TriggerExitEventsForDetectable(

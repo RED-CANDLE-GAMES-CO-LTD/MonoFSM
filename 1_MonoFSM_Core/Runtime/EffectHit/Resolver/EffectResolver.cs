@@ -119,6 +119,10 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
+        protected EffectStayNode _stayNode;
+
+        [CompRef]
+        [AutoChildren(DepthOneOnly = true)]
         protected EffectExitNode _exitNode;
 
         [CompRef]

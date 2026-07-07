@@ -286,6 +286,16 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             _lastReceiver = data.Receiver as GeneralEffectReceiver;
         }
 
+        //重疊期間每幀觸發（enter 那幀不觸發），data 重用 enter 時的同一顆 instance
+        public void OnHitStay(GeneralEffectHitData data)
+        {
+            if (_proxyProvider != null)
+                proxyDealer.OnHitStay(data);
+
+            _currentHitData = data;
+            _stayNode?.EventHandle(data);
+        }
+
         [ShowInInspector]
         private readonly List<MonoEntity> _hittingEntities = new();
 

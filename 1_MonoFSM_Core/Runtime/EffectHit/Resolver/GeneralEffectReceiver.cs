@@ -110,10 +110,24 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             _enterNode?._hittingEntity?.SetValue(dealerEntity, this);
             _enterNode?.EventHandle(_currentHitData);
 
-            _dealers.Add(data.Dealer as GeneralEffectDealer);
+            _dealers[data.Dealer as GeneralEffectDealer] = _currentHitData;
 #if UNITY_EDITOR
             _lastHitData = data;
 #endif
+        }
+
+        //重疊期間每幀觸發（enter 那幀不觸發），data 重用 enter 時的同一顆 instance
+        public void OnEffectHitStay(GeneralEffectHitData data, DetectData detectData)
+        {
+            _detectData = detectData;
+            _currentHitData = data;
+            _stayNode?.EventHandle(data);
+        }
+
+        //取得 enter 時為這個 dealer 建立的 hitData（stay/exit 重用，不再 new）
+        public bool TryGetHitDataFor(GeneralEffectDealer dealer, out GeneralEffectHitData hitData)
+        {
+            return _dealers.TryGetValue(dealer, out hitData) && hitData != null;
         }
 
         public bool HasDealerOverlap => isActiveAndEnabled && _dealers.Count > 0;
@@ -121,7 +135,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         //FIXME: 會殘留...
         [GUIColor(0.3f, 0.9f, 0.3f)]
         [PreviewInInspector]
-        private HashSet<GeneralEffectDealer> _dealers = new();
+        private readonly Dictionary<GeneralEffectDealer, GeneralEffectHitData> _dealers = new();
 
         public void OnEffectHitBestMatchEnter(GeneralEffectHitData data)
         {
