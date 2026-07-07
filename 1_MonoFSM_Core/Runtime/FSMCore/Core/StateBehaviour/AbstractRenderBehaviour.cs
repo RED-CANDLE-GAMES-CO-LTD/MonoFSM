@@ -23,6 +23,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 
         protected override bool HasError()
         {
+            _iRenderInvoker = GetComponentInParent<IRenderInvoker>();
             return _iRenderInvoker == null || base.HasError();
         }
 

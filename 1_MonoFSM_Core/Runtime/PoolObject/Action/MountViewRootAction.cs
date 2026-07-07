@@ -13,7 +13,10 @@ namespace MonoFSM.Core.LifeCycle
     /// </summary>
     public class MountViewRootAction : AbstractStateAction
     {
+        [ShowInInspector] [AutoParent] MonoEntity _parentEntity;
+
         [SerializeField] private VarEntityWrapper _sourceEntity;
+
         [SerializeField] private VarEntityWrapper _targetEntity; //FIXME:自動撈parent的嗎？要隔兩層
 
         //優先用 VarTransform（沒接 _var 時 wrapper 的 tempValue 也可直接拖 Transform）
@@ -36,7 +39,7 @@ namespace MonoFSM.Core.LifeCycle
         protected override void OnActionExecuteImplement()
         {
             var source = _sourceEntity.Value;
-            var target = _targetEntity.Value;
+            var target = _targetEntity.Value ?? _parentEntity;
 
             if (source == null)
             {

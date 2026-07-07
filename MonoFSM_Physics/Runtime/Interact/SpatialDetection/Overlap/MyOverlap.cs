@@ -1,3 +1,4 @@
+using MonoFSM.Core.Simulate;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
 using UnityEngine.Internal;
@@ -79,9 +80,12 @@ namespace MonoFSM.PhysicsWrapper
 
     public class MyOverlap : MonoBehaviour
     {
-        [Auto]
-        [CompRef]
         private IOverlapProcessor _overlapProcessor;
+
+        private IOverlapProcessor OverlapProcessor =>
+            _overlapProcessor ??= WorldUpdateSimulator
+                .GetWorldUpdateSimulator(gameObject)
+                ?.GetCompCache<IOverlapProcessor>();
 
         /// <summary>
         /// Find all colliders touching or inside the capsule.
@@ -102,8 +106,8 @@ namespace MonoFSM.PhysicsWrapper
             QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.UseGlobal
         )
         {
-            if (_overlapProcessor != null)
-                return _overlapProcessor.OverlapCapsuleNonAlloc(
+            if (OverlapProcessor != null)
+                return OverlapProcessor.OverlapCapsuleNonAlloc(
                     point1,
                     point2,
                     radius,
@@ -141,8 +145,8 @@ namespace MonoFSM.PhysicsWrapper
             QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.UseGlobal
         )
         {
-            if (_overlapProcessor != null)
-                return _overlapProcessor.OverlapSphereNonAlloc(
+            if (OverlapProcessor != null)
+                return OverlapProcessor.OverlapSphereNonAlloc(
                     position,
                     radius,
                     results,
@@ -179,8 +183,8 @@ namespace MonoFSM.PhysicsWrapper
             QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.UseGlobal
         )
         {
-            if (_overlapProcessor != null)
-                return _overlapProcessor.OverlapBoxNonAlloc(
+            if (OverlapProcessor != null)
+                return OverlapProcessor.OverlapBoxNonAlloc(
                     center,
                     halfExtents,
                     results,

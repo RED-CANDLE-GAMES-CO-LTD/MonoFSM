@@ -5,8 +5,7 @@ using UnityEngine;
 namespace MonoFSM.Variable
 {
     public class VarVector3
-        : AbstractFieldVariable<GameDataVector3, FlagFieldVector3, Vector3>, //可以改成?嗎？
-            IHierarchyValueInfo
+        : AbstractFieldVariable<GameDataVector3, FlagFieldVector3, Vector3>
     {
         public override string ValueInfo => CurrentValue.ToString();
         public override bool IsDrawingValueInfo => true;
@@ -19,5 +18,7 @@ namespace MonoFSM.Variable
         {
             transform.position = Value;
         }
+
+        //要跟的話就裝一個TransformFollower
     }
 }
