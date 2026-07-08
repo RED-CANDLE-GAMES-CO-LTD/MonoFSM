@@ -152,7 +152,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
         }
 
         [ShowInDebugMode]
-        public bool HasStateAuthority { get; set; } //FIXME: IsSimulate? 除了 proxy 好像都應該照跑才對？
+        public bool ShouldSimulte { get; set; } //FIXME: IsSimulate? 除了 proxy 好像都應該照跑才對？
         [PreviewInDebugMode]
         [AutoChildren]
         private ISceneAwake[] _sceneAwakes;
@@ -199,7 +199,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         //遞迴檢查 scope + 所有直屬 child subtree，任一有 item 且該 node 未被 cull 就回 true
         //Root cull → false; 否則自己 scope 空但 child 有東西也要回 true（不然 WorldUpdateSimulator 會 skip 整個 tree）
-        public bool IsUpdateSimulatesNeeded => CheckPhaseNeededRecursive(self => self._updateSimulates);
+        public bool IsUpdateSimulatesNeeded =>
+            CheckPhaseNeededRecursive(self => self._updateSimulates);
         public bool IsBeforeSimulatesNeeded => CheckPhaseNeededRecursive(self => self._beforeSimulates);
         public bool IsAfterSimulatesNeeded => CheckPhaseNeededRecursive(self => self._afterSimulates);
         public bool IsRenderSimulatesNeeded => CheckPhaseNeededRecursive(self => self._renderSimulates);
@@ -234,12 +235,13 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         public MonoObj[] ChildrenObjs => _childrenObjs;
 
-        public void AssignStateAuthorityForAll(bool state)
+        //有點混亂...input 和state auth要來污染了嗎 ShouldSimulate?
+        public void AssignShouldSimulateForAllChildrenObj(bool state)
         {
-            HasStateAuthority = state;
+            ShouldSimulte = state;
             foreach (var obj in _childrenObjs)
             {
-                obj.HasStateAuthority = state;
+                obj.ShouldSimulte = state;
             }
 
             // Debug.Log($"Assigned HasStateAuthority={state} for {name} and all children.", this);
@@ -520,9 +522,12 @@ namespace MonoFSMCore.Runtime.LifeCycle
         //理論上沒有註冊就不會call到這個
         public void Simulate(float deltaTime)
         {
+
             // if (HasParent)
             //     return;
             if (!IsActiveInSimulator)
+                return;
+            if (!ShouldSimulte)
                 return;
             TickSimulatePhase(deltaTime);
         }

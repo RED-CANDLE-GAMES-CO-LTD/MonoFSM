@@ -37,7 +37,7 @@ namespace MonoFSM.Core
         // GetType().Name.Replace("Handler", ""); //要都叫做 OnXXX ?
         //FIXME: 先做一個繞開
         public bool
-            _forceExecuteWithoutStateAuthority;
+            _forceExecuteWithoutStateAuthority; //FIXME: 被MonoObj擋掉囉
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
         protected IEventReceiver[] _eventReceivers; //IActions
@@ -139,7 +139,8 @@ namespace MonoFSM.Core
             {
                 Debug.LogError("No ParentObj" + name, this);
             }
-            if (!_parentObj.HasStateAuthority && !_forceExecuteWithoutStateAuthority)
+
+            if (!_parentObj.ShouldSimulte && !_forceExecuteWithoutStateAuthority)
                 return;
             _lastSimulateEventTime = Time.time;
             foreach (var eventReceiver in _eventReceivers)

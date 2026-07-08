@@ -27,7 +27,7 @@ namespace MonoFSM.Core.Simulate
     //FIXME: 拆asmdef的話要怎麼做？ LifeCycle
     public interface IUpdateSimulate //parent必須要有AbstractSimulator //好難喔..levelrunner, player, poolobject的要怎麼做？
     {
-
+        //FIXME: proxy 不該跑？
         void Simulate(float deltaTime);
 
         // void AfterUpdate();

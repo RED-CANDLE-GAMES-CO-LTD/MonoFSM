@@ -136,8 +136,9 @@ namespace MonoFSM.Core.Simulate
             //FIXME: 還要做updateSimulator的註冊？
             var newObj = _poolManager.BorrowOrInstantiate(obj, position, rotation);
             //純 local visual 一律有 authority（pool 重用可能殘留舊值），要在 SpawnFromPool 之前設好
+            //寫啥？都不可以有吧？
             if (newObj != null)
-                newObj.AssignStateAuthorityForAll(true);
+                newObj.AssignShouldSimulateForAllChildrenObj(false);
             AfterPoolSpawn(newObj);
             return newObj;
         }

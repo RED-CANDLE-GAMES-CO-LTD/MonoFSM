@@ -14,7 +14,7 @@ namespace MonoFSM.Core.Condition
         protected override void ActivateCheckImplement(bool isValid)
         {
             //FIXME: 這個很危險耶，各種地方都要確保這件事？還是這個應該要refactor成eventHandler？
-            if (!_parentObj.HasStateAuthority)
+            if (!_parentObj.ShouldSimulte)
                 return;
             if (isValid)
             {
