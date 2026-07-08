@@ -385,7 +385,6 @@ namespace Fusion.Addons.FSM
                     : _tickProvider.Tick;
             return currentTick - StateChangeTick;
         }
-
         private float GetStateTime() //沒搞懂這是啥
         {
             if (_tickProvider == null)

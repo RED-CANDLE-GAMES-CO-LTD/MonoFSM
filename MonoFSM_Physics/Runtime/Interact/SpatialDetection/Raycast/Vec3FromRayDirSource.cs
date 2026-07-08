@@ -10,6 +10,6 @@ namespace MonoFSM.PhysicsWrapper
         [SerializeField]
         private RaycastCache _rayCache;
         public override string Description => "Vec3 dir:" + _rayCache?.name;
-        public override Vector3 Value => _rayCache.CachedRay.direction;
+        public override Vector3 Value => _rayCache?.CachedRay.direction ?? Vector3.zero;
     }
 }

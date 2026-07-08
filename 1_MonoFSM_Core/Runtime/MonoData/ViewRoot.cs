@@ -124,7 +124,87 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         #region FollowTarget 掛載
 
-        [ShowInInspector] private Transform _mountPointTarget; //FIXME: 這個也要連線同步？ anchor?
+        [ShowInInspector] private Transform _mountPointTarget; //連線同步走 NetworkedViewRoot（MountPointRegistry index）
+
+        // 給 NetworkedViewRoot 讀取當前 mount 狀態用
+        public MonoEntity AttachToEntity => _attachToEntityWrapper.Value;
+        public Transform MountPointTarget => _mountPointTarget;
+        public Vector3 FollowParentOffset => _followParentOffset;
+        public Quaternion FollowParentRotOffset => _followParentRotOffset;
+        public Vector3 FollowViewOffset => _followViewOffset;
+        public Quaternion FollowViewRotOffset => _followViewRotOffset;
+        public bool MountDisabledColliders => _mountDisabledColliders;
+
+        [ShowInPlayMode] bool _mountHandledPhysics;
+        [ShowInPlayMode] bool _mountDisabledColliders;
+
+        /// <summary>
+        /// Mount 的唯一入口（SA 端）：物理副作用 + collider + 跟隨狀態集中在這，
+        /// NetworkedViewRoot 每 tick 讀取結果同步給其他端。
+        /// </summary>
+        public void MountTo(ViewRoot target, Vector3 mountPosition, Quaternion mountRotation,
+            Transform mountPointTarget, bool handlePhysics, bool disableColliders)
+        {
+            if (handlePhysics && _bindRb != null)
+            {
+                _bindRb.isKinematic = true;
+                _bindRb.linearVelocity = Vector3.zero;
+                _bindRb.angularVelocity = Vector3.zero;
+            }
+            _mountHandledPhysics = handlePhysics;
+
+            if (disableColliders)
+                DisableCollidersForMount(BindEntity.transform);
+            _mountDisabledColliders = disableColliders;
+
+            SetFollowTarget(target, mountPosition, mountRotation, mountPointTarget);
+        }
+
+        /// <summary>
+        /// Unmount 的唯一入口（SA 端）：還原物理 + collider + 清跟隨狀態。
+        /// </summary>
+        public void Unmount(bool handlePhysics)
+        {
+            if (handlePhysics && _bindRb != null)
+                _bindRb.isKinematic = false;
+            _mountHandledPhysics = false;
+
+            RestoreCollidersAfterUnmount();
+            _mountDisabledColliders = false;
+
+            ClearFollowTarget();
+        }
+
+        /// <summary>
+        /// 非 SA 端套用網路同步下來的 mount 狀態。
+        /// 不碰 Rigidbody（proxy 的 kinematic 歸 NetworkRigidbody 管），只處理 collider 與跟隨狀態。
+        /// offsets 直接用 SA 算好的值，不重新 RecordOffsets（proxy 當下的世界座標不可信）。
+        /// </summary>
+        public void ApplyMountFromNetwork(MonoEntity attachEntity, Transform mountPoint,
+            Vector3 parentOffset, Quaternion parentRotOffset,
+            Vector3 viewOffset, Quaternion viewRotOffset, bool disableColliders)
+        {
+            if (disableColliders && _collidersDisabledOnMount.Count == 0)
+                DisableCollidersForMount(BindEntity.transform);
+            else if (!disableColliders)
+                RestoreCollidersAfterUnmount();
+            _mountDisabledColliders = disableColliders;
+
+            _attachToEntityWrapper.SetValue(attachEntity, this);
+            _mountPointTarget = mountPoint;
+            _followParentOffset = parentOffset;
+            _followParentRotOffset = parentRotOffset;
+            _followViewOffset = viewOffset;
+            _followViewRotOffset = viewRotOffset;
+        }
+
+        /// <summary>非 SA 端套用網路同步下來的 unmount。</summary>
+        public void ApplyUnmountFromNetwork()
+        {
+            RestoreCollidersAfterUnmount();
+            _mountDisabledColliders = false;
+            ClearFollowTarget();
+        }
 
         //FIXME: rotation的處理？現在只有用相對位置
         public void SetFollowTarget(ViewRoot target, Vector3 mountPosition,

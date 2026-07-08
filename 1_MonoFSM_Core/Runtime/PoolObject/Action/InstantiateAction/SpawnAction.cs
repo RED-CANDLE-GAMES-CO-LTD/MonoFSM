@@ -63,6 +63,7 @@ namespace MonoFSM.Core.LifeCycle
         [SerializeField]
         private Transform _spawnPosition; //Position provider, VarVector3
 
+        [HideIf(nameof(_spawnPosition))]
         public VarVector3 _spawnPositionV3; //可以用provider
 
         Vector3 spawnPos =>

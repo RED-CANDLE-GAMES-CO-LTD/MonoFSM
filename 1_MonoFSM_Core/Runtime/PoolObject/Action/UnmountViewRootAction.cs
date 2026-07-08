@@ -24,20 +24,14 @@ namespace MonoFSM.Core.LifeCycle
                 return;
             }
 
-            source.UnmountViewRoot();
-
-            // 還原物理狀態
-            if (_handlePhysics)
+            if (source.ViewRoot == null)
             {
-                var rb = source.GetCompCache<Rigidbody>();
-                if (rb != null)
-                {
-                    rb.isKinematic = false;
-                }
-
-                // 還原 Mount 時關掉的 colliders（Mount 沒關就是 no-op）
-                source.ViewRoot?.RestoreCollidersAfterUnmount();
+                Debug.LogWarning($"[UnmountViewRoot] Source {source.name} has no ViewRoot", this);
+                return;
             }
+
+            // 物理/collider 還原集中在 ViewRoot.Unmount，連線同步由 NetworkedViewRoot 讀取結果
+            source.ViewRoot.Unmount(_handlePhysics);
 
             // Debug.Log($"[UnmountViewRoot] Unmounted {source.name}", this);
         }

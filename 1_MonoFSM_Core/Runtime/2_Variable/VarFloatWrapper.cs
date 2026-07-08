@@ -43,6 +43,8 @@ namespace MonoFSM.Variable
         // [SerializeField] bool _isVarNeeded;
 
         // [ShowIf(nameof(_isVarNeeded))]
+
+        [HideIf(nameof(_constValue))]
         [SerializeField] protected TVarType _var;
 
         [HideIf(nameof(HideConstValue))] [SerializeField]
@@ -200,7 +202,7 @@ namespace MonoFSM.Variable
         [HideIf(nameof(HideTempValue))]
         [ShowInInspector]
         [SerializeField]
-        private TValue _tempValue;
+        private TValue _tempValue; //directValue
 
         [ShowInDebugMode]
         [SOConfig("VariableType")]

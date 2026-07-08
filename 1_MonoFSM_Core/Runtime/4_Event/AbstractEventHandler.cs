@@ -47,6 +47,17 @@ namespace MonoFSM.Core
 
         [CompRef] [ShowInInspector] [Auto] protected IRenderSyncProvider _renderSyncProvider;
 
+        //陣列版 render sync（NetworkEventVisualSyncArray）在 Spawned 時注入，優先權低於同物件的 _renderSyncProvider
+        private IRenderSyncHub _renderSyncHub;
+        public void SetRenderSyncHub(IRenderSyncHub hub) => _renderSyncHub = hub;
+
+        /// <summary>
+        /// 是否為 Simulate 階段觸發的 handler（FUN 中觸發、被 StateAuthority gate）。
+        /// 這類 handler 的 Render 表現在 proxy 上收不到，需要 render sync 網路同步。
+        /// Render 驅動的 handler（OnStateEnterRenderHandler 等）覆寫為 false。
+        /// </summary>
+        public virtual bool IsSimulateEventHandler => true;
+
         [InfoBox("目前不是所有EntityProvider都是合法的喔")]
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
@@ -104,6 +115,13 @@ namespace MonoFSM.Core
                     _renderSyncProvider.RequestRenderSync();
                 else
                     _renderSyncProvider.RequestRenderSync(arg);
+            }
+            else if (_renderSyncHub != null) //root 上的陣列版 render sync
+            {
+                if (ignoreArg)
+                    _renderSyncHub.RequestRenderSync(this);
+                else
+                    _renderSyncHub.RequestRenderSync(this, arg);
             }
             else
             {

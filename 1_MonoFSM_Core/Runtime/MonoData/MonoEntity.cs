@@ -51,6 +51,11 @@ namespace MonoFSM.Runtime
             IValueOfKey<MonoEntityTag> //這樣data也要一直繼承，好ㄇ...
 
     {
+        private void Awake()
+        {
+            _parentEntity = transform.parent?.GetComponentInParent<MonoEntity>();
+        }
+
         //hmm view還是不同步？只有state需要，另外寫view?
         //effect感覺需要同步？要不然debug會看不懂？
         //install後有個搬移的過程？但這樣資料就會不同步了(ex: override)
@@ -64,7 +69,8 @@ namespace MonoFSM.Runtime
         //     BindModulePackFolders(); //FIXME: 可以在這嗎？
         // }
 
-
+        [ShowInInspector] private MonoEntity _parentEntity;
+        public MonoEntity ParentEntity => _parentEntity;
         [AutoChildren]
         private ViewRoot _viewRoot;
 
@@ -492,6 +498,7 @@ namespace MonoFSM.Runtime
         public void EnterSceneAwake()
         {
             BindModulePackFolders();
+
             // _receiverTypeSet = new HashSet<GeneralEffectType>();
             // Debug.Log("EnterSceneAwake: " +name,this); //跑兩次？
 

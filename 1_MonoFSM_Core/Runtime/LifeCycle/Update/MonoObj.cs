@@ -75,6 +75,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         [ShowInInspector] public bool isSceneObj => _poolObject == null || !_poolObject.IsFromPool;
         [ShowInInspector] public bool isPoolObj => _poolObject != null && _poolObject.IsFromPool;
+
         [ShowInInspector]
         [field: AutoChildren] //Children? //FIXME: 要弄成必定同一層，還是因為MonoObj 包一層 FSM的case很多？
         public MonoEntity Entity { get; }
@@ -219,8 +220,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         //FIXME: PoolBeforeReturnToPool? OnReturnPool?
 
-        [PreviewInDebugMode]
-        private MonoObj _parentObj;
+        [PreviewInDebugMode] private MonoObj _parentObj; //rootObj?
 
         public MonoObj ParentObj => _parentObj;
 

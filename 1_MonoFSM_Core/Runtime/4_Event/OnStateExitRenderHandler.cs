@@ -6,5 +6,7 @@ namespace MonoFSM.Core
     /// </summary>
     public class OnStateExitRenderHandler : AbstractEventHandler, IRenderInvoker
     {
+        //由 State.OnExitStateRender 在各端 Render 觸發，proxy 也會跑，不需要 render sync
+        public override bool IsSimulateEventHandler => false;
     }
 }

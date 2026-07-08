@@ -9,6 +9,17 @@ namespace MonoFSM.Core
         public void RequestRenderSync<T>(T arg);
     }
 
+    /// <summary>
+    /// 陣列版 render sync：一顆掛在 NetworkObject root，多個 EventHandler 共用。
+    /// 和 IRenderSyncProvider（1:1 同物件版）的差別是呼叫端要帶自己的身分。
+    /// 注意：刻意不繼承 IRenderInvoker，避免被 AbstractRenderBehaviour 的 [AutoParent] 誤抓。
+    /// </summary>
+    public interface IRenderSyncHub
+    {
+        public void RequestRenderSync(AbstractEventHandler handler);
+        public void RequestRenderSync<T>(AbstractEventHandler handler, T arg);
+    }
+
     public interface IRenderInvoker
     {
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
+using MonoDebugSetting;
 using MonoFSM_Core.Runtime.StateBehaviour;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
@@ -329,7 +330,12 @@ namespace MonoFSM.Core
         private bool CanTransition(ref TransitionData<TState> transition)
         {
             if (transition.TargetState == null)
-                Debug.LogError($"Transition target state is null in {Name} to {transition}", this);
+            {
+                if (RuntimeDebugSetting.IsDebugMode)
+                    Debug.LogError($"Transition target state is null in {Name} to {transition}",
+                        this);
+                return false;
+            }
             // try
             // {
             if (!transition.Transition(this as TState, transition.TargetState))
@@ -348,6 +354,8 @@ namespace MonoFSM.Core
             //FIXME: 這裡也判了？
             if (CanExitState(transition.TargetState) == false)
                 return false;
+
+
             if (transition.TargetState.CanEnterState() == false)
                 return false;
             // Debug.Log($"Can Transitioning from {Name} to {transition.TargetState.Name}", this);

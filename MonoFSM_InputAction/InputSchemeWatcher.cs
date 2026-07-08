@@ -26,6 +26,7 @@ namespace RCGInputAction
             InputSystem.onActionChange += HandleActionChange;
         }
 
+
         private static void HandleActionChange(object obj, InputActionChange change)
         {
             if (change != InputActionChange.ActionPerformed)
@@ -49,7 +50,8 @@ namespace RCGInputAction
                 return;
 
             CurrentScheme = scheme;
-            Debug.Log("[InputSchemeWatcher] Scheme changed to " + scheme + " change:" + change);
+            //FIXME: 好像怪怪的？
+            // Debug.Log("[InputSchemeWatcher] Scheme changed to " + scheme + " change:" + change);
             OnSchemeChanged?.Invoke(scheme);
         }
     }

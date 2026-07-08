@@ -72,24 +72,9 @@ namespace MonoFSM.Core.LifeCycle
                 return;
             }
 
-            // 處理物理：設 kinematic、清速度
-            if (_handlePhysics)
-            {
-                var rb = source.GetCompCache<Rigidbody>();
-                if (rb != null)
-                {
-                    rb.isKinematic = true;
-                    rb.linearVelocity = Vector3.zero;
-                    rb.angularVelocity = Vector3.zero;
-                }
-            }
-
-            // 關 colliders（從 entity root 收集，包含 Root 之外的 collider 節點）
-            if (_disableColliders)
-                source.ViewRoot.DisableCollidersForMount(source.transform);
-
-            source.ViewRoot.SetFollowTarget(target.ViewRoot, mountPoint.position,
-                mountPoint.rotation,mountPoint);
+            // 物理/collider 副作用集中在 ViewRoot.MountTo，連線同步由 NetworkedViewRoot 讀取結果
+            source.ViewRoot.MountTo(target.ViewRoot, mountPoint.position, mountPoint.rotation,
+                mountPoint, _handlePhysics, _disableColliders);
 
             // Debug.Log(
             //     $"[MountViewRoot] Mounted {source.name} to {target.name} at {_mountPoint.position}",

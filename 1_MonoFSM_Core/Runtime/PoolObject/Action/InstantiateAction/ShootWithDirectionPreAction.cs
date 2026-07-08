@@ -1,6 +1,7 @@
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable;
 using MonoFSMCore.Runtime.LifeCycle;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Core.LifeCycle
@@ -11,10 +12,17 @@ namespace MonoFSM.Core.LifeCycle
         // public Transform _directionTransform;
         [DropDownRef]
         public VarVector3 _directionVar; //用var, 然後bycondition拿
+
+        [HideIf(nameof(_directionVar))] public Transform _forwardTransform;
+
+        Vector3 ShootDir =>
+            _forwardTransform != null ? _forwardTransform.forward : _directionVar.Value;
+
         public float _speed = 10f;
 
         // [AutoParent] public Playersche _playerDataGroupSchema;
-        public VarFloat _modifier;
+        //FIXME: modifier要做啥？ 角度？速度 variation?
+        public VarFloatWrapper _modifier;
         public float _minModifier = 0.1f;
 
         public void AfterSpawn(MonoObj obj, Vector3 position, Quaternion rotation) { }
@@ -27,14 +35,18 @@ namespace MonoFSM.Core.LifeCycle
         )
         {
             var projectileSchema = obj.Entity.GetSchema<ProjectileSchema>();
-            Debug.Log(
-                $"ShootWithDirectionAfterProcess AfterSpawn called, obj: {obj}, projectileSchema: {projectileSchema}, direction: {_directionVar?.Value}",
-                this
-            );
-            Debug.Log($"Modifier: {_modifier?.Value}, minModifier: {_minModifier}", this);
-            var vel = _directionVar.Value * _speed * (_modifier.Value + _minModifier);
+            var rb = obj.Entity.GetCompCache<Rigidbody>();
+            // Debug.Log(
+            //     $"ShootWithDirectionAfterProcess AfterSpawn called, obj: {obj}, projectileSchema: {projectileSchema}, direction: {ShootDir}",
+            //     this
+            // );
+            // Debug.Log($"Modifier: {_modifier?.Value}, minModifier: {_minModifier}", this);
+            var vel = ShootDir * _speed; // * (_modifier.Value + _minModifier);
             //第一個frame的速度沒有給到？不可以直接給嗎？ 還是要過一層比較好，set到linearVelocity再給別人處理
-            projectileSchema._initVel.SetValue(vel, this);
+            projectileSchema?._initVel.SetValue(vel, this);
+
+            rb.linearVelocity = vel;
+
             //方向和velocity都給了嗎？
             // var rb = projectileSchema._rigidbody;
             // rb.transform.rotation = Quaternion.LookRotation(vel, Vector3.up);

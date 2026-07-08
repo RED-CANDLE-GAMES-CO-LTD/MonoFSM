@@ -33,6 +33,6 @@ namespace MonoFSM_InputAction
         }
 
         public MonoInputAction InputAction =>
-            _inputActionRef ? _inputActionRef : _monoInput.Value;
+            _inputActionRef ? _inputActionRef : _monoInput?.Value;
     }
 }

@@ -75,8 +75,13 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         [PreviewInInspector] public List<RaycastHit> CachedHits => _cachedHits.Value;
         public RaycastHit CachedHit => CachedHits is { Count: > 0 } ? CachedHits[0] : default;
 
+        [Tooltip("set 結果用")]
         public VarBool _hasHitVar;
+
+        [Tooltip("set 結果用")]
         public VarVector3 _hitPosVar;
+
+        [Tooltip("set 結果用")]
         public VarTransform _hitPosVarTransform;
 
         [ShowInInspector] public Vector3 rayOri => CachedRay.origin;

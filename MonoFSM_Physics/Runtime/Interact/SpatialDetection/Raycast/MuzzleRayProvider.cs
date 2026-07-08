@@ -1,5 +1,6 @@
 using MonoFSM.Core.Runtime.Interact.SpatialDetection;
 using MonoFSM.Variable;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.PhysicsWrapper
@@ -11,12 +12,16 @@ namespace MonoFSM.PhysicsWrapper
     public class MuzzleRayProvider : AbstractRayProvider
     {
         public VarTransformWrapper _muzzleTransform;
+
+        [LabelText("這個有的話，就直接用這個位置作為目標")] public VarVector3
+            _cameraHitPos; //camera射線現在打中哪裡 fixme: 這個現在最大！ muzzle如果會跟著角色旋轉位置就會跑掉(除非用aimmode)
+
+
         public float _dis = 10f; //FIXME: dis很怪？Offset?
         public VarVector3 _cameraForwardVar; //camera方向
         public VarVector3 _cameraPositionVar; //camera在哪
 
-        public VarVector3
-            _cameraHitPos; //camera射線現在打中哪裡 fixme: 這個現在最大！ muzzle如果會跟著角色旋轉位置就會跑掉(除非用aimmode)
+
         Vector3 GetTargetPoint()
         {
             if (_cameraHitPos != null)

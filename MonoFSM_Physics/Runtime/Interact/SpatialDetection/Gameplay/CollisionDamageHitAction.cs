@@ -17,6 +17,13 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection.Gameplay
 
         public void ArgEventReceived(Collision arg)
         {
+            if (arg.rigidbody == null)
+            {
+                Debug.LogError(
+                    $"[CollisionDamageHitAction] ArgEventReceived: collision with {arg.gameObject.name} has no rigidbody, cannot calculate damage",
+                    this);
+                return;
+            }
             //FIXME: 公式再想想看
             var v = arg.rigidbody.mass * arg.relativeVelocity.magnitude / 2;
             //min damage filter? 結果還要傳下去喔...
