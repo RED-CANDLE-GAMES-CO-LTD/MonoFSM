@@ -151,8 +151,29 @@ namespace MonoFSMCore.Runtime.LifeCycle
             // Debug.Log("MonoObj OnDestroy" + name, this);
         }
 
-        [ShowInDebugMode]
-        public bool ShouldSimulte { get; set; } //FIXME: IsSimulate? 除了 proxy 好像都應該照跑才對？
+        //有網路層(Fusion)時由它掛一顆實作 ISimulateAuthorityProvider 的 component；
+        //單機/純 local 物件找不到就是 null，不會 log（單一 [Auto] 欄位找不到不噴 error）。
+        [ShowInInspector] [Auto(false)]
+        private ISimulateAuthorityProvider _authorityProvider;
+
+        //外部(WorldUpdateSimulator / LocalSpawnManager)push 進來的 fallback flag，只在沒有網路權限來源時生效。
+        private bool _shouldSimulateFlag;
+
+        //有 provider → 即時看 authority；沒有但有 parent → 繼承 root 的判斷(避免 push 過時)；否則用 flag。
+        [ShowInInspector]
+        public bool ShouldSimulte
+        {
+            get
+            {
+                if (_authorityProvider != null)
+                    return _authorityProvider.HasStateAuthority || _authorityProvider.HasInputAuthority;
+                if (HasParent)
+                    return _parentObj.ShouldSimulte;
+                return _shouldSimulateFlag;
+            }
+            set => _shouldSimulateFlag = value;
+        }
+
         [PreviewInDebugMode]
         [AutoChildren]
         private ISceneAwake[] _sceneAwakes;

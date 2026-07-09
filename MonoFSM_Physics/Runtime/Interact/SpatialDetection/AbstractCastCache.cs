@@ -129,6 +129,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         {
         }
 
+        //client 怎麼做？ proxy? 直接同步point?
         public void Simulate(float deltaTime)
         {
             TryCast();
