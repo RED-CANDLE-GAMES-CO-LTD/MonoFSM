@@ -12,7 +12,7 @@ namespace MonoFSM.Core.Runtime.Action
     /// 和 AbstractConditionActivateRunner 整合？
     /// </summary>
     public class SwitchCaseActionSimulator : AbstractDescriptionBehaviour, IUpdateSimulate,
-        IRenderSimulate
+        IRenderUpdate
     {
         protected override string DescriptionTag => "Switch Simulate";
 

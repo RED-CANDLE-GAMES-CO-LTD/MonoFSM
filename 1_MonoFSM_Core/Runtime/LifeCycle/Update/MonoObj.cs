@@ -211,7 +211,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
         private IAfterSimulate[] _afterSimulates;
 
         [PreviewInDebugMode] [AutoChildren(StopAtType = typeof(MonoObj))]
-        private IRenderSimulate[] _renderSimulates;
+        private IRenderUpdate[] _renderSimulates;
         [PreviewInDebugMode] [AutoChildren(StopAtType = typeof(MonoObj))] private IAfterRenderMono[] _afterRenders;
 
         // [PreviewInInspector]

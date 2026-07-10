@@ -17,6 +17,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
     {
         protected override bool HasError()
         {
+            _detectable = GetComponentInParent<EffectDetectable>();
             return base.HasError() || Detectable == null;
         }
 

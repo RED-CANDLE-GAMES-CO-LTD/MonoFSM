@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
 {
+    //FIXME: 好像不如用 condition? 這個composite condition會不能用耶
     public class VarBoolRef : AbstractValueSource<bool>, IBoolProvider, IValueSettable<bool>
     {
         protected override bool HasError()

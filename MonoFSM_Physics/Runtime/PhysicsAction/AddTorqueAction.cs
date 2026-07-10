@@ -17,8 +17,11 @@ namespace MonoFSM.Runtime.PhysicsAction
     {
         // [CompRef] [AutoParent] private ICompProvider<Rigidbody> _rigidbodyProvider;
         // [CompRef] [AutoParent] private IHitDataProvider _hitDataProvider;
+        public Rigidbody _rb;
         public VarComp _rigidbodyVar;
-        public VarVector3 _torqueVector;
+        private Rigidbody rb => _rb ? _rb : _rigidbodyVar.Value as Rigidbody;
+
+        public VarVector3Wrapper _torqueVector;
 
         // [SerializeField] private Vector3 _torque;
         [SerializeField]
@@ -26,50 +29,6 @@ namespace MonoFSM.Runtime.PhysicsAction
 
         [SerializeField]
         private ForceMode _forceMode = ForceMode.Impulse;
-
-        //TODO: offset?
-        // public void ArgEventReceived(Rigidbody target) //轉型Provider?
-        // {
-        //     if (target == null) return;
-        //     var hitData = _hitDataProvider.GetHitData();
-        //     var dir = hitData.Dealer.transform.position - hitData.Receiver.transform.position;
-        //     // var _torque = ;
-        //     Debug.Log("AddTorqueAction: Applying torque to " + target.name + " with direction: " + dir, this);
-        //     Debug.DrawLine(hitData.Dealer.transform.position, hitData.Receiver.transform.position, Color.red, 10f);
-        //     target.AddTorque(dir.normalized * _torqueMagnitude, _forceMode);
-        // }
-        //
-        // public void EventReceived<T>(T arg)
-        // {
-        //     // ArgEventReceived(arg as Rigidbody);
-        // }
-
-        //如果沒有額外的，用Receiver
-        // protected override void OnActionExecuteImplement()
-        // {
-        //     var hitData = _hitDataProvider.GetHitData();
-        //     if (hitData == null)
-        //     {
-        //         Debug.LogError("HitData is null in AddTorqueAction", this);
-        //         return;
-        //     }
-        //
-        //     if (_rigidbodyProvider == null)
-        //     {
-        //         Debug.LogError("RigidbodyProvider is not set in AddTorqueAction", this);
-        //         return;
-        //     }
-        //
-        //     var target = _rigidbodyProvider.Get();
-        //     // var target = hitData.Receiver.transform.GetComponent<Rigidbody>();
-        //     if (target == null)
-        //     {
-        //         Debug.LogError("No Rigidbody found on Receiver in AddTorqueAction", this);
-        //         return;
-        //     }
-        //
-        //     ArgEventReceived(target);
-        // }
 
 
         [Button]
@@ -80,7 +39,22 @@ namespace MonoFSM.Runtime.PhysicsAction
 
         protected override void OnActionExecuteImplement()
         {
-            Delay();
+            // Delay();
+            var bd = rb;
+            var torqueDir = _torqueVector.Value * _torqueMagnitude;
+            // bd.AddTorque(torqueDir, _forceMode);
+            Vector3 spinAxis = Vector3.up;
+
+            // 施加旋轉力矩 (AddTorque)
+            // 這會讓物件像陀螺一樣沿著 Y 軸原地瘋狂自轉
+            bd.AddTorque(spinAxis * _torqueMagnitude, _forceMode);
+            Debug.Log(
+                "AddTorqueAction: spinAxis "
+                + spinAxis
+                + " with direction: "
+                + _torqueMagnitude,
+                this
+            );
         }
 
         private async void Delay()
@@ -88,10 +62,7 @@ namespace MonoFSM.Runtime.PhysicsAction
             try
             {
                 await Awaitable.WaitForSecondsAsync(0.1f);
-                var bd = _rigidbodyVar.Value as Rigidbody;
-                var torqueDir = _torqueVector.Value * _torqueMagnitude;
-                // bd.AddTorque(torqueDir, _forceMode);
-                bd.AddForce(torqueDir, _forceMode);
+
                 // Debug.Log(
                 //     "AddTorqueAction: Applying force to "
                 //         + bd.name
@@ -120,7 +91,7 @@ namespace MonoFSM.Runtime.PhysicsAction
                 Color.red,
                 10f
             );
-            var bd = _rigidbodyVar.Value as Rigidbody;
+            var bd = rb;
             bd.AddTorque(dir.normalized * _torqueMagnitude, _forceMode);
         }
     }

@@ -2,6 +2,7 @@ using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Variable;
 using MonoFSM.Runtime;
+using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
@@ -12,8 +13,10 @@ namespace MonoFSM.Core.LifeCycle
     /// <summary>
     /// Visual-only Spawn Action，跑在 Render Tier (OnEnterRender)。
     /// 不參與 Simulate / 網路同步，純粹用於特效、預覽物件等視覺呈現。
+    /// 實作 IArgRenderBehaviour&lt;GeneralEffectHitData&gt;，收到 hit 資料時直接在 hitPoint spawn。
     /// </summary>
-    public class SpawnVisualAction : AbstractRenderBehaviour, IPoolObjectPlayer
+    public class SpawnVisualAction : AbstractRenderBehaviour, IPoolObjectPlayer,
+        IArgRenderBehaviour<GeneralEffectHitData>
     {
         public override string Description =>
             "SpawnVisual " + (_poolObjFoldOut?.Value != null ? _poolObjFoldOut.Value.name : "?");
@@ -50,6 +53,32 @@ namespace MonoFSM.Core.LifeCycle
 
         public override void OnEnterRenderImplement()
         {
+            SpawnAt(SpawnPos, SpawnRot);
+        }
+
+        //收到 hit 資料版本：有 hitPoint 就在 hitPoint spawn，並用 hitNormal 對齊朝向
+        public void OnArgEnterRender(GeneralEffectHitData arg)
+        {
+            if (arg?.hitPoint is { } hitPoint)
+            {
+                var rot = arg.hitNormal is { } normal
+                    ? Quaternion.LookRotation(normal)
+                    : SpawnRot;
+                SpawnAt(hitPoint, rot);
+            }
+            else
+            {
+                SpawnAt(SpawnPos, SpawnRot);
+            }
+        }
+
+        public void OnArgRender(GeneralEffectHitData arg)
+        {
+            //應該用不到對ㄅ
+        }
+
+        private void SpawnAt(Vector3 spawnPos, Quaternion spawnRot)
+        {
             var prefab = Prefab;
             if (prefab == null)
             {
@@ -72,7 +101,7 @@ namespace MonoFSM.Core.LifeCycle
                 return;
             }
 
-            var newObj = sim.SpawnVisual(prefab, SpawnPos, SpawnRot);
+            var newObj = sim.SpawnVisual(prefab, spawnPos, spawnRot);
             if (newObj == null)
                 return;
 

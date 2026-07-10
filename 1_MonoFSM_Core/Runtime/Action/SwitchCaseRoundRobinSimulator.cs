@@ -13,7 +13,7 @@ namespace MonoFSM.Core.Runtime.Action
     /// 某輪沒有任何 case 符合條件時，維持目前顯示，下個 interval 再試。
     /// </summary>
     public class SwitchCaseRoundRobinSimulator : AbstractDescriptionBehaviour, IUpdateSimulate,
-        IRenderSimulate
+        IRenderUpdate
     {
         protected override string DescriptionTag => "Switch RoundRobin";
 

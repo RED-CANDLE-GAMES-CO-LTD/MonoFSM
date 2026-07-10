@@ -30,7 +30,7 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection.Gameplay
             _durability.AddBy(-v, this);
             Debug.Log(
                 $"[CollisionDamageHitAction] ArgEventReceived: mass={arg.rigidbody.mass},relvel:{arg.relativeVelocity.magnitude} damage={v}, collision with {arg.gameObject.name}",
-                arg.rigidbody);
+                this);
         }
     }
 }

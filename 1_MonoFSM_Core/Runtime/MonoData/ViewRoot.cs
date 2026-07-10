@@ -33,7 +33,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
                 ? _bindRb.transform
                 : _bindAnim != null
                     ? _bindAnim.transform
-                    : _bindRb.transform.parent;
+                    : _bindRb?.transform?.parent ?? transform; //FIXME:Socket???
 
         [AutoParent] private Animator _bindAnim;
         [AutoParent] private Rigidbody _bindRb;
@@ -49,8 +49,12 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         {
             base.Start();
             // Debug.Log($"[ViewRoot] Awake: '{name}'", this);
-            _animator.keepAnimatorStateOnDisable = true; //保持動畫狀態，避免重啟後閃回default state
-            _animator.writeDefaultValuesOnDisable = false;
+            if (_animator != null)
+            {
+                _animator.keepAnimatorStateOnDisable = true; //保持動畫狀態，避免重啟後閃回default state
+                _animator.writeDefaultValuesOnDisable = false;
+            }
+
             // ReparentToRoot(); //這裡沒問題喔
         }
 
@@ -148,8 +152,8 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             if (handlePhysics && _bindRb != null)
             {
                 _bindRb.isKinematic = true;
-                _bindRb.linearVelocity = Vector3.zero;
-                _bindRb.angularVelocity = Vector3.zero;
+                // _bindRb.linearVelocity = Vector3.zero;
+                // _bindRb.angularVelocity = Vector3.zero;
             }
             _mountHandledPhysics = handlePhysics;
 

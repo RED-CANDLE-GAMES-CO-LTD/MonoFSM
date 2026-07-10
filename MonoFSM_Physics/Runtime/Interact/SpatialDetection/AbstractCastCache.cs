@@ -26,7 +26,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             IUpdateSimulate,
             IResetStateRestore,
             IHierarchyValueInfo,
-            IRenderSimulate,
+            IRenderUpdate,
             ISceneAwake
     {
         //FIXME: 這要幹嘛？
