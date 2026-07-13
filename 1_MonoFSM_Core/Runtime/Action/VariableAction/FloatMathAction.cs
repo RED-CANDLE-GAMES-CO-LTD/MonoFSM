@@ -7,17 +7,17 @@ using UnityEngine;
 namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 {
     // //最完整的應該用這個
-    //FIXME: 想要 wrapper?
     public class FloatMathAction : AbstractStateAction
     {
         [Required]
         public VarFloat _targetVar;
 
-        [Required]
-        public VarFloat _source1Var;
+        [SerializeField]
+        private VarFloatWrapper _source1Var = new();
 
         [ShowIf(nameof(IsSource2Needed))]
-        public VarFloat _source2Var;
+        [SerializeField]
+        private VarFloatWrapper _source2Var = new();
 
         [ShowIf(nameof(IsTransfer))]
         [Tooltip("每次傳輸的固定量（不足時只傳剩餘量）")]
@@ -39,27 +39,10 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 
         private bool IsSource2Needed()
         {
-            if (_source1Var == null)
-                return false;
             return Arithmetic != ArithmeticType.AdditionAssign
                 && Arithmetic != ArithmeticType.SubtractionAssign
                 && Arithmetic != ArithmeticType.Transfer;
         }
-
-        // public OperandType _setter;
-        // public OperandType _operator1;
-        //
-        // public OperandType _operator2;
-
-        // private VariableTag op1 => _operator1 == OperandType.Dealer ? dealerVariableProvider?._varTag : receiverVariableProvider?._varTag;
-
-        // private VariableTag op2 =>
-        //     _operator2 == OperandType.Dealer ? dealerVariableProvider?._varTag : receiverVariableProvider?._varTag;
-
-        // private AbstractMonoVariable setterVariable => _targetVar?.VarRaw;
-        // _setter == OperandType.Dealer
-        //     ? dealerVariableProvider?.GetVarRaw()
-        //     : receiverVariableProvider?.GetVarRaw();
 
         private string ArithmeticString =>
             Arithmetic switch
@@ -80,7 +63,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
                 var srcMod = !Mathf.Approximately(_sourceModifier.Value, 1f) ? $"*{_sourceModifier.Value}" : "";
                 var tgtMod = !Mathf.Approximately(_targetModifier.Value, 1f) ? $"*{_targetModifier.Value}" : "";
                 var targetDesc = (_targetVar != null ? _targetVar.Description : "null") + tgtMod;
-                var source1Desc = (_source1Var != null ? _source1Var.Description : "null") + srcMod;
+                var source1Desc = _source1Var.Description + srcMod;
 
                 return Arithmetic switch
                 {
@@ -88,19 +71,10 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
                     ArithmeticType.SubtractionAssign => $"{targetDesc} -= {source1Desc}",
                     ArithmeticType.Transfer => $"{source1Desc} --({_transferAmount?.Value})--> {targetDesc}",
                     _ =>
-                        $"{targetDesc} = {source1Desc} {ArithmeticString} {_source2Var?.Description}{srcMod}",
+                        $"{targetDesc} = {source1Desc} {ArithmeticString} {_source2Var.Description}{srcMod}",
                 };
             }
         }
-
-        // $"{setterVariable?.name} = {_operator1}.{op1?.name} {ArithmeticString} {_operator2}.{op2?.name}";
-        //要用entry?
-
-
-        // [DropDownRef] public VariableFloat dealerVariable;
-
-
-        //FIXME: target Variable會交換...有時候想處理的是Dealer，有時候想處理的是Receiver
 
         public enum ArithmeticType
         {
@@ -114,7 +88,6 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
             Transfer,
         }
 
-        // protected override void ApplyEffect(GeneralEffectDealer dealer, GeneralEffectReceiver receiver)
         protected override void OnActionExecuteImplement()
         {
             if (_targetVar == null || _source1Var == null)
@@ -128,50 +101,32 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Resolver.ApplyEffect
 
             if (Arithmetic == ArithmeticType.Transfer)
             {
-                float available = Mathf.Max(0f, _source1Var.CurrentValue - _source1Var.Min);
+                float min = _source1Var._var != null ? _source1Var._var.Min : 0f;
+                float available = Mathf.Max(0f, _source1Var.Value - min);
                 float actualTransfer = Mathf.Min(_transferAmount.Value, available);
                 if (actualTransfer <= 0f) return;
 
-                _source1Var.SetValue(_source1Var.CurrentValue - actualTransfer, this);
+                _source1Var.SetValue(_source1Var.Value - actualTransfer, this);
                 _targetVar.SetValue(_targetVar.CurrentValue + actualTransfer, this);
                 return;
             }
 
-            var targetValue = _targetVar.Value * _targetModifier.Value;
             var value1 = _source1Var.Value * _sourceModifier.Value;
             float result;
             if (Arithmetic == ArithmeticType.AdditionAssign)
             {
-                // result = targetValue + value1;
                 _targetVar.AddBy(value1, this); //直接用AddBy，避免modifier被套用兩次
             }
-
             else if (Arithmetic == ArithmeticType.SubtractionAssign)
             {
                 _targetVar.AddBy(-value1, this);
             }
-            // result = targetValue - value1;
             else
             {
                 var value2 = _source2Var.Value * _sourceModifier.Value;
                 result = Calculate(value1, value2);
                 _targetVar.SetValue(result, this);
             }
-
-
-            // var dealerValue = dealerVariableProvider.GetValueFrom(dealer);
-            // var receiverValue = receiverVariableProvider.GetValueFrom(receiver);
-            // Debug.Log(
-            //     $"{_setter} = {dealerVariableProvider._varTag.name} dealerValue: {dealerValue}, {Arithmetic} {receiverVariableProvider._varTag.name} receiverValue: {receiverValue}",
-            //     this);
-            // var value1 = _operator1 == OperandType.Dealer ? dealerValue : receiverValue;
-            // var value2 = _operator2 == OperandType.Dealer ? dealerValue : receiverValue;
-            // if (_setter == OperandType.Dealer)
-            //     dealerVariableProvider.SetValue(
-            //         Calculate(value1, value2), this);
-            // else
-            //     receiverVariableProvider.SetValue(
-            //         Calculate(value1, value2), this);
         }
 
         private float Calculate(float source1, float source2)

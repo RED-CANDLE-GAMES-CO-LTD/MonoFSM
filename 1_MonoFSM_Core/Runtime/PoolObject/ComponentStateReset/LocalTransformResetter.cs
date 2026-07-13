@@ -13,7 +13,7 @@ using UnityEngine;
 /// 重置位置
 /// 也會處理 rb
 /// </summary>
-public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
+public class LocalTransformResetter : MonoBehaviour, IResetStateRestore, IResetStart
 {
     [ShowInInspector]
     private Vector3 _initLocalPosition;
@@ -57,13 +57,15 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
         return false;
     }
 
+    private Vector3 _cacheGlobalPos;
     private void InitSaveSnapshot()
     {
         _initParent = transform.parent;
         _initLocalPosition = transform.localPosition;
         _initLocalRotation = transform.localRotation;
         _initLocalScale = transform.localScale;
-        _initGlobalPos?.SetValue(transform.position);
+        _cacheGlobalPos = transform.position;
+        _initGlobalPos?.SetValue(_cacheGlobalPos);
         //--
         if (_rigidbody)
             _isKinematic = _rigidbody.isKinematic;
@@ -93,5 +95,10 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
 
             _rigidbody.ResetInertiaTensor();
         }
+    }
+
+    public void ResetStart()
+    {
+        _initGlobalPos?.SetValue(_cacheGlobalPos);
     }
 }

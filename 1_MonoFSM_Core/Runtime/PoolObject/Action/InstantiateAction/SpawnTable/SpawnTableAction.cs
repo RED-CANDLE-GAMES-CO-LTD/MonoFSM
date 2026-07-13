@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.LifeCycle;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Utility;
+using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -61,27 +63,11 @@ namespace MonoFSM.Core.SpawnTable
         [SerializeField]
         private bool _shufflePattern = true;
 
-        [BoxGroup("Force")]
-        [SerializeField]
-        private bool _applyInitialForce;
-
-        [BoxGroup("Force")]
-        [ShowIf(nameof(_applyInitialForce))]
-        [SerializeField]
-        private float _forceStrength = 5f;
-
-        [BoxGroup("Force")]
-        [ShowIf(nameof(_applyInitialForce))]
-        [Tooltip("主要飛出方向（會根據 spawnPosition 的 rotation 旋轉）")]
-        [SerializeField]
-        private Vector3 _forceDirection = Vector3.up;
-
-        [BoxGroup("Force")]
-        [ShowIf(nameof(_applyInitialForce))]
-        [Range(0f, 1f)]
-        [Tooltip("方向擴散程度 (0=集中, 1=全隨機)")]
-        [SerializeField]
-        private float _forceSpread = 0.3f;
+        // spawn 後的通用後處理（施力、設變數、播特效…）。
+        // 例如 ScatterForceAfterSpawnProcess 取代原本寫死的 ApplyInitialForce。
+        [CompRef]
+        [AutoChildren]
+        private IAfterSpawnProcess[] _afterSpawnActions;
 
         [ShowInDebugMode] [ReadOnly] private List<MonoObj> _spawnedObjects = new();
 
@@ -150,8 +136,10 @@ namespace MonoFSM.Core.SpawnTable
                         newObj.gameObject.SetActive(true);
                         _spawnedObjects.Add(newObj);
 
-                        if (_applyInitialForce)
-                            ApplyInitialForce(newObj, rot, offset);
+                        foreach (var afterSpawnAction in _afterSpawnActions)
+                            afterSpawnAction.AfterSpawn(newObj, spawnPos, rot, null);
+                        // 讓 spawn 出來的物件自己的 IAfterSpawnProcess 也能處理
+                        newObj.HandleAfterSpawn(spawnPos, rot, null);
 
                         Debug.Log($"SpawnTableAction: Spawned {entry._prefab.name}", newObj);
                     }
@@ -169,28 +157,6 @@ namespace MonoFSM.Core.SpawnTable
                     count, new Vector3(_patternRadius, 0, _patternRadius), _minDistance),
                 _ => new List<Vector3>(new Vector3[count]) // None: 全部在原點
             };
-        }
-
-        private void ApplyInitialForce(MonoObj obj, Quaternion rotation, Vector3 offset)
-        {
-            var rb = obj.GetCompCache<Rigidbody>();
-            if (rb == null) return;
-
-            // 基礎方向：如果有 offset 且不為零，用 offset 方向（從中心向外）；否則用設定的方向
-            Vector3 baseDirection;
-            if (offset.sqrMagnitude > 0.001f)
-                baseDirection = (rotation * offset).normalized + rotation * _forceDirection.normalized;
-            else
-                baseDirection = rotation * _forceDirection.normalized;
-
-            baseDirection = baseDirection.normalized;
-
-            // 加入隨機擴散
-            var randomDirection = Random.insideUnitSphere;
-            var finalDirection = Vector3.Lerp(baseDirection, randomDirection, _forceSpread).normalized;
-
-            rb.AddForce(finalDirection * _forceStrength, ForceMode.Impulse);
-            Debug.Log($"SpawnTableAction: force {finalDirection * _forceStrength}", rb);
         }
     }
 }

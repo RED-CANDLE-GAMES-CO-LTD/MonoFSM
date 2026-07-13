@@ -21,6 +21,8 @@ namespace MonoFSM.ParticleSystemActions
         {
             //FIXME; 把root particle改 disable callback?
             //loop false
+
+            // _particleSystem.main.loop = false;
         }
     }
 }
