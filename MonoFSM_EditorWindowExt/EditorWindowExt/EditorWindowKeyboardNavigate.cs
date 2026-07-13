@@ -50,10 +50,7 @@ namespace MonoFSM_EditorWindowExt.EditorWindowExt
 
         private static double _lastEscapeTime;
         private static int _escapeCount;
-
-#if UNITY_EDITOR_OSX
-        [MenuItem("Tools/MonoFSM/快速離開Prefab編輯模式 Exit Prefab Stage ^_c")] //Ctrl + E
-#endif
+        
         private static void ExitPrefabStage()
         {
             if (Application.isPlaying)
@@ -81,19 +78,19 @@ namespace MonoFSM_EditorWindowExt.EditorWindowExt
         //     }
         // }
 
-        [MenuItem("Tools/MonoFSM/Switch to Next Tab in Same Area #&_]")] // Shift+Tab key
-        private static void SwitchToNextTabInSameArea()
-        {
-            SwitchTabInSameArea(1); // 1 = next
-            RepaintToolBar();
-        }
-
-        [MenuItem("Tools/MonoFSM/Switch to Previous Tab in Same Area #&_[")]
-        private static void SwitchToPreviousTabInSameArea()
-        {
-            SwitchTabInSameArea(-1); // -1 = previous
-            RepaintToolBar();
-        }
+        // [MenuItem("Tools/MonoFSM/Switch to Next Tab in Same Area #&_]")] // Shift+Tab key
+        // private static void SwitchToNextTabInSameArea()
+        // {
+        //     SwitchTabInSameArea(1); // 1 = next
+        //     RepaintToolBar();
+        // }
+        //
+        // [MenuItem("Tools/MonoFSM/Switch to Previous Tab in Same Area #&_[")]
+        // private static void SwitchToPreviousTabInSameArea()
+        // {
+        //     SwitchTabInSameArea(-1); // -1 = previous
+        //     RepaintToolBar();
+        // }
 
         private static void SwitchTabInSameArea(int direction)
         {
@@ -153,19 +150,19 @@ namespace MonoFSM_EditorWindowExt.EditorWindowExt
             }
         }
 
-        [MenuItem("Tools/MonoFSM/Switch to Right Dock Area #%_]")] // Tab key
-        private static void SwitchToRightDockArea()
-        {
-            SwitchDockArea(1); // 1 = 往右
-            RepaintToolBar();
-        }
-
-        [MenuItem("Tools/MonoFSM/Switch to Left Dock Area #%_[")] // Shift+Tab key
-        private static void SwitchToLeftDockArea()
-        {
-            SwitchDockArea(-1); // -1 = 往左
-            RepaintToolBar();
-        }
+        // [MenuItem("Tools/MonoFSM/Switch to Right Dock Area #%_]")] // Tab key
+        // private static void SwitchToRightDockArea()
+        // {
+        //     SwitchDockArea(1); // 1 = 往右
+        //     RepaintToolBar();
+        // }
+        //
+        // [MenuItem("Tools/MonoFSM/Switch to Left Dock Area #%_[")] // Shift+Tab key
+        // private static void SwitchToLeftDockArea()
+        // {
+        //     SwitchDockArea(-1); // -1 = 往左
+        //     RepaintToolBar();
+        // }
 
         private static void SwitchDockArea(int direction)
         {

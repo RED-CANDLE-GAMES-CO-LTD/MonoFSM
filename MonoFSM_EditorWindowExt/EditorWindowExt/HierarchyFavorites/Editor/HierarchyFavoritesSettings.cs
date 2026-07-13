@@ -10,12 +10,28 @@ namespace HierarchyFavorites.Editor
             IMGUI = 1,
         }
 
+        public enum ContentMode
+        {
+            //既有值的數字不可改（EditorPrefs 已存），新值往後加
+            Favorites = 0,
+            Variables = 1,
+            Effects = 2,
+            States = 3,
+        }
+
         private const string PrefKey = "HierarchyFavorites.OverlayMode";
+        private const string ContentPrefKey = "HierarchyFavorites.ContentMode";
 
         public static OverlayMode Mode
         {
             get => (OverlayMode)EditorPrefs.GetInt(PrefKey, (int)OverlayMode.IMGUI);
             set => EditorPrefs.SetInt(PrefKey, (int)value);
+        }
+
+        public static ContentMode Content
+        {
+            get => (ContentMode)EditorPrefs.GetInt(ContentPrefKey, (int)ContentMode.Favorites);
+            set => EditorPrefs.SetInt(ContentPrefKey, (int)value);
         }
 
         private const string MenuRoot = "Tools/Hierarchy Favorites/";

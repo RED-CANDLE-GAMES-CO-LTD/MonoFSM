@@ -95,7 +95,13 @@ namespace HierarchyFavorites.Editor
         /// <summary>請求重新構建 UI / 重繪</summary>
         protected abstract void OnRebuild();
 
-        protected static void HandleEntryClick(Transform target)
+        // HandleEntryClick 自己改 selection 時，window 的 selectionChanged rebuild 應跳過
+        //（內容沒變，重建只會把 scroll / focus 弄掉）
+        private static bool _isSelfSelectionChange;
+        internal static bool IsSelfSelectionChange => _isSelfSelectionChange;
+
+        //ContentBuilder / dockable window 也會用，開放為 internal
+        internal static void HandleEntryClick(Transform target)
         {
             //Debug.Log($"[HierarchyFavorites] Clicked entry for {target}", target);
             if (target == null)
@@ -103,6 +109,9 @@ namespace HierarchyFavorites.Editor
                 //Debug.LogError("[HierarchyFavorites] Clicked entry with null target!");
                 return;
             }
+
+            _isSelfSelectionChange = true;
+            EditorApplication.delayCall += () => _isSelfSelectionChange = false;
 
             Selection.activeTransform = target;
             EditorGUIUtility.PingObject(target);
