@@ -117,10 +117,11 @@ namespace HierarchyFavorites.Editor
 
         private static readonly HierarchyFavoritesSettings.ContentMode[] TabOrder =
         {
-            HierarchyFavoritesSettings.ContentMode.Favorites,
+            HierarchyFavoritesSettings.ContentMode.Descriptions,
             HierarchyFavoritesSettings.ContentMode.Variables,
             HierarchyFavoritesSettings.ContentMode.Effects,
             HierarchyFavoritesSettings.ContentMode.States,
+            HierarchyFavoritesSettings.ContentMode.Favorites,
         };
 
         private static void BindHotkeys(VisualElement root, Action onRebuild)
@@ -203,7 +204,7 @@ namespace HierarchyFavorites.Editor
         {
             var row = new VisualElement { name = "hf-tabs" };
             row.AddToClassList("hf-tab-row");
-            row.Add(MakeTab("Favorites", HierarchyFavoritesSettings.ContentMode.Favorites,
+            row.Add(MakeTab("Descriptions", HierarchyFavoritesSettings.ContentMode.Descriptions,
                 contentMode, onRebuild));
             row.Add(MakeTab("Variables", HierarchyFavoritesSettings.ContentMode.Variables,
                 contentMode, onRebuild));
@@ -211,6 +212,8 @@ namespace HierarchyFavorites.Editor
                 onRebuild));
             row.Add(MakeTab("States", HierarchyFavoritesSettings.ContentMode.States, contentMode,
                 onRebuild));
+            row.Add(MakeTab("Favorites", HierarchyFavoritesSettings.ContentMode.Favorites,
+                contentMode, onRebuild));
             return row;
         }
 
@@ -275,6 +278,10 @@ namespace HierarchyFavorites.Editor
                 case HierarchyFavoritesSettings.ContentMode.States:
                     groups = VariableFolderCollector.GetStateGroups();
                     emptyText = "No MonoStateBehaviour (or matching search) found.";
+                    break;
+                case HierarchyFavoritesSettings.ContentMode.Descriptions:
+                    groups = VariableFolderCollector.GetDescriptionGroups();
+                    emptyText = "No AbstractDescriptionBehaviour (or matching search) found.";
                     break;
                 default:
                     groups = VariableFolderCollector.GetActiveGroups();

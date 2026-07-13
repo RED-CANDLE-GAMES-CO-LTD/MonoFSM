@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using _1_MonoFSM_Core.Runtime.LifeCycle.Update;
 using Fusion.Addons.FSM;
+using MonoFSM.Foundation;
 using MonoFSM.Variable;
 using MonoFSMCore.Runtime.LifeCycle;
 using UnityEditor;
@@ -170,6 +171,35 @@ namespace HierarchyFavorites.Editor
                     Target = state.transform,
                     Label = state.gameObject.name,
                     TypeName = state.GetType().Name,
+                    TagName = string.Empty,
+                });
+            }
+
+            return result;
+        }
+
+        // ---- Descriptions ----
+        // 撈 root 底下全部 AbstractDescriptionBehaviour（涵蓋 States/Actions/Variables 等所有子類），
+        // 分組比照 Variables/Effects：最近的 MonoModulePack 祖先，找不到用 prefab root
+        public static List<VariableGroup> GetDescriptionGroups()
+        {
+            var result = new List<VariableGroup>();
+            var root = GetActiveRoot();
+            if (root == null) return result;
+
+            var groups = new Dictionary<Transform, VariableGroup>();
+            var descriptions = root.GetComponentsInChildren<AbstractDescriptionBehaviour>(true);
+            foreach (var desc in descriptions)
+            {
+                if (desc == null) continue;
+
+                var groupTransform = GetGroupTransform(root, desc.transform);
+                var group = GetOrAddGroup(result, groups, groupTransform, groupTransform.name);
+                group.Items.Add(new VariableEntry
+                {
+                    Target = desc.transform,
+                    Label = desc.gameObject.name,
+                    TypeName = desc.GetType().Name,
                     TagName = string.Empty,
                 });
             }

@@ -27,9 +27,10 @@ namespace HierarchyFavorites.Editor
 
         private void OnEnable()
         {
-            // 收集邏輯依賴目前 selection / prefab stage，狀態變化時都要重建
+            // 收集邏輯依賴目前 selection / prefab stage，只在這兩者變化時重建。
+            // 刻意不掛 EditorApplication.hierarchyChanged：它對 hierarchy 任何變動（改名、
+            // 拖動、增減、Rename 按鈕…）都會觸發，會造成頻繁重建弄掉 scroll / focus。
             Selection.selectionChanged += OnSelectionChanged;
-            EditorApplication.hierarchyChanged += Rebuild;
             PrefabStage.prefabStageOpened += OnPrefabStageChanged;
             PrefabStage.prefabStageClosing += OnPrefabStageChanged;
             Rebuild();
@@ -38,7 +39,6 @@ namespace HierarchyFavorites.Editor
         private void OnDisable()
         {
             Selection.selectionChanged -= OnSelectionChanged;
-            EditorApplication.hierarchyChanged -= Rebuild;
             PrefabStage.prefabStageOpened -= OnPrefabStageChanged;
             PrefabStage.prefabStageClosing -= OnPrefabStageChanged;
         }

@@ -17,6 +17,7 @@ namespace HierarchyFavorites.Editor
             Variables = 1,
             Effects = 2,
             States = 3,
+            Descriptions = 4,
         }
 
         private const string PrefKey = "HierarchyFavorites.OverlayMode";
@@ -30,7 +31,7 @@ namespace HierarchyFavorites.Editor
 
         public static ContentMode Content
         {
-            get => (ContentMode)EditorPrefs.GetInt(ContentPrefKey, (int)ContentMode.Favorites);
+            get => (ContentMode)EditorPrefs.GetInt(ContentPrefKey, (int)ContentMode.Descriptions);
             set => EditorPrefs.SetInt(ContentPrefKey, (int)value);
         }
 
