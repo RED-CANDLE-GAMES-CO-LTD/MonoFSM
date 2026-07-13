@@ -34,9 +34,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public GameObject TargetObject => gameObject;
         public bool IsValid => gameObject.activeInHierarchy && _interactConditions.IsAllValid();
 
-        [AutoChildren] [CompRef]
-        AbstractConditionBehaviour[]
-            _conditions; //這個是要放在Detectable上的，還是DetectTarget上的？應該是前者？因為有些條件是整體的？
+        // [AutoChildren(DepthOneOnly = true)] [CompRef]
+        // AbstractConditionBehaviour[]
+        //     _conditions; //這個是要放在Detectable上的，還是DetectTarget上的？應該是前者？因為有些條件是整體的？
         //FIXME 這可以再包一層嗎？
         [AutoChildren]
         [CompRef]

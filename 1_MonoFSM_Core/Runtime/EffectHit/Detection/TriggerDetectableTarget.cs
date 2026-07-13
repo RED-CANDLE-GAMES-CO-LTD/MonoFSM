@@ -57,6 +57,9 @@ namespace MonoFSM.Core.Detection
         // public GeneralEffectReceiver[] EffectReceivers => _effectReceivers;
         public bool IsValidTarget => enabled && gameObject.activeInHierarchy && _collider != null;
 
+        public override bool IsDrawingValueInfo => true;
+        public override string ValueInfo => LayerMask.LayerToName(gameObject.layer);
+
         public Collider GetCollider() => _collider;
 
         private void Reset()

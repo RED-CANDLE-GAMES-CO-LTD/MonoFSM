@@ -240,6 +240,11 @@ namespace MonoFSM.Foundation
         /// <param name="isShowError">是否顯示錯誤訊息（僅在 Prefab Stage 時有效）</param>
         private bool CheckNullOfRequiredFields(bool isPrefabStage = false, bool isShowError = false)
         {
+            if (gameObject.activeSelf == false)
+            {
+                //關掉的略過
+                return false;
+            }
             var requiredFields = GetRequiredHierarchyValidateFields(GetType());
             var skippedFieldsInfo = new List<string>(); // 包含原因的跳過欄位資訊
             var validatedFields = new List<string>();

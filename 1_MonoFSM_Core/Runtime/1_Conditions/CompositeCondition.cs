@@ -20,10 +20,10 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions
             _ => Color.white
         };
 
-        protected override bool HasError()
-        {
-            return base.HasError() || (_conditions == null || _conditions.Length < 1);
-        }
+        // protected override bool HasError()
+        // {
+        //     return base.HasError() || (_conditions == null || _conditions.Length < 1);
+        // }
 
         [AutoChildren(DepthOneOnly = true, _isSelfInclude = false)]
         [CompRef]

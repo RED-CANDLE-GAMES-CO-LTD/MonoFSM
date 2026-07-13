@@ -173,7 +173,7 @@ namespace MonoFSM.Core.SpawnTable
 
         private void ApplyInitialForce(MonoObj obj, Quaternion rotation, Vector3 offset)
         {
-            var rb = obj.GetComponent<Rigidbody>();
+            var rb = obj.GetCompCache<Rigidbody>();
             if (rb == null) return;
 
             // 基礎方向：如果有 offset 且不為零，用 offset 方向（從中心向外）；否則用設定的方向
@@ -190,6 +190,7 @@ namespace MonoFSM.Core.SpawnTable
             var finalDirection = Vector3.Lerp(baseDirection, randomDirection, _forceSpread).normalized;
 
             rb.AddForce(finalDirection * _forceStrength, ForceMode.Impulse);
+            Debug.Log($"SpawnTableAction: force {finalDirection * _forceStrength}", rb);
         }
     }
 }

@@ -1,4 +1,5 @@
 using _1_MonoFSM_Core.Runtime.MonoData;
+using MonoFSM.Variable;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -16,6 +17,8 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
 {
     [ShowInInspector]
     private Vector3 _initLocalPosition;
+
+    public VarVector3 _initGlobalPos;
     private Quaternion _initLocalRotation;
 
     [ShowInInspector]
@@ -60,7 +63,7 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
         _initLocalPosition = transform.localPosition;
         _initLocalRotation = transform.localRotation;
         _initLocalScale = transform.localScale;
-
+        _initGlobalPos?.SetValue(transform.position);
         //--
         if (_rigidbody)
             _isKinematic = _rigidbody.isKinematic;
@@ -73,6 +76,7 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore
         if (ParameterInitCheck()) //第一次記下來？還是分開感覺比較好？
         {
             transform.SetParent(_initParent);
+            //FIXME: network character?
             transform.localPosition = _initLocalPosition;
             transform.localRotation = _initLocalRotation;
             transform.localScale = _initLocalScale;

@@ -241,17 +241,19 @@ namespace MonoFSM.Core.Detection
 
         [ShowInInspector]
         [Required]
-        [AutoParent] MonoContext _monoContext;
+        [AutoParent]
+        MonoContext _monoContext; //fixme: monoObj本來就會有culling就不會進來了？好像不需要多判一次吧
 
         public void DetectUpdateCheck()
         {
-            if (_monoContext == null)
-            {
-                Debug.LogError("_monoContext is null", this);
-            }
+            // if (_monoContext == null)
+            // {
+            //     Debug.LogError("_monoContext is null", this);
+            // }
+            //
+            // if (_monoContext && _monoContext.isActiveAndEnabled == false) //被culling 整個關掉就不檢測
+            //     return;
 
-            if (_monoContext && _monoContext.isActiveAndEnabled == false) //被culling 整個關掉就不檢測
-                return;
             // 每frame重建檢測列表
             _lastDetectCheckTime = Time.time;
             // 1. 記錄上一幀的檢測狀態

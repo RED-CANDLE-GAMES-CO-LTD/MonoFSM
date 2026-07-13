@@ -85,23 +85,23 @@ namespace MonoFSM.Variable
             EditorGUIUtility.ObjectContent(null, GetType()).image as Texture2D; //雞掰！
 
         //Variable 專屬的反射查找（VariableReferenceWindow）；泛用的 Find References 已上移至 AbstractDescriptionBehaviour
-        [Button("Find Variable References"), PropertyOrder(-100)]
-        private void FindVariableReferences()
-        {
-            // 透過反射呼叫 Editor Window，避免 Runtime 直接引用 Editor namespace
-            var windowType = Type.GetType(
-                "MonoFSM.Editor.VariableReferenceSystem.VariableReferenceWindow, MonoFSM.Core.Editor");
-            if (windowType != null)
-            {
-                var method = windowType.GetMethod("ShowWindowWithVariable",
-                    BindingFlags.Public | BindingFlags.Static);
-                method?.Invoke(null, new object[] { this });
-            }
-            else
-            {
-                Debug.LogWarning("VariableReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.");
-            }
-        }
+        // [Button("Find Variable References"), PropertyOrder(-100)]
+        // private void FindVariableReferences()
+        // {
+        //     // 透過反射呼叫 Editor Window，避免 Runtime 直接引用 Editor namespace
+        //     var windowType = Type.GetType(
+        //         "MonoFSM.Editor.VariableReferenceSystem.VariableReferenceWindow, MonoFSM.Core.Editor");
+        //     if (windowType != null)
+        //     {
+        //         var method = windowType.GetMethod("ShowWindowWithVariable",
+        //             BindingFlags.Public | BindingFlags.Static);
+        //         method?.Invoke(null, new object[] { this });
+        //     }
+        //     else
+        //     {
+        //         Debug.LogWarning("VariableReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.");
+        //     }
+        // }
 #endif
 
         //FIXME: 這個不能被Debug「看」，不好用... AddListener 的形式比較好

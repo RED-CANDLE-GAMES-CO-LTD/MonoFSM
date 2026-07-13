@@ -150,6 +150,7 @@ namespace MonoFSM.Core
                     //有參數的介面時
                     if (!ignoreArg && eventReceiver is IArgEventReceiver<T> argEventReceiver)
                     {
+                        //FIXME: 沒有紀錄callback時間？
                         if (argEventReceiver.IsValid)
                             argEventReceiver.ArgEventReceived(arg); //在這裡delay?
                     }

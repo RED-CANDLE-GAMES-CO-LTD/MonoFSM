@@ -244,7 +244,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         [PreviewInDebugMode] private MonoObj _parentObj; //rootObj?
 
-        public MonoObj ParentObj => _parentObj;
+        public MonoObj ParentObj =>
+            _parentObj;
 
         //只拿一層，太醜了？
         [ShowInInspector]

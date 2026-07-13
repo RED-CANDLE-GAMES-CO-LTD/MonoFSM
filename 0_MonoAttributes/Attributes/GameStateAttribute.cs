@@ -12,7 +12,7 @@ namespace MonoFSM.Core.Attributes
     [EditorOnly]
     public class GameStateAttribute : Attribute //好像不算state耶...StaticData?
     {
-        public static string GameStateFolderPath = "10_Flags"; //TODO: 弄成一個config
+        public static string GameStateFolderPath = "10_Scriptables"; //TODO: 弄成一個config
 
         public GameStateAttribute() { }
 

@@ -85,7 +85,7 @@ namespace MonoFSM.Core.LifeCycle
 
         [CompRef]
         [AutoChildren]
-        private IAfterSpawnProcess[] _preSpawnActions;
+        private IAfterSpawnProcess[] _afterSpawnActions;
 
         //檢查？SerializeClass的話？
 
@@ -178,7 +178,7 @@ namespace MonoFSM.Core.LifeCycle
             _lastSpawnedObj = newObj;
             _spawnEventHandler?.OnSpawn(newObj, position, rotation);
 
-            foreach (var preSpawnAction in _preSpawnActions)
+            foreach (var preSpawnAction in _afterSpawnActions)
                 preSpawnAction.AfterSpawn(newObj, position, rotation, hitData);
 
             var pobj = newObj.GetComponent<PoolObject>();
