@@ -145,13 +145,26 @@ namespace MonoFSM.Editor
             return sb.ToString();
         }
 
-        private static string FormatUnityObject(Object obj)
+        private static string FormatUnityObject(Object obj) => FormatUnityObject(obj, null);
+
+        // containerAssetPath：目前正在序列化的 SerializedObject 所屬的 asset path（同一份 prefab 內的
+        // node/component reference 即使 IsPersistent 也該當 NodePath，而不是誤判成外部 asset）
+        private static string FormatUnityObject(Object obj, string containerAssetPath)
         {
             if (obj == null)
                 return "null";
-            var globalID = GlobalObjectId.GetGlobalObjectIdSlow(obj);
 
-            //FIXME: 錯了，連單純的 reference都會誤判成 asset
+            var isNodeLike = obj is GameObject || obj is Component;
+            if (isNodeLike)
+            {
+                if (!EditorUtility.IsPersistent(obj))
+                    return $"NodePath(\"{GetNodeLikePath(obj)}\")";
+
+                var objPath = AssetDatabase.GetAssetPath(obj);
+                if (!string.IsNullOrEmpty(containerAssetPath) && objPath == containerAssetPath)
+                    return $"NodePath(\"{GetNodeLikePath(obj)}\")";
+            }
+
             var path = AssetDatabase.GetAssetPath(obj);
             if (!string.IsNullOrEmpty(path))
             {
@@ -172,13 +185,21 @@ namespace MonoFSM.Editor
             return $"<{obj.GetType().Name}: {obj.name}>";
         }
 
+        private static string GetNodeLikePath(Object obj)
+        {
+            if (obj is GameObject go) return GetGameObjectPath(go);
+            if (obj is Component comp) return GetGameObjectPath(comp.gameObject);
+            return obj.name;
+        }
+
         private static string FormatObjectReference(SerializedProperty property)
         {
             var obj = property.objectReferenceValue;
             if (obj == null)
                 return "null";
 
-            return FormatUnityObject(obj);
+            var containerAssetPath = AssetDatabase.GetAssetPath(property.serializedObject.targetObject);
+            return FormatUnityObject(obj, containerAssetPath);
         }
 
         private static string FormatExposedReference(SerializedProperty property)
