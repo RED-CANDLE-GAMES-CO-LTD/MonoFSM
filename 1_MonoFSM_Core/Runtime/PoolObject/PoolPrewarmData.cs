@@ -11,6 +11,23 @@ public class PoolPrewarmData : ScriptableObject
 {
 #if UNITY_EDITOR
     [Button]
+    public void ClearMissing()
+    {
+        var toRemove = new List<PoolObjectEntry>();
+        foreach (var entry in objectEntries)
+        {
+            if (entry.prefab == null)
+            {
+                toRemove.Add(entry);
+            }
+        }
+
+        foreach (var entry in toRemove)
+        {
+            objectEntries.Remove(entry);
+        }
+    }
+    [Button]
     public void OpenAndSavePreWarmPrefabs()
     {
         PoolObjectUtility.GenCacheForAllPrefabs(this);
