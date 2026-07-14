@@ -50,13 +50,32 @@ public static class StartPointSelector
         EditorGUIUtility.PingObject(sceneAsset);
     }
 
-    [MenuItem("RCGMaker/Toggle Gizmo  _3", false, 0)]
+    [MenuItem("MonoFSM/Toggle SceneView Gizmo  _3", false, 0)]
     private static void ToggleGizmo()
     {
         //toggle on off of gizmo
         if (SceneView.lastActiveSceneView)
             SceneView.lastActiveSceneView.drawGizmos = !SceneView.lastActiveSceneView.drawGizmos;
     }
+
+    [MenuItem("MonoFSM/Toggle SceneView Effect All  _5", false, 0)]
+    private static void ToggleEffect()
+    {
+        //toggle on off of gizmo
+
+        if (SceneView.lastActiveSceneView == null)
+            return;
+
+        // SceneView.lastActiveSceneView.sceneViewState.fxEnabled =
+        //     !SceneView.lastActiveSceneView.sceneViewState.fxEnabled;
+        SceneView.lastActiveSceneView.sceneViewState.alwaysRefresh = true;
+        SceneView.lastActiveSceneView.sceneViewState.SetAllEnabled(
+            !SceneView.lastActiveSceneView.sceneViewState.allEnabled);
+        Debug.Log("Toggle SceneView Effect All " +
+                  SceneView.lastActiveSceneView.sceneViewState.allEnabled);
+        SceneView.lastActiveSceneView.sceneViewState.alwaysRefresh = false;
+    }
+
 
     [MenuItem("RCGMaker/Focus Player in SceneView  #_P", false, 0)]
     private static void FocusPlayerInSceneView()
