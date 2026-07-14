@@ -83,11 +83,13 @@ namespace MonoFSM.Core
             {
                 if (action is IArgRenderBehaviour<T> argAction)
                 {
-                    argAction.OnArgEnterRender(arg);
+                    if (argAction.isActiveAndEnabled)
+                        argAction.OnArgEnterRender(arg);
                 }
                 else
                 {
-                    action.OnEnterRender();
+                    if (action.isActiveAndEnabled)
+                        action.OnEnterRender();
                 }
             }
         }

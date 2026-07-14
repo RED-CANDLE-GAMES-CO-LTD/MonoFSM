@@ -3,6 +3,7 @@ using System.Diagnostics;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Detection;
+using MonoFSM.Core.Simulate;
 using MonoFSM.Runtime.Interact.EffectHit.Resolver;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
@@ -313,6 +314,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             var hitData = data as GeneralEffectHitData;
             var exitReceiver = (GeneralEffectReceiver)data.Receiver;
             _receivers.Remove(exitReceiver);
+            RecordEffectExit();
             _exitNode?.EventHandle(hitData);
 
             // 只有在沒有其他 receiver 指向同一 entity 時才從清單移除

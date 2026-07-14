@@ -3,6 +3,7 @@ using MonoFSM.Core.Runtime;
 using _1_MonoFSM_Core.Runtime.EffectHit;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Detection;
+using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime.Interact.EffectHit.Resolver;
 using MonoFSM.Variable.Attributes;
@@ -151,9 +152,31 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public override string ValueInfo => IsValid ? "Valid" : "Off";
         public override bool IsDrawingValueInfo => Application.isPlaying && isActiveAndEnabled;
 
+        // 上次 effect exit 的 tick，-1 = 從沒 exit 過
+        [ShowInDebugMode]
+        protected int _lastExitTick = -1;
+
+        /// <summary>
+        /// effect exit 時呼叫，記錄當下 sim tick（本地用，不同步）
+        /// </summary>
+        protected void RecordEffectExit()
+        {
+            _lastExitTick = WorldUpdateSimulator.CurrentTick;
+        }
+
+        /// <summary>
+        /// 距離上次 effect exit 經過的秒數；從沒 exit 過回傳 +∞
+        /// </summary>
+        [ShowInDebugMode]
+        public float SecondsSinceLastExit =>
+            _lastExitTick < 0
+                ? float.PositiveInfinity
+                : (WorldUpdateSimulator.CurrentTick - _lastExitTick) * WorldUpdateSimulator.DeltaTime;
+
         public virtual void ResetStateRestore(bool IsHardReset)
         {
             _currentHitData = null;
+            _lastExitTick = -1;
         }
     }
 }

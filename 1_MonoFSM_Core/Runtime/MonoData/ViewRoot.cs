@@ -17,6 +17,8 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
     public class ViewRoot : AbstractDescriptionBehaviour, ISceneStart, IUpdateSimulate,
         IAfterRenderMono, IResetStateRestore
     {
+        [TitleGroup("額外給一個Mount Transform旋轉和位置(插頭)")]
+        public Transform _mountPivotTransform;
         [Tooltip("物理物件不該一開始被reparet")] [FormerlySerializedAs("_ignoreReparent")] [SerializeField]
         private bool _ignoreStartReparent; //dynamic的應該要 ignore?
         [PreviewInInspector] [AutoParent] private Animator _animator;
@@ -142,6 +144,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         [ShowInPlayMode] bool _mountHandledPhysics;
         [ShowInPlayMode] bool _mountDisabledColliders;
 
+
         /// <summary>
         /// Mount 的唯一入口（SA 端）：物理副作用 + collider + 跟隨狀態集中在這，
         /// NetworkedViewRoot 每 tick 讀取結果同步給其他端。
@@ -161,12 +164,37 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
                 DisableCollidersForMount(BindEntity.transform);
             _mountDisabledColliders = disableColliders;
 
-            SetFollowTarget(target, mountPosition, mountRotation, mountPointTarget);
+            // 以 _mountPivotTransform 為支點對齊 mount 點：算出「讓 pivot 落在 mountPosition/mountRotation」時 Root 該有的 pose。
+            // 用剛體變換 deltaRot 把 pivot 目前 pose 搬到目標 pose，同一變換套到 Root 上。
+            var rootPosition = mountPosition;
+            var rootRotation = mountRotation;
+            if (_mountPivotTransform != null && Root != null)
+            {
+                var deltaRot = mountRotation * Quaternion.Inverse(_mountPivotTransform.rotation);
+                rootRotation = deltaRot * Root.rotation;
+                rootPosition = mountPosition +
+                               deltaRot * (Root.position - _mountPivotTransform.position);
+            }
+
+            SetFollowTarget(target, rootPosition, rootRotation, mountPointTarget);
         }
 
         /// <summary>
         /// Unmount 的唯一入口（SA 端）：還原物理 + collider + 清跟隨狀態。
         /// </summary>
+        // 上次 unmount 的 tick，-1 = 從沒 unmount 過
+        [ShowInInspector]
+        private int _lastUnmountTick = -1;
+
+        /// <summary>
+        /// 距離上次 unmount 經過的秒數；從沒 unmount 過回傳 +∞
+        /// </summary>
+        [ShowInInspector]
+        public float SecondsSinceUnmount =>
+            _lastUnmountTick < 0
+                ? float.PositiveInfinity
+                : (WorldUpdateSimulator.CurrentTick - _lastUnmountTick) * WorldUpdateSimulator.DeltaTime;
+
         public void Unmount(bool handlePhysics)
         {
             if (handlePhysics && _bindRb != null)
@@ -177,6 +205,8 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             _mountDisabledColliders = false;
 
             ClearFollowTarget();
+
+            _lastUnmountTick = WorldUpdateSimulator.CurrentTick;
         }
 
         /// <summary>
@@ -309,6 +339,8 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         public void ResetStateRestore(bool isHardReset)
         {
+            _lastUnmountTick = -1;
+
             // 還原 Mount 時關掉的 collider（沒記錄就是 no-op）
             RestoreCollidersAfterUnmount();
 

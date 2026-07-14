@@ -155,6 +155,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             this.Log("OnHitExit");
             _dealers.Remove(data.Dealer as GeneralEffectDealer);
+            RecordEffectExit();
             _exitNode?.EventHandle(data);
             _currentHitData = null;
             //FIXME: 要清掉 _hittingEntity 嗎？那好像不要放在enterNODe耶...而且

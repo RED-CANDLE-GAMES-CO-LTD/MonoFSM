@@ -16,6 +16,7 @@ namespace MonoFSM.Variable.Condition
 {
     /// <summary>
     /// 和FloatCompareCondition重複？還是這個要做成簡單版？ simple compare
+    /// fixme:  把Const拿掉
     /// </summary>
     public class VarFloatCompareConstCondition : AbstractConditionBehaviour, ITransitionCheckInvoker
     {

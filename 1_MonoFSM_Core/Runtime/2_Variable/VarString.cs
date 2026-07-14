@@ -7,7 +7,9 @@ public class VarString : AbstractFieldVariable<GameDataString, FlagFieldString, 
 {
     // public override GameFlagBase FinalData => BindData;
     public override bool IsValueExist => !string.IsNullOrEmpty(CurrentValue);
-    // public string ValueInfo => CurrentValue;
+
+    public override string ValueInfo => CurrentValue;
+    public override bool IsDrawingValueInfo => true;
 
     // [OnValueChanged(nameof(OnRichTextChanged))] [TextArea]
     // public string _richText;

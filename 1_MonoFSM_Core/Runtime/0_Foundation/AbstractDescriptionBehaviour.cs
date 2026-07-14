@@ -557,9 +557,33 @@ namespace MonoFSM.Foundation
         }
 
 #if UNITY_EDITOR
+
+        [MenuItem("CONTEXT/Object/Find MonoFSM Reference 查找引用", false, 0)]
+        private static void FindAnyRef(MenuCommand command)
+        {
+            var objRef = command.context;
+            FindReferences(objRef);
+        }
+
+        [MenuItem("CONTEXT/Object/Find MonoFSM Reference of GameObject 查找GO引用", false, 0)]
+        private static void FindGORef(MenuCommand command)
+        {
+            var objRef = command.context;
+            if (objRef is Component comp)
+            {
+                var gobj = comp.gameObject;
+                FindReferences(gobj);
+            }
+        }
+
         //所有 AbstractDescriptionBehaviour 共用：透過反射開啟 ComponentReferenceWindow，避免 Runtime 直接引用 Editor namespace
         [Button("Find References"), PropertyOrder(-99)]
         private void FindReferences()
+        {
+            FindReferences(this);
+        }
+
+        private static void FindReferences(Object obj)
         {
             var windowType = Type.GetType(
                 "MonoFSM.Editor.ReferenceSystem.ComponentReferenceWindow, MonoFSM.Core.Editor");
@@ -567,13 +591,13 @@ namespace MonoFSM.Foundation
             {
                 var method = windowType.GetMethod("ShowWindowWithTarget",
                     BindingFlags.Public | BindingFlags.Static);
-                method?.Invoke(null, new object[] { this });
+                method?.Invoke(null, new object[] { obj });
             }
             else
             {
                 Debug.LogWarning(
                     "ComponentReferenceWindow not found. Please ensure MonoFSM.Core.Editor assembly is loaded.",
-                    this);
+                    obj);
             }
         }
 #endif
