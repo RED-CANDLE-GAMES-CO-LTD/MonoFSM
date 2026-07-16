@@ -4,6 +4,7 @@ using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion.Addons.FSM;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Simulate;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -56,7 +57,21 @@ public class GeneralState : MonoStateBehaviour
     {
         base.OnExitState();
         StateExitCancellationTokenSource?.Cancel();
+        _lastExitTick = WorldUpdateSimulator.CurrentTick;
     }
+
+    // 上次離開此 state 的 tick，-1 = 從沒 exit 過
+    [ShowInDebugMode] private int _lastExitTick = -1;
+
+    /// <summary>
+    /// 距離上次離開此 state 經過的秒數；從沒 exit 過回傳 +∞
+    /// 時間來源為 WorldUpdateSimulator tick 換算，本地不同步
+    /// </summary>
+    [ShowInDebugMode]
+    public float SecondsSinceLastExit =>
+        _lastExitTick < 0
+            ? float.PositiveInfinity
+            : (WorldUpdateSimulator.CurrentTick - _lastExitTick) * WorldUpdateSimulator.DeltaTime;
 
     private CancellationTokenSource StateExitCancellationTokenSource;
 

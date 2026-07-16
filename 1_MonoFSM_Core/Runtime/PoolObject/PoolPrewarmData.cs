@@ -19,6 +19,7 @@ public class PoolPrewarmData : ScriptableObject
             if (entry.prefab == null)
             {
                 toRemove.Add(entry);
+                Debug.Log("clear " + entry._cacheName, this);
             }
         }
 
