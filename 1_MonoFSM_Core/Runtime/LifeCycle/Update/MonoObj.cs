@@ -414,8 +414,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 }
                 catch (Exception e)
                 {
-                    if (item is MonoBehaviour)
-                        Debug.LogError(e.StackTrace, item as MonoBehaviour);
+                    if (item is MonoBehaviour behaviour)
+                        Debug.LogError(e.Message + "\n" + e.StackTrace, behaviour);
                     else
                         Debug.LogError(e.StackTrace);
                 }

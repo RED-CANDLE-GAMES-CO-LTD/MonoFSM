@@ -195,7 +195,7 @@ public abstract class AbstractConditionBehaviour
 
     //interface & implementation的關係，所以我也可以說安裝一個schema, 然後下面再補variable....可能自動補掉就好了？(有就自動撈)
     public override string ValueInfo => FinalResult.ToString();
-    public override bool IsDrawingValueInfo => Application.isPlaying;
+    public override bool IsDrawingValueInfo => true; //Application.isPlaying;
 
     float IValueProvider<float>.Value => IsTrue ? 1f : 0f;
 

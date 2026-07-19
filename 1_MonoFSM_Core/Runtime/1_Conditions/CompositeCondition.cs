@@ -6,7 +6,8 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions
 {
     public class CompositeCondition : AbstractConditionBehaviour
     {
-
+        public override bool IsDrawingValueInfo => true;
+        public override string ValueInfo => IsValid.ToString();
 
         [Tooltip("選擇條件組合的邏輯操作：AND (所有條件都必須滿足) 或 OR (至少一個條件滿足)")]
         [LabelText("操作類型")]

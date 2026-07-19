@@ -77,6 +77,8 @@ namespace MonoFSM.Variable.Condition
             }
         }
 
+        
+
         // protected override IVariableField listenField => _monoVariableFloat.Field; //=
     }
 }

@@ -203,12 +203,12 @@ namespace MonoFSM.Runtime.Variable
         //多包一層歐，好蠢
         public AbstractMonoVariable GetVar(VariableTag varTag)
         {
-            return VariableFolder.GetVariable(varTag);
+            return VariableFolder?.GetVariable(varTag);
         }
 
         public AbstractMonoVariable GetVar(string varTagName)
         {
-            return VariableFolder.GetVariable(varTagName);
+            return VariableFolder?.GetVariable(varTagName);
         }
 
         public TMonoVariable GetVar<TMonoVariable>(VariableTag varTag)

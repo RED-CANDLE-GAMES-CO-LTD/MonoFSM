@@ -384,7 +384,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         get
         {
             //hmm
-            if (!Application.isPlaying) //FIXME: 先隨便寫一下..
+            if (!Application.isPlaying)
                 return EditorValue;
 
             // 遞迴檢測
