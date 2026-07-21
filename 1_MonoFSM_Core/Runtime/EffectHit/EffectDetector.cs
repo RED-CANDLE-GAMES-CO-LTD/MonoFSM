@@ -239,10 +239,10 @@ namespace MonoFSM.Core.Detection
         [ShowInDebugMode]
         float _lastDetectCheckTime = 0f;
 
-        [ShowInInspector]
-        [Required]
-        [AutoParent]
-        MonoContext _monoContext; //fixme: monoObj本來就會有culling就不會進來了？好像不需要多判一次吧
+        // [ShowInInspector]
+        // [Required]
+        // [AutoParent]
+        // MonoContext _monoContext; //fixme: monoObj本來就會有culling就不會進來了？好像不需要多判一次吧
 
         public void DetectUpdateCheck()
         {

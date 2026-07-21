@@ -9,10 +9,10 @@ namespace MonoFSM.Core.Variable.Providers
     /// 無型別耶
     /// 取得 VarList 指定 index 的項目；_index 為 -1 時取 current index 的項目
     /// </summary>
-    public class GetItemOfVarListSource : AbstractGetter, IValueProvider
+    public class GetElementOfVarListSource : AbstractGetter, IValueProvider
     {
         public override string Description =>
-            (_index.Value < 0 ? "Current of" : $"Item[{_index.Value}] of")
+            (_index.Value < 0 ? "Current of" : $"Item[{_index.Description}] of")
             + (_varList != null ? $" {_varList.name}" : " VarList"); //TODO:把[內的東西刪掉]
 
         [SerializeField]

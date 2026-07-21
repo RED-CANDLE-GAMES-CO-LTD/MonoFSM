@@ -5,6 +5,7 @@ using MonoFSM.Core.Simulate;
 using MonoFSM.EditorExtension;
 using MonoFSM.Variable.Attributes;
 using MonoFSM.Variable.FieldReference;
+using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -138,10 +139,22 @@ namespace MonoFSM.Variable
         [ShowInDebugMode]
         public bool IsIncreasing => CurrentValue > LastValue;
 
+        [InfoBox(
+            "已勾選 BoundModifier 的 isResetToMaxOnRestore：Restore 時會直接還原成 Max，" +
+            "下方 Field.ProductionValue 在 runtime 不會生效（僅剩 editor 顯示用途）。",
+            InfoMessageType.Warning,
+            nameof(_isResetToMaxOnRestoreActive))]
         [Component(AddComponentAt.Same)]
         [AutoChildren(false)] //[PreviewInInspector]
         [SerializeField]
         private VariableFloatBoundModifier _boundModifier; //FIXME: Nested Prefab時會有髒髒狀態？ 還是要Editor都寫GetComponent...?
+
+        /// <summary>
+        /// BoundModifier 勾了 isResetToMaxOnRestore 時，Restore 會把值蓋成 Max，
+        /// 此時 Field.ProductionValue 無意義。給 InfoBox 判斷是否顯示警告用。
+        /// </summary>
+        private bool _isResetToMaxOnRestoreActive =>
+            _boundModifier != null && _boundModifier._isResetToMaxOnRestore;
 
 
         [CompRef] [AutoChildren(false)]
@@ -157,7 +170,24 @@ namespace MonoFSM.Variable
         // }
         // public float Value => CurrentValue;
 
-        public override string ValueInfo => CurrentValue.ToString(CultureInfo.CurrentCulture) ?? "";
+        public override string ValueInfo
+        {
+            get
+            {
+                // Editor time 的 CurrentValue 其實是 Field.ProductionValue（設計預設值），
+                // 不是 runtime 真值，標明「預設」避免誤會。
+                if (!Application.isPlaying)
+                {
+                    var editorValue = CurrentValue.ToString(CultureInfo.CurrentCulture);
+                    // 若 restore 會被蓋成 Max，額外提示開場真值，避免以為 ProductionValue 會生效
+                    if (_isResetToMaxOnRestoreActive)
+                        return $"預設 {editorValue}（Restore→Max {Max.ToString(CultureInfo.CurrentCulture)}）";
+                    return $"預設 {editorValue}";
+                }
+
+                return CurrentValue.ToString(CultureInfo.CurrentCulture);
+            }
+        }
         public override bool IsDrawingValueInfo => true;
 
         public override bool IsValueExist => Field.CurrentValue != 0f; //  CurrentValue != 0f;

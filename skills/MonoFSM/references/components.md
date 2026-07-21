@@ -130,11 +130,13 @@
 ## ValueSource 相關
 
 ### `TargetPositionResolver`
-- 類型：`[Serializable]` helper class（非 MonoBehaviour）
-- 用 `[InlineProperty]` 內嵌到任何組件
+- 類型：`[Serializable]` helper class（非 MonoBehaviour），namespace `MonoValueProvider`
+- 用 `[InlineProperty] [HideLabel]` 內嵌到任何組件
 - 統一解析目標位置，優先順序：VarVector3 > VarTransform > VarEntity
-- 需呼叫 `Init(gameObject)` 初始化
-- 腳本路徑：`MonoFSM-Pro/Runtime/ValueProvider/TargetPositionResolver.cs`
+- **凡需要 position / Transform 目標來源的欄位一律優先用它**，別再自己宣告 VarVector3 + Transform 手寫判斷
+- 無需 Init；`GetTargetPosition(fallback)` 取位置、`HasTarget` 判斷、`ActiveSource` 顯示來源
+- 詳見 `references/value-source.md`
+- 腳本路徑：`MonoFSM-Pro/Runtime/ValueSource/TargetPositionResolver.cs`
 
 ### `Vec3HomingDirectionSource`
 - 繼承：`AbstractValueSource<Vector3>`，實作 `IUpdateSimulate`、`ISceneAwake`

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _variableTypeTag: {fileID: 0}
   _valueTypeTag: {fileID: 0}
-  Note: "\u7834\u58DE\u7269\u4EF6\u7684\u7B97\u6CD5\nphysics damage?"
+  Note: "\u7834\u58DE\u7269\u4EF6\u7684\u7B97\u6CD5\nphysics damage?\n\u8981\u548CAttackDamage\u5408\u4F75\u55CE\uFF1F"
   _variableType:
     _baseFilterTypeName: 
     _typeFullName: MonoFSM.Variable.VarFloat

@@ -344,6 +344,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             // 還原 Mount 時關掉的 collider（沒記錄就是 no-op）
             RestoreCollidersAfterUnmount();
 
+            //FIXME: reset 滅火器會清掉，原本是靠物理trigger 觸發mount的
             if (_sceneStartAttachEntity != null)
             {
                 // SceneStart 有 attach → 還原成 baseline（同時蓋掉任何動態 mount）

@@ -59,19 +59,20 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
 
         // public InputActionData actionData;
 
-        //FIXME: 用一個介面
-        [HideIf("_inputActionVar")]
+        [DropDownRef] [SerializeField] VarMonoInput _monoInput;
+
+        [HideIf("_monoInput")]
         [DropDownRef]
         public MonoInputAction _inputAction;
 
         public MonoInputAction inputAction => _monoInput != null ? _monoInput.Value :
             _inputActionVar != null ? _inputActionVar.InputAction : _inputAction;
 
-        [HideIf(nameof(_inputAction))] [DropDownRef]
+
+        [HideIf("_monoInput")] [DropDownRef]
         public VarInputAction _inputActionVar;
 
-        [HideIf(nameof(_inputAction))] [DropDownRef] [SerializeField]
-        VarMonoInput _monoInput;
+
         //可以再過一層？
 
         //resolve 去哪找？往上找

@@ -2,6 +2,9 @@ using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace MonoFSM.Core.Detection
 {
@@ -17,7 +20,14 @@ namespace MonoFSM.Core.Detection
         //FIXME: [AutoParent(AddAtSame = true)]
         [SerializeField]
         private Collider _collider;
-
+#if UNITY_EDITOR
+        [Button]
+        void AddSphereColliderTrigger()
+        {
+            var col = Undo.AddComponent<SphereCollider>(gameObject);
+            col.isTrigger = true;
+        }
+#endif
         //FIXME: 加的時候要同一層
 
         protected override bool HasError()

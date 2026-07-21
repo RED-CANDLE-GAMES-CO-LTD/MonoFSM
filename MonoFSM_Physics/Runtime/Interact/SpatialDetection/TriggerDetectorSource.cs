@@ -29,9 +29,9 @@ namespace MonoFSM.Core.Detection
         [Auto]
         private Collider _collider;
 
-        [ShowInInspector]
-        [AutoParent]
-        private Rigidbody _rigidbodyInParent;
+        // [ShowInInspector]
+        // [AutoParent]
+        // private Rigidbody _rigidbodyInParent;
 
         [ShowIf("@_rigidbodyInParent == null")]
         [CompRef]

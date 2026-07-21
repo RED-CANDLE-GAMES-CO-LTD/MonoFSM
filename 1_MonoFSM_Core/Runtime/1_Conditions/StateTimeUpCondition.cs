@@ -1,4 +1,5 @@
 using MonoFSM.Core.Attributes;
+using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -9,7 +10,7 @@ namespace MonoFSM.Core
     public class StateTimeUpCondition : AbstractConditionBehaviour
     {
         public override string Description =>
-            $"{targetState.name} State Time Up: >= {_time}";
+            $"{targetState.name} State Time Up: >= {time}";
 
         [PreviewInInspector]
         [AutoParent] private GeneralState _parentState;
@@ -17,8 +18,10 @@ namespace MonoFSM.Core
         [SerializeField] GeneralState _externalState; //如果要參考別的 state 的時間
         private GeneralState targetState => _externalState != null ? _externalState : _parentState;
 
+        public VarFloat _timeVar;
         [FormerlySerializedAs("time")] public float _time;
+        float time => _timeVar != null ? _timeVar.Value : _time;
         [ShowInInspector] private float targetStateStatusTimer => targetState?.statusTimer ?? -1f;
-        protected override bool IsValid => targetState.statusTimer >= _time;
+        protected override bool IsValid => targetState.statusTimer >= time;
     }
 }

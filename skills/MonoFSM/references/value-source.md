@@ -132,32 +132,55 @@ public class VarStatBaseValueRef : AbstractValueSource<float>, IFloatProvider
 
 ## TargetPositionResolver 共用目標解析
 
-`[Serializable]` class，可用 `[InlineProperty]` 內嵌到任何 MonoBehaviour 中，統一解析「目標位置」。
+`[Serializable]` class（namespace `MonoValueProvider`），用 `[InlineProperty]` 內嵌到任何 MonoBehaviour 中，統一解析「目標位置」。
+
+> **優先使用慣例**：凡是需要「目標位置 / position / Transform 來源」的欄位，**一律優先用 `TargetPositionResolver`**，不要各自宣告 `VarVector3` + `Transform` 再手寫 if/else 判斷。它已涵蓋三種來源與 runtime 有值判斷。
 
 ### 優先順序
 
-1. **VarVector3** — 直接位置座標
-2. **VarTransform** — 從 Transform 取 position
-3. **VarEntity** — 透過 `TransformOfEntity` 取 position
+1. **VarVector3** (`_targetPosVar`) — 直接位置座標（通常由 Action 動態設定）
+2. **VarTransform** (`_targetTransformVar`) — 從 Transform 取 position
+3. **VarEntity** (`_targetEntityVar`) — 透過 `TransformOfEntity` 取 position
+
+三個欄位「故意全留」，依序 resolve，都用 `IsValueExist` 確認 runtime 有值才採用。
+
+### API
+
+| 成員 | 說明 |
+|------|------|
+| `Vector3 GetTargetPosition(Vector3 fallback)` | 依優先順序取位置，全都無值時回傳 fallback |
+| `bool HasTarget` | 是否有任一有效來源（`[ShowInInspector, ReadOnly]`） |
+| `string ActiveSource` | 目前生效來源名（"VarVector3"/"VarTransform"/"VarEntity"/"None"），適合放進 Description |
+| `Transform ResolvedTransform` | 解析出的 Transform（VarVector3 來源時為 null） |
+| `void ClearPositionTarget()` | 清除 VarVector3 靜態目標，通常到達後呼叫 |
+
+無需 `Init()`；直接宣告序列化欄位即可用。
 
 ### 使用方式
 
 ```csharp
-[SerializeField] [InlineProperty] private TargetPositionResolver _targetResolver;
+[InlineProperty] [HideLabel] [SerializeField]
+private TargetPositionResolver _target;
 
-// 在 ISceneAwake 中初始化
-_targetResolver.Init(gameObject);
+// Description 直接顯示生效來源
+public override string Description => $"... at [{_target.ActiveSource}]";
 
-// 取得目標位置
-Vector3 targetPos = _targetResolver.GetPosition();
+protected override void OnActionExecuteImplement()
+{
+    if (!_target.HasTarget) { Debug.LogError("無有效目標來源", this); return; }
+    var pos = _target.GetTargetPosition(transform.position);
+    // ...
+}
 ```
+
+參考實例：`MonoFSM-Pro/Runtime/GamePlay/ChaseMoveAction.cs`、`Assets/0_Gameplay/Lightning/LightningStrikeAction.cs`
 
 ### 關鍵細節
 
 - 用 `IsValueExist` 判斷 runtime 有值，不是只檢查 Var 引用是否存在（引用存在 ≠ runtime 有值）
-- 向後相容策略：保留舊的獨立欄位（如 `_target`），新的 Resolver 優先，fallback 到舊欄位
+- `GetTargetPosition` 的 `fallback` 參數偏鳥，呼叫前建議先用 `HasTarget` 擋掉無來源情形
 
-腳本路徑：`MonoFSM-Pro/Runtime/ValueProvider/TargetPositionResolver.cs`
+腳本路徑：`MonoFSM-Pro/Runtime/ValueSource/TargetPositionResolver.cs`
 
 ---
 
