@@ -79,6 +79,42 @@ public override string Description => $"Is {_targetState?.name}";
 
 可參考：`1_MonoFSM_Core/Runtime/1_Conditions/HasStateTagCondition.cs`、`IsStateCondition.cs`
 
+### 同一功能要同時支援 Action 與 Render
+
+`AbstractStateAction`（掛 `IActionParent`、event 觸發）與 `AbstractRenderBehaviour`（掛 `IRenderInvoker`、每 render frame 觸發）**都繼承 `AbstractDescriptionBehaviour`，但父物件契約與 Condition 系統完全不同**（Action 用 `_conditions[]`，Render 用 `_conditionGroup`，`HasError` 各自檢查父型別）。
+
+C# 單一繼承，**不要在同一個 class 上 implement `IRenderBehaiour` 硬兼容兩者**：不管選哪個 base，另一邊的 `HasError` 會因父物件型別不符而報錯，掛載位置被綁死。
+
+正解：**把核心邏輯抽成一個 `[Serializable]` class，做兩個薄 wrapper**：
+
+```csharp
+[Serializable]
+public class XxxWriter // 共用邏輯 + 欄位 + Description
+{
+    public string Description => ...;
+    public void Write(Object byWho) { ... }
+}
+
+public class XxxAction : AbstractStateAction
+{
+    [HideLabel] [InlineProperty] public XxxWriter _writer = new();
+    public override string Description => _writer.Description;
+    protected override void OnActionExecuteImplement() => _writer.Write(this);
+}
+
+public class XxxRender : AbstractRenderBehaviour
+{
+    [HideLabel] [InlineProperty] public XxxWriter _writer = new();
+    public override string Description => _writer.Description;
+    public override void OnEnterRenderImplement() => _writer.Write(this);
+    public override void OnRenderImplement() => _writer.Write(this);
+}
+```
+
+`[HideLabel][InlineProperty]` 讓 writer 欄位在 Inspector 攤平，看起來就像直接寫在 wrapper 上。
+
+**參考實作**：`1_MonoFSM_Core/Runtime/Action/VariableAction/`（`PositionToVarVector3Writer` + `SetVarVector3FromTargetAction` / `SetVarVector3FromTargetRender`）
+
 ## Auto Attributes
 
 ```csharp
@@ -123,6 +159,8 @@ public override string Description => $"Is {_targetState?.name}";
 ## ValueSource / Variable 系統
 
 `AbstractValueSource<T>` 泛型基類用於每幀計算並提供值（方向、位置、輸入等）。Variable 系統（VarFloat、VarVector3 等）的 `IsValueExist` 用於判斷 runtime 有效值。詳見 [references/value-source.md](references/value-source.md)。
+
+**需要「目標位置」時，用 `TargetPositionResolver`（namespace `MonoValueProvider`，在 Core），不要在欄位寫死 `Transform`**。它是 `[Serializable]`，統一解析 `VarVector3` / `VarTransform` / `VarEntity` 三種來源（優先序：Vector3 > Transform > Entity，各自 `IsValueExist` 才採用）。常用 API：`GetTargetPosition(fallback)`、`ResolvedTransform`、`HasTarget`、`ActiveSource`、`ClearPositionTarget()`。用法：欄位宣告 `[InlineProperty][HideLabel] public TargetPositionResolver _source = new();`，取值前先判 `HasTarget`。位置：`1_MonoFSM_Core/Runtime/0_Pattern/DataProvider/EntityProvider/ValueSource/TargetPositionResolver.cs`。
 
 ## VarWrapper 系列（可綁 Var 或填常數的欄位）
 

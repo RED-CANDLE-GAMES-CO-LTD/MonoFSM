@@ -10,6 +10,8 @@ namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
 {
     public class VarFloatRef : AbstractValueSource<float>, IFloatProvider, IFloatBoundProvider, IValueSettable<float>
     {
+        public override string ValueInfo => Value.ToString();
+
         protected override bool HasError()
         {
             if (_dropDownRef == GetComponentInParent<VarFloat>())

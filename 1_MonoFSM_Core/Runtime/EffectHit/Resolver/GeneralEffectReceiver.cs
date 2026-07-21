@@ -141,6 +141,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public void OnEffectHitBestMatchEnter(GeneralEffectHitData data)
         {
             //bestEnterNode
+            var dealerEntity = data.GeneralDealer.BindEntity;
+            _bestEnterNode?._hittingEntity?.SetValue(dealerEntity, this);
             _bestEnterNode?.EventHandle(data);
         }
 

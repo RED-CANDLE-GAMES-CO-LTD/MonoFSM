@@ -22,7 +22,7 @@ namespace MonoFSM.Animation
 {
     //小心從init routing來，會直接播結束的frame，要從transition上知道這件事
     //documentation要放哪？
-    
+
     // [HelpURL("https://www.notion.so/AnimatorPlayA-061be2a2d4e5414e88e84f1ed80d8ea2")]
     [Searchable]
     public class AnimatorPlayAction
@@ -913,7 +913,7 @@ namespace MonoFSM.Animation
             //FIXME: init skip to last frame是不是不好...該拆兩個狀態就拆兩個狀態吧？
             // if (CheckInitAndSkipAnimationToLastFrame())
             //     runtimeStartNormalizedTimeOffset = 1;
-
+            Debug.Log("runtimeStartNormalizedTimeOffset" + runtimeStartNormalizedTimeOffset, this);
             if (animatorEnterCrossFade == 0)
             {
                 this.Log("Play Animation:", StateName, "layer:", stateLayer);
@@ -951,11 +951,11 @@ namespace MonoFSM.Animation
             // Debug.Break();
         }
 
-        [Tooltip("跳過OnRender的檢查")]
-        public bool _isSkipOnRenderCheck;
+        [Tooltip("跳過OnRender的檢查")] public bool _isSkipOnRenderCheck = true; //default true?
 
         public void OnRender()
         {
+            return;
             if (_isSkipOnRenderCheck)
                 return;
             if (!IsValid)
@@ -993,7 +993,7 @@ namespace MonoFSM.Animation
                         gameObject
                     );
                 }
-                else animator.Play(StateHash, stateLayer, float.NegativeInfinity);
+                // else animator.Play(StateHash, stateLayer); //FIXME: 這個會讓 normalize time錯誤耶
             }
             else
             {

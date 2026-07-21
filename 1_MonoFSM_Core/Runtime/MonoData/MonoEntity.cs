@@ -317,8 +317,8 @@ namespace MonoFSM.Runtime
         [ShowInDebugMode]
         private List<GeneralEffectType> DealerTypes => _dealerTypeMap.Keys.ToList();
 
-        [ShowInDebugMode]
-        private List<GeneralEffectType> ReceiverTypes => _receiverTypeMap.Keys.ToList();
+        // [ShowInDebugMode]
+        // private List<GeneralEffectType> ReceiverTypes => _receiverTypeMap.Keys.ToList();
 #endif
 
         [ShowInDebugMode]
@@ -343,23 +343,24 @@ namespace MonoFSM.Runtime
         //     receiver.ForceDirectEffectHit(dealer,target.gameObject);
         // }
 
-        [ShowInDebugMode]
-        [AutoChildren]
-        private GeneralEffectReceiver[] _receivers; //可以互動的性質門
-
-        // readonly HashSet<GeneralEffectType> _receiverTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
-        private readonly Dictionary<GeneralEffectType, GeneralEffectReceiver> _receiverTypeMap =
-            new();
-
-        public GeneralEffectReceiver[] AllReceivers => _receivers;
-
-        [ShowInDebugMode]
-        private int ReceiverSetCount => _receiverTypeMap.Count;
+        // [ShowInDebugMode]
+        // [AutoChildren]
+        // private GeneralEffectReceiver[] _receivers; //可以互動的性質門
+        //
+        // // readonly HashSet<GeneralEffectType> _receiverTypeSet = new HashSet<GeneralEffectType>(); //可以被互動的性質
+        // private readonly Dictionary<GeneralEffectType, GeneralEffectReceiver> _receiverTypeMap =
+        //     new();
+        //
+        // public GeneralEffectReceiver[] AllReceivers => _receivers;
+        //
+        // [ShowInDebugMode]
+        // private int ReceiverSetCount => _receiverTypeMap.Count;
 
         //帶有xx性質的物件
         public bool HasReceiverType(GeneralEffectType effectType)
         {
-            return _receiverTypeMap.ContainsKey(effectType);
+            return _effectDetectable.ContainsKey(effectType);
+            // return _receiverTypeMap.ContainsKey(effectType);
             // return _receiverTypeSet.Contains(effectType);
         }
 
@@ -387,14 +388,15 @@ namespace MonoFSM.Runtime
                 Debug.LogError("EffectType is null", this);
                 return null;
             }
-            if (_receiverTypeMap.TryGetValue(effectType, out var receiver) == false)
-            {
-                if (RuntimeDebugSetting.IsDebugMode)
-                    Debug.LogError($"Receiver \"{effectType}\" not found in {name}", this);
-                return null;
-            }
 
-            return receiver;
+            var result = _effectDetectable.Get(effectType);
+            // {
+            if (result == null && RuntimeDebugSetting.IsDebugMode)
+                Debug.LogError($"Receiver \"{effectType}\" not found in {name}", this);
+            // return null;
+            // }
+
+            return result;
         }
 
         // public DescriptableData SampleData;
@@ -503,17 +505,17 @@ namespace MonoFSM.Runtime
             // Debug.Log("EnterSceneAwake: " +name,this); //跑兩次？
 
             //FIXME 不要用 type map
-            if (_receivers != null)
-                foreach (var receiver in _receivers)
-                {
-                    // _receiverTypeSet.Add(receiver.EffectType);
-                    if (!_receiverTypeMap.TryAdd(receiver._effectType, receiver))
-                    {
-                        if (RuntimeDebugSetting.IsDebugMode)
-                            Debug.Log("Receiver type already exists" + receiver._effectType,
-                                receiver);
-                    }
-                }
+            // if (_receivers != null)
+            //     foreach (var receiver in _receivers)
+            //     {
+            //         // _receiverTypeSet.Add(receiver.EffectType);
+            //         if (!_receiverTypeMap.TryAdd(receiver._effectType, receiver))
+            //         {
+            //             if (RuntimeDebugSetting.IsDebugMode)
+            //                 Debug.Log("Receiver type already exists" + receiver._effectType,
+            //                     receiver);
+            //         }
+            //     }
             //
             foreach (var dealer in _dealers)
             {

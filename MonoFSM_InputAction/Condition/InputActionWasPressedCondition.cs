@@ -59,6 +59,7 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
 
         // public InputActionData actionData;
 
+        [HideIf("_inputActionVar")]
         [DropDownRef] [SerializeField] VarMonoInput _monoInput;
 
         [HideIf("_monoInput")]

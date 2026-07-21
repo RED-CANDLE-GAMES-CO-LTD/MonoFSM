@@ -21,6 +21,7 @@ namespace MonoFSM.ParticleSystemActions
             Bool
         }
 
+        [HideIf(nameof(_rendererCollection))]
         [SerializeField] [DropDownRef]
         private Renderer _renderer;
 
@@ -122,10 +123,10 @@ namespace MonoFSM.ParticleSystemActions
             {
                 ApplyPropertyBlock(_renderer);
             }
-            else
-            {
-                Debug.LogWarning("SetMaterialPropertyBlockAction: No Renderer or RendererCollection assigned", this);
-            }
+            // else
+            // {
+            //     Debug.LogWarning("SetMaterialPropertyBlockAction: No Renderer or RendererCollection assigned", this);
+            // }
         }
 
         public override void OnRenderImplement()
