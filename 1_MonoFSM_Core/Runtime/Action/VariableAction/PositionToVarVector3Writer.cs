@@ -21,7 +21,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
         [Required] [DropDownRef] public VarVector3 _targetVar;
 
         public string Description =>
-            $"{_source.ActiveSource} => {(_targetVar != null ? _targetVar.name : "?")}";
+            $"{_source.BindingSource} => {(_targetVar != null ? _targetVar.name : "?")}";
 
         public void Write(Object byWho)
         {

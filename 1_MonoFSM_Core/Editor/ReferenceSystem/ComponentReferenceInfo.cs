@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MonoFSM.Runtime;
 using UnityEngine;
 
@@ -84,5 +85,30 @@ namespace MonoFSM.Editor.ReferenceSystem
             ReferencingComponent != null
                 ? $"{ReferencingComponent.gameObject.name} ({ReferencingComponent.GetType().Name})"
                 : "(null)";
+
+        /// <summary>
+        /// 引用者的 Transform 階層路徑，往上走到最近的 MonoEntity 為界（若無則到 root）。
+        /// 例如: "Door Entity/Pivot/Handle"
+        /// </summary>
+        public string HierarchyPath
+        {
+            get
+            {
+                if (ReferencingComponent == null) return "";
+
+                var names = new List<string>();
+                var current = ReferencingComponent.transform;
+                while (current != null)
+                {
+                    names.Add(current.name);
+                    // 走到帶有 MonoEntity 的節點即停（含該節點），對齊引用範圍語意
+                    if (current.GetComponent<MonoEntity>() != null) break;
+                    current = current.parent;
+                }
+
+                names.Reverse();
+                return string.Join("/", names);
+            }
+        }
     }
 }

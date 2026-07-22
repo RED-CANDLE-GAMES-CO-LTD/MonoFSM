@@ -49,7 +49,7 @@ namespace MonoFSM.Editor.ReferenceSystem
         /// </summary>
         public static void ShowWindowWithTarget(Object target)
         {
-            var window = GetWindow<ComponentReferenceWindow>("Reference Finder");
+            var window = GetWindow<ComponentReferenceWindow>("Component Reference Window");
 
             var stage = PrefabStageUtility.GetCurrentPrefabStage();
             if (stage != null)
@@ -342,23 +342,38 @@ namespace MonoFSM.Editor.ReferenceSystem
             GUILayout.Label($"[{refInfo.TypeDisplayName}]", EditorStyles.miniLabel, GUILayout.ExpandWidth(false));
             EditorGUILayout.EndHorizontal();
 
+            var pathColor = EditorGUIUtility.isProSkin
+                ? new Color(0.75f, 0.75f, 0.75f)
+                : new Color(0.35f, 0.35f, 0.35f);
+            var pathStyle = new GUIStyle(EditorStyles.miniLabel)
+            {
+                wordWrap = true,
+                normal = { textColor = pathColor }
+            };
+            EditorGUILayout.LabelField($"Path: {refInfo.HierarchyPath}", pathStyle);
+
             EditorGUILayout.LabelField($"Field: {refInfo.FieldPath}", EditorStyles.miniLabel);
 
             if (refInfo.Scope == ReferenceScope.CrossEntity && refInfo.OwnerEntity != null)
                 EditorGUILayout.LabelField($"Entity: {refInfo.OwnerEntity.name}", EditorStyles.miniLabel);
 
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-
-            if (GUILayout.Button("Ping", GUILayout.Width(50)))
-                EditorGUIUtility.PingObject(refInfo.ReferencingComponent);
-
-            if (GUILayout.Button("Select", GUILayout.Width(50)))
-                Selection.activeObject = refInfo.ReferencingComponent;
-
-            EditorGUILayout.EndHorizontal();
-
             EditorGUILayout.EndVertical();
+
+            // 整個 entry 框可點擊：單擊 Ping、雙擊 Select
+            var boxRect = GUILayoutUtility.GetLastRect();
+            if (refInfo.ReferencingComponent != null)
+            {
+                EditorGUIUtility.AddCursorRect(boxRect, MouseCursor.Link);
+                var e = Event.current;
+                if (e.type == EventType.MouseDown && boxRect.Contains(e.mousePosition))
+                {
+                    if (e.clickCount == 2)
+                        Selection.activeObject = refInfo.ReferencingComponent;
+                    else
+                        EditorGUIUtility.PingObject(refInfo.ReferencingComponent);
+                    e.Use();
+                }
+            }
         }
     }
 }

@@ -25,20 +25,35 @@ namespace MonoValueProvider
         [DropDownRef] public VarEntity _targetEntityVar;
 
         private bool HasPosValue => _targetPosVar != null;
-        private bool HasTransformValue => _targetTransformVar != null;
-        private bool HasEntityValue => _targetEntityVar != null;
 
-        [ShowInInspector, ReadOnly]
+        private bool HasTransformValue =>
+            _targetTransformVar != null && _targetTransformVar.Value != null;
+
+        private bool HasEntityValue => _targetEntityVar != null && _targetEntityVar.Value != null;
+
+        [ShowInInspector, ReadOnly] //runtime用
         public bool HasTarget => HasPosValue || HasTransformValue || HasEntityValue;
 
         [ShowInInspector, ReadOnly]
-        public string ActiveSource
+        public string ActiveSource //editor看用的
         {
             get
             {
-                if (HasPosValue) return _targetPosVar.Description;
-                if (HasTransformValue) return _targetTransformVar.Description;
-                if (HasEntityValue) return _targetEntityVar.Description;
+                if (_targetPosVar != null) return _targetPosVar.Description;
+                if (_targetTransformVar != null) return _targetTransformVar.Description;
+                if (_targetEntityVar != null) return _targetEntityVar.Description;
+                return "None";
+            }
+        }
+
+        [ShowInInspector, ReadOnly]
+        public string BindingSource //editor看用的
+        {
+            get
+            {
+                if (_targetPosVar != null) return _targetPosVar.Description;
+                if (_targetTransformVar != null) return _targetTransformVar.Description;
+                if (_targetEntityVar != null) return _targetEntityVar.Description;
                 return "None";
             }
         }
