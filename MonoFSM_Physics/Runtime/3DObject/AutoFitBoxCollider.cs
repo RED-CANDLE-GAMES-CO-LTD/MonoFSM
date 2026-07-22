@@ -48,12 +48,19 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
         [Title("Collider 模式")] public ColliderFitMode fitMode = ColliderFitMode.AABB;
 
         [ShowIf("fitMode", ColliderFitMode.OBB)]
-        [Tooltip("直接對齊 Renderer 的朝向（單一有旋轉的 mesh 建議開啟，貼合最緊）；關閉則暴力搜尋最小體積角度")]
-        public bool obbAlignToRendererRotation = true;
+        [Tooltip("粗掃階段每軸（0~90°）的取樣數，三軸都掃。越高越不易漏掉最佳方向，成本 O(n³)")]
+        [Range(4, 24)]
+        public int obbCoarseSteps = 12;
 
-        [ShowIf("@fitMode == ColliderFitMode.OBB && !obbAlignToRendererRotation")]
-        [Tooltip("OBB 旋轉採樣數量（越高越精確但越慢）")] [Range(8, 72)]
-        public int obbSamples = 24;
+        [ShowIf("fitMode", ColliderFitMode.OBB)]
+        [Tooltip("細化次數：在目前最佳角度附近反覆縮小窗口，逼近真正最小體積")]
+        [Range(0, 6)]
+        public int obbRefineIterations = 4;
+
+        [ShowIf("fitMode", ColliderFitMode.OBB)]
+        [Tooltip("每次細化時每軸的取樣數")]
+        [Range(2, 8)]
+        public int obbRefineSteps = 4;
 
         [ShowIf("fitMode", ColliderFitMode.OBB)] [Tooltip("OBB 子物件名稱")]
         public string obbChildName = "_OBBCollider";
@@ -166,35 +173,6 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
             }
         }
 
-        /// <summary>
-        /// 取得主要 renderer（用來決定 OBB 對齊的朝向）：
-        /// SingleRenderer 模式優先用指定的 targetRenderer，否則取第一個帶有 Mesh 的啟用 renderer
-        /// </summary>
-        private Renderer GetPrimaryRenderer(Renderer[] renderers)
-        {
-            if (rendererSource == RendererSource.SingleRenderer && targetRenderer != null)
-                return targetRenderer;
-
-            foreach (Renderer rend in renderers)
-            {
-                if (!rend.enabled)
-                    continue;
-
-                MeshFilter meshFilter = rend.GetComponent<MeshFilter>();
-                if (meshFilter != null && meshFilter.sharedMesh != null)
-                    return rend;
-            }
-
-            // 退而求其次：第一個啟用的 renderer
-            foreach (Renderer rend in renderers)
-            {
-                if (rend.enabled)
-                    return rend;
-            }
-
-            return renderers.Length > 0 ? renderers[0] : null;
-        }
-
         private List<Vector3> CollectVertices(Renderer[] renderers)
         {
             List<Vector3> vertices = new List<Vector3>();
@@ -275,51 +253,56 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
             // 儲存頂點用於 Gizmo 顯示
             debugVertices = new List<Vector3>(vertices);
 
-            Quaternion bestRotation;
-            Vector3 bestCenter;
-            Vector3 bestSize;
+            // 三軸暴力搜尋 + 階層細化，找最小體積方向
+            float minVolume = float.MaxValue;
+            Vector3 bestAngles = Vector3.zero;
+            Quaternion bestRotation = Quaternion.identity;
+            Vector3 bestCenter = Vector3.zero;
+            Vector3 bestSize = Vector3.one;
 
-            if (obbAlignToRendererRotation)
+            // 粗掃：BoxCollider 對三主軸各有 90° 旋轉對稱性，每軸只需掃 [0,90)
+            float coarseStep = 90f / obbCoarseSteps;
+            for (int ix = 0; ix < obbCoarseSteps; ix++)
+            for (int iy = 0; iy < obbCoarseSteps; iy++)
+            for (int iz = 0; iz < obbCoarseSteps; iz++)
             {
-                // 直接對齊 mesh 自身朝向：以 renderer 的世界旋轉為盒子座標系，
-                // 頂點投影到該座標系後取 min/max，對單一旋轉 mesh 就是最緊貼合
-                Renderer primary = GetPrimaryRenderer(renderers);
-                bestRotation = primary != null ? primary.transform.rotation : transform.rotation;
-                CalculateOBB(vertices, bestRotation, out bestCenter, out bestSize);
+                EvaluateOBB(
+                    vertices,
+                    new Vector3(ix * coarseStep, iy * coarseStep, iz * coarseStep),
+                    ref minVolume,
+                    ref bestAngles,
+                    ref bestRotation,
+                    ref bestCenter,
+                    ref bestSize
+                );
             }
-            else
+
+            // 細化：在目前最佳角度附近反覆縮小窗口逼近
+            float window = coarseStep;
+            for (int iter = 0; iter < obbRefineIterations; iter++)
             {
-                // 暴力搜尋世界空間旋轉，找最小體積（多 mesh 合併時的 fallback）
-                float minVolume = float.MaxValue;
-                bestRotation = Quaternion.identity;
-                bestCenter = Vector3.zero;
-                bestSize = Vector3.one;
-
-                float angleStep = 180f / obbSamples; // 只需要搜索 180 度
-
-                // 對 X、Y 軸進行採樣
-                for (int xRot = 0; xRot < obbSamples / 2; xRot++)
+                Vector3 pivot = bestAngles;
+                float step = 2f * window / obbRefineSteps;
+                for (int ix = 0; ix <= obbRefineSteps; ix++)
+                for (int iy = 0; iy <= obbRefineSteps; iy++)
+                for (int iz = 0; iz <= obbRefineSteps; iz++)
                 {
-                    for (int yRot = 0; yRot < obbSamples; yRot++)
-                    {
-                        Quaternion testRotation = Quaternion.Euler(
-                            xRot * angleStep,
-                            yRot * angleStep,
-                            0
-                        );
-
-                        CalculateOBB(vertices, testRotation, out Vector3 center, out Vector3 size);
-                        float volume = size.x * size.y * size.z;
-
-                        if (volume < minVolume)
-                        {
-                            minVolume = volume;
-                            bestRotation = testRotation;
-                            bestCenter = center;
-                            bestSize = size;
-                        }
-                    }
+                    EvaluateOBB(
+                        vertices,
+                        new Vector3(
+                            pivot.x - window + ix * step,
+                            pivot.y - window + iy * step,
+                            pivot.z - window + iz * step
+                        ),
+                        ref minVolume,
+                        ref bestAngles,
+                        ref bestRotation,
+                        ref bestCenter,
+                        ref bestSize
+                    );
                 }
+
+                window = step; // 下一層聚焦更細
             }
 
             // 儲存最佳結果用於 Gizmo 顯示
@@ -373,6 +356,33 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
                 $"[{gameObject.name}] OBB 調整完成，體積: {lastVolume:F2}，減少了 {(1 - lastVolume / GetAABBVolume(renderers)) * 100:F1}%",
                 this
             );
+        }
+
+        /// <summary>
+        /// 以指定 Euler 角度計算 OBB，若體積比目前最小值更小則更新最佳結果
+        /// </summary>
+        private void EvaluateOBB(
+            List<Vector3> vertices,
+            Vector3 anglesDeg,
+            ref float minVolume,
+            ref Vector3 bestAngles,
+            ref Quaternion bestRotation,
+            ref Vector3 bestCenter,
+            ref Vector3 bestSize
+        )
+        {
+            Quaternion rotation = Quaternion.Euler(anglesDeg);
+            CalculateOBB(vertices, rotation, out Vector3 center, out Vector3 size);
+            float volume = size.x * size.y * size.z;
+
+            if (volume < minVolume)
+            {
+                minVolume = volume;
+                bestAngles = anglesDeg;
+                bestRotation = rotation;
+                bestCenter = center;
+                bestSize = size;
+            }
         }
 
         private void CalculateOBB(

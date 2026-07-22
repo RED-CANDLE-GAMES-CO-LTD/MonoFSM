@@ -34,10 +34,11 @@ public class PlayerStartSpawnPoint
             0.3f);
 
 #if UNITY_EDITOR
-        // 編輯器非播放中：spawnpoint 旋轉時，讓 editorPlayerRef 即時跟著轉（只在有變化時寫入，避免一直 dirty）
+        // 編輯器非播放中：拖曳 spawnpoint 時，讓 editorPlayerRef 即時跟著位置+旋轉（只在有變化時寫入，避免一直 dirty）
         if (!Application.isPlaying && editorPlayerRef != null &&
-            editorPlayerRef.rotation != transform.rotation)
-            UpdatePlayerRotation();
+            (editorPlayerRef.position != transform.position ||
+             editorPlayerRef.rotation != transform.rotation))
+            FollowSpawnPoint();
 #endif
     }
 
@@ -190,7 +191,30 @@ public class PlayerStartSpawnPoint
     [Button]
     void UpdatePlayerRotation()
     {
+        if (editorPlayerRef == null)
+            return;
+#if UNITY_EDITOR
+        UnityEditor.Undo.RecordObject(editorPlayerRef, "Update Player Ref Rotation");
+#endif
         editorPlayerRef.rotation = transform.rotation;
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(editorPlayerRef);
+#endif
+    }
+
+    // 讓 editorPlayerRef 同步 spawnpoint 的位置與旋轉（編輯器拖曳預覽用）
+    [Button]
+    void FollowSpawnPoint()
+    {
+        if (editorPlayerRef == null)
+            return;
+#if UNITY_EDITOR
+        UnityEditor.Undo.RecordObject(editorPlayerRef, "Follow Spawn Point");
+#endif
+        editorPlayerRef.SetPositionAndRotation(transform.position, transform.rotation);
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(editorPlayerRef);
+#endif
     }
 
     public void Simulate(float deltaTime)
