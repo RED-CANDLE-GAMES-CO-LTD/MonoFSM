@@ -37,6 +37,8 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
 
         [Title("基本設定")] public bool fitOnSceneSave = true;
 
+        [Tooltip("Collider 中心的本地 Y 軸偏移")] public float _offsetY;
+
         [Title("Renderer 來源")]
         public RendererSource rendererSource = RendererSource.SelfAndChildren;
 
@@ -45,7 +47,12 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
 
         [Title("Collider 模式")] public ColliderFitMode fitMode = ColliderFitMode.AABB;
 
-        [ShowIf("fitMode", ColliderFitMode.OBB)] [Tooltip("OBB 旋轉採樣數量（越高越精確但越慢）")] [Range(8, 72)]
+        [ShowIf("fitMode", ColliderFitMode.OBB)]
+        [Tooltip("直接對齊 Renderer 的朝向（單一有旋轉的 mesh 建議開啟，貼合最緊）；關閉則暴力搜尋最小體積角度")]
+        public bool obbAlignToRendererRotation = true;
+
+        [ShowIf("@fitMode == ColliderFitMode.OBB && !obbAlignToRendererRotation")]
+        [Tooltip("OBB 旋轉採樣數量（越高越精確但越慢）")] [Range(8, 72)]
         public int obbSamples = 24;
 
         [ShowIf("fitMode", ColliderFitMode.OBB)] [Tooltip("OBB 子物件名稱")]
@@ -159,6 +166,35 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
             }
         }
 
+        /// <summary>
+        /// 取得主要 renderer（用來決定 OBB 對齊的朝向）：
+        /// SingleRenderer 模式優先用指定的 targetRenderer，否則取第一個帶有 Mesh 的啟用 renderer
+        /// </summary>
+        private Renderer GetPrimaryRenderer(Renderer[] renderers)
+        {
+            if (rendererSource == RendererSource.SingleRenderer && targetRenderer != null)
+                return targetRenderer;
+
+            foreach (Renderer rend in renderers)
+            {
+                if (!rend.enabled)
+                    continue;
+
+                MeshFilter meshFilter = rend.GetComponent<MeshFilter>();
+                if (meshFilter != null && meshFilter.sharedMesh != null)
+                    return rend;
+            }
+
+            // 退而求其次：第一個啟用的 renderer
+            foreach (Renderer rend in renderers)
+            {
+                if (rend.enabled)
+                    return rend;
+            }
+
+            return renderers.Length > 0 ? renderers[0] : null;
+        }
+
         private List<Vector3> CollectVertices(Renderer[] renderers)
         {
             List<Vector3> vertices = new List<Vector3>();
@@ -207,7 +243,8 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
             }
 
             // 轉換到本地空間
-            boxCollider.center = transform.InverseTransformPoint(combinedBounds.center);
+            boxCollider.center =
+                transform.InverseTransformPoint(combinedBounds.center) + Vector3.up * _offsetY;
 
             // 處理縮放
             Vector3 lossyScale = transform.lossyScale;
@@ -238,34 +275,49 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
             // 儲存頂點用於 Gizmo 顯示
             debugVertices = new List<Vector3>(vertices);
 
-            // 尋找最佳旋轉
-            float minVolume = float.MaxValue;
-            Quaternion bestRotation = Quaternion.identity;
-            Vector3 bestCenter = Vector3.zero;
-            Vector3 bestSize = Vector3.one;
+            Quaternion bestRotation;
+            Vector3 bestCenter;
+            Vector3 bestSize;
 
-            float angleStep = 180f / obbSamples; // 只需要搜索 180 度
-
-            // 對 X、Y、Z 軸進行採樣
-            for (int xRot = 0; xRot < obbSamples / 2; xRot++)
+            if (obbAlignToRendererRotation)
             {
-                for (int yRot = 0; yRot < obbSamples; yRot++)
+                // 直接對齊 mesh 自身朝向：以 renderer 的世界旋轉為盒子座標系，
+                // 頂點投影到該座標系後取 min/max，對單一旋轉 mesh 就是最緊貼合
+                Renderer primary = GetPrimaryRenderer(renderers);
+                bestRotation = primary != null ? primary.transform.rotation : transform.rotation;
+                CalculateOBB(vertices, bestRotation, out bestCenter, out bestSize);
+            }
+            else
+            {
+                // 暴力搜尋世界空間旋轉，找最小體積（多 mesh 合併時的 fallback）
+                float minVolume = float.MaxValue;
+                bestRotation = Quaternion.identity;
+                bestCenter = Vector3.zero;
+                bestSize = Vector3.one;
+
+                float angleStep = 180f / obbSamples; // 只需要搜索 180 度
+
+                // 對 X、Y 軸進行採樣
+                for (int xRot = 0; xRot < obbSamples / 2; xRot++)
                 {
-                    Quaternion testRotation = Quaternion.Euler(
-                        xRot * angleStep,
-                        yRot * angleStep,
-                        0
-                    );
-
-                    CalculateOBB(vertices, testRotation, out Vector3 center, out Vector3 size);
-                    float volume = size.x * size.y * size.z;
-
-                    if (volume < minVolume)
+                    for (int yRot = 0; yRot < obbSamples; yRot++)
                     {
-                        minVolume = volume;
-                        bestRotation = testRotation;
-                        bestCenter = center;
-                        bestSize = size;
+                        Quaternion testRotation = Quaternion.Euler(
+                            xRot * angleStep,
+                            yRot * angleStep,
+                            0
+                        );
+
+                        CalculateOBB(vertices, testRotation, out Vector3 center, out Vector3 size);
+                        float volume = size.x * size.y * size.z;
+
+                        if (volume < minVolume)
+                        {
+                            minVolume = volume;
+                            bestRotation = testRotation;
+                            bestCenter = center;
+                            bestSize = size;
+                        }
                     }
                 }
             }
@@ -285,7 +337,8 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
 
             // bestCenter 是在旋轉後的本地空間中的中心點
             // 需要先用 bestRotation 轉回世界空間偏移，再加上 transform.position
-            Vector3 worldCenter = transform.position + bestRotation * bestCenter;
+            Vector3 worldCenter =
+                transform.position + bestRotation * bestCenter + transform.up * _offsetY;
 
             // 先設置世界座標的旋轉和位置，再設定父物件
             obbChild.position = worldCenter;
@@ -315,9 +368,10 @@ namespace MonoFSM.Core.Runtime.LevelDesign._3DObject
                 selfCollider.enabled = false;
             }
 
-            lastVolume = minVolume;
+            lastVolume = bestSize.x * bestSize.y * bestSize.z;
             Debug.Log(
-                $"[{gameObject.name}] OBB 調整完成，體積: {lastVolume:F2}，減少了 {(1 - minVolume / GetAABBVolume(renderers)) * 100:F1}%"
+                $"[{gameObject.name}] OBB 調整完成，體積: {lastVolume:F2}，減少了 {(1 - lastVolume / GetAABBVolume(renderers)) * 100:F1}%",
+                this
             );
         }
 

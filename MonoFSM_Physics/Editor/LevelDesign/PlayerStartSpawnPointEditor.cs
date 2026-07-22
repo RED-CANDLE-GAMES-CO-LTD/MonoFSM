@@ -221,24 +221,6 @@ public static class StartPointSelector
             Debug.Log("No SpawnPoints found in scene.");
         }
     }
-
-    // [MenuItem("RCGMaker/SpawnPoint/Reset to First SpawnPoint  &_`", false, 2)]
-    // private static void DoResetToFirstSpawnPoint()
-    // {
-    //     FocusOnScene();
-    //     var spawnPoint = ResetToFirstSpawnPoint();
-    //
-    //     if (spawnPoint)
-    //     {
-    //         Selection.activeGameObject = spawnPoint.gameObject;
-    //         Debug.Log($"Reset to first SpawnPoint: {spawnPoint.name}");
-    //     }
-    //     else
-    //     {
-    //         Debug.Log("No SpawnPoints found in scene.");
-    //     }
-    // }
-
     //還是走 OnCustomSave?
     // [MenuItem("RCGMaker/SpawnPoint/ResetToOriPos #_R", false, 3)]
     private static void DoMoveOriSpawnRefToCurrentPos()

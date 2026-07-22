@@ -50,7 +50,8 @@ namespace MonoFSM.Core.Runtime.Action
             _lastRenderTime = Time.time;
             foreach (var renderBehaiour in _renderBehaiours)
             {
-                renderBehaiour?.OnRender();
+                if (renderBehaiour.isActiveAndEnabled)
+                    renderBehaiour?.OnRender();
             }
         }
 
@@ -59,7 +60,8 @@ namespace MonoFSM.Core.Runtime.Action
             _lastRenderTime = Time.time;
             foreach (var renderBehaiour in _renderBehaiours)
             {
-                renderBehaiour?.OnEnterRender();
+                if (renderBehaiour.isActiveAndEnabled)
+                    renderBehaiour?.OnEnterRender();
             }
         }
 

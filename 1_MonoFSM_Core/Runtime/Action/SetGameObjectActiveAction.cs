@@ -9,6 +9,15 @@ namespace _1_MonoFSM_Core.Runtime.Action
     //FIXME: 不好...會不好回查 reference?
     public class SetGameObjectActiveAction : AbstractStateAction, IRenderBehaiour
     {
+        protected override void Awake()
+        {
+            base.Awake();
+            if (_target == null)
+            {
+                Debug.LogError("No target defined", this);
+            }
+        }
+
         public override string Description => "SetActive: " + (_target != null ? _target.name : "null") + " to " +
                                               (_isToggle ? "Toggle" : _active.Description);
 
@@ -25,6 +34,11 @@ namespace _1_MonoFSM_Core.Runtime.Action
                 value = !_target.activeSelf;
             else
                 value = _active.Value;
+            if (_target == null)
+            {
+                Debug.LogError("No target defined", this);
+                return;
+            }
 
             _target.SetActive(value);
             foreach (var go in _addTargets)

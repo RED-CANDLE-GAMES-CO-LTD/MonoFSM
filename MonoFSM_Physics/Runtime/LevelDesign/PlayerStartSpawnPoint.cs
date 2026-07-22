@@ -25,6 +25,22 @@ public class PlayerStartSpawnPoint
         _camera = Camera.main;
     }
 
+    [SerializeField] private float _facingGizmoLength = 1.5f;
+
+    private void OnDrawGizmos()
+    {
+        // 出生面向：畫出 forward 箭頭，方便在編輯器確認玩家出生時的實際朝向
+        DrawArrow.ForGizmo(transform.position, transform.forward * _facingGizmoLength, Color.cyan,
+            0.3f);
+
+#if UNITY_EDITOR
+        // 編輯器非播放中：spawnpoint 旋轉時，讓 editorPlayerRef 即時跟著轉（只在有變化時寫入，避免一直 dirty）
+        if (!Application.isPlaying && editorPlayerRef != null &&
+            editorPlayerRef.rotation != transform.rotation)
+            UpdatePlayerRotation();
+#endif
+    }
+
     // 靜態索引來跟踪當前選中的SpawnPoint
     private static int _currentSpawnPointIndex = 0;
 
@@ -165,7 +181,16 @@ public class PlayerStartSpawnPoint
     {
         // _onPlayerSpawn.EventReceived(arg);
         if (editorPlayerRef)
+        {
             editorPlayerRef.position = arg;
+            UpdatePlayerRotation();
+        }
+    }
+
+    [Button]
+    void UpdatePlayerRotation()
+    {
+        editorPlayerRef.rotation = transform.rotation;
     }
 
     public void Simulate(float deltaTime)
