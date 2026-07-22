@@ -11,10 +11,19 @@ namespace MonoFSM.Core.Runtime._0_Pattern.DataProvider.ComponentWrapper
     {
         protected override bool HasError()
         {
-            if (_dropDownRef == GetComponentInParent<VarBool>())
+            // 指向自己或任一祖先層的 VarBool 會形成引用環（Value => _dropDownRef.Value）而遞迴爆掉，
+            // 所以要檢查整條 parent 鏈上的所有 VarBool，不能只比對最近的一個
+            if (_dropDownRef != null)
             {
-                _errorMessage = "DropDownRef不能指向自己或父物件上的VarBool";
-                return true;
+                var parentVarBools = GetComponentsInParent<VarBool>(true);
+                foreach (var varBool in parentVarBools)
+                {
+                    if (_dropDownRef == varBool)
+                    {
+                        _errorMessage = "DropDownRef不能指向自己或父物件上的VarBool";
+                        return true;
+                    }
+                }
             }
 
             return base.HasError();

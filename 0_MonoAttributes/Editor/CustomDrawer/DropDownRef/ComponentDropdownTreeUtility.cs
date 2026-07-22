@@ -2,6 +2,7 @@
 using System;
 using MonoFSM.CustomAttributes;
 using Sirenix.OdinInspector.Editor;
+using Sirenix.Utilities.Editor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -90,15 +91,68 @@ namespace MonoFSM.Core
                 for (var i = parents.Length - 1; i >= 0; i--)
                     ownerNames[parents.Length - 1 - i] = parents[i].name;
                 var ownerPath = string.Join("/", ownerNames);
-                var items = tree.Add(
-                    ownerPath + "/" + comp.name + " (" + comp.GetType().Name + ")",
-                    comp);
+                var displayName = comp.name + " (" + comp.GetType().Name + ")";
+                var items = tree.Add(ownerPath + "/" + displayName, comp);
                 foreach (var item in items)
+                {
                     item.DefaultToggledState = false;
+                    if (!ReferenceEquals(item.Value, comp))
+                        continue;
+
+                    //搜尋時可以用路徑關鍵字過濾（預設只比對 leaf Name）
+                    item.SearchString = ownerPath + "/" + displayName;
+                    //搜尋結果是攤平的，補畫 ownerPath 才能分辨同名項目
+                    var capturedPath = ownerPath;
+                    item.OnDrawItem += it => DrawOwnerPathWhenSearching(it, capturedPath);
+                }
             }
 
             tree.Config.SelectMenuItemsOnMouseDown = true;
             tree.Config.ConfirmSelectionOnDoubleClick = true;
+        }
+
+        //搜尋結果用的兩行高 style：名字上移，下半行留給路徑
+        private static OdinMenuStyle _searchResultStyle;
+        private static OdinMenuStyle SearchResultStyle =>
+            _searchResultStyle ??= new OdinMenuStyle
+            {
+                Height = 38,
+                LabelVerticalOffset = -8f,
+            };
+
+        /// <summary>
+        /// 搜尋中（樹被攤平）時，把項目換成兩行高，在下半行以灰色小字顯示所屬路徑，
+        /// 讓同名 component 可以被分辨
+        /// </summary>
+        private static void DrawOwnerPathWhenSearching(OdinMenuItem item, string ownerPath)
+        {
+            var isSearching = !string.IsNullOrEmpty(item.MenuTree.Config.SearchTerm);
+
+            //搜尋開始/結束時切換 style（影響下一次 layout 的高度）
+            if (isSearching)
+            {
+                if (item.Style != SearchResultStyle)
+                    item.Style = SearchResultStyle;
+            }
+            else if (item.Style != item.MenuTree.DefaultMenuStyle)
+            {
+                item.Style = item.MenuTree.DefaultMenuStyle;
+            }
+
+            if (!isSearching || Event.current.type != EventType.Repaint)
+                return;
+
+            var rect = item.Rect;
+            //兩行高還沒生效前（切換後第一個 repaint）先不畫，避免疊字
+            if (rect.height < SearchResultStyle.Height - 1f)
+                return;
+
+            var pathRect = new Rect(
+                rect.x + item.Style.Offset,
+                rect.yMax - 16f,
+                rect.width - item.Style.Offset - 10f,
+                14f);
+            GUI.Label(pathRect, ownerPath, SirenixGUIStyles.LeftAlignedGreyMiniLabel);
         }
     }
 }
