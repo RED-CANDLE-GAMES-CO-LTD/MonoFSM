@@ -214,7 +214,7 @@ namespace MonoFSM.Runtime.Variable
         public TMonoVariable GetVar<TMonoVariable>(VariableTag varTag)
             where TMonoVariable : AbstractMonoVariable
         {
-            return VariableFolder.GetVariable<TMonoVariable>(varTag);
+            return VariableFolder?.GetVariable<TMonoVariable>(varTag);
         }
 
         public TMonoVariable GetVar<TMonoVariable>(string varTagName)
