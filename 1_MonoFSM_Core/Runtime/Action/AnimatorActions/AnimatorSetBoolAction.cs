@@ -1,6 +1,7 @@
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace MonoFSM.Animation
 {
@@ -25,7 +26,9 @@ namespace MonoFSM.Animation
 
         public override void OnRenderImplement()
         {
+            Profiler.BeginSample("AimatorSetBoolAction.OnRenderImplement");
             OnEnterRenderImplement();
+            Profiler.EndSample();
         }
 
 

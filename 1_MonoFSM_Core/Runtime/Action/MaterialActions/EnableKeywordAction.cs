@@ -58,25 +58,46 @@ namespace MonoFSM.ParticleSystemActions
         }
 #endif
 
+        //單一 _renderer 的 material instance 陣列 cache，避免每幀 renderer.materials 的 alloc 與重複 instancing
+        private Material[] _rendererMaterials;
+
+        //上次實際套用到 material 的 keyword 狀態；null = 尚未套用（進入狀態時重置以強制重套）
+        private bool? _lastEnabled;
+
         [Button("Preview")]
         public override void OnEnterRenderImplement()
         {
+            //進入狀態時強制重套一次（material instance 的 keyword 可能已被其他 state 改動）
+            _lastEnabled = null;
+            ApplyIfChanged();
+        }
+
+        public override void OnRenderImplement()
+        {
+            ApplyIfChanged();
+        }
+
+        private void ApplyIfChanged()
+        {
+            var enable = _enable.Value;
+            if (_lastEnabled == enable)
+                return;
+            _lastEnabled = enable;
+
             if (_rendererCollection != null)
             {
-                var renderers = _rendererCollection.Renderers;
-                if (renderers != null)
+                var cached = _rendererCollection.CachedMaterials;
+                if (cached != null)
                 {
-                    foreach (var r in renderers)
-                    {
-                        if (r == null) continue;
-                        ApplyKeyword(r);
-                    }
+                    foreach (var materials in cached)
+                        ApplyKeyword(materials, enable);
                 }
             }
 
             if (_renderer != null)
             {
-                ApplyKeyword(_renderer);
+                _rendererMaterials ??= _renderer.materials;
+                ApplyKeyword(_rendererMaterials, enable);
             }
             else if (_rendererCollection == null)
             {
@@ -85,24 +106,20 @@ namespace MonoFSM.ParticleSystemActions
             }
         }
 
-        public override void OnRenderImplement()
+        private void ApplyKeyword(Material[] materials, bool enable)
         {
-            OnEnterRenderImplement();
-        }
-
-        private void ApplyKeyword(Renderer renderer)
-        {
-            var materials = renderer.materials;
+            if (materials == null)
+                return;
             if (_materialIndex < 0 || _materialIndex >= materials.Length)
             {
                 Debug.LogWarning(
-                    $"EnableKeywordAction: materialIndex {_materialIndex} out of range on [{renderer.name}]",
+                    $"EnableKeywordAction: materialIndex {_materialIndex} out of range",
                     this);
                 return;
             }
 
             var mat = materials[_materialIndex];
-            if (_enable.Value)
+            if (enable)
                 mat.EnableKeyword(_keyword);
             else
                 mat.DisableKeyword(_keyword);
