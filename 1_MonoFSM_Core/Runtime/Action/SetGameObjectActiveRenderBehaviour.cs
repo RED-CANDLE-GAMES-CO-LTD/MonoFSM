@@ -11,6 +11,9 @@ namespace _1_MonoFSM_Core.Runtime.Action
         public GameObject[] _addTargets;
         public bool _isToggle;
 
+        public override string Description =>
+            "SetActive: " + (_target != null ? _target.name : "null") + " to " +
+            (_isToggle ? "Toggle" : _active.Description);
         [HideIf(nameof(_isToggle))] [SerializeField]
         private VarBoolWrapper _active;
 

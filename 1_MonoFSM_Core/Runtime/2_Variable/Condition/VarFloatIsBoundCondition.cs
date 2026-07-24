@@ -22,7 +22,8 @@ namespace MonoFSM.Variable.Condition
         public override string Description => _varFloat != null
             ? _boundType == BoundType.Percentage
                 ? _varFloat.name + " % " + ArithmeticHelper.OperatorDescription(_op) + " " + (_targetPercentage * 100f).ToString("F0") + "%"
-                : _varFloat.name + " is " + (_boundType == BoundType.Max ? "max" : "min")
+                : _varFloat.name + " is " +
+                  (_boundType == BoundType.Max ? "max" : "min") //FIXME: InvertToken (NOT) 放這？
             : "null var";
 
         public enum BoundType

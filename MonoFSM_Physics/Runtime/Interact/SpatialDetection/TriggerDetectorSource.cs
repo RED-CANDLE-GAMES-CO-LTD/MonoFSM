@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace MonoFSM.Core.Detection
@@ -17,6 +20,14 @@ namespace MonoFSM.Core.Detection
         //             this);
         // }
         //FIXME: 一鍵添加 Sphere Collider
+        [Button]
+        void AddSphereCollider()
+        {
+#if UNITY_EDITOR
+            var col = Undo.AddComponent<SphereCollider>(gameObject);
+            col.isTrigger = true;
+#endif
+        }
 
         //FIXME: 檢查是不是 trigger
         public override string ValueInfo => "hit:" + _thisFrameColliders.Count;

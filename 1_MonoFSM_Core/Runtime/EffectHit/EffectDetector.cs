@@ -54,12 +54,19 @@ namespace MonoFSM.Core.Detection
     }
 
     [DisallowMultipleComponent]
+    [InfoBox(
+        "缺少 ParentObj！Detector 必須掛在 MonoObj 底下才能被 WorldUpdateSimulator 註冊更新（否則不會 Simulate）",
+        InfoMessageType.Error,
+        nameof(HasNoParentObj)
+    )]
     public class EffectDetector
         : AbstractDescriptionBehaviour,
             IDefaultSerializable,
             IUpdateSimulate,
             IDropdownRoot, IResetStateRestore
     {
+        private bool HasNoParentObj => _parentObj == null;
+
         public override string ValueInfo =>
             "valid:" + _conditions.IsAllValid() + ",objs:" + _thisFrameDetectedObjects.Count;
 
