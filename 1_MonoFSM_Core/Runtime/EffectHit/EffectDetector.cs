@@ -54,11 +54,7 @@ namespace MonoFSM.Core.Detection
     }
 
     [DisallowMultipleComponent]
-    [InfoBox(
-        "缺少 ParentObj！Detector 必須掛在 MonoObj 底下才能被 WorldUpdateSimulator 註冊更新（否則不會 Simulate）",
-        InfoMessageType.Error,
-        nameof(HasNoParentObj)
-    )]
+
     public class EffectDetector
         : AbstractDescriptionBehaviour,
             IDefaultSerializable,
@@ -70,6 +66,11 @@ namespace MonoFSM.Core.Detection
         public override string ValueInfo =>
             "valid:" + _conditions.IsAllValid() + ",objs:" + _thisFrameDetectedObjects.Count;
 
+        [InfoBox(
+            "缺少 ParentObj！Detector 必須掛在 MonoObj 底下才能被 WorldUpdateSimulator 註冊更新（否則不會 Simulate）要不然就放EffectDetectable",
+            InfoMessageType.Error,
+            nameof(HasNoParentObj)
+        )]
         //FIXME: 這個不好...會以為可以改name結果又跑掉？
         [SerializeField]
         private string _designName;
