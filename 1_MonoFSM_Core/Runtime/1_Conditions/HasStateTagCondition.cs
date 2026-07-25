@@ -1,5 +1,5 @@
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoFSM.Core;
 using Sirenix.OdinInspector;
 using UnityEngine;

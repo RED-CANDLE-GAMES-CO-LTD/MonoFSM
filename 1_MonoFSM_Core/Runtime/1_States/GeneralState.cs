@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;

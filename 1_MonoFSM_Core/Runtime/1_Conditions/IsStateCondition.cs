@@ -1,4 +1,4 @@
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoFSM.Condition;
 using MonoFSM.Variable.Condition;
 using Sirenix.OdinInspector;

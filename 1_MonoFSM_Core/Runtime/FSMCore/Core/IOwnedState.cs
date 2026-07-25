@@ -1,6 +1,6 @@
-﻿namespace Fusion.Addons.FSM
+﻿namespace MonoFSM.FSM
 {
-    public interface IOwnedState<TState> where TState : class, IState
+    public interface IOwnedState<TState> where TState : class, IMonoState
     {
         public StateMachine<TState> Machine { get; set; }
 
@@ -9,13 +9,13 @@
 
     // Transitions
 
-    public delegate bool Transition<in TState>(TState from, TState to) where TState : IState;
+    public delegate bool Transition<in TState>(TState from, TState to) where TState : IMonoState;
 
     /// <summary>
     /// pure data structure to hold transition information, assign in mono
     /// </summary>
     /// <typeparam name="TState"></typeparam>
-    public struct TransitionData<TState> where TState : IState
+    public struct TransitionData<TState> where TState : IMonoState
     {
         public TState TargetState;
         public Transition<TState> Transition;

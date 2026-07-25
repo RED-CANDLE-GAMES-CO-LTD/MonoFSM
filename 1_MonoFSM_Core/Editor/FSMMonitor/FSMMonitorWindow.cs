@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using _1_MonoFSM_Core.Runtime.LifeCycle.Update;
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoFSM.Runtime;
 using MonoFSM.Variable;
 using MonoFSMCore.Runtime.LifeCycle;

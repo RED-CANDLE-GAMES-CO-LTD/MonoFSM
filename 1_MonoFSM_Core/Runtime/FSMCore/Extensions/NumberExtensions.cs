@@ -1,4 +1,4 @@
-﻿namespace Fusion.Addons.FSM
+﻿namespace MonoFSM.FSM
 {
 	public static class NumberExtensions
 	{

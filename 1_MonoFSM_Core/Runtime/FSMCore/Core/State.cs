@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 
-namespace Fusion.Addons.FSM
+namespace MonoFSM.FSM
 {
     public abstract class State : State<State>
     {
     }
 
-    public abstract unsafe class State<TState> : IState, IOwnedState<TState> where TState : State<TState>
+    public abstract unsafe class State<TState> : IMonoState, IOwnedState<TState>
+        where TState : State<TState>
     {
         // PUBLIC MEMBERS
 
@@ -57,7 +58,7 @@ namespace Fusion.Addons.FSM
             return true;
         }
 
-        protected virtual bool CanExitState(IState nextState)
+        protected virtual bool CanExitState(IMonoState nextState)
         {
             return true;
         }
@@ -86,7 +87,7 @@ namespace Fusion.Addons.FSM
         {
         }
 
-        protected virtual void CollectChildStateMachines(List<IStateMachine> stateMachines)
+        protected virtual void CollectChildStateMachines(List<IMonoStateMachine> stateMachines)
         {
         }
 
@@ -106,9 +107,9 @@ namespace Fusion.Addons.FSM
 
         // IState INTERFACE
 
-        string IState.Name => string.IsNullOrEmpty(Name) == false ? Name : GetType().Name;
+        string IMonoState.Name => string.IsNullOrEmpty(Name) == false ? Name : GetType().Name;
 
-        void IState.OnFixedUpdate()
+        void IMonoState.OnFixedUpdate()
         {
             if (_transitions != null)
                 for (var i = 0; i < _transitions.Count; i++)
@@ -125,7 +126,7 @@ namespace Fusion.Addons.FSM
             OnFixedUpdate();
         }
 
-        bool IState.CanExitState(IState nextState, bool isExplicitDeactivation)
+        bool IMonoState.CanExitState(IMonoState nextState, bool isExplicitDeactivation)
         {
             // During explicit deactivation (e.g. when user specifically calls TryDeactivateState) priority is not checked
             if (isExplicitDeactivation == false && CheckPriorityOnExit == true &&
@@ -135,63 +136,63 @@ namespace Fusion.Addons.FSM
             return CanExitState(nextState);
         }
 
-        void IState.Initialize()
+        void IMonoState.Initialize()
         {
             OnInitialize();
         }
 
-        void IState.Deinitialize(bool hasState)
+        void IMonoState.Deinitialize(bool hasState)
         {
             OnDeinitialize(hasState);
         }
 
-        bool IState.CanEnterState()
+        bool IMonoState.CanEnterState()
         {
             return CanEnterState();
         }
 
-        void IState.OnEnterState()
+        void IMonoState.OnEnterState()
         {
             OnEnterState();
         }
 
-        void IState.OnExitState()
+        void IMonoState.OnExitState()
         {
             OnExitState();
         }
 
-        void IState.OnEnterStateRender()
+        void IMonoState.OnEnterStateRender()
         {
             OnEnterStateRender();
         }
 
-        void IState.OnRender()
+        void IMonoState.OnRender()
         {
             OnRender();
         }
 
-        void IState.OnExitStateRender()
+        void IMonoState.OnExitStateRender()
         {
             OnExitStateRender();
         }
 
         // IStateMachine[] IState.ChildMachines { get; set; }
-        void IState.CollectChildStateMachines(List<IStateMachine> stateMachines)
+        void IMonoState.CollectChildStateMachines(List<IMonoStateMachine> stateMachines)
         {
             CollectChildStateMachines(stateMachines);
         }
 
-        int IState.GetWordCount()
+        int IMonoState.GetWordCount()
         {
             return GetNetworkDataWordCount();
         }
 
-        void IState.Read(int* ptr)
+        void IMonoState.Read(int* ptr)
         {
             ReadNetworkData(ptr);
         }
 
-        void IState.Write(int* ptr)
+        void IMonoState.Write(int* ptr)
         {
             WriteNetworkData(ptr);
         }

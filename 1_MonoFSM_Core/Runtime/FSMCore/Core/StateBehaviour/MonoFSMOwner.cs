@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable.Attributes;
 using UnityEngine;
@@ -23,7 +23,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         [ShowInDebugMode]
         public StateMachine<MonoStateBehaviour> _fsm;
 
-        void IStateMachineOwner.CollectStateMachines(List<IStateMachine> stateMachines)
+        void IStateMachineOwner.CollectStateMachines(List<IMonoStateMachine> stateMachines)
         {
             var owner = GetComponentInParent<IStateMachineOwner>(true);
             if (owner == null)
@@ -57,11 +57,11 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
             return _fsm.ActiveStateId;
         }
 
-        public IState CurrentState => _fsm?.ActiveState;
-        public IState PreviousState => _fsm?.PreviousState;
+        public IMonoState CurrentState => _fsm?.ActiveState;
+        public IMonoState PreviousState => _fsm?.PreviousState;
         public float DeltaTime { get; set; }
 
-        public bool IsCurrentState(IState state)
+        public bool IsCurrentState(IMonoState state)
         {
             if (state == null || _fsm == null)
                 return false;

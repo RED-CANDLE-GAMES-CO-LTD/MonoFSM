@@ -1,4 +1,4 @@
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoFSM.Editor;
 using MonoFSM.InternalBridge;
 using MonoFSM.Core;

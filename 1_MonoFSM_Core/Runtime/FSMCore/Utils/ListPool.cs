@@ -1,4 +1,4 @@
-﻿namespace Fusion.Addons.FSM
+﻿namespace MonoFSM.FSM
 {
 	using System.Collections.Generic;
 	using System.Runtime.CompilerServices;

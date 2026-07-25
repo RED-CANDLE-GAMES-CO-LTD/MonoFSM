@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Foundation;

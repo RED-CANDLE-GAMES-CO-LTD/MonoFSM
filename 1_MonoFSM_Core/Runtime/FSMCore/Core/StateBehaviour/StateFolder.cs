@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoFSM.Core;
 using MonoFSM.Runtime;
 using Sirenix.OdinInspector;

@@ -5,7 +5,7 @@ using MonoFSM.Core.Simulate;
 using UnityEngine;
 using UnityEngine.Profiling;
 
-namespace Fusion.Addons.FSM
+namespace MonoFSM.FSM
 {
     //FIXME: 會不小心沒有轉成networked版的？
     //Local版的？
@@ -14,7 +14,7 @@ namespace Fusion.Addons.FSM
     public class MonoStateMachineController : MonoBehaviour, IStateMachineController,
         IUpdateSimulate
     {
-        public IReadOnlyList<IStateMachine> StateMachines => _fsmLogic.StateMachines;
+        public IReadOnlyList<IMonoStateMachine> StateMachines => _fsmLogic.StateMachines;
 
         // PRIVATE MEMBERS
         //FIXME: 可以拿掉了ㄅ

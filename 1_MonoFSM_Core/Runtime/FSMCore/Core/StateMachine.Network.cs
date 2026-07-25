@@ -1,4 +1,4 @@
-﻿namespace Fusion.Addons.FSM
+﻿namespace MonoFSM.FSM
 {
     public unsafe ref struct InterpolationData
     {
@@ -50,11 +50,11 @@
 
         // IStateMachine INTERFACE
 
-        IState[] IStateMachine.States => _states;
-        IState IStateMachine.ActiveState => ActiveState;
-        IState IStateMachine.PreviousState => PreviousState;
+        IMonoState[] IMonoStateMachine.States => _states;
+        IMonoState IMonoStateMachine.ActiveState => ActiveState;
+        IMonoState IMonoStateMachine.PreviousState => PreviousState;
 
-        int IStateMachine.WordCount
+        int IMonoStateMachine.WordCount
         {
             get
             {
@@ -66,7 +66,7 @@
             }
         }
 
-        unsafe void IStateMachine.Read(int* ptr)
+        unsafe void IMonoStateMachine.Read(int* ptr)
         {
             _activeStateId = *ptr;
             ptr++;
@@ -111,7 +111,7 @@
             // }
         }
 
-        unsafe void IStateMachine.Write(int* ptr)
+        unsafe void IMonoStateMachine.Write(int* ptr)
         {
             *ptr = _activeStateId;
             ptr++;
@@ -156,7 +156,7 @@
             // }
         }
 
-        unsafe void IStateMachine.Interpolate(InterpolationData interpolationData)
+        unsafe void IMonoStateMachine.Interpolate(InterpolationData interpolationData)
         {
             // Save interpolation float tick so we can calculate correct state time when asked from Render-related methods
             _interpolationTick = UnityEngine.Mathf.Lerp(interpolationData.FromTick,

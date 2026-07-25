@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoDebugSetting;
 using MonoFSM_Core.Runtime.StateBehaviour;
 using MonoFSM.Core.Attributes;
@@ -19,7 +19,7 @@ namespace MonoFSM.Core
     //FIXME: TState還有意義嗎？直接確定是 MonoBehaviourState就好？
     public abstract class AbstractStateBehaviour<TState>
         : AbstractDescriptionBehaviour,
-            IState,
+            IMonoState,
             IOwnedState<TState>, IRenderInvoker
         where TState : AbstractStateBehaviour<TState>
     {
@@ -155,11 +155,13 @@ namespace MonoFSM.Core
 
         protected virtual void OnExitStateRender() { }
 
-        protected virtual void OnCollectChildStateMachines(List<IStateMachine> stateMachines) { }
+        protected virtual void OnCollectChildStateMachines(List<IMonoStateMachine> stateMachines)
+        {
+        }
 
         // IState INTERFACE
 
-        void IState.OnFixedUpdate()
+        void IMonoState.OnFixedUpdate()
         {
             // Traditional Handler approach
             _onStateUpdate?.EventHandle();
@@ -221,7 +223,7 @@ namespace MonoFSM.Core
         [ShowInInspector] AbstractDescriptionBehaviour _lastTransition = null;
 #endif
 
-        bool IState.CanExitState(IState nextState, bool isExplicitDeactivation)
+        bool IMonoState.CanExitState(IMonoState nextState, bool isExplicitDeactivation)
         {
             // During explicit deactivation (e.g. when user specifically calls TryDeactivateState) priority is not checked
             if (
@@ -234,22 +236,22 @@ namespace MonoFSM.Core
             return CanExitState(nextState as TState);
         }
 
-        void IState.Initialize()
+        void IMonoState.Initialize()
         {
             OnInitialize();
         }
 
-        void IState.Deinitialize(bool hasState)
+        void IMonoState.Deinitialize(bool hasState)
         {
             OnDeinitialize(hasState);
         }
 
-        bool IState.CanEnterState()
+        bool IMonoState.CanEnterState()
         {
             return CanEnterState();
         }
 
-        void IState.OnEnterState()
+        void IMonoState.OnEnterState()
         {
             OnEnterState();
 
@@ -271,7 +273,7 @@ namespace MonoFSM.Core
 #endif
         }
 
-        void IState.OnExitState()
+        void IMonoState.OnExitState()
         {
             OnExitState();
 
@@ -289,7 +291,7 @@ namespace MonoFSM.Core
             }
         }
 
-        void IState.OnEnterStateRender()
+        void IMonoState.OnEnterStateRender()
         {
             OnEnterStateRender();
             foreach (var renderAction in _renderActions) //FIXME: 條件？
@@ -302,7 +304,7 @@ namespace MonoFSM.Core
                 _onStateEnterRender.EnterRenderInvoke();
         }
 
-        void IState.OnRender()
+        void IMonoState.OnRender()
         {
             OnRender();
             foreach (var renderAction in _renderActions)
@@ -310,7 +312,7 @@ namespace MonoFSM.Core
                     renderAction.OnRender();
         }
 
-        void IState.OnExitStateRender()
+        void IMonoState.OnExitStateRender()
         {
             OnExitStateRender();
 
@@ -320,7 +322,7 @@ namespace MonoFSM.Core
 
         //FIXME: 先把childMachines拔掉？
         // IStateMachine[] IState.ChildMachines { get; set; }
-        void IState.CollectChildStateMachines(List<IStateMachine> stateMachines)
+        void IMonoState.CollectChildStateMachines(List<IMonoStateMachine> stateMachines)
         {
             OnCollectChildStateMachines(stateMachines);
         }

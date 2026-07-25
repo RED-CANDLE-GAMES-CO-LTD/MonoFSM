@@ -5,7 +5,7 @@ using System.Reflection;
 using MonoFSM.Core.Runtime;
 using _1_MonoFSM_Core.Runtime.LifeCycle.Update;
 using _1_MonoFSM_Core.Runtime.MonoData;
-using Fusion.Addons.FSM;
+using MonoFSM.FSM;
 using MonoDebugSetting;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;

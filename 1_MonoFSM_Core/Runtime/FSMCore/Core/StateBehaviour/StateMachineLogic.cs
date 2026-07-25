@@ -12,7 +12,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace Fusion.Addons.FSM
+namespace MonoFSM.FSM
 {
     public interface IStateMachineController
     {
@@ -21,7 +21,7 @@ namespace Fusion.Addons.FSM
 
     public interface IStateMachineOwner
     {
-        void CollectStateMachines(List<IStateMachine> stateMachines);
+        void CollectStateMachines(List<IMonoStateMachine> stateMachines);
         string name { get; }
         Transform transform { get; }
     }
@@ -55,10 +55,10 @@ namespace Fusion.Addons.FSM
             set => _backingEnableLogging = value;
         }
 
-        protected List<IStateMachine> _stateMachinesInternal = new(32);
-        public List<IStateMachine> StateMachines => _stateMachinesInternal;
+        protected List<IMonoStateMachine> _stateMachinesInternal = new(32);
+        public List<IMonoStateMachine> StateMachines => _stateMachinesInternal;
 
-        protected List<IState> _statePool; // Used by CheckDuplicateStates
+        protected List<IMonoState> _statePool; // Used by CheckDuplicateStates
 
         public void RestoreState(int stateId)
         {
@@ -98,7 +98,7 @@ namespace Fusion.Addons.FSM
         public bool _stateMachinesCollected { get; protected set; }
         public bool _manualUpdateMode { get; protected set; }
 
-        public bool IsCurrentState(IState state)
+        public bool IsCurrentState(IMonoState state)
         {
             if (state == null) return false;
             if (!_stateMachinesCollected) return false;
@@ -110,7 +110,7 @@ namespace Fusion.Addons.FSM
         }
 
         [ShowInInspector]
-        private IState PreviousState
+        private IMonoState PreviousState
         {
             get
             {
@@ -121,7 +121,7 @@ namespace Fusion.Addons.FSM
         }
 
         [ShowInInspector]
-        public IState CurrentState
+        public IMonoState CurrentState
         {
             get
             {
@@ -176,7 +176,7 @@ namespace Fusion.Addons.FSM
             // Assuming ListPool is a static utility class available.
             // If not, replace with: var tempMachines = new List<IStateMachine>(32);
             // var tempMachines = new List<IStateMachine>(32); // Placeholder if ListPool is not found
-            var tempMachines = ListPool.Get<IStateMachine>(32);
+            var tempMachines = ListPool.Get<IMonoStateMachine>(32);
 
             for (var i = 0; i < owners.Length; i++)
             {
@@ -211,7 +211,7 @@ namespace Fusion.Addons.FSM
         [Conditional("DEBUG")]
         protected void CheckCollectedMachines(
             IStateMachineOwner owner,
-            List<IStateMachine> machines
+            List<IMonoStateMachine> machines
         )
         {
             if (machines.Count == 0)
@@ -225,13 +225,13 @@ namespace Fusion.Addons.FSM
         }
 
         [Conditional("DEBUG")]
-        protected void CheckDuplicateStates(string stateMachineName, IState[] states)
+        protected void CheckDuplicateStates(string stateMachineName, IMonoState[] states)
         {
             if (states == null || states.Length == 0)
                 return;
 
             if (_statePool == null)
-                _statePool = new List<IState>(128);
+                _statePool = new List<IMonoState>(128);
 
             foreach (var state in states)
             {

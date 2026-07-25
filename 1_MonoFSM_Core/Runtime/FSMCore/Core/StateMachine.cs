@@ -6,9 +6,9 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using Debug = UnityEngine.Debug;
 
-namespace Fusion.Addons.FSM
+namespace MonoFSM.FSM
 {
-    public interface ITickProvider
+    public interface IMonoTickProvider
     {
         int Tick { get; }
 
@@ -18,8 +18,8 @@ namespace Fusion.Addons.FSM
         // Stage Stage { get; }
     }
 
-    public partial class StateMachine<TState> : IStateMachine
-        where TState : class, IState
+    public partial class StateMachine<TState> : IMonoStateMachine
+        where TState : class, IMonoState
     {
         // PUBLIC MEMBERS
         public void RestoreState(int stateId)
@@ -66,8 +66,8 @@ namespace Fusion.Addons.FSM
         // private NetworkStateMachineController _controller;
         public StateMachineLogic Logic => _logic;
         private StateMachineLogic _logic;
-        private ITickProvider _tickProvider;
-        public ITickProvider TickProvider => _tickProvider;
+        private IMonoTickProvider _tickProvider;
+        public IMonoTickProvider TickProvider => _tickProvider;
 
         // CONSTRUCTORS
 
@@ -207,7 +207,7 @@ namespace Fusion.Addons.FSM
         // IStateMachine INTERFACE
 
         // void IStateMachine.Initialize(NetworkStateMachineController controller, NetworkRunner runner)
-        void IStateMachine.Initialize(StateMachineLogic logic, ITickProvider tickProvider)
+        void IMonoStateMachine.Initialize(StateMachineLogic logic, IMonoTickProvider tickProvider)
         {
             _tickProvider = tickProvider;
             // Debug.Log("tickProvider" + tickProvider);
@@ -224,7 +224,7 @@ namespace Fusion.Addons.FSM
             }
         }
 
-        void IStateMachine.FixedUpdate() //FIXME: rename
+        void IMonoStateMachine.FixedUpdate() //FIXME: rename
         {
             if (IsPaused == true)
                 return;
@@ -244,7 +244,7 @@ namespace Fusion.Addons.FSM
             //         ActiveState.ChildMachines[i].FixedUpdateNetwork();
         }
 
-        void IStateMachine.Render()
+        void IMonoStateMachine.Render()
         {
             if (IsPaused == true)
                 return;
@@ -295,7 +295,7 @@ namespace Fusion.Addons.FSM
             // for (var i = 0; i < ActiveState.ChildMachines.Length; i++) ActiveState.ChildMachines[i].Render();
         }
 
-        void IStateMachine.Deinitialize(bool hasState)
+        void IMonoStateMachine.Deinitialize(bool hasState)
         {
             for (var i = 0; i < _stateCount; i++)
             {

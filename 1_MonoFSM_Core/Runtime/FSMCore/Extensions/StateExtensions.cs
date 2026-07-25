@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Fusion.Addons.FSM
+namespace MonoFSM.FSM
 {
     public static class StateExtensions
     {
