@@ -198,7 +198,8 @@ namespace MonoFSM.Core
 
             if (_isPrepared == false && Application.isPlaying)
             {
-                Debug.LogError($"GetFrom {key} Dict, Not prepared", this);
+                Debug.LogError($"GetFrom {key} Dict, Not prepared" + "name" + transform.GetPath(),
+                    transform.parent);
                 return default;
             }
 
