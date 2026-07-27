@@ -11,7 +11,8 @@ namespace MonoFSM.Core.PrefabCache
     // 為什麼需要：離線讀 .prefab YAML 讀不到 variant 繼承來的內容 —— Unity 只在
     // 本檔有引用時才寫出 stripped 佔位，那些節點的名稱、component、真值全部只存在
     // base prefab 裡。走 Unity 匯出的是「合併後」的樹，沒有這個問題。
-    // cache 建議進 git，這樣不開 Unity（CI、純文字環境、LLM）也讀得到。
+    // cache 是本機產物（不進 git），價值在於「落成檔案才能 grep / 分段讀」——
+    // 大 prefab 匯出動輒數十 KB，直接回傳會整份吃掉 LLM 的 context。
     [DisallowMultipleComponent]
     public class PrefabTextCacheMarker : MonoBehaviour, IBeforePrefabSaveCallbackReceiver,
         ICustomPrefabSaveCallbackReceiver

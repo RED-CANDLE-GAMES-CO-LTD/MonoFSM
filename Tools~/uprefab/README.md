@@ -7,7 +7,7 @@
 | 層 | 做什麼 | 需要 Unity |
 |---|---|---|
 | **離線索引 CLI**（`MonoFSM/Tools~/uprefab/*.py`） | 定位：某個 component / 名稱在哪些檔案裡 | ❌ |
-| **Prefab Text Cache**（`Tools/uprefab/cache/`） | 內容：prefab 的階層與 FSM 架構，進 git | ❌ 讀 / ✅ 產 |
+| **Prefab Text Cache**（`Tools/uprefab/cache/`） | 內容：prefab 的階層與 FSM 架構，本機產物不進 git | ❌ 讀 / ✅ 產 |
 
 分工的原因：離線 YAML 讀不到 variant 繼承來的東西（Unity 只在本檔有引用時才寫 stripped
 佔位，那些節點的真值只存在 base prefab），所以**定位走 CLI，內容一律讀 cache**。

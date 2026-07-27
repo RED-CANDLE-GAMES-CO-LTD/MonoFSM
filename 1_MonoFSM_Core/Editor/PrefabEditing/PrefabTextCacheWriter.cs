@@ -9,8 +9,8 @@ using UnityEngine;
 namespace MonoFSM.Editor.PrefabEditing
 {
     // 把掛了 PrefabTextCacheMarker 的 prefab 匯出成文字 cache，落在 repo 的
-    // CacheRoot 底下（鏡射 asset path）。cache 建議進 git，所以刻意不寫
-    // 時間戳 —— 內容沒變就不該產生 diff。
+    // CacheRoot 底下（鏡射 asset path）。刻意不寫時間戳 —— 存檔頻繁，
+    // 內容沒變就不該動檔案。
     //
     // 輸出目錄與「哪些 component 算純視覺」都是專案決定的，由專案端注入
     // （見 CacheRoot / VisualComponents）。
@@ -87,7 +87,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
         /// <summary>
         /// On-demand 精讀：從 prefab 的任一子樹當 root 匯出，不寫進 cache。
-        /// 進 git 的 cache 只是目錄（折疊行帶 (+N nodes) 成本），要看細節時呼叫這個現撈。
+        /// cache 檔只是目錄（折疊行帶 (+N nodes) 成本），要看細節時呼叫這個現撈。
         /// </summary>
         /// <param name="assetPath">prefab asset path，例：Assets/0_Gameplay/0_Base/PPlayer.prefab</param>
         /// <param name="subPath">

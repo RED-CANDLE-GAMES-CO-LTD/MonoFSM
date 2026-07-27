@@ -31,7 +31,8 @@ description: 不把整個 200MB scene 塞進 context 就能讀懂 Unity serializ
 指向 stripped Transform（沒有 `m_GameObject` 欄位）。多層 variant 的合成 fileID 更是
 任何單一檔案裡都查不到。
 
-所以 CLI 只負責「在哪個檔案」，內容一律讀 cache（那是 Unity 匯出的**合併後**結果）。
+所以 CLI 只負責「在哪個檔案」，內容一律走 Unity 匯出的結果（cache 檔或 `ExportSubtree`）——
+那才是**合併後**的真值。
 
 ---
 
@@ -80,7 +81,28 @@ re.sub(r'\\u([0-9a-fA-F]{4})', lambda m: chr(int(m.group(1), 16)), name)
 ## 二、Prefab Text Cache
 
 掛了 `PrefabTextCacheMarker` 的 prefab，存檔時自動把文字版寫進
-`Tools/uprefab/cache/<原 asset path>.md`（**進 git**，所以不開 Unity 也讀得到）。
+`Tools/uprefab/cache/<原 asset path>.md`（**不進 git**，本機產物，隨時可重建）。
+
+### 為什麼要落成檔案（而不是每次 ExportSubtree 直接回傳）
+
+省的不是 Unity 呼叫，是 **context**。`PPlayer.md` 有 71KB ≈ 18k tokens；
+`ExportSubtree` 的回傳值會整份進 context，而落成檔案可以先 `grep` 定位、再只讀那 60 行。
+
+臨界點就在這：
+
+- **大 prefab（掛了 marker 的那幾個核心 prefab）** → 走 cache 檔。cache 不在就
+  `RefreshCacheFor(assetPath)` 產一次，之後都用 grep / 分段 Read。
+- **一般 prefab** → 直接 `ExportSubtree`，整棵幾 KB 而已，落檔再讀反而多一趟。
+  **不要**為了讀一次就去掛 marker —— 那會寫進 prefab、產生 git diff，代價遠大於收益。
+  （`RefreshCacheFor` 沒 marker 會直接 return，本來也走不通。）
+
+補產單一 prefab 的 cache（`uloop execute-dynamic-code`）：
+
+```csharp
+MonoFSM.Editor.PrefabEditing.PrefabTextCacheWriter.RefreshCacheFor(
+    "Assets/0_Gameplay/0_Base/PPlayer.prefab");
+return "ok";
+```
 
 ### 這份 cache 是目錄，不是全文
 
@@ -111,7 +133,7 @@ FSM 段（states / transitions / conditions 的 markdown），**讀狀態機架�
 
 存檔掛點是 `IBeforePrefabSaveCallbackReceiver`（Unity 原生 Ctrl+S）+
 `ICustomPrefabSaveCallbackReceiver`（專案的 Shift+S 檢查式存檔），兩種都會寫。
-內容沒變就不碰檔案 —— cache 進 git，不該產生無意義 diff。
+內容沒變就不碰檔案 —— 存檔本來就頻繁，不該每次都動 mtime。
 
 全量重建：menu `MonoFSM/Prefab Text Cache/重建全部`。
 
