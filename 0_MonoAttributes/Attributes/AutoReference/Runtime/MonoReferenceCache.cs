@@ -276,11 +276,11 @@ namespace Auto_Attribute.Runtime
 
         public GameObject RootObj;
 
-        // public void ClearRefs()
-        // {
-        //     monoValueCaches.Clear();
-        //     CachedMonoBehaviours = null;
-        // }
+        public void ClearRefs()
+        {
+            monoValueCaches.Clear();
+            CachedMonoBehaviours = null;
+        }
 
         [HideInInspector]
         public MonoBehaviour[] CachedMonoBehaviours;

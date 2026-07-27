@@ -115,6 +115,26 @@ public class AutoAttributeManager : MonoBehaviour
 #endif
     }
 
+    [PropertyOrder(-2)]
+    [Button("Clear Reference Cache", ButtonSizes.Large)]
+    [GUIColor(1f, 0.7f, 0.7f)]
+    [InfoBox(
+        "_useCacheOnly 開著時清掉 cache，Awake 會 fallback 成 SweepScene。",
+        InfoMessageType.Warning,
+        nameof(_useCacheOnly)
+    )]
+    private void ClearReferenceCache()
+    {
+        var before = monoReferenceCache.MonoValueCachesCount;
+        monoReferenceCache.ClearRefs();
+        Debug.Log($"[Auto] Reference cache cleared. monoValueCaches:{before} -> 0", this);
+#if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+        if (gameObject.scene.IsValid())
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(gameObject.scene);
+#endif
+    }
+
     private void Awake()
     {
         if (_useCacheOnly)

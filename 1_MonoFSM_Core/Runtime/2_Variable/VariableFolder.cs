@@ -65,6 +65,8 @@ public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>,
 
     protected override bool IsAddValid(AbstractMonoVariable value)
     {
+        if (value.HasParentVarEntity) //這段擋掉對嗎？因為我想要宣告Train.HasPower
+            return false;
         if (_dict.ContainsKey(value
                 ._varTag)) //FIXME: 這裡是要丟錯誤還是覆寫？目前先丟錯誤，因為tag重複很可能是設計問題（不確定的tag對應不確定的變數），而且tag重複的話GetVar就會撈到不確定的變數了
         {

@@ -314,7 +314,15 @@ namespace EditorTool
 
             var startTime = Time.realtimeSinceStartup;
             var sceneCacheManager = Object.FindObjectOfType<AutoAttributeManager>();
-            sceneCacheManager.monoReferenceCache.SaveReferenceCache();
+            //_useCacheOnly 沒開的話 runtime 走 SweepScene 不讀 cache，存進 scene 只是白白撐大檔案
+            if (sceneCacheManager != null)
+            {
+                if (sceneCacheManager.UseCacheOnly)
+                    sceneCacheManager.monoReferenceCache.SaveReferenceCache();
+                else
+                    sceneCacheManager.monoReferenceCache.ClearRefs();
+            }
+
             var endTime = Time.realtimeSinceStartup;
             Debug.Log(
                 "OnPostprocessScene:"
