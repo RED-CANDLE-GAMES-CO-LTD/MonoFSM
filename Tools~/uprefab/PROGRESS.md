@@ -10,15 +10,148 @@ claude --resume e978684e-7697-4a61-b6b8-a018fe03c42e
 
 - 最後更新：2026-07-27
 - 分支：`develop`
-- 狀態：**Phase 1 完成並實測通過**，Phase 2 / 3 未開始
+- 狀態：Phase 1 完成並實測通過；**Phase 5（scene 寫入 + CLI 一行入口）已完成**，
+  正在做「自己開 scene 組一個定時生資源 FSM 並驗證數量」的端到端實測
+
+---
+
+## Phase 5 —— scene 寫入、批次 DSL、CLI 一行入口（2026-07-27）
+
+驅動這一輪的驗收條件：**自己開一個 scene、組一個定時生資源的 FSM、自己確認場上物件
+數量對，而且整個過程要省 token。** 做不到的地方就是工具的缺口。
+
+### 補了什麼
+
+C#（`MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/`）：
+
+| 檔案 | 內容 |
+|---|---|
+| `EditResolve.cs` | 從 `PrefabEdit` 抽出的共用解析：路徑 → 節點 → component → 欄位、型別解析、值套用、**錯誤訊息**。prefab 與 scene 只差在 root 怎麼來，錯誤訊息尤其不該有兩份 |
+| `SceneEdit.cs` | scene 版原語：`NewScene` / `OpenScene` / `Save` / `AddNode` / `AddPrefab` / `AddComponent` / `SetField` / `SetRef` / `SetAssetRef` / `SetPos` / `Move` / `DeleteNode` / `Auto` / `Export` / `Count` / `Batch` |
+| `EditBatch.cs` | 一行一操作的迷你 DSL（`|` 分隔），第一個失敗就停並回報停在哪 |
+| `EditProbe.cs` | `Types`（找型別名）/ `Fields`（列 serialize 欄位）/ `Peek`（讀 runtime 值） |
+| `AssetRef.cs` | asset path → 該塞進 ObjectReference 的物件（prefab 要按欄位型別取 component，硬塞 GameObject 會被靜默存成 null） |
+| `PrefabEdit.CreateVariant` | 建 variant。**不要從零建 prefab** —— 專案的 prefab 帶著大量共用底盤 |
+| `PrefabEdit.Batch` | 整批共用一次 `LoadPrefabContents` / `SaveAsPrefabAsset` |
+
+Python（`MonoFSM/Tools~/uprefab/`）：
+
+| 檔案 | 內容 |
+|---|---|
+| `unity.py` | uloop 橋接：只回 `Result`，Domain Reload / server starting 時自己等再重試 |
+| `uprefab.py` | 新子指令 `scene` / `prefab` / `types` / `fields` / `peek` / `logs` / `clear` / `play` |
+
+### 省 token 的三個真正來源
+
+實測下來，省的不是「呼叫次數」而是這三件事：
+
+1. **濾掉 JSON envelope。** `uloop execute-dynamic-code` 每次回 15 行 JSON
+   （Logs / CompilationErrors / SecurityLevel / Diagnostics…），有用的只有 `Result`。
+   `uprefab scene …` 一行進、一行出。`logs` 也是同一個道理。
+2. **批次 DSL。** 建一個 FSM 是 30 幾個原語。逐次呼叫的雜訊會比內容多一個數量級；
+   `scene do -f ops` 一次做完，回 30 行結果。
+   分隔用 `|` 不用空白 —— MonoFSM 節點名帶空白與 `[Tag]` 前綴，空白分隔一定炸。
+3. **`fields` / `types` / `peek` 取代讀 .cs。** 要知道欄位叫 `_timeMax` 還是 `_maxTime`，
+   替代方案是把幾百行 .cs 讀進 context。而且回的是反射真值，不會被註解掉的舊欄位誤導。
+
+### 實測過程中被錯誤訊息救回來的幾次
+
+錯誤訊息是這套工具最有價值的部分 —— 每次失敗都要能直接推出下一步：
+
+- `set|…|_timeMax._constValue|1` → 原本只列頂層欄位（沒用，因為 `_timeMax` 是對的）。
+  改成「走到 `_timeMax`（VarFloatWrapper）為止，這層底下有：`_tempValue: float`, …」
+  一次就修好。**巢狀路徑的錯誤要列走得通的那一層底下有什麼，不是列頂層。**
+- `add` 重複 → 原本 abort 導致整批停。改成回「（跳過）已存在」。
+  批次的實際用法是「修一行再整份重跑」，重複建立是預期狀況不是錯誤。
+- `scene do "…"` 吃不到參數 → `path`（`new`/`open` 用的位置參數）先吃掉了。
+- 編譯完緊接著呼叫必定撞 Domain Reload → `unity.py` 自己等。
+
+### 結構改完一定要 `auto`
+
+`EditResolve.RunAuto`（DSL 的 `auto|<node>`）。MonoFSM 大量欄位靠 Auto 系列 attribute 填
+（`TransitionBehaviour._conditions` 是 `[AutoChildren]`、Action 的 `_parentObj` 是
+`[AutoParent]`），平常是 Inspector 畫到時順手綁的。用 API 建節點不經過 Inspector，
+不補這步會存出一份「看起來對、欄位全是 null」的資料。
+
+### 順手修掉的兩個模組 bug（不是工具問題）
+
+用 API 建出「乾淨的」新物件才會踩到 —— 既有 prefab 都已經被 Inspector 摸過所以看不出來：
+
+1. `StateMachineLogic.cs:173` `if (_owners.Length == 0)` —— 剛 `AddComponent` 出來的
+   `_owners` 是 null，這裡 NRE。同檔 67 / 75 / 84 行都有 null check，只有這行漏了。
+2. `LocalSimulatorRunner.Awake` 沒 push `ShouldSimulte`。單機沒有
+   `ISimulateAuthorityProvider`，`ShouldSimulte` 落到 `_shouldSimulateFlag`（預設 false），
+   所以 **scene 上的物件在純 local 路徑下永遠不會被 Simulate**；spawn 出來的走
+   `LocalSpawnManager` 有 push，scene 物件原本漏了。
+
+### 組 FSM 場景的正確做法（使用者指定，2026-07-27）
+
+第一輪實測走的是「開空 scene + 放 `(local) SinglePlayer World Simulator`」，那條 local
+路徑模組有缺漏（見上面兩個 bug）。**正確做法是複製既有模板**：
+
+- **scene**：`SceneEdit.CopyScene` 複製 `Assets/1_Prototype/Module Test/Network FSM Template.unity`
+- **FSM 物件**：`PrefabEdit.CreateVariant` 從
+  `Packages/com.monofsm.fusion/MonoFSM_Fusion/Network FSM.prefab` 開 variant
+  —— 它已經是乾淨的 `init` / `idle` 兩狀態骨架，接著往上加狀態就好
+
+`CopyScene` 為此補上（`NewScene` 保留，但組 gameplay 場景不要用它 —— 空 scene 缺的底盤
+只會在 Play Mode 才炸）。`AssetDatabase.Refresh()` 也一起補進去：外部 `rm` 過檔案時
+AssetDatabase 還握著舊狀態，「已存在」判斷會誤判。
+
+### 端到端實測結果（通過）
+
+`Assets/1_Prototype/uprefab Test/` 底下三個產物，全部由 CLI 建出來，沒手動開過 Inspector：
+
+| 產物 | 來源 |
+|---|---|
+| `定時生資源 Test.unity` | `scene copy` ← Network FSM Template |
+| `資源生成器 FSM.prefab` | `prefab variant` ← Network FSM.prefab，再 `prefab do` 加邏輯 |
+| `測試資源 Rock Variant.prefab` | `prefab variant` ← `[Base] Carriable Mineral (Rock)` |
+
+FSM 結構（`idle` 等計時器 → `spawn` 生一顆 → 回 `idle`）：
+
+```
+Timer <VarFloatCountDownTimer>            _timeMax = 1
+[StateFolder] StateFolder
+  [State] init   → [Transition] => idle
+  [State] idle   [Event] OnStateEnter → [Action] Reset Timer (timer → Timer)
+                 [Transition] => spawn   [If] Timer Up (_timer → Timer)
+  [State] spawn  [Event] OnStateEnter → [Action] Spawn 資源
+                 [Transition] => idle
+```
+
+Play Mode 分段量測（`scene count --name 測試資源`，每 4 秒取樣一次）：
+
+| 時間 | count |
+|---|---|
+| t≈4s | 2 |
+| t≈8s | 6 |
+| t≈12s | 10 |
+
+每 4 秒 +4，速率 **1.0 顆/秒**，與 `_timeMax = 1` 一致（首次取樣少 2 顆是
+Fusion / scene 啟動的暖機時間）。
+
+### `Count` 原本有個會誤判成「完全沒生成」的盲點
+
+第一次量到 `count=0`，但 Console 顯示 pool 正在長（`Update max count … 3 → 7`）——
+物件確實生出來了。原因：`Count` 只掃 active scene 的 root，而**借出中的 pool 物件掛在
+`DontDestroyOnLoad`**。
+
+已改成 `FindObjectsByType<Transform>` 掃全部已載入物件，並在輸出附 scene 分佈：
+
+```
+count=10 activeInHierarchy=10  [PlayMode]  filter: comp=* name=測試資源
+  scenes: DontDestroyOnLoad=10
+```
+
+那行 `scenes:` 就是為了這件事加的 —— 數字對不上時，第一個要問的是「東西在哪個 scene」。
 
 ---
 
 ## 這個工具要解決什麼
 
 專案規模變大後，大量 gameplay 資料放在 Unity serialize data（scene / prefab）上，
-但 LLM 不擅長直接讀這些檔案 —— 主場景 `0_下山逃脫_July.unity` 是 **182MB**，
-根本塞不進 context。
+但 LLM 不擅長直接讀這些檔案
 
 目標：**像讀程式碼一樣「跳著讀」Unity 資料** —— 先精準定位，再只讀需要的那一小塊。
 
@@ -71,7 +204,7 @@ query.py    find / overrides / scope stats
 uprefab.py  CLI 進入點
 ```
 
-### 實測數字（5323 個資產，含三個 120–190MB 的 scene）
+### 實測數字（5323 個資產）
 
 | 項目 | 結果 |
 |---|---|

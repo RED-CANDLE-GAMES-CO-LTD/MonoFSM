@@ -170,7 +170,9 @@ namespace MonoFSM.FSM
 
             // Get IStateMachineOwner components from children of this GameObject.
             // var owners = GetComponentsInChildren<IStateMachineOwner>(true);
-            if (_owners.Length == 0)
+            // 剛 AddComponent 出來、還沒經過 Inspector 的 StateMachineLogic 這裡是 null
+            // （其他用到 _owners 的地方都有 null check，只有這行漏了）
+            if (_owners == null || _owners.Length == 0)
                 _owners = GetComponentsInChildren<MonoFSMOwner>(true);
             var owners = _owners;
             // Assuming ListPool is a static utility class available.

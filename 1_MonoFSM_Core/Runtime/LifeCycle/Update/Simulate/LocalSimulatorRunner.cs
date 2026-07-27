@@ -55,7 +55,13 @@ namespace MonoFSM.Core.Simulate
 #endif
             //scene上的
             foreach (var sceneMonoPoolObj in _allSceneMonoPoolObjs)
+            {
                 _world.RegisterMonoObject(sceneMonoPoolObj);
+                //單機沒有 ISimulateAuthorityProvider，ShouldSimulte 會落到 _shouldSimulateFlag
+                //（預設 false）——不在這裡 push true 的話，scene 上的物件永遠不會被 Simulate。
+                //spawn 出來的走 LocalSpawnManager 有 push，scene 物件原本漏了。
+                sceneMonoPoolObj.AssignShouldSimulateForAllChildrenObj(true);
+            }
         }
 
         private void Start() //timing hmm

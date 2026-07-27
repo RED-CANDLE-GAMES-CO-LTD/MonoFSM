@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using Abort = MonoFSM.Editor.PrefabEditing.EditResolve.EditAbort;
 
 namespace MonoFSM.Editor.PrefabEditing
 {
@@ -13,17 +12,13 @@ namespace MonoFSM.Editor.PrefabEditing
     /// 這是 PrefabTextCacheWriter.ExportSubtree（讀）的對稱面（寫）：同一套路徑語彙、
     /// 同樣在路徑打錯時列出該層實際子節點，不用先知道 fileID 或 instanceID。
     ///
+    /// 路徑 / 型別 / 欄位的解析與錯誤訊息在 EditResolve，跟 SceneEdit 共用。
+    ///
     /// 為什麼不做成 MenuItem：MenuItem 無法帶參數，而「在 X 下建 Y 型別、把 Z 欄位指向 W」
     /// 天生就是參數化操作。做成 static API 才能被 dynamic code 組合。
     /// </summary>
     public static class PrefabEdit
     {
-        // 路徑/型別解析失敗時拋這個，Edit() 攔下來就不會存檔 —— 不留半殘 prefab
-        private class EditAbort : Exception
-        {
-            public EditAbort(string message) : base(message) { }
-        }
-
         /// <summary>
         /// 在 parentPath 底下建一個子節點並掛上 component。
         /// </summary>
@@ -36,9 +31,10 @@ namespace MonoFSM.Editor.PrefabEditing
         {
             return Edit(assetPath, root =>
             {
-                var parent = ResolveNode(root, parentPath);
+                var parent = EditResolve.Node(root, parentPath);
                 if (parent.Find(name) != null)
-                    throw new EditAbort($"'{name}' 已存在於 {Describe(parentPath)}，不重複建立");
+                    throw new Abort(
+                        $"'{name}' 已存在於 {EditResolve.Describe(parentPath)}，不重複建立");
 
                 var go = new GameObject(name);
                 go.transform.SetParent(parent, false);
@@ -46,7 +42,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 var added = new List<string>();
                 foreach (var typeName in componentTypes ?? Array.Empty<string>())
                 {
-                    var type = ResolveComponentType(typeName);
+                    var type = EditResolve.CompType(typeName);
                     if (go.GetComponent(type) != null) continue;
                     go.AddComponent(type);
                     added.Add(type.Name);
@@ -65,13 +61,15 @@ namespace MonoFSM.Editor.PrefabEditing
         {
             return Edit(assetPath, root =>
             {
-                var comp = ResolveComponent(root, nodePath, componentType);
+                var node = EditResolve.Node(root, nodePath);
+                var comp = EditResolve.Comp(node, nodePath, componentType);
                 var so = new SerializedObject(comp);
-                var prop = FindProp(so, fieldPath, comp);
-                var before = Preview(prop);
-                ApplyValue(prop, value, fieldPath);
+                var prop = EditResolve.Prop(so, fieldPath, comp);
+                var before = EditResolve.Preview(prop);
+                EditResolve.ApplyValue(prop, value, fieldPath);
                 so.ApplyModifiedPropertiesWithoutUndo();
-                return $"{nodePath}.{comp.GetType().Name}.{fieldPath}: {before} -> {Preview(prop)}";
+                return $"{nodePath}.{comp.GetType().Name}.{fieldPath}: " +
+                       $"{before} -> {EditResolve.Preview(prop)}";
             });
         }
 
@@ -85,33 +83,17 @@ namespace MonoFSM.Editor.PrefabEditing
         {
             return Edit(assetPath, root =>
             {
-                var comp = ResolveComponent(root, nodePath, componentType);
+                var node = EditResolve.Node(root, nodePath);
+                var comp = EditResolve.Comp(node, nodePath, componentType);
                 var so = new SerializedObject(comp);
-                var prop = FindProp(so, fieldPath, comp);
+                var prop = EditResolve.Prop(so, fieldPath, comp);
                 if (prop.propertyType != SerializedPropertyType.ObjectReference)
-                    throw new EditAbort(
+                    throw new Abort(
                         $"'{fieldPath}' 是 {prop.propertyType}，不是物件引用；請改用 SetField");
 
-                var target = ResolveNode(root, targetNodePath);
-                Component targetComp;
-                if (!string.IsNullOrEmpty(targetComponentType))
-                {
-                    targetComp = target.GetComponent(ResolveComponentType(targetComponentType));
-                }
-                else
-                {
-                    // 沒指定就用欄位的宣告型別找 —— 少一個參數，也避免型別填錯
-                    var fieldType = ResolveFieldType(comp.GetType(), fieldPath)
-                                    ?? throw new EditAbort(
-                                        $"找不到欄位 '{fieldPath}' 的宣告型別，請明確指定 targetComponentType");
-                    targetComp = target.GetComponent(fieldType);
-                }
-
-                if (targetComp == null)
-                    throw new EditAbort(
-                        $"'{targetNodePath}' 上沒有需要的 component。這個節點掛的是：" +
-                        string.Join(", ", target.GetComponents<Component>()
-                            .Where(c => c != null).Select(c => c.GetType().Name)));
+                var target = EditResolve.Node(root, targetNodePath);
+                var targetComp = EditResolve.RefTarget(
+                    target, targetNodePath, comp, fieldPath, targetComponentType);
 
                 prop.objectReferenceValue = targetComp;
                 so.ApplyModifiedPropertiesWithoutUndo();
@@ -120,17 +102,238 @@ namespace MonoFSM.Editor.PrefabEditing
             });
         }
 
+        /// <summary>
+        /// 把欄位指向一個 asset（prefab / ScriptableObject）。prefab 會取其上的 component
+        /// 或 GameObject 本身，依欄位宣告型別決定。
+        /// </summary>
+        public static string SetAssetRef(
+            string assetPath, string nodePath, string componentType, string fieldPath,
+            string targetAssetPath)
+        {
+            return Edit(assetPath, root =>
+            {
+                var node = EditResolve.Node(root, nodePath);
+                var comp = EditResolve.Comp(node, nodePath, componentType);
+                var so = new SerializedObject(comp);
+                var prop = EditResolve.Prop(so, fieldPath, comp);
+                if (prop.propertyType != SerializedPropertyType.ObjectReference)
+                    throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用");
+
+                prop.objectReferenceValue = AssetRef.Resolve(targetAssetPath, comp, fieldPath);
+                so.ApplyModifiedPropertiesWithoutUndo();
+                return $"{nodePath}.{comp.GetType().Name}.{fieldPath} -> res:{targetAssetPath}";
+            });
+        }
+
         public static string DeleteNode(string assetPath, string nodePath)
         {
             return Edit(assetPath, root =>
             {
                 if (string.IsNullOrEmpty(nodePath))
-                    throw new EditAbort("不能刪 root");
-                var node = ResolveNode(root, nodePath);
-                var count = CountDescendants(node);
+                    throw new Abort("不能刪 root");
+                var node = EditResolve.Node(root, nodePath);
+                var count = EditResolve.CountDescendants(node);
                 UnityEngine.Object.DestroyImmediate(node.gameObject);
                 return $"刪除 {nodePath}（含 {count} 個子節點）";
             });
+        }
+
+        /// <summary>
+        /// 建一個 variant（不是從零開一個新 prefab）。
+        ///
+        /// 為什麼是 variant：這個專案的 prefab 帶著大量共用底盤 —— MonoEntity / MonoObj /
+        /// NetworkObject / Culling / ModulePack。從零建一個「只掛必要 component」的 prefab
+        /// 看起來乾淨，實際上會漏掉那些底盤，spawn 進場就出錯，而且之後底盤改了它也跟不上。
+        /// 從既有 premade 開 variant 才是專案的正確做法。
+        /// </summary>
+        /// <param name="basePath">base prefab 的 asset path（可以是 Packages/… 底下的）</param>
+        /// <param name="newAssetPath">新 variant 的 asset path，要以 .prefab 結尾</param>
+        /// <param name="name">root 名稱；留空就用檔名</param>
+        public static string CreateVariant(string basePath, string newAssetPath, string name = null)
+        {
+            if (!newAssetPath.EndsWith(".prefab"))
+                return $"# 未修改：newAssetPath 要以 .prefab 結尾：{newAssetPath}";
+
+            var baseAsset = AssetDatabase.LoadAssetAtPath<GameObject>(basePath);
+            if (baseAsset == null) return $"# 未修改：找不到 base prefab: {basePath}";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(newAssetPath) != null)
+                return $"# 未修改：{newAssetPath} 已存在，不覆蓋";
+
+            EnsureDirectory(newAssetPath);
+
+            // 對「prefab 實例」SaveAsPrefabAsset 就會存成 variant（連結保留）；
+            // 對一般 GameObject 才是存成獨立 prefab。差別就在 instance 這一步。
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(baseAsset);
+            if (instance == null) return $"# 未修改：實例化失敗: {basePath}";
+            try
+            {
+                instance.name = string.IsNullOrEmpty(name)
+                    ? System.IO.Path.GetFileNameWithoutExtension(newAssetPath)
+                    : name;
+
+                var variant = PrefabUtility.SaveAsPrefabAsset(instance, newAssetPath, out var ok);
+                if (!ok || variant == null) return $"# 未修改：存檔失敗: {newAssetPath}";
+
+                var isVariant = PrefabUtility.GetPrefabAssetType(variant) == PrefabAssetType.Variant;
+                return $"建立 variant {newAssetPath}\n" +
+                       $"  base: {basePath}\n" +
+                       $"  variant 連結: {(isVariant ? "有" : "無（存成獨立 prefab 了，檢查 base 是否也是 variant）")}";
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(instance);
+            }
+        }
+
+        // AssetDatabase 不會自己建中間資料夾
+        private static void EnsureDirectory(string assetPath)
+        {
+            var dir = System.IO.Path.GetDirectoryName(assetPath)?.Replace('\\', '/');
+            if (string.IsNullOrEmpty(dir) || AssetDatabase.IsValidFolder(dir)) return;
+
+            var parts = dir.Split('/');
+            var cursor = parts[0];
+            for (var i = 1; i < parts.Length; i++)
+            {
+                var next = $"{cursor}/{parts[i]}";
+                if (!AssetDatabase.IsValidFolder(next))
+                    AssetDatabase.CreateFolder(cursor, parts[i]);
+                cursor = next;
+            }
+        }
+
+        /// <summary>
+        /// 一次跑多行操作（語法見 EditBatch，`prefab` / `pos` / `mv` / `save` 不適用）。
+        /// **整批共用一次 LoadPrefabContents / SaveAsPrefabAsset** —— 逐個原語呼叫的話，
+        /// 建一個 FSM 會 load/save 幾十次，慢且每次都重跑一遍 cache 更新。
+        /// </summary>
+        public static string Batch(string assetPath, string ops)
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(assetPath) == null)
+                return $"# 找不到 prefab: {assetPath}";
+
+            var root = PrefabUtility.LoadPrefabContents(assetPath);
+            try
+            {
+                var log = EditBatch.Run(ops, (verb, a) => Dispatch(root.transform, verb, a));
+                // 有任何一行失敗就整批不存檔 —— 半套的 FSM 比沒改更難收拾
+                if (log.Contains("# 未修改")) return log + "# 整批未存檔。";
+                PrefabUtility.SaveAsPrefabAsset(root, assetPath);
+                return log + AfterSaveNote(assetPath);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static string Dispatch(Transform root, string verb, string[] a)
+        {
+            switch (verb)
+            {
+                case "add":
+                {
+                    var parentPath = EditBatch.At(a, 0);
+                    var name = EditBatch.Need(a, 1, verb, "name");
+                    var parent = EditResolve.Node(root, parentPath);
+                    // 已存在就跳過而不是 abort，理由同 SceneEdit.AddNode
+                    if (parent.Find(name) != null)
+                        return $"（跳過）{EditResolve.Describe(parentPath)}/{name} 已存在";
+
+                    var go = new GameObject(name);
+                    go.transform.SetParent(parent, false);
+                    var added = new List<string>();
+                    foreach (var typeName in EditBatch.Types(a, 2))
+                    {
+                        var type = EditResolve.CompType(typeName);
+                        if (go.GetComponent(type) != null) continue;
+                        go.AddComponent(type);
+                        added.Add(type.Name);
+                    }
+
+                    var full = string.IsNullOrEmpty(parentPath) ? name : $"{parentPath}/{name}";
+                    return $"建立 {full}  <{EditResolve.Join(added)}>";
+                }
+                case "comp":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var node = EditResolve.Node(root, nodePath);
+                    var added = new List<string>();
+                    foreach (var typeName in EditBatch.Types(a, 1))
+                    {
+                        var type = EditResolve.CompType(typeName);
+                        if (node.GetComponent(type) != null) continue;
+                        node.gameObject.AddComponent(type);
+                        added.Add(type.Name);
+                    }
+
+                    return $"{nodePath} += <{EditResolve.Join(added)}>";
+                }
+                case "set":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
+                    var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
+                        EditBatch.Need(a, 1, verb, "componentType"));
+                    var so = new SerializedObject(comp);
+                    var prop = EditResolve.Prop(so, fieldPath, comp);
+                    var before = EditResolve.Preview(prop);
+                    EditResolve.ApplyValue(prop, EditBatch.At(a, 3) ?? "", fieldPath);
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    return $"{nodePath}.{comp.GetType().Name}.{fieldPath}: " +
+                           $"{before} -> {EditResolve.Preview(prop)}";
+                }
+                case "ref":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
+                    var targetPath = EditBatch.Need(a, 3, verb, "targetNodePath");
+                    var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
+                        EditBatch.Need(a, 1, verb, "componentType"));
+                    var so = new SerializedObject(comp);
+                    var prop = EditResolve.Prop(so, fieldPath, comp);
+                    if (prop.propertyType != SerializedPropertyType.ObjectReference)
+                        throw new Abort(
+                            $"'{fieldPath}' 是 {prop.propertyType}，不是物件引用；請改用 set");
+                    var targetComp = EditResolve.RefTarget(
+                        EditResolve.Node(root, targetPath), targetPath, comp, fieldPath,
+                        EditBatch.At(a, 4));
+                    prop.objectReferenceValue = targetComp;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    return $"{nodePath}.{comp.GetType().Name}.{fieldPath} -> " +
+                           $"{targetPath}.{targetComp.GetType().Name}";
+                }
+                case "aref":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
+                    var target = EditBatch.Need(a, 3, verb, "assetPath");
+                    var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
+                        EditBatch.Need(a, 1, verb, "componentType"));
+                    var so = new SerializedObject(comp);
+                    var prop = EditResolve.Prop(so, fieldPath, comp);
+                    if (prop.propertyType != SerializedPropertyType.ObjectReference)
+                        throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用");
+                    prop.objectReferenceValue = AssetRef.Resolve(target, comp, fieldPath);
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    return $"{nodePath}.{comp.GetType().Name}.{fieldPath} -> res:{target}";
+                }
+                case "auto":
+                    return EditResolve.RunAuto(
+                        EditResolve.Node(root, EditBatch.At(a, 0)));
+                case "del":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var node = EditResolve.Node(root, nodePath);
+                    var count = EditResolve.CountDescendants(node);
+                    UnityEngine.Object.DestroyImmediate(node.gameObject);
+                    return $"刪除 {nodePath}（含 {count} 個子節點）";
+                }
+                default:
+                    throw new Abort(
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref auto del" +
+                        "（prefab / pos / mv / save 只有 SceneEdit 有）");
+            }
         }
 
         // ---- 共用 session ----
@@ -148,7 +351,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 {
                     message = body(root.transform);
                 }
-                catch (EditAbort abort)
+                catch (Abort abort)
                 {
                     // 沒存檔，prefab 維持原狀
                     return $"# 未修改：{abort.Message}";
@@ -177,177 +380,5 @@ namespace MonoFSM.Editor.PrefabEditing
                 return $"\n# 已存檔，但 cache 更新失敗（cache 可能過時）：{e.Message}";
             }
         }
-
-        // ---- 解析 ----
-
-        private static Transform ResolveNode(Transform root, string path)
-        {
-            if (string.IsNullOrEmpty(path)) return root;
-            var found = root.Find(path);
-            if (found == null) throw new EditAbort(DescribeChildren(root, path));
-            return found;
-        }
-
-        private static Component ResolveComponent(Transform root, string nodePath, string typeName)
-        {
-            var node = ResolveNode(root, nodePath);
-            var comp = node.GetComponent(ResolveComponentType(typeName));
-            if (comp == null)
-                throw new EditAbort(
-                    $"'{nodePath}' 上沒有 {typeName}。這個節點掛的是：" +
-                    string.Join(", ", node.GetComponents<Component>()
-                        .Where(c => c != null).Select(c => c.GetType().Name)));
-            return comp;
-        }
-
-        private static Type ResolveComponentType(string typeName)
-        {
-            if (string.IsNullOrEmpty(typeName)) throw new EditAbort("component 型別名不可為空");
-
-            var matches = TypeCache.GetTypesDerivedFrom<Component>()
-                .Where(t => t.Name == typeName || t.FullName == typeName)
-                .ToList();
-
-            if (matches.Count == 1) return matches[0];
-            if (matches.Count == 0)
-                throw new EditAbort($"找不到 component 型別 '{typeName}'");
-            throw new EditAbort(
-                $"'{typeName}' 有多個同名型別，請改用 FullName：" +
-                string.Join(", ", matches.Select(t => t.FullName)));
-        }
-
-        // 逐段走 FieldInfo，支援 _rateVar._var 這種巢狀路徑
-        private static Type ResolveFieldType(Type type, string fieldPath)
-        {
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
-                                       BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
-            var current = type;
-            FieldInfo field = null;
-            foreach (var seg in fieldPath.Split('.'))
-            {
-                field = null;
-                for (var t = current; t != null && field == null; t = t.BaseType)
-                    field = t.GetField(seg, flags);
-                if (field == null) return null;
-                current = field.FieldType;
-            }
-
-            return field?.FieldType;
-        }
-
-        private static SerializedProperty FindProp(
-            SerializedObject so, string fieldPath, Component comp)
-        {
-            var prop = so.FindProperty(fieldPath);
-            if (prop != null) return prop;
-
-            // 欄位名打錯很常見，直接把這個 component 上有哪些 serialized 欄位列出來
-            var names = new List<string>();
-            var it = so.GetIterator();
-            if (it.NextVisible(true))
-                do
-                {
-                    if (it.name != "m_Script") names.Add(it.name);
-                } while (it.NextVisible(false));
-
-            throw new EditAbort(
-                $"{comp.GetType().Name} 上找不到欄位 '{fieldPath}'。可用的頂層欄位：" +
-                string.Join(", ", names));
-        }
-
-        private static void ApplyValue(SerializedProperty prop, object value, string fieldPath)
-        {
-            switch (prop.propertyType)
-            {
-                case SerializedPropertyType.Float:
-                    prop.floatValue = Convert.ToSingle(value);
-                    break;
-                case SerializedPropertyType.Integer:
-                    prop.intValue = Convert.ToInt32(value);
-                    break;
-                case SerializedPropertyType.Boolean:
-                    prop.boolValue = Convert.ToBoolean(value);
-                    break;
-                case SerializedPropertyType.String:
-                    prop.stringValue = value?.ToString() ?? "";
-                    break;
-                case SerializedPropertyType.Enum:
-                    prop.enumValueIndex = ToEnumIndex(prop, value);
-                    break;
-                default:
-                    throw new EditAbort(
-                        $"'{fieldPath}' 的型別是 {prop.propertyType}，SetField 不支援" +
-                        (prop.propertyType == SerializedPropertyType.ObjectReference
-                            ? "；請改用 SetRef"
-                            : ""));
-            }
-        }
-
-        private static int ToEnumIndex(SerializedProperty prop, object value)
-        {
-            if (value is string s)
-            {
-                var index = Array.IndexOf(prop.enumNames, s);
-                if (index < 0)
-                    throw new EditAbort(
-                        $"enum 沒有 '{s}'，可用的是：{string.Join(", ", prop.enumNames)}");
-                return index;
-            }
-
-            return Convert.ToInt32(value);
-        }
-
-        private static string Preview(SerializedProperty prop)
-        {
-            switch (prop.propertyType)
-            {
-                case SerializedPropertyType.Float: return prop.floatValue.ToString("0.###");
-                case SerializedPropertyType.Integer: return prop.intValue.ToString();
-                case SerializedPropertyType.Boolean: return prop.boolValue.ToString();
-                case SerializedPropertyType.String: return prop.stringValue;
-                case SerializedPropertyType.Enum:
-                    return prop.enumValueIndex >= 0 && prop.enumValueIndex < prop.enumNames.Length
-                        ? prop.enumNames[prop.enumValueIndex]
-                        : prop.enumValueIndex.ToString();
-                case SerializedPropertyType.ObjectReference:
-                    return prop.objectReferenceValue != null
-                        ? prop.objectReferenceValue.name
-                        : "null";
-                default: return prop.propertyType.ToString();
-            }
-        }
-
-        // 路徑打錯時沿路徑走到最後一個通的節點，列出那層的子節點 —— 省一次來回
-        // （跟 PrefabTextCacheWriter.DescribeChildren 同樣的回饋方式）
-        private static string DescribeChildren(Transform root, string path)
-        {
-            var cursor = root;
-            var walked = "";
-            foreach (var seg in path.Split('/'))
-            {
-                var next = cursor.Find(seg);
-                if (next == null) break;
-                cursor = next;
-                walked = string.IsNullOrEmpty(walked) ? seg : $"{walked}/{seg}";
-            }
-
-            var children = new List<string>();
-            foreach (Transform child in cursor)
-                children.Add($"{child.name} (+{CountDescendants(child)})");
-
-            return $"找不到節點 '{path}'，走到 " +
-                   $"'{(string.IsNullOrEmpty(walked) ? "(root)" : walked)}' 為止。" +
-                   $"這層的子節點：{(children.Count == 0 ? "(無)" : string.Join(" | ", children))}";
-        }
-
-        private static int CountDescendants(Transform t)
-        {
-            var n = 0;
-            foreach (Transform c in t) n += 1 + CountDescendants(c);
-            return n;
-        }
-
-        private static string Describe(string path) =>
-            string.IsNullOrEmpty(path) ? "(root)" : path;
     }
 }

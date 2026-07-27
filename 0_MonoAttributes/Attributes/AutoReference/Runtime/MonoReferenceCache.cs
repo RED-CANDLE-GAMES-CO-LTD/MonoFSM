@@ -7,6 +7,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Profiling;
 
+//FIXME: 一坨屎！
 namespace Auto_Attribute.Runtime
 {
     public static class FieldCache
@@ -33,6 +34,7 @@ namespace Auto_Attribute.Runtime
         }
     }
 
+    [Obsolete("Use instead")]
     [Serializable]
     [Searchable]
     public class MonoValueCache
@@ -250,6 +252,7 @@ namespace Auto_Attribute.Runtime
         }
     }
 
+    [Obsolete("一坨屎！")]
     [Serializable]
     public class MonoReferenceCache
     {
