@@ -6,6 +6,8 @@
 * Component reference 在對應的 member 欄位上用 [Auto], [AutoParent], [AutoChildren] 來標記即可, 不需要在awake時獲取
 * 當需求涉及 MonoFSM 相關操作（State、Action、Condition、Transition、EffectDealer、Timer、VarFloat、Prefab FSM 編輯等），**先調用
   MonoFSM skill**
+* 當需求涉及讀懂 / 定位 prefab、scene 的序列化內容（不想把整個大 scene 塞進 context），**先調用 uprefab skill** —— 離線索引
+  CLI 在 `Tools~/uprefab/`（`~` 後綴讓 Unity 不 import）
 * 實作細節與架構：盡量只完成必要功能即可，不要過度設計
     * Action,功能實作等，透過繼承AbstractStateAction來實現 (
       @MonoFSM/1_MonoFSM_Core/Runtime/Action/AbstractStateAction.cs)

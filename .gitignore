@@ -99,3 +99,11 @@ InitTestScene*.unity*
 
 # macOS
 .DS_Store
+# Tools~/ 是 UPM 慣例（尾端 ~ 讓 Unity 不 import 這個資料夾、不生 .meta），
+# 但很多人的 global gitignore 有 `*~`（編輯器備份檔）規則會把它整個誤殺。
+# repo 層規則優先於 global，所以這裡明確撈回來。
+!Tools~/
+
+# Python 工具的位元碼快取
+__pycache__/
+*.pyc
