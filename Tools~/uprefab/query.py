@@ -10,20 +10,35 @@ import sqlite3
 
 
 def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50):
-    """依 component 型別 / 節點名 / 資產路徑定位節點。"""
-    sql = """
-      SELECT a.path, n.file_id, n.path, n.is_active,
-             (SELECT group_concat(c.type, ' ')
-                FROM comps c WHERE c.asset_id=n.asset_id AND c.go_file_id=n.file_id)
-        FROM nodes n JOIN assets a ON a.id = n.asset_id
-       WHERE 1=1
+    """依 component 型別 / 節點名 / 資產路徑定位節點。
+
+    分兩階段，理由是查詢計劃：
+
+    1. **定位** —— 有 `comp` 條件時以 `comps` 當驅動表（`WHERE c.type LIKE ?` 走
+       `ix_comps_type`），再 join `nodes`（走 PRIMARY KEY `(asset_id, file_id)`）。
+       原本寫成 `FROM nodes WHERE EXISTS (SELECT … FROM comps …)`，SQLite 選的計劃是
+       `SCAN n` —— 全掃 12.7 萬列 nodes、每列跑一次 EXISTS，`ix_comps_type` 完全沒用上，
+       單一查詢要兩分鐘以上。
+    2. **補 component 清單** —— `group_concat` 只對 LIMIT 之後的那幾列做。放在第一階段
+       會變成 correlated scalar subquery，對每一列候選都跑一次（而 `comps` 沒有
+       `(asset_id, go_file_id)` 的 index，每次都是該 asset 內的線性掃）。
     """
     args: list = []
     if comp:
-        sql += """ AND EXISTS (SELECT 1 FROM comps c
-                    WHERE c.asset_id=n.asset_id AND c.go_file_id=n.file_id
-                      AND c.type LIKE ?)"""
+        sql = """
+          SELECT a.path, n.asset_id, n.file_id, n.path, n.is_active
+            FROM comps c
+            JOIN nodes n ON n.asset_id = c.asset_id AND n.file_id = c.go_file_id
+            JOIN assets a ON a.id = n.asset_id
+           WHERE c.type LIKE ?
+        """
         args.append(comp)
+    else:
+        sql = """
+          SELECT a.path, n.asset_id, n.file_id, n.path, n.is_active
+            FROM nodes n JOIN assets a ON a.id = n.asset_id
+           WHERE 1=1
+        """
     if name:
         sql += " AND n.name LIKE ?"
         args.append(name)
@@ -32,7 +47,17 @@ def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50):
         args.append(path)
     sql += " ORDER BY a.path, n.path LIMIT ?"
     args.append(limit)
-    return con.execute(sql, args).fetchall()
+
+    rows = con.execute(sql, args).fetchall()
+
+    out = []
+    for apath, asset_id, fid, npath, active in rows:
+        comps = con.execute(
+            "SELECT group_concat(type, ' ') FROM comps WHERE asset_id=? AND go_file_id=?",
+            (asset_id, fid),
+        ).fetchone()[0]
+        out.append((apath, fid, npath, active, comps))
+    return out
 
 
 # ParticleSystem 模組內部、gradient/curve 的逐點數值：override 稽核時是雜訊，

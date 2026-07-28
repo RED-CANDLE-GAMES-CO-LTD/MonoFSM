@@ -160,7 +160,8 @@ def cmd_overrides(args, root, cfg):
 SCENE = f"{unity.EDIT_NS}.SceneEdit"
 PREFAB = f"{unity.EDIT_NS}.PrefabEdit"
 PROBE = f"{unity.EDIT_NS}.EditProbe"
-CACHE = f"{unity.EDIT_NS}.PrefabTextCacheWriter"
+READER = f"{unity.EDIT_NS}.PrefabTextReader"
+REFS = f"{unity.EDIT_NS}.EditRefs"
 
 
 def _ops_text(args) -> str:
@@ -199,11 +200,21 @@ def cmd_prefab(args, root, cfg):
     if args.action == "variant":
         print(unity.call(f"{PREFAB}.CreateVariant", args.asset, args.out, args.name))
     elif args.action == "read":
-        print(unity.call(f"{CACHE}.ExportSubtree", args.asset, args.node, args.depth, not args.fold))
+        print(unity.call(
+            f"{READER}.Export", args.asset, args.node, args.depth,
+            not args.fold, args.budget, args.fsm))
     elif args.action == "do":
         print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args)))
-    elif args.action == "cache":
-        print(unity.call(f"{CACHE}.RefreshCacheFor", args.asset) or "ok")
+
+
+def cmd_refs(args, root, cfg):
+    """引用反查。走 Unity 而不是離線 refs 表 —— 理由見 EditRefs 的類別註解：
+    這個專案大量引用是 prefab override，離線 refs 表收不到。"""
+    if args.asset:
+        print(unity.call(
+            f"{REFS}.PrefabRefs", args.asset, args.node, args.comp, args.out, args.limit))
+    else:
+        print(unity.call(f"{REFS}.SceneRefs", args.node, args.comp, args.out, args.limit))
 
 
 def cmd_types(args, root, cfg):
@@ -299,16 +310,32 @@ def main() -> None:
     pc.set_defaults(fn=cmd_scene)
 
     pp = sub.add_parser("prefab", help="對 prefab asset 讀 / 寫（需要 Unity）")
-    pp.add_argument("action", choices=["read", "do", "cache", "variant"])
+    pp.add_argument("action", choices=["read", "do", "variant"])
     pp.add_argument("asset", help="prefab asset path")
     pp.add_argument("--node", help="read：子樹路徑")
-    pp.add_argument("--depth", type=int, default=-1)
+    pp.add_argument("--depth", type=int, default=-1,
+                    help="read：明確指定往下幾層（給了就不看 --budget）")
+    pp.add_argument("--budget", type=int, default=20000,
+                    help="read：字元上限，超標自動摺到塞得進的深度；0 = 不限")
+    pp.add_argument("--fsm", action="store_true",
+                    help="read：附 FSM markdown 段（states / transitions / conditions）")
     pp.add_argument("--fold", action="store_true")
     pp.add_argument("--out", help="variant：新 variant 的 asset path")
     pp.add_argument("--name", help="variant：root 名稱（預設用檔名）")
     pp.add_argument("-f", "--file", help="do：從檔案讀批次操作")
     pp.add_argument("ops", nargs="*", help="do：直接帶操作（一個參數一行）")
     pp.set_defaults(fn=cmd_prefab)
+
+    pr = sub.add_parser("refs", help="誰指向這個節點 / 它指向誰（需要 Unity）")
+    pr.add_argument("asset", nargs="?",
+                    help="prefab asset path；省略 = 對當前開著的 scene")
+    pr.add_argument("--node", default="",
+                    help="目標節點路徑（prefab 留空 = root；scene 第一段是 root object 名稱）")
+    pr.add_argument("--comp", help="只看目標節點上的這個 component")
+    pr.add_argument("--out", action="store_true",
+                    help="反向：列出目標指向誰（預設是誰指向目標）")
+    pr.add_argument("-n", "--limit", type=int, default=60)
+    pr.set_defaults(fn=cmd_refs)
 
     pt = sub.add_parser("types", help="名稱含關鍵字的 Component 型別（需要 Unity）")
     pt.add_argument("keyword")

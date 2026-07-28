@@ -285,6 +285,29 @@ namespace MonoFSM.Editor.PrefabEditing
             });
         }
 
+        /// <summary>移除節點上的 component。不存在就跳過 —— 語意是「確保它不在」。</summary>
+        public static string DeleteComponents(string nodePath, string componentTypes)
+        {
+            return Guard(() =>
+            {
+                var node = EditResolve.NodeInRoots(Roots(Active()), nodePath);
+                var removed = new List<string>();
+                foreach (var typeName in (componentTypes ?? "").Split(','))
+                {
+                    if (string.IsNullOrWhiteSpace(typeName)) continue;
+                    var comp = node.GetComponent(EditResolve.CompType(typeName.Trim()));
+                    if (comp == null) continue;
+                    removed.Add(comp.GetType().Name);
+                    Object.DestroyImmediate(comp, true);
+                }
+
+                if (removed.Count == 0)
+                    return $"（跳過）{EditResolve.Describe(nodePath)} 上沒有那些 component";
+                Dirty();
+                return $"{nodePath} -= <{EditResolve.Join(removed)}>";
+            });
+        }
+
         /// <summary>結構改完重跑 [Auto*] 綁定（理由見 EditResolve.RunAuto）。</summary>
         public static string Auto(string nodePath)
         {
@@ -381,18 +404,22 @@ namespace MonoFSM.Editor.PrefabEditing
                     return Auto(EditBatch.Need(a, 0, verb, "nodePath"));
                 case "del":
                     return DeleteNode(EditBatch.Need(a, 0, verb, "nodePath"));
+                case "delcomp":
+                    return DeleteComponents(
+                        EditBatch.Need(a, 0, verb, "nodePath"), EditBatch.At(a, 1));
                 case "save":
                     return Save();
                 default:
                     throw new Abort(
-                        $"不認得的操作 '{verb}'。可用的：add prefab comp set ref aref pos mv auto del save");
+                        "不認得的操作 '" + verb +
+                        "'。可用的：add prefab comp set ref aref pos mv auto del delcomp save");
             }
         }
 
         // ---- 讀 ----
 
         /// <summary>
-        /// 匯出 scene 子樹的文字版（跟 PrefabTextCacheWriter.ExportSubtree 同一個 renderer）。
+        /// 匯出 scene 子樹的文字版（跟 PrefabTextReader.Export 同一個 renderer）。
         /// nodePath 留空 = 只列 root object 一層，附 (+N nodes) 展開成本 —— 大 scene 直接
         /// 整棵匯出會爆 context，所以預設就是「先看目錄」。
         /// </summary>
@@ -432,7 +459,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 : HierarchyExportOptions.Default;
             options._maxDepth = depth;
             if (!fullExpand)
-                options._excludeComponents.AddRange(PrefabTextCacheWriter.VisualComponents);
+                options._excludeComponents.AddRange(PrefabTextReader.VisualComponents);
 
             var head = $"# scene: {scene.path}\n# subtree: {nodePath}\n\n";
             return head + HierarchyTextExporter.Export(node.gameObject, options);

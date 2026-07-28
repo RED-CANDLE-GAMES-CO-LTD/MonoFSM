@@ -1,6 +1,6 @@
 ---
 name: uprefab
-description: 不把整個 200MB scene 塞進 context 就能讀懂並改動 Unity serialized data（prefab / scene / ScriptableObject）。當需要：(1) 找某個 component / 節點在哪些 prefab 或 scene 裡 (2) 讀某個 prefab 的階層結構或 FSM 狀態機架構 (3) 看某個子樹的 component 欄位細節 (4) prefab override 稽核 (5) 用 API 改 prefab / scene 結構、建 prefab variant、複製場景模板、組 FSM (6) 查某個型別有哪些 serialized 欄位、讀 Play Mode 下的 runtime 值、數場上物件驗證生成邏輯 (7) 理解或修改 uprefab 離線索引（MonoFSM/Tools~/uprefab/*.py）、prefab text cache 或 PrefabEdit / SceneEdit 時使用此 skill。
+description: 不把整個 200MB scene 塞進 context 就能讀懂並改動 Unity serialized data（prefab / scene / ScriptableObject）。當需要：(1) 找某個 component / 節點在哪些 prefab 或 scene 裡 (2) 讀某個 prefab 的階層結構或 FSM 狀態機架構 (3) 看某個子樹的 component 欄位細節 (4) prefab override 稽核 (5) 用 API 改 prefab / scene 結構、建 prefab variant、複製場景模板、組 FSM (6) 查某個型別有哪些 serialized 欄位、讀 Play Mode 下的 runtime 值、數場上物件驗證生成邏輯 (7) 查某個節點被誰引用 / 它指向誰 (8) 理解或修改 uprefab 離線索引（MonoFSM/Tools~/uprefab/*.py）、PrefabTextReader 或 PrefabEdit / SceneEdit 時使用此 skill。
 ---
 
 # uprefab
@@ -13,19 +13,19 @@ description: 不把整個 200MB scene 塞進 context 就能讀懂並改動 Unity
 | 你要做什麼 | 用什麼 | 需要 Unity 開著 |
 |---|---|---|
 | 這個 component / 名稱在哪些檔案裡 | CLI `find` | ❌ |
-| 大 prefab 的結構、FSM 狀態機架構（有 cache 檔） | 讀 `Tools/uprefab/cache/**.md` | ❌ |
-| 同上但 cache 檔不存在 | CLI `prefab cache` 產檔再讀 | ✅ |
-| 一般 prefab / 某個子樹的 component 欄位細節 | CLI `prefab read` | ✅ |
+| prefab 的階層結構、某個子樹的 component 欄位細節 | CLI `prefab read` | ✅ |
+| FSM 狀態機架構 | CLI `prefab read --fsm` | ✅ |
 | prefab override 稽核 | CLI `overrides` | ❌ |
 | 索引範圍有多大、還能濾掉什麼 | CLI `scope stats` | ❌ |
 | **改** prefab 結構 | CLI `prefab do` | ✅ |
 | **改** scene 結構、開/複製/存 scene | CLI `scene do` / `scene copy` | ✅ |
+| 某個節點被誰指到 / 它指向誰 | CLI `refs` | ✅ |
 | 某個型別叫什麼、有哪些欄位 | CLI `types` / `fields` | ✅ |
 | Play Mode 下場上有幾個某某物件 | CLI `scene count` | ✅ |
 | Play Mode 下某個 component 現在的值 | CLI `peek` | ✅ |
 
-一句話版本：**定位走 CLI `find`，大 prefab 走 cache 檔，讀細節走 `prefab read` /
-`scene ls`，要改走 `prefab do` / `scene do`。**
+一句話版本：**定位走 CLI `find`，讀結構走 `prefab read` / `scene ls`（預設就會分層摺疊，
+再用 `--node` 下鑽），查引用走 `refs`，要改走 `prefab do` / `scene do`。**
 
 所有需要 Unity 的操作都有 CLI 入口 —— **不要直接寫 `uloop execute-dynamic-code`**，
 它每次回傳 15 行 JSON envelope（Logs / SecurityLevel / Diagnostics…），CLI 只回結果那一行。
@@ -40,7 +40,7 @@ description: 不把整個 200MB scene 塞進 context 就能讀懂並改動 Unity
 任何單一檔案裡都查不到。
 
 所以離線索引（`find` / `overrides`）只負責「在哪個檔案」，內容一律走 Unity 匯出的結果
-（cache 檔或 `prefab read` / `scene ls`）—— 那才是**合併後**的真值。
+（`prefab read` / `scene ls`）—— 那才是**合併後**的真值。
 
 ---
 
@@ -93,68 +93,13 @@ re.sub(r'\\u([0-9a-fA-F]{4})', lambda m: chr(int(m.group(1), 16)), name)
 
 ---
 
-## 二、Prefab Text Cache
-
-掛了 `PrefabTextCacheMarker` 的 prefab，存檔時自動把文字版寫進
-`Tools/uprefab/cache/<原 asset path>.md`（**不進 git**，本機產物，隨時可重建）。
-
-### 為什麼要落成檔案（而不是每次 ExportSubtree 直接回傳）
-
-省的不是 Unity 呼叫，是 **context**。`PPlayer.md` 有 71KB ≈ 18k tokens；
-`ExportSubtree` 的回傳值會整份進 context，而落成檔案可以先 `grep` 定位、再只讀那 60 行。
-
-臨界點就在這：
-
-- **大 prefab（掛了 marker 的那幾個核心 prefab）** → 走 cache 檔。cache 不在就
-  `prefab cache` 產一次，之後都用 grep / 分段 Read。
-- **一般 prefab** → 直接 `prefab read`，整棵幾 KB 而已，落檔再讀反而多一趟。
-  **不要**為了讀一次就去掛 marker —— 那會寫進 prefab、產生 git diff，代價遠大於收益。
-  （沒 marker 的話 `prefab cache` 會直接 return，本來也走不通。）
-
-補產單一 prefab 的 cache：
+## 二、讀 prefab —— 分層下鑽（要 Unity 開著）
 
 ```bash
-up prefab cache "Assets/0_Gameplay/0_Base/PPlayer.prefab"
-```
-
-### 這份 cache 是目錄，不是全文
-
-折疊行的 `(+N nodes)` 就是展開成本：
-
-```
-[StateFolder] StateFolder <StateFolder> :: 36 states: init, any, Player Idle, … (+498 nodes)
-[VarFolder] VariableFolder <VariableFolder> :: 131 vars: Stamina:VarFloat, … (+233 nodes)
-```
-
-看到成本後決定要不要下鑽。檔尾若有 `---` 分隔線，後面是 `FsmTextExporter` 產的
-FSM 段（states / transitions / conditions 的 markdown），**讀狀態機架構直接看那段**。
-
-### Marker 欄位
-
-`MonoFSM/1_MonoFSM_Core/Runtime/PrefabCache/PrefabTextCacheMarker.cs`
-
-| 欄位 | 預設 | 說明 |
-|---|---|---|
-| `_cacheEnabled` | true | 關掉就不寫，但保留設定 |
-| `_maxDepth` | 6 | 超過這層的子樹摺成 `Name (+N nodes)` |
-| `_excludeVisual` | true | 排除 Renderer / ParticleSystem / AudioSource / Light / Cloth / IK / HighlightEffect（`IsAssignableFrom` 比對，填 base type 即涵蓋子類）。PPlayer 實測省 35% |
-| `_foldInactive` | false | inactive 子樹摺一行。**開之前確認** —— MonoFSM 有些邏輯物件本來就是 inactive |
-| `_fullExpand` | false | 不摺疊任何已知子樹。開了 `_maxDepth` / `_excludeVisual` 就不生效 |
-| `_expandPaths` | [] | 指定要展開的子樹（相對 root），尾端 `/*` 整棵展開 |
-| `_exportFsm` | true | 附 FSM markdown 段 |
-| `_maxFieldCharsPerComponent` | 0 | 0 = 用 exporter 預設 400 |
-
-存檔掛點是 `IBeforePrefabSaveCallbackReceiver`（Unity 原生 Ctrl+S）+
-`ICustomPrefabSaveCallbackReceiver`（專案的 Shift+S 檢查式存檔），兩種都會寫。
-內容沒變就不碰檔案 —— 存檔本來就頻繁，不該每次都動 mtime。
-
-全量重建：menu `MonoFSM/Prefab Text Cache/重建全部`。
-
-### On-demand 精讀（要 Unity 開著）
-
-```bash
-up prefab read "Assets/0_Gameplay/0_Base/PPlayer.prefab" \
-    --node "CharacterModules/Character FSM/[StateFolder] StateFolder"
+up prefab read "Assets/0_Gameplay/0_Base/PPlayer.prefab"          # 先看目錄
+up prefab read "Assets/…/PPlayer.prefab" \
+    --node "CharacterModules/Character FSM/[StateFolder] StateFolder"   # 再下鑽
+up prefab read "Assets/…/X.prefab" --fsm                          # 附狀態機 markdown
 
 # scene 版：--node 留空只列 root 一層（附 (+N nodes) 展開成本）
 up scene ls
@@ -164,11 +109,41 @@ up scene ls --node "資源生成器 FSM/[StateFolder] StateFolder"
 | 參數 | 預設 | 說明 |
 |---|---|---|
 | `--node` | 整棵 / scene 的 root 一層 | 子樹路徑。**scene 的第一段是 root object 名稱** |
-| `--depth` | -1 | 往下幾層；-1 不限 |
-| `--fold` | 關 | 開了會摺疊已知子樹並排除視覺 component（大子樹用） |
+| `--budget` | 20000 | 字元上限，超標自動摺到塞得進的那層；`0` = 不限 |
+| `--depth` | -1 | 明確指定往下幾層。**給了就不看 `--budget`** |
+| `--fsm` | 關 | 附 `FsmTextExporter` 的 states / transitions / conditions markdown |
+| `--fold` | 關 | 摺疊已知子樹並排除視覺 component（Renderer / ParticleSystem / IK / HighlightEffect …） |
+
+### 預設就是安全的
+
+不帶參數不會噴一大坨 —— `--budget` 會由淺往深試，取「塞得進預算的最深一層」，
+並在檔頭寫下摺在第幾層、下一層要多少字元：
+
+```
+# 依 charBudget 20000 摺到第 3 層（下一層會到 57425 字元）。折疊行的 (+N nodes) 是展開成本，
+# 要細節用 --node 指定子樹下鑽。
+```
+
+實測 PPlayer：全展開 122KB → 預設 17KB。摺疊行帶展開成本，看到數字再決定下鑽哪一支：
+
+```
+[StateFolder] StateFolder <StateFolder> :: 36 states: init, any, Player Idle, … (+498 nodes)
+[VarFolder] VariableFolder <VariableFolder> :: 131 vars: Stamina:VarFloat, … (+233 nodes)
+```
 
 **路徑打錯不會白跑** —— 它會沿路徑走到最後一個通的節點，把那層的子節點連同
 `(+N nodes)` 列出來，照著修就好。MonoFSM 的節點名常帶 `[Tag] ` 前綴，很容易猜錯。
+
+### 為什麼沒有落檔 cache 了
+
+原本有一套「掛 `PrefabTextCacheMarker`、存檔時寫 `.md` 到 `Tools/uprefab/cache/`」的機制，
+理由是大 prefab 的匯出結果落成檔案可以先 `grep` 再只讀那 60 行，而回傳值一定整份進 context。
+
+**2026-07-28 拆掉了。** 過期成本壓過省下的 context：實測 5 份 cache 有 2 份比來源舊
+（差 80～135 秒），而照過期 cache 做的分析會給出「看起來合理但已經不成立」的結論 ——
+這種錯最難察覺。加上它要靠人記得掛 marker、記得掃新舊。
+
+`--budget` 分層拿到同樣的省 context 效果（PPlayer 122KB → 17KB），而且讀到的一定是當下真值。
 
 ---
 
@@ -198,6 +173,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `mv\|<node>\|<newParent>` | 換 parent（**只有 scene**） |
 | `auto\|<node>` | **重跑 `[Auto*]` 綁定 —— 結構改完一定要下這行**，見下面 |
 | `del\|<node>` | 刪節點 |
+| `delcomp\|<node>\|<comp,comp>` | 移除節點上的 component。不存在就跳過（語意是「確保它不在」）。prefab 版 `<node>` 留空 = root |
 | `save` | 存 scene（**只有 scene**；prefab batch 結束自動存） |
 
 要點：
@@ -208,7 +184,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 - **錯誤訊息會給下一步的線索**：路徑錯 → 列出走到哪、那層有哪些子節點；型別打錯 → 列出
   名稱相近的候選；欄位名錯 → 列出可用欄位；**巢狀路徑錯 → 列出走得通的那一層底下有什麼**
   （`_timeMax._constValue` → 「走到 `_timeMax`（VarFloatWrapper），這層底下有 `_tempValue: float`」）。
-- **prefab 存檔後 cache 自動更新**，改完直接讀 cache md 驗證。
+- **改完直接 `prefab read` 驗證** —— 讀到的一定是當下真值，不必擔心快取同步。
 
 ### 結構改完一定要 `auto`
 
@@ -248,6 +224,37 @@ up peek "資源生成器 FSM/Timer" VarFloatCountDownTimer --members "IsTimerUp,
 
 `peek` 在 Play Mode 下讀的是**當下的 runtime 值** —— 除「為什麼沒動」最快的一步。
 `--members` 留空會 dump 所有 public 屬性（很吵，通常指定幾個就好）。
+
+### `refs` —— 誰指向這個節點 / 它指向誰
+
+```bash
+up refs "Assets/…/Interact Device Trigger.prefab" \
+    --node "Modules/Destroyable ModulePack Variant/[VarFolder] VariableFolder/[Var] Durability"
+up refs --node "資源生成器 FSM/Timer"           # 省略 asset = 當前開著的 scene
+up refs "…prefab" --node "…" --out              # 反向：這個節點指向誰
+up refs "…prefab" --node "…" --comp VarFloat    # 只算指向該 component 的（排除同節點其他 component）
+```
+
+輸出是「節點路徑 + `型別.欄位`」：
+
+```
+14 個引用指向 Modules/Destroyable ModulePack Variant/[VarFolder] VariableFolder/[Var] Durability
+  .
+      NetworkedVarSyncFloat4._syncFloats.Array.data[0]  → VarFloat
+  Modules/Fixable ModulePack/…/=> [Var] Durability.CurrentValue
+      VarFloatRef._dropDownRef  → VarFloat
+  Modules/FireBurn FSM 起火點/…/[Getter] d_DeviceBroken/[If] [Var] Durability % <= 50%
+      VarFloatIsBoundCondition._varFloat  → VarFloat
+```
+
+**為什麼走 Unity 而不是離線 `refs` 表**（實測數據，不要再試離線那條）：這個專案大量引用是
+prefab override，離線 `refs` 表**只收本檔直接寫出的引用邊**，對 override 型的 0 命中；
+override 的目標雖在 `mods` 表裡，卻被格式化成 `→{fileID: …}` 字串塞進 `value` 欄位、
+無索引（32 萬筆要 LIKE 全表掃）、且不完整；就算查到也只有裸 fileID，翻成路徑又會撞上
+variant 階層斷裂。`SerializedObject` 看到的是**合併後真值**，一趟就回可讀路徑。
+實測同一個目標：離線 grep + SQLite 探測數輪只湊出 4 筆，`refs` 一次給出 14 筆。
+
+範圍限「同一顆 prefab / 當前 scene 之內」。跨資產的全庫粗查才是離線索引的活（`up find`）。
 
 ---
 
@@ -360,10 +367,10 @@ count=2  …   count=6  …   count=10
 - **CLI 的階層在 variant 邊界會斷**（見上面「為什麼不能只用 CLI 讀內容」）。
   已有 `pending_parent` 表 + `_resolve_stripped_parents()` 跨檔回推，但只解出 153/2414 ——
   中間層常常只有 stripped Transform、沒有對應的 stripped GameObject，鏈就斷了。
-  **不要再往這個方向投資**，要階層就讀 cache。
+  **不要再往這個方向投資**，要階層就用 `prefab read`。
 - **override target 解析率約 66%**（30% 只知道來源資產、2% 完全未解析）。
 - 每個 document 最多收 64 條引用邊（`MAX_REFS_PER_DOC`）。
-- **cache 只涵蓋掛了 marker 的 prefab**，沒掛的要自己去 Unity 撈。
+- **`refs` 只查單一 prefab / 當前 scene 之內**，跨資產的全庫粗查還沒做。
 - **離線索引（`index` / `find` / `overrides` / `scope`）只讀不寫**。要改就要 Unity 開著
   （`prefab do` / `scene do` 都走 uloop）。
 - **`fields` 只吃 Component 型別**。ScriptableObject 與巢狀 serializable class 查不到，
@@ -383,28 +390,25 @@ MonoFSM/Tools~/uprefab/
   unity.py     uloop 橋接：只回 Result，Domain Reload 時自己等再重試
   uprefab.py   CLI 進入點
 
-MonoFSM/1_MonoFSM_Core/Runtime/PrefabCache/PrefabTextCacheMarker.cs   marker（runtime）
 MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/
-  PrefabTextCacheWriter.cs  匯出與寫檔
+  PrefabTextReader.cs       prefab 匯出 + charBudget 分層 + --fsm
   EditResolve.cs            路徑 / 型別 / 欄位解析與錯誤訊息（prefab 與 scene 共用）
   EditBatch.cs              一行一操作的 DSL
   PrefabEdit.cs             prefab 寫入 + CreateVariant
   SceneEdit.cs              scene 寫入 + CopyScene + Export + Count
   EditProbe.cs              Types / Fields / Peek
+  EditRefs.cs               引用反查（PrefabRefs / SceneRefs）
   AssetRef.cs               asset path → 該塞進 ObjectReference 的物件
-Assets/0_Gameplay/Editor/PrefabTextCacheConfig.cs                     專案設定注入
+Assets/0_Gameplay/Editor/PrefabTextReaderConfig.cs                     專案設定注入
 ```
 
 `EditResolve` 是刻意共用的：prefab 與 scene 只差在 root 怎麼來（prefab 有唯一 root、
 scene 有多個 root object），路徑語彙與**錯誤訊息**不該有兩份 —— 錯誤訊息是修正下一步
 的唯一線索。
 
-工具本體都在 MonoFSM，**專案端只剩 `PrefabTextCacheConfig`**：指定 `CacheRoot`
-（= `Tools/uprefab/cache`，對齊離線索引）與專案特有的視覺 component（FMOD
-`StudioEventEmitter` / FinalIK `IK` / `HighlightEffect`）。MonoFSM 那邊只放 Unity 內建的。
-
-marker 在 `MonoFSM.Core.Runtime`、writer 在 `MonoFSM.Core.Editor`，runtime 參照不到 editor，
-所以走 `[InitializeOnLoadMethod]` 注入兩個 static delegate（`CacheWriter` / `CachePathResolver`）。
+工具本體都在 MonoFSM，**專案端只剩 `PrefabTextReaderConfig`**：把專案特有的視覺
+component（FMOD `StudioEventEmitter` / FinalIK `IK` / `HighlightEffect`）加進
+`PrefabTextReader.VisualComponents`。MonoFSM 那邊只放 Unity 內建的。
 
 實際的文字格式規則（node 行、component 區塊、值格式化、摺疊摘要）見
 `monofsm:hierarchy-text-exporter` skill —— 那才是格式的真相來源，這裡不重複。

@@ -9,7 +9,7 @@ namespace MonoFSM.Editor.PrefabEditing
     /// <summary>
     /// 用「節點路徑」對 prefab asset 做結構編輯的四個原語，供 uloop execute-dynamic-code 一行呼叫。
     ///
-    /// 這是 PrefabTextCacheWriter.ExportSubtree（讀）的對稱面（寫）：同一套路徑語彙、
+    /// 這是 PrefabTextReader.Export（讀）的對稱面（寫）：同一套路徑語彙、
     /// 同樣在路徑打錯時列出該層實際子節點，不用先知道 fileID 或 instanceID。
     ///
     /// 路徑 / 型別 / 欄位的解析與錯誤訊息在 EditResolve，跟 SceneEdit 共用。
@@ -219,7 +219,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 // 有任何一行失敗就整批不存檔 —— 半套的 FSM 比沒改更難收拾
                 if (log.Contains("# 未修改")) return log + "# 整批未存檔。";
                 PrefabUtility.SaveAsPrefabAsset(root, assetPath);
-                return log + AfterSaveNote(assetPath);
+                return log;
             }
             finally
             {
@@ -329,9 +329,28 @@ namespace MonoFSM.Editor.PrefabEditing
                     UnityEngine.Object.DestroyImmediate(node.gameObject);
                     return $"刪除 {nodePath}（含 {count} 個子節點）";
                 }
+                case "delcomp":
+                {
+                    // 留空 = root（marker 這類常掛在 root 上），跟 `add` 的 parent 一致
+                    var nodePath = EditBatch.At(a, 0);
+                    var node = EditResolve.Node(root, nodePath);
+                    var removed = new List<string>();
+                    foreach (var typeName in EditBatch.Types(a, 1))
+                    {
+                        var comp = node.GetComponent(EditResolve.CompType(typeName));
+                        // 不存在就跳過而不是 abort —— 語意是「確保這個 component 不在」
+                        if (comp == null) continue;
+                        removed.Add(comp.GetType().Name);
+                        UnityEngine.Object.DestroyImmediate(comp, true);
+                    }
+
+                    return removed.Count == 0
+                        ? $"（跳過）{EditResolve.Describe(nodePath)} 上沒有那些 component"
+                        : $"{nodePath} -= <{EditResolve.Join(removed)}>";
+                }
                 default:
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref auto del" +
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref auto del delcomp" +
                         "（prefab / pos / mv / save 只有 SceneEdit 有）");
             }
         }
@@ -358,26 +377,11 @@ namespace MonoFSM.Editor.PrefabEditing
                 }
 
                 PrefabUtility.SaveAsPrefabAsset(root, assetPath);
-                return message + AfterSaveNote(assetPath);
+                return message;
             }
             finally
             {
                 PrefabUtility.UnloadPrefabContents(root);
-            }
-        }
-
-        // LoadPrefabContents 不會觸發 IBeforePrefabSaveCallbackReceiver，
-        // 所以 prefab text cache 得在這裡主動更新，否則 cache 會跟 prefab 不同步
-        private static string AfterSaveNote(string assetPath)
-        {
-            try
-            {
-                PrefabTextCacheWriter.RefreshCacheFor(assetPath);
-                return "";
-            }
-            catch (Exception e)
-            {
-                return $"\n# 已存檔，但 cache 更新失敗（cache 可能過時）：{e.Message}";
             }
         }
     }

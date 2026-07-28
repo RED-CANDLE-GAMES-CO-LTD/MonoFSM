@@ -184,10 +184,10 @@ document 帶完整 `m_Modifications`，那就是 override list 本身。
 
 | 讀程式碼 | uprefab | 資料來源 | 狀態 |
 |---|---|---|---|
-| Glob | `find --comp X --name Y` | 索引 | ✅ Phase 1 |
+| Glob | `find --comp X --name Y` | 索引 | ✅ Phase 1（2026-07-28 修效能，見下） |
 | Grep | `grep`（欄位值搜尋） | 索引 | ⬜ 未做 |
-| Read(offset,limit) | `read <anchor> --depth N` | Unity | ⬜ Phase 3 |
-| （無對應） | `refs <anchor>` 反查引用 | 索引 | ⬜ Phase 2 |
+| Read(offset,limit) | `prefab read --node <path> --budget N` | Unity | ✅ 已做 |
+| （無對應） | `refs --node <path>` 反查引用 | **Unity** | ✅ 已做（單一資產內） |
 
 ---
 
@@ -210,8 +210,24 @@ uprefab.py  CLI 進入點
 |---|---|
 | 全量索引 | 26 秒 |
 | 增量索引 | 3 秒 |
-| `find` 查詢 | 0.12 秒 |
-| DB | 206MB（已 gitignore） |
+| `find` 查詢 | 0.12 秒（**修過查詢計劃之後**，見下） |
+| DB | 207MB（已 gitignore） |
+
+#### `find` 的查詢計劃修正（2026-07-28）
+
+`--comp` 查詢一度退化到 **4 分 50 秒**（nodes 長到 12.7 萬列之後）。原本的寫法是
+
+```sql
+FROM nodes n WHERE EXISTS (SELECT 1 FROM comps c WHERE … AND c.type LIKE ?)
+```
+
+`EXPLAIN QUERY PLAN` 顯示 `SCAN n` —— 全掃 nodes、每列跑一次 EXISTS，
+**`ix_comps_type` 完全沒被用上**，外加一個 correlated scalar subquery 對每列組
+`group_concat`，最後才 `USE TEMP B-TREE FOR ORDER BY` 排序全部命中列再 LIMIT。
+
+改成兩階段（`query.find`）：以 `comps` 當驅動表讓 `ix_comps_type` 生效、join `nodes` 走
+PRIMARY KEY，`group_concat` 只對 LIMIT 之後的那幾列補。**4:49.91 → 0.118 秒**，
+結果一字不差。純 SQL 重寫，沒動 schema、不必 rebuild。
 
 ### 大檔怎麼變得可索引
 
@@ -331,7 +347,7 @@ PPlayer 那條鏈實測結果：
 | `Base Character.prefab` | 4 |
 
 這份查詢邏輯值得直接收進 `query.py` 當 `fsm <asset>` 指令，
-不必等 Phase 3 的 Unity 精讀。
+當成離線的粗查（Unity 精讀走 `prefab read --fsm`）。
 
 ---
 
@@ -348,38 +364,45 @@ PPlayer 那條鏈實測結果：
    ```
    從 `includeShallow` 拿掉可省約 1/3 的 DB。看會不會查到它們。
 
-### Phase 2 —— `refs` 全庫反查
+### ~~Phase 2~~ —— `refs` 反查：**單一資產內已做，走 Unity**
 
-索引裡已經有 `refs` 表（41k 筆），只差指令與輸出。
+`EditRefs.cs`（`PrefabRefs` / `SceneRefs`）+ CLI `up refs`。已實測。
 
-**關鍵：不要重做 `ComponentReferenceWindow`。**
-（`MonoFSM/1_MonoFSM_Core/Editor/ReferenceSystem/ComponentReferenceScanner.cs`）
+**原本的計畫是走離線 `refs` 表，實測後放棄了 —— 別再往那條路投資：**
 
-它已經處理了 `AbstractVarWrapper` / `ValueProvider` 這類**間接引用**
-（`ComponentReferenceScanner.cs:64-80`），那是純 YAML parse 抓不到的語意；
-但它限定 `ScanFromRoot` 單一子樹、要 Unity 開著。
+| 問題 | 實測數據 |
+|---|---|
+| `refs` 表只收本檔直接寫出的引用邊 | 對 override 型引用 **0 命中**（`refs` 34,556 筆全無） |
+| override 的目標在 `mods` 表但沒獨立欄位 | 被格式化成 `→{fileID: …}` 塞進 `value`，32 萬筆要 LIKE 全表掃，且**不完整**（`_targetVar` 那筆查不到） |
+| 就算查到也只有裸 fileID | 翻成可讀路徑會撞上 variant 階層斷裂（那條已明確標「不要投資」） |
 
-正確分工：
-- **CLI `refs`** → 全庫粗查，找到「在哪個 prefab」
-- **ComponentReferenceWindow** → 該 prefab 內精查（含間接引用）
-- CLI 輸出最後一行寫「→ 建議在 X.prefab 開 ComponentReferenceWindow 查 Y」
+同一個目標（`[Var] Durability`）的實測對比：離線 grep + SQLite 探測數輪只湊出 4 筆，
+`up refs` 一次回 14 筆且帶可讀節點路徑 + `型別.欄位`。**省 token 的是 Unity 那條。**
 
-### Phase 3 —— `read` / `fsm`（真正的「跳著讀」）
+`SerializedObject.NextVisible(true)` 會走進巢狀 serialized 欄位，所以
+`AbstractVarWrapper` / `ValueProvider` 的間接引用**天生涵蓋**（實測抓到
+`VarFloatEffectApplyAction._targetValue._var`、`HittableSchema._durability._var`），
+不需要重做 `ComponentReferenceScanner` 的那套反射特例。
 
-**這是原始需求還沒滿足的最後一哩。** 建議優先於 Phase 2。
+**還沒做的是跨資產全庫粗查**（「哪些 prefab 引用到這個 SO / 這顆 prefab」）。
+那個目標是 asset 而不是節點，離線索引的 `refs.to_guid` 就夠用，不會碰到上面的 override 問題。
+分工：全庫粗查（離線，找「在哪個資產」）→ `up refs`（Unity，該資產內精查）。
 
-要對既有 exporter 加兩個 API（格式不動）：
+### ~~Phase 3~~ —— `read` / `fsm`（跳著讀）：**已完成**
 
-- `ExportAt(assetPath, fileID, depth)` —— 從中間節點當 root 展開
-- `charBudget` —— 超標自動加深折疊並回報 `(+Nk chars omitted)`
+`PrefabTextReader.cs` + `up prefab read`：
 
-折疊行要加成本標記，這樣才知道下一步要不要展開：
+- **`charBudget`（`--budget`，預設 20000）** —— 由淺往深試，取「塞得進預算的最深一層」，
+  檔頭寫下摺在第幾層、下一層要多少字元。實測 PPlayer 全展開 122KB → 17KB。
+  由淺往深而不是先全展開再退：全展開一份 PPlayer 是 120KB 字串，淺層那幾次都很便宜。
+- **`--fsm`** —— 轉呼叫既有的 `FsmTextExporter`（markdown 輸出）。
+- 從中間節點展開走 `--node <路徑>`，不需要 `ExportAt(fileID)` —— 路徑語彙已經夠用，
+  而且跟 `prefab do` / `refs` 共用同一套（打錯會列出該層子節點）。
 
-```
-States <StateFolder> :: 5 states… (+42 nodes ~3.1k)
-```
-
-`fsm` 指令轉呼叫既有的 `FsmTextExporter`（243 行，markdown 輸出）。
+**同時把落檔 cache 整套拆了**（marker / writer / config / `Tools/uprefab/cache/`）。
+理由：實測 5 份 cache 有 2 份比來源舊（差 80～135 秒），照過期 cache 做的分析會給出
+「看起來合理但已經不成立」的結論；而且要靠人記得掛 marker、記得掃新舊。
+`--budget` 拿到同樣的省 context 效果，讀到的一定是當下真值。
 
 ### Phase 4 —— 寫入：**已完成**，但不在 CLI 裡
 
@@ -393,15 +416,9 @@ override 語意與序列化正確性（這也是「不要碰 YAML」原本的理
 
 實作要點：`LoadPrefabContents` + `SerializedObject` + `SaveAsPrefabAsset`，不碰 YAML；
 路徑 / 型別 / 欄位解析失敗就 abort 不存檔；錯誤訊息帶下一步線索（列出該層子節點、
-候選 FullName、可用欄位名）。存檔後主動呼叫 `PrefabTextCacheWriter.RefreshCacheFor`，
-因為 `LoadPrefabContents` 不會觸發 `IBeforePrefabSaveCallbackReceiver`。
+候選 FullName、可用欄位名）。
 
-用法見 `MonoFSM/skills/uprefab/SKILL.md` 的「三、PrefabEdit」。
-
-**同時把 PrefabTextCache 搬進 MonoFSM**：marker → `MonoFSM.Core.Runtime`、
-writer → `MonoFSM.Core.Editor`，專案端只留 `PrefabTextCacheConfig`（`CacheRoot` 與
-專案特有的視覺 component 清單）。搬檔時 `.meta` 一起移動，GUID 不變，3 個掛了 marker
-的 prefab reference 沒掉。
+用法見 `MonoFSM/skills/uprefab/SKILL.md` 的「三、寫入 —— 批次 DSL」。
 
 ---
 
@@ -414,9 +431,10 @@ writer → `MonoFSM.Core.Editor`，專案端只留 `PrefabTextCacheConfig`（`Ca
 | `MonoFSM/Tools~/uprefab/PROGRESS.md` | 本檔 |
 | `.uprefab.json` | 新增（repo root，設定檔） |
 | `.gitignore` | 修改（加 `/.uprefab.db`） |
-| `MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/PrefabEdit.cs` | 新增（寫入四原語） |
-| `MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/PrefabTextCacheWriter.cs` | 從 `Assets/0_Gameplay/Editor/` 搬入 |
-| `MonoFSM/1_MonoFSM_Core/Runtime/PrefabCache/PrefabTextCacheMarker.cs` | 從 `Assets/0_Gameplay/Tools/` 搬入（GUID 保留） |
-| `Assets/0_Gameplay/Editor/PrefabTextCacheConfig.cs` | 新增（專案端設定注入） |
+| `MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/PrefabEdit.cs` | 新增（寫入原語 + batch dispatch） |
+| `MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/PrefabTextReader.cs` | 新增（匯出 + charBudget 分層 + `--fsm`） |
+| `MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/EditRefs.cs` | 新增（引用反查） |
+| `Assets/0_Gameplay/Editor/PrefabTextReaderConfig.cs` | 新增（專案端視覺 component 注入） |
+| ~~`PrefabTextCacheWriter.cs` / `PrefabTextCacheMarker.cs` / `PrefabTextCacheConfig.cs`~~ | **已刪**（落檔 cache 機制拆除，理由見 Phase 3） |
 
-尚未 commit。MonoFSM 是 submodule，那三個檔要在 submodule 裡另外 commit。
+尚未 commit。MonoFSM 是 submodule，那幾個檔要在 submodule 裡另外 commit。
