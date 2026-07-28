@@ -176,6 +176,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public virtual void ResetStateRestore(bool IsHardReset)
         {
             _currentHitData = null;
+            //殘留的話 GetDetectData() 會回 reset 前的命中點/法線
+            _detectData = null;
             _lastExitTick = -1;
         }
     }

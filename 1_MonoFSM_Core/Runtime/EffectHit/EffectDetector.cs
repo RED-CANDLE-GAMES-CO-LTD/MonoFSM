@@ -589,9 +589,13 @@ namespace MonoFSM.Core.Detection
 
         public void ResetStateRestore(bool IsHardReset)
         {
-            //用不到？
+            //清空後，下個 detect tick 仍在重疊的 detectable 會被當成新 enter 重放一次，
+            //enter node 上被 reset 清掉的 local VarEntity 才補得回來。
             _lastDetectedObjects.Clear();
             _thisFrameDetectedObjects.Clear();
+            //dealer 有效性的 latch 也要歸零，否則「reset 前有效、reset 後仍有效」會被判成沒變化，
+            //少放一次 enter（見 CheckDealerStateChanges / HandleDealerStateChanges）
+            _dealerLastStates.Clear();
         }
     }
 }

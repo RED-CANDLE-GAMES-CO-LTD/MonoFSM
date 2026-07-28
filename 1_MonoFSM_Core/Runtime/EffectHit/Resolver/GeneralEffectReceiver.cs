@@ -35,8 +35,6 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             _dealers.Clear();
 #if UNITY_EDITOR
             _lastHitData = null;
-            _detectData = null;
-            _currentHitData = null;
 #endif
         }
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -108,6 +109,79 @@ def cmd_find(args, root, cfg):
         print(f"{query.anchor(apath, fid)}")
         print(f"    {flag}{npath}  <{comps or ''}>")
     print(f"\n{len(rows)} match(es)")
+
+
+# Unity 的 asset guid：32 位小寫 hex。也接受直接貼 Editor webhook 連結
+# （http://localhost:8888/webhook?asset_guid=<guid>），從中抽出 guid。
+GUID_RE = re.compile(r"[0-9a-f]{32}")
+
+# 掃 .meta 的 fallback 要跳過的目錄（Library 裡有大量重複的 meta 快取）
+META_SKIP_DIRS = {"Library", "Temp", "Obj", "obj", "Build", "Builds", ".git", "node_modules"}
+
+
+def _grep_meta(root: str, guid: str) -> str | None:
+    """索引外的資產：直接掃 .meta 找 `guid: <guid>`，回傳去掉 .meta 的資產路徑。"""
+    needle = f"guid: {guid}"
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in META_SKIP_DIRS]
+        for fn in filenames:
+            if not fn.endswith(".meta"):
+                continue
+            full = os.path.join(dirpath, fn)
+            try:
+                with open(full, encoding="utf-8", errors="ignore") as f:
+                    # guid 在檔頭前幾行
+                    for _ in range(4):
+                        line = f.readline()
+                        if not line:
+                            break
+                        if needle in line:
+                            return os.path.relpath(full[: -len(".meta")], root)
+            except OSError:
+                continue
+    return None
+
+
+def cmd_guid(args, root, cfg):
+    """guid ⇄ 資產路徑互查。token 可以是 guid、含 guid 的連結，或資產路徑。"""
+    con = indexer.connect(root)
+    token = args.token
+    m = GUID_RE.search(token.lower())
+
+    if m and not os.path.splitext(token)[1]:
+        # guid → path
+        guid = m.group(0)
+        row = query.asset_by_guid(con, guid)
+        if row:
+            path, kind, tier = row
+            print(path)
+            if args.verbose:
+                print(f"# kind={kind} tier={tier} guid={guid}", file=sys.stderr)
+            return
+        print("# 索引裡沒有，掃 .meta…", file=sys.stderr)
+        path = _grep_meta(root, guid)
+        if path:
+            print(path)
+            if args.verbose:
+                print("# (索引範圍外，見 .uprefab.json)", file=sys.stderr)
+            return
+        raise SystemExit(f"# 找不到 guid {guid}")
+
+    # path → guid
+    rows = query.guid_by_path(con, _like(token), limit=args.limit)
+    if rows:
+        for path, guid, kind in rows:
+            print(f"{guid}  {path}" if args.verbose or len(rows) > 1 else guid)
+        return
+    meta = os.path.join(root, token + ".meta")
+    if os.path.exists(meta):
+        with open(meta, encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                m = GUID_RE.search(line)
+                if m and line.strip().startswith("guid:"):
+                    print(m.group(0))
+                    return
+    raise SystemExit(f"# 找不到資產 {token}")
 
 
 def cmd_overrides(args, root, cfg):
@@ -284,6 +358,12 @@ def main() -> None:
     pf.add_argument("--path", help="資產路徑")
     pf.add_argument("-n", "--limit", type=int, default=50)
     pf.set_defaults(fn=cmd_find)
+
+    pg = sub.add_parser("guid", help="guid ⇄ 資產路徑互查（吃 guid、webhook 連結或路徑）")
+    pg.add_argument("token", help="guid / 含 guid 的連結 / 資產路徑（模糊比對）")
+    pg.add_argument("-v", "--verbose", action="store_true", help="附 kind / tier / 路徑")
+    pg.add_argument("-n", "--limit", type=int, default=20, help="路徑→guid 時的筆數上限")
+    pg.set_defaults(fn=cmd_guid)
 
     po = sub.add_parser("overrides", help="prefab override 稽核")
     po.add_argument("asset", help="資產路徑（模糊比對）")

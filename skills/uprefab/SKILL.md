@@ -1,6 +1,6 @@
 ---
 name: uprefab
-description: 不把整個 200MB scene 塞進 context 就能讀懂並改動 Unity serialized data（prefab / scene / ScriptableObject）。當需要：(1) 找某個 component / 節點在哪些 prefab 或 scene 裡 (2) 讀某個 prefab 的階層結構或 FSM 狀態機架構 (3) 看某個子樹的 component 欄位細節 (4) prefab override 稽核 (5) 用 API 改 prefab / scene 結構、建 prefab variant、複製場景模板、組 FSM (6) 查某個型別有哪些 serialized 欄位、讀 Play Mode 下的 runtime 值、數場上物件驗證生成邏輯 (7) 查某個節點被誰引用 / 它指向誰 (8) 理解或修改 uprefab 離線索引（MonoFSM/Tools~/uprefab/*.py）、PrefabTextReader 或 PrefabEdit / SceneEdit 時使用此 skill。
+description: 不把整個 200MB scene 塞進 context 就能讀懂並改動 Unity serialized data（prefab / scene / ScriptableObject）。當需要：(1) 找某個 component / 節點在哪些 prefab 或 scene 裡 (2) 讀某個 prefab 的階層結構或 FSM 狀態機架構 (3) 看某個子樹的 component 欄位細節 (4) prefab override 稽核 (5) 用 API 改 prefab / scene 結構、建 prefab variant、複製場景模板、組 FSM (6) 查某個型別有哪些 serialized 欄位、讀 Play Mode 下的 runtime 值、數場上物件驗證生成邏輯 (7) 查某個節點被誰引用 / 它指向誰 (8) 使用者貼了 asset guid 或 Editor webhook 連結（`?asset_guid=…`）需要換成資產路徑 (9) 理解或修改 uprefab 離線索引（MonoFSM/Tools~/uprefab/*.py）、PrefabTextReader 或 PrefabEdit / SceneEdit 時使用此 skill。
 ---
 
 # uprefab
@@ -13,6 +13,7 @@ description: 不把整個 200MB scene 塞進 context 就能讀懂並改動 Unity
 | 你要做什麼 | 用什麼 | 需要 Unity 開著 |
 |---|---|---|
 | 這個 component / 名稱在哪些檔案裡 | CLI `find` | ❌ |
+| 使用者貼了 asset guid / Editor webhook 連結，要換成資產路徑 | CLI `guid` | ❌ |
 | prefab 的階層結構、某個子樹的 component 欄位細節 | CLI `prefab read` | ✅ |
 | FSM 狀態機架構 | CLI `prefab read --fsm` | ✅ |
 | prefab override 稽核 | CLI `overrides` | ❌ |
@@ -67,10 +68,35 @@ up scope stats
 |---|---|
 | `index [--rebuild] [-q]` | 預設走 mtime 增量。改了 `indexer.py` 的 schema 要 `--rebuild` |
 | `find [--comp X] [--name Y] [--path Z] [-n N]` | 定位節點，回傳 anchor。條件都是模糊比對 |
+| `guid <token> [-v] [-n N]` | guid ⇄ 資產路徑互查，見下方 |
 | `overrides <asset> [-n N] [--all]` | prefab override 稽核 |
 | `scope list \| stats \| init` | `stats` 列出節點數最多的資產，用來決定還要濾掉什麼 |
 
 anchor 格式 `Assets/.../PPlayer.prefab#272130150518276317`，`#` 後是 fileID，對改名穩定。
+
+### `guid` —— 使用者貼 guid 連結時的第一步
+
+使用者常會從 Unity Editor 貼 asset 連結（對改名穩定，比手打中文路徑可靠）：
+
+```
+[TestKCC Gravity 拔神像](http://localhost:8888/webhook?asset_guid=66750e1a364434c63b2d3fd15d471000)
+```
+
+其他指令都吃資產路徑，所以先轉一次：
+
+```bash
+up guid 66750e1a364434c63b2d3fd15d471000
+# → Assets/1_Prototype/Module Test/TestKCC Gravity 拔神像.unity
+
+up guid "http://localhost:8888/webhook?asset_guid=66750e1a..."   # 整條連結直接貼也行
+up guid "TestKCC Gravity 拔神像.unity"                            # 反向：路徑 → guid
+```
+
+`token` 有副檔名就當路徑（模糊比對，多筆時每行 `guid  path`），否則從字串裡抽 32 位 hex
+當 guid。輸出只有一行路徑，方便直接接給 `prefab read` / `scene open`。
+
+索引裡查不到時（`.cs`、`Packages/` 等索引範圍外的資產）會 fallback 全掃 `.meta`，最壞
+約 5 秒 —— 所以 `.cs` 的 guid 也查得到。
 
 ### 設定 `.uprefab.json`（repo root）
 
@@ -371,7 +397,7 @@ count=2  …   count=6  …   count=10
 - **override target 解析率約 66%**（30% 只知道來源資產、2% 完全未解析）。
 - 每個 document 最多收 64 條引用邊（`MAX_REFS_PER_DOC`）。
 - **`refs` 只查單一 prefab / 當前 scene 之內**，跨資產的全庫粗查還沒做。
-- **離線索引（`index` / `find` / `overrides` / `scope`）只讀不寫**。要改就要 Unity 開著
+- **離線索引（`index` / `find` / `guid` / `overrides` / `scope`）只讀不寫**。要改就要 Unity 開著
   （`prefab do` / `scene do` 都走 uloop）。
 - **`fields` 只吃 Component 型別**。ScriptableObject 與巢狀 serializable class 查不到，
   但巢狀欄位打錯時 `set` 的錯誤訊息會列出那一層有什麼，繞得過去。
@@ -386,7 +412,7 @@ MonoFSM/Tools~/uprefab/
   scripts.py   .cs.meta → guid/class/namespace 對照表
   config.py    .uprefab.json 讀取與路徑比對
   indexer.py   SQLite schema 與索引建置
-  query.py     find / overrides / scope stats
+  query.py     find / overrides / scope stats / guid ⇄ path
   unity.py     uloop 橋接：只回 Result，Domain Reload 時自己等再重試
   uprefab.py   CLI 進入點
 

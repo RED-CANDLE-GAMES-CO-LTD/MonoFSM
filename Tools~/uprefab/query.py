@@ -118,5 +118,20 @@ def biggest(con: sqlite3.Connection, limit=10):
     ).fetchall()
 
 
+def asset_by_guid(con: sqlite3.Connection, guid: str):
+    """guid → (path, kind, tier)；沒索引到就回 None。"""
+    return con.execute(
+        "SELECT path, kind, tier FROM assets WHERE guid=?", (guid,)
+    ).fetchone()
+
+
+def guid_by_path(con: sqlite3.Connection, path_like: str, limit=20):
+    """資產路徑（模糊）→ [(path, guid, kind)]。"""
+    return con.execute(
+        "SELECT path, guid, kind FROM assets WHERE path LIKE ? ORDER BY path LIMIT ?",
+        (path_like, limit),
+    ).fetchall()
+
+
 def anchor(asset_path: str, file_id: int) -> str:
     return f"{asset_path}#{file_id}"

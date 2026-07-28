@@ -28,6 +28,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             base.ResetStateRestore(false);
             _lockedEntity = null;
             _hittingEntities.Clear();
+
+            //latch 全部歸零，否則 reset 後 detector 重放 enter 時會被當成「沒變化」而跳過。
+            //enter node 上的 local VarEntity 是 _isRuntimeOnly，reset 時已被 ClearValue，
+            //latch 沒清的話那個 entity 就永遠補不回來（bestMatch 這條尤其明顯）。
+            _receivers.Clear();
+            _candidateReceivers.Clear();
+            _lastReceiver = null;
+            _lastBestMatchReceiver = null;
         }
 
         private void OnDisable()
