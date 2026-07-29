@@ -223,52 +223,58 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         public void OnBestMatchCheck()
         {
-            if (_receivers.Count == 0)
-            {
-                if (_lastBestMatchReceiver != null)
-                    _lastBestMatchReceiver.OnEffectHitBestMatchExit(_currentHitData);
-                _lastBestMatchReceiver = null;
-                return;
-            }
+            SetBestMatch(FindBestMatch());
+        }
 
-            if (_receivers.Count == 1)
-            {
-                GeneralEffectReceiver only = null;
-                foreach (var r in _receivers) { only = r; break; }
-                if (only == null) return;
-                if (_lastBestMatchReceiver != only)
-                {
-                    if (_lastBestMatchReceiver != null)
-                        _lastBestMatchReceiver.OnEffectHitBestMatchExit(_currentHitData);
-                    only.OnEffectHitBestMatchEnter(_currentHitData);
-                    _lastBestMatchReceiver = only;
-                }
-                return;
-            }
-
-            // receivers >= 2: 用計分機制找 best match
+        private GeneralEffectReceiver FindBestMatch()
+        {
+            //只有一個就不用計分了
             GeneralEffectReceiver bestMatch = null;
-            float bestScore = float.MinValue;
+            var bestScore = float.MinValue;
             foreach (var receiver in _receivers)
             {
                 var score = _onlyTriggerBestMatch != null
                     ? _onlyTriggerBestMatch.CalculateScore(this, receiver)
                     : -Vector3.Distance(transform.position, receiver.transform.position); // 距離越近分數越高
-                if (score > bestScore)
-                {
-                    bestScore = score;
-                    bestMatch = receiver;
-                }
+                if (score <= bestScore)
+                    continue;
+                bestScore = score;
+                bestMatch = receiver;
             }
 
-            if (_lastBestMatchReceiver != bestMatch)
+            return bestMatch;
+        }
+
+        //latch：best match 換人（含變成 null）才發事件，Dealer 自己和 Receiver 兩邊的 node 都要打到
+        private void SetBestMatch(GeneralEffectReceiver bestMatch)
+        {
+            if (_lastBestMatchReceiver == bestMatch)
+                return;
+
+            if (_lastBestMatchReceiver != null)
             {
-                if (_lastBestMatchReceiver != null)
-                    _lastBestMatchReceiver.OnEffectHitBestMatchExit(_currentHitData);
-                if (bestMatch != null)
-                    bestMatch.OnEffectHitBestMatchEnter(_currentHitData);
-                _lastBestMatchReceiver = bestMatch;
+                var exitData = GetHitDataFor(_lastBestMatchReceiver);
+                _lastBestMatchReceiver.OnEffectHitBestMatchExit(exitData);
+                BestMatchExitHandle(exitData);
+                //best match 換人的話下面馬上會寫入新值，所以這裡無條件清是安全的
+                _bestEnterNode?.ClearHittingEntityIfNeeded();
             }
+
+            _lastBestMatchReceiver = bestMatch;
+
+            if (bestMatch == null)
+                return;
+            var enterData = GetHitDataFor(bestMatch);
+            bestMatch.OnEffectHitBestMatchEnter(enterData);
+            BestMatchEnterHandle(enterData, bestMatch.BindEntity);
+        }
+
+        //拿該 receiver 自己的 hitData，_currentHitData 是「最後一次 enter」的，多 receiver 時會是別人的
+        private GeneralEffectHitData GetHitDataFor(GeneralEffectReceiver receiver)
+        {
+            if (receiver != null && receiver.TryGetHitDataFor(this, out var hitData))
+                return hitData;
+            return _currentHitData;
         }
 
         public void OnHitEnter(IEffectHitData data, DetectData? detectData = null)
@@ -339,6 +345,10 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
             if (!entityStillActive)
                 _hittingEntities.Remove(entity);
+
+            //還有其他 receiver 在重疊就不能清，否則剩下的那些會沒有 hittingEntity 可讀
+            if (_receivers.Count == 0)
+                _enterNode?.ClearHittingEntityIfNeeded();
         }
 
         protected override string TypeTag => "Dealer";

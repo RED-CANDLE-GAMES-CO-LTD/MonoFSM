@@ -138,16 +138,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         public void OnEffectHitBestMatchEnter(GeneralEffectHitData data)
         {
-            //bestEnterNode
-            var dealerEntity = data.GeneralDealer.BindEntity;
-            _bestEnterNode?._hittingEntity?.SetValue(dealerEntity, this);
-            _bestEnterNode?.EventHandle(data);
+            BestMatchEnterHandle(data, data?.GeneralDealer?.BindEntity);
         }
 
         public void OnEffectHitBestMatchExit(GeneralEffectHitData data)
         {
             this.Log("OnHitBestMatchExit");
-            _bestExitNode?.EventHandle(data);
+            BestMatchExitHandle(data);
+            _bestEnterNode?.ClearHittingEntityIfNeeded();
             // _currentHitData = null;
         }
 
@@ -158,8 +156,10 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             RecordEffectExit();
             _exitNode?.EventHandle(data);
             _currentHitData = null;
-            //FIXME: 要清掉 _hittingEntity 嗎？那好像不要放在enterNODe耶...而且
-            //每個Dealer都要call好煩喔
+
+            //還有其他 dealer 在打就不能清（每個 dealer 都會 call 到這裡）
+            if (_dealers.Count == 0)
+                _enterNode?.ClearHittingEntityIfNeeded();
         }
 
         // public float ReactValue => ValueSource?.FinalValue ?? 0;

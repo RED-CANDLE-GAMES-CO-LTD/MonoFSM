@@ -134,6 +134,19 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [AutoChildren(DepthOneOnly = true)]
         protected EffectExitBestMatchNode _bestExitNode;
 
+        //best match 的 enter/exit 都走這裡，Dealer/Receiver 兩邊行為一致：
+        //enter node 上的 local _hittingEntity 一律寫入「對方」的 entity（dealer 寫 receiver 的、receiver 寫 dealer 的）
+        protected void BestMatchEnterHandle(GeneralEffectHitData data, MonoEntity pairEntity)
+        {
+            _bestEnterNode?._hittingEntity?.SetValue(pairEntity, this); //要先做
+            _bestEnterNode?.EventHandle(data);
+        }
+
+        protected void BestMatchExitHandle(GeneralEffectHitData data)
+        {
+            _bestExitNode?.EventHandle(data);
+        }
+
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionBehaviour[] _conditions =
