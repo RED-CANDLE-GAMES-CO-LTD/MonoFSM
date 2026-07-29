@@ -913,7 +913,7 @@ namespace MonoFSM.Animation
             //FIXME: init skip to last frame是不是不好...該拆兩個狀態就拆兩個狀態吧？
             // if (CheckInitAndSkipAnimationToLastFrame())
             //     runtimeStartNormalizedTimeOffset = 1;
-            Debug.Log("runtimeStartNormalizedTimeOffset" + runtimeStartNormalizedTimeOffset, this);
+            // Debug.Log("runtimeStartNormalizedTimeOffset" + runtimeStartNormalizedTimeOffset, this);
             if (animatorEnterCrossFade == 0)
             {
                 this.Log("Play Animation:", StateName, "layer:", stateLayer);

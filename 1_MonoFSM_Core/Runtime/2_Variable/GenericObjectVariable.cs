@@ -42,10 +42,10 @@ namespace MonoFSM.Variable
             }
 
             var value = source.GetValue<TValueType>();
-            Debug.Log(
-                $"SetValueFromVar {source.name} value:{value}, TValueType:{typeof(TValueType)}",
-                this
-            );
+            // Debug.Log(
+            //     $"SetValueFromVar {source.name} value:{value}, TValueType:{typeof(TValueType)}",
+            //     this
+            // );
             SetValueInternal(value, byWho);
         }
 
