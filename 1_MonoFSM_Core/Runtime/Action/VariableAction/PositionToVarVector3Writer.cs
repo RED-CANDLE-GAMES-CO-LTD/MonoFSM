@@ -16,6 +16,7 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
     [Serializable]
     public class PositionToVarVector3Writer
     {
+        public bool HasTarget => _source.HasTarget;
         [InlineProperty] [HideLabel] public TargetPositionResolver _source = new();
 
         [Required] [DropDownRef] public VarVector3 _targetVar;

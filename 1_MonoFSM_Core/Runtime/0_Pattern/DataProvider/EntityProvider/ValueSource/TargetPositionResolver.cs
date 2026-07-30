@@ -7,22 +7,28 @@ using UnityEngine;
 namespace MonoValueProvider
 {
     /// <summary>
-    /// 共用的目標位置解析器，統一 VarVector3 / VarTransform / VarEntity 三種目標來源
-    /// 優先順序：VarVector3 > VarTransform > VarEntity
+    /// 共用的目標位置解析器，統一 VarVector3 / VarTransform / VarEntity / Transform 四種目標來源
+    /// 優先順序：VarVector3 > VarTransform > VarEntity > Transform(editor 直接指定)
     /// 所有來源都透過 IsValueExist 確認 runtime 有值才使用
     /// </summary>
     [Serializable]
     public class TargetPositionResolver
     {
+        [BoxGroup("PosResolver")]
         [Tooltip("故意留所有欄位，依照順序 resolve")] [DropDownRef]
         public VarVector3 _targetPosVar;
 
+        [BoxGroup("PosResolver")]
         //note: 故意留著，依照順序 resolve
         // [HideIf(nameof(_targetPosVar))]
         [DropDownRef] public VarTransform _targetTransformVar;
 
+        [BoxGroup("PosResolver")]
         // [HideIf(nameof(_targetPosVar))]
         [DropDownRef] public VarEntity _targetEntityVar;
+
+        [BoxGroup("PosResolver")] [Tooltip("最低優先，editor 直接指定的 Transform 引用")]
+        public Transform _targetTransform;
 
         private bool HasPosValue => _targetPosVar != null;
 
@@ -31,8 +37,11 @@ namespace MonoValueProvider
 
         private bool HasEntityValue => _targetEntityVar != null && _targetEntityVar.Value != null;
 
+        private bool HasDirectTransform => _targetTransform != null;
+
         [ShowInInspector, ReadOnly] //runtime用
-        public bool HasTarget => HasPosValue || HasTransformValue || HasEntityValue;
+        public bool HasTarget =>
+            HasPosValue || HasTransformValue || HasEntityValue || HasDirectTransform;
 
         [ShowInInspector, ReadOnly]
         public string ActiveSource //editor看用的
@@ -42,6 +51,7 @@ namespace MonoValueProvider
                 if (_targetPosVar != null) return _targetPosVar.Description;
                 if (_targetTransformVar != null) return _targetTransformVar.Description;
                 if (_targetEntityVar != null) return _targetEntityVar.Description;
+                if (_targetTransform != null) return _targetTransform.name;
                 return "None";
             }
         }
@@ -54,6 +64,7 @@ namespace MonoValueProvider
                 if (_targetPosVar != null) return _targetPosVar.Description;
                 if (_targetTransformVar != null) return _targetTransformVar.Description;
                 if (_targetEntityVar != null) return _targetEntityVar.Description;
+                if (_targetTransform != null) return _targetTransform.name;
                 return "None";
             }
         }
@@ -65,12 +76,13 @@ namespace MonoValueProvider
             {
                 if (HasTransformValue) return _targetTransformVar.Value;
                 if (HasEntityValue) return TransformOfEntity.GetEntityTransform(_targetEntityVar);
+                if (HasDirectTransform) return _targetTransform;
                 return null;
             }
         }
 
         /// <summary>
-        /// 依優先順序解析目標位置：VarVector3 > VarTransform > VarEntity
+        /// 依優先順序解析目標位置：VarVector3 > VarTransform > VarEntity > Transform
         /// </summary>
         public Vector3 GetTargetPosition(Vector3 fallback) //fallback很鳥
         {
@@ -88,6 +100,10 @@ namespace MonoValueProvider
                 var t = TransformOfEntity.GetEntityTransform(_targetEntityVar);
                 if (t != null) return t.position;
             }
+
+            // 4. Transform — editor 直接指定的引用（最低優先）
+            if (HasDirectTransform)
+                return _targetTransform.position;
 
             return fallback;
         }

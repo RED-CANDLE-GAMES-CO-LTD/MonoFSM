@@ -12,6 +12,11 @@ namespace _1_MonoFSM_Core.Runtime.Action.VariableAction
     {
         [HideLabel] [InlineProperty] public PositionToVarVector3Writer _writer = new();
 
+        protected override bool HasError()
+        {
+            return base.HasError() || _writer.HasTarget == false;
+        }
+
         public override string Description => _writer.Description;
 
         public override void OnEnterRenderImplement() => _writer.Write(this);

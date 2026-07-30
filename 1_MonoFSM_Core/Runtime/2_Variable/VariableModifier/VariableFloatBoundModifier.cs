@@ -1,4 +1,6 @@
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Simulate;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
@@ -32,7 +34,7 @@ namespace MonoFSM.Variable
     /// FIXME: 直接把MinMax一鍵生成？
     /// </summary>
     public class VariableFloatBoundModifier : MonoBehaviour, AbstractVariableModifier<float>,
-        IRestoreValueOverrider<float>
+        IRestoreValueOverrider<float>, IUpdateSimulate, IResetStart
     {
         [PreviewInInspector]
         [AutoParent]
@@ -107,6 +109,54 @@ namespace MonoFSM.Variable
             SetOperation(value);
 
         public float AfterGetValueModifyCheck(float value) => value; //要再bound一次嗎？
+
+        #region 邊界變動時把當前值夾回範圍
+
+        //Bound 只在 SetValue 時生效，Max/Min 自己被 modifier 改動時，VarFloat 的當前值不會跟著收斂，
+        //所以這裡 polling 邊界變化，一旦變動就把當前值重新 clamp。
+        [GUIColor(0.6f, 0.8f, 1f)]
+        [Tooltip("Min/Max 變動時（例如 Max 被 modifier 調小），把 VarFloat 的當前值重新夾回範圍內")]
+        public bool _isClampCurrentValueOnBoundChanged = true;
+
+        [ShowInDebugMode]
+        private float _lastMinValue = float.NaN; //NaN: 尚未初始化，第一次 Simulate 一定會檢查一次
+
+        [ShowInDebugMode]
+        private float _lastMaxValue = float.NaN;
+
+        public void ResetStart()
+        {
+            //重置時強制在第一次 Simulate 重新檢查一次邊界
+            _lastMinValue = float.NaN;
+            _lastMaxValue = float.NaN;
+        }
+
+        public void Simulate(float deltaTime)
+        {
+            if (!_isClampCurrentValueOnBoundChanged || _monoVar == null)
+                return;
+
+            var min = MinValue;
+            var max = MaxValue;
+            //用 == 而非 Approximately，避免 Infinity 相減變成 NaN 而每幀誤判成有變動
+            if (min == _lastMinValue && max == _lastMaxValue)
+                return;
+
+            _lastMinValue = min;
+            _lastMaxValue = max;
+
+            var current = _monoVar.CurrentValue;
+            var clamped = Mathf.Clamp(current, min, max);
+            if (clamped == current)
+                return;
+
+            // Debug.Log(
+            //     $"[BoundModifier] bound changed, clamp {current} → {clamped} (min={min}, max={max})",
+            //     this);
+            _monoVar.SetValue(clamped, this, "BoundChanged");
+        }
+
+        #endregion
 
 #if UNITY_EDITOR
         private void OnValidate()
