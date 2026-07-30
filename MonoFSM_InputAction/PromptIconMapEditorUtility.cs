@@ -91,7 +91,7 @@ namespace RCGInputAction
                 : GamepadLayouts.Contains(layout);
         }
 
-        //掃專案裡所有 InputPromptUIData -> _input -> action 的 bindings，回傳去重後的路徑清單
+        //掃專案裡所有 InputPromptUIData -> 用到的 action（_input 與 _extraInputs）-> bindings，回傳去重後的路徑清單
         public static List<BindingUsage> CollectBindingUsages()
         {
             EnsureFresh();
@@ -107,33 +107,34 @@ namespace RCGInputAction
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
                 var prompt = AssetDatabase.LoadAssetAtPath<InputPromptUIData>(path);
-                if (prompt == null || prompt._input == null)
+                if (prompt == null)
                     continue;
 
-                var action = prompt._input._inputAction != null
-                    ? prompt._input._inputAction.action
-                    : null;
-                if (action == null)
-                    continue;
-
-                var bindings = action.bindings;
-                for (var i = 0; i < bindings.Count; i++)
+                foreach (var input in prompt.EnumerateInputs())
                 {
-                    var binding = bindings[i];
-                    if (binding.isComposite) //composite 本體沒有 path，路徑在 part 上（跟 runtime 查表一致）
+                    var action = input._inputAction != null ? input._inputAction.action : null;
+                    if (action == null)
                         continue;
 
-                    var bindingPath = binding.effectivePath;
-                    if (string.IsNullOrEmpty(bindingPath) || !seen.Add(bindingPath))
-                        continue;
-
-                    result.Add(new BindingUsage
+                    var bindings = action.bindings;
+                    for (var i = 0; i < bindings.Count; i++)
                     {
-                        _path = bindingPath,
-                        _layout = ExtractLayout(bindingPath),
-                        _actionName = action.name,
-                        _promptName = prompt.name,
-                    });
+                        var binding = bindings[i];
+                        if (binding.isComposite) //composite 本體沒有 path，路徑在 part 上（跟 runtime 查表一致）
+                            continue;
+
+                        var bindingPath = binding.effectivePath;
+                        if (string.IsNullOrEmpty(bindingPath) || !seen.Add(bindingPath))
+                            continue;
+
+                        result.Add(new BindingUsage
+                        {
+                            _path = bindingPath,
+                            _layout = ExtractLayout(bindingPath),
+                            _actionName = action.name,
+                            _promptName = prompt.name,
+                        });
+                    }
                 }
             }
 

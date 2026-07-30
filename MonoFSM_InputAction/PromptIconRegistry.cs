@@ -24,6 +24,13 @@ namespace RCGInputAction
             public DeviceIconMapConfig _config;
         }
 
+        //所有裝置、所有 icon 的總倍率。覺得整體提示的 icon 偏小就調這一個，
+        //單一裝置調 DeviceIconMapConfig._deviceIconScale，單顆鍵調該 entry 的 _iconScale（三層相乘）
+        [LabelText("全域 icon 倍率")]
+        [Tooltip("1 = 跟文字同高（TMP 預設）。放大會連帶撐開該行行高")]
+        [PropertyRange(0.5f, 3f)]
+        public float _globalIconScale = 1f;
+
         [TableList]
         public List<FamilyEntry> _entries = new();
 
@@ -60,7 +67,7 @@ namespace RCGInputAction
         {
             foreach (var config in ConfigChain(family))
             {
-                var tag = config.GetSpriteTag(input);
+                var tag = config.GetSpriteTag(input, _globalIconScale);
                 if (tag != null)
                     return tag;
             }

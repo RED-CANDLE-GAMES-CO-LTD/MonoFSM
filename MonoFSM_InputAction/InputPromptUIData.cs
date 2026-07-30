@@ -27,11 +27,18 @@ namespace RCGInputAction
         [Required]
         public InputActionData _input;
 
+        //同一則提示要再串其他 action 時用（ex:「按住 Shift + W」），順序就是這裡的順序，接在 _input 後面。
+        //單一 action 內的多顆鍵（WASD composite）不用填這裡，DeviceIconMapConfig 會自己把 part 串起來。
+        public List<InputActionData> _extraInputs = new();
+
+        //_input 與各個 _extraInputs 之間插的字（ex: "+"）；同一個 action 的多顆鍵之間不插
+        public string _inputSeparator;
+
         //找不到對照 icon 時的替代圖
         [FormerlySerializedAs("placeHolderIcon")]
         public Sprite _placeHolderIcon;
 
-        //icon-only 場合用（ex: InputPromptUILabel 純圖示顯示）
+        //icon-only 場合用（ex: InputPromptUILabel 純圖示顯示）；多顆鍵的提示這裡只會拿到第一顆
         public Sprite GetIcon()
         {
             var finder = ResolveFinder();
@@ -48,8 +55,46 @@ namespace RCGInputAction
         //圖文混排場合用：組成 TMP 的 <sprite> tag，inline 進 Smart String 的 token 裡
         public string GetSpriteTag()
         {
+            return BuildSpriteTag(null);
+        }
+
+        //_input + _extraInputs 依序串起來；family 有值＝指定機種查（Editor 的各機種對照預覽用）
+        private string BuildSpriteTag(PromptDeviceFamily? family)
+        {
             var finder = ResolveFinder();
-            return finder?.GetSpriteTag(_input);
+            if (finder == null)
+                return null;
+            var registry = finder as PromptIconRegistry; //只有 registry 查得了指定機種
+
+            _spriteTagBuilder.Clear();
+            foreach (var input in EnumerateInputs())
+            {
+                var tag = family.HasValue && registry != null
+                    ? registry.GetSpriteTag(input, family.Value)
+                    : finder.GetSpriteTag(input);
+                if (string.IsNullOrEmpty(tag))
+                    continue; //這個 action 在這台裝置沒對照，其他的照樣串（漏填在各機種對照表看得出來）
+
+                if (_spriteTagBuilder.Length > 0 && !string.IsNullOrEmpty(_inputSeparator))
+                    _spriteTagBuilder.Append(_inputSeparator);
+                _spriteTagBuilder.Append(tag);
+            }
+
+            return _spriteTagBuilder.Length == 0 ? null : _spriteTagBuilder.ToString();
+        }
+
+        private static readonly System.Text.StringBuilder _spriteTagBuilder = new();
+
+        //這則提示用到的所有 action（_input 在前）
+        public IEnumerable<InputActionData> EnumerateInputs()
+        {
+            if (_input != null)
+                yield return _input;
+            if (_extraInputs == null)
+                yield break;
+            foreach (var extra in _extraInputs)
+                if (extra != null)
+                    yield return extra;
         }
 
         //Play Mode 由 HintSpriteFinderInstaller 注入；Editor 沒跑過 installer，就自己去專案裡找一份來 preview
@@ -153,9 +198,7 @@ namespace RCGInputAction
                     var family = families[i];
                     row._family = family.ToString();
                     row._icon = registry != null ? registry.GetIcon(_input, family) : null;
-                    row._spriteTag = registry != null
-                        ? registry.GetSpriteTag(_input, family) ?? "-"
-                        : "-";
+                    row._spriteTag = registry != null ? BuildSpriteTag(family) ?? "-" : "-";
                 }
 
                 return _previewRows;

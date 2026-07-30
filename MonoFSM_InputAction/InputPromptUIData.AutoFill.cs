@@ -52,34 +52,37 @@ namespace RCGInputAction
         }
 
         //只取自己這則提示用到的 binding（格式沿用 utility 的 BindingUsage，好餵給 config 的補表邏輯）
+        //_extraInputs（ex:「按住 Shift + W」的 Shift）也要一起補，不然多 action 的提示會缺 icon
         private List<PromptIconMapEditorUtility.BindingUsage> CollectOwnBindingUsages()
         {
             var result = new List<PromptIconMapEditorUtility.BindingUsage>();
-            var action = _input != null && _input._inputAction != null
-                ? _input._inputAction.action
-                : null;
-            if (action == null)
-                return result;
-
             var seen = new HashSet<string>();
-            var bindings = action.bindings;
-            for (var i = 0; i < bindings.Count; i++)
+
+            foreach (var input in EnumerateInputs())
             {
-                var binding = bindings[i];
-                if (binding.isComposite) //composite 本體沒有 path，路徑在 part 上（跟 runtime 查表一致）
+                var action = input._inputAction != null ? input._inputAction.action : null;
+                if (action == null)
                     continue;
 
-                var path = binding.effectivePath;
-                if (string.IsNullOrEmpty(path) || !seen.Add(path))
-                    continue;
-
-                result.Add(new PromptIconMapEditorUtility.BindingUsage
+                var bindings = action.bindings;
+                for (var i = 0; i < bindings.Count; i++)
                 {
-                    _path = path,
-                    _layout = PromptIconMapEditorUtility.ExtractLayout(path),
-                    _actionName = action.name,
-                    _promptName = name,
-                });
+                    var binding = bindings[i];
+                    if (binding.isComposite) //composite 本體沒有 path，路徑在 part 上（跟 runtime 查表一致）
+                        continue;
+
+                    var path = binding.effectivePath;
+                    if (string.IsNullOrEmpty(path) || !seen.Add(path))
+                        continue;
+
+                    result.Add(new PromptIconMapEditorUtility.BindingUsage
+                    {
+                        _path = path,
+                        _layout = PromptIconMapEditorUtility.ExtractLayout(path),
+                        _actionName = action.name,
+                        _promptName = name,
+                    });
+                }
             }
 
             return result;
