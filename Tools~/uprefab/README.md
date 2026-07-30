@@ -9,6 +9,8 @@
 | **離線索引**（`find` / `overrides` / `scope`） | 定位：某個 component / 名稱在哪些檔案裡 | ❌ |
 | **讀**（`prefab read` / `scene ls` / `types` / `fields` / `peek` / `refs`） | 合併後的真值、型別欄位、runtime 值、引用反查 | ✅ |
 | **寫**（`prefab do` / `scene do` / `prefab variant` / `scene copy`） | 用節點路徑改結構、建 variant、複製場景模板 | ✅ |
+| **asset**（`asset create` / `asset set` / `asset set-ref` / `asset add-element` / `asset fields`） | 建立/編輯獨立的 ScriptableObject asset（registry / config 類資料） | ✅ |
+| **prompt**（`prompt`） | 幫 VarString 掛一組有條件的 localized 文字提示（含 Localization 條目、token、Auto 綁定、回傳自帶驗證） | ✅ |
 | **驗證**（`scene count` / `logs` / `play`） | Play Mode 下數物件、看錯誤 | ✅ |
 
 離線索引與內容分工的原因：離線 YAML 讀不到 variant 繼承來的東西（Unity 只在本檔有引用時
@@ -28,6 +30,15 @@ up prefab read "Assets/…/X.prefab" --node "[StateFolder] StateFolder"
 up refs "Assets/…/X.prefab" --node "…/[Var] Durability"    # 誰指向它（--out = 它指向誰）
 up scene do "add||Spawner|MonoEntity,MonoObj" "auto|Spawner" "save"
 up scene count --name 測試資源 --sample 3
+
+up asset create PromptIconRegistry "Assets/…/測試 Registry.asset"   # 建 ScriptableObject asset
+up asset add-element "Assets/…/測試 Registry.asset" _entries        # 陣列尾端加一筆
+up asset set-ref "Assets/…/測試 Registry.asset" \
+    "_entries.Array.data[0]._config" "Assets/…/測試 Config.asset"    # 指向另一個 asset
+
+up prompt "Assets/…/X.prefab" --var "…/[Getter] d_ Select Text Prompt 文字提示" \
+    --case "broken|壞掉了請維修|if:…/[Getter] d_IsBroken=true" \
+    --case "socket_to_charge|{key} 充電|prompt:key=RMB"             # 加 localized 文字提示
 ```
 
 （zsh 不會對 `$VAR` 斷詞，所以用 shell function 而不是 `UP="python3 …"`。）
@@ -43,6 +54,8 @@ up scene count --name 測試資源 --sample 3
 
 **看 [`skills/uprefab/SKILL.md`](../../skills/uprefab/SKILL.md)** ——
 決策表（什麼情況用哪個）、每個指令、批次 DSL 的所有操作、
+`up asset`（建立/編輯 ScriptableObject asset：`create` / `set` / `set-ref` /
+`add-element` / `fields`，含「建 registry SO → 加陣列元素 → 指向另一個 SO」的完整範例）、
 「從零組一個 FSM 並驗證」的完整實例、已知限制。那份是唯一真相來源，這裡不重複。
 
 文字格式本身（node 行、component 區塊、值格式化、摺疊摘要規則）屬於

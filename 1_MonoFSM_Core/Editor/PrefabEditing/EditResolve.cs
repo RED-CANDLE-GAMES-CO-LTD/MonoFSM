@@ -106,22 +106,36 @@ namespace MonoFSM.Editor.PrefabEditing
             return comp;
         }
 
-        internal static Type CompType(string typeName)
-        {
-            if (string.IsNullOrEmpty(typeName)) throw Abort("component 型別名不可為空");
+        internal static Type CompType(string typeName) =>
+            ResolveType<Component>(typeName, "component 型別");
 
-            var matches = TypeCache.GetTypesDerivedFrom<Component>()
-                .Where(t => t.Name == typeName || t.FullName == typeName)
-                .ToList();
+        /// <summary>
+        /// 解析 ScriptableObject 型別（給 AssetEdit.CreateAsset 用）。走同一套
+        /// 「短名/FullName、打錯字列相近候選」邏輯，只是搜尋池換成 ScriptableObject 衍生型別 ——
+        /// 這樣解析出來的型別天生就保證繼承 ScriptableObject，不用另外檢查。
+        /// </summary>
+        internal static Type ScriptableObjectType(string typeName) =>
+            ResolveType<ScriptableObject>(typeName, "ScriptableObject 型別");
+
+        /// <summary>
+        /// 型別名（短名或 FullName）→ Type 的共用解析，`CompType` / `ScriptableObjectType`
+        /// 都是它的特化。錯誤訊息（找不到時列相近候選、同名多型別時列 FullName）只有這一份。
+        /// </summary>
+        private static Type ResolveType<T>(string typeName, string kind) where T : class
+        {
+            if (string.IsNullOrEmpty(typeName)) throw Abort($"{kind}名不可為空");
+
+            var pool = TypeCache.GetTypesDerivedFrom<T>();
+            var matches = pool.Where(t => t.Name == typeName || t.FullName == typeName).ToList();
 
             if (matches.Count == 1) return matches[0];
             if (matches.Count == 0)
             {
                 // 打錯字很常見，給幾個相近的候選比單純說「找不到」有用得多
-                var near = TypeCache.GetTypesDerivedFrom<Component>()
+                var near = pool
                     .Where(t => t.Name.IndexOf(typeName, StringComparison.OrdinalIgnoreCase) >= 0)
                     .Select(t => t.Name).Distinct().Take(10).ToList();
-                throw Abort($"找不到 component 型別 '{typeName}'" +
+                throw Abort($"找不到 {kind} '{typeName}'" +
                             (near.Count > 0 ? $"。名稱含這段的有：{Join(near)}" : ""));
             }
 
@@ -150,7 +164,12 @@ namespace MonoFSM.Editor.PrefabEditing
 
         // ---- 欄位 ----
 
-        internal static SerializedProperty Prop(SerializedObject so, string fieldPath, Component comp)
+        /// <summary>
+        /// fieldPath → SerializedProperty。`obj` 只用來讓錯誤訊息報型別名，
+        /// 傳 Component（PrefabEdit / SceneEdit）或任何 UnityEngine.Object（AssetEdit 的
+        /// ScriptableObject asset）都可以 —— Component 本來就是 Object。
+        /// </summary>
+        internal static SerializedProperty Prop(SerializedObject so, string fieldPath, UnityEngine.Object obj)
         {
             var prop = so.FindProperty(fieldPath);
             if (prop != null) return prop;
@@ -173,7 +192,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
             if (cursor != null && walked != fieldPath)
                 throw Abort(
-                    $"{comp.GetType().Name} 上找不到 '{fieldPath}'，走到 '{walked}' " +
+                    $"{obj.GetType().Name} 上找不到 '{fieldPath}'，走到 '{walked}' " +
                     $"（{cursor.type}）為止。這一層底下有：{Join(Children(cursor))}");
 
             var names = new List<string>();
@@ -184,7 +203,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     if (it.name != "m_Script") names.Add(it.name);
                 } while (it.NextVisible(false));
 
-            throw Abort($"{comp.GetType().Name} 上找不到欄位 '{fieldPath}'。可用的頂層欄位：" +
+            throw Abort($"{obj.GetType().Name} 上找不到欄位 '{fieldPath}'。可用的頂層欄位：" +
                         Join(names));
         }
 

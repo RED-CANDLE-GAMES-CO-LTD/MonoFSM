@@ -233,9 +233,11 @@ def cmd_overrides(args, root, cfg):
 
 SCENE = f"{unity.EDIT_NS}.SceneEdit"
 PREFAB = f"{unity.EDIT_NS}.PrefabEdit"
+ASSET = f"{unity.EDIT_NS}.AssetEdit"
 PROBE = f"{unity.EDIT_NS}.EditProbe"
 READER = f"{unity.EDIT_NS}.PrefabTextReader"
 REFS = f"{unity.EDIT_NS}.EditRefs"
+PROMPT = f"{unity.EDIT_NS}.PromptEdit"
 
 
 def _ops_text(args) -> str:
@@ -279,6 +281,44 @@ def cmd_prefab(args, root, cfg):
             not args.fold, args.budget, args.fsm))
     elif args.action == "do":
         print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args)))
+
+
+def cmd_asset(args, root, cfg):
+    """建立/編輯 ScriptableObject asset —— AssetEdit 的一行入口，理由同 cmd_scene/cmd_prefab：
+    把 execute-dynamic-code 的 JSON envelope 濾掉，C# 那邊才是實作。"""
+    a = args.asset_action
+    if a == "create":
+        print(unity.call(f"{ASSET}.CreateAsset", args.type, args.path, args.overwrite))
+    elif a == "set":
+        print(unity.call(f"{ASSET}.SetField", args.path, args.field, args.value))
+    elif a == "set-ref":
+        print(unity.call(f"{ASSET}.SetAssetRef", args.path, args.field, args.target))
+    elif a == "add-element":
+        print(unity.call(f"{ASSET}.AddArrayElement", args.path, args.field))
+    elif a == "fields":
+        print(unity.call(f"{ASSET}.ListFields", args.path))
+
+
+def cmd_prompt(args, root, cfg):
+    """幫一個 VarString 掛一組有條件的 localized 文字提示。
+
+    這件事本來要跨 Localization 條目、value source 節點、條件 / token 子節點、Auto 綁定與
+    Rename 四個系統，每次臨時寫 execute-dynamic-code 都要重踩同一批雷（m_KeyId 是 long、
+    節點名含 `/`、{token} 沒開 IsSmart 不會展開）。實作在 C# 的 PromptEdit。
+    """
+    cases = "\n".join(args.case) if args.case else _cases_from_file(args)
+    print(unity.call(
+        f"{PROMPT}.Apply", args.asset, args.var_node, cases,
+        args.locale, args.table, args.prune))
+
+
+def _cases_from_file(args) -> str:
+    if getattr(args, "file", None):
+        with open(args.file, encoding="utf-8") as fh:
+            return fh.read()
+    if sys.stdin.isatty():
+        raise SystemExit("沒有 case：用 --case 一條條給、-f <檔案>，或從 stdin 餵進來")
+    return sys.stdin.read()
 
 
 def cmd_refs(args, root, cfg):
@@ -405,6 +445,52 @@ def main() -> None:
     pp.add_argument("-f", "--file", help="do：從檔案讀批次操作")
     pp.add_argument("ops", nargs="*", help="do：直接帶操作（一個參數一行）")
     pp.set_defaults(fn=cmd_prefab)
+
+    pa = sub.add_parser("asset", help="建立/編輯 ScriptableObject asset（需要 Unity）")
+    asub = pa.add_subparsers(dest="asset_action", required=True)
+
+    pac = asub.add_parser("create", help="建一個 ScriptableObject asset")
+    pac.add_argument("type", help="ScriptableObject 型別名（短名或 FullName）")
+    pac.add_argument("path", help="assetPath，要以 Assets/ 開頭、.asset 結尾")
+    pac.add_argument("--overwrite", action="store_true", help="已存在時覆蓋")
+
+    pas = asub.add_parser("set", help="設定 asset 上 serialized 欄位的值（非物件引用）")
+    pas.add_argument("path", help="assetPath")
+    pas.add_argument("field", help="fieldPath，支援巢狀（如 _entries.Array.data[0]._family）")
+    pas.add_argument("value")
+
+    par = asub.add_parser("set-ref", help="欄位指向另一個 asset（SO / prefab / Texture2D / Sprite）")
+    par.add_argument("path", help="assetPath")
+    par.add_argument("field", help="fieldPath")
+    par.add_argument("target", help="目標 asset 的路徑")
+
+    paa = asub.add_parser("add-element", help="在陣列/List 欄位尾端加一個元素，回傳它的 index")
+    paa.add_argument("path", help="assetPath")
+    paa.add_argument("field", help="fieldPath")
+
+    paf = asub.add_parser("fields", help="列出 asset 上的 serialized 欄位（名稱 + 型別）")
+    paf.add_argument("path", help="assetPath")
+
+    pa.set_defaults(fn=cmd_asset)
+
+    pm = sub.add_parser(
+        "prompt",
+        help="幫 VarString 掛一組有條件的 localized 文字提示（需要 Unity）",
+        description="case 格式：key|文案|spec;spec。"
+                    "spec 是 `if:節點路徑=true|false` 或 `prompt:token=RMB`（token 可省，預設 key）。"
+                    "文案留空 = 沿用 table 裡既有的。含 { 會自動開 IsSmart。"
+                    "順序就是 sibling 順序 —— 有條件的排前面、無條件的墊底。")
+    pm.add_argument("asset", help="prefab asset path")
+    pm.add_argument("--var", dest="var_node", required=True,
+                    help="VarString 節點路徑（value source 會掛在它底下）")
+    pm.add_argument("--case", action="append",
+                    help="一條提示，可重複給；順序 = 挑選優先序")
+    pm.add_argument("--locale", default="zh-TW", help="要寫文案的 locale（預設 zh-TW）")
+    pm.add_argument("--table", default="GameplayUI", help="string table collection（預設 GameplayUI）")
+    pm.add_argument("--prune", action="store_true",
+                    help="刪掉不在 --case 清單裡的既有 value source")
+    pm.add_argument("-f", "--file", help="從檔案讀 case（一行一條）")
+    pm.set_defaults(fn=cmd_prompt)
 
     pr = sub.add_parser("refs", help="誰指向這個節點 / 它指向誰（需要 Unity）")
     pr.add_argument("asset", nargs="?",

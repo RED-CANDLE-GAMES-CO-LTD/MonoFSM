@@ -444,7 +444,7 @@ public class CreateCustomAssetWindow : EditorWindow
             return;
         }
         AssetDatabase.CreateAsset(asset, assetPath);
-        Debug.Log("Created asset: " + assetPath);
+        Debug.Log("Created asset: " + assetPath,asset);
         EditorUtility.FocusProjectWindow();
         Selection.activeObject = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath);
     }

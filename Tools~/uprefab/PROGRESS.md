@@ -438,3 +438,42 @@ override 語意與序列化正確性（這也是「不要碰 YAML」原本的理
 | ~~`PrefabTextCacheWriter.cs` / `PrefabTextCacheMarker.cs` / `PrefabTextCacheConfig.cs`~~ | **已刪**（落檔 cache 機制拆除，理由見 Phase 3） |
 
 尚未 commit。MonoFSM 是 submodule，那幾個檔要在 submodule 裡另外 commit。
+
+## 2026-07-29
+
+- 新增 `up asset` 子命令，對應 `AssetEdit.cs`：讓 CLI 也能建立/編輯 ScriptableObject asset。
+
+## 2026-07-30 —— `up prompt`
+
+新增 `up prompt` 子命令，對應 `MonoFSM-Pro/Editor/PromptEdit.cs`：一行完成「幫某個 VarString
+掛一組有條件的 localized 文字提示」。
+
+**驅動它的實例**：幫插座 prefab 加「充電 / 沒電 / 壞掉」三種提示。手工做要跨四個系統
+（Localization 條目、`LocalizedStringValueSource` 節點、條件與 token 子節點、Auto 綁定與
+Rename），每次都得臨時寫 `execute-dynamic-code`，而且每次重踩同一批雷：
+
+- `m_KeyId` 是 long，`prefab do` 的 `set` 只吃 int32 → 改用官方的 `new LocalizedString(guid, entryId)`
+- value source 的節點名含 `/`（`=> Localized: GameplayUI/broken`），`Transform.Find` 會當成路徑分隔
+  → 改用 keyId 比對既有節點，不靠名字
+- 文案含 `{token}` 但沒開 `IsSmart` → SmartFormat 不展開，原字輸出。現在含 `{` 自動開
+- dynamic code 裡 `Object` 一定和 `UnityEngine.Object` 歧義
+
+**放在 Pro 而不是 Core**：`LocalizedStringValueSource` / `InputPromptTokenBinding` 在
+`MonoFSMPro`，而且要引用 `Unity.Localization.Editor`（已加進 `MonoFSMPro.Editor.asmdef`）。
+`EditResolve` 是 `internal`，跨 assembly 用不到，所以路徑解析與錯誤訊息在 `PromptEdit` 裡另寫了一份精簡版。
+
+### 兩個實作上的坑（別退回去）
+
+- **不要 `AssetDatabase.SaveAssets()`** —— 它會把 Editor 記憶體裡所有 dirty 的 asset 一起落盤。
+  第一版用了它，實測連帶把使用者當時正在編輯、還沒存的兩個 prefab 寫進磁碟。改成 `SaveAssetIfDirty`。
+- **先 probe 路徑再寫 localization** —— localization 在 prefab 之前跑，路徑錯到那時才發現
+  會留下「條目建了但節點沒建」的半套狀態。現在先對唯讀的 prefab asset 把 `--var` 與所有
+  `if:` 路徑走一遍。
+
+### 回傳自帶驗證，不用進 Play Mode
+
+存檔後把每條 value source 的 `Value` 讀回來印出，連 `{token}` 展開成 sprite tag 都看得到 ——
+`LocalizedStringValueSource.RuntimeBindings` 在 Editor 非 Play 時會 fallback
+`GetComponentsInChildren<ISmartStringTokenBinding>`。讀之前把 `SelectedLocale` 切到 `--locale`
+再還原（不切會拿到別的語言，且剛加的 key 因為 table 已載入會回 `No translation found`）。
+要進 Play Mode 的只剩「條件切換」是否如預期。

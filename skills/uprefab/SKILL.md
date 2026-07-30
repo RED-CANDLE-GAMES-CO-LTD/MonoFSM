@@ -1,6 +1,7 @@
 ---
 name: uprefab
-description: 不把整個 200MB scene 塞進 context 就能讀懂並改動 Unity serialized data（prefab / scene / ScriptableObject）。當需要：(1) 找某個 component / 節點在哪些 prefab 或 scene 裡 (2) 讀某個 prefab 的階層結構或 FSM 狀態機架構 (3) 看某個子樹的 component 欄位細節 (4) prefab override 稽核 (5) 用 API 改 prefab / scene 結構、建 prefab variant、複製場景模板、組 FSM (6) 查某個型別有哪些 serialized 欄位、讀 Play Mode 下的 runtime 值、數場上物件驗證生成邏輯 (7) 查某個節點被誰引用 / 它指向誰 (8) 使用者貼了 asset guid 或 Editor webhook 連結（`?asset_guid=…`）需要換成資產路徑 (9) 理解或修改 uprefab 離線索引（MonoFSM/Tools~/uprefab/*.py）、PrefabTextReader 或 PrefabEdit / SceneEdit 時使用此 skill。
+description: 能讀懂並改動 Unity serialized data（prefab / scene / ScriptableObject）。當需要：(1) 找某個 component / 節點在哪些 prefab 或 scene 裡 (2) 讀某個 prefab 的階層結構或 FSM 狀態機架構 (3) 看某個子樹的 component 欄位細節 (4) prefab override 稽核 (5) 用 API 改 prefab / scene 結構、建 prefab variant、複製場景模板、組 FSM、建立或編輯
+ScriptableObject asset（registry / config 類資料） (6) 查某個型別有哪些 serialized 欄位、讀 Play Mode 下的 runtime 值、數場上物件驗證生成邏輯 (7) 查某個節點被誰引用 / 它指向誰 (8) 使用者貼了 asset guid 或 Editor webhook 連結（`?asset_guid=…`）需要換成資產路徑 (9) 理解或修改 uprefab 離線索引（MonoFSM/Tools~/uprefab/*.py）、PrefabTextReader 或 PrefabEdit / SceneEdit 時使用此 skill。
 ---
 
 # uprefab
@@ -20,13 +21,16 @@ description: 不把整個 200MB scene 塞進 context 就能讀懂並改動 Unity
 | 索引範圍有多大、還能濾掉什麼 | CLI `scope stats` | ❌ |
 | **改** prefab 結構 | CLI `prefab do` | ✅ |
 | **改** scene 結構、開/複製/存 scene | CLI `scene do` / `scene copy` | ✅ |
+| **建 / 改 ScriptableObject asset**（registry / config 類資料） | CLI `asset create` / `asset set` / `asset set-ref` / `asset add-element` | ✅ |
+| **加 / 改互動文字提示**（localized、按狀態切換） | CLI `prompt` | ✅ |
 | 某個節點被誰指到 / 它指向誰 | CLI `refs` | ✅ |
-| 某個型別叫什麼、有哪些欄位 | CLI `types` / `fields` | ✅ |
+| 某個型別叫什麼、有哪些欄位 | CLI `types` / `fields`（Component）、`asset fields`（ScriptableObject asset） | ✅ |
 | Play Mode 下場上有幾個某某物件 | CLI `scene count` | ✅ |
 | Play Mode 下某個 component 現在的值 | CLI `peek` | ✅ |
 
 一句話版本：**定位走 CLI `find`，讀結構走 `prefab read` / `scene ls`（預設就會分層摺疊，
-再用 `--node` 下鑽），查引用走 `refs`，要改走 `prefab do` / `scene do`。**
+再用 `--node` 下鑽），查引用走 `refs`，要改走 `prefab do` / `scene do`，要建/改
+ScriptableObject asset 走 `asset`，要加 localized 文字提示走 `prompt`。**
 
 所有需要 Unity 的操作都有 CLI 入口 —— **不要直接寫 `uloop execute-dynamic-code`**，
 它每次回傳 15 行 JSON envelope（Logs / SecurityLevel / Diagnostics…），CLI 只回結果那一行。
@@ -237,7 +241,130 @@ up scene copy --template "Assets/1_Prototype/Module Test/Network FSM Template.un
 
 ---
 
-## 四、查型別 / 查欄位 / 讀 runtime 值
+## 四、asset —— 建立與編輯 ScriptableObject（要 Unity 開著）
+
+`prefab do` / `scene do` 改的是「掛在節點上的 component」，`up asset` 改的是**獨立存在、
+不掛在任何節點上的 ScriptableObject asset**（registry / config 類資料，例如
+`PromptIconRegistry`、`DeviceIconMapConfig`）。現在要建一個這種 asset，原本只能靠人在
+Project 視窗點 Create Menu，或每次臨時寫一段 `execute-dynamic-code`（不可重現、容易寫錯）。
+`up asset` 是它的參數化 API + CLI 版本，跟 `prefab do` 同一個風格，走同一套
+`EditResolve`（路徑/型別/欄位解析與錯誤訊息）。
+
+```bash
+up asset create <TypeName> <assetPath> [--overwrite]   # 建一個 ScriptableObject asset
+up asset set <assetPath> <fieldPath> <value>            # 設欄位值（非物件引用）
+up asset set-ref <assetPath> <fieldPath> <targetAssetPath>  # 欄位指向另一個 asset
+up asset add-element <assetPath> <fieldPath>            # 陣列/List 欄位尾端加一個元素
+up asset fields <assetPath>                             # 列出 asset 上的 serialized 欄位
+```
+
+| 指令 | 說明 |
+|---|---|
+| `create <TypeName> <assetPath>` | typeName 支援短名或 FullName；解析出的型別要真的繼承 `ScriptableObject`（不是就報錯）。assetPath 已存在時預設不覆蓋，`--overwrite` 才覆蓋 |
+| `set <assetPath> <fieldPath> <value>` | fieldPath 支援巢狀，如 `_entries.Array.data[0]._family` |
+| `set-ref <assetPath> <fieldPath> <targetAssetPath>` | 目標可以是 ScriptableObject / prefab / Texture2D / Sprite；prefab 會依欄位宣告型別取對應 component（同 `aref`） |
+| `add-element <assetPath> <fieldPath>` | 回傳新元素的 index，接著用 `set` / `set-ref` 補上 `<fieldPath>.Array.data[<index>].<子欄位>` |
+| `fields <assetPath>` | 欄位名打錯時自我診斷用 |
+
+### 實例：建一個 registry SO → 加一個陣列元素 → 指向另一個 SO
+
+以專案既有的 `PromptIconRegistry`（`_entries: List<FamilyEntry>`，每筆有 `_family` enum 跟
+`_config: DeviceIconMapConfig` 物件引用）示範完整流程 —— 這一整套實測跑過：
+
+```bash
+up asset create PromptIconRegistry "Assets/10_Scriptables/uprefab Test/測試 Registry.asset"
+up asset create DeviceIconMapConfig "Assets/10_Scriptables/uprefab Test/測試 Config.asset"
+
+up asset add-element "Assets/10_Scriptables/uprefab Test/測試 Registry.asset" _entries
+# -> Assets/…/測試 Registry.asset._entries[0]  新增（現有 1 筆）
+
+up asset set "Assets/10_Scriptables/uprefab Test/測試 Registry.asset" \
+    "_entries.Array.data[0]._family" GamepadGeneric
+up asset set-ref "Assets/10_Scriptables/uprefab Test/測試 Registry.asset" \
+    "_entries.Array.data[0]._config" "Assets/10_Scriptables/uprefab Test/測試 Config.asset"
+```
+
+`up asset fields` 打錯欄位名時的診斷（實測輸出）：
+
+```
+$ up asset set "…/測試 Registry.asset" _wrongField x
+# 未修改：PromptIconRegistry 上找不到欄位 '_wrongField'。可用的頂層欄位：_entries
+```
+
+路徑打錯時列出該資料夾實際有什麼（跟 `prefab read` 路徑打錯列子節點是同一套慣例）：
+
+```
+$ up asset fields "Assets/10_Scriptables/GeneralEffectType/does-not-exist.asset"
+# 未修改：找不到 asset: …/does-not-exist.asset。…/GeneralEffectType 底下實際有：
+  [Effect] Add Force.asset, [Effect] Break.asset, …
+```
+
+**已知細節**：`AddArrayElement` 特意排除 `string` 欄位 —— `SerializedProperty.isArray`
+對 `string` 也回 `true`（舊版序列化 API 把字串當 `char[]` 存），照字面判斷會把陣列元素
+插進字串的位元組裡，存出一份壞掉的 UTF-8。已經在 `AssetEdit.AddArrayElement` 裡擋掉，
+只有真正的陣列/List 欄位才會動。
+
+---
+
+## 四之二、prompt —— 幫 VarString 掛一組有條件的 localized 文字提示（要 Unity 開著）
+
+「加個互動文案」聽起來是一行的事，實際要跨四個系統：Localization 條目（key + IsSmart）、
+`LocalizedStringValueSource` 節點、條件與 `InputPromptTokenBinding` 子節點、Auto 綁定與 Rename。
+每一步都有自己的雷，所以包成一支：
+
+```bash
+up prompt "Assets/…/base 插座開關 Socket FSM.prefab" \
+  --var "Modules/Player Selectable ModulePack Variant/[VarFolder] VariableFolder/[Getter] d_ Select Text Prompt 文字提示" \
+  --case "broken|壞掉了請維修|if:Modules/Fixable ModulePack/[VarFolder] VariableFolder/[Getter] d_IsBroken=true" \
+  --case "socket_no_power|沒有電力，無法充電|if:[VarFolder] VariableFolder/[Getter] d_HasPower 有電=false" \
+  --case "socket_to_charge|{key} 充電 / 放置設備|prompt:key=RMB"
+```
+
+case 格式 `key|文案|spec;spec`：
+
+| 欄位 | 說明 |
+|---|---|
+| `key` | string table 的 key。不存在就建 |
+| `文案` | 留空 = 沿用 table 裡既有的。**含 `{` 會自動開 IsSmart**（沒開 `{token}` 不會展開，會原字輸出） |
+| `if:<節點路徑>=true\|false` | 加一個 `VarBoolCompareCondition`。路徑相對於 prefab root |
+| `prompt:<token>=<名稱或路徑>` | 加一個 `InputPromptTokenBinding`。token 可省（預設 `key`）；值吃 `InputPromptUIData` 的檔名或完整路徑 |
+
+其他選項：`--locale`（預設 `zh-TW`）、`--table`（預設 `GameplayUI`）、
+`--prune`（刪掉不在 case 清單裡的既有 value source）、`-f`（從檔案讀 case）。
+
+**順序就是挑選優先序** —— value source 是「依 child 順序取第一個 `IsValid`」，所以
+有條件的排前面、無條件的墊底。無條件的不是最後一條時會出 `[warn]`。
+
+### 回傳自帶驗證，不用進 Play Mode
+
+```
+[loc] socket_no_power 新增：沒有電力，無法充電
+[node] socket_no_power 新建  if [Getter] d_HasPower 有電==False
+[值] locale = zh-TW
+[值] 1. [Getter] d_IsBroken == True → 壞掉了請維修
+[值] 3. 墊底 → <sprite="KeyboardMouse" name="mouse_right"> 充電 / 放置設備
+```
+
+`[值]` 是存檔後讀回來的真值，連 `{token}` 展開成 sprite tag 都看得到 ——
+`LocalizedStringValueSource.RuntimeBindings` 在 Editor 非 Play 時會 fallback 直接抓子物件。
+要進 Play Mode 的只剩「條件切換」是否如預期。
+
+讀之前會把 `SelectedLocale` 切到 `--locale` 再還原：不切會拿到別的語言，
+而且剛加的 key 因為 table 已載入會回 `No translation found`。
+
+### 兩個踩過的坑（已在實作裡處理，改的時候別退回去）
+
+- **不要 `AssetDatabase.SaveAssets()`** —— 它會把 Editor 記憶體裡所有 dirty 的 asset 一起落盤。
+  實測連帶把使用者正在編輯、還沒存的兩個 prefab 寫進了磁碟。用 `SaveAssetIfDirty` 只存自己改的。
+- **路徑先 probe 再寫 localization** —— localization 寫在 prefab 之前，
+  路徑錯到那時才發現就會留下「條目建了但節點沒建」的半套狀態。
+
+實作：`MonoFSM-Pro/Editor/PromptEdit.cs`（在 Pro 而不是 Core，因為
+`LocalizedStringValueSource` / `InputPromptTokenBinding` 在 Pro，且要引用 `Unity.Localization.Editor`）。
+
+---
+
+## 五、查型別 / 查欄位 / 讀 runtime 值
 
 這三個的存在理由都是省 context —— 替代方案是把幾百行 .cs 讀進來，而且讀到的可能是
 註解掉的舊欄位。這裡回的是反射看到的真值。
@@ -284,7 +411,7 @@ variant 階層斷裂。`SerializedObject` 看到的是**合併後真值**，一�
 
 ---
 
-## 五、驗證：數場上的物件
+## 六、驗證：數場上的物件
 
 ```bash
 up scene count --name 測試資源 --sample 4     # 也可以 --comp <型別>
@@ -315,7 +442,7 @@ up play stop
 
 ---
 
-## 六、完整實例：從零組一個「定時生資源」FSM 並驗證
+## 七、完整實例：從零組一個「定時生資源」FSM 並驗證
 
 這一整套實測跑過（產物在 `Assets/1_Prototype/uprefab Test/`），照抄即可。
 **全程沒有手動開過 Inspector。**
@@ -399,8 +526,10 @@ count=2  …   count=6  …   count=10
 - **`refs` 只查單一 prefab / 當前 scene 之內**，跨資產的全庫粗查還沒做。
 - **離線索引（`index` / `find` / `guid` / `overrides` / `scope`）只讀不寫**。要改就要 Unity 開著
   （`prefab do` / `scene do` 都走 uloop）。
-- **`fields` 只吃 Component 型別**。ScriptableObject 與巢狀 serializable class 查不到，
-  但巢狀欄位打錯時 `set` 的錯誤訊息會列出那一層有什麼，繞得過去。
+- **`up fields <TypeName>` 只吃 Component 型別**（走反射，不需要先有實例）。查
+  ScriptableObject 的欄位要用 `up asset fields <assetPath>`（走 SerializedObject，需要先有
+  一個實際的 asset）；巢狀 serializable class 兩邊都查不到型別定義本身，但巢狀欄位打錯時
+  `set` 的錯誤訊息會列出那一層有什麼，繞得過去。
 - **`scene` 系列作用在「當前開著的 active scene」**，不是路徑參數。先 `scene open` / `scene copy`。
 - **Play Mode 中不能開 / 建 scene**（會直接 abort，不會半途壞掉）。
 
@@ -418,10 +547,12 @@ MonoFSM/Tools~/uprefab/
 
 MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/
   PrefabTextReader.cs       prefab 匯出 + charBudget 分層 + --fsm
-  EditResolve.cs            路徑 / 型別 / 欄位解析與錯誤訊息（prefab 與 scene 共用）
+  EditResolve.cs            路徑 / 型別 / 欄位解析與錯誤訊息（prefab / scene / asset 共用）
   EditBatch.cs              一行一操作的 DSL
   PrefabEdit.cs             prefab 寫入 + CreateVariant
   SceneEdit.cs              scene 寫入 + CopyScene + Export + Count
+  AssetEdit.cs              ScriptableObject asset 建立與編輯（CreateAsset / SetField /
+                            SetAssetRef / AddArrayElement / ListFields）
   EditProbe.cs              Types / Fields / Peek
   EditRefs.cs               引用反查（PrefabRefs / SceneRefs）
   AssetRef.cs               asset path → 該塞進 ObjectReference 的物件

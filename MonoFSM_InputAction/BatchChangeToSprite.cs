@@ -20,10 +20,12 @@ public class BatchChangeToSprite
             if (importer != null && importer.textureType != TextureImporterType.Sprite)
             {
                 importer.textureType = TextureImporterType.Sprite;
-                AssetDatabase.ImportAsset(path);
+                // AssetDatabase.ImportAsset(path);
                 count++;
             }
         }
+
+        AssetDatabase.Refresh();
 
         Debug.Log($"批次轉換完成！共處理了 {count} 張圖片。");
     }

@@ -14,7 +14,11 @@ namespace MonoFSM.Editor.PrefabEditing
     /// </summary>
     internal static class AssetRef
     {
-        internal static Object Resolve(string assetPath, Component owner, string fieldPath)
+        /// <summary>
+        /// owner 只用來查欄位的宣告型別（`owner.GetType()`），所以吃 Component（PrefabEdit /
+        /// SceneEdit）或任何 UnityEngine.Object（AssetEdit 的 ScriptableObject asset）都可以。
+        /// </summary>
+        internal static Object Resolve(string assetPath, Object owner, string fieldPath)
         {
             var main = AssetDatabase.LoadMainAssetAtPath(assetPath);
             if (main == null)
