@@ -27,9 +27,23 @@ namespace MonoFSM.Render
                 {
                     if (_renderers == null)
                         return null;
-                    _cachedMaterials = new Material[_renderers.Length][];
+                    var result = new Material[_renderers.Length][];
+                    var allReady = true;
                     for (var i = 0; i < _renderers.Length; i++)
-                        _cachedMaterials[i] = _renderers[i] != null ? _renderers[i].materials : null;
+                    {
+                        var r = _renderers[i];
+                        result[i] = r != null ? r.materials : null;
+                        //renderer 還沒 ready 時 materials 會回長度 0，這種結果不能 cache，
+                        //否則之後永遠拿不到真的 material instance
+                        if (r != null && (result[i] == null || result[i].Length == 0))
+                            allReady = false;
+                    }
+
+                    //還沒 ready：這次先用暫時結果，下次再重取
+                    if (allReady == false)
+                        return result;
+
+                    _cachedMaterials = result;
                 }
 
                 return _cachedMaterials;
