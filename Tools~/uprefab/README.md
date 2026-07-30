@@ -7,7 +7,7 @@
 | 層 | 做什麼 | 需要 Unity |
 |---|---|---|
 | **離線索引**（`find` / `overrides` / `scope`） | 定位：某個 component / 名稱在哪些檔案裡 | ❌ |
-| **讀**（`prefab read` / `scene ls` / `types` / `fields` / `peek` / `refs`） | 合併後的真值、型別欄位、runtime 值、引用反查 | ✅ |
+| **讀**（`prefab read` / `scene ls` / `obj` / `types` / `fields` / `peek` / `refs`） | 合併後的真值、型別欄位、runtime 值、引用反查 | ✅ |
 | **寫**（`prefab do` / `scene do` / `prefab variant` / `scene copy`） | 用節點路徑改結構、建 variant、複製場景模板 | ✅ |
 | **asset**（`asset create` / `asset set` / `asset set-ref` / `asset add-element` / `asset fields`） | 建立/編輯獨立的 ScriptableObject asset（registry / config 類資料） | ✅ |
 | **prompt**（`prompt`） | 幫 VarString 掛一組有條件的 localized 文字提示（含 Localization 條目、token、Auto 綁定、回傳自帶驗證） | ✅ |
@@ -27,6 +27,8 @@ up overrides PPlayer.prefab
 up scope stats
 
 up prefab read "Assets/…/X.prefab" --node "[StateFolder] StateFolder"
+up obj "[名稱](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-…)"   # 貼 scene 物件連結
+up obj "<連結>" --locate                                    # 只要節點路徑 + component 清單
 up refs "Assets/…/X.prefab" --node "…/[Var] Durability"    # 誰指向它（--out = 它指向誰）
 up scene do "add||Spawner|MonoEntity,MonoObj" "auto|Spawner" "save"
 up scene count --name 測試資源 --sample 3

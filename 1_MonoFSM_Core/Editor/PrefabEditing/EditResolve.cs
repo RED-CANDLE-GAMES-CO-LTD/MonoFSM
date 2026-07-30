@@ -29,13 +29,71 @@ namespace MonoFSM.Editor.PrefabEditing
 
         // ---- 節點 ----
 
-        /// <summary>單 root 的路徑解析（prefab）。path 留空 = root 自己。</summary>
+        /// <summary>
+        /// 單 root 的路徑解析（prefab）。path 留空 = root 自己。
+        /// 任何一段都可以加 `[n]` 後綴指定「同名的第 n 個」（0-based），例如
+        /// `[Switch Simulate] Switch (FirstMatch)[1]/[Case] SwitchCase[2]` ——
+        /// MonoFSM 的 SwitchCase / Action 節點常常整排同名，`Transform.Find` 只拿得到第一個。
+        /// </summary>
         internal static Transform Node(Transform root, string path)
         {
-            if (string.IsNullOrEmpty(path)) return root;
-            var found = root.Find(path);
+            var found = TryNode(root, path);
             if (found == null) throw Abort(DescribeChildren(root, path));
             return found;
+        }
+
+        /// <summary>找不到回 null 的版本（讀取端用，讀不到不是錯誤，只是要換個訊息）。</summary>
+        internal static Transform TryNode(Transform root, string path)
+        {
+            if (string.IsNullOrEmpty(path)) return root;
+            return root.Find(path) ?? FindByIndexedPath(root, path);
+        }
+
+        /// <summary>
+        /// 逐段走路徑，每段支援 `名稱[n]` 取同名的第 n 個。沒有 `[n]` 後綴的段就是一般 Find。
+        /// 只在 `Transform.Find` 整條路徑失敗後才會走到這裡，所以不影響原本的解析行為。
+        /// </summary>
+        private static Transform FindByIndexedPath(Transform root, string path)
+        {
+            var cursor = root;
+            foreach (var seg in path.Split('/'))
+            {
+                cursor = FindSegment(cursor, seg);
+                if (cursor == null) return null;
+            }
+
+            return cursor;
+        }
+
+        internal static Transform FindSegment(Transform cursor, string seg)
+        {
+            if (!TrySplitIndexSuffix(seg, out var name, out var index))
+                return cursor.Find(seg);
+
+            var n = 0;
+            foreach (Transform child in cursor)
+            {
+                if (child.name != name) continue;
+                if (n == index) return child;
+                n++;
+            }
+
+            return null;
+        }
+
+        /// <summary>`[Case] SwitchCase[2]` → name=`[Case] SwitchCase`, index=2。</summary>
+        private static bool TrySplitIndexSuffix(string seg, out string name, out int index)
+        {
+            name = seg;
+            index = 0;
+            if (seg.Length < 4 || seg[^1] != ']') return false;
+            var open = seg.LastIndexOf('[');
+            if (open <= 0) return false;
+            var digits = seg.Substring(open + 1, seg.Length - open - 2);
+            if (digits.Length == 0 || !digits.All(char.IsDigit)) return false;
+            if (!int.TryParse(digits, out index)) return false;
+            name = seg.Substring(0, open);
+            return name.Length > 0;
         }
 
         /// <summary>
@@ -50,7 +108,18 @@ namespace MonoFSM.Editor.PrefabEditing
             var head = slash < 0 ? path : path.Substring(0, slash);
             var rest = slash < 0 ? null : path.Substring(slash + 1);
 
+            // root 也可能整排同名（一個 scene 裡十幾個 AppCallbackListener），所以第一段
+            // 同樣吃 `名稱[n]`
+            // 照原樣比對優先，比不到才試 `[n]` —— 跟 FindByIndexedPath 同一個慣例，
+            // 名字本身結尾就是 `[數字]` 的 root 不受影響
             var rootGo = roots.FirstOrDefault(g => g != null && g.name == head);
+            if (rootGo == null && TrySplitIndexSuffix(head, out var headName, out var headIndex))
+            {
+                rootGo = roots.Where(g => g != null && g.name == headName)
+                    .Skip(headIndex).FirstOrDefault();
+                if (rootGo != null) head = headName;
+            }
+
             if (rootGo == null)
                 throw Abort(
                     $"找不到 root object '{head}'。scene 的 root 有（{roots.Count} 個）：" +
@@ -67,23 +136,103 @@ namespace MonoFSM.Editor.PrefabEditing
         /// </summary>
         internal static string DescribeChildren(Transform root, string path)
         {
+            var cursor = WalkAsFarAsPossible(root, path, out var walked);
+            var children = ChildLabels(cursor);
+            return $"找不到節點 '{path}'，走到 " +
+                   $"'{(string.IsNullOrEmpty(walked) ? "(root)" : walked)}' 為止。" +
+                   $"這層的子節點：{(children.Count == 0 ? "(無)" : Join(children))}";
+        }
+
+        /// <summary>沿路徑往下走到最後一個走得通的節點，`walked` 回報走到哪。</summary>
+        internal static Transform WalkAsFarAsPossible(Transform root, string path, out string walked)
+        {
             var cursor = root;
-            var walked = "";
+            walked = "";
             foreach (var seg in path.Split('/'))
             {
-                var next = cursor.Find(seg);
+                var next = FindSegment(cursor, seg);
                 if (next == null) break;
                 cursor = next;
                 walked = string.IsNullOrEmpty(walked) ? seg : $"{walked}/{seg}";
             }
 
-            var children = new List<string>();
-            foreach (Transform child in cursor)
-                children.Add($"{child.name} (+{CountDescendants(child)})");
+            return cursor;
+        }
 
-            return $"找不到節點 '{path}'，走到 " +
-                   $"'{(string.IsNullOrEmpty(walked) ? "(root)" : walked)}' 為止。" +
-                   $"這層的子節點：{(children.Count == 0 ? "(無)" : Join(children))}";
+        /// <summary>
+        /// 列出一層的子節點，格式 `名稱 (+N)`。**同名的會標上 `[n]`** ——
+        /// 那是唯一指得到後面幾個的寫法，不標的話讀的人只會一直打到第一個。
+        /// </summary>
+        internal static List<string> ChildLabels(Transform cursor)
+        {
+            var seenNames = new HashSet<string>();
+            var dupNames = new HashSet<string>();
+            foreach (Transform child in cursor)
+                if (!seenNames.Add(child.name))
+                    dupNames.Add(child.name);
+
+            var labels = new List<string>();
+            var counter = new Dictionary<string, int>();
+            foreach (Transform child in cursor)
+            {
+                var label = child.name;
+                if (dupNames.Contains(label))
+                {
+                    counter.TryGetValue(label, out var n);
+                    counter[label] = n + 1;
+                    label = $"{label}[{n}]";
+                }
+
+                labels.Add($"{label} (+{CountDescendants(child)})");
+            }
+
+            return labels;
+        }
+
+        /// <summary>
+        /// Transform → 可以原樣餵回 <see cref="TryNode"/> 的路徑（不含 root 自己）。
+        ///
+        /// **同名 sibling 一定會標上 `[n]`**（0-based，依 sibling 順序）—— 這是
+        /// <see cref="ChildLabels"/> 用的同一套規則。不標的話路徑會指回同名的第一個，
+        /// 而 MonoFSM 的 SwitchCase / Action 節點常常整排同名，錯得無聲無息。
+        ///
+        /// node 不在 root 底下時回 null（呼叫端要能分辨「解不開」而不是拿到一條錯路徑）。
+        /// node == root 時回空字串（`--node` 留空就是 root）。
+        /// </summary>
+        internal static string PathOf(Transform root, Transform node)
+        {
+            if (root == null || node == null) return null;
+            if (node == root) return "";
+
+            var segs = new List<string>();
+            for (var cur = node; cur != null; cur = cur.parent)
+            {
+                if (cur == root) break;
+                if (cur.parent == null) return null; // 走到頂都沒遇到 root
+                segs.Add(SegmentOf(cur));
+            }
+
+            segs.Reverse();
+            return string.Join("/", segs);
+        }
+
+        /// <summary>一段路徑：名稱，同名 sibling 存在時補 `[n]`。</summary>
+        private static string SegmentOf(Transform node)
+        {
+            var parent = node.parent;
+            if (parent == null) return node.name;
+
+            var index = 0;
+            var dup = false;
+            foreach (Transform sib in parent)
+            {
+                if (sib == node) continue;
+                if (sib.name != node.name) continue;
+                dup = true;
+                if (sib.GetSiblingIndex() < node.GetSiblingIndex()) index++;
+            }
+
+            return dup ? $"{node.name}[{index}]" : node.name;
         }
 
         internal static int CountDescendants(Transform t)

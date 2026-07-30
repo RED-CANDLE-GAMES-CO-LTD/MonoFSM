@@ -51,7 +51,7 @@ namespace MonoFSM.Editor.PrefabEditing
             var root = asset.transform;
             if (!string.IsNullOrEmpty(subPath))
             {
-                var found = root.Find(subPath);
+                var found = EditResolve.TryNode(root, subPath);
                 if (found == null) return DescribeChildren(root, subPath);
                 root = found;
             }
@@ -60,9 +60,7 @@ namespace MonoFSM.Editor.PrefabEditing
             var header = new StringBuilder();
             if (!string.IsNullOrEmpty(subPath)) header.AppendLine($"# subtree: {subPath}");
 
-            var body = depth < 0 && charBudget > 0
-                ? Layered(root.gameObject, fullExpand, charBudget, header)
-                : Once(root.gameObject, fullExpand, depth);
+            var body = ExportNode(root.gameObject, depth, fullExpand, charBudget, header);
 
             var sb = new StringBuilder();
             sb.Append(header);
@@ -82,6 +80,20 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// 匯出任一顆已經在手上的 GameObject（scene 上的、prefab asset 裡的都行），
+        /// 沿用同一套 charBudget 自動分層。給 EditGid 這種「先靠別的方式定位到物件」的入口用。
+        /// </summary>
+        /// <param name="header">分層的說明會 append 進來，由呼叫端決定印在哪</param>
+        public static string ExportNode(
+            GameObject root, int depth = -1, bool fullExpand = true,
+            int charBudget = DefaultCharBudget, StringBuilder header = null)
+        {
+            return depth < 0 && charBudget > 0
+                ? Layered(root, fullExpand, charBudget, header ?? new StringBuilder())
+                : Once(root, fullExpand, depth);
         }
 
         private static string Once(GameObject root, bool fullExpand, int depth)
@@ -150,28 +162,13 @@ namespace MonoFSM.Editor.PrefabEditing
             sb.AppendLine($"# 找不到子樹: {subPath}");
 
             // 沿著路徑往下走到最後一個走得通的節點
-            var cursor = root;
-            var walked = "";
-            foreach (var seg in subPath.Split('/'))
-            {
-                var next = cursor.Find(seg);
-                if (next == null) break;
-                cursor = next;
-                walked = string.IsNullOrEmpty(walked) ? seg : $"{walked}/{seg}";
-            }
+            var cursor = EditResolve.WalkAsFarAsPossible(root, subPath, out var walked);
 
             sb.AppendLine($"# 走到這裡為止: {(string.IsNullOrEmpty(walked) ? "(root)" : walked)}");
             sb.AppendLine("# 這層的子節點：");
-            foreach (Transform child in cursor)
-                sb.AppendLine($"  {child.name}  (+{CountDescendants(child)} nodes)");
+            foreach (var label in EditResolve.ChildLabels(cursor))
+                sb.AppendLine($"  {label}");
             return sb.ToString();
-        }
-
-        private static int CountDescendants(Transform t)
-        {
-            var n = 0;
-            foreach (Transform c in t) n += 1 + CountDescendants(c);
-            return n;
         }
     }
 }

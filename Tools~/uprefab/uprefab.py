@@ -104,16 +104,56 @@ def cmd_find(args, root, cfg):
     if not rows:
         print("(no match)")
         return
+
+    resolved = _resolve_anchors(rows) if args.resolve else {}
+
     for apath, fid, npath, active, comps in rows:
         flag = "" if active else "~"
-        print(f"{query.anchor(apath, fid)}")
+        anchor = query.anchor(apath, fid)
+        print(anchor)
         print(f"    {flag}{npath}  <{comps or ''}>")
+        if args.resolve:
+            status, payload, how = resolved.get(
+                anchor, ("fail", "Unity 沒有回報這個 anchor", "")
+            )
+            if status == "ok":
+                print(f"    --node {payload}" + (f"   [{how}]" if how else ""))
+            else:
+                print(f"    ✗ anchor 解不開：{payload}")
     print(f"\n{len(rows)} match(es)")
+
+
+def _resolve_anchors(rows) -> dict:
+    """anchor → (status, path 或原因, how)。一次來回解完所有命中，見 EditAnchor.Resolve。
+
+    離線索引的節點路徑是局部的（variant 繼承來的父節點在本檔查不到、同名 sibling 沒有
+    `[n]`），不能直接餵給 `--node`。要合併後的真值就只能問 Unity。
+    """
+    lines = []
+    for apath, fid, npath, _active, _comps in rows:
+        name = (npath or "").rsplit("/", 1)[-1]
+        lines.append(f"{query.anchor(apath, fid)}|{name}")
+
+    try:
+        out = unity.call(f"{ANCHOR}.Resolve", "\n".join(lines))
+    except unity.UnityError as e:
+        # Unity 沒開 / 沒編譯過都在這裡 —— 不要吞掉，離線那半的輸出照樣印得出來
+        print(f"# --resolve 失敗（Unity 端）：{e}", file=sys.stderr)
+        return {}
+
+    table = {}
+    for line in out.splitlines():
+        parts = line.split("\t")
+        if len(parts) < 3:
+            continue
+        table[parts[0]] = (parts[1], parts[2], parts[3] if len(parts) > 3 else "")
+    return table
 
 
 # Unity 的 asset guid：32 位小寫 hex。也接受直接貼 Editor webhook 連結
 # （http://localhost:8888/webhook?asset_guid=<guid>），從中抽出 guid。
 GUID_RE = re.compile(r"[0-9a-f]{32}")
+GID_RE = re.compile(r"GlobalObjectId_V1-\d+-[0-9a-fA-F]{32}-\d+-\d+")
 
 # 掃 .meta 的 fallback 要跳過的目錄（Library 裡有大量重複的 meta 快取）
 META_SKIP_DIRS = {"Library", "Temp", "Obj", "obj", "Build", "Builds", ".git", "node_modules"}
@@ -146,6 +186,13 @@ def cmd_guid(args, root, cfg):
     """guid ⇄ 資產路徑互查。token 可以是 guid、含 guid 的連結，或資產路徑。"""
     con = indexer.connect(root)
     token = args.token
+
+    # scene 物件連結裡的 32 位 hex 是「那個 scene」的 guid，翻出來只會得到 scene 路徑，
+    # 而使用者要的是那個節點 —— 直接轉手給 up obj，省一次「怎麼問不到」的來回。
+    if GID_RE.search(token):
+        print("# 這是 scene 物件連結（globalId），guid 那段只是所在的 scene。"
+              "要看節點本身用：up obj '<連結>'", file=sys.stderr)
+
     m = GUID_RE.search(token.lower())
 
     if m and not os.path.splitext(token)[1]:
@@ -237,7 +284,9 @@ ASSET = f"{unity.EDIT_NS}.AssetEdit"
 PROBE = f"{unity.EDIT_NS}.EditProbe"
 READER = f"{unity.EDIT_NS}.PrefabTextReader"
 REFS = f"{unity.EDIT_NS}.EditRefs"
+GID = f"{unity.EDIT_NS}.EditGid"
 PROMPT = f"{unity.EDIT_NS}.PromptEdit"
+ANCHOR = f"{unity.EDIT_NS}.EditAnchor"
 
 
 def _ops_text(args) -> str:
@@ -339,6 +388,30 @@ def cmd_fields(args, root, cfg):
     print(unity.call(f"{PROBE}.Fields", args.type, not args.own))
 
 
+def cmd_obj(args, root, cfg):
+    """吃一條 GlobalObjectId 連結，匯出它指的 scene 物件。
+
+    連結是專案裡指涉 scene 節點的通用格式（BugReportUtility 產、貼給 Unity 就能跳），
+    但它不含節點路徑，所以在這之前拿到連結等於什麼都拿不到。--locate 只回路徑與
+    component 清單，接著能餵給 up scene ls / up refs 的 --node。
+    """
+    token = args.token
+    if token == "-":
+        token = sys.stdin.read()
+    if not GID_RE.search(token):
+        raise SystemExit(
+            "# 這串裡沒有 GlobalObjectId_V1-… —— 期望貼上像\n"
+            "#   [[Render] VerletRope](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-<guid>-<id>-0)\n"
+            "# 的連結（markdown、裸 URL、只有 id 都吃）")
+
+    if args.locate:
+        print(unity.call(f"{GID}.Locate", token, args.open, args.select))
+        return
+    print(unity.call(
+        f"{GID}.Peek", token, args.node, args.depth, not args.fold,
+        args.budget, args.fsm, args.open, args.select))
+
+
 def cmd_peek(args, root, cfg):
     print(unity.call(f"{PROBE}.Peek", args.node, args.comp, args.members))
 
@@ -397,6 +470,11 @@ def main() -> None:
     pf.add_argument("--name", help="GameObject 名稱")
     pf.add_argument("--path", help="資產路徑")
     pf.add_argument("-n", "--limit", type=int, default=50)
+    pf.add_argument(
+        "--resolve",
+        action="store_true",
+        help="要 Unity 開著：把 anchor 解成合併後、可直接餵給 --node 的完整路徑",
+    )
     pf.set_defaults(fn=cmd_find)
 
     pg = sub.add_parser("guid", help="guid ⇄ 資產路徑互查（吃 guid、webhook 連結或路徑）")
@@ -512,6 +590,24 @@ def main() -> None:
     pd.add_argument("type")
     pd.add_argument("--own", action="store_true", help="只看自己宣告的，不含繼承")
     pd.set_defaults(fn=cmd_fields)
+
+    pob = sub.add_parser("obj", aliases=["gid"],
+                         help="貼一條 GlobalObjectId 連結，匯出它指的 scene 物件（需要 Unity）")
+    pob.add_argument("token",
+                     help="含 GlobalObjectId 的文字：markdown 連結 / URL / 裸 id；`-` = 讀 stdin")
+    pob.add_argument("--node", help="從命中的物件再往下鑽的相對路徑")
+    pob.add_argument("--depth", type=int, default=-1,
+                     help="明確指定往下幾層（給了就不看 --budget）")
+    pob.add_argument("--budget", type=int, default=20000,
+                     help="字元上限，超標自動摺到塞得進的深度；0 = 不限")
+    pob.add_argument("--fsm", action="store_true", help="附 FSM markdown 段")
+    pob.add_argument("--fold", action="store_true", help="摺疊已知子樹、排除視覺 component")
+    pob.add_argument("--locate", action="store_true",
+                     help="只回節點路徑 + component 清單，不匯出子樹")
+    pob.add_argument("--open", action="store_true",
+                     help="物件所在 scene 沒開著時幫忙開（會換掉當前 scene；dirty 時拒絕）")
+    pob.add_argument("--select", action="store_true", help="順便在 Unity 裡選中並 ping")
+    pob.set_defaults(fn=cmd_obj)
 
     pk = sub.add_parser("peek", help="讀 scene 上某 component 的 runtime 值（需要 Unity）")
     pk.add_argument("node", help="節點路徑（第一段是 root object 名）")

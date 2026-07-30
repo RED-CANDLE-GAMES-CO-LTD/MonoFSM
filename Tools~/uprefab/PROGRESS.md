@@ -477,3 +477,32 @@ Rename），每次都得臨時寫 `execute-dynamic-code`，而且每次重踩同
 `GetComponentsInChildren<ISmartStringTokenBinding>`。讀之前把 `SelectedLocale` 切到 `--locale`
 再還原（不切會拿到別的語言，且剛加的 key 因為 table 已載入會回 `No translation found`）。
 要進 Play Mode 的只剩「條件切換」是否如預期。
+
+## 2026-07-30 —— `up obj`（GlobalObjectId 連結）
+
+新增 `up obj`（別名 `up gid`），對應 `MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/EditGid.cs`：
+吃使用者從 Editor 貼來的 scene 物件連結，回傳節點路徑或整棵子樹。
+
+**為什麼要它**：專案裡「指某個 scene 節點」的通用交換格式是 `BugReportUtility` 產的
+`[名稱](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-<sceneGuid>-<objId>-<prefabId>)`。
+人貼給 Unity 就能跳過去，但那串 id **不含節點路徑**，所以拿到連結的一方原本什麼都做不了：
+拿去 `up guid` 只會得到「所在的那個 scene」（32 位 hex 是 scene 的 guid，不是節點）。
+
+- `--locate` 只回 `owner / 節點路徑 / component 清單 / (+N nodes)` —— 那行路徑可以直接
+  接給 `up scene ls --node`、`up refs --node`。
+- 不帶 `--locate` 就走 `PrefabTextReader` 同一個 renderer（`--node` / `--depth` /
+  `--budget` / `--fold` / `--fsm` 同一套參數）。為此把分層邏輯抽成
+  `PrefabTextReader.ExportNode(GameObject, …)`，`Export(assetPath, …)` 改成呼叫它。
+- 解析用 regex 撈 `GlobalObjectId_V1-…`，所以 markdown 連結 / 裸 URL / 只有 id 都吃，
+  整段貼進去就行；`-` 讀 stdin。
+
+**解不開時把「為什麼」講完**，這是實測後補的重點。GlobalObjectId 只在物件所在 scene
+開著時解得開（Unity 限制），所以失敗時它把 guid 翻成 scene 路徑、印 `identifierType`
+的意思，並區分三種情況：scene 沒開（給 `up scene open` 指令，或加 `--open`）／scene
+開著但物件不見（連結過期）／guid 對不到資產。`--open` 在有未存檔 scene 時一律拒絕 ——
+換 scene 會丟掉編輯，不猜使用者想不想留。
+
+**實測**（`0_下山逃脫_July_lake`）：使用者提供的那條 `[Render] VerletRope` 連結
+`targetPrefabId=0`，現場對同名節點重新產出來是 `…-1351641103` —— 該物件後來被打包進
+`safe light bulb 燈泡.prefab`，舊連結的 id 已對不上。用現產的 id round-trip 則路徑、
+component 清單、`--budget` 分層、`--node` 下鑽（含路徑打錯時列出該層子節點）都正確。
