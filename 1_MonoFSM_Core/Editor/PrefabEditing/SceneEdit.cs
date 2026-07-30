@@ -253,6 +253,22 @@ namespace MonoFSM.Editor.PrefabEditing
             });
         }
 
+        /// <summary>陣列 / List 欄位尾端加一個元素，回傳新元素的 index。</summary>
+        public static string AddArrayElement(string nodePath, string componentType, string fieldPath)
+        {
+            return Guard(() =>
+            {
+                var comp = CompAt(nodePath, componentType);
+                var so = new SerializedObject(comp);
+                var prop = EditResolve.Prop(so, fieldPath, comp);
+                var index = EditResolve.AddArrayElement(prop, fieldPath);
+                so.ApplyModifiedPropertiesWithoutUndo();
+                Dirty();
+                return $"{nodePath}.{comp.GetType().Name}.{fieldPath}[{index}] " +
+                       $"新增（現有 {prop.arraySize} 筆）";
+            });
+        }
+
         /// <summary>加 component 到既有節點（AddNode 只在建節點時掛）。</summary>
         public static string AddComponent(string nodePath, params string[] componentTypes)
         {
@@ -390,6 +406,10 @@ namespace MonoFSM.Editor.PrefabEditing
                         EditBatch.Need(a, 1, verb, "componentType"),
                         EditBatch.Need(a, 2, verb, "fieldPath"),
                         EditBatch.Need(a, 3, verb, "assetPath"));
+                case "addel":
+                    return AddArrayElement(EditBatch.Need(a, 0, verb, "nodePath"),
+                        EditBatch.Need(a, 1, verb, "componentType"),
+                        EditBatch.Need(a, 2, verb, "fieldPath"));
                 case "pos":
                 {
                     var xyz = EditBatch.Need(a, 1, verb, "x,y,z").Split(',');

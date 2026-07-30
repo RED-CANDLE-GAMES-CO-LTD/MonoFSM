@@ -318,6 +318,19 @@ namespace MonoFSM.Editor.PrefabEditing
                     so.ApplyModifiedPropertiesWithoutUndo();
                     return $"{nodePath}.{comp.GetType().Name}.{fieldPath} -> res:{target}";
                 }
+                case "addel":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
+                    var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
+                        EditBatch.Need(a, 1, verb, "componentType"));
+                    var so = new SerializedObject(comp);
+                    var prop = EditResolve.Prop(so, fieldPath, comp);
+                    var index = EditResolve.AddArrayElement(prop, fieldPath);
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    return $"{nodePath}.{comp.GetType().Name}.{fieldPath}[{index}] " +
+                           $"新增（現有 {prop.arraySize} 筆）";
+                }
                 case "auto":
                     return EditResolve.RunAuto(
                         EditResolve.Node(root, EditBatch.At(a, 0)));

@@ -21,6 +21,7 @@ namespace MonoFSM.Editor.PrefabEditing
     /// set|&lt;node&gt;|&lt;comp&gt;|&lt;field&gt;|&lt;value&gt;    設值
     /// ref|&lt;node&gt;|&lt;comp&gt;|&lt;field&gt;|&lt;target&gt;[|&lt;targetComp&gt;]  指向另一個節點
     /// aref|&lt;node&gt;|&lt;comp&gt;|&lt;field&gt;|&lt;assetPath&gt;              指向 asset
+    /// addel|&lt;node&gt;|&lt;comp&gt;|&lt;field&gt;             陣列/List 尾端加一個元素（回傳 index）
     /// pos|&lt;node&gt;|x,y,z                     設 localPosition（僅 scene）
     /// mv|&lt;node&gt;|&lt;newParent&gt;                 換 parent（僅 scene）
     /// del|&lt;node&gt;                            刪節點

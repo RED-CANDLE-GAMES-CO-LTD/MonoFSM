@@ -394,6 +394,12 @@ namespace MonoFSM.Editor.PrefabEditing
                 case SerializedPropertyType.Vector3:
                     prop.vector3Value = ToVector3(value, fieldPath);
                     break;
+                case SerializedPropertyType.Vector2:
+                    prop.vector2Value = ToVector2(value, fieldPath);
+                    break;
+                case SerializedPropertyType.Color:
+                    prop.colorValue = ToColor(value, fieldPath);
+                    break;
                 default:
                     throw Abort(
                         $"'{fieldPath}' 的型別是 {prop.propertyType}，SetField 不支援" +
@@ -418,6 +424,46 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             throw Abort($"'{fieldPath}' 是 Vector3，值請傳 \"x,y,z\" 或 Vector3");
+        }
+
+        private static Vector2 ToVector2(object value, string fieldPath)
+        {
+            if (value is Vector2 v) return v;
+            if (value is string s)
+            {
+                var parts = s.Split(',');
+                if (parts.Length == 2 &&
+                    float.TryParse(parts[0], out var x) &&
+                    float.TryParse(parts[1], out var y))
+                    return new Vector2(x, y);
+            }
+
+            throw Abort($"'{fieldPath}' 是 Vector2，值請傳 \"x,y\" 或 Vector2");
+        }
+
+        //"r,g,b" / "r,g,b,a"（0~1）或 "#RRGGBB" / "#RRGGBBAA"
+        private static Color ToColor(object value, string fieldPath)
+        {
+            if (value is Color c) return c;
+            if (value is string s)
+            {
+                if (s.StartsWith("#") && ColorUtility.TryParseHtmlString(s, out var parsed))
+                    return parsed;
+
+                var parts = s.Split(',');
+                if (parts.Length is 3 or 4 &&
+                    float.TryParse(parts[0], out var r) &&
+                    float.TryParse(parts[1], out var g) &&
+                    float.TryParse(parts[2], out var b))
+                {
+                    var a = 1f;
+                    if (parts.Length == 4 && !float.TryParse(parts[3], out a))
+                        a = 1f;
+                    return new Color(r, g, b, a);
+                }
+            }
+
+            throw Abort($"'{fieldPath}' 是 Color，值請傳 \"r,g,b[,a]\"（0~1）或 \"#RRGGBB[AA]\"");
         }
 
         private static int ToEnumIndex(SerializedProperty prop, object value)
@@ -459,22 +505,28 @@ namespace MonoFSM.Editor.PrefabEditing
         /// <summary>
         /// 找目標節點上該塞進欄位的 component。targetComponentType 省略時用欄位的宣告型別找 ——
         /// 少一個參數，也避免型別填錯。
+        /// 欄位宣告型別是 GameObject（UI 常見）時回傳節點的 GameObject 本身。
         /// </summary>
-        internal static Component RefTarget(
+        internal static UnityEngine.Object RefTarget(
             Transform target, string targetNodePath, Component owner, string fieldPath,
             string targetComponentType)
         {
-            Component targetComp;
+            UnityEngine.Object targetComp;
             if (!string.IsNullOrEmpty(targetComponentType))
             {
-                targetComp = target.GetComponent(CompType(targetComponentType));
+                //GameObject 不是 Component，不能走 CompType 的搜尋池
+                targetComp = targetComponentType == nameof(GameObject)
+                    ? target.gameObject
+                    : target.GetComponent(CompType(targetComponentType));
             }
             else
             {
                 var fieldType = FieldType(owner.GetType(), fieldPath)
                                 ?? throw Abort(
                                     $"找不到欄位 '{fieldPath}' 的宣告型別，請明確指定 targetComponentType");
-                targetComp = target.GetComponent(fieldType);
+                targetComp = fieldType == typeof(GameObject)
+                    ? target.gameObject
+                    : target.GetComponent(fieldType);
             }
 
             if (targetComp == null)
@@ -505,6 +557,26 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             return $"Auto 綁定重跑：{root.name} 底下 {touched} 個 MonoBehaviour";
+        }
+
+        /// <summary>
+        /// 陣列 / List 欄位尾端加一個元素，回傳新元素的 index（接著用 set / aref 補
+        /// `<fieldPath>.Array.data[index]`）。
+        ///
+        /// 為什麼不能用 `set|…|_stateTags.Array.size|1`：ArraySize 這個 propertyType
+        /// 走不進 ApplyValue，只能透過 arraySize 改。
+        ///
+        /// 注意：SerializedProperty.isArray 對 string 也回 true（舊版序列化 API 把 string
+        /// 當 char[] 存），不排除的話會把元素插進字串的位元組裡，存出壞掉的 UTF-8。
+        /// </summary>
+        internal static int AddArrayElement(SerializedProperty prop, string fieldPath)
+        {
+            if (!prop.isArray || prop.propertyType == SerializedPropertyType.String)
+                throw Abort($"'{fieldPath}' 是 {prop.propertyType}，不是陣列/List，不能加元素");
+
+            var index = prop.arraySize;
+            prop.arraySize++;
+            return index;
         }
 
         internal static string Describe(string path) =>

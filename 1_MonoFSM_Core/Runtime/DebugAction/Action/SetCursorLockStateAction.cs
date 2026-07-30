@@ -22,17 +22,6 @@ namespace Fusion.Addons.KCC._0_MonoFSM_Network.Action
                 Cursor.visible = false;
                 Debug.Log($"SetCursor Lock");
             }
-
-            // if (!_isLocked)
-            // {
-            //     Cursor.lockState = CursorLockMode.None;
-            //     Cursor.visible = true;
-            // }
-            // else
-            // {
-            //     Cursor.lockState = CursorLockMode.Locked;
-            //     Cursor.visible = false;
-            // }
         }
     }
 }

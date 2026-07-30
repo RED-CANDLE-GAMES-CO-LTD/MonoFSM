@@ -17,6 +17,11 @@ namespace _1_MonoFSM_Core.Runtime._1_Conditions.Activator
 
         private void LateUpdate()
         {
+            if (_targets == null)
+            {
+                Debug.LogError("null targets", this);
+                return;
+            }
             foreach (var target in _targets)
             {
                 if (target.gameObject.activeSelf != target.IsValid)
