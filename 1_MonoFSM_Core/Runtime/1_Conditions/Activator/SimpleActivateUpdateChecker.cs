@@ -4,7 +4,7 @@ using MonoFSM.Core.Simulate;
 
 namespace _1_MonoFSM_Core.Runtime._1_Conditions.Activator
 {
-    public class SimpleActivateUpdateChecker : AbstractConditionUpdateChecker, IUpdateSimulate
+    public class SimpleActivateUpdateChecker : AbstractConditionUpdateChecker
     {
         private void OnValidate()
         {
