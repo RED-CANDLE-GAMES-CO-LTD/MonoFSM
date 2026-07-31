@@ -96,6 +96,17 @@ public class PlayerStartSpawnPoint
     public InstanceReferenceData playerRef; //效能問題...
 #endif
 
+    /// <summary>
+    ///     正式遊戲的出生位置：有設 oriSpawnRef 就用它，否則退回這個節點目前的位置。
+    ///     （oriSpawnRef 只記位置，旋轉一律沿用 SpawnPoint 本身的 rotation）
+    /// </summary>
+    public Vector3 OriSpawnPosition => oriSpawnRef != null ? oriSpawnRef.position : transform.position;
+
+    /// <summary>
+    ///     測試用出生位置：關卡設計者把 SpawnPoint 拖到哪就從哪出生。
+    /// </summary>
+    public Vector3 PlayTestSpawnPosition => transform.position;
+
     // public GameObject InScenePlayer;
     [Button]
     public void ResetToOriPos()
@@ -170,8 +181,84 @@ public class PlayerStartSpawnPoint
 
     private void ProcessTeleport(Vector3 point)
     {
+        if (_playerTeleporter == null)
+        {
+            Debug.LogWarning("[SpawnPoint] 找不到 _playerTeleporter(IArgEventReceiver<Vector3>)，瞬移沒有作用。", this);
+            return;
+        }
+
         // _currentPlayerEntityProvider.GetSchema<Player>()
-        _playerTeleporter?.ArgEventReceived(point);
+        _playerTeleporter.ArgEventReceived(point);
+    }
+
+    //=== Cheat: 貼上 pos 連結即時瞬移 ===
+    //連結格式沿用 AssetLinkGenerator.GenerateURLParamForScene：
+    //  http://localhost:8888/webhook?scene_guid=xxx&pos=1.00,2.00,3.00
+    //也接受純座標字串 "1,2,3"。這裡自己解析字串，避免 MonoFSM_Physics 多依賴 Json / MonoFSM-Pro。
+    [Title("Cheat")]
+    [Tooltip("PlayMode 中按 Ctrl/Cmd + V，讀剪貼簿的 pos 連結把玩家瞬移過去（不改出生點）")]
+    [SerializeField]
+    private bool _enablePasteTeleportCheat = true;
+
+    //場上多個 SpawnPoint 都會跑 Simulate，同一幀只處理一次貼上
+    private static int _lastPasteTeleportFrame = -1;
+
+    private void ProcessPasteTeleportCheat(Keyboard keyboard)
+    {
+        var isCtrl =
+            keyboard.leftCtrlKey.isPressed
+            || keyboard.rightCtrlKey.isPressed
+            || keyboard.leftCommandKey.isPressed
+            || keyboard.rightCommandKey.isPressed;
+        if (!isCtrl || !keyboard.vKey.wasPressedThisFrame)
+            return;
+
+        if (_lastPasteTeleportFrame == Time.frameCount)
+            return;
+        _lastPasteTeleportFrame = Time.frameCount;
+
+        var clipboard = GUIUtility.systemCopyBuffer;
+        if (!TryParsePosFromLink(clipboard, out var pos))
+        {
+            Debug.LogWarning($"[SpawnPoint] Ctrl+V 瞬移：剪貼簿解析不出 pos，內容='{clipboard}'", this);
+            return;
+        }
+
+        Debug.Log($"[SpawnPoint] Ctrl+V 瞬移到 {pos}", this);
+        ProcessTeleport(pos);
+    }
+
+    /// <summary>
+    ///     從 webhook 連結（?pos=x,y,z）或純座標字串解析出位置。
+    /// </summary>
+    public static bool TryParsePosFromLink(string text, out Vector3 pos)
+    {
+        pos = Vector3.zero;
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+
+        var payload = text.Trim();
+        var posKeyIndex = payload.IndexOf("pos=", System.StringComparison.OrdinalIgnoreCase);
+        if (posKeyIndex >= 0)
+        {
+            payload = payload.Substring(posKeyIndex + "pos=".Length);
+            var ampersandIndex = payload.IndexOf('&');
+            if (ampersandIndex >= 0)
+                payload = payload.Substring(0, ampersandIndex);
+        }
+
+        payload = payload.Replace("(", "").Replace(")", "").Replace(" ", "");
+        var parts = payload.Split(',');
+        if (parts.Length < 3)
+            return false;
+
+        if (!float.TryParse(parts[0], out var x) ||
+            !float.TryParse(parts[1], out var y) ||
+            !float.TryParse(parts[2], out var z))
+            return false;
+
+        pos = new Vector3(x, y, z);
+        return true;
     }
 
     // [Required]
@@ -221,6 +308,12 @@ public class PlayerStartSpawnPoint
     {
         //Debug用，按`鍵，把player移到這個位置
         var keyboard = Keyboard.current;
+        if (keyboard == null)
+            return;
+
+        if (_enablePasteTeleportCheat)
+            ProcessPasteTeleportCheat(keyboard);
+
         if (keyboard.backquoteKey.wasPressedThisFrame)
         {
             Debug.Log("backquoteKey Pressed", this);

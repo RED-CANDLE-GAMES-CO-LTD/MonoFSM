@@ -178,6 +178,10 @@ public class GameData
     public MonoEntityTag _entityTag; //fixme: 有需要這個嗎？
 
     public LocalizedString titleStr; //FIXME: 應該用interface？但這樣怎麼用別人的...從主專案再接過去嗎
+
+    //顯示文字一律過 Unity Localization：titleStr 那套沒人注入 ILocalizationManager，只會回 fallbackText
+    [Tooltip("Unity Localization 的標題來源，設了就優先於 titleStr")]
+    public UnityEngine.Localization.LocalizedString _titleLocalized;
     // [SerializeReference]
     // private AbstractDataFunction[] _dataFunctionsArray;
 
@@ -492,6 +496,23 @@ public class GameData
 
     [PreviewInInspector]
     public virtual string Title => titleStr.ToString();
+
+    //給 VarString 的 value source 用（GameDataFieldStringValueSource 選這個 property）
+    //沒設 _titleLocalized 就退回舊的 Title，既有 asset 行為不變
+    [PreviewInInspector]
+    public virtual string TitleLocalized
+    {
+        get
+        {
+            if (_titleLocalized == null || _titleLocalized.IsEmpty)
+            {
+                Debug.LogWarning($"[GameData] {name} 沒設 _titleLocalized，退回未 localize 的 titleStr", this);
+                return Title;
+            }
+
+            return _titleLocalized.GetLocalizedString();
+        }
+    }
 
     public virtual string Description =>
         descriptionStr.ToString().Length > 0 ? descriptionStr.ToString() : description;

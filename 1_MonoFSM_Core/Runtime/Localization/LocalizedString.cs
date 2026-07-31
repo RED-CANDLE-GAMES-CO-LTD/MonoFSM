@@ -5,8 +5,9 @@ namespace MonoFSM.Localization
 {
     //介面怎麼呈現？先照著i2的規格？和i2的bridge還要放在package外
     /// <summary>
-    /// 
+    ///
     /// </summary>
+    [Obsolete("Use Unity LocalizationManager instead")]
     [Serializable]
     public struct LocalizedString
     {
