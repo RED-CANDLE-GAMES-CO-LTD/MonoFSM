@@ -254,6 +254,30 @@ namespace MonoFSM.Editor.PrefabEditing
                     var full = string.IsNullOrEmpty(parentPath) ? name : $"{parentPath}/{name}";
                     return $"建立 {full}  <{EditResolve.Join(added)}>";
                 }
+                case "prefab":
+                {
+                    // 放 nested prefab 實例（模組 prefab 裝進宿主 prefab 用）
+                    var prefabPath = EditBatch.Need(a, 0, verb, "prefabPath");
+                    var parentPath = EditBatch.At(a, 1);
+                    var name = EditBatch.At(a, 2);
+                    var asset = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                    if (asset == null) throw new Abort($"找不到 prefab: {prefabPath}");
+
+                    var parent = EditResolve.Node(root, parentPath);
+                    var nodeName = string.IsNullOrEmpty(name) ? asset.name : name;
+                    if (parent.Find(nodeName) != null)
+                        return $"（跳過）{EditResolve.Describe(parentPath)}/{nodeName} 已存在";
+
+                    var instance = (GameObject)PrefabUtility.InstantiatePrefab(asset);
+                    if (instance == null) throw new Abort($"實例化失敗: {prefabPath}");
+                    instance.transform.SetParent(parent, false);
+                    instance.name = nodeName;
+
+                    var fullPath = string.IsNullOrEmpty(parentPath)
+                        ? nodeName
+                        : $"{parentPath}/{nodeName}";
+                    return $"放入 {fullPath}  <- res:{prefabPath}";
+                }
                 case "comp":
                 {
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
@@ -331,6 +355,13 @@ namespace MonoFSM.Editor.PrefabEditing
                     return $"{nodePath}.{comp.GetType().Name}.{fieldPath}[{index}] " +
                            $"新增（現有 {prop.arraySize} 筆）";
                 }
+                case "active":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var active = EditBatch.Bool(a, 1, verb);
+                    EditResolve.Node(root, nodePath).gameObject.SetActive(active);
+                    return $"{nodePath}.activeSelf = {active}";
+                }
                 case "auto":
                     return EditResolve.RunAuto(
                         EditResolve.Node(root, EditBatch.At(a, 0)));
@@ -363,7 +394,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 }
                 default:
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref auto del delcomp" +
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref active auto del delcomp" +
                         "（prefab / pos / mv / save 只有 SceneEdit 有）");
             }
         }

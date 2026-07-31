@@ -102,6 +102,15 @@ namespace MonoFSM.Editor.PrefabEditing
             return list.ToArray();
         }
 
+        /// <summary>true / false（大小寫不拘）。缺參數或打錯字都直接停，不要猜預設值。</summary>
+        internal static bool Bool(string[] args, int i, string verb)
+        {
+            var raw = Need(args, i, verb, "true/false");
+            if (bool.TryParse(raw, out var value))
+                return value;
+            throw new EditResolve.EditAbort($"`{verb}` 的第 {i + 1} 個參數要是 true 或 false，收到 '{raw}'");
+        }
+
         internal static string Need(string[] args, int i, string verb, string what)
         {
             var v = At(args, i);

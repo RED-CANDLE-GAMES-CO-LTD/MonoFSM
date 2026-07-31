@@ -400,6 +400,9 @@ namespace MonoFSM.Editor.PrefabEditing
                 case SerializedPropertyType.Color:
                     prop.colorValue = ToColor(value, fieldPath);
                     break;
+                case SerializedPropertyType.LayerMask:
+                    prop.intValue = ToLayerMask(value, fieldPath);
+                    break;
                 default:
                     throw Abort(
                         $"'{fieldPath}' 的型別是 {prop.propertyType}，SetField 不支援" +
@@ -407,6 +410,30 @@ namespace MonoFSM.Editor.PrefabEditing
                             ? "；請改用 SetRef / SetAssetRef"
                             : ""));
             }
+        }
+
+        /// <summary>LayerMask：吃整數位元遮罩（-1 = Everything），或逗號分隔的 layer 名稱。</summary>
+        private static int ToLayerMask(object value, string fieldPath)
+        {
+            if (value is int i) return i;
+            var s = value?.ToString()?.Trim() ?? "";
+            if (int.TryParse(s, out var bits)) return bits;
+            if (string.Equals(s, "Everything", StringComparison.OrdinalIgnoreCase)) return -1;
+            if (string.Equals(s, "Nothing", StringComparison.OrdinalIgnoreCase)) return 0;
+
+            var mask = 0;
+            foreach (var raw in s.Split(','))
+            {
+                var name = raw.Trim();
+                if (name.Length == 0) continue;
+                var layer = LayerMask.NameToLayer(name);
+                if (layer < 0)
+                    throw Abort($"'{fieldPath}' 找不到 layer '{name}'。" +
+                                "LayerMask 可以傳整數位元遮罩、Everything / Nothing、或逗號分隔的 layer 名稱");
+                mask |= 1 << layer;
+            }
+
+            return mask;
         }
 
         private static Vector3 ToVector3(object value, string fieldPath)

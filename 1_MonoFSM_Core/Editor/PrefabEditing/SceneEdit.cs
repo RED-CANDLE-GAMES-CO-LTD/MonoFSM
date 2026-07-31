@@ -347,6 +347,17 @@ namespace MonoFSM.Editor.PrefabEditing
             });
         }
 
+        public static string SetActive(string nodePath, bool active)
+        {
+            return Guard(() =>
+            {
+                var node = EditResolve.NodeInRoots(Roots(Active()), nodePath);
+                node.gameObject.SetActive(active);
+                Dirty();
+                return $"{nodePath}.activeSelf = {active}";
+            });
+        }
+
         public static string Move(string nodePath, string newParentPath)
         {
             return Guard(() =>
@@ -418,6 +429,9 @@ namespace MonoFSM.Editor.PrefabEditing
                     return SetPos(EditBatch.Need(a, 0, verb, "nodePath"),
                         float.Parse(xyz[0]), float.Parse(xyz[1]), float.Parse(xyz[2]));
                 }
+                case "active":
+                    return SetActive(EditBatch.Need(a, 0, verb, "nodePath"),
+                        EditBatch.Bool(a, 1, verb));
                 case "mv":
                     return Move(EditBatch.Need(a, 0, verb, "nodePath"), EditBatch.At(a, 1));
                 case "auto":
@@ -432,7 +446,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 default:
                     throw new Abort(
                         "不認得的操作 '" + verb +
-                        "'。可用的：add prefab comp set ref aref pos mv auto del delcomp save");
+                        "'。可用的：add prefab comp set ref aref pos active mv auto del delcomp save");
             }
         }
 
