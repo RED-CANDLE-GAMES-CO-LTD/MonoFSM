@@ -20,6 +20,9 @@ namespace MonoFSM.Editor.PrefabEditing
         /// </summary>
         internal static Object Resolve(string assetPath, Object owner, string fieldPath)
         {
+            if (assetPath != null && assetPath.StartsWith(BuiltinPrefix))
+                return Builtin(assetPath.Substring(BuiltinPrefix.Length).Trim());
+
             var main = AssetDatabase.LoadMainAssetAtPath(assetPath);
             if (main == null)
                 throw new Abort($"找不到 asset: {assetPath}");
@@ -46,6 +49,31 @@ namespace MonoFSM.Editor.PrefabEditing
 
             throw new Abort(
                 $"'{assetPath}' 是 {main.GetType().Name}，塞不進宣告型別為 {want.Name} 的 '{fieldPath}'");
+        }
+
+        private const string BuiltinPrefix = "builtin:";
+
+        private static readonly string[] BuiltinMeshes =
+            { "Cube", "Sphere", "Capsule", "Cylinder", "Plane", "Quad" };
+
+        /// <summary>
+        /// Unity 內建的 primitive mesh 與 default material。它們住在 "Library/unity default
+        /// resources" 裡，AssetDatabase.LoadMainAssetAtPath 讀不到（那不是真的 asset 路徑），
+        /// 只能走 Resources.GetBuiltinResource。用 `builtin:Cube` / `builtin:Quad` 指定 ——
+        /// 組 placeholder 幾何（螢幕面板、機殼）時很常用，不該逼人跑一趟 dynamic code。
+        /// </summary>
+        private static Object Builtin(string name)
+        {
+            foreach (var mesh in BuiltinMeshes)
+                if (string.Equals(mesh, name, System.StringComparison.OrdinalIgnoreCase))
+                    return Resources.GetBuiltinResource<Mesh>($"{mesh}.fbx");
+
+            if (string.Equals("Default-Material", name, System.StringComparison.OrdinalIgnoreCase))
+                return AssetDatabase.GetBuiltinExtraResource<Material>(
+                    "Default-Material.mat");
+
+            throw new Abort(
+                $"不認得的內建資源 '{name}'。可用的有：{EditResolve.Join(BuiltinMeshes)}, Default-Material");
         }
     }
 }

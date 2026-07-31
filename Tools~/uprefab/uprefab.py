@@ -343,7 +343,9 @@ def cmd_asset(args, root, cfg):
     elif a == "set-ref":
         print(unity.call(f"{ASSET}.SetAssetRef", args.path, args.field, args.target))
     elif a == "add-element":
-        print(unity.call(f"{ASSET}.AddArrayElement", args.path, args.field))
+        print(unity.call(f"{ASSET}.AddArrayElement", args.path, args.field, args.elem_type))
+    elif a == "invoke":
+        print(unity.call(f"{ASSET}.Invoke", args.path, args.method))
     elif a == "fields":
         print(unity.call(f"{ASSET}.ListFields", args.path))
 
@@ -414,6 +416,11 @@ def cmd_obj(args, root, cfg):
 
 def cmd_peek(args, root, cfg):
     print(unity.call(f"{PROBE}.Peek", args.node, args.comp, args.members))
+
+
+def cmd_poke(args, root, cfg):
+    """Play Mode 下設一個 Var 的 runtime 值 —— peek 的寫入面，自動測試用。"""
+    print(unity.call(f"{PROBE}.Poke", args.node, args.comp, args.value))
 
 
 def cmd_logs(args, root, cfg):
@@ -545,6 +552,14 @@ def main() -> None:
     paa = asub.add_parser("add-element", help="在陣列/List 欄位尾端加一個元素，回傳它的 index")
     paa.add_argument("path", help="assetPath")
     paa.add_argument("field", help="fieldPath")
+    paa.add_argument("--type", dest="elem_type", default=None,
+                     help="[SerializeReference] 陣列專用：新元素要塞的具體實作型別"
+                          "（不給就是 null 元素）")
+
+    pai = asub.add_parser("invoke", help="呼叫 asset 上一個無參數的 public 方法（按 Odin Button 用）")
+    pai.add_argument("path", help="assetPath")
+    pai.add_argument("method", help="方法名，例如 FindAllFlagsInProject")
+    pai.set_defaults(fn=cmd_asset)
 
     paf = asub.add_parser("fields", help="列出 asset 上的 serialized 欄位（名稱 + 型別）")
     paf.add_argument("path", help="assetPath")
@@ -614,6 +629,12 @@ def main() -> None:
     pk.add_argument("comp", help="component 型別")
     pk.add_argument("--members", help="逗號分隔的欄位/屬性名；留空 = 所有 public 屬性")
     pk.set_defaults(fn=cmd_peek)
+
+    pke = sub.add_parser("poke", help="Play Mode 下設某個 Var 的 runtime 值（需要 Unity）")
+    pke.add_argument("node", help="節點路徑（第一段是 root object 名）")
+    pke.add_argument("comp", help="component 型別，例如 VarBool / VarFloat / VarInt")
+    pke.add_argument("value", help="要設的值")
+    pke.set_defaults(fn=cmd_poke)
 
     pl = sub.add_parser("logs", help="Console 記錄（精簡；需要 Unity）")
     pl.add_argument("--type", default="Error",

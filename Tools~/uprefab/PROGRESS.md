@@ -506,3 +506,33 @@ Rename），每次都得臨時寫 `execute-dynamic-code`，而且每次重踩同
 `targetPrefabId=0`，現場對同名節點重新產出來是 `…-1351641103` —— 該物件後來被打包進
 `safe light bulb 燈泡.prefab`，舊連結的 id 已對不上。用現產的 id round-trip 則路徑、
 component 清單、`--budget` 分層、`--node` 下鑽（含路徑打錯時列出該層子節點）都正確。
+
+## SerializeReference / Play Mode 寫入 / Odin Button / transform / 存檔 callback
+
+做「訂購終端機」機台時一路補的五個缺口 —— 判準都是「不補就得繞去
+`uloop execute-dynamic-code`」：
+
+- **`asset add-element --type <T>`**：`[SerializeReference]` 陣列（`GameData._dataFunctions`）
+  單純 `arraySize++` 只會得到 `rid: -2` 的 null 元素。加了 `managedReferenceValue` 設定，
+  型別池是欄位宣告型別的非抽象衍生型別（`EditResolve.ManagedRefType` /
+  `ManagedRefFieldType`，後者拆 `managedReferenceFieldTypename` 的 `"組件名 FullName"` 格式）。
+  不給 `--type` 時會在 log 明講「這是 null，要加 typeName」，免得以為加成功了。
+- **`poke <node> <comp> <value>`**：Play Mode 下走 `AbstractMonoVariable.SetValue`
+  設 runtime 值，peek 的寫入面。沒有它就沒辦法自動驗「按鍵 → FSM → 扣錢」這條鏈
+  （要嘛去驅動玩家角色互動，要嘛不驗）。
+- **`asset invoke <path> <method>`**：反射按 Odin `[Button]`。起因是新建的 GameData
+  沒被收進 `AllFlagCollection`，Play Mode 下 `FlagAwake` 不跑、`_dataFunctionDict` 空的、
+  `Price` 靜默回 0 —— 而修法是按一顆 `FindAllFlagsInProject` button，agent 按不到。
+- **prefab batch 的 `pos` / `scale` / `rot`**：本來只有 scene 有 `pos`。三顆 nested prefab
+  按鍵不能擺位置，等於機台組不起來。三個分量少一個就停，不猜 0（`EditBatch.Vec3`）。
+- **`aref` 的 `builtin:` 前綴**：`builtin:Cube` / `Quad` / … 走
+  `Resources.GetBuiltinResource`。內建 primitive 住在 `Library/unity default resources`，
+  `AssetDatabase.LoadMainAssetAtPath` 讀不到，組 placeholder 幾何一定會撞到。
+- **存檔前跑 `IBeforePrefabSaveCallbackReceiver`**：這個最重要。Unity 只在 PrefabStage
+  觸發它，`LoadPrefabContents` + `SaveAsPrefabAsset` 不會。而
+  `NetworkAutoSuggestVarSyncComp` 靠它把 `NetworkedVarTag` 配成實際的 sync 元件 ——
+  不跑的話用 API 加的 networked var **靜默沒有同步**，單機測完全正常。
+  專案幾乎每個 MonoBehaviour 都實作這介面（一顆機台 920 個），所以只報數量、失敗才點名。
+
+順帶修正文件兩處舊敘述：`prefab|` 放 nested prefab 實例其實 prefab batch 一直支援
+（`PrefabEdit.cs` 的 `case "prefab"`），文件卻寫「只有 scene」。

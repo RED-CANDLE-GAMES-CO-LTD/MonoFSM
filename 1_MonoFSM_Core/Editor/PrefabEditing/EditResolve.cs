@@ -267,14 +267,42 @@ namespace MonoFSM.Editor.PrefabEditing
             ResolveType<ScriptableObject>(typeName, "ScriptableObject 型別");
 
         /// <summary>
+        /// 解析 [SerializeReference] 欄位能塞的具體型別（給 AssetEdit / PrefabEdit 的
+        /// managed reference 用）。池子是該欄位宣告型別的非抽象衍生型別 —— SerializeReference
+        /// 的欄位型別通常是抽象基底（如 AbstractDataFunction），Unity 端只存得下具體實作。
+        /// </summary>
+        internal static Type ManagedRefType(Type baseType, string typeName)
+        {
+            var pool = TypeCache.GetTypesDerivedFrom(baseType)
+                .Where(t => !t.IsAbstract && !t.IsInterface);
+            return ResolveTypeFromPool(pool, typeName, $"{baseType.Name} 的實作型別");
+        }
+
+        /// <summary>
+        /// [SerializeReference] 欄位的宣告型別。managedReferenceFieldTypename 的格式是
+        /// "組件名 型別FullName"，Unity 沒有公開的 Type 版本，只能自己拆。
+        /// </summary>
+        internal static Type ManagedRefFieldType(SerializedProperty prop)
+        {
+            var raw = prop.managedReferenceFieldTypename;
+            if (string.IsNullOrEmpty(raw)) return null;
+            var parts = raw.Split(' ');
+            return parts.Length != 2 ? null : Type.GetType($"{parts[1]}, {parts[0]}");
+        }
+
+        /// <summary>
         /// 型別名（短名或 FullName）→ Type 的共用解析，`CompType` / `ScriptableObjectType`
         /// 都是它的特化。錯誤訊息（找不到時列相近候選、同名多型別時列 FullName）只有這一份。
         /// </summary>
-        private static Type ResolveType<T>(string typeName, string kind) where T : class
+        private static Type ResolveType<T>(string typeName, string kind) where T : class =>
+            ResolveTypeFromPool(TypeCache.GetTypesDerivedFrom<T>(), typeName, kind);
+
+        private static Type ResolveTypeFromPool(
+            IEnumerable<Type> types, string typeName, string kind)
         {
             if (string.IsNullOrEmpty(typeName)) throw Abort($"{kind}名不可為空");
 
-            var pool = TypeCache.GetTypesDerivedFrom<T>();
+            var pool = types.ToList();
             var matches = pool.Where(t => t.Name == typeName || t.FullName == typeName).ToList();
 
             if (matches.Count == 1) return matches[0];

@@ -86,8 +86,9 @@ public class PoolPrewarmData : ScriptableObject
                         return;
                     }
 
-                    Debug.LogError("Update max count for " + poolObject.name + " from " + entry.DefaultMaximumCount +
-                                   " to " + count, this);
+                    Debug.LogWarning("Update max count for " + poolObject.name + " from " +
+                                     entry.DefaultMaximumCount +
+                                     " to " + count, this);
                     entry.DefaultMaximumCount = count;
                 }
 

@@ -108,8 +108,13 @@ namespace MonoFSM.Editor.PrefabEditing
         /// <summary>
         /// 在陣列/List 欄位尾端加一個元素，回傳它的 index。呼叫端接著用 SetField/SetAssetRef
         /// 填內容 —— 這是建 registry 型 asset（一個陣列裝很多 entry）的關鍵操作。
+        ///
+        /// typeName 只給 [SerializeReference] 陣列用（如 GameData._dataFunctions）：那種陣列
+        /// 單純 arraySize++ 只會得到一個 null 元素（YAML 上是 `rid: -2`），必須指定要塞哪個
+        /// 具體實作型別才有意義。一般陣列傳了會報錯，避免誤用而不自知。
         /// </summary>
-        public static string AddArrayElement(string assetPath, string fieldPath)
+        public static string AddArrayElement(string assetPath, string fieldPath,
+            string typeName = null)
         {
             return Guard(() =>
             {
@@ -125,10 +130,78 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 var index = prop.arraySize;
                 prop.arraySize++;
+                var element = prop.GetArrayElementAtIndex(index);
+                var isManagedRef =
+                    element.propertyType == SerializedPropertyType.ManagedReference;
+                var created = "";
+
+                if (!string.IsNullOrEmpty(typeName))
+                {
+                    if (!isManagedRef)
+                        throw new Abort(
+                            $"'{fieldPath}' 不是 [SerializeReference] 陣列（元素是 " +
+                            $"{element.propertyType}），不吃 typeName；直接用 set / set-ref 填欄位");
+
+                    var baseType = EditResolve.ManagedRefFieldType(element)
+                                   ?? throw new Abort(
+                                       $"解析不出 '{fieldPath}' 的 SerializeReference 宣告型別");
+                    var type = EditResolve.ManagedRefType(baseType, typeName);
+                    element.managedReferenceValue = System.Activator.CreateInstance(type);
+                    created = $"  <{type.FullName}>";
+                }
+                else if (isManagedRef)
+                {
+                    // 不擋（呼叫端可能真的要一個 null 佔位），但要講清楚它現在是 null
+                    created = "  <null；[SerializeReference] 陣列請加 typeName 指定實作型別>";
+                }
+
                 so.ApplyModifiedProperties();
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
-                return $"{assetPath}.{fieldPath}[{index}]  新增（現有 {prop.arraySize} 筆）";
+                return $"{assetPath}.{fieldPath}[{index}]  新增（現有 {prop.arraySize} 筆）{created}";
+            });
+        }
+
+        /// <summary>
+        /// 呼叫 asset 上一個無參數的 public 方法，然後存檔。
+        ///
+        /// 存在理由：專案大量用 Odin `[Button]` 掛維護動作（AllFlagCollection.FindAllFlagsInProject、
+        /// ScriptableCollection.FindUnderFolder…）。那些 button 只能用滑鼠按，agent 按不到，
+        /// 而漏按的後果是靜默的 —— 例如新建的 GameData 沒被收進 AllFlagCollection，
+        /// runtime 就不會跑 FlagAwake，它的 DataFunction dict 永遠是空的。
+        /// </summary>
+        public static string Invoke(string assetPath, string methodName)
+        {
+            return Guard(() =>
+            {
+                var asset = LoadAsset(assetPath);
+                var type = asset.GetType();
+                var method = type.GetMethod(methodName,
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.Public |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.FlattenHierarchy);
+
+                if (method == null)
+                {
+                    var candidates = type.GetMethods(
+                            System.Reflection.BindingFlags.Instance |
+                            System.Reflection.BindingFlags.Public |
+                            System.Reflection.BindingFlags.DeclaredOnly)
+                        .Where(m => m.GetParameters().Length == 0 && !m.IsSpecialName)
+                        .Select(m => m.Name).Distinct().Take(20).ToList();
+                    throw new Abort(
+                        $"{type.Name} 上沒有方法 '{methodName}'。無參數的有：{EditResolve.Join(candidates)}");
+                }
+
+                if (method.GetParameters().Length != 0)
+                    throw new Abort($"'{methodName}' 需要參數，這裡只支援無參數方法");
+
+                method.Invoke(asset, null);
+                EditorUtility.SetDirty(asset);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                return $"{assetPath}.{methodName}() 已執行";
             });
         }
 

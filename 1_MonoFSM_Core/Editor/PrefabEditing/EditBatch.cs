@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 
 namespace MonoFSM.Editor.PrefabEditing
 {
@@ -16,13 +17,15 @@ namespace MonoFSM.Editor.PrefabEditing
     /// 語法（`#` 開頭是註解，空行忽略）：
     /// <code>
     /// add|&lt;parent&gt;|&lt;name&gt;|&lt;comp,comp&gt;      建節點並掛 component
-    /// prefab|&lt;prefabPath&gt;|&lt;parent&gt;|&lt;name&gt;   放 prefab 實例（僅 scene）
+    /// prefab|&lt;prefabPath&gt;|&lt;parent&gt;|&lt;name&gt;   放 prefab 實例（prefab / scene 皆可）
     /// comp|&lt;node&gt;|&lt;comp,comp&gt;               對既有節點加 component
     /// set|&lt;node&gt;|&lt;comp&gt;|&lt;field&gt;|&lt;value&gt;    設值
     /// ref|&lt;node&gt;|&lt;comp&gt;|&lt;field&gt;|&lt;target&gt;[|&lt;targetComp&gt;]  指向另一個節點
     /// aref|&lt;node&gt;|&lt;comp&gt;|&lt;field&gt;|&lt;assetPath&gt;              指向 asset
     /// addel|&lt;node&gt;|&lt;comp&gt;|&lt;field&gt;             陣列/List 尾端加一個元素（回傳 index）
-    /// pos|&lt;node&gt;|x,y,z                     設 localPosition（僅 scene）
+    /// pos|&lt;node&gt;|x,y,z                     設 localPosition
+/// scale|&lt;node&gt;|x,y,z                   設 localScale（僅 prefab）
+/// rot|&lt;node&gt;|x,y,z                     設 localEulerAngles（僅 prefab）
     /// mv|&lt;node&gt;|&lt;newParent&gt;                 換 parent（僅 scene）
     /// del|&lt;node&gt;                            刪節點
     /// save                                  存檔（僅 scene；prefab 每次都自動存）
@@ -109,6 +112,23 @@ namespace MonoFSM.Editor.PrefabEditing
             if (bool.TryParse(raw, out var value))
                 return value;
             throw new EditResolve.EditAbort($"`{verb}` 的第 {i + 1} 個參數要是 true 或 false，收到 '{raw}'");
+        }
+
+        /// <summary>"x,y,z" → Vector3。三個分量都要有，少一個就停（別猜 0）。</summary>
+        internal static Vector3 Vec3(string[] args, int i, string verb, string what)
+        {
+            var raw = Need(args, i, verb, $"{what} 的 x,y,z");
+            var xyz = raw.Split(',');
+            if (xyz.Length != 3)
+                throw new EditResolve.EditAbort(
+                    $"`{verb}` 的 {what} 要是 x,y,z 三個分量，收到 '{raw}'");
+
+            var v = new float[3];
+            for (var n = 0; n < 3; n++)
+                if (!float.TryParse(xyz[n].Trim(), out v[n]))
+                    throw new EditResolve.EditAbort(
+                        $"`{verb}` 的 {what} 第 {n + 1} 個分量不是數字：'{xyz[n]}'");
+            return new Vector3(v[0], v[1], v[2]);
         }
 
         internal static string Need(string[] args, int i, string verb, string what)

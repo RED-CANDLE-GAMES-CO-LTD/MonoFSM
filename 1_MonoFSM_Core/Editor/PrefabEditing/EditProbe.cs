@@ -177,6 +177,71 @@ namespace MonoFSM.Editor.PrefabEditing
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Play Mode 下把一個 Var 的 runtime 值設成 value —— 自動測試用的「手動撥一下」。
+        ///
+        /// 為什麼需要：peek 只能讀。要驗「按了左鍵游標會不會動」「錢夠了買不買得成」，
+        /// 得先能給錢、能把按鍵旗標撥起來。真的去驅動玩家角色互動成本高得多，而那段
+        /// （EffectReceiver → ManualEvent）本來就是照抄現成模組，風險在後面的 FSM 這段。
+        ///
+        /// 走 AbstractMonoVariable.SetValue(TType, Object, string) —— 那是專案設值的正門，
+        /// 會過 modifier、觸發 valueChangedHandler，跟遊戲裡真的被改是同一條路。
+        /// </summary>
+        public static string Poke(string nodePath, string componentType, string value)
+        {
+            if (!Application.isPlaying)
+                return "# 未修改：poke 只在 Play Mode 有意義（EditMode 請用 prefab do / scene do）";
+
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            Component comp;
+            try
+            {
+                var node = EditResolve.NodeInRoots(scene.GetRootGameObjects().ToList(), nodePath);
+                comp = EditResolve.Comp(node, nodePath, componentType);
+            }
+            catch (EditResolve.EditAbort abort)
+            {
+                return $"# 未修改：{abort.Message}";
+            }
+
+            var type = comp.GetType();
+            var setValue = type.GetMethods(BindingFlags.Instance | BindingFlags.Public |
+                                           BindingFlags.FlattenHierarchy)
+                .FirstOrDefault(m => m.Name == "SetValue" && m.GetParameters().Length == 3);
+            if (setValue == null)
+                return $"# 未修改：{type.Name} 上沒有 SetValue(值, byWho, reason)，" +
+                       "poke 只支援 AbstractMonoVariable 系列";
+
+            var wanted = setValue.GetParameters()[0].ParameterType;
+            object typed;
+            try
+            {
+                typed = wanted.IsEnum
+                    ? Enum.Parse(wanted, value, true)
+                    : Convert.ChangeType(value, wanted);
+            }
+            catch (Exception e)
+            {
+                return $"# 未修改：'{value}' 轉不成 {wanted.Name}（{e.GetType().Name}）";
+            }
+
+            object before = null;
+            var valueProp = type.GetProperty("Value",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+            if (valueProp != null && valueProp.CanRead)
+                try { before = valueProp.GetValue(comp); }
+                catch { /* 讀不到就算了，不值得為了印個 before 中斷 */ }
+
+            setValue.Invoke(comp, new[] { typed, null, "uprefab poke" });
+
+            object after = null;
+            if (valueProp != null && valueProp.CanRead)
+                try { after = valueProp.GetValue(comp); }
+                catch { /* 同上 */ }
+
+            return $"{nodePath}.{type.Name}.Value: {Show(before)} -> {Show(after)}";
+        }
+
         private static string Show(object v)
         {
             switch (v)

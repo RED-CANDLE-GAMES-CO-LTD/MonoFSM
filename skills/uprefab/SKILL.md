@@ -31,6 +31,8 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | 某個節點被誰指到 / 它指向誰 | `refs` | ✅ | [probe.md](references/probe.md) |
 | 某個型別叫什麼、有哪些欄位 | `types` / `fields`（Component）、`asset fields`（SO） | ✅ | [probe.md](references/probe.md) |
 | 場上有幾個某某物件、某個 component 現在的值 | `scene count` / `peek` | ✅ | [probe.md](references/probe.md) |
+| **Play Mode 下改一個 Var 的值**（自動測試撥旗標 / 給錢） | `poke` | ✅ | [probe.md](references/probe.md) |
+| 按 asset 上的 Odin `[Button]`（無參數方法） | `asset invoke` | ✅ | [asset.md](references/asset.md) |
 
 一句話版本：**使用者貼連結走 `guid`（asset）/ `obj`（scene 物件），定位走 `find`（要接著
 下鑽就加 `--resolve`），讀結構走 `prefab read` / `scene ls`（預設就分層摺疊，再用 `--node`
@@ -48,6 +50,10 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 - **DSL 欄位用 `|` 分隔，不用空白** —— 節點名帶空白、`[Tag] ` 前綴與中文，空白分隔一定炸。
 - **結構改完一定要下 `auto|`** —— MonoFSM 大量欄位靠 `[Auto*]` attribute 填，不補這步會
   存出「看起來對、欄位全是 null」的資料，只有進 Play Mode 才發現。
+- **`add` condition 到別人的節點下之前，先確認那個節點上沒有別的 `[AutoChildren]` 使用者** ——
+  子節點是整個 GameObject 共用的，多掛一個 condition 可能默默把同節點上其他 component 的行為
+  也一起關掉（無錯誤訊息）。要只影響單一 component 就走 `VarBool` + `[DropDownRef]` 引用，
+  見 [edit.md](references/edit.md)。
 - **建新東西一律開 variant / 複製模板，不要從零建** —— prefab 帶著大量共用底盤
   （MonoEntity / MonoObj / NetworkObject / ModulePack），scene 需要 WorldUpdateSimulator /
   SpawnProcessor / PoolManager / AutoAttributeManager。

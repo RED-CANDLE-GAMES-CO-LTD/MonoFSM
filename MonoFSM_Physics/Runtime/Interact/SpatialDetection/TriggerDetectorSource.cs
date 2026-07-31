@@ -44,7 +44,7 @@ namespace MonoFSM.Core.Detection
         // [AutoParent]
         // private Rigidbody _rigidbodyInParent;
 
-        [ShowIf("@_rigidbodyInParent == null")]
+        // [ShowIf("@_rigidbodyInParent == null")]
         [CompRef]
         [Auto]
         Rigidbody _optionalRigidbody;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MonoFSM.Core;
 using UnityEditor;
 using UnityEngine;
 using Abort = MonoFSM.Editor.PrefabEditing.EditResolve.EditAbort;
@@ -218,6 +219,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 var log = EditBatch.Run(ops, (verb, a) => Dispatch(root.transform, verb, a));
                 // 有任何一行失敗就整批不存檔 —— 半套的 FSM 比沒改更難收拾
                 if (log.Contains("# 未修改")) return log + "# 整批未存檔。";
+                log += RunBeforeSaveCallbacks(root);
                 PrefabUtility.SaveAsPrefabAsset(root, assetPath);
                 return log;
             }
@@ -225,6 +227,44 @@ namespace MonoFSM.Editor.PrefabEditing
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        /// <summary>
+        /// 跑 IBeforePrefabSaveCallbackReceiver.OnBeforePrefabSave()。
+        ///
+        /// 為什麼要自己跑：Unity 只在 PrefabStage（人工打開 prefab 編輯再存）時觸發這個
+        /// callback，LoadPrefabContents + SaveAsPrefabAsset 這條路不會。而專案有東西掛在上面 ——
+        /// NetworkAutoSuggestVarSyncComp 就是靠它掃 subtree 的 NetworkedVarTag、自動配上
+        /// 對應的 sync 元件。不跑的話，用 API 加的 networked var 會靜默沒有同步元件，
+        /// 只有多人實測才會發現。
+        /// </summary>
+        private static string RunBeforeSaveCallbacks(GameObject root)
+        {
+            var receivers = root.GetComponentsInChildren<IBeforePrefabSaveCallbackReceiver>(true);
+            if (receivers.Length == 0) return "";
+
+            // 專案裡幾乎每個 MonoBehaviour 都實作這個介面，逐個列名字會洗掉整份 log，
+            // 所以只報數量；出錯的才點名，那才是要看的東西。
+            var ok = 0;
+            var failed = new List<string>();
+            foreach (var receiver in receivers)
+            {
+                if (receiver == null) continue;
+                try
+                {
+                    receiver.OnBeforePrefabSave();
+                    ok++;
+                }
+                catch (Exception e)
+                {
+                    // 一個 callback 炸掉不該讓整批改動消失，但一定要講出來
+                    failed.Add($"{receiver.GetType().Name}({e.GetType().Name}: {e.Message})");
+                }
+            }
+
+            return $"# 存檔前 callback：{ok} 個 OK" +
+                   (failed.Count > 0 ? $"，{failed.Count} 個失敗 -> {string.Join("; ", failed)}" : "") +
+                   "\n";
         }
 
         private static string Dispatch(Transform root, string verb, string[] a)
@@ -354,6 +394,27 @@ namespace MonoFSM.Editor.PrefabEditing
                     so.ApplyModifiedPropertiesWithoutUndo();
                     return $"{nodePath}.{comp.GetType().Name}.{fieldPath}[{index}] " +
                            $"新增（現有 {prop.arraySize} 筆）";
+                }
+                case "pos":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var node = EditResolve.Node(root, nodePath);
+                    node.localPosition = EditBatch.Vec3(a, 1, verb, "pos");
+                    return $"{nodePath}.localPosition = {node.localPosition}";
+                }
+                case "scale":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var node = EditResolve.Node(root, nodePath);
+                    node.localScale = EditBatch.Vec3(a, 1, verb, "scale");
+                    return $"{nodePath}.localScale = {node.localScale}";
+                }
+                case "rot":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var node = EditResolve.Node(root, nodePath);
+                    node.localEulerAngles = EditBatch.Vec3(a, 1, verb, "rot");
+                    return $"{nodePath}.localEulerAngles = {node.localEulerAngles}";
                 }
                 case "active":
                 {

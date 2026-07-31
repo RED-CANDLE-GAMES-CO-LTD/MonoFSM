@@ -14,6 +14,23 @@ up peek "資源生成器 FSM/Timer" VarFloatCountDownTimer --members "IsTimerUp,
 `peek` 在 Play Mode 下讀的是**當下的 runtime 值** —— 除「為什麼沒動」最快的一步。
 `--members` 留空會 dump 所有 public 屬性（很吵，通常指定幾個就好）。
 
+## `poke` —— Play Mode 下設一個 Var 的值（peek 的寫入面）
+
+```bash
+up poke "訂購終端機/[VarFolder] VariableFolder/[Var] Nav Right" VarBool true
+up poke "…/[Var] Global: d_TeamStatus.d_Money" VarFloat 100
+```
+
+自動測試用的「手動撥一下」。要驗「按了左鍵游標會不會動」「錢夠了買不買得成」，
+得先能給錢、能把按鍵旗標撥起來 —— 真的去驅動玩家角色互動成本高得多。
+
+走 `AbstractMonoVariable.SetValue(值, byWho, reason)`，那是專案設值的正門，會過 modifier、
+觸發 valueChangedHandler，跟遊戲裡真的被改是同一條路。回傳 `Value: 舊 -> 新`。
+只在 Play Mode 有意義（EditMode 會擋掉，叫你改用 `prefab do` / `scene do`）。
+
+**別連續快速呼叫** —— 每個 `up` 都要等 Unity 回應，一行 shell 塞五六個 peek/poke
+會有幾個靜默回空字串。看到空輸出先單獨重跑那一個，通常就有值了。
+
 ## `refs` —— 誰指向這個節點 / 它指向誰
 
 ```bash

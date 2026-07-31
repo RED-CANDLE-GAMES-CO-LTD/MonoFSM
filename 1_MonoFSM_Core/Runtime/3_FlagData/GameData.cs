@@ -402,6 +402,33 @@ public class GameData
         }
     } //FIXME: 要弄這個？
 
+    //售價，給商店類機台用。沒掛 PriceData 就是非賣品（HasPrice = false）
+    [PreviewInInspector]
+    public virtual bool HasPrice
+    {
+        get
+        {
+            if (!Application.isPlaying)
+                RebuildDataFunctionCheck();
+
+            return _dataFunctionDict.ContainsKey(typeof(PriceData));
+        }
+    }
+
+    [PreviewInInspector]
+    public virtual float Price
+    {
+        get
+        {
+            if (!Application.isPlaying)
+                RebuildDataFunctionCheck();
+
+            if (_dataFunctionDict.TryGetValue(typeof(PriceData), out var dataFunction))
+                return ((PriceData)dataFunction).BasePrice;
+            return 0;
+        }
+    }
+
     //bind MonoEntityTag?
 
     public FlagFieldBool unlocked; //在介面中可以看到的狀態，但可能還沒取得
