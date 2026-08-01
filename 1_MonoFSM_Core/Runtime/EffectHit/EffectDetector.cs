@@ -118,22 +118,53 @@ namespace MonoFSM.Core.Detection
         // 追蹤 dealer 狀態以檢測變化
         private readonly Dictionary<GeneralEffectDealer, bool> _dealerLastStates = new();
 
-        //FIXME: Receiver的部分要怎麼處理？ 也會有開關的問題？還是沒差遇到再說
-        //有特別做了
-        // private void OnDisable()
-        // {
-        //     if (!Application.isPlaying)
-        //         return;
-        //     // Debug.Log("OnDisable of detector",this);
-        //     //copy _detectedObjects to toRemove
-        //     _toRemove.AddRange(_thisFrameDetectedObjects.Keys);
-        //     foreach (var detectable in _toRemove)
-        //         // Debug.Log("OnDisable of detectable",detectable);
-        //         TriggerExitEventsForDetectable(detectable, _thisFrameDetectedObjects[detectable]);
-        //
-        //     _toRemove.Clear();
-        //     _thisFrameDetectedObjects.Clear(); //應該要關掉嗎？
-        // }
+        //Detector 節點被關掉時，Simulate 就不會再跑，殘留的重疊永遠等不到 exit
+        //（receiver._dealers / dealer._receivers 會殘留 → HasDealerOverlap 一直是 true）
+        private void OnDisable()
+        {
+            if (!Application.isPlaying)
+                return;
+            ClearAllDetections("OnDisable");
+        }
+
+        //還有東西沒 exit 就算自己被 disable 也要再跑一次 Simulate 把 exit 補完
+        //（只有在父 MonoObj 還活著時有機會，整棵被關掉的走上面的 OnDisable）
+        bool IUpdateSimulate.IsUpdating => isActiveAndEnabled || _thisFrameDetectedObjects.Count > 0;
+
+        //把目前還在重疊的全部走正規 exit 流程送出去，冪等（沒東西就直接返回）
+        private void ClearAllDetections(string reason)
+        {
+            _dealerLastStates.Clear(); //latch 歸零，重新 enable 後才會補放 enter
+            if (_thisFrameDetectedObjects.Count == 0)
+            {
+                _lastDetectedObjects.Clear();
+                return;
+            }
+
+            Debug.Log(
+                $"[EffectDetector] ClearAllDetections({reason}) count:{_thisFrameDetectedObjects.Count}",
+                this
+            );
+            _toRemove.Clear();
+            _toRemove.AddRange(_thisFrameDetectedObjects.Keys);
+            foreach (var detectable in _toRemove)
+            {
+                if (detectable == null)
+                    continue;
+                TriggerExitEventsForDetectable(detectable, _thisFrameDetectedObjects[detectable]);
+#if UNITY_EDITOR
+                detectable._debugDetectors.Remove(this);
+#endif
+            }
+
+            _toRemove.Clear();
+            _thisFrameDetectedObjects.Clear();
+            _lastDetectedObjects.Clear();
+
+            if (_dealers != null)
+                foreach (var dealer in _dealers)
+                    dealer.OnBestMatchCheck(); //best match 也要跟著清掉
+        }
 
         [RequiredListLength(MinLength = 1)]
         [CompRef]
@@ -237,9 +268,28 @@ namespace MonoFSM.Core.Detection
         public void Simulate(float deltaTime)
         {
             _lastSimulateTime = Time.time;
-            if (!_conditions.IsAllValid() || _detectionSources == null ||
-                _manualEffectDetectAction != null)
+            if (_manualEffectDetectAction != null) //交給 action 控，不自己判
                 return;
+
+            //condition 失效／自己被關掉時，不能只是 return，要把還在重疊的補送 exit
+            if (!isActiveAndEnabled)
+            {
+                ClearAllDetections("NotActive");
+                return;
+            }
+
+            if (!_conditions.IsAllValid())
+            {
+                ClearAllDetections("ConditionInvalid");
+                return;
+            }
+
+            if (_detectionSources == null)
+            {
+                ClearAllDetections("NoDetectionSource");
+                return;
+            }
+
             DetectUpdateCheck();
         }
 

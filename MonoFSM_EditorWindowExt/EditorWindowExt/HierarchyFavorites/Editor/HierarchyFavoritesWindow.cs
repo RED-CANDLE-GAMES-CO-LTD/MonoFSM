@@ -11,7 +11,7 @@ namespace HierarchyFavorites.Editor
     public class HierarchyFavoritesWindow : EditorWindow
     {
         //&1 = Alt+1
-        [MenuItem("Tools/Hierarchy Favorites/Open Window &1")]
+        [MenuItem("Tools/Hierarchy Favorites/Open Window &F")]
         private static void Open()
         {
             var window = GetWindow<HierarchyFavoritesWindow>("Favorites");
