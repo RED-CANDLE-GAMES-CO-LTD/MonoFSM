@@ -626,7 +626,7 @@ namespace MonoFSM.Foundation
 
         protected virtual void Awake()
         {
-            OnNoteChanged();
+            // OnNoteChanged();
         } //FIXME: 不該用這個？
 
         protected virtual void Start()

@@ -403,6 +403,15 @@ namespace MonoFSM.Core.Detection
             var receiver = detectable.Get(dealer._effectType);
             if (receiver == null)
                 return;
+
+            //已經 enter 過就不重放：dealer 剛變 valid（步驟4）和 detectable 剛進來（步驟5）
+            //有可能同一 tick 都成立，沒擋的話 enterNode 的 action 會做兩次
+            if (dealer.IsEnteredReceiver(receiver))
+            {
+                dealer.SetFailReason("Already entered this receiver");
+                return;
+            }
+
             if (!dealer.CanHitReceiver(receiver))
                 return;
 

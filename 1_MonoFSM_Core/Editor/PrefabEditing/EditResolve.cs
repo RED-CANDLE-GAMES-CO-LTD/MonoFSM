@@ -46,7 +46,67 @@ namespace MonoFSM.Editor.PrefabEditing
         internal static Transform TryNode(Transform root, string path)
         {
             if (string.IsNullOrEmpty(path)) return root;
+            // 名稱本身含 `/` 的節點（`=> Localized: GameplayUI/grab` 這種自動命名很常見）
+            // 要寫成 `\/`，這時不能走 Transform.Find 的快路徑，它只認真正的階層分隔。
+            if (HasEscapedSlash(path)) return FindByIndexedPath(root, path);
             return root.Find(path) ?? FindByIndexedPath(root, path);
+        }
+
+        internal static bool HasEscapedSlash(string path) =>
+            path != null && path.Contains("\\/");
+
+        /// <summary>第一個「真的是階層分隔」的 `/` 位置；`\/` 不算。找不到回 -1。</summary>
+        internal static int IndexOfUnescapedSlash(string path)
+        {
+            for (var i = 0; i < path.Length; i++)
+            {
+                if (path[i] == '\\' && i + 1 < path.Length && path[i + 1] == '/')
+                {
+                    i++;
+                    continue;
+                }
+
+                if (path[i] == '/') return i;
+            }
+
+            return -1;
+        }
+
+        internal static string Unescape(string segment) => segment.Replace("\\/", "/");
+
+        /// <summary>把節點名裡的 `/` 轉成 `\/`，讓列出來的候選可以直接抄進路徑。</summary>
+        internal static string EscapeName(string name) => name.Replace("/", "\\/");
+
+        /// <summary>
+        /// 依 `/` 切段，但 `\/` 是「名稱裡的斜線」不切（切完會還原成 `/`）。
+        /// MonoFSM 的自動命名會塞進 `Table/key` 這種字串，不逃逸就永遠指不到那個節點。
+        /// </summary>
+        internal static string[] SplitPath(string path)
+        {
+            var segments = new List<string>();
+            var current = new System.Text.StringBuilder();
+            for (var i = 0; i < path.Length; i++)
+            {
+                var c = path[i];
+                if (c == '\\' && i + 1 < path.Length && path[i + 1] == '/')
+                {
+                    current.Append('/');
+                    i++;
+                    continue;
+                }
+
+                if (c == '/')
+                {
+                    segments.Add(current.ToString());
+                    current.Clear();
+                    continue;
+                }
+
+                current.Append(c);
+            }
+
+            segments.Add(current.ToString());
+            return segments.ToArray();
         }
 
         /// <summary>
@@ -56,7 +116,7 @@ namespace MonoFSM.Editor.PrefabEditing
         private static Transform FindByIndexedPath(Transform root, string path)
         {
             var cursor = root;
-            foreach (var seg in path.Split('/'))
+            foreach (var seg in SplitPath(path))
             {
                 cursor = FindSegment(cursor, seg);
                 if (cursor == null) return null;
@@ -68,7 +128,19 @@ namespace MonoFSM.Editor.PrefabEditing
         internal static Transform FindSegment(Transform cursor, string seg)
         {
             if (!TrySplitIndexSuffix(seg, out var name, out var index))
+            {
+                // Transform.Find 會把名稱裡的 `/` 當成階層分隔（`=> Localized: GameplayUI/grab`
+                // 這種自動命名就永遠找不到），這時只能自己掃子節點比對全名
+                if (seg.Contains('/'))
+                {
+                    foreach (Transform child in cursor)
+                        if (child.name == seg)
+                            return child;
+                    return null;
+                }
+
                 return cursor.Find(seg);
+            }
 
             var n = 0;
             foreach (Transform child in cursor)
@@ -104,8 +176,8 @@ namespace MonoFSM.Editor.PrefabEditing
             if (string.IsNullOrEmpty(path))
                 throw Abort("scene 沒有唯一 root，nodePath 不可留空（第一段要是 root object 名稱）");
 
-            var slash = path.IndexOf('/');
-            var head = slash < 0 ? path : path.Substring(0, slash);
+            var slash = IndexOfUnescapedSlash(path);
+            var head = slash < 0 ? Unescape(path) : Unescape(path.Substring(0, slash));
             var rest = slash < 0 ? null : path.Substring(slash + 1);
 
             // root 也可能整排同名（一個 scene 裡十幾個 AppCallbackListener），所以第一段
@@ -148,7 +220,7 @@ namespace MonoFSM.Editor.PrefabEditing
         {
             var cursor = root;
             walked = "";
-            foreach (var seg in path.Split('/'))
+            foreach (var seg in SplitPath(path))
             {
                 var next = FindSegment(cursor, seg);
                 if (next == null) break;
@@ -175,8 +247,8 @@ namespace MonoFSM.Editor.PrefabEditing
             var counter = new Dictionary<string, int>();
             foreach (Transform child in cursor)
             {
-                var label = child.name;
-                if (dupNames.Contains(label))
+                var label = EscapeName(child.name);
+                if (dupNames.Contains(child.name))
                 {
                     counter.TryGetValue(label, out var n);
                     counter[label] = n + 1;
@@ -220,7 +292,7 @@ namespace MonoFSM.Editor.PrefabEditing
         private static string SegmentOf(Transform node)
         {
             var parent = node.parent;
-            if (parent == null) return node.name;
+            if (parent == null) return EscapeName(node.name);
 
             var index = 0;
             var dup = false;
@@ -232,7 +304,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (sib.GetSiblingIndex() < node.GetSiblingIndex()) index++;
             }
 
-            return dup ? $"{node.name}[{index}]" : node.name;
+            return dup ? $"{EscapeName(node.name)}[{index}]" : EscapeName(node.name);
         }
 
         internal static int CountDescendants(Transform t)

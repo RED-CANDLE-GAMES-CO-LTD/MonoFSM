@@ -4,7 +4,7 @@ using MonoFSM.Runtime.Mono;
 
 namespace MonoFSM.Core.Runtime
 {
-    public class GlobalEntitySource : AbstractEntitySource
+    public class GlobalEntitySource : Foundation.AbstractEntitySource
     {
         public override string Description => "Global: " + _entityTag?.name;
         public MonoEntityTag _entityTag;

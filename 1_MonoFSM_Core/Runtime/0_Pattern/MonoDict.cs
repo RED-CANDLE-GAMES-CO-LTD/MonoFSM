@@ -113,7 +113,8 @@ namespace MonoFSM.Core
 
             if (Application.isPlaying && IsAddValid(value) == false)
             {
-                Debug.LogWarning($"Key:{key} can't be added in {this}", this);
+                if (isLog)
+                    Debug.LogWarning($"Key:{key} can't be added in {this}", this);
                 return;
             }
 

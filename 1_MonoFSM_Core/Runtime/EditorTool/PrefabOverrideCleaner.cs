@@ -24,6 +24,9 @@ namespace MonoFSM.Core
         private void OnEnable()
         {
 #if UNITY_EDITOR
+            //進 Play Mode 時鎖定 hideFlags 沒有意義，場景上有近千個實例，省掉 enter play mode 的無謂成本
+            if (Application.isPlaying)
+                return;
             UpdateComponentLockState();
 #endif
         }
@@ -31,6 +34,8 @@ namespace MonoFSM.Core
         private void OnDestroy()
         {
 #if UNITY_EDITOR
+            if (Application.isPlaying)
+                return;
             // 清理時解鎖所有 components
             UnlockAllComponents();
 #endif

@@ -63,7 +63,7 @@ public static class StartPointSelector
     {
         //toggle on off of gizmo
 
-        if (SceneView.lastActiveSceneView == null)
+        if (SceneView.lastActiveSceneView == null || Application.isPlaying)
             return;
 
         // SceneView.lastActiveSceneView.sceneViewState.fxEnabled =

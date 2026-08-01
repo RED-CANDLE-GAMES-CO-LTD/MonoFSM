@@ -1,11 +1,13 @@
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSMCore.Runtime.LifeCycle;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.ParticleSystemActions
 {
     public class SetParticleOneShotRender : AbstractRenderBehaviour, ISceneAwake
     {
+        [Required]
         public ParticleSystem _particleSystem;
         public override void OnEnterRenderImplement()
         {

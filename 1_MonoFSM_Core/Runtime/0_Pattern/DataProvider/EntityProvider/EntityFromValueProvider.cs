@@ -8,7 +8,7 @@ namespace MonoFSM.Core.Runtime
     // [Obsolete]
     //EntityRefFromValueProvider
     //FIXME: 不該用這個？用VarEntity?
-    public class EntityFromValueProvider : AbstractEntityProvider
+    public class EntityFromValueProvider : AbstractEntitySource
     {
         public override string SuggestDeclarationName => "entity:";
 

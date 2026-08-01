@@ -286,6 +286,7 @@ READER = f"{unity.EDIT_NS}.PrefabTextReader"
 REFS = f"{unity.EDIT_NS}.EditRefs"
 GID = f"{unity.EDIT_NS}.EditGid"
 PROMPT = f"{unity.EDIT_NS}.PromptEdit"
+LOC = f"{unity.EDIT_NS}.LocEdit"
 ANCHOR = f"{unity.EDIT_NS}.EditAnchor"
 
 
@@ -324,6 +325,8 @@ def cmd_scene(args, root, cfg):
 def cmd_prefab(args, root, cfg):
     if args.action == "variant":
         print(unity.call(f"{PREFAB}.CreateVariant", args.asset, args.out, args.name))
+    elif args.action == "copy":
+        print(unity.call(f"{PREFAB}.CopyAsset", args.asset, args.out, args.name))
     elif args.action == "read":
         print(unity.call(
             f"{READER}.Export", args.asset, args.node, args.depth,
@@ -361,6 +364,11 @@ def cmd_prompt(args, root, cfg):
     print(unity.call(
         f"{PROMPT}.Apply", args.asset, args.var_node, cases,
         args.locale, args.table, args.prune))
+
+
+def cmd_loc(args, root, cfg):
+    """直接讀寫 string table 條目（文案的持有者是 SO 而不是節點時用）。"""
+    print(unity.call(f"{LOC}.Set", args.table, args.key, args.text, args.locale))
 
 
 def _cases_from_file(args) -> str:
@@ -515,7 +523,7 @@ def main() -> None:
     pc.set_defaults(fn=cmd_scene)
 
     pp = sub.add_parser("prefab", help="對 prefab asset 讀 / 寫（需要 Unity）")
-    pp.add_argument("action", choices=["read", "do", "variant"])
+    pp.add_argument("action", choices=["read", "do", "variant", "copy"])
     pp.add_argument("asset", help="prefab asset path")
     pp.add_argument("--node", help="read：子樹路徑")
     pp.add_argument("--depth", type=int, default=-1,
@@ -525,8 +533,8 @@ def main() -> None:
     pp.add_argument("--fsm", action="store_true",
                     help="read：附 FSM markdown 段（states / transitions / conditions）")
     pp.add_argument("--fold", action="store_true")
-    pp.add_argument("--out", help="variant：新 variant 的 asset path")
-    pp.add_argument("--name", help="variant：root 名稱（預設用檔名）")
+    pp.add_argument("--out", help="variant / copy：新 prefab 的 asset path")
+    pp.add_argument("--name", help="variant / copy：root 名稱（預設用檔名）")
     pp.add_argument("-f", "--file", help="do：從檔案讀批次操作")
     pp.add_argument("ops", nargs="*", help="do：直接帶操作（一個參數一行）")
     pp.set_defaults(fn=cmd_prefab)
@@ -584,6 +592,17 @@ def main() -> None:
                     help="刪掉不在 --case 清單裡的既有 value source")
     pm.add_argument("-f", "--file", help="從檔案讀 case（一行一條）")
     pm.set_defaults(fn=cmd_prompt)
+
+    pl = sub.add_parser(
+        "loc",
+        help="讀寫 string table 條目（需要 Unity）",
+        description="文案持有者不是節點而是 ScriptableObject 時用這個（節點的走 up prompt）。"
+                    "文案留空 = 只讀不寫。含 { 會自動開 IsSmart。")
+    pl.add_argument("key", help="string table 的 key，不存在就建")
+    pl.add_argument("text", nargs="?", default="", help="文案；留空 = 只讀出既有的")
+    pl.add_argument("--locale", default="zh-TW", help="locale（預設 zh-TW）")
+    pl.add_argument("--table", default="GameplayUI", help="string table collection（預設 GameplayUI）")
+    pl.set_defaults(fn=cmd_loc)
 
     pr = sub.add_parser("refs", help="誰指向這個節點 / 它指向誰（需要 Unity）")
     pr.add_argument("asset", nargs="?",

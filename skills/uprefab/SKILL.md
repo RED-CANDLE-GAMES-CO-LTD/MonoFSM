@@ -28,6 +28,7 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | **改** prefab / scene 結構、開/複製/存 scene、建 variant | `prefab do` / `scene do` / `scene copy` / `prefab variant` | ✅ | [edit.md](references/edit.md) |
 | **建 / 改 ScriptableObject asset**（registry / config 類） | `asset create` / `set` / `set-ref` / `add-element` | ✅ | [asset.md](references/asset.md) |
 | **加 / 改互動文字提示**（localized、按狀態切換） | `prompt` | ✅ | [prompt.md](references/prompt.md) |
+| **只要 localization 條目**（文案持有者是 SO 不是節點） | `loc` | ✅ | [prompt.md](references/prompt.md) |
 | 某個節點被誰指到 / 它指向誰 | `refs` | ✅ | [probe.md](references/probe.md) |
 | 某個型別叫什麼、有哪些欄位 | `types` / `fields`（Component）、`asset fields`（SO） | ✅ | [probe.md](references/probe.md) |
 | 場上有幾個某某物件、某個 component 現在的值 | `scene count` / `peek` | ✅ | [probe.md](references/probe.md) |

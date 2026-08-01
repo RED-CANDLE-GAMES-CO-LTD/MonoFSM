@@ -380,6 +380,29 @@ namespace MonoFSM.Editor.PrefabEditing
             });
         }
 
+        /// <summary>
+        /// 調整 sibling 順序。MonoFSM 裡 child 順序是語意的一部分（value source / condition
+        /// 依順序取第一個成立的），所以「排第幾」＝優先序。負數 = 從尾端算（-1 = 最後）。
+        /// </summary>
+        public static string SetSiblingIndex(string nodePath, int siblingIndex)
+        {
+            return Guard(() =>
+            {
+                var node = EditResolve.NodeInRoots(Roots(Active()), nodePath);
+                var parent = node.parent;
+                var count = parent != null ? parent.childCount : Active().rootCount;
+                var target = siblingIndex < 0 ? count + siblingIndex : siblingIndex;
+                if (target < 0 || target >= count)
+                    throw new Abort(
+                        $"siblingIndex {siblingIndex} 超出範圍：這層有 {count} 個節點" +
+                        $"（可用 0..{count - 1}，或 -1..-{count}）");
+                var before = node.GetSiblingIndex();
+                node.SetSiblingIndex(target);
+                Dirty();
+                return $"{nodePath} sibling index: {before} -> {node.GetSiblingIndex()}";
+            });
+        }
+
         // ---- 批次 ----
 
         /// <summary>
@@ -434,6 +457,10 @@ namespace MonoFSM.Editor.PrefabEditing
                         EditBatch.Bool(a, 1, verb));
                 case "mv":
                     return Move(EditBatch.Need(a, 0, verb, "nodePath"), EditBatch.At(a, 1));
+                case "idx":
+                    return SetSiblingIndex(
+                        EditBatch.Need(a, 0, verb, "nodePath"),
+                        EditBatch.Int(a, 1, verb, "siblingIndex"));
                 case "auto":
                     return Auto(EditBatch.Need(a, 0, verb, "nodePath"));
                 case "del":
@@ -446,7 +473,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 default:
                     throw new Abort(
                         "不認得的操作 '" + verb +
-                        "'。可用的：add prefab comp set ref aref pos active mv auto del delcomp save");
+                        "'。可用的：add prefab comp set ref aref pos active mv idx auto del delcomp save");
             }
         }
 

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Runtime
 {
-    public class ParentEntitySource : AbstractEntitySource
+    public class ParentEntitySource : Foundation.AbstractEntitySource
     {
         [AutoParent]
         [SerializeField]

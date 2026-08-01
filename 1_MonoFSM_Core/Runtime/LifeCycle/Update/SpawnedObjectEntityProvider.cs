@@ -14,7 +14,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
     //剛被Spawn的物件
     [Obsolete]
     public class SpawnedObjectEntityProvider
-        : AbstractEntityProvider,
+        : AbstractEntitySource,
             IEntityValueProvider,
             ICompProvider<MonoEntity>
     {

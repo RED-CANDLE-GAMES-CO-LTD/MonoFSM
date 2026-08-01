@@ -12,7 +12,7 @@ namespace MonoFSM.Core.Runtime
     ///     掛在 VarEntity 下作為其來源，或當 GetVarFromParentEntitySource 的 _overrideSourceEntity 目標。
     ///     取代 [Obsolete] 的 CurrentItemOfListSource（只能 current index）。
     /// </summary>
-    public class EntityFromListIndexProvider : AbstractEntityProvider
+    public class EntityFromListIndexProvider : AbstractEntitySource
     {
         public override string SuggestDeclarationName =>
             _varList != null ? _varList.name : "listItem";

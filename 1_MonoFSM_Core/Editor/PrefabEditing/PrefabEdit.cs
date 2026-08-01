@@ -69,7 +69,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 var before = EditResolve.Preview(prop);
                 EditResolve.ApplyValue(prop, value, fieldPath);
                 so.ApplyModifiedPropertiesWithoutUndo();
-                return $"{nodePath}.{comp.GetType().Name}.{fieldPath}: " +
+                return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}: " +
                        $"{before} -> {EditResolve.Preview(prop)}";
             });
         }
@@ -98,7 +98,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 prop.objectReferenceValue = targetComp;
                 so.ApplyModifiedPropertiesWithoutUndo();
-                return $"{nodePath}.{comp.GetType().Name}.{fieldPath} -> " +
+                return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> " +
                        $"{targetNodePath}.{targetComp.GetType().Name}";
             });
         }
@@ -122,7 +122,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 prop.objectReferenceValue = AssetRef.Resolve(targetAssetPath, comp, fieldPath);
                 so.ApplyModifiedPropertiesWithoutUndo();
-                return $"{nodePath}.{comp.GetType().Name}.{fieldPath} -> res:{targetAssetPath}";
+                return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> res:{targetAssetPath}";
             });
         }
 
@@ -184,6 +184,53 @@ namespace MonoFSM.Editor.PrefabEditing
             {
                 UnityEngine.Object.DestroyImmediate(instance);
             }
+        }
+
+        /// <summary>
+        /// 複製一份**獨立** prefab（不建 variant 連結）—— 拿既有 prefab 當模板改，
+        /// 比從零建安全（底盤 component、Rigidbody / Collider / 網路元件都跟著來）。
+        /// 想保留繼承關係請改用 <see cref="CreateVariant" />。
+        /// </summary>
+        /// <param name="srcPath">來源 prefab 的 asset path</param>
+        /// <param name="newAssetPath">新 prefab 的 asset path，要以 .prefab 結尾</param>
+        /// <param name="name">root 名稱；留空就用檔名</param>
+        public static string CopyAsset(string srcPath, string newAssetPath, string name = null)
+        {
+            if (!newAssetPath.EndsWith(".prefab"))
+                return $"# 未修改：newAssetPath 要以 .prefab 結尾：{newAssetPath}";
+
+            var src = AssetDatabase.LoadAssetAtPath<GameObject>(srcPath);
+            if (src == null) return $"# 未修改：找不到來源 prefab: {srcPath}";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(newAssetPath) != null)
+                return $"# 未修改：{newAssetPath} 已存在，不覆蓋";
+
+            EnsureDirectory(newAssetPath);
+            if (!AssetDatabase.CopyAsset(srcPath, newAssetPath))
+                return $"# 未修改：複製失敗: {srcPath} -> {newAssetPath}";
+            AssetDatabase.ImportAsset(newAssetPath, ImportAssetOptions.ForceSynchronousImport);
+
+            // 檔名換了 root 名稱不會跟著換，接下來所有路徑操作都會看到舊名字，先改掉
+            var rootName = string.IsNullOrEmpty(name)
+                ? System.IO.Path.GetFileNameWithoutExtension(newAssetPath)
+                : name;
+            var root = PrefabUtility.LoadPrefabContents(newAssetPath);
+            try
+            {
+                root.name = rootName;
+                PrefabUtility.SaveAsPrefabAsset(root, newAssetPath, out var ok);
+                if (!ok) return $"# 複製了但 root 改名存檔失敗: {newAssetPath}";
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+
+            var isVariant = PrefabUtility.GetPrefabAssetType(
+                AssetDatabase.LoadAssetAtPath<GameObject>(newAssetPath)) == PrefabAssetType.Variant;
+            return $"複製 prefab {newAssetPath}\n" +
+                   $"  來源: {srcPath}\n" +
+                   $"  root: {rootName}" +
+                   (isVariant ? "\n  注意：來源本身是 variant，複製出來的也是 variant" : "");
         }
 
         // AssetDatabase 不會自己建中間資料夾
@@ -320,7 +367,8 @@ namespace MonoFSM.Editor.PrefabEditing
                 }
                 case "comp":
                 {
-                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    // 留空 = root（MonoEntity / MonoObj / NetworkObject 都掛在 root 上），跟 `add` / `delcomp` 一致
+                    var nodePath = EditBatch.At(a, 0);
                     var node = EditResolve.Node(root, nodePath);
                     var added = new List<string>();
                     foreach (var typeName in EditBatch.Types(a, 1))
@@ -331,11 +379,12 @@ namespace MonoFSM.Editor.PrefabEditing
                         added.Add(type.Name);
                     }
 
-                    return $"{nodePath} += <{EditResolve.Join(added)}>";
+                    return $"{EditResolve.Describe(nodePath)} += <{EditResolve.Join(added)}>";
                 }
                 case "set":
                 {
-                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    // 留空 = root（MonoEntity / MonoObj / NetworkObject 都掛在 root 上），跟 `add` / `delcomp` 一致
+                    var nodePath = EditBatch.At(a, 0);
                     var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
                     var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
                         EditBatch.Need(a, 1, verb, "componentType"));
@@ -344,12 +393,13 @@ namespace MonoFSM.Editor.PrefabEditing
                     var before = EditResolve.Preview(prop);
                     EditResolve.ApplyValue(prop, EditBatch.At(a, 3) ?? "", fieldPath);
                     so.ApplyModifiedPropertiesWithoutUndo();
-                    return $"{nodePath}.{comp.GetType().Name}.{fieldPath}: " +
+                    return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}: " +
                            $"{before} -> {EditResolve.Preview(prop)}";
                 }
                 case "ref":
                 {
-                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    // 留空 = root（MonoEntity / MonoObj / NetworkObject 都掛在 root 上），跟 `add` / `delcomp` 一致
+                    var nodePath = EditBatch.At(a, 0);
                     var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
                     var targetPath = EditBatch.Need(a, 3, verb, "targetNodePath");
                     var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
@@ -364,12 +414,13 @@ namespace MonoFSM.Editor.PrefabEditing
                         EditBatch.At(a, 4));
                     prop.objectReferenceValue = targetComp;
                     so.ApplyModifiedPropertiesWithoutUndo();
-                    return $"{nodePath}.{comp.GetType().Name}.{fieldPath} -> " +
+                    return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> " +
                            $"{targetPath}.{targetComp.GetType().Name}";
                 }
                 case "aref":
                 {
-                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    // 留空 = root（MonoEntity / MonoObj / NetworkObject 都掛在 root 上），跟 `add` / `delcomp` 一致
+                    var nodePath = EditBatch.At(a, 0);
                     var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
                     var target = EditBatch.Need(a, 3, verb, "assetPath");
                     var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
@@ -380,11 +431,12 @@ namespace MonoFSM.Editor.PrefabEditing
                         throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用");
                     prop.objectReferenceValue = AssetRef.Resolve(target, comp, fieldPath);
                     so.ApplyModifiedPropertiesWithoutUndo();
-                    return $"{nodePath}.{comp.GetType().Name}.{fieldPath} -> res:{target}";
+                    return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> res:{target}";
                 }
                 case "addel":
                 {
-                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    // 留空 = root（MonoEntity / MonoObj / NetworkObject 都掛在 root 上），跟 `add` / `delcomp` 一致
+                    var nodePath = EditBatch.At(a, 0);
                     var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
                     var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
                         EditBatch.Need(a, 1, verb, "componentType"));
@@ -392,7 +444,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var prop = EditResolve.Prop(so, fieldPath, comp);
                     var index = EditResolve.AddArrayElement(prop, fieldPath);
                     so.ApplyModifiedPropertiesWithoutUndo();
-                    return $"{nodePath}.{comp.GetType().Name}.{fieldPath}[{index}] " +
+                    return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}[{index}] " +
                            $"新增（現有 {prop.arraySize} 筆）";
                 }
                 case "pos":
@@ -400,32 +452,61 @@ namespace MonoFSM.Editor.PrefabEditing
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
                     var node = EditResolve.Node(root, nodePath);
                     node.localPosition = EditBatch.Vec3(a, 1, verb, "pos");
-                    return $"{nodePath}.localPosition = {node.localPosition}";
+                    return $"{EditResolve.Describe(nodePath)}.localPosition = {node.localPosition}";
                 }
                 case "scale":
                 {
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
                     var node = EditResolve.Node(root, nodePath);
                     node.localScale = EditBatch.Vec3(a, 1, verb, "scale");
-                    return $"{nodePath}.localScale = {node.localScale}";
+                    return $"{EditResolve.Describe(nodePath)}.localScale = {node.localScale}";
                 }
                 case "rot":
                 {
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
                     var node = EditResolve.Node(root, nodePath);
                     node.localEulerAngles = EditBatch.Vec3(a, 1, verb, "rot");
-                    return $"{nodePath}.localEulerAngles = {node.localEulerAngles}";
+                    return $"{EditResolve.Describe(nodePath)}.localEulerAngles = {node.localEulerAngles}";
                 }
                 case "active":
                 {
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
                     var active = EditBatch.Bool(a, 1, verb);
                     EditResolve.Node(root, nodePath).gameObject.SetActive(active);
-                    return $"{nodePath}.activeSelf = {active}";
+                    return $"{EditResolve.Describe(nodePath)}.activeSelf = {active}";
+                }
+                case "idx":
+                {
+                    // sibling 順序在 MonoFSM 裡是語意的一部分：value source / condition 依 child
+                    // 順序取第一個成立的，所以「排第幾」＝優先序。負數 = 從尾端算（-1 = 最後）。
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var node = EditResolve.Node(root, nodePath);
+                    if (node.parent == null)
+                        throw new Abort($"'{nodePath}' 是 root，沒有 sibling 順序可調");
+                    var count = node.parent.childCount;
+                    var want = EditBatch.Int(a, 1, verb, "siblingIndex");
+                    var target = want < 0 ? count + want : want;
+                    if (target < 0 || target >= count)
+                        throw new Abort(
+                            $"siblingIndex {want} 超出範圍：'{node.parent.name}' 底下有 {count} 個子節點" +
+                            $"（可用 0..{count - 1}，或 -1..-{count}）");
+                    var before = node.GetSiblingIndex();
+                    node.SetSiblingIndex(target);
+                    return $"{nodePath} sibling index: {before} -> {node.GetSiblingIndex()}";
                 }
                 case "auto":
                     return EditResolve.RunAuto(
                         EditResolve.Node(root, EditBatch.At(a, 0)));
+                case "rename":
+                {
+                    // 留空 = root（複製模板後 root 名字還是舊的，這是最常見的用途）
+                    var nodePath = EditBatch.At(a, 0);
+                    var newName = EditBatch.Need(a, 1, verb, "newName");
+                    var node = EditResolve.Node(root, nodePath);
+                    var before = node.name;
+                    node.name = newName;
+                    return $"{EditResolve.Describe(nodePath)} 改名: {before} -> {newName}";
+                }
                 case "del":
                 {
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
@@ -451,11 +532,11 @@ namespace MonoFSM.Editor.PrefabEditing
 
                     return removed.Count == 0
                         ? $"（跳過）{EditResolve.Describe(nodePath)} 上沒有那些 component"
-                        : $"{nodePath} -= <{EditResolve.Join(removed)}>";
+                        : $"{EditResolve.Describe(nodePath)} -= <{EditResolve.Join(removed)}>";
                 }
                 default:
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref active auto del delcomp" +
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref active idx auto rename del delcomp" +
                         "（prefab / pos / mv / save 只有 SceneEdit 有）");
             }
         }

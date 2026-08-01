@@ -114,6 +114,15 @@ namespace MonoFSM.Editor.PrefabEditing
             throw new EditResolve.EditAbort($"`{verb}` 的第 {i + 1} 個參數要是 true 或 false，收到 '{raw}'");
         }
 
+        /// <summary>整數。缺參數或打錯字都直接停，不要猜預設值。</summary>
+        internal static int Int(string[] args, int i, string verb, string what)
+        {
+            var raw = Need(args, i, verb, what);
+            if (int.TryParse(raw.Trim(), out var value))
+                return value;
+            throw new EditResolve.EditAbort($"`{verb}` 的 {what} 要是整數，收到 '{raw}'");
+        }
+
         /// <summary>"x,y,z" → Vector3。三個分量都要有，少一個就停（別猜 0）。</summary>
         internal static Vector3 Vec3(string[] args, int i, string verb, string what)
         {

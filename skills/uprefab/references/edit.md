@@ -25,11 +25,29 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `scale\|<node>\|x,y,z` | 設 localScale（**只有 prefab**） |
 | `rot\|<node>\|x,y,z` | 設 localEulerAngles（**只有 prefab**） |
 | `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（第二格必填，不猜預設值） |
+| `idx\|<node>\|<siblingIndex>` | 調 sibling 順序。**child 順序＝優先序**（value source / condition 取第一個成立的），負數從尾端算（`-1` = 最後） |
 | `mv\|<node>\|<newParent>` | 換 parent（**只有 scene**） |
+| `rename\|<node>\|<newName>` | 改節點名（`<node>` 留空 = root）。**掛 `AbstractDescriptionBehaviour` 的節點存檔後會被自動命名蓋掉**（`[Detector] None` → `[Follow] None`），改完要 `read` 看實際名稱 |
 | `auto\|<node>` | **重跑 `[Auto*]` 綁定 —— 結構改完一定要下這行**，見下面 |
 | `del\|<node>` | 刪節點 |
 | `delcomp\|<node>\|<comp,comp>` | 移除節點上的 component。不存在就跳過（語意是「確保它不在」）。prefab 版 `<node>` 留空 = root |
 | `save` | 存 scene（**只有 scene**；prefab batch 結束自動存） |
+
+**`add` / `comp` / `set` / `ref` / `aref` / `addel` / `delcomp` 的 `<node>` 留空 = prefab root**
+（`MonoEntity` / `MonoObj` / `NetworkObject` 都掛在 root 上）。scene 版沒有這個語意 ——
+scene 沒有唯一 root，第一段一定要是 root object 名稱。
+
+## 節點名裡有 `/` 要寫成 `\/`
+
+MonoFSM 的自動命名會把 `Table/key` 塞進名字（`=> Localized: GameplayUI/grab`），
+而 `Transform.Find` 把 `/` 一律當階層分隔 —— 不逃逸就永遠指不到那個節點，
+而且錯誤訊息看起來像「這層明明就有」：
+
+```bash
+up prefab do "$P" "del|…/[Getter] d_ Select Text Prompt 文字提示/=> Localized: GameplayUI\/grab"
+```
+
+路徑打錯時列出的候選已經幫你逃逸好了，照抄就對。`find --resolve` 給的路徑同樣是逃逸過的。
 
 要點：
 
@@ -128,6 +146,10 @@ AutoAttributeManager。從零建看起來乾淨，實際會漏，而且漏掉的
 # FSM 物件：從乾淨的 init/idle 骨架開 variant
 up prefab variant "Packages/com.monofsm.fusion/MonoFSM_Fusion/Network FSM.prefab" \
     --out "Assets/…/我的 FSM.prefab" --name "我的 FSM"
+
+# 拿既有 prefab 當模板改成一份獨立的（不留 variant 連結，root 名稱一併改掉）
+up prefab copy "Assets/…/Lightning Attack Module 落雷攻擊.prefab" \
+    --out "Assets/…/Leak Electricity Module 漏電攻擊.prefab" --name "Leak Electricity Module 漏電攻擊"
 
 # 場景：複製模板（不要用 scene new）
 up scene copy --template "Assets/1_Prototype/Module Test/Network FSM Template.unity" \

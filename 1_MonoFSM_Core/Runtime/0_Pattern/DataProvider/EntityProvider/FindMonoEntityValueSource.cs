@@ -20,7 +20,7 @@ namespace MonoFSM.Core.Runtime
     /// 用 _expectedEntityTag 找對應 MonoEntity 作為自己的 Value。
     /// 透過 MonoEntityBinder 查找，不依賴 transform tree 階層、也不用 GetComponentsInChildren。
     /// </summary>
-    public class FindMonoEntityValueSource : AbstractEntityProvider
+    public class FindMonoEntityValueSource : AbstractEntitySource
     {
         [PropertyOrder(-1)]
         [DropDownRef]

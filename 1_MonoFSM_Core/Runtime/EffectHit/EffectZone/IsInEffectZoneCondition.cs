@@ -26,7 +26,7 @@ namespace Gameplay.EffectZone
             _positionOverride != null ? _positionOverride.position : transform.position;
 
         //命中的那個 zone，除錯用（Inspector 看得到現在是被誰供電）
-        [ShowInDebugMode]
+        [ShowInInspector]
         private EffectZone _lastCoveringZone;
 
         protected override bool IsValid

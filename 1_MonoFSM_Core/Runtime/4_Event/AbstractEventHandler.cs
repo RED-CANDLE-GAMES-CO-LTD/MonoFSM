@@ -7,6 +7,7 @@ using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using AbstractEntitySource = MonoFSM.Core.Runtime.AbstractEntitySource;
 
 namespace MonoFSM.Core
 {
@@ -62,7 +63,7 @@ namespace MonoFSM.Core
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
         //FIXME: 要有篩選機制？靠Drawer去找囉？
-        private AbstractEntityProvider[] _entityProviders;
+        private AbstractEntitySource[] _entityProviders;
 
         public void EnterRenderInvoke()
         {

@@ -186,10 +186,13 @@ namespace MonoFSM.Core.Variable
                 return;
             }
 
-            if (index < 0 || index >= Count)
+            // -1 = 無選取（NoSelection），是合法狀態：GrabSlotHolder 空手時、GoToNext 遇到空 list
+            // 時都會設 -1，而 CurrentListItem / GetItemAt 對負 index 本來就回 default。
+            if (index < NoSelectionIndex || index >= Count)
             {
                 Debug.LogError(
-                    $"Index {index} is out of bounds for the collection of size {Count}."
+                    $"Index {index} is out of bounds for the collection of size {Count}.",
+                    this
                 );
                 return;
             }
@@ -849,6 +852,9 @@ namespace MonoFSM.Core.Variable
     //不想定義型別
     public abstract class AbstractVarList : AbstractMonoVariable, IHierarchyValueInfo
     {
+        /// <summary>「沒有選取任何項目」的 current index，例如 GrabSlotHolder 空手時。</summary>
+        public const int NoSelectionIndex = -1;
+
         public override string StringValue => $"Count: {Count}";
         public override bool IsValueExist => Count > 0;
 

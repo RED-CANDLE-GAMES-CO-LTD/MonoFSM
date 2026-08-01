@@ -9,7 +9,7 @@ namespace MonoFSM.Core.Runtime
     //改名，這個記不住，OwnerEntity? ParentEntity?
     //還是要EntityRef? 直接啦？
     [Obsolete("用this就好了？")]
-    public class ParentEntityProvider : AbstractEntityProvider
+    public class ParentEntityProvider : AbstractEntitySource
     {
         public override string SuggestDeclarationName => "this";
 

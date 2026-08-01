@@ -24,6 +24,11 @@ case 格式 `key|文案|spec;spec`：
 其他選項：`--locale`（預設 `zh-TW`）、`--table`（預設 `GameplayUI`）、
 `--prune`（刪掉不在 case 清單裡的既有 value source）、`-f`（從檔案讀 case）。
 
+**在 variant 上加 case 會插到最前面** —— base 繼承來的 value source 排在後面，
+新加的節點會變成第 0 個，於是無條件的新 case 蓋掉 base 有條件的那些。
+加完用 `up prefab do "$P" "idx|<新節點路徑>|-1"` 壓到最後，再讀一次確認順序
+（節點名含 `/`，路徑要寫 `\/`）。**不要再跑一次 `up prompt`**，它會把節點移回最前面。
+
 **順序就是挑選優先序** —— value source 是「依 child 順序取第一個 `IsValid`」，所以
 有條件的排前面、無條件的墊底。無條件的不是最後一條時會出 `[warn]`。
 
@@ -53,3 +58,21 @@ case 格式 `key|文案|spec;spec`：
 
 實作：`MonoFSM-Pro/Editor/PromptEdit.cs`（在 Pro 而不是 Core，因為
 `LocalizedStringValueSource` / `InputPromptTokenBinding` 在 Pro，且要引用 `Unity.Localization.Editor`）。
+
+## `up loc` —— 只要條目，不要節點
+
+文案的持有者不是節點而是 ScriptableObject（例如 `GameEventTag` 只存 table + key）時，
+`prompt` 那一整套節點操作用不上，只需要 string table 條目本身：
+
+```bash
+up loc ev_amulet_blocked "護身符擋下了落雷！"          # 預設 table=GameplayUI locale=zh-TW
+up loc ev_hit_by_bolt "{player} 被落雷擊中" --table GameplayUI
+up loc ev_amulet_blocked                              # 文案留空 = 只讀出既有的
+```
+
+key 不存在就建，含 `{` 自動開 IsSmart，一樣只 `SaveAssetIfDirty` 自己那兩個 asset。
+實作：`MonoFSM-Pro/Editor/LocEdit.cs`。
+
+**SO 上不要存 `LocalizedString`** —— 它序列化的是 `m_KeyId`(long)，CLI / 腳本很難填對；
+改存 `table` + `key` 兩個字串，runtime 再 `new LocalizedString(table, key)`
+（`TableEntryReference` 吃得下 key 名稱）。`GameEventTag` 就是這樣做的。
