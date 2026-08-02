@@ -59,24 +59,55 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
         //     _capsuleCollider = GetComponent<CapsuleCollider>();
         // }
 
+        //Collider 的 size/radius 是 local 的，要乘上 lossyScale 才會跟 trigger 判定的範圍一致
+        private float MaxScale
+        {
+            get
+            {
+                var s = transform.lossyScale;
+                return Mathf.Max(Mathf.Abs(s.x), Mathf.Max(Mathf.Abs(s.y), Mathf.Abs(s.z)));
+            }
+        }
+
+        //Collider 的 center 是 local offset，OverlapXXX 要世界座標
+        private Vector3 GetActualCenter()
+        {
+            if (_sphereCollider != null && _overlapShape == OverlapShape.Sphere)
+                return transform.TransformPoint(_sphereCollider.center);
+            if (_boxCollider != null && _overlapShape == OverlapShape.Box)
+                return transform.TransformPoint(_boxCollider.center);
+            if (_capsuleCollider != null && _overlapShape == OverlapShape.Capsule)
+                return transform.TransformPoint(_capsuleCollider.center);
+            return transform.position;
+        }
+
         private float GetActualRadius()
         {
-            return _sphereCollider != null ? _sphereCollider.radius : _radius;
+            return _sphereCollider != null ? _sphereCollider.radius * MaxScale : _radius;
         }
 
         private Vector3 GetActualHalfExtents()
         {
-            return _boxCollider != null ? _boxCollider.size * 0.5f : _halfExtents;
+            if (_boxCollider == null)
+                return _halfExtents;
+
+            var s = transform.lossyScale;
+            var half = _boxCollider.size * 0.5f;
+            return new Vector3(
+                half.x * Mathf.Abs(s.x),
+                half.y * Mathf.Abs(s.y),
+                half.z * Mathf.Abs(s.z)
+            );
         }
 
         private float GetActualCapsuleRadius()
         {
-            return _capsuleCollider != null ? _capsuleCollider.radius : _capsuleRadius;
+            return _capsuleCollider != null ? _capsuleCollider.radius * MaxScale : _capsuleRadius;
         }
 
         private float GetActualCapsuleHeight()
         {
-            return _capsuleCollider != null ? _capsuleCollider.height : _capsuleHeight;
+            return _capsuleCollider != null ? _capsuleCollider.height * MaxScale : _capsuleHeight;
         }
 
         public enum OverlapShape
@@ -91,9 +122,13 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
         {
             _buffer.Clear();
             if (_overlapProcessor == null)
+            {
+                Debug.LogWarning(
+                    "[OverlapDetectSource] _overlapProcessor is null，需要同物件上的 MyOverlap",
+                    this
+                );
                 return _buffer;
-
-            // var hitCount = PerformOverlap();
+            }
 
             foreach (var col in _thisFrameColliders)
             {
@@ -103,15 +138,33 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
                     continue;
                 }
 
-                var targetObject = col.attachedRigidbody
-                    ? col.attachedRigidbody.gameObject
-                    : col.gameObject;
-
-                // Overlap 沒有 hit point 和 normal，所以用 collider center
-                var hitPoint = col.bounds.center;
-                _buffer.Add(new DetectionResult(targetObject, hitPoint));
+                //跟 TriggerDetectorSource 一致：用 collider 自己的 GameObject。
+                //TriggerDetectableTarget 是掛在各個 collider 節點上，不是掛在 Rigidbody 節點上，
+                //抓 attachedRigidbody.gameObject 會找不到 BaseEffectDetectTarget 而整個判定失效。
+                //ClosestPoint 只能用在 Box/Sphere/Capsule/convex Mesh，其他型別只回報命中不給 hitPoint
+                if (IsProperCollider(col))
+                {
+                    var hitPoint = col.ClosestPoint(transform.position);
+                    var hitNormal = (hitPoint - col.bounds.center).normalized;
+                    _buffer.Add(new DetectionResult(col.gameObject, hitPoint, hitNormal));
+                }
+                else
+                    _buffer.Add(new DetectionResult(col.gameObject));
             }
             return _buffer;
+        }
+
+        private static bool IsProperCollider(Collider col)
+        {
+            if (col is BoxCollider)
+                return true;
+            if (col is SphereCollider)
+                return true;
+            if (col is CapsuleCollider)
+                return true;
+            if (col is MeshCollider meshCol && meshCol.convex)
+                return true;
+            return false;
         }
 
         public override void UpdateDetection()
@@ -124,9 +177,20 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
             _thisFrameColliders.Clear();
 
             if (_overlapProcessor == null)
+            {
+                Debug.LogWarning(
+                    "[OverlapDetectSource] _overlapProcessor is null，需要同物件上的 MyOverlap",
+                    this
+                );
                 return;
+            }
 
             _hitCount = PerformOverlap();
+            if (_hitCount >= _overlapResults.Length)
+                Debug.LogWarning(
+                    $"[OverlapDetectSource] overlap buffer 滿了({_overlapResults.Length})，可能漏偵測，考慮縮小範圍或設 _layerMask",
+                    this
+                );
 
             // 收集這一frame的colliders
             for (var i = 0; i < _hitCount; i++)
@@ -168,7 +232,7 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
 
         private int PerformOverlap()
         {
-            var position = transform.position;
+            var position = GetActualCenter();
 
             switch (_overlapShape)
             {
@@ -211,7 +275,7 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.cyan;
-            var position = transform.position;
+            var position = GetActualCenter();
 
             switch (_overlapShape)
             {

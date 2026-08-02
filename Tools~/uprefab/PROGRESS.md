@@ -536,3 +536,18 @@ component 清單、`--budget` 分層、`--node` 下鑽（含路徑打錯時列�
 
 順帶修正文件兩處舊敘述：`prefab|` 放 nested prefab 實例其實 prefab batch 一直支援
 （`PrefabEdit.cs` 的 `case "prefab"`），文件卻寫「只有 scene」。
+
+## `effect-trace` —— EffectHit 鏈路診斷
+
+`EffectTrace.Trace(nodePath, effectTypeFilter)`（`Editor/PrefabEditing/EffectTrace.cs`）。
+起因是查一顆 `Zone Arrive` receiver 為什麼沒觸發花了十幾次 peek：這條鏈有六段
+（detector 偵測 → detectable dict → dealer 有效 → 配對 → enterNode 四道 gate → action），
+每段都靜默 return，只能逐段 peek 二分。現在一次攤開，並在有問題的那段標 `←`。
+
+沒有 dealer 打進來時，會反查場上同 effectType 的 dealer（附距離、它們掛在哪顆 detector 下）。
+全程反射 + 型別名比對，不對 runtime assembly 產生編譯期依賴。
+
+兩個踩到的實作細節：`_enterNode` / `_parentObj` 是 `[AutoChildren]` / `[Auto]` 填的，EditMode 下
+是 null，會誤報成「沒有 enterNode」→ 退回用階層找，且結論箭頭只在 Play Mode 印；
+另外拿來比對的值要用原始 object（`Prop`）而不是印給人看的字串（`Call`）——
+`string` 也是 `IEnumerable`，錯用會讓 `registered` 永遠是 NO。

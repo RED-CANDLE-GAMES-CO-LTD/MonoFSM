@@ -31,6 +31,37 @@ up poke "…/[Var] Global: d_TeamStatus.d_Money" VarFloat 100
 **別連續快速呼叫** —— 每個 `up` 都要等 Unity 回應，一行 shell 塞五六個 peek/poke
 會有幾個靜默回空字串。看到空輸出先單獨重跑那一個，通常就有值了。
 
+## `effect-trace` —— EffectReceiver 為什麼沒觸發
+
+```bash
+up effect-trace "Zone Arrive Trigger 找到火車 Variant"          # 節點或它的任一祖先都行
+up effect-trace "…/Detectable Root" --effect "Zone Arrive"      # 同節點多個 receiver 時篩
+```
+
+**這條鏈有六段，每一段都可能靜靜地 return**（detector 偵測 → detectable dict 登記 →
+dealer 有效 → receiver 配對 → enterNode 的四道 gate → action），逐段 `peek` 要十幾次來回。
+一次呼叫把每段的真值攤開，並在該段後面標 `←` 指出問題：
+
+```
+receiver …/[Receiver] d_Zone Arrive 區域抵達
+  effectType=… IsValid=True HasDealerOverlap=True enterNode=[Event] EffectEnterNode
+  detectable=Detectable Root IsValid=True registered=YES
+    detectTargets=1 debugDetectors=[[Detector] In Melee Range 附近]
+  overlapping dealers: 1
+    …/[Dealer] d_Zone Arrive 區域抵達
+      IsValid=True fail='Check' detector=[Detector] In Melee Range 附近 valueInfo=valid:True,objs:1
+  enterNode [Event] EffectEnterNode
+    lastSimulateEventTime=-1 ← 從來沒執行過底下的 action lastSkipReason='ShouldSimulate false…'
+    activeSelf=True conditions=True forceWithoutAuthority=False
+    parentObj=Zone… ShouldSimulte=False ← 沒有 authority，事件會靜靜地不執行
+```
+
+沒有任何 dealer 打進來時，會反查場上所有同 effectType 的 dealer，附距離與它們的 detector ——
+「掛在哪顆 detector 下、那顆 detector 偵測範圍夠不夠」一眼看得到。
+
+**在 Play Mode 跑才有意義**：`_enterNode` / `_parentObj` / dict / overlap 都是 runtime 才填的
+（`[AutoChildren]` 與 `Awake` 建立），EditMode 下會退回用階層推，並且不印 `←` 結論。
+
 ## `refs` —— 誰指向這個節點 / 它指向誰
 
 ```bash

@@ -282,6 +282,7 @@ SCENE = f"{unity.EDIT_NS}.SceneEdit"
 PREFAB = f"{unity.EDIT_NS}.PrefabEdit"
 ASSET = f"{unity.EDIT_NS}.AssetEdit"
 PROBE = f"{unity.EDIT_NS}.EditProbe"
+TRACE = f"{unity.EDIT_NS}.EffectTrace"
 READER = f"{unity.EDIT_NS}.PrefabTextReader"
 REFS = f"{unity.EDIT_NS}.EditRefs"
 GID = f"{unity.EDIT_NS}.EditGid"
@@ -424,6 +425,15 @@ def cmd_obj(args, root, cfg):
 
 def cmd_peek(args, root, cfg):
     print(unity.call(f"{PROBE}.Peek", args.node, args.comp, args.members))
+
+
+def cmd_effect_trace(args, root, cfg):
+    """EffectHit 鏈路一次攤開：detector 偵測 → detectable dict → dealer 配對 → enterNode gate。
+
+    逐段 peek 要十幾次來回，而每一段都可能靜靜地 return（沒有 log），
+    所以這條鏈值得一個專用指令。
+    """
+    print(unity.call(f"{TRACE}.Trace", args.node, args.effect))
 
 
 def cmd_poke(args, root, cfg):
@@ -648,6 +658,12 @@ def main() -> None:
     pk.add_argument("comp", help="component 型別")
     pk.add_argument("--members", help="逗號分隔的欄位/屬性名；留空 = 所有 public 屬性")
     pk.set_defaults(fn=cmd_peek)
+
+    et = sub.add_parser("effect-trace",
+                        help="診斷某個 EffectReceiver 為什麼沒觸發（需要 Unity，Play Mode 最有用）")
+    et.add_argument("node", help="receiver 節點路徑，或它的任一祖先（會往下找 receiver）")
+    et.add_argument("--effect", help="只看 effectType 名稱含這段的 receiver")
+    et.set_defaults(fn=cmd_effect_trace)
 
     pke = sub.add_parser("poke", help="Play Mode 下設某個 Var 的 runtime 值（需要 Unity）")
     pke.add_argument("node", help="節點路徑（第一段是 root object 名）")

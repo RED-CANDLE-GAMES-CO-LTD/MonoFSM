@@ -14,17 +14,15 @@ namespace MonoValueProvider
     [Serializable]
     public class TargetPositionResolver
     {
-        [BoxGroup("PosResolver")]
-        [Tooltip("故意留所有欄位，依照順序 resolve")] [DropDownRef]
+        [BoxGroup("PosResolver")] [Tooltip("故意留所有欄位，依照順序 resolve")] [DropDownRef]
         public VarVector3 _targetPosVar;
 
         [BoxGroup("PosResolver")]
         //note: 故意留著，依照順序 resolve
-        // [HideIf(nameof(_targetPosVar))]
-        [DropDownRef] public VarTransform _targetTransformVar;
+        [DropDownRef]
+        public VarTransform _targetTransformVar;
 
         [BoxGroup("PosResolver")]
-        // [HideIf(nameof(_targetPosVar))]
         [DropDownRef] public VarEntity _targetEntityVar;
 
         [BoxGroup("PosResolver")] [Tooltip("最低優先，editor 直接指定的 Transform 引用")]

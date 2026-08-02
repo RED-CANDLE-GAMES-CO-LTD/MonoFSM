@@ -31,8 +31,7 @@ namespace MonoFSM.Variable
     /// </summary>
     public class VarFloat
         : AbstractFieldVariable<GameDataFloat, FlagFieldFloat, float>,
-            ISerializedFloatValue,
-            IHierarchyValueInfo, IStringTokenVar
+            ISerializedFloatValue, IStringTokenVar
     {
         public bool IsDirty => CurrentValue != LastValue; //這樣只會一個frame耶？完全不用resolve啊...?
 

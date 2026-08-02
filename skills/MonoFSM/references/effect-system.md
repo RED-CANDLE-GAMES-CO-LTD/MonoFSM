@@ -138,3 +138,34 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 - `AbstractArgEventHandler` 的 `_actionParent`（`[AutoParent] AbstractEventHandler`）需要有父層 EventHandler（即 `EffectEnterNode`）才能正常運作
 - `OnActionExecuteImplement` 是舊有 FSM state 觸發用的，Event 驅動的 Action 不需要它，丟 `NotImplementedException` 即可
 - 若不需 Dealer 追蹤 receiver 狀態，可直接呼叫 `receiver.OnEffectHitEnter(hitData)` 略過 dealer 流程
+
+---
+
+## 沒觸發時的診斷順序
+
+先跑 `up effect-trace "<receiver 節點或其祖先>"`（**Play Mode**），它把下面整條鏈一次攤開。
+需要手動查時照這個順序，每一段都是**靜默 return**，沒有 log：
+
+| # | 段 | 看什麼 | 常見死因 |
+|---|---|---|---|
+| 1 | detector 偵測到 detectable | `EffectDetectable._debugDetectors` 有沒有那顆 detector | detectable 那側缺 kinematic Rigidbody（static-static trigger 不觸發）、collider 沒開 trigger、layer collision matrix 關著 |
+| 2 | receiver 登記進 detectable 的 dict | `EffectDetectable.GetKeys` 含不含這個 effectType | receiver 不在 `EffectDetectable` 子樹下、`_effectType` 沒填 |
+| 3 | dealer 有效 | `dealer.IsValid`、`_failReason` | dealer 底下的 `[If]` condition 不成立 |
+| 4 | dealer ↔ receiver 配對 | `dealer.HasReceiverOverlap` / `receiver.HasDealerOverlap` | 兩邊 `_effectType` 不是同一顆 asset；dealer 掛在偵測範圍不夠的 detector 下 |
+| 5 | **enterNode 的四道 gate** | `_lastSimulateEventTime`（-1 = 從沒跑過）、`_lastSkipReason` | 見下 |
+| 6 | action | action 自己的 condition | sibling 順序、前面的 action 改掉了條件 |
+
+第 5 段是 `AbstractEventHandler.EventHandleImplement`，四道 gate 依序是
+`_conditionFolder.IsValid` → `_parentObj.IsCulling` → `gameObject.activeSelf` →
+**`_parentObj.ShouldSimulte || _forceExecuteWithoutStateAuthority`**。
+被擋下時會寫進 `_lastSkipReason` / `_lastSkipTime`（Editor only，`up peek` 和 Inspector 都看得到），
+所以「事件有進來但 action 沒跑」直接讀這個欄位就有答案。
+
+### `ShouldSimulte` 的判定與那個坑
+
+`MonoObj.ShouldSimulte`：有 `ISimulateAuthorityProvider` → 看 state/input authority；
+沒有但有 parent MonoObj → 繼承 parent；否則落到外部 push 的 `_shouldSimulateFlag`（預設 **false**）。
+
+所以**場景上沒有 NetworkObject 的 root MonoObj，得靠 runner 在註冊時 push true**。
+`LocalSimulatorRunner`（單機）是無條件 push；`FusionSimulatorRunner` 原本只 push 有 NetworkObject 的，
+非網路的場景物件就會「單機正常、連線時整棵靜音」——現在兩邊都 push 了，遇到類似症狀先確認這段還在。

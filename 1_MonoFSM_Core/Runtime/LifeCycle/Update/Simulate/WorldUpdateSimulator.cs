@@ -492,6 +492,13 @@ namespace MonoFSM.Core.Simulate
             //FIXME: isProxy? 要ㄇ 跳過模擬，或是regiester要兩階段
             foreach (var monoObject in _currentUpdatingObjs)
             {
+                if (monoObject == null)
+                    continue;
+
+                //要在 IsUpdateSimulatesNeeded 之前：被 cull 時那個 property 回 false，
+                //Simulate 不會被呼叫，culling 的邊緣就沒人偵測得到了
+                monoObject.CullingStateCheck();
+
                 if (monoObject is { isActiveAndEnabled: true })
                 {
                     if (monoObject.IsUpdateSimulatesNeeded)

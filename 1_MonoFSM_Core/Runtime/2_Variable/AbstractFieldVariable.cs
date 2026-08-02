@@ -214,6 +214,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     private bool HasLocalField => _bindData != null || HasValueSource;
 
     // [MCPExtractable]
+    [PropertyOrder(-1)]
     [FormerlySerializedAs("localField")]
     [TabGroup("Value")]
     [InlineField]

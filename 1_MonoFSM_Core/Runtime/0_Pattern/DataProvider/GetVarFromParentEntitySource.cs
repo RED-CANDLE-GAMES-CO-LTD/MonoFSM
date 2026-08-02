@@ -30,7 +30,7 @@ namespace MonoFSM.Core.DataProvider
         // 覆寫來源：注入場景用，指向要取值的那顆 entity
         [DropDownRef] [SerializeField] private VarEntity _overrideSourceEntity;
 
-        [ShowInInspector]
+        [ShowInPlayMode]
         [Required]
         private MonoEntity SourceEntity =>
             _overrideSourceEntity != null ? _overrideSourceEntity.Value : _parentEntity;

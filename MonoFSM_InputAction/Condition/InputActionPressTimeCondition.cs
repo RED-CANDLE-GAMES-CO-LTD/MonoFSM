@@ -17,7 +17,7 @@ namespace MonoFSM_InputAction.Condition
         VarFloatFoldOut _pressDuration = new VarFloatFoldOut();
 
         protected override bool IsValid =>
-            _pressDuration.Value > 0 && _inputAction.PressTime >= _pressDuration.Value;
+            _pressDuration.Value > 0 && _inputAction?.PressTime >= _pressDuration.Value;
 
         public override string Description =>
             _inputAction != null

@@ -44,6 +44,17 @@ namespace MonoFSM.Core.Simulate
         int SimulateOrder => 0;
     }
 
+    /// <summary>
+    /// Culling 語意上等同「從模擬中消失」，跟 disable 同級：被 cull 的那一刻整棵子樹就不再 tick，
+    /// 但 GameObject 不見得是 inactive（cullingHandle 可能是兄弟節點，或 cull 是從 parent 傳下來的），
+    /// 所以 OnDisable 收不到。需要在消失時收尾的組件（ex: EffectDetector 補送 exit）實作這個介面。
+    /// 由 MonoObj 對自己 scope 的子樹廣播，一次 cull 只會呼叫一次。
+    /// </summary>
+    public interface ICullingEnterHandler
+    {
+        void OnCullingEnter();
+    }
+
     public interface IRenderUpdate //不對吧？
     {
         void Render(float runnerLocalRenderTime);

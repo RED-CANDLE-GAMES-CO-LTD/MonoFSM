@@ -37,7 +37,8 @@ namespace MonoFSM.Foundation
 
     public abstract class AbstractValueSource<T> : AbstractGetter, IValueProvider<T> //提供數值
     {
-        protected override string DescriptionTag => "=>";
+        //可寫回來源（VarBoolRef / VarFloatRef 這類）不是唯讀 Getter，標成 Ref
+        protected override string DescriptionTag => this is IValueSettable<T> ? "Ref" : "=>";
 
         [AutoParent]
         private MonoEntity _monoEntity;

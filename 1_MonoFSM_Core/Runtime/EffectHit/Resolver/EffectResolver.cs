@@ -157,9 +157,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         bool IsConditionPasses => _conditions.IsAllValid();
 
         //FIXME: 關掉的就不算嗎 hmmm
-        [PreviewInInspector] public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid();
-        // [PreviewInInspector]
-        // public bool IsValid => gameObject.activeSelf && _conditions.IsAllValid();
+        [PreviewInInspector]
+        public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid() &&
+                               _parentObj?.IsCulling == false;
 
         public IActor Owner => GetComponentInParent<IActor>();
         public override string ValueInfo => IsValid ? "Valid" : "Off";

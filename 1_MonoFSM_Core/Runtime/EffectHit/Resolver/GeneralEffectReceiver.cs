@@ -104,12 +104,12 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             // Debug.Log("OnEffectHitEnter", this);
             this.Log("OnHitEnter");
-            _currentHitData = data as GeneralEffectHitData;
+            _currentHitData = data;
             var dealerEntity = _currentHitData.GeneralDealer.BindEntity;
             _enterNode?._hittingEntity?.SetValue(dealerEntity, this);
             _enterNode?.EventHandle(_currentHitData);
 
-            _dealers[data.Dealer as GeneralEffectDealer] = _currentHitData;
+            _dealers[data.GeneralDealer] = _currentHitData;
 #if UNITY_EDITOR
             _lastHitData = data;
 #endif
@@ -129,7 +129,25 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return _dealers.TryGetValue(dealer, out hitData) && hitData != null;
         }
 
-        public bool HasDealerOverlap => isActiveAndEnabled && _dealers.Count > 0;
+        //除了數量，還要濾掉已經失效的 dealer：exit 若因為對方被關掉／被 cull 而沒送到，
+        //_dealers 會殘留，光看 count 會一直是 true（culling 的正規解在 MonoObj.CullingStateCheck，
+        //這裡只是最後一道防線，避免 condition 讀到殘留值）
+        public bool HasDealerOverlap
+        {
+            get
+            {
+                if (!isActiveAndEnabled)
+                    return false;
+                foreach (var kvp in _dealers)
+                {
+                    var dealer = kvp.Key;
+                    if (dealer != null && dealer.IsValid)
+                        return true;
+                }
+
+                return false;
+            }
+        }
 
         //FIXME: 會殘留...
         [GUIColor(0.3f, 0.9f, 0.3f)]

@@ -1,0 +1,1 @@
+- 修 `OverlapDetectSource`：改回報 collider 自己的 GameObject（與 `TriggerDetectorSource` 一致，否則找不到 `TriggerDetectableTarget`）、size/radius 乘上 lossyScale、中心吃 collider center offset、補 buffer 滿與缺 `MyOverlap` 的 warning。

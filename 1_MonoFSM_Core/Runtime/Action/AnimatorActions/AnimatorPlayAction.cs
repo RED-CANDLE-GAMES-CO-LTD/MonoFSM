@@ -223,43 +223,28 @@ namespace MonoFSM.Animation
         private bool IsAnimatorNoControl =>
             animator != null || animator.runtimeAnimatorController == null;
 
-        private void OnValidate()
-        {
-#if UNITY_EDITOR
-            try
-            {
-                // if (animator == null)
-                // {
-                //     var owner = GetComponentInParent<StateMachineOwner>();
-                //     if (owner)
-                //         animator = owner.GetComponentInChildren<Animator>();
-                //     if (animator == null)
-                //         return;
-                // }
-
-                if (animator == null)
-                    return;
-                if (animator.runtimeAnimatorController == null)
-                    return;
-
-                var ac = animator.GetAnimatorController();
-                if (ac == null)
-                    return;
-                _stateLayerName = ac.layers[stateLayer].name;
-
-                // var layer = ClipLayerIndex;
-                // if (doneEventLayer == layer)
-                //     return;
-                //
-                // doneEventLayer = layer == -1 ? 0 : layer;
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e, this);
-            }
-
-#endif
-        }
+//         private void OnValidate()
+//         {
+// #if UNITY_EDITOR
+//             try
+//             {
+//                 if (animator == null)
+//                     return;
+//                 if (animator.runtimeAnimatorController == null)
+//                     return;
+//
+//                 var ac = animator.GetAnimatorController();
+//                 if (ac == null)
+//                     return;
+//                 _stateLayerName = ac.layers[stateLayer].name;
+//             }
+//             catch (Exception e)
+//             {
+//                 Debug.LogError(e, this);
+//             }
+//
+// #endif
+//         }
 
         private int animDefaultNameHash;
         // protected override void Start()
@@ -802,7 +787,7 @@ namespace MonoFSM.Animation
 
         public void OnBeforeSceneSave()
         {
-            OnValidate();
+            // OnValidate();
         }
 
         #region InitAndAutoSkipToLastFrame

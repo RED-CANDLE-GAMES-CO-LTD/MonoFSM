@@ -15,6 +15,8 @@ namespace MonoFSM.Variable
             return base.HasError() || IsNeedValueSourceButNone();
         }
 
+        protected override bool IsValueSourceSettable => valueSource is IValueSettable<T>;
+
         [ShowInInspector]
         public override string Description =>
             HasValueSource ? valueSource?.Description : base.Description;

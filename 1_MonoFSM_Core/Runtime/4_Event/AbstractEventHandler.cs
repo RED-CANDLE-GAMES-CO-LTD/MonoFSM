@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime;
@@ -8,6 +9,7 @@ using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using AbstractEntitySource = MonoFSM.Core.Runtime.AbstractEntitySource;
+using Debug = UnityEngine.Debug; //避免和 System.Diagnostics.Debug 撞名
 
 namespace MonoFSM.Core
 {
@@ -95,21 +97,57 @@ namespace MonoFSM.Core
             }
         }
 
+        public override string ValueInfo =>
+            _parentObj.IsCulling ? "Culled" : "Sim" + ShouldSimulate + _lastSkipReason;
 
+        public override bool IsDrawingValueInfo => Application.isPlaying;
 
+        private bool ShouldSimulate =>
+            _parentObj.ShouldSimulte || _forceExecuteWithoutStateAuthority;
         [PreviewInDebugMode] protected float _lastSimulateEventTime = -1f;
 
         [PreviewInDebugMode] protected float _lastRenderEventTime = -1f;
+
+        //事件被叫到了卻沒往下跑 action 時，記下是哪一道 gate 擋的（up peek / Inspector 都看得到）
+        //全部用常數字串，不做 concat，不產生 GC
+        [ShowInInspector] [PreviewInDebugMode] public string _lastSkipReason;
+
+        [ShowInInspector] [PreviewInDebugMode] public float _lastSkipTime = -1f;
+
+        [Conditional("UNITY_EDITOR")]
+        private void MarkSkipped(string reason)
+        {
+            _lastSkipReason = reason;
+            _lastSkipTime = Time.time;
+            this.Log(reason); //父層掛 DebugProvider 才會印
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        private void ClearSkipReason()
+        {
+            _lastSkipReason = null;
+        }
 
         //FIXME: override怎麼處理？
         private void EventHandleImplement<T>(T arg, bool ignoreArg = false)
         {
             if (_conditionFolder.IsValid == false)
+            {
+                MarkSkipped("condition invalid");
                 return;
+            }
+
             if (_parentObj.IsCulling) //FIXME: 有需要分visual和logic culling?
+            {
+                MarkSkipped("parentObj culling");
                 return;
+            }
+
             if (!gameObject.activeSelf)
+            {
+                MarkSkipped("gameObject inactive");
                 return;
+            }
 
             // 如果有掛載網路同步組件，就交由它接管 Render 觸發 (這解決了 Proxy 沒特效與本地重複觸發的問題)
             if (_renderSyncProvider != null)
@@ -143,8 +181,14 @@ namespace MonoFSM.Core
                 Debug.LogError("No ParentObj" + name, this);
             }
 
-            if (!_parentObj.ShouldSimulte && !_forceExecuteWithoutStateAuthority)
+            if (!ShouldSimulate)
+            {
+                //最常見的坑：非網路的場景物件沒人 push ShouldSimulte，事件會靜靜地不執行
+                MarkSkipped("ShouldSimulate false (no state authority)");
                 return;
+            }
+
+            ClearSkipReason(); //有跑到就清掉，避免看到過期的原因
             _lastSimulateEventTime = Time.time;
             foreach (var eventReceiver in _eventReceivers)
             {

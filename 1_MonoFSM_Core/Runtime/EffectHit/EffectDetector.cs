@@ -59,8 +59,16 @@ namespace MonoFSM.Core.Detection
         : AbstractDescriptionBehaviour,
             IDefaultSerializable,
             IUpdateSimulate,
-            IDropdownRoot, IResetStateRestore
+            IDropdownRoot, IResetStateRestore, ICullingEnterHandler
     {
+        //parent MonoObj 被 cull 時整棵停止 tick，但 detector 的 GameObject 可能還是 active
+        //（cullingHandle 是兄弟節點、或 cull 從 parent 傳下來），OnDisable 收不到，靠這個補
+        //culling 範圍比 trigger 範圍小的時候就會遇到
+        public void OnCullingEnter()
+        {
+            ClearAllDetections("Culling");
+        }
+
         private bool HasNoParentObj => _parentObj == null;
 
         public override string ValueInfo =>
@@ -452,7 +460,11 @@ namespace MonoFSM.Core.Detection
 
             var receiver = detectable.Get(dealer._effectType);
             if (receiver == null)
+            {
+                //對方沒有這個 effectType 的 receiver（絕大多數重疊都是這種，正常情況，只留 failReason 不印 log）
+                dealer.SetFailReason("No receiver of this effectType on detectable");
                 return;
+            }
 
             //已經 enter 過就不重放：dealer 剛變 valid（步驟4）和 detectable 剛進來（步驟5）
             //有可能同一 tick 都成立，沒擋的話 enterNode 的 action 會做兩次
@@ -480,8 +492,19 @@ namespace MonoFSM.Core.Detection
         )
         {
             var receiver = detectable.Get(dealer._effectType);
-            if (receiver == null || !dealer.IsEnteredReceiver(receiver))
+            if (receiver == null)
                 return;
+
+            //enter 只在「detectable 剛進來」那一幀判，錯過就永遠不會再重試。
+            //開場時 detector 第一次 Simulate 可能早於 receiver 註冊完成（EffectDetectable 還沒
+            //AddExternalDict 到 bindingRoot），那一幀 Get 拿不到 receiver、enter 靜默失敗，
+            //之後 detectable 一直算「持續重疊」就再也進不來 —— 這裡補判，讓它下一幀能接上。
+            if (!dealer.IsEnteredReceiver(receiver))
+            {
+                TriggerEnterForDealerAndDetectable(dealer, detectable, detectData);
+                return;
+            }
+
             if (!receiver.TryGetHitDataFor(dealer, out var hitData))
                 return;
 

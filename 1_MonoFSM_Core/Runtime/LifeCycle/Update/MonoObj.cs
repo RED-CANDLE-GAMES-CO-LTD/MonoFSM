@@ -441,6 +441,47 @@ namespace MonoFSMCore.Runtime.LifeCycle
 //FIXME: ignore parent culling? 要給這個性質嗎...
         public bool _isIgnoreParentObjCulling = false;
 
+        //只收自己 scope（StopAtType）：nested MonoObj 自己也會被註冊、自己 latch，
+        //parent 被 cull 時子 MonoObj 的 IsCulling 也跟著是 true，所以不會漏也不會重複廣播
+        [PreviewInDebugMode]
+        [AutoChildren(StopAtType = typeof(MonoObj))]
+        private ICullingEnterHandler[] _cullingHandlers;
+
+        [ShowInDebugMode] private bool _wasCulling;
+
+        /// <summary>
+        /// 由 WorldUpdateSimulator 每幀呼叫。被 cull 的那一刻整棵子樹就停止 tick，
+        /// 殘留的狀態（ex: EffectDetector 的重疊）會永遠等不到收尾，所以在邊緣廣播一次。
+        /// 注意這必須在 IsUpdateSimulatesNeeded 判斷「之前」呼叫 —— 被 cull 時那個 property 回 false，
+        /// Simulate 根本不會被呼叫，latch 就沒人跑了。
+        /// </summary>
+        public void CullingStateCheck()
+        {
+            var isCulling = IsCulling;
+            if (isCulling == _wasCulling)
+                return;
+            _wasCulling = isCulling;
+
+            if (!isCulling)
+                return; //變回可見不用特別做事，各組件下一幀自己會重新 enter
+
+            if (_cullingHandlers == null)
+                return;
+            foreach (var handler in _cullingHandlers)
+            {
+                if (handler == null)
+                    continue;
+                try
+                {
+                    handler.OnCullingEnter();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e, this);
+                }
+            }
+        }
+
         [SerializeField] [AutoChildren] [CompRef]
         SpawnEventHandler _onSpawnHandler;
 

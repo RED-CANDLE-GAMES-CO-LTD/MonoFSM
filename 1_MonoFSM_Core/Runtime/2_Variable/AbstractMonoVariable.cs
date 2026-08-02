@@ -41,7 +41,12 @@ namespace MonoFSM.Variable
             IDropdownRef,
             IValueGetter
     {
-        protected override string DescriptionTag => HasValueSource ? "Getter" : "Var";
+        protected override string DescriptionTag =>
+            HasValueSource ? (IsValueSourceSettable ? "Ref" : "Getter") : "Var";
+
+        //ValueSource 可寫回（例如 VarBoolRef 指向另一個 VarBool）時，這個變數是 Ref 而不是唯讀 Getter
+        //SetValue 也是走 valueSource is IValueSettable<TType> 這條路，判斷依據要一致
+        protected virtual bool IsValueSourceSettable => false;
 
 #if UNITY_EDITOR
         [CompRef] [AutoChildren] DebugWorldSpaceLabel _debugWorldSpaceLabel;

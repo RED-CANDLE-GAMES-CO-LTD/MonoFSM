@@ -48,14 +48,16 @@ namespace RCGInputAction
         //指定機種查詢：Editor 的多平台對照預覽用（runtime 走上面那個，跟著目前裝置）
         public Sprite GetIcon(InputActionData input, PromptDeviceFamily family)
         {
-            foreach (var config in ConfigChain(family))
+            ResolveConfigChain(family, out var primary, out var fallback);
+
+            if (primary != null)
             {
-                var icon = config.GetIcon(input);
+                var icon = primary.GetIcon(input);
                 if (icon != null)
                     return icon;
             }
 
-            return null;
+            return fallback != null ? fallback.GetIcon(input) : null;
         }
 
         public string GetSpriteTag(InputActionData input)
@@ -65,32 +67,39 @@ namespace RCGInputAction
 
         public string GetSpriteTag(InputActionData input, PromptDeviceFamily family)
         {
-            foreach (var config in ConfigChain(family))
+            ResolveConfigChain(family, out var primary, out var fallback);
+
+            if (primary != null)
             {
-                var tag = config.GetSpriteTag(input, _globalIconScale);
+                var tag = primary.GetSpriteTag(input, _globalIconScale);
                 if (tag != null)
                     return tag;
             }
 
-            return null;
+            return fallback != null ? fallback.GetSpriteTag(input, _globalIconScale) : null;
         }
 
-        //依指定 family 走 fallback 鏈，yield 出要嘗試的 config（跳過 null / 重複）
-        private IEnumerable<DeviceIconMapConfig> ConfigChain(PromptDeviceFamily family)
+        //依指定 family 解出要依序嘗試的 config（跳過 null / 重複）。
+        //鏈最多兩層，所以直接用 out 回傳，不走 iterator —— 這條路每幀會被提示 UI 呼叫，
+        //yield 版本每次呼叫都會 new 一個 enumerator 物件造成 GC
+        private void ResolveConfigChain(
+            PromptDeviceFamily family,
+            out DeviceIconMapConfig primary,
+            out DeviceIconMapConfig fallback
+        )
         {
             BuildLookupIfNeeded();
 
-            if (_lookup.TryGetValue(family, out var config) && config != null)
-                yield return config;
+            primary = _lookup.TryGetValue(family, out var config) ? config : null;
+            fallback = null;
 
             if (family == PromptDeviceFamily.KeyboardMouse)
-                yield break; //鍵鼠沒有 generic fallback
-
+                return; //鍵鼠沒有 generic fallback
             if (family == PromptDeviceFamily.GamepadGeneric)
-                yield break; //自己就是 generic，避免重複 yield
+                return; //自己就是 generic，避免重複查
 
-            if (_lookup.TryGetValue(PromptDeviceFamily.GamepadGeneric, out var generic) && generic != null)
-                yield return generic;
+            if (_lookup.TryGetValue(PromptDeviceFamily.GamepadGeneric, out var generic))
+                fallback = generic;
         }
 
         private void BuildLookupIfNeeded()
