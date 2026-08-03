@@ -172,6 +172,13 @@ namespace MonoFSM.Foundation
         // Track if we're in prefab stage mode for more detailed error checking
         // private bool _isPrefabStageMode = false;
 
+        //[DropDownRef(isOptional: true)] 視為選填，不列入 null 驗證
+        private static bool IsRequiredDropDownRef(FieldInfo f)
+        {
+            var attr = f.GetCustomAttribute<DropDownRefAttribute>(false);
+            return attr != null && !attr._isOptional;
+        }
+
         //沒有做AutoComponent下會顯示error? 還是應該讓prefab openstage時做一次，scene上跳過這個判定，雖然稍嫌trivial
         private static FieldInfo[] GetRequiredHierarchyValidateFields(
             Type type,
@@ -200,7 +207,7 @@ namespace MonoFSM.Foundation
                     f =>
                         (
                             f.GetCustomAttributes(typeof(RequiredAttribute), false).Length > 0
-                            || f.GetCustomAttributes(typeof(DropDownRefAttribute), false).Length > 0
+                            || IsRequiredDropDownRef(f)
                         ) && !f.FieldType.IsInterface
                 );
             else
@@ -210,7 +217,7 @@ namespace MonoFSM.Foundation
                     f =>
                         (
                             f.GetCustomAttribute(typeof(RequiredAttribute), false) != null
-                            || f.GetCustomAttribute(typeof(DropDownRefAttribute), false) != null
+                            || IsRequiredDropDownRef(f)
                         )
                         && !f.FieldType.IsInterface
                         && (

@@ -190,6 +190,51 @@ public class XxxRender : AbstractRenderBehaviour
 
 **參考實作**：`SimpleChController`（MonoFSM-Pro/Runtime/GamePlay/Source/Characters/）
 
+## 持續性狀態：拉式 Getter + Switch Simulate，不要用 Enter/Exit 推
+
+「**只要 A 成立就維持 B**」這種持續性狀態，不要在 `EffectEnterNode` 設值、`EffectExitNode` 復原。
+Enter/Exit 是**邊緣觸發**，只在偵測表變化的那一幀跑一次，任何一邊漏掉狀態就永久卡住：
+
+- Exit 沒觸發 —— detectable 被 despawn / disable / culling 關掉、reset 清空偵測表
+- Enter 沒觸發 —— receiver 註冊鏈還沒完成那一幀（見 `EffectDetector` 的 stay 重試）
+- 兩個 detector 範圍重疊時，A 的 exit 蓋掉 B 的 enter
+
+改成拉式：**狀態用 Getter VarBool 表達，每幀由 `SwitchCaseActionSimulator` 對齊**。
+狀態是每幀重算出來的，沒有「漏一次就錯到底」的問題。
+
+```
+[VarFolder] VariableFolder
+  [Getter] Dealer $xxx hit any?   <VarBool>            ← 真相來源，每幀重算
+    [If] Dealer $xxx hit any?     <IsDealerHitAnyReceiverCondition _dealer=…>
+
+Context/Animator/LogicRoot
+  [Switch Simulate] Switch (FirstMatch)  <SwitchCaseActionSimulator _mode=FirstMatch>
+    [Case] SwitchCase                    ← 同一個 case 內多個 [If] = AND
+      [If] 開關 == True
+      [If] Dealer $xxx hit any? == True
+      [Action] [Var] d_IsToggleOn = True
+    [Case] SwitchCase                    ← FirstMatch，走到這裡代表上面不成立
+      [If] 開關 == True
+      [Action] [Var] d_IsToggleOn = False
+```
+
+**選 condition**：dealer 端問「我現在有沒有壓到任何 receiver」是
+`IsDealerHitAnyReceiverCondition`（`_dealer` 指到 `GeneralEffectDealer`）。
+`IsBestMatchedReceiverCondition` 是 **receiver 端**問「我是不是被選中的最佳互動目標」，
+用在互動提示 / highlight，兩者不要混用。
+
+**Enter/Exit 仍然該用的場合**：一次性的**事件**（撞擊瞬間扣血、噴特效、震動、播音效）。
+判斷準則 —— 「錯過一次會怎樣」：錯過一次特效沒差 → 用 Enter；錯過一次狀態就卡住 → 用拉式。
+
+同一個原則的其他長相：`SetHighlightAction` 從「兩個 receiver 各推 enter/exit」改成
+`[Getter] Is BestMatched` 單一來源 + RenderLoop 每幀讀。
+
+**成本**：每幀 SetValue 同值只是 field 賦值，不送事件、不產生 GC，不需要自己加 change check。
+
+**實例**：`鑽頭.prefab` 的自動啟動（前方預判 detector → `[Getter] Dealer $d_NavMeshBlocking
+hit any?` → Switch Simulate 開關 `d_IsToggleOn`）、`Train FSM Variant.prefab` 的
+Target Speed、`水桶 Water Jug.prefab` 的下雨集水。
+
 ## Callback Cache → Simulate 統一處理模式
 
 Unity 回調（`OnCollisionEnter`、`OnEnable`、`OnDisable`、`OnTriggerEnter` 等）的觸發時機不可控：可能在同一幀多次觸發、可能在 Simulate 執行順序之外發生。**不要在回調中直接執行邏輯或修改狀態**，改為 cache 資料/flag，在 `Simulate()` 統一處理。

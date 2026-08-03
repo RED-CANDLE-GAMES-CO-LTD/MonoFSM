@@ -165,6 +165,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         //[]:已經在Auto那邊用OnBeforeSerialize全部做掉了
     }
 
+    [HideIf(nameof(HasProxySource))]
     [TabGroup("GameState")]
     [LabelText("自動生成")]
     [ShowInInspector]
@@ -186,15 +187,19 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 #endif
 
     //TODO: 可以直接弄到drawer上？
+
     [TabGroup("GameState")]
     [HideInInlineEditors]
     [EnableIf("IsSuggestingDesignTag")]
-    [HideIf("IsAutoGen")] //[]: 已經裝了的話要藏嗎？ 還是應該要透明
+    //[]: 已經裝了的話要藏嗎？ 還是應該要透明
+    [HideIf("@" + nameof(HasProxySource) + " || " + nameof(IsAutoGen))]
     [Button("[Prefab設計]Add AutoGen GameState")]
     private void AddTag() => this.TryGetCompOrAdd<AutoGenGameState>();
 
+
     [TabGroup("GameState")]
-    [HideIf("IsCheckingPrefabKind")] //[]: 已經裝了的話要藏嗎？
+    //[]: 已經裝了的話要藏嗎？
+    [HideIf("@" + nameof(HasProxySource) + " || " + nameof(IsCheckingPrefabKind))]
     [EnableIf("IsSuggestingDesignTag")]
     [Button("[Prefab設計]Add GameState Require Tag")]
     private void AddRequireInPrefab() => this.TryGetCompOrAdd<GameStateRequireAtPrefabKind>();
@@ -211,14 +216,16 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     //FIXME: 這個可以cache嗎...
 #endif
 
-    private bool HasLocalField => _bindData != null || HasValueSource;
+    // [ShowInDebugMode]
+    // private bool HasLocalField => _bindData != null || HasValueSource;
 
     // [MCPExtractable]
     [PropertyOrder(-1)]
     [FormerlySerializedAs("localField")]
     [TabGroup("Value")]
     [InlineField]
-    [HideIf(nameof(HasLocalField))]
+    // [HideIf(nameof(HasLocalField))]
+    [HideIf(nameof(HasProxySource))]
     public TField _localField; // = new();
 
     //HasValueSource 已上移到 AbstractMonoVariable（行為相同：ValueResolver.HasValueProvider(_valueSources)）
@@ -280,6 +287,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     [TabGroup("GameState")]
     [Header("存檔")]
     [GameState]
+    [HideIf(nameof(HasProxySource))]
     [InlineEditor]
     [EnableIf(nameof(PrefabKindMatchTagCheck))]
 #if  UNITY_EDITOR

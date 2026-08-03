@@ -1,0 +1,1 @@
+- SetVarBoolAction 新增可選 `_sourceVar`（VarBool dropdown），有指定就取它的值、蓋過常數 `TargetValue`（舊名保留以免 prefab override 失效）。

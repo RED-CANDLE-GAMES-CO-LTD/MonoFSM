@@ -482,7 +482,8 @@ public class DropDownRefAttributeDrawer : OdinAttributeDrawer<DropDownRefAttribu
 
 // bool hasRequiredAttr = Property.GetAttribute<RequiredAttribute>() != null;
         GUI.backgroundColor =
-            Property.ValueEntry.WeakSmartValue as Object == null // && hasRequiredAttr
+            Property.ValueEntry.WeakSmartValue as Object == null
+            && !Attribute._isOptional // optional 空值不當錯誤
                 ? new Color(0.9f, 0.2f, 0.3f, 0.5f)
                 : new Color(0.35f, 0.3f, 0.1f, 0.2f);
 

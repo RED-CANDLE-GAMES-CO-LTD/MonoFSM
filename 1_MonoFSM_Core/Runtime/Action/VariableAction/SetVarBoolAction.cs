@@ -4,11 +4,10 @@ using MonoFSM.Core.Runtime.Action;
 using MonoFSM.EditorExtension;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable
 {
-    //set flag, pick item...和GameFlag有關的要用一個interface才可以撈出來
-    //FIXME: 需要雙向reference, debug用，要不然不知道誰在set? candidate
     public class SetVarBoolAction
         : AbstractStateAction,
             IArgEventReceiver<bool>,
@@ -18,7 +17,11 @@ namespace MonoFSM.Variable
         //這個還可以化簡嗎？整個description就代表含義了..但沒有Reference可能還是不夠用
         // protected override string renamePostfix =>
         public override string Description =>
-            _target != null ? _target.name + " = " + TargetValue : "null target";
+            _target != null
+                ? _target.name
+                  + " = "
+                  + (HasSourceVar ? _sourceVar.Description : _sourceValue.ToString())
+                : "null target";
 
         private IList<ValueDropdownItem<VarBool>> GetVariables()
         {
@@ -50,8 +53,16 @@ namespace MonoFSM.Variable
         //FIXME: Multiple的話另外寫SetVariableComplexAction, 直接用VariableProviderList之類的好了？
         // [ShowIf("Multiple")] public List<VarBool> targetFlags;
 
-        // [MCPExtractable]
-        public bool TargetValue = true;
+        //常數來源值。語意上是 source，但沿用舊名：改名會讓既有 prefab override 的 propertyPath 失效
+        [FormerlySerializedAs("TargetValue")] [HideIf(nameof(HasSourceVar))]
+        public bool _sourceValue = true;
+
+        //可選：值改從另一個 VarBool 讀，有指定就蓋過 TargetValue
+        [DropDownRef(isOptional: true)] public VarBool _sourceVar;
+
+        private bool HasSourceVar => _sourceVar != null;
+
+        private bool SourceValue => HasSourceVar ? _sourceVar.Value : _sourceValue;
 
         // public bool Multiple = false;
 
@@ -86,7 +97,7 @@ namespace MonoFSM.Variable
 
         private void SetValue()
         {
-            SetValue(TargetValue);
+            SetValue(SourceValue);
         }
 
         public void ArgEventReceived(bool arg)

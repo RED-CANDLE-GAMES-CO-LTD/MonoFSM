@@ -60,6 +60,7 @@ namespace MonoFSM.Variable
         protected VarEntity _parentVarEntity; //我的parent如果有VarEntity, 去跟這個entity拿？
 
         //varref
+        [PropertyOrder(-1)]
         [GUIColor(0.4f, 1f, 0.4f)]
         [Header("Variable Reference, 從 Parent Entity 拿 Variable")]
         [ShowIf(nameof(HasParentVarEntity))]

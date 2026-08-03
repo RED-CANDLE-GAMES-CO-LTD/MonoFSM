@@ -284,7 +284,7 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
 
     // public bool _isNull;
 
-    [GUIColor(0.3f, 0.7f, 0.7f, 1f)]
+    [GUIColor(0.4f, 0.8f, 0.7f, 1f)]
     [FormerlySerializedAs("DefaultValue")]
     [OnValueChanged(nameof(ResetToDefault))]
     public T ProductionValue;

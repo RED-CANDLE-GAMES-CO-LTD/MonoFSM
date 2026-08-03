@@ -367,7 +367,11 @@ namespace MonoFSM.Variable
 
             if (!_isRuntimeOnly) //寫個 force SetValue?
             {
-                Debug.LogError("Cannot set value of a non-runtime-only variable", this);
+                //訊息要自帶節點名：CLI / build log 只拿得到字串，點不到 context object
+                Debug.LogError(
+                    $"Cannot set value of a non-runtime-only variable: {name}，byWho: {byWho?.name}。"
+                    + "runtime 才會被寫入的 Var（如 SpawnAction._spawnedEntityVar）要勾 _isRuntimeOnly",
+                    this);
                 Debug.Break();
                 return;
             }

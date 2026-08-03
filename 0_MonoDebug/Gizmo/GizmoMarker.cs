@@ -1,4 +1,5 @@
 ﻿using MonoDebugSetting;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 //FIXME: Debug Gizmo?
@@ -14,6 +15,37 @@ public class GizmoMarker : MonoBehaviour, IEditorOnly //,IDrawHierarchyBackGroun
         HandleSphere,
     }
 
+    //目前這個 Gizmo 到底畫不畫得出來（不含距離判斷）
+    private bool IsGizmoVisibleNow =>
+        (RuntimeDebugSetting.IsDebugMode || _isAlwaysVisible)
+        && gizmoType != GizmoShapeType.HandleDot
+        && gizmoType != GizmoShapeType.HandleSphere;
+
+    private string GizmoVisibleInfo
+    {
+        get
+        {
+            if (gizmoType is GizmoShapeType.HandleDot or GizmoShapeType.HandleSphere)
+                return $"不顯示：{gizmoType} 由 Handle 繪製，OnDrawGizmos 直接 return";
+            if (_isAlwaysVisible)
+                return "顯示中：AlwaysVisible 開啟（不受 Debug Mode 與距離限制）";
+            if (RuntimeDebugSetting.IsDebugMode)
+                return "顯示中：Debug Mode 開啟（距離 SceneView 相機 100 以內才畫）";
+            return "不顯示：Debug Mode 關閉，且 AlwaysVisible 未開";
+        }
+    }
+
+    [PropertyOrder(-1)]
+    [InfoBox(
+        "$" + nameof(GizmoVisibleInfo),
+        InfoMessageType.Info,
+        VisibleIf = nameof(IsGizmoVisibleNow)
+    )]
+    [InfoBox(
+        "$" + nameof(GizmoVisibleInfo),
+        InfoMessageType.Warning,
+        VisibleIf = "@!" + nameof(IsGizmoVisibleNow)
+    )]
     public bool _isAlwaysVisible = false;
 
     // public bool useHandle = false;
