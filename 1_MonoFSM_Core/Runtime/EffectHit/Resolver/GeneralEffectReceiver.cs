@@ -33,6 +33,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             base.ResetStateRestore(false);
             _dealers.Clear();
+            _bestMatchDealers.Clear();
 #if UNITY_EDITOR
             _lastHitData = null;
 #endif
@@ -154,14 +155,38 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [PreviewInInspector]
         private readonly Dictionary<GeneralEffectDealer, GeneralEffectHitData> _dealers = new();
 
+        //目前把這個 receiver 選為 best match 的 dealer（拉式查詢用，避免只靠 enter/exit 事件推狀態）
+        [GUIColor(0.3f, 0.9f, 0.3f)]
+        [PreviewInInspector]
+        private readonly HashSet<GeneralEffectDealer> _bestMatchDealers = new();
+
+        //比照 HasDealerOverlap：exit 可能因為對方被關掉／被 cull 而沒送到，光看 count 會殘留
+        public bool IsBestMatched
+        {
+            get
+            {
+                if (!isActiveAndEnabled)
+                    return false;
+                foreach (var dealer in _bestMatchDealers)
+                    if (dealer != null && dealer.IsValid)
+                        return true;
+
+                return false;
+            }
+        }
+
         public void OnEffectHitBestMatchEnter(GeneralEffectHitData data)
         {
+            if (data?.GeneralDealer != null)
+                _bestMatchDealers.Add(data.GeneralDealer);
             BestMatchEnterHandle(data, data?.GeneralDealer?.BindEntity);
         }
 
         public void OnEffectHitBestMatchExit(GeneralEffectHitData data)
         {
             this.Log("OnHitBestMatchExit");
+            if (data?.GeneralDealer != null)
+                _bestMatchDealers.Remove(data.GeneralDealer);
             BestMatchExitHandle(data);
             _bestEnterNode?.ClearHittingEntityIfNeeded();
             // _currentHitData = null;
@@ -170,7 +195,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public void OnEffectHitExit(GeneralEffectHitData data)
         {
             this.Log("OnHitExit");
+            //離開 overlap 一定也不再是 best match（best match exit 若沒送到就靠這裡收尾）
             _dealers.Remove(data.Dealer as GeneralEffectDealer);
+            _bestMatchDealers.Remove(data.Dealer as GeneralEffectDealer);
             RecordEffectExit();
             _exitNode?.EventHandle(data);
             _currentHitData = null;
