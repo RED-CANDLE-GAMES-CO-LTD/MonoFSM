@@ -181,9 +181,10 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 
             var hitCount = PerformCast(currentRay, distance, _castResultsBuffer);
 
-            // 依距離由近到遠排序（struct comparer 無 GC）
+            // 依距離由近到遠排序
+            // 不能用 Array.Sort(comparer)：comparer 會被 box 成 IComparer<RaycastHit>，每幀都產生 GC
             if (hitCount > 1)
-                System.Array.Sort(_castResultsBuffer, 0, hitCount, RaycastHitDistanceComparer.Instance);
+                SortByDistance(_castResultsBuffer, hitCount);
 
             var actualCount = _singleHitOnly ? Mathf.Min(hitCount, 1) : hitCount;
 
@@ -222,6 +223,25 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             }
 
 #endif
+        }
+
+        /// <summary>
+        ///     依 distance 由近到遠 in-place insertion sort，零 GC（count 最多 20，insertion sort 足夠）。
+        /// </summary>
+        private static void SortByDistance(RaycastHit[] array, int count)
+        {
+            for (var i = 1; i < count; i++)
+            {
+                var key = array[i];
+                var j = i - 1;
+                while (j >= 0 && array[j].distance > key.distance)
+                {
+                    array[j + 1] = array[j];
+                    j--;
+                }
+
+                array[j + 1] = key;
+            }
         }
 
         /// <summary>
@@ -269,18 +289,5 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public override string ValueInfo => "layer:" + _hittingLayer.value;
         public override bool IsDrawingValueInfo => true;
 #endif
-    }
-
-    /// <summary>
-    ///     用 struct 實作 IComparer 以避免排序時產生 GC。
-    /// </summary>
-    public struct RaycastHitDistanceComparer : System.Collections.Generic.IComparer<RaycastHit>
-    {
-        public static readonly RaycastHitDistanceComparer Instance = new();
-
-        public int Compare(RaycastHit x, RaycastHit y)
-        {
-            return x.distance.CompareTo(y.distance);
-        }
     }
 }

@@ -49,6 +49,11 @@ namespace MonoFSM.Runtime.Action.VariableAction
                 return;
             }
 
+            //EffectiveRate 會走 VarFloat 的多層 getter，只讀一次；為 0 時直接早退，
+            //不必整條 SetValue chain 跑進去靠最後的相等比較才 bail
+            var rate = EffectiveRate;
+            if (rate == 0f) return;
+
             if (_transfer)
             {
                 if (_sourceVar == null)
@@ -61,7 +66,7 @@ namespace MonoFSM.Runtime.Action.VariableAction
 
 
                 //FIXME: 這個沒有處理到VarFloat本身有modifier...要先從source把值拿出來才知道？
-                float desired = Mathf.Abs(EffectiveRate) * DeltaTime;
+                float desired = Mathf.Abs(rate) * DeltaTime;
                 float available = Mathf.Max(0f, _sourceVar.CurrentValue - _sourceVar.Min);
                 float actual = Mathf.Min(desired, available);
                 if (actual <= 0f) return;
@@ -74,7 +79,7 @@ namespace MonoFSM.Runtime.Action.VariableAction
                 return;
             }
 
-            _targetVar.AddBy(EffectiveRate * DeltaTime, this);
+            _targetVar.AddBy(rate * DeltaTime, this);
             // _targetVar.SetValue(_targetVar.Value + EffectiveRate * DeltaTime, this);
         }
     }

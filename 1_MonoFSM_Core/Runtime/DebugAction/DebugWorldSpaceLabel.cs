@@ -97,7 +97,7 @@ namespace _0_MonoDebug.Gizmo
 
         public override string Description => currentVariable?.Description;
 
-        protected override void Start()
+        protected override void Start() //fixme 執行順序？要先auto?
         {
             base.Start();
             if (!Application.isPlaying)
@@ -106,8 +106,12 @@ namespace _0_MonoDebug.Gizmo
             if (_bindingRigidbody == null)
                 _bindingRigidbody = GetComponentInParent<Rigidbody>();
             if (_bindingRigidbody == null)
+            {
+
                 Debug.LogError("DebugWorldSpaceLabel 找不到 Rigidbody，請確認 ParentEntity 有 Rigidbody 組件",
                     this);
+            }
+
             gameObject.layer = LayerMask.NameToLayer("World UI");
         }
 

@@ -45,42 +45,14 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         return CurrentValue;
     }
 
+    //遞迴檢測交給 CurrentValue（這裡唯一的呼叫），這層不再包 try/finally 以便 inline
     public override T1 GetValue<T1>()
     {
-        // 遞迴檢測
-        _recursionDepth++;
-        if (_recursionDepth > MAX_RECURSION_DEPTH)
-        {
-            Debug.LogError(
-                $"[遞迴檢測] GetValue 遞迴深度超過 {MAX_RECURSION_DEPTH}！可能發生循環引用。Variable: {name}",
-                this
-            );
-            Debug.Break();
-            _recursionDepth = 0;
+        //typeof 比較 JIT 時會被摺疊掉
+        if (typeof(TType) != typeof(T1))
             return default;
-        }
-
-        try
-        {
-            var value = CurrentValue;
-            if (typeof(TType) == typeof(T1))
-                return Unsafe.As<TType, T1>(ref value);
-
-            // Profiler.BeginSample("GetValue Cast");
-            // if (value is T1 tValue)
-            // {
-            //     Profiler.EndSample();
-            //     return tValue;
-            // }
-            //
-            // Profiler.EndSample();
-
-            return default;
-        }
-        finally
-        {
-            _recursionDepth--;
-        }
+        var value = CurrentValue;
+        return Unsafe.As<TType, T1>(ref value);
     }
 
     public override void SetRaw<T1>(T1 value, Object byWho)
@@ -393,10 +365,14 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         get
         {
             //hmm
+#if UNITY_EDITOR
             if (!Application.isPlaying)
                 return EditorValue;
+#endif
 
-            // 遞迴檢測
+            //遞迴檢測只在 Editor 做：try/finally 會讓這個 getter 無法被 inline，
+            //而這條 chain 是每幀被讀好幾次的熱路徑
+#if UNITY_EDITOR
             _recursionDepth++;
             if (_recursionDepth > MAX_RECURSION_DEPTH)
             {
@@ -411,40 +387,35 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
             try
             {
-                if (valueSource != null) //用外部source getter, 這樣原本一坨都不需要了吧？
-                    return valueSource.Get<TType>();
-                if (varRef != null)
-                    return varRef.Get<TType>();
-
-                if (HasProxySource) //有proxy卻拿不到，不給
-                    return default;
-                // Profiler.BeginSample("FieldVariable CurrentValue", this);
-                var tempValue = _localField.CurrentValue;
-
-                //FIXME: 這裡就有proxy? 而且還是直接reference...
-                // if (VariableSource != null)
-                // {
-                //     var v = VariableSource as GenericMonoVariable<TScriptableData, TField, TType>;
-                //     tempValue = v.CurrentValue;
-                // }
-                if (BindData != null)
-                    tempValue = BindData.CurrentValue;
-
-                // Profiler.EndSample();
-                // Profiler.BeginSample("AfterGetValueModifyCheck", this);
-                // //FIXME: 這個是不是有點貴？有需要在這層做嗎？應該在set時就做掉了？不需要ㄅ
-                // // if (_modifiers != null)
-                // //     foreach (var modifier in _modifiers)
-                // //         tempValue = modifier.AfterGetValueModifyCheck(tempValue);
-                // Profiler.EndSample();
-                // this.Log("[Variable] Get", tempValue);
-                return tempValue;
+                return GetCurrentValueCore();
             }
             finally
             {
                 _recursionDepth--;
             }
+#else
+            return GetCurrentValueCore();
+#endif
         }
+    }
+
+    private TType GetCurrentValueCore()
+    {
+        if (valueSource != null) //用外部source getter, 這樣原本一坨都不需要了吧？
+            return valueSource.Get<TType>();
+        if (varRef != null)
+            return varRef.Get<TType>();
+
+        if (HasProxySource) //有proxy卻拿不到，不給
+            return default;
+        var tempValue = _localField.CurrentValue;
+
+        //FIXME: 這裡就有proxy? 而且還是直接reference...
+        if (BindData != null)
+            tempValue = BindData.CurrentValue;
+
+        // this.Log("[Variable] Get", tempValue);
+        return tempValue;
     }
 
     // private MonoBehaviour lastValueSetter;
@@ -477,17 +448,19 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         _beforeSetProcessor?.BeforeSetValueCallback(value); //練線處理？
         // lastValueSetter = byWho;
 
+        //CurrentValue 是多層 getter，這裡只讀一次，給 modifier / 比較 / oldValue 共用
+        var currentValue = CurrentValue;
         var tempValue = value;
         //先檢查會被修改
 
         Profiler.BeginSample("BeforeSetValueModifyCheck", this);
         if (_modifiers != null)
             foreach (var modifier in _modifiers)
-                tempValue = modifier.BeforeSetValueModifyCheck(tempValue, CurrentValue);
+                tempValue = modifier.BeforeSetValueModifyCheck(tempValue, currentValue);
         Profiler.EndSample();
         //after?
         // Debug.Log("[Variable] Set" + value + "tempValue:" + tempValue + ", Value:" + CurrentValue, byWho);
-        if (EqualityComparer<TType>.Default.Equals(tempValue, CurrentValue))
+        if (EqualityComparer<TType>.Default.Equals(tempValue, currentValue))
             return (false, tempValue); //沒有變化就不需要處理
 
         if (valueSource is IValueSettable<TType> settableSource)
@@ -497,7 +470,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         }
 
         // Profiler.BeginSample("Field SetCurrentValue");
-        var oldValue = CurrentValue;
+        var oldValue = currentValue;
         Field.SetCurrentValue(tempValue, byWho);
         _isNull = false;
         // Profiler.EndSample();

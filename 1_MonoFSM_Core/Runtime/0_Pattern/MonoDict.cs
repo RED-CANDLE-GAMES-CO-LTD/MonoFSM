@@ -36,6 +36,18 @@ namespace MonoFSM.Core
             get
             {
                 EditorPrepareCheck();
+                //_collections 沒有 SerializeField，runtime 全靠 AutoChildren/MonoReferenceCache 綁；
+                //有人比 lifecycle 更早問（例如 Fusion 查 DynamicWordCount、或 MonoStateMachineController.Start）
+                //或 reference cache 沒存到這個物件，就會是 null
+                if (_collections == null)
+                {
+                    Debug.LogError(
+                        $"[MonoDict] {DescriptionTag} '{name}' 的 _collections 還沒綁定就被讀取，fallback 做一次 AutoReference",
+                        this);
+                    AutoAttributeManager.AutoReference(this);
+                    _collections ??= Array.Empty<Tu>();
+                }
+
                 return _collections;
             }
         }

@@ -1,1 +1,2 @@
 - 修 `OverlapDetectSource`：改回報 collider 自己的 GameObject（與 `TriggerDetectorSource` 一致，否則找不到 `TriggerDetectableTarget`）、size/radius 乘上 lossyScale、中心吃 collider center offset、補 buffer 滿與缺 `MyOverlap` 的 warning。
+- 修 `AbstractCastCache` Simulate 期間的 GC：`Array.Sort(comparer)` 會把 struct comparer box 成 `IComparer<RaycastHit>`（每幀每個 cast cache 一次配置），改成 in-place insertion sort（`SortByDistance`），並移除 `RaycastHitDistanceComparer`。

@@ -135,11 +135,13 @@ public class AutoAttributeManagerEditor : UnityEditor.AssetModificationProcessor
         {
             autoManagers.Skip(1).ToList().ForEach(DestroyAutoAttributeManager);
         }
-        // Debug.Log("Find autoManagers");
+
+        Debug.Log("Find autoManagers");
     }
 
     private static void DestroyAutoAttributeManager(AutoAttributeManager autoAttributeManager)
     {
+        Debug.Log("DestroyAutoAttributeManager", autoAttributeManager.gameObject);
         GameObject.DestroyImmediate(autoAttributeManager);
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
     }

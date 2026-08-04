@@ -354,6 +354,7 @@ public class AutoAttributeManager : MonoBehaviour
     [Button("Bind")]
     public void SweepScene()
     {
+        Debug.Log("AutoAttributeManager::SweepScene", this);
         // fieldDict.Clear();
         //get root gameobject of the scene
         // var root = SceneManager.GetActiveScene().GetRootGameObjects();

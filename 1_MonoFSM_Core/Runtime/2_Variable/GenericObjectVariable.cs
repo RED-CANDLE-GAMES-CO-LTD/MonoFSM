@@ -429,7 +429,7 @@ namespace MonoFSM.Variable
         // public bool _isConst; //
 
         //避免reset restore?
-        public virtual string ValueInfo
+        public override string ValueInfo
         {
             get
             {

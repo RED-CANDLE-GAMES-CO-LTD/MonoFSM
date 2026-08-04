@@ -26,6 +26,12 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         public override void EnterSceneAwake()
         {
             base.EnterSceneAwake();
+            if (_anyStates == null)
+            {
+                Debug.LogError($"[StateFolder] '{name}' 的 _anyStates 尚未綁定（AutoChildren 沒跑到）", this);
+                return;
+            }
+
             foreach (var anyState in _anyStates)
             {
                 _allAnyStates.Add(anyState);
@@ -59,7 +65,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         {
             base.AddExternalSource(source);
             //hmm這段特規處理，不太爽
-            if (source is StateFolder dict)
+            if (source is StateFolder dict && dict._anyStates != null)
             {
                 foreach (var item in dict._anyStates)
                 {

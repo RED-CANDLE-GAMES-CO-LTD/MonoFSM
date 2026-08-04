@@ -22,6 +22,7 @@ namespace _1_MonoFSM_Core.Runtime._3_FlagData.DataFunction
         }
     }
 
+    [Serializable]
     public class RecipeDataFunction : AbstractDataFunction
     {
         [SerializeField] ReceipeEntry[] _receipeEntries;

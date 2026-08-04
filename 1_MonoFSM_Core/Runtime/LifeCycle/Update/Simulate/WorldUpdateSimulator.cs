@@ -354,6 +354,47 @@ namespace MonoFSM.Core.Simulate
             ResetLevelStart();
         }
 
+        /// <summary>
+        /// 切場景前把整個 world 拆乾淨，讓下一次 <see cref="WorldInit"/> 從空集合重建。
+        ///
+        /// 為什麼需要：WorldUpdateSimulator 掛在 NetworkRunner prefab 上，從大廳流程進遊戲場景時
+        /// Runner 是 DontDestroyOnLoad 一路存活的，這顆 simulator 會被「重用」而不是重建。
+        /// 沒有這個 teardown 的話：
+        ///   1. 舊場景的 MonoObj 被 Destroy 但還留在 _monoObjectSet（非 poolObj 不會走 UnregisterMonoObject）
+        ///      → Simulate 每幀噴 "A MonoPoolObj in the WorldUpdateSimulator set is null"
+        ///   2. IsReady 一直是 true → 新場景載入的空窗期就開始 Simulate，物件還沒 SceneAwake
+        ///   3. WorldInit 被跑第二次，SceneAwake/SceneStart 對殘留物件重複呼叫
+        ///
+        /// 由 driver 在場景載入開始時呼叫（ex: FusionSimulatorRunner.OnSceneLoadStart）。
+        /// </summary>
+        public void TeardownForSceneSwitch()
+        {
+            Debug.Log(
+                $"[WorldUpdateSimulator] TeardownForSceneSwitch: 清除 {_monoObjectSet.Count} 個 MonoObj 註冊。",
+                this
+            );
+
+            //擋住 Simulate/Render/AfterUpdate，直到下一次 WorldInit
+            IsReady = false;
+
+            //pool 物件是 DontDestroyOnLoad，切場景不會被銷毀，而 RegisterAllMonoPoolObjs 只掃新場景的 root，
+            //所以借出中的 pool 物件如果不先收回，就會永遠脫離註冊表（active 但不再被 simulate）。
+            if (_poolManager != null)
+                _poolManager.ReturnAllObjects();
+
+            //ReturnAllObjects 回收的物件不能被其他 handler 誤判為「被消耗」，比照 ManualResetLevel 通知一輪
+            foreach (var resetHandler in GetComponents<ILevelResetSpawnHandler>())
+                resetHandler.OnBeforeLevelReset();
+
+            _pendingDespawns.Clear();
+            _monoObjectSet.Clear();
+            _currentUpdatingObjs.Clear();
+            _iterationSnapshot.Clear();
+            _previewObj.Clear();
+            _monoObjectSetDirty = true;
+            CurrentPhase = SimPhase.None;
+        }
+
         //FIXME: 可能會動態移除
         // [PreviewInInspector] [AutoChildren] private IUpdateSimulate[] _localSimulators;
 

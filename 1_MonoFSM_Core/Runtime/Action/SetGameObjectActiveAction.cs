@@ -7,7 +7,8 @@ using UnityEngine;
 namespace _1_MonoFSM_Core.Runtime.Action
 {
     //FIXME: 不好...會不好回查 reference?
-    public class SetGameObjectActiveAction : AbstractStateAction, IRenderBehaiour
+    //會涼邊都叫
+    public class SetGameObjectActiveAction : AbstractStateAction
     {
         protected override void Awake()
         {
@@ -51,14 +52,14 @@ namespace _1_MonoFSM_Core.Runtime.Action
         /// 有點髒，但好像不能說錯？還是應該把SFX類的獨立出來 (但在做一樣的事)
         /// FIXME: 應該要獨立
         /// </summary>
-        public void OnEnterRender() //這樣好嗎？
-        {
-            OnActionExecuteImplement();
-        }
-
-        public void OnRender()
-        {
-            OnActionExecuteImplement();
-        }
+        // public void OnEnterRender() //這樣好嗎？
+        // {
+        //     OnActionExecuteImplement();
+        // }
+        //
+        // public void OnRender()
+        // {
+        //     OnActionExecuteImplement();
+        // }
     }
 }
