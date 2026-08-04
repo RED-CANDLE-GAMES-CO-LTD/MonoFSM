@@ -1,0 +1,1 @@
+- `EffectZone` 補 `public float Radius`（原本只有 `RadiusSqr`），給外部拿世界半徑做視覺對齊用（ex: FogVoidSphereFitter 反推 FogVoid scale）。

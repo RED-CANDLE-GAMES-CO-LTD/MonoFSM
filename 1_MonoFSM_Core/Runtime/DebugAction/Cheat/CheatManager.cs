@@ -2,10 +2,11 @@ using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Localization.Settings;
 
 namespace MonoFSM.Core
 {
-    public class CheatManager : AbstractDescriptionBehaviour, IUpdateSimulate
+    public class CheatManager : AbstractDescriptionBehaviour
     {
         public void CheatKeyCheck()
         {
@@ -28,6 +29,10 @@ namespace MonoFSM.Core
                 // 在這裡執行作弊行為，例如增加分數、解鎖功能等
             }
 
+            //切換語言（循環）
+            if (Keyboard.current.digit9Key.wasPressedThisFrame)
+                CycleLocale();
+
             if (Keyboard.current.digit0Key.IsPressed() || Mouse.current.middleButton.isPressed)
             {
                 WorldUpdateSimulator.TimeScale = 5f;
@@ -38,7 +43,29 @@ namespace MonoFSM.Core
                 WorldUpdateSimulator.TimeScale = 1f;
         }
 
-        public void Simulate(float deltaTime)
+        private static void CycleLocale()
+        {
+            if (!LocalizationSettings.InitializationOperation.IsDone)
+            {
+                Debug.Log("[Cheat] Localization 還沒初始化完成，忽略切換語言");
+                return;
+            }
+
+            var locales = LocalizationSettings.AvailableLocales?.Locales;
+            if (locales == null || locales.Count == 0)
+            {
+                Debug.Log("[Cheat] 找不到可用的 Locale，忽略切換語言");
+                return;
+            }
+
+            var current = LocalizationSettings.SelectedLocale;
+            var index = current == null ? -1 : locales.IndexOf(current);
+            var next = locales[(index + 1) % locales.Count];
+            LocalizationSettings.SelectedLocale = next;
+            Debug.Log($"[Cheat] 切換語言: {current?.Identifier.Code} -> {next.Identifier.Code}");
+        }
+
+        public void Update()
         {
             CheatKeyCheck();
         }

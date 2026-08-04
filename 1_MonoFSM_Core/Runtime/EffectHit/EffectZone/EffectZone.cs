@@ -41,6 +41,8 @@ namespace Gameplay.EffectZone
         public Vector3 Center =>
             _centerOverride != null ? _centerOverride.position : transform.position;
 
+        public float Radius => _radius;
+
         public float RadiusSqr => _radius * _radius;
 
         /// <summary>沒設 _isActiveVar 就永遠有效；有設就跟著那顆 VarBool。</summary>
