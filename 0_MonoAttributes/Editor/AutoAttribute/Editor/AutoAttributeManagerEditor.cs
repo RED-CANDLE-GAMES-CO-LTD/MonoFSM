@@ -141,9 +141,10 @@ public class AutoAttributeManagerEditor : UnityEditor.AssetModificationProcessor
 
     private static void DestroyAutoAttributeManager(AutoAttributeManager autoAttributeManager)
     {
+        //build的時候很靠杯，lobby scene給我留著
         Debug.Log("DestroyAutoAttributeManager", autoAttributeManager.gameObject);
-        GameObject.DestroyImmediate(autoAttributeManager);
-        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        // GameObject.DestroyImmediate(autoAttributeManager);
+        // EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
     }
 
     private static void InstantiateAutoAttributeManager_InScene()

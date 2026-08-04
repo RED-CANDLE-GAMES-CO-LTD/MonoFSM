@@ -2,6 +2,7 @@ using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 
 namespace MonoFSM.Core
@@ -63,7 +64,43 @@ namespace MonoFSM.Core
             var next = locales[(index + 1) % locales.Count];
             LocalizationSettings.SelectedLocale = next;
             Debug.Log($"[Cheat] 切換語言: {current?.Identifier.Code} -> {next.Identifier.Code}");
+            DumpLocaleDiagnostic(next);
         }
+
+        //診斷用：切完語言後直接問 StringDatabase 拿一筆，用來區分「Localization 層沒換到（多半是 Addressables
+        //content 沒重 build）」和「換到了但 UI binder 沒 refresh」。build 版看 Player.log。
+        private static void DumpLocaleDiagnostic(Locale locale)
+        {
+            var op = LocalizationSettings.StringDatabase.GetTableAsync(DiagnosticTableName, locale);
+            op.WaitForCompletion();
+            var table = op.Result;
+            if (table == null)
+            {
+                Debug.LogError(
+                    $"[Cheat] StringTable '{DiagnosticTableName}' 在 {locale.Identifier.Code} 載不到（status={op.Status}）" +
+                    "，多半是 Addressables content 沒重 build");
+                return;
+            }
+
+            var count = 0;
+            string sampleKey = null;
+            string sampleValue = null;
+            foreach (var entry in table.Values)
+            {
+                count++;
+                if (sampleKey != null)
+                    continue;
+                sampleKey = entry.Key;
+                sampleValue = entry.LocalizedValue;
+            }
+
+            Debug.Log(
+                $"[Cheat] StringTable '{table.TableCollectionName}' locale={locale.Identifier.Code} entries={count} " +
+                $"sample: {sampleKey}=\"{sampleValue}\"");
+        }
+
+        //改成你實際在畫面上看的那張 table
+        private const string DiagnosticTableName = "GameplayUI";
 
         public void Update()
         {
