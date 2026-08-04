@@ -23,14 +23,11 @@ namespace HierarchyFavorites.Editor
         private static VisualTreeAsset _cachedUxml;
         private static StyleSheet _cachedUss;
 
-        // 搜尋字串（Variables/Effects/States 共用），overlay / window 重開時保留
+        // 搜尋字串（所有 tab 共用），overlay / window 重開時保留
         private static string _variableSearch = string.Empty;
 
-        // tab 切換到 searchable tab 時，重建後自動聚焦搜尋框
+        // tab 切換時重建後自動聚焦搜尋框
         private static bool _focusSearchOnNextBuild;
-
-        private static bool IsSearchableMode(HierarchyFavoritesSettings.ContentMode mode) =>
-            mode != HierarchyFavoritesSettings.ContentMode.Favorites;
 
         /// <summary>重建整個內容（title / tabs / search / groups）到 root 上。</summary>
         public static void Build(VisualElement root, Action onRebuild, string titleSuffix = "")
@@ -85,24 +82,17 @@ namespace HierarchyFavorites.Editor
             var emptyHint = root.Q<Label>("empty-hint");
             if (entriesContainer == null) return;
 
-            if (IsSearchableMode(contentMode))
-            {
-                var searchField = BuildSearchField(entriesContainer, emptyHint, contentMode);
-                var tabsIndex = headerParent.IndexOf(tabs);
-                headerParent.Insert(tabsIndex + 1, searchField);
+            var searchField = BuildSearchField(entriesContainer, emptyHint, contentMode);
+            var tabsIndex = headerParent.IndexOf(tabs);
+            headerParent.Insert(tabsIndex + 1, searchField);
 
-                RefillList(entriesContainer, emptyHint, contentMode);
+            RefillContent(entriesContainer, emptyHint, contentMode);
 
-                // Bug B：tab 切換後 / 打字期間被外部 rebuild 砍掉時，focus 回搜尋框
-                if (_focusSearchOnNextBuild || !string.IsNullOrEmpty(_variableSearch))
-                {
-                    _focusSearchOnNextBuild = false;
-                    searchField.schedule.Execute(() => searchField.Focus());
-                }
-            }
-            else
+            // Bug B：tab 切換後 / 打字期間被外部 rebuild 砍掉時，focus 回搜尋框
+            if (_focusSearchOnNextBuild || !string.IsNullOrEmpty(_variableSearch))
             {
-                BuildFavoritesContent(entriesContainer, emptyHint);
+                _focusSearchOnNextBuild = false;
+                searchField.schedule.Execute(() => searchField.Focus());
             }
 
             // 還原 scroll 位置（layout 完成後再設，否則會被 clamp 成 0）
@@ -151,19 +141,8 @@ namespace HierarchyFavorites.Editor
                 {
                     Debug.Log("[HierarchyFavorites] Cmd/Ctrl+F -> focus search");
                     e.StopPropagation();
-                    if (IsSearchableMode(HierarchyFavoritesSettings.Content))
-                    {
-                        var searchField = root.Q<TextField>("hf-var-search");
-                        searchField?.schedule.Execute(() => searchField.Focus());
-                    }
-                    else
-                    {
-                        // Favorites 沒有搜尋框，切到 Variables 並聚焦
-                        HierarchyFavoritesSettings.Content =
-                            HierarchyFavoritesSettings.ContentMode.Variables;
-                        _focusSearchOnNextBuild = true;
-                        root.schedule.Execute(() => onRebuild?.Invoke());
-                    }
+                    var searchField = root.Q<TextField>("hf-var-search");
+                    searchField?.schedule.Execute(() => searchField.Focus());
                 }
             }, TrickleDown.TrickleDown);
         }
@@ -175,7 +154,7 @@ namespace HierarchyFavorites.Editor
             var next = TabOrder[(idx + dir + TabOrder.Length) % TabOrder.Length];
             Debug.Log($"[HierarchyFavorites] Tab hotkey: {current} -> {next}");
             HierarchyFavoritesSettings.Content = next;
-            _focusSearchOnNextBuild = IsSearchableMode(next);
+            _focusSearchOnNextBuild = true;
         }
 
         // ---- 搜尋框 ----
@@ -189,7 +168,7 @@ namespace HierarchyFavorites.Editor
             searchField.RegisterValueChangedCallback(e =>
             {
                 _variableSearch = e.newValue;
-                RefillList(entriesContainer, emptyHint, contentMode);
+                RefillContent(entriesContainer, emptyHint, contentMode);
             });
 
             // 保險：按鍵不要冒泡出去觸發編輯器全域快捷鍵（SceneView 的 F、Q/W/E/R 等）
@@ -230,11 +209,21 @@ namespace HierarchyFavorites.Editor
                 if (e.button != 0) return;
                 Debug.Log($"[HierarchyFavorites] Switch content tab to {mode}");
                 HierarchyFavoritesSettings.Content = mode;
-                _focusSearchOnNextBuild = IsSearchableMode(mode);
+                _focusSearchOnNextBuild = true;
                 e.StopPropagation();
                 onRebuild?.Invoke();
             }, TrickleDown.TrickleDown);
             return tab;
+        }
+
+        /// <summary>依 tab 重填結果容器（不動 search field，focus 不會掉）。</summary>
+        private static void RefillContent(VisualElement entriesContainer, Label emptyHint,
+            HierarchyFavoritesSettings.ContentMode contentMode)
+        {
+            if (contentMode == HierarchyFavoritesSettings.ContentMode.Favorites)
+                BuildFavoritesContent(entriesContainer, emptyHint);
+            else
+                RefillList(entriesContainer, emptyHint, contentMode);
         }
 
         // ---- Favorites ----
@@ -242,12 +231,13 @@ namespace HierarchyFavorites.Editor
         {
             entriesContainer.Clear();
             var groups = HierarchyFavoritesCollector.GetActiveGroups();
+            var search = _variableSearch ?? string.Empty;
 
             int visibleEntryCount = 0;
             foreach (var groupData in groups)
             {
                 if (groupData == null) continue;
-                var groupElement = BuildGroup(groupData, out int count);
+                var groupElement = BuildGroup(groupData, search, out int count);
                 if (count == 0) continue;
                 entriesContainer.Add(groupElement);
                 visibleEntryCount += count;
@@ -255,7 +245,9 @@ namespace HierarchyFavorites.Editor
 
             if (emptyHint != null)
             {
-                emptyHint.text = "No HierarchyFavoritesHolder in current scene / prefab.";
+                emptyHint.text = string.IsNullOrEmpty(search)
+                    ? "No HierarchyFavoritesHolder in current scene / prefab."
+                    : "No favorite matching search.";
                 emptyHint.style.display =
                     visibleEntryCount == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             }
@@ -309,7 +301,8 @@ namespace HierarchyFavorites.Editor
             }
         }
 
-        private static VisualElement BuildGroup(FavoriteGroup groupData, out int entryCount)
+        private static VisualElement BuildGroup(FavoriteGroup groupData, string search,
+            out int entryCount)
         {
             var group = new VisualElement();
             group.AddToClassList("favorites-group");
@@ -322,6 +315,11 @@ namespace HierarchyFavorites.Editor
             foreach (var item in groupData.Items)
             {
                 if (item.Target == null) continue;
+                // group 名也算命中，方便整組篩出來
+                if (!string.IsNullOrEmpty(search) &&
+                    !Contains(item.Label, search) &&
+                    !Contains(item.Target.name, search) &&
+                    !Contains(groupData.Name, search)) continue;
 
                 var target = item.Target;
                 var label = item.Label;

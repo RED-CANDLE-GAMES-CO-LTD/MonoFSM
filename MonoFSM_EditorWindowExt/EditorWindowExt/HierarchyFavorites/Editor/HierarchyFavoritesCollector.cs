@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using MonoFSMCore.Runtime.LifeCycle;
-using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace HierarchyFavorites.Editor
@@ -11,42 +8,16 @@ namespace HierarchyFavorites.Editor
         public static List<HierarchyFavoritesHolder> GetActiveHolders()
         {
             var results = new List<HierarchyFavoritesHolder>();
-
-            var stage = PrefabStageUtility.GetCurrentPrefabStage();
-            if (stage != null)
-            {
-                results.AddRange(stage.prefabContentsRoot
-                    .GetComponentsInChildren<HierarchyFavoritesHolder>(true));
-                return results;
-            }
-
-            var selectObj = Selection.activeGameObject;
-            if (selectObj == null) return results;
-            var monoObj = selectObj.GetComponentInParent<MonoObj>();
-            if (monoObj == null) return results;
-            results.AddRange(monoObj.GetComponentsInChildren<HierarchyFavoritesHolder>(true));
-
+            foreach (var root in HierarchyFavoritesRootResolver.GetActiveRoots())
+                results.AddRange(root.GetComponentsInChildren<HierarchyFavoritesHolder>(true));
             return results;
         }
 
         public static List<HierarchyFavoriteMarker> GetActiveMarkers()
         {
             var results = new List<HierarchyFavoriteMarker>();
-
-            var stage = PrefabStageUtility.GetCurrentPrefabStage();
-            if (stage != null)
-            {
-                results.AddRange(stage.prefabContentsRoot
-                    .GetComponentsInChildren<HierarchyFavoriteMarker>(true));
-                return results;
-            }
-
-            var selectObj = Selection.activeGameObject;
-            if (selectObj == null) return results;
-            var monoObj = selectObj.GetComponentInParent<MonoObj>();
-            if (monoObj == null) return results;
-            results.AddRange(monoObj.GetComponentsInChildren<HierarchyFavoriteMarker>(true));
-
+            foreach (var root in HierarchyFavoritesRootResolver.GetActiveRoots())
+                results.AddRange(root.GetComponentsInChildren<HierarchyFavoriteMarker>(true));
             return results;
         }
 

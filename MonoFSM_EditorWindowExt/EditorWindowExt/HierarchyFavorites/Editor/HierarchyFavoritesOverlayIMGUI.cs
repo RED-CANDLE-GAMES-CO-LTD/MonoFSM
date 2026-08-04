@@ -75,6 +75,8 @@ namespace HierarchyFavorites.Editor
 
         private void DrawFavoritesMode()
         {
+            DrawSearchField();
+
             if (_cachedGroups == null)
                 _cachedGroups = HierarchyFavoritesCollector.GetActiveGroups();
 
@@ -84,7 +86,7 @@ namespace HierarchyFavorites.Editor
             foreach (var group in _cachedGroups)
             {
                 if (group == null) continue;
-                totalEntries += DrawGroup(group);
+                totalEntries += DrawGroup(group, _variableSearch);
             }
 
             if (totalEntries == 0)
@@ -102,15 +104,20 @@ namespace HierarchyFavorites.Editor
             GUILayout.EndScrollView();
         }
 
-        private void DrawVariablesMode()
+        // popup 視窗（ShowPopup）不保證是 pro skin，不能依賴 GUI.skin 的預設配色，
+        // 統一用自製的深色底 + 亮字 style
+        private void DrawSearchField()
         {
-            // popup 視窗（ShowPopup）不保證是 pro skin，不能依賴 GUI.skin 的預設配色，
-            // 統一用自製的深色底 + 亮字 style
             EditorGUI.BeginChangeCheck();
             _variableSearch = EditorGUILayout.TextField(_variableSearch ?? string.Empty, _searchStyle,
                 GUILayout.Height(18));
             if (EditorGUI.EndChangeCheck())
                 Repaint();
+        }
+
+        private void DrawVariablesMode()
+        {
+            DrawSearchField();
 
             if (_cachedVariableGroups == null)
                 _cachedVariableGroups = VariableFolderCollector.GetActiveGroups();
@@ -139,17 +146,26 @@ namespace HierarchyFavorites.Editor
             GUILayout.EndScrollView();
         }
 
-        private int DrawGroup(FavoriteGroup group)
+        private int DrawGroup(FavoriteGroup group, string search)
         {
-            if (group.Items.Count == 0) return 0;
+            // 先過濾，group 若無符合結果就整組不畫（group 名命中則整組保留）
+            var visibleItems = new List<FavoriteItem>();
+            var groupMatched = !string.IsNullOrEmpty(search) && Matches(group.Name, search);
+            foreach (var item in group.Items)
+            {
+                if (item.Target == null) continue;
+                if (!string.IsNullOrEmpty(search) && !groupMatched &&
+                    !Matches(item.Label, search) && !Matches(item.Target.name, search)) continue;
+                visibleItems.Add(item);
+            }
+
+            if (visibleItems.Count == 0) return 0;
 
             GUILayout.Space(4);
             GUILayout.Label(group.Name, _groupHeaderStyle);
 
-            foreach (var item in group.Items)
+            foreach (var item in visibleItems)
             {
-                if (item.Target == null) continue;
-
                 var prevColor = GUI.color;
                 if (item.Tint != Color.white && item.Tint.a > 0.01f)
                     GUI.color = item.Tint;
@@ -162,8 +178,12 @@ namespace HierarchyFavorites.Editor
                 GUI.color = prevColor;
             }
 
-            return group.Items.Count;
+            return visibleItems.Count;
         }
+
+        private static bool Matches(string source, string search) =>
+            source != null &&
+            source.IndexOf(search, System.StringComparison.OrdinalIgnoreCase) >= 0;
 
         private int DrawVariableGroup(VariableGroup group, string search)
         {
