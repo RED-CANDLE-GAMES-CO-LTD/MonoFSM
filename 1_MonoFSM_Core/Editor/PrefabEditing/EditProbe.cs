@@ -111,12 +111,11 @@ namespace MonoFSM.Editor.PrefabEditing
         /// </summary>
         public static string Peek(string nodePath, string componentType, string members = null)
         {
-            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
             Transform node;
             Component comp;
             try
             {
-                node = EditResolve.NodeInRoots(scene.GetRootGameObjects().ToList(), nodePath);
+                node = EditResolve.NodeInRoots(EditResolve.RuntimeRoots(), nodePath);
                 comp = EditResolve.Comp(node, nodePath, componentType);
             }
             catch (EditResolve.EditAbort abort)
@@ -192,11 +191,10 @@ namespace MonoFSM.Editor.PrefabEditing
             if (!Application.isPlaying)
                 return "# 未修改：poke 只在 Play Mode 有意義（EditMode 請用 prefab do / scene do）";
 
-            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
             Component comp;
             try
             {
-                var node = EditResolve.NodeInRoots(scene.GetRootGameObjects().ToList(), nodePath);
+                var node = EditResolve.NodeInRoots(EditResolve.RuntimeRoots(), nodePath);
                 comp = EditResolve.Comp(node, nodePath, componentType);
             }
             catch (EditResolve.EditAbort abort)
@@ -242,7 +240,9 @@ namespace MonoFSM.Editor.PrefabEditing
             return $"{nodePath}.{type.Name}.Value: {Show(before)} -> {Show(after)}";
         }
 
-        private static string Show(object v)
+        private static string Show(object v) => Show(v, 0);
+
+        private static string Show(object v, int depth)
         {
             switch (v)
             {
@@ -252,12 +252,30 @@ namespace MonoFSM.Editor.PrefabEditing
                 case UnityEngine.Object o: return $"{o.name} <{o.GetType().Name}>";
                 case IEnumerable e when !(v is string):
                 {
-                    var items = e.Cast<object>().Take(6).Select(Show).ToList();
+                    var items = e.Cast<object>().Take(6).Select(x => Show(x, depth + 1)).ToList();
                     var total = e.Cast<object>().Count();
                     return $"[{string.Join(", ", items)}{(total > 6 ? $", … +{total - 6}" : "")}]";
                 }
+                // 沒 override ToString 的 struct（CharacterMovement.MovingPlatform 這種
+                // 純資料容器）預設只印出型別名，等於什麼都沒查到。攤開欄位才有意義；
+                // 巢狀限一層，Vector3 / Quaternion 有自己的 ToString 不受影響。
+                case ValueType vt when depth < 2 && !(v is Enum) && !vt.GetType().IsPrimitive &&
+                                       ToStringIsDefault(vt.GetType()):
+                {
+                    var fields = vt.GetType().GetFields(BindingFlags.Instance |
+                                                        BindingFlags.Public | BindingFlags.NonPublic);
+                    return "{" + string.Join(", ",
+                        fields.Select(f => $"{f.Name}={Show(f.GetValue(vt), depth + 1)}")) + "}";
+                }
                 default: return v.ToString();
             }
+        }
+
+        /// <summary>型別自己沒實作 ToString()（拿到的會是 System.ValueType 的預設型別名）。</summary>
+        private static bool ToStringIsDefault(Type t)
+        {
+            var m = t.GetMethod("ToString", Type.EmptyTypes);
+            return m == null || m.DeclaringType == typeof(ValueType) || m.DeclaringType == typeof(object);
         }
     }
 }

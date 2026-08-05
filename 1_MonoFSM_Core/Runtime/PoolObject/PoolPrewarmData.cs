@@ -28,6 +28,35 @@ public class PoolPrewarmData : ScriptableObject
             objectEntries.Remove(entry);
         }
     }
+    [Button("一鍵生成所有 CacheName")]
+    public void GenerateAllCacheNames()
+    {
+        var changedCount = 0;
+        foreach (var entry in objectEntries)
+        {
+            if (entry.prefab == null)
+            {
+                Debug.LogWarning("[GenerateAllCacheNames] prefab is null, cacheName: " + entry._cacheName, this);
+                continue;
+            }
+
+            var newName = entry.prefab.name;
+            if (entry._cacheName == newName)
+                continue;
+
+            Debug.Log("[GenerateAllCacheNames] " + entry._cacheName + " -> " + newName, entry.prefab);
+            entry._cacheName = newName;
+            changedCount++;
+        }
+
+        Debug.Log("[GenerateAllCacheNames] updated " + changedCount + "/" + objectEntries.Count, this);
+        if (changedCount > 0)
+        {
+            UnityEditor.EditorUtility.SetDirty(this);
+            UnityEditor.AssetDatabase.SaveAssetIfDirty(this);
+        }
+    }
+
     [Button]
     public void OpenAndSavePreWarmPrefabs()
     {

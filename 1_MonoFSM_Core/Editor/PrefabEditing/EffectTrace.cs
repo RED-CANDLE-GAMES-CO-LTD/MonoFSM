@@ -28,11 +28,10 @@ namespace MonoFSM.Editor.PrefabEditing
         /// </summary>
         public static string Trace(string nodePath, string effectTypeFilter = null)
         {
-            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
             Transform node;
             try
             {
-                node = EditResolve.NodeInRoots(scene.GetRootGameObjects().ToList(), nodePath);
+                node = EditResolve.NodeInRoots(EditResolve.RuntimeRoots(), nodePath);
             }
             catch (EditResolve.EditAbort abort)
             {

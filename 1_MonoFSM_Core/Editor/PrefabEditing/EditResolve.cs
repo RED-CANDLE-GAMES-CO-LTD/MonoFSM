@@ -204,6 +204,27 @@ namespace MonoFSM.Editor.PrefabEditing
         }
 
         /// <summary>
+        /// Play Mode 下要拿的 root 集合。
+        ///
+        /// 只用 activeScene.GetRootGameObjects() 會漏掉 additive scene 與
+        /// DontDestroyOnLoad —— Fusion 的 Runner、生成出來的玩家角色（Player1 [Local] …）
+        /// 都掛在 DontDestroyOnLoad，peek 這類 runtime 查詢十之八九查的就是它們。
+        /// EditMode 沒有這個問題，維持 active scene 以免掃到 preview / 隱藏物件。
+        /// </summary>
+        internal static List<GameObject> RuntimeRoots()
+        {
+            if (!Application.isPlaying)
+                return UnityEngine.SceneManagement.SceneManager.GetActiveScene()
+                    .GetRootGameObjects().ToList();
+
+            return UnityEngine.Object
+                .FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .Where(t => t != null && t.parent == null)
+                .Select(t => t.gameObject)
+                .ToList();
+        }
+
+        /// <summary>
         /// 路徑打錯時沿路徑走到最後一個通的節點，列出那層的子節點 —— 省一次來回。
         /// </summary>
         internal static string DescribeChildren(Transform root, string path)
