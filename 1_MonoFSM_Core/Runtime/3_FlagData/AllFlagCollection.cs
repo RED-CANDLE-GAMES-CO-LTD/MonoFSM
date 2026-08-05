@@ -37,7 +37,7 @@ namespace _1_MonoFSM_Core.Runtime._3_FlagData
         {
             Flags.Clear();
             // gameFlagDataList.Clear();
-            // Debug.Log("Find GameFlag:" + typeof(T).FullName);
+            Debug.Log("FindAllFlagsInProject");
             var myPath = AssetDatabase.GetAssetPath(this);
             // Debug.Log("Mypath" + name + ":" + myPath);
             // var dirPath = System.IO.Path.GetDirectoryName(myPath);

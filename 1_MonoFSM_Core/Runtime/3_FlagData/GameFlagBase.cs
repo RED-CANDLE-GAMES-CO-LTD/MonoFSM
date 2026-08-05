@@ -382,6 +382,8 @@ public abstract class GameFlagBase : AbstractSOConfig, ISerializable, ISelfValid
     public void Validate(SelfValidationResult result)
     {
 #if UNITY_EDITOR
+        ValidateInAllFlagCollection(result);
+
         //往上找看看有沒有GameFlagCollection
         var path = AssetDatabase.GetAssetPath(this);
         // Debug.Log("Validate:" + path);
@@ -422,6 +424,28 @@ public abstract class GameFlagBase : AbstractSOConfig, ISerializable, ISelfValid
             new string[] { GameStateAttribute.GameStateFolderPath, "17_PlayerPrefFlag" },
             result
         );
+#endif
+    }
+
+    //AllFlagCollection 放在 Assets/Resources，不是任何 flag 的上層資料夾，
+    //所以上面「往上找 collection」的邏輯永遠抓不到它，必須單獨檢查。
+    //漏收的後果是靜默的：runtime FlagAwake 不會被呼叫、存檔也查不到這個 flag。
+    private void ValidateInAllFlagCollection(SelfValidationResult result)
+    {
+#if UNITY_EDITOR
+        var allFlagCollection = AllFlagCollection.Instance;
+        if (allFlagCollection == null)
+        {
+            Debug.LogError("AllFlagCollection.Instance 為 null，無法檢查是否收錄", this);
+            return;
+        }
+
+        if (allFlagCollection.Flags.Contains(this))
+            return;
+
+        result
+            .AddError("尚未收錄進 AllFlagCollection，Runtime 不會被初始化也存不到檔")
+            .WithFix(() => allFlagCollection.AddFlag(this));
 #endif
     }
 

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using MonoDebugSetting;
 using MonoFSM.AddressableAssets;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
@@ -506,7 +507,9 @@ public class GameData
         {
             if (_titleLocalized == null || _titleLocalized.IsEmpty)
             {
-                Debug.LogWarning($"[GameData] {name} 沒設 _titleLocalized，退回未 localize 的 titleStr", this);
+                if (RuntimeDebugSetting.IsDebugMode)
+                    Debug.LogWarning(
+                        $"[GameData] {name} 沒設 _titleLocalized，退回未 localize 的 titleStr", this);
                 return Title;
             }
 
