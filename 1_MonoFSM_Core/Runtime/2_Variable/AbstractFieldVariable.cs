@@ -35,6 +35,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     where TField : FlagField<TType>, new()
 // where TType : IEquatable<TType>
 {
+    public override bool IsDrawingValueInfo => true;
     // 遞迴檢測相關變數
     [System.NonSerialized]
     private int _recursionDepth = 0;
@@ -359,6 +360,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 //可以用 Vector3?
 
     public override string StringValue => CurrentValue.ToString();
+    public override string ValueInfo => CurrentValue.ToString();
     [ShowInPlayMode]
     public virtual TType CurrentValue //FIXME: 改成Value?
     {

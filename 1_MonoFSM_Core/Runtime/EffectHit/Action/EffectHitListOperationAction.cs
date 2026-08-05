@@ -1,3 +1,4 @@
+using System;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Core.Variable;
 using MonoFSM.Runtime.Interact.EffectHit;
@@ -6,9 +7,11 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.EffectHit.Action
 {
+    //FIXME: 這個改狀態是不是不好啊 用ListEntityFromEffectDealer就好了
     /// <summary>
     ///     想要把打到的目標放進/移出一個列表裡面
     /// </summary>
+    [Obsolete]
     public class EffectHitListOperationAction
         : AbstractStateAction,
             IArgEventReceiver<GeneralEffectHitData>

@@ -39,8 +39,7 @@ namespace MonoFSM.Variable
             IBoolProvider,
             IRebindable,
             IDrawDetail,
-            IOverrideHierarchyIcon,
-            IHierarchyValueInfo
+            IOverrideHierarchyIcon
     {
         public static implicit operator bool(VarBool v)
         {

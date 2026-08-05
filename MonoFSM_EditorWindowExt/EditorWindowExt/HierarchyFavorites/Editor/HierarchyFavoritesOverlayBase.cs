@@ -113,7 +113,7 @@ namespace HierarchyFavorites.Editor
             _isSelfSelectionChange = true;
             EditorApplication.delayCall += () => _isSelfSelectionChange = false;
 
-            Selection.activeTransform = target;
+            // Selection.activeTransform = target;
             EditorGUIUtility.PingObject(target);
         }
     }

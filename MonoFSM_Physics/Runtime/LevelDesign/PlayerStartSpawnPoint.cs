@@ -1,5 +1,6 @@
 using System.Linq;
 using MonoFSM.Core;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
@@ -200,17 +201,54 @@ public class PlayerStartSpawnPoint
     [SerializeField]
     private bool _enablePasteTeleportCheat = true;
 
+    [Tooltip("PlayMode 中按 Ctrl/Cmd + C，把玩家當下位置複製成 pos 連結到剪貼簿")]
+    [SerializeField]
+    private bool _enableCopyPosCheat = true;
+
     //場上多個 SpawnPoint 都會跑 Simulate，同一幀只處理一次貼上
     private static int _lastPasteTeleportFrame = -1;
+    private static int _lastCopyPosFrame = -1;
+
+    private static bool IsCtrlPressed(Keyboard keyboard)
+    {
+        return keyboard.leftCtrlKey.isPressed
+               || keyboard.rightCtrlKey.isPressed
+               || keyboard.leftCommandKey.isPressed
+               || keyboard.rightCommandKey.isPressed;
+    }
+
+    //Ctrl/Cmd + C：把玩家當下位置寫進剪貼簿，格式跟貼上端(TryParsePosFromLink)相容
+    private void ProcessCopyPosCheat(Keyboard keyboard)
+    {
+        if (!IsCtrlPressed(keyboard) || !keyboard.cKey.wasPressedThisFrame)
+            return;
+
+        if (_lastCopyPosFrame == Time.frameCount)
+            return;
+        _lastCopyPosFrame = Time.frameCount;
+
+        if (_playerTeleporter is not ICurrentPositionProvider posProvider)
+        {
+            Debug.LogWarning(
+                $"[SpawnPoint] Ctrl+C 複製位置：_playerTeleporter({_playerTeleporter}) 沒實作 ICurrentPositionProvider",
+                this);
+            return;
+        }
+
+        if (!posProvider.TryGetCurrentPosition(out var pos))
+        {
+            Debug.LogWarning("[SpawnPoint] Ctrl+C 複製位置：取不到玩家當下位置", this);
+            return;
+        }
+
+        var text = $"pos={pos.x:F2},{pos.y:F2},{pos.z:F2}";
+        GUIUtility.systemCopyBuffer = text;
+        Debug.Log($"[SpawnPoint] Ctrl+C 已複製玩家位置：{text}", this);
+    }
 
     private void ProcessPasteTeleportCheat(Keyboard keyboard)
     {
-        var isCtrl =
-            keyboard.leftCtrlKey.isPressed
-            || keyboard.rightCtrlKey.isPressed
-            || keyboard.leftCommandKey.isPressed
-            || keyboard.rightCommandKey.isPressed;
-        if (!isCtrl || !keyboard.vKey.wasPressedThisFrame)
+        if (!IsCtrlPressed(keyboard) || !keyboard.vKey.wasPressedThisFrame)
             return;
 
         if (_lastPasteTeleportFrame == Time.frameCount)
@@ -310,6 +348,9 @@ public class PlayerStartSpawnPoint
         var keyboard = Keyboard.current;
         if (keyboard == null)
             return;
+
+        if (_enableCopyPosCheat)
+            ProcessCopyPosCheat(keyboard);
 
         if (_enablePasteTeleportCheat)
             ProcessPasteTeleportCheat(keyboard);

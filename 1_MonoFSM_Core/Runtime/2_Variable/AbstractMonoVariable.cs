@@ -35,7 +35,6 @@ namespace MonoFSM.Variable
             IName,
             IValueOfKey<VariableTag>,
             IOverrideHierarchyIcon,
-            IBeforePrefabSaveCallbackReceiver,
             IConfigTypeProvider,
             IResetStateRestore,
             IDropdownRef,
