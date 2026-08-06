@@ -600,6 +600,12 @@ namespace MonoFSM.Variable
             }
         }
 
+        /// <summary>
+        ///     清掉網路覆寫值，讓 CurrentValue 退回自己的 valueSource / localField。
+        ///     由 NetworkedVarSync 在本地取得 StateAuthority 時呼叫（此後本地算的才是權威值）。
+        /// </summary>
+        public virtual void ClearNetworkOverride() { }
+
         //FIXME: 有value和有 source是兩回事吧？HasProxySource?
         [InfoBox(
             "此變數會使用 ValueProvider 或 Parent VarEntity 的值，無法設定預設值"

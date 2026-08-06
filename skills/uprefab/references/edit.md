@@ -26,7 +26,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `rot\|<node>\|x,y,z` | 設 localEulerAngles（**只有 prefab**） |
 | `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（第二格必填，不猜預設值） |
 | `idx\|<node>\|<siblingIndex>` | 調 sibling 順序。**child 順序＝優先序**（value source / condition 取第一個成立的），負數從尾端算（`-1` = 最後） |
-| `mv\|<node>\|<newParent>` | 換 parent（**只有 scene**） |
+| `mv\|<node>\|<newParent>` | 換 parent（scene 與 prefab 都支援） |
 | `rename\|<node>\|<newName>` | 改節點名（`<node>` 留空 = root）。**掛 `AbstractDescriptionBehaviour` 的節點存檔後會被自動命名蓋掉**（`[Detector] None` → `[Follow] None`），改完要 `read` 看實際名稱 |
 | `auto\|<node>` | **重跑 `[Auto*]` 綁定 —— 結構改完一定要下這行**，見下面 |
 | `del\|<node>` | 刪節點 |

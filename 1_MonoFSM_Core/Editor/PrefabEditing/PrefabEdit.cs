@@ -494,6 +494,23 @@ namespace MonoFSM.Editor.PrefabEditing
                     node.SetSiblingIndex(target);
                     return $"{nodePath} sibling index: {before} -> {node.GetSiblingIndex()}";
                 }
+                case "mv":
+                {
+                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    var newParentPath = EditBatch.At(a, 1);
+                    var node = EditResolve.Node(root, nodePath);
+                    if (string.IsNullOrEmpty(newParentPath))
+                    {
+                        node.SetParent(root, false);
+                        return $"{nodePath} -> (root)";
+                    }
+
+                    var parent = EditResolve.Node(root, newParentPath);
+                    if (parent.IsChildOf(node))
+                        throw new Abort($"'{newParentPath}' 在 '{nodePath}' 底下，會造成迴圈");
+                    node.SetParent(parent, false);
+                    return $"{nodePath} -> {newParentPath}/{node.name}";
+                }
                 case "auto":
                     return EditResolve.RunAuto(
                         EditResolve.Node(root, EditBatch.At(a, 0)));
@@ -536,8 +553,8 @@ namespace MonoFSM.Editor.PrefabEditing
                 }
                 default:
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref active idx auto rename del delcomp" +
-                        "（prefab / pos / mv / save 只有 SceneEdit 有）");
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref active idx mv auto rename del delcomp" +
+                        "（prefab / pos / save 只有 SceneEdit 有）");
             }
         }
 

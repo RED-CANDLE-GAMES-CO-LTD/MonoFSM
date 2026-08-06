@@ -174,6 +174,21 @@ namespace MonoFSMCore.Runtime.LifeCycle
             set => _shouldSimulateFlag = value;
         }
 
+        //跟 ShouldSimulte 同一套 fallback 邏輯，但只回傳 StateAuthority（排除單純的 InputAuthority）。
+        //用於 client prediction 造成數值兩端打架的場合（Stamina/DamageTaken 等只該由 SA 寫入的欄位）。
+        [ShowInInspector]
+        public bool HasStateAuthority
+        {
+            get
+            {
+                if (_authorityProvider != null)
+                    return _authorityProvider.HasStateAuthority;
+                if (HasParent)
+                    return _parentObj.HasStateAuthority;
+                return _shouldSimulateFlag;
+            }
+        }
+
         [PreviewInDebugMode]
         [AutoChildren]
         private ISceneAwake[] _sceneAwakes;

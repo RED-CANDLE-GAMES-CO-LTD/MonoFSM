@@ -78,6 +78,37 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         SetValueInternal(value, byWho, reason);
     }
 
+    //--- 網路覆寫通道 ---
+    //Getter 型 Var（有 valueSource）的 CurrentValue 是每次現算的，SetValue 寫進 Field 也讀不回來，
+    //所以 proxy 端收到權威值時改走這條，讓 GetCurrentValueCore 直接回覆寫值。
+    [ShowInDebugMode] [NonSerialized] private bool _isNetOverridden;
+
+    [ShowInDebugMode] [NonSerialized] private TType _netValue;
+
+    [ShowInDebugMode] private bool IsNetOverridden => _isNetOverridden;
+
+    /// <summary>
+    ///     NetworkedVarSync 的 proxy 端寫入口。有 valueSource 就走覆寫，
+    ///     沒有的話行為與一般 SetValue 完全相同（不影響既有 Var）。
+    /// </summary>
+    public void SetValueFromNetwork(TType value, Object byWho)
+    {
+        if (!HasValueSource)
+        {
+            SetValueInternal(value, byWho, "Network");
+            return;
+        }
+
+        _isNetOverridden = true;
+        _netValue = value;
+    }
+
+    public override void ClearNetworkOverride()
+    {
+        _isNetOverridden = false;
+        _netValue = default;
+    }
+
     public override void CommitValue()
     {
         this.Log("CommitValue", this);
@@ -403,6 +434,8 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
     private TType GetCurrentValueCore()
     {
+        if (_isNetOverridden) //proxy 端收到的權威值，優先於本地現算
+            return _netValue;
         if (valueSource != null) //用外部source getter, 這樣原本一坨都不需要了吧？
             return valueSource.Get<TType>();
         if (varRef != null)
@@ -607,6 +640,8 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         //FIXME: if not init, restore? 應該要弄個ISceneAwake?
         // _localField.Init(TestMode.Production, this);
         // Field.ResetToDefault();
+        //網路覆寫值是 reset 前的殘留，不清掉的話 Getter 型 Var 在 client 端 reset 後讀到的還是舊網路值
+        ClearNetworkOverride();
         Field.Init(TestMode.Production, this);
     }
 

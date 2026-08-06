@@ -17,6 +17,20 @@ namespace MonoFSM.Core.Simulate
 {
     public interface ISimulateRunner { }
 
+    /// <summary>
+    ///     Level reset 的網路廣播入口（由 Fusion 層的 NetworkedLevelResetSync 實作並註冊）。
+    ///     有連線時 ManualResetLevel 會路由到這裡：SA 端 bump 版本號後各 peer 各自本地 reset，
+    ///     確保 client 端沒被 NetworkedVarSync 覆蓋的本地狀態（FSM state、非同步 Var、pool 物件）也被還原。
+    /// </summary>
+    public interface ILevelResetBroadcaster
+    {
+        /// <summary>是否為網路權威端（multi-peer 下用來優先挑 SA 那顆直接 bump，省一趟 RPC）。</summary>
+        bool IsResetAuthority { get; }
+
+        /// <summary>回傳 true 表示請求已交給網路層（本地 reset 由它回呼），false 表示目前無法處理。</summary>
+        bool TryBroadcastReset(bool isHardReset);
+    }
+
     public static class WorldUpdateSimulatorExtensions
     {
         public static MonoObj Spawn(
@@ -634,9 +648,57 @@ namespace MonoFSM.Core.Simulate
         }
 #endif
 
+        // ===================== Level Reset 網路廣播（ILevelResetBroadcaster 註冊） =====================
+
+        private static readonly List<ILevelResetBroadcaster> _resetBroadcasters = new();
+
+        public static void RegisterResetBroadcaster(ILevelResetBroadcaster broadcaster)
+        {
+            if (broadcaster != null && !_resetBroadcasters.Contains(broadcaster))
+                _resetBroadcasters.Add(broadcaster);
+        }
+
+        public static void UnregisterResetBroadcaster(ILevelResetBroadcaster broadcaster)
+        {
+            _resetBroadcasters.Remove(broadcaster);
+        }
+
+        /// <summary>
+        ///     優先挑 SA 端的 broadcaster 直接 bump（multi-peer 下 host/client 兩顆都註冊著，
+        ///     挑 SA 那顆可以省一趟 RPC，也讓同 frame 的重複請求在同一顆上被 tick 去重）。
+        /// </summary>
+        private static bool TryBroadcastResetToNetwork(bool isHardReset)
+        {
+            ILevelResetBroadcaster fallback = null;
+            foreach (var b in _resetBroadcasters)
+            {
+                if (b is Object o && o == null) continue; //已被 Destroy 的殘留註冊
+                if (b.IsResetAuthority)
+                    return b.TryBroadcastReset(isHardReset);
+                fallback ??= b;
+            }
+
+            return fallback != null && fallback.TryBroadcastReset(isHardReset);
+        }
+
         public static void ManualResetLevel(bool isHardReset = false) //Cheat Reset?
         {
             Debug.Log("ResetLevel CMD+Shift+R isHardReset:" + isHardReset);
+            //有網路 broadcaster 就走 SA 廣播：SA bump 版本號，各 peer 收到後各自 ResetLevel 自己的 simulator
+            if (TryBroadcastResetToNetwork(isHardReset))
+            {
+                Debug.Log("ResetLevel routed to network broadcaster (SA 廣播，各 peer 本地 reset)");
+                return;
+            }
+
+            ManualResetLevelLocal(isHardReset);
+        }
+
+        /// <summary>
+        ///     純本地 reset：把同進程所有 simulator 全部重置（無連線 / broadcaster 尚未 Spawned 的 fallback）。
+        /// </summary>
+        public static void ManualResetLevelLocal(bool isHardReset = false)
+        {
             var simulators = FindObjectsByType<WorldUpdateSimulator>(FindObjectsSortMode.None);
             //FIXME: 會拿到Temporary Runner Prefab所以才全拿
             if (simulators.Length == 0)
@@ -660,6 +722,19 @@ namespace MonoFSM.Core.Simulate
                     //這樣就可以reset了
                     simulator.ResetLevelStart();
             }
+        }
+
+        /// <summary>
+        ///     單一 simulator 的完整 reset 序列（給網路廣播的每個 peer 對自己 runner 上的 simulator 呼叫）。
+        /// </summary>
+        public void ResetLevel(bool isHardReset = false)
+        {
+            Debug.Log($"WorldUpdateSimulator.ResetLevel isHardReset:{isHardReset}", this);
+            _poolManager.ReturnAllObjects();
+            foreach (var resetHandler in GetComponents<ILevelResetSpawnHandler>())
+                resetHandler.OnBeforeLevelReset();
+            ResetLevelRestore(isHardReset);
+            ResetLevelStart();
         }
 
         public void BeforeRender()

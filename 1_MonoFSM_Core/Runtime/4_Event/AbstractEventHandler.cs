@@ -33,6 +33,7 @@ namespace MonoFSM.Core
     public abstract class AbstractEventHandler : AbstractDescriptionBehaviour, IActionParent,
         IResetStateRestore, IRenderInvoker
     {
+
         protected override string DescriptionTag => "Event";
 
         public override string Description => GetType().Name.Replace("Handler", "");
@@ -41,6 +42,11 @@ namespace MonoFSM.Core
         //FIXME: 先做一個繞開
         public bool
             _forceExecuteWithoutStateAuthority; //FIXME: 被MonoObj擋掉囉
+
+        [Tooltip(
+            "勾選後此 handler 的所有 action 只在 StateAuthority 執行；client 端（含 InputAuthority）完全不跑，" +
+            "視覺表現交給 render sync（NetworkEventVisualSync）從網路觸發")]
+        public bool _stateAuthorityOnly;
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
         protected IEventReceiver[] _eventReceivers; //IActions
@@ -100,9 +106,12 @@ namespace MonoFSM.Core
         public override string ValueInfo =>
             _parentObj.IsCulling ? "Culled" : "Sim" + ShouldSimulate + _lastSkipReason;
 
+        //提前顯示 重要資訊？_stateAuthorityOnly？_forceExecuteWithoutStateAuthority？
         public override bool IsDrawingValueInfo => Application.isPlaying;
 
-        private bool ShouldSimulate =>
+        private bool ShouldSimulate => _stateAuthorityOnly
+            ? _parentObj.HasStateAuthority
+            :
             _parentObj.ShouldSimulte || _forceExecuteWithoutStateAuthority;
         [PreviewInDebugMode] protected float _lastSimulateEventTime = -1f;
 
@@ -140,6 +149,12 @@ namespace MonoFSM.Core
             if (_parentObj.IsCulling) //FIXME: 有需要分visual和logic culling?
             {
                 MarkSkipped("parentObj culling");
+                return;
+            }
+
+            if (_stateAuthorityOnly && !_parentObj.HasStateAuthority)
+            {
+                MarkSkipped("stateAuthorityOnly: not state authority");
                 return;
             }
 
