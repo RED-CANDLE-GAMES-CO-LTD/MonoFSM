@@ -29,6 +29,10 @@ namespace MonoFSM.Core
                 }
                 // 在這裡執行作弊行為，例如增加分數、解鎖功能等
             }
+            else if (Keyboard.current[Key.F5].wasPressedThisFrame)
+            {
+                WorldUpdateSimulator.ManualResetLevel();
+            }
 
             //切換語言（循環）
             if (Keyboard.current.digit9Key.wasPressedThisFrame)
