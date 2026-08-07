@@ -6,6 +6,19 @@ using UnityEngine;
 
 namespace Gameplay.EffectZone
 {
+    /// <summary>判定「誰算在這個 zone 裡」的方式。</summary>
+    public enum ZoneCoverage
+    {
+        [Tooltip("以自己為圓心、半徑內都算（ex: 供電廟的供電區）")]
+        Radius = 0,
+
+        [Tooltip("Hierarchy 底下的子孫都算，不看距離（ex: 掛在車廂 root，車上的東西都有電）")]
+        Hierarchy = 1,
+
+        [Tooltip("兩者任一成立都算")]
+        Both = 2,
+    }
+
     /// <summary>
     /// 「以自己為圓心、半徑內都算受影響」的範圍效果區來源（ex: 供電廟的供電區）。
     /// 掛在提供效果的那顆物件上，enable 時自動登錄，不需要被影響的一方持有任何 reference。
@@ -23,11 +36,17 @@ namespace Gameplay.EffectZone
         [SerializeField]
         private GeneralEffectType _zoneType;
 
+        [Tooltip("判定方式：距離、Hierarchy 從屬、或兩者任一")]
+        [SerializeField]
+        private ZoneCoverage _coverage = ZoneCoverage.Radius;
+
         [Tooltip("生效半徑（公尺）")]
+        [HideIf("@_coverage == ZoneCoverage.Hierarchy")]
         [SerializeField]
         private float _radius = 90f;
 
         [Tooltip("圓心，留空則用自己的 transform")]
+        [HideIf("@_coverage == ZoneCoverage.Hierarchy")]
         [SerializeField]
         private Transform _centerOverride;
 
@@ -51,14 +70,29 @@ namespace Gameplay.EffectZone
             _isActiveVar == null
             || (_isActiveVar.isActiveAndEnabled && _isActiveVar.CurrentValue);
 
+        /// <summary>這個 zone 有沒有開啟距離判定（Hierarchy-only 的不會進 registry，這裡是保險）。</summary>
+        public bool HasRadiusCoverage => _coverage != ZoneCoverage.Hierarchy;
+
+        /// <summary>這個 zone 有沒有開啟 Hierarchy 從屬判定。</summary>
+        public bool HasHierarchyCoverage => _coverage != ZoneCoverage.Radius;
+
         public bool Covers(Vector3 pos)
         {
-            return IsZoneActive && (pos - Center).sqrMagnitude <= RadiusSqr;
+            return HasRadiusCoverage && IsZoneActive && (pos - Center).sqrMagnitude <= RadiusSqr;
         }
+
+        /// <summary>
+        /// 給 IsParentEntityHasEffectZoneCondition 用：這顆 zone 現在能不能罩住自己的子孫。
+        /// registry 版本靠 OnEnable/OnDisable 天然只留 enabled 的，Hierarchy 版本是往上直接抓 component，
+        /// 所以要自己檢查 isActiveAndEnabled（中間某層被關掉時就不該算）。
+        /// </summary>
+        public bool CoversHierarchy => HasHierarchyCoverage && isActiveAndEnabled && IsZoneActive;
 
         private void OnEnable()
         {
-            EffectZoneRegistry.Register(this);
+            //Hierarchy-only 的不需要被掃距離，別佔 registry
+            if (HasRadiusCoverage)
+                EffectZoneRegistry.Register(this);
         }
 
         private void OnDisable()
@@ -69,6 +103,8 @@ namespace Gameplay.EffectZone
 #if UNITY_EDITOR
         private void OnDrawGizmosSelected()
         {
+            if (!HasRadiusCoverage)
+                return;
             Gizmos.color = IsZoneActive ? new Color(1f, 0.9f, 0.2f, 0.5f) : new Color(0.5f, 0.5f, 0.5f, 0.35f);
             Gizmos.DrawWireSphere(Center, _radius);
         }

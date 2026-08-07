@@ -571,6 +571,7 @@ namespace MonoFSM.Variable
 
         //value source 機制：所有變數共用（TypedMonoVariable / VarList 都繼承這套），
         //一致地撿任何 child IValueProvider（含 GetVarFromParentEntitySource）。
+        [HideIf(nameof(HasProxySource))]
         [SerializeField]
         private bool _needValueSource = false;
 

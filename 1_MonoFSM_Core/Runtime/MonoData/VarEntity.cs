@@ -1,9 +1,9 @@
+using System;
+using System.Collections.Generic;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
-using MonoFSM.EditorExtension;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Variable;
-using MonoFSM.Variable.Attributes;
 using MonoFSM.Variable.FieldReference;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -51,10 +51,10 @@ namespace MonoFSM.Runtime.Variable
             }
         }
 
-        [PreviewInInspector]
-        [AutoChildren(DepthOneOnly = true)]
-        [CompRef]
-        private IEntityValueProvider _entityValueSource;
+        // [PreviewInInspector]
+        // [AutoChildren(DepthOneOnly = true)]
+        // [CompRef]
+        // private IEntityValueProvider _entityValueSource;
 
         //         [BoxGroup("定義型別")]
         //         [PropertyOrder(-1)]
@@ -119,5 +119,71 @@ namespace MonoFSM.Runtime.Variable
         // }
 
         //來源需要強型別嗎？
+
+#if UNITY_EDITOR
+        //Schema 自動提示：EntityTag.containsVariableTypeTags 是這個 entity 的欄位宣告（來源 prefab 存檔時自動補齊），
+        //下拉只列出還沒加過的 tag，選了按「加入」就生出對應型別的 proxy [Var] 子節點
+        [BoxGroup("Schema 變數")]
+        [PropertyOrder(60)]
+        [LabelText("加入 Var")]
+        [ValueDropdown(nameof(GetMissingSchemaTagItems))]
+        [InlineButton(nameof(AddVarOfSelectedSchemaTag), "加入")]
+        [ShowInInspector]
+        [NonSerialized]
+        private VariableTag _schemaTagToAdd;
+
+        private IEnumerable<ValueDropdownItem<VariableTag>> GetMissingSchemaTagItems()
+        {
+            var items = new List<ValueDropdownItem<VariableTag>>();
+            var entityTag = EntityTag;
+            if (entityTag == null)
+                return items;
+
+            var existing = new HashSet<VariableTag>();
+            foreach (var v in GetComponentsInChildren<AbstractMonoVariable>(true))
+                if (v != this && v._varTag != null)
+                    existing.Add(v._varTag);
+
+            foreach (var varTag in entityTag.containsVariableTypeTags)
+            {
+                if (varTag == null || existing.Contains(varTag))
+                    continue;
+                items.Add(
+                    new ValueDropdownItem<VariableTag>(
+                        $"{varTag.name} <{varTag.VariableMonoType?.Name ?? "型別未設定"}>",
+                        varTag
+                    )
+                );
+            }
+
+            return items;
+        }
+
+        private void AddVarOfSelectedSchemaTag()
+        {
+            if (_schemaTagToAdd == null)
+            {
+                Debug.LogWarning("先從下拉選單挑一個 VariableTag 再按加入", this);
+                return;
+            }
+
+            var varType = _schemaTagToAdd.VariableMonoType;
+            if (varType == null || !typeof(AbstractMonoVariable).IsAssignableFrom(varType))
+            {
+                Debug.LogError(
+                    $"VariableTag {_schemaTagToAdd.name} 的變數綁定型別未設定，無法生成",
+                    _schemaTagToAdd
+                );
+                return;
+            }
+
+            var variable = (AbstractMonoVariable)
+                gameObject.AddChildrenComponent(varType, $"[Var] {_schemaTagToAdd.name}");
+            variable._varTag = _schemaTagToAdd;
+            AutoAttributeManager.AutoReferenceFieldEditor(variable, "_parentVarEntity");
+            UnityEditor.EditorUtility.SetDirty(variable);
+            _schemaTagToAdd = null;
+        }
+#endif
     }
 }

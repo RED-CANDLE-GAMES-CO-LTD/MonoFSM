@@ -107,6 +107,14 @@ namespace MonoFSM.Runtime
 
         public MonoEntityBinder OwnBinder => _ownBinder;
 
+        //FIXME: 不想要這個耦合吧
+        //自己身上的 EffectZone (opt-in，掛在自己 GameObject 上)
+        //給 IsParentEntityHasEffectZoneCondition 沿 ParentEntity 鏈往上問時免 GetComponent
+        // [Auto(logMissingAsError: false)] [PreviewInInspector]
+        // Gameplay.EffectZone.EffectZone _ownEffectZone;
+        //
+        // public Gameplay.EffectZone.EffectZone OwnEffectZone => _ownEffectZone;
+
         //parent scope binder：往上找最近一個 binder (跳過 self 的 _ownBinder)
         //有的話優先註冊到這裡，做出 entity 的 hierarchy scope
         [AutoParent(getMadIfMissing: false, includeSelf: false)]
