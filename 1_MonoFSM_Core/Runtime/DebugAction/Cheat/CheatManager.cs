@@ -19,6 +19,8 @@ namespace MonoFSM.Core
                 if (
                     Keyboard.current[Key.R].wasPressedThisFrame)
                 {
+                    //Cmd/Ctrl + Alt + R 走的也是這裡的 soft reset，額外的「瞬移玩家回 SpawnPoint」
+                    //由 PlayerStartSpawnPoint 自己攔 Alt 處理（asmdef 不能反向依賴 Physics）
                     if (
                         Keyboard.current[Key.LeftShift].isPressed)
                         WorldUpdateSimulator.ManualResetLevel(true);

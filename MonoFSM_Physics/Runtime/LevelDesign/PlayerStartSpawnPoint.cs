@@ -205,9 +205,14 @@ public class PlayerStartSpawnPoint
     [SerializeField]
     private bool _enableCopyPosCheat = true;
 
+    [Tooltip("PlayMode 中按 Ctrl/Cmd + Alt + R，soft reset 關卡並把玩家瞬移回 SpawnPoint 當下位置")]
+    [SerializeField]
+    private bool _enableTeleportToSpawnCheat = true;
+
     //場上多個 SpawnPoint 都會跑 Simulate，同一幀只處理一次貼上
     private static int _lastPasteTeleportFrame = -1;
     private static int _lastCopyPosFrame = -1;
+    private static int _lastTeleportToSpawnFrame = -1;
 
     private static bool IsCtrlPressed(Keyboard keyboard)
     {
@@ -215,6 +220,37 @@ public class PlayerStartSpawnPoint
                || keyboard.rightCtrlKey.isPressed
                || keyboard.leftCommandKey.isPressed
                || keyboard.rightCommandKey.isPressed;
+    }
+
+    private static bool IsAltPressed(Keyboard keyboard)
+    {
+        return keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed;
+    }
+
+    //Ctrl/Cmd + Alt + R：soft reset(由 CheatManager 觸發) + 把玩家瞬移回 SpawnPoint 當下位置。
+    //跟 Cmd+R(soft reset，玩家不動) / Cmd+Shift+R(hard reset，回 oriSpawnRef) 形成三段互補。
+    //瞬移跟 reset 的先後不影響結果：soft reset 的 ResetStateRestore(false) 本來就不動玩家位置。
+    private void ProcessTeleportToSpawnCheat(Keyboard keyboard)
+    {
+        if (!IsCtrlPressed(keyboard) || !IsAltPressed(keyboard) ||
+            !keyboard.rKey.wasPressedThisFrame)
+            return;
+
+        //場上多個 SpawnPoint 都會跑 Simulate，同一幀只處理一次
+        if (_lastTeleportToSpawnFrame == Time.frameCount)
+            return;
+        _lastTeleportToSpawnFrame = Time.frameCount;
+
+        var current = GetCurrentSpawnPoint();
+        if (current == null)
+        {
+            Debug.LogWarning("[SpawnPoint] Cmd/Ctrl+Alt+R 瞬移：場上找不到 PlayerStartSpawnPoint", this);
+            return;
+        }
+
+        var pos = current.PlayTestSpawnPosition;
+        Debug.Log($"[SpawnPoint] Cmd/Ctrl+Alt+R reset 關卡並瞬移玩家回 SpawnPoint 位置 {pos}", current);
+        current.ProcessTeleport(pos);
     }
 
     //Ctrl/Cmd + C：把玩家當下位置寫進剪貼簿，格式跟貼上端(TryParsePosFromLink)相容
@@ -354,6 +390,9 @@ public class PlayerStartSpawnPoint
 
         if (_enablePasteTeleportCheat)
             ProcessPasteTeleportCheat(keyboard);
+
+        if (_enableTeleportToSpawnCheat)
+            ProcessTeleportToSpawnCheat(keyboard);
 
         if (keyboard.backquoteKey.wasPressedThisFrame)
         {
