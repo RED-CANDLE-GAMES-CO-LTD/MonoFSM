@@ -29,9 +29,25 @@ namespace HierarchyFavorites.Editor
         // tab 切換時重建後自動聚焦搜尋框
         private static bool _focusSearchOnNextBuild;
 
+        // ---- 收集結果快取 ----
+        // 收集只跟 hierarchy / tab 有關，跟搜尋字串無關。打字時重用快取，
+        // 避免每個字都做一次 GetComponentsInChildren 全掃（Descriptions tab 動輒上千個 component）。
+        // Build() 才會失效：selection / prefab stage / tab 切換都會走 Build。
+        private static readonly Dictionary<HierarchyFavoritesSettings.ContentMode, List<VariableGroup>>
+            _variableGroupCache = new();
+
+        private static List<FavoriteGroup> _favoriteGroupCache;
+
+        private static void InvalidateCollectCache()
+        {
+            _variableGroupCache.Clear();
+            _favoriteGroupCache = null;
+        }
+
         /// <summary>重建整個內容（title / tabs / search / groups）到 root 上。</summary>
         public static void Build(VisualElement root, Action onRebuild, string titleSuffix = "")
         {
+            InvalidateCollectCache();
             BindHotkeys(root, onRebuild);
 
             // Bug A：重建會把 ScrollView 砍掉重建，先存 scrollOffset，重建完還原
@@ -121,7 +137,7 @@ namespace HierarchyFavorites.Editor
 
             root.RegisterCallback<KeyDownEvent>(e =>
             {
-                Debug.Log("[HierarchyFavorites] KeyDown:" + e.keyCode + e.character);
+                // Debug.Log("[HierarchyFavorites] KeyDown:" + e.keyCode + e.character);
                 if (e.keyCode == KeyCode.Tab)
                 {
                     Debug.Log("[HierarchyFavorites] Tab");
@@ -158,6 +174,10 @@ namespace HierarchyFavorites.Editor
         }
 
         // ---- 搜尋框 ----
+        // 打字 debounce 間隔；停止輸入這麼久之後才重填清單
+        private const long SearchDebounceMs = 120;
+        private static IVisualElementScheduledItem _searchDebounce;
+
         private static TextField BuildSearchField(VisualElement entriesContainer, Label emptyHint,
             HierarchyFavoritesSettings.ContentMode contentMode)
         {
@@ -165,10 +185,14 @@ namespace HierarchyFavorites.Editor
             searchField.AddToClassList("hf-search-field");
 
             // 搜尋輸入只重填結果容器，不重建整個 UI（TextField 保持存活，focus 不會掉）
+            // 連打時 debounce，只有停下來才真的重填，避免每個字都重建一整份按鈕清單
             searchField.RegisterValueChangedCallback(e =>
             {
                 _variableSearch = e.newValue;
-                RefillContent(entriesContainer, emptyHint, contentMode);
+                _searchDebounce?.Pause();
+                _searchDebounce = searchField.schedule
+                    .Execute(() => RefillContent(entriesContainer, emptyHint, contentMode))
+                    .StartingIn(SearchDebounceMs);
             });
 
             // 保險：按鍵不要冒泡出去觸發編輯器全域快捷鍵（SceneView 的 F、Q/W/E/R 等）
@@ -230,7 +254,7 @@ namespace HierarchyFavorites.Editor
         private static void BuildFavoritesContent(VisualElement entriesContainer, Label emptyHint)
         {
             entriesContainer.Clear();
-            var groups = HierarchyFavoritesCollector.GetActiveGroups();
+            var groups = _favoriteGroupCache ??= HierarchyFavoritesCollector.GetActiveGroups();
             var search = _variableSearch ?? string.Empty;
 
             int visibleEntryCount = 0;
@@ -259,46 +283,74 @@ namespace HierarchyFavorites.Editor
         {
             entriesContainer.Clear();
 
-            List<VariableGroup> groups;
-            string emptyText;
-            switch (contentMode)
-            {
-                case HierarchyFavoritesSettings.ContentMode.Effects:
-                    groups = VariableFolderCollector.GetEffectGroups();
-                    emptyText = "No EffectDealer / EffectReceiver (or matching search) found.";
-                    break;
-                case HierarchyFavoritesSettings.ContentMode.States:
-                    groups = VariableFolderCollector.GetStateGroups();
-                    emptyText = "No MonoStateBehaviour (or matching search) found.";
-                    break;
-                case HierarchyFavoritesSettings.ContentMode.Descriptions:
-                    groups = VariableFolderCollector.GetDescriptionGroups();
-                    emptyText = "No AbstractDescriptionBehaviour (or matching search) found.";
-                    break;
-                default:
-                    groups = VariableFolderCollector.GetActiveGroups();
-                    emptyText = "No variable (or matching search) found.";
-                    break;
-            }
-
+            var groups = GetCachedGroups(contentMode, out var emptyText);
             var search = _variableSearch ?? string.Empty;
 
-            int visibleEntryCount = 0;
+            // 建 Button 是重填的主要成本，設上限避免無搜尋字串時一次生出上千個
+            var budget = MaxVisibleEntries;
+            int builtTotal = 0;
+            int matchedTotal = 0;
             foreach (var groupData in groups)
             {
                 if (groupData == null) continue;
-                var groupElement = BuildVariableGroup(groupData, search, out int count);
-                if (count == 0) continue;
+                var groupElement =
+                    BuildVariableGroup(groupData, search, budget, out int built, out int matched);
+                matchedTotal += matched;
+                if (built == 0) continue;
                 entriesContainer.Add(groupElement);
-                visibleEntryCount += count;
+                budget -= built;
+                builtTotal += built;
+            }
+
+            if (matchedTotal > builtTotal)
+            {
+                var more = new Label($"… 還有 {matchedTotal - builtTotal} 筆未顯示，請縮小搜尋範圍");
+                more.AddToClassList("favorites-group-header");
+                entriesContainer.Add(more);
             }
 
             if (emptyHint != null)
             {
                 emptyHint.text = emptyText;
                 emptyHint.style.display =
-                    visibleEntryCount == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+                    matchedTotal == 0 ? DisplayStyle.Flex : DisplayStyle.None;
             }
+        }
+
+        /// <summary>各 tab 的收集結果（快取版），打字時不會重掃 hierarchy。</summary>
+        private static List<VariableGroup> GetCachedGroups(
+            HierarchyFavoritesSettings.ContentMode contentMode, out string emptyText)
+        {
+            switch (contentMode)
+            {
+                case HierarchyFavoritesSettings.ContentMode.Effects:
+                    emptyText = "No EffectDealer / EffectReceiver (or matching search) found.";
+                    break;
+                case HierarchyFavoritesSettings.ContentMode.States:
+                    emptyText = "No MonoStateBehaviour (or matching search) found.";
+                    break;
+                case HierarchyFavoritesSettings.ContentMode.Descriptions:
+                    emptyText = "No AbstractDescriptionBehaviour (or matching search) found.";
+                    break;
+                default:
+                    emptyText = "No variable (or matching search) found.";
+                    break;
+            }
+
+            if (_variableGroupCache.TryGetValue(contentMode, out var cached)) return cached;
+
+            var groups = contentMode switch
+            {
+                HierarchyFavoritesSettings.ContentMode.Effects =>
+                    VariableFolderCollector.GetEffectGroups(),
+                HierarchyFavoritesSettings.ContentMode.States =>
+                    VariableFolderCollector.GetStateGroups(),
+                HierarchyFavoritesSettings.ContentMode.Descriptions =>
+                    VariableFolderCollector.GetDescriptionGroups(),
+                _ => VariableFolderCollector.GetActiveGroups(),
+            };
+            _variableGroupCache[contentMode] = groups;
+            return groups;
         }
 
         private static VisualElement BuildGroup(FavoriteGroup groupData, string search,
@@ -344,8 +396,13 @@ namespace HierarchyFavorites.Editor
             return group;
         }
 
+        // 一次重填最多建立幾個 entry button（超過的用提示帶過）
+        private const int MaxVisibleEntries = 300;
+
+        // budget: 還可以建幾個 button / entryCount: 實際建出來的數量
+        // matchedCount: 符合搜尋的數量（含超出 budget 沒建的）
         private static VisualElement BuildVariableGroup(VariableGroup groupData, string search,
-            out int entryCount)
+            int budget, out int entryCount, out int matchedCount)
         {
             var group = new VisualElement();
             group.AddToClassList("favorites-group");
@@ -363,17 +420,22 @@ namespace HierarchyFavorites.Editor
             group.Add(header);
 
             entryCount = 0;
+            matchedCount = 0;
             foreach (var item in groupData.Items)
             {
                 if (item.Target == null) continue;
                 if (!MatchesSearch(item, search)) continue;
+                matchedCount++;
+                if (entryCount >= budget) continue; //超出上限只計數不建 button
 
                 var target = item.Target;
                 var displayText = $"{item.Label}  <{item.TypeName}>";
                 if (!string.IsNullOrEmpty(item.TagName) && item.TagName != item.Label)
                     displayText += $"  [{item.TagName}]";
+                displayText += FormatNotePreview(item.Note);
 
                 var btn = new Button { text = displayText };
+                btn.tooltip = item.Note;
                 btn.AddToClassList("favorites-item");
                 btn.RegisterCallback<MouseDownEvent>(e =>
                 {
@@ -392,7 +454,20 @@ namespace HierarchyFavorites.Editor
         {
             if (string.IsNullOrEmpty(search)) return true;
             return Contains(item.Label, search) || Contains(item.TypeName, search) ||
-                   Contains(item.TagName, search);
+                   Contains(item.TagName, search) || Contains(item.Note, search);
+        }
+
+        private const int NotePreviewLength = 40;
+
+        /// <summary>note 接在按鈕文字後面，讓「為什麼命中」看得出來；太長就截斷、換行改空白</summary>
+        private static string FormatNotePreview(string note)
+        {
+            if (string.IsNullOrEmpty(note)) return string.Empty;
+            var oneLine = note.Replace('\n', ' ').Replace('\r', ' ').Trim();
+            if (oneLine.Length == 0) return string.Empty;
+            if (oneLine.Length > NotePreviewLength)
+                oneLine = oneLine.Substring(0, NotePreviewLength) + "…";
+            return "  // " + oneLine;
         }
 
         private static bool Contains(string source, string search)

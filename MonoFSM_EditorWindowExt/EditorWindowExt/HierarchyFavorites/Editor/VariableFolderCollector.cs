@@ -24,6 +24,9 @@ namespace HierarchyFavorites.Editor
         public string Label;
         public string TypeName;
         public string TagName;
+
+        /// <summary>AbstractDescriptionBehaviour 的 _note（已去掉 note:/todo: 等前綴），可被搜尋</summary>
+        public string Note;
     }
 
     /// <summary>
@@ -75,6 +78,7 @@ namespace HierarchyFavorites.Editor
                         Label = v.gameObject.name,
                         TypeName = v.GetType().Name,
                         TagName = v._varTag != null ? v._varTag.name : string.Empty,
+                        Note = GetNote(v),
                     });
                 }
             }
@@ -103,6 +107,7 @@ namespace HierarchyFavorites.Editor
                 var dealerSet = new HashSet<GameObject>();
                 var receiverSet = new HashSet<GameObject>();
                 var typeNames = new Dictionary<GameObject, List<string>>();
+                var notes = new Dictionary<GameObject, string>();
 
                 var behaviours = root.GetComponentsInChildren<MonoBehaviour>(true);
                 foreach (var mb in behaviours)
@@ -124,6 +129,13 @@ namespace HierarchyFavorites.Editor
                     if (!names.Contains(typeName)) names.Add(typeName);
                     if (isDealer) dealerSet.Add(go);
                     if (isReceiver) receiverSet.Add(go);
+
+                    // 同一 GameObject 上多個 component 的 note 串起來，才不會漏掉其中一個的說明
+                    var note = GetNote(mb);
+                    if (!string.IsNullOrEmpty(note))
+                        notes[go] = notes.TryGetValue(go, out var prev) && !string.IsNullOrEmpty(prev)
+                            ? prev + " / " + note
+                            : note;
                 }
 
                 foreach (var go in goOrder)
@@ -139,6 +151,7 @@ namespace HierarchyFavorites.Editor
                         Label = go.name,
                         TypeName = string.Join(", ", typeNames[go]),
                         TagName = isDealer && isReceiver ? "D/R" : isDealer ? "D" : "R",
+                        Note = notes.TryGetValue(go, out var goNote) ? goNote : null,
                     });
                 }
             }
@@ -174,6 +187,7 @@ namespace HierarchyFavorites.Editor
                         Label = state.gameObject.name,
                         TypeName = state.GetType().Name,
                         TagName = string.Empty,
+                        Note = GetNote(state),
                     });
                 }
             }
@@ -204,6 +218,7 @@ namespace HierarchyFavorites.Editor
                         Label = desc.gameObject.name,
                         TypeName = desc.GetType().Name,
                         TagName = string.Empty,
+                        Note = desc.Note,
                     });
                 }
             }
@@ -212,6 +227,10 @@ namespace HierarchyFavorites.Editor
         }
 
         // ---- 共用 helpers ----
+
+        // 只有 AbstractDescriptionBehaviour 有 _note；Note property 內部有 _cleanNote cache，重複取用很便宜
+        private static string GetNote(Component comp) =>
+            comp is AbstractDescriptionBehaviour desc ? desc.Note : null;
 
         private static VariableGroup GetOrAddGroup(List<VariableGroup> result,
             Dictionary<Transform, VariableGroup> groups, Transform groupTransform, string name)

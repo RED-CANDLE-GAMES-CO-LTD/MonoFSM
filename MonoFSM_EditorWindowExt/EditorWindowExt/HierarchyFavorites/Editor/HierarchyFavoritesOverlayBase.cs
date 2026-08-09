@@ -10,9 +10,7 @@ namespace HierarchyFavorites.Editor
 
         internal static void ShowOverForMode(HierarchyFavoritesSettings.OverlayMode mode, Rect hierarchyScreenRect)
         {
-            var targetType = mode == HierarchyFavoritesSettings.OverlayMode.IMGUI
-                ? typeof(HierarchyFavoritesOverlayIMGUI)
-                : typeof(HierarchyFavoritesOverlayUIToolkit);
+            var targetType = typeof(HierarchyFavoritesOverlayUIToolkit);
 
             //Debug.Log($"[HF-Base] ShowOverForMode mode={mode} rect={hierarchyScreenRect} hasCurrent={_current != null}");
 
