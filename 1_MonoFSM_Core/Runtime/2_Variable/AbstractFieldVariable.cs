@@ -95,7 +95,11 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     {
         if (!HasValueSource)
         {
-            SetValueInternal(value, byWho, "Network");
+            //fromNetwork：權威端寫出前已經 clamp 過了，非 SA 端再 clamp 一次只會製造分歧。
+            //bound 常綁在 VarStat 的 FinalValue 上，而 StatModifier 的來源不見得都有同步
+            //（例：Max Stamina 扣身上負重 / 搬運質量），兩端 bound 不同就會把權威值壓成別的數字，
+            //表現為 UI 抖動。這條也是唯一能繞過網路權威 gate 的入口。
+            SetValueInternal(value, byWho, "Network", true);
             return;
         }
 
@@ -457,19 +461,45 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
     // SetValue???
 
-    protected void SetValueInternal(TType value, Object byWho, string reason = null)
+    /// <summary>
+    ///     少數真的需要在非 SA 端本地預測的地方用（明確 opt-in），一般寫入請用 SetValue。
+    /// </summary>
+    public void SetValueLocalPredicted(TType value, Object byWho = null)
     {
+        SetValueInternal(value, byWho, "LocalPredicted", false, true);
+    }
+
+    /// <param name="fromNetwork">
+    ///     這是網路權威值寫入：略過 _modifiers（bound clamp 等），也不受權威 gate 限制。
+    ///     只由 SetValueFromNetwork 傳 true。
+    /// </param>
+    /// <param name="ignoreAuthorityGate">
+    ///     明確 opt-in 的本地預測寫入，見 SetValueLocalPredicted。
+    /// </param>
+    protected void SetValueInternal(TType value, Object byWho, string reason = null,
+        bool fromNetwork = false, bool ignoreAuthorityGate = false)
+    {
+        //已被 NetworkedVarSync 認領的 Var，權威在 StateAuthority 端；
+        //非 SA 端的本地寫入會跟每 tick 讀回的權威值打架，直接擋掉
+        if (!fromNetwork && !ignoreAuthorityGate && IsLocalWriteBlockedByNetwork)
+        {
+            RecordNetworkBlocked(byWho);
+            return;
+        }
+
         Profiler.BeginSample("FieldVariable SetValueInternal");
 
         // 如果有 ParentVarEntity，代理 SetValue 到 parent entity 的 Variable
         if (varRef != null)
         {
+            //代理型 Var 不會被掛上 NetworkedVarSync（同步的是被指向的實體 Var），
+            //gate 與 fromNetwork 都交給對面那個 Var 自己判斷
             varRef.SetRaw(value, byWho);
             Profiler.EndSample();
             return;
         }
 
-        var (result, tempValue) = SetValueExecution(value, byWho as MonoBehaviour);
+        var (result, tempValue) = SetValueExecution(value, byWho as MonoBehaviour, fromNetwork);
         if (result)
             RecordSetbyWhoDebug(byWho, tempValue, reason);
 
@@ -477,7 +507,8 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     }
 
     //FIXME: protected?
-    private (bool, TType) SetValueExecution(TType value, MonoBehaviour byWho)
+    private (bool, TType) SetValueExecution(TType value, MonoBehaviour byWho,
+        bool skipModifiers = false)
     {
         // if (_beforeSetProcessor != null)
         _beforeSetProcessor?.BeforeSetValueCallback(value); //練線處理？
@@ -489,7 +520,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         //先檢查會被修改
 
         Profiler.BeginSample("BeforeSetValueModifyCheck", this);
-        if (_modifiers != null)
+        if (!skipModifiers && _modifiers != null)
             foreach (var modifier in _modifiers)
                 tempValue = modifier.BeforeSetValueModifyCheck(tempValue, currentValue);
         Profiler.EndSample();

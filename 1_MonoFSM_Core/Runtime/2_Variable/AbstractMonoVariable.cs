@@ -28,6 +28,16 @@ namespace MonoFSM.Variable
 {
     public interface IDropdownRef { }
 
+    /// <summary>
+    ///     宣告「這個 Var 的值由網路權威端決定」的擁有者（實作在 NetworkedVarSync 那側，
+    ///     core 不依賴 Fusion）。掛上後非 StateAuthority 端的本地寫入會被 Var 自己擋掉。
+    /// </summary>
+    public interface IVarNetworkAuthority
+    {
+        /// <summary>未 spawn / 已 despawn / 單機時應回 true（＝放行本地寫入）。</summary>
+        bool HasVarStateAuthority { get; }
+    }
+
     //FIXME: 應該要繼承AbstractSourceValueRef
     public abstract class AbstractMonoVariable //Rename self?
         : AbstractDescriptionBehaviour,
@@ -136,6 +146,38 @@ namespace MonoFSM.Variable
             if (_dataChangedListeners == null)
                 _dataChangedListeners = new HashSet<IVarChangedListener>();
             _dataChangedListeners.Add(target);
+        }
+
+        // ===================== 網路權威 gate =====================
+        //
+        // 「權威在誰身上」是 Var 的性質，不是寫入者的性質：一旦這個 Var 被 NetworkedVarSync
+        // 收進同步清單，值就由 StateAuthority 端決定。非 SA 端的本地寫入（FSM Action、Ability…）
+        // 若照樣生效，會跟每 tick 讀回的權威值互相打架，表現為數值/UI 抖動。
+        // 過去靠在每個 handler 勾 _stateAuthorityOnly 來擋，等於把同一件事重複標註在幾十個
+        // 寫入點上，漏一個就抖，而且散在 prefab 裡看不出來。改成由 Var 自己擋，規則只剩一條。
+
+        [NonSerialized] private IVarNetworkAuthority _netAuthority;
+
+        [ShowInDebugMode] public bool IsNetworkAuthorityOwned => _netAuthority != null;
+
+        /// <summary>由 NetworkedVarSync 在 Spawned / refetch 時注入（idempotent）。</summary>
+        public void SetNetworkAuthorityOwner(IVarNetworkAuthority owner) => _netAuthority = owner;
+
+        /// <summary>非 SA 端要擋掉本地寫入。未被任何 sync 認領（單機、編輯器）一律放行。</summary>
+        protected bool IsLocalWriteBlockedByNetwork =>
+            _netAuthority != null && !_netAuthority.HasVarStateAuthority;
+
+        //被擋掉的寫入者，up peek / Inspector 看得到是誰想寫，不必逐個翻 prefab
+        [ShowInDebugMode] [NonSerialized] public Object _lastNetworkBlockedSetter;
+
+        [ShowInDebugMode] [NonSerialized] public float _lastNetworkBlockedTime = -1f;
+
+        [Conditional("UNITY_EDITOR")]
+        protected void RecordNetworkBlocked(Object byWho)
+        {
+            _lastNetworkBlockedSetter = byWho;
+            _lastNetworkBlockedTime = Time.time;
+            this.Log("SetValue blocked: 非 StateAuthority 端不可寫入已同步的 Var", byWho, this);
         }
 
         public void RemoveListener(IVarChangedListener target)
