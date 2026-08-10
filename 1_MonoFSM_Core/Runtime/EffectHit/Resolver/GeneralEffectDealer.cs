@@ -87,7 +87,29 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return _receivers.Contains(receiver);
         }
 
-        public bool HasReceiverOverlap => isActiveAndEnabled && _receivers.Count > 0;
+        //比照 receiver.HasDealerOverlap：對側被 cull 時 detector 走凍結（不發 exit），
+        //_receivers 會留著，光看 count 會誤判成還在打
+        public bool HasReceiverOverlap
+        {
+            get
+            {
+                if (!isActiveAndEnabled)
+                    return false;
+                foreach (var receiver in _receivers)
+                    if (receiver != null && receiver.IsValid)
+                        return true;
+                return false;
+            }
+        }
+
+        private static readonly System.Predicate<GeneralEffectReceiver> _isDestroyedReceiver =
+            r => r == null;
+
+        //凍結（culling）期間對側被 Destroy，exit 走不了正規流程 → detector 發現後補清殘留引用
+        public void PurgeDestroyedReceivers()
+        {
+            _receivers.RemoveWhere(_isDestroyedReceiver);
+        }
 
 
 

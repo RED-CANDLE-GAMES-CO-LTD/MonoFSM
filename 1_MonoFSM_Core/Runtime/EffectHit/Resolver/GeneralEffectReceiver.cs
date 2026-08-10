@@ -130,9 +130,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return _dealers.TryGetValue(dealer, out hitData) && hitData != null;
         }
 
-        //除了數量，還要濾掉已經失效的 dealer：exit 若因為對方被關掉／被 cull 而沒送到，
-        //_dealers 會殘留，光看 count 會一直是 true（culling 的正規解在 MonoObj.CullingStateCheck，
-        //這裡只是最後一道防線，避免 condition 讀到殘留值）
+        //除了數量，還要濾掉已經失效的 dealer：對方被 cull 時 detector 走「凍結」（不發 exit），
+        //_dealers 會刻意留著（resume 後才不會重放 enter），這裡的 IsValid 過濾（含 IsCulling）
+        //就是 cull 期間殘留查詢的正規防線
         public bool HasDealerOverlap
         {
             get

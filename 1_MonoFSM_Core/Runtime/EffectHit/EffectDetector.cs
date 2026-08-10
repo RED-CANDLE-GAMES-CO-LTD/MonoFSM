@@ -62,13 +62,25 @@ namespace MonoFSM.Core.Detection
             IDropdownRoot, IResetStateRestore, ICullingEnterHandler
     {
         // public int SimulateOrder => -1000; // ray cache要更早嗎？
-        //parent MonoObj 被 cull 時整棵停止 tick，但 detector 的 GameObject 可能還是 active
-        //（cullingHandle 是兄弟節點、或 cull 從 parent 傳下來），OnDisable 收不到，靠這個補
-        //culling 範圍比 trigger 範圍小的時候就會遇到
+        //culling = 「暫停模擬」不是「東西離開」：凍結 overlap（不清、不發 exit、latch 不動），
+        //resume 後第一次 DetectUpdateCheck 還在的走 Stay（不重放 Enter）、離開的補 Exit。
+        //cull 期間的殘留查詢由 IsValid 擋（EffectResolver.IsValid 已含 _parentObj.IsCulling）
         public void OnCullingEnter()
         {
-            ClearAllDetections("Culling");
+            if (_thisFrameDetectedObjects.Count == 0)
+                return;
+            //TriggerDetectorSource 靠物理 OnTriggerStay 餵資料，resume 那一 tick 物理還沒跑、
+            //current 會是空的，缺席不能算離開（下一 tick 才是權威 diff）
+            _isResumeGraceTick = true;
+            Debug.Log(
+                $"[EffectDetector] Culling 凍結 overlap:{_thisFrameDetectedObjects.Count}",
+                this
+            );
         }
+
+        //凍結（culling）後第一個 Simulate tick 不把「缺席」判成離開，見 OnCullingEnter
+        [ShowInDebugMode]
+        private bool _isResumeGraceTick;
 
         private bool HasNoParentObj => _parentObj == null;
 
@@ -133,6 +145,13 @@ namespace MonoFSM.Core.Detection
         {
             if (!Application.isPlaying)
                 return;
+            //被 culling handle 連帶關掉（handle 是 parent／自己）→ 凍結，同 OnCullingEnter；
+            //despawn／企劃真的關掉時 IsCulledByHandle 為 false，照常清除＋發 exit
+            if (_parentObj != null && _parentObj.IsCulledByHandle)
+            {
+                OnCullingEnter();
+                return;
+            }
             ClearAllDetections("OnDisable");
         }
 
@@ -143,6 +162,7 @@ namespace MonoFSM.Core.Detection
         //把目前還在重疊的全部走正規 exit 流程送出去，冪等（沒東西就直接返回）
         private void ClearAllDetections(string reason)
         {
+            _isResumeGraceTick = false; //真的清掉就沒有凍結可言
             _dealerLastStates.Clear(); //latch 歸零，重新 enable 後才會補放 enter
             if (_thisFrameDetectedObjects.Count == 0)
             {
@@ -365,6 +385,10 @@ namespace MonoFSM.Core.Detection
                         }
 
                         var detectable = result.targetObject.Detectable;
+                        //對側被 culling 凍結：不進 current（不發 Stay），
+                        //下面 ProcessDetectionChanges 的 exit diff 會 carry、也不發 Exit
+                        if (detectable != null && detectable.IsSuspendedByCulling)
+                            continue;
                         if (detectable != null && _conditions.IsAllValid())
                         {
                             //FIXME: 需要的話Detector也可以判才對
@@ -392,6 +416,8 @@ namespace MonoFSM.Core.Detection
 
             // 5. 比較前後差異，觸發 Enter/Exit 事件
             ProcessDetectionChanges(_lastDetectedObjects, _thisFrameDetectedObjects);
+
+            _isResumeGraceTick = false; //寬限只有一個 tick，之後 diff 恢復權威
         }
 
         private void HandleDealerStateChanges()
@@ -566,14 +592,30 @@ namespace MonoFSM.Core.Detection
             foreach (var prevDetectEntry in previousDetected)
             {
                 var detectable = prevDetectEntry.Key;
-                if (!currentDetected.ContainsKey(detectable))
+                if (currentDetected.ContainsKey(detectable))
+                    continue;
+
+                //凍結期間被 Destroy：exit 走不了正規流程，靜默清掉 dealer 端的殘留引用
+                if (detectable == null)
                 {
-                    // Debug.Log($"Detectable exited: {detectable.name}", this);
-                    TriggerExitEventsForDetectable(detectable, prevDetectEntry.Value);
-#if UNITY_EDITOR
-                    detectable._debugDetectors.Remove(this);
-#endif
+                    foreach (var dealer in _dealers)
+                        dealer.PurgeDestroyedReceivers();
+                    continue;
                 }
+
+                //resume 第一個 tick 物理還沒餵資料，缺席不算離開；
+                //對側被 culling 凍結也不算離開 —— carry 進 current，回來時走 Stay 不重放 Enter
+                if (_isResumeGraceTick || detectable.IsSuspendedByCulling)
+                {
+                    currentDetected[detectable] = prevDetectEntry.Value;
+                    continue;
+                }
+
+                // Debug.Log($"Detectable exited: {detectable.name}", this);
+                TriggerExitEventsForDetectable(detectable, prevDetectEntry.Value);
+#if UNITY_EDITOR
+                detectable._debugDetectors.Remove(this);
+#endif
             }
 
             foreach (var dealer in _dealers)
@@ -676,6 +718,7 @@ namespace MonoFSM.Core.Detection
             //enter node 上被 reset 清掉的 local VarEntity 才補得回來。
             _lastDetectedObjects.Clear();
             _thisFrameDetectedObjects.Clear();
+            _isResumeGraceTick = false;
             //dealer 有效性的 latch 也要歸零，否則「reset 前有效、reset 後仍有效」會被判成沒變化，
             //少放一次 enter（見 CheckDealerStateChanges / HandleDealerStateChanges）
             _dealerLastStates.Clear();

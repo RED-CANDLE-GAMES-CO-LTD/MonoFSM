@@ -456,6 +456,12 @@ namespace MonoFSMCore.Runtime.LifeCycle
 //FIXME: ignore parent culling? 要給這個性質嗎...
         public bool _isIgnoreParentObjCulling = false;
 
+        //只看 culling handle（含 parent 鏈），不含 GO inactive（despawn／手動關掉）——
+        //OnDisable 裡要分辨「被 cull 連帶關掉」vs「真的被關掉」只能用這個（IsCulling 兩者都 true）
+        public bool IsCulledByHandle =>
+            _cullingHandle != null && !_cullingHandle.gameObject.activeSelf ||
+            (!_isIgnoreParentObjCulling && HasParent && _parentObj.IsCulledByHandle);
+
         //只收自己 scope（StopAtType）：nested MonoObj 自己也會被註冊、自己 latch，
         //parent 被 cull 時子 MonoObj 的 IsCulling 也跟著是 true，所以不會漏也不會重複廣播
         [PreviewInDebugMode]

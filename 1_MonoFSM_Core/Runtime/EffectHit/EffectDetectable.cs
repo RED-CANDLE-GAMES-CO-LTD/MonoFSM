@@ -34,6 +34,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public GameObject TargetObject => gameObject;
         public bool IsValid => gameObject.activeInHierarchy && _interactConditions.IsAllValid();
 
+        //被 culling handle 暫停（不含 despawn／手動關掉）：detector 端據此凍結、不發 exit/enter
+        public bool IsSuspendedByCulling => _parentObj != null && _parentObj.IsCulledByHandle;
+
         // [AutoChildren(DepthOneOnly = true)] [CompRef]
         // AbstractConditionBehaviour[]
         //     _conditions; //這個是要放在Detectable上的，還是DetectTarget上的？應該是前者？因為有些條件是整體的？
