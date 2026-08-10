@@ -61,6 +61,7 @@ namespace MonoFSM.Core.Detection
             IUpdateSimulate,
             IDropdownRoot, IResetStateRestore, ICullingEnterHandler
     {
+        // public int SimulateOrder => -1000; // ray cache要更早嗎？
         //parent MonoObj 被 cull 時整棵停止 tick，但 detector 的 GameObject 可能還是 active
         //（cullingHandle 是兄弟節點、或 cull 從 parent 傳下來），OnDisable 收不到，靠這個補
         //culling 範圍比 trigger 範圍小的時候就會遇到
