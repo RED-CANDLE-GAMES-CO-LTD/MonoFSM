@@ -55,7 +55,7 @@ namespace MonoFSM.Variable
             set
             {
                 //FIXME: setter不該從這裡來？
-                if (_bindData && value != CurrentValue) //值有改才送事件
+                if (value != CurrentValue) //值有改才送事件
                 {
                     // Debug.Log("Variable Bool Changed " + ScriptableData.name);
                     //[]: 灌tracker...

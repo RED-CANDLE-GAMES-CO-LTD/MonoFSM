@@ -377,12 +377,14 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         get => Field.CurrentValue;
         set
         {
-            // Field.ProductionValue = value;
-            // Field.DevValue = value;
-            _localField.ProductionValue = value;
-            _localField.DevValue = value;
+            //有綁 _bindData 時值的家在 SO 上（getter 也是讀那邊），只寫 _localField 會讀不回來
+            var field = Field;
+            field.ProductionValue = value;
+            field.DevValue = value;
             Debug.Log("Set EditorValue" + value, this);
 #if UNITY_EDITOR
+            if (BindData != null)
+                EditorUtility.SetDirty(BindData);
             EditorUtility.SetDirty(this);
 #endif
         }

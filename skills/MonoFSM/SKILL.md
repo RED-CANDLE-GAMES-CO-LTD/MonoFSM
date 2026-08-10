@@ -79,6 +79,24 @@ public override string Description => $"Is {_targetState?.name}";
 
 可參考：`1_MonoFSM_Core/Runtime/1_Conditions/HasStateTagCondition.cs`、`IsStateCondition.cs`
 
+### Render behaviour 掛在哪 → 決定何時觸發（多人時決定 client 跑不跑）
+
+`AbstractRenderBehaviour`（`IRenderBehaiour`）是被**父物件收集後代呼叫**的，同樣一顆元件掛在不同位置，觸發頻率完全不同：
+
+| 掛載位置 | 收集者 | 觸發 |
+|---|---|---|
+| `[State] Xxx` 節點**直接底下** | `AbstractStateBehaviour._renderActions`（`[AutoChildren(DepthOneOnly)]`） | 該 state active 時**每 render frame** `OnRender()`；進入時 `OnEnterRender()`。**自帶狀態範圍，不用再加 `IsStateCondition`** |
+| `[Event] OnStateUpdate` 等 event handler 底下 | `AbstractEventHandler._renderActions` | **只有 `EnterRenderInvoke()`** —— state enter 時呼叫一次 `OnEnterRender()`，**沒有每幀的 render invoke**。把每幀邏輯放這裡會靜靜地不跑 |
+| `[Event] RenderLoop`（`RenderLoopHandler`）底下 | 同上，但 handler 自己實作 `IRenderUpdate.Render()` | 每 render frame，**無狀態範圍**，要自己用 `_conditionGroup` 把關 |
+
+「這個狀態期間每幀套用」的東西（骨骼朝向覆寫、beam、IK、跟隨）→ 掛 `[State]` 節點底下，最單純。
+
+**多人時這是 client 端唯一會跑的路徑**：`MonoObj.Simulate()` 在 `!ShouldSimulte` 時整棵子樹直接 return，`AbstractEventHandler` 也有同一道 gate（`_forceExecuteWithoutStateAuthority` 沒用，被 MonoObj 擋在更外層），所以 proxy 上 Action / RaycastCache / timer 全部不執行；只有 Render / AfterRender 兩個 phase 兩端都跑。
+
+推論：**凡是兩端都要看到的持續性視覺，套用端必須是 render behaviour，而它讀的資料要嘛掛 `NetworkedVarTag` 從 SA 同步過來，要嘛在 render 端本地重算。** 只同步資料而套用端還留在 Action（simulate）底下，症狀是「host 正常、client 的視覺不動或指錯方向，但判定是對的」。
+
+實例：噴水怪 `1_Enemy 噴水怪 Variant` 的水槍 —— `HeadLookAtAnimatorApplier` 從 `OnStateUpdate` 下的 Action 改成掛在 `[State] Shoot Attack` 底下的 `AbstractRenderBehaviour`，並把 `HeadForward Out`（瞄準方向）與 `hitPosVar`（RaycastCache 的落點、beam 終點）兩個 `VarVector3` 加 `NetworkedVarTag` 進 `NetworkedVarSyncArray._syncVector3s`。
+
 ### 同一功能要同時支援 Action 與 Render
 
 `AbstractStateAction`（掛 `IActionParent`、event 觸發）與 `AbstractRenderBehaviour`（掛 `IRenderInvoker`、每 render frame 觸發）**都繼承 `AbstractDescriptionBehaviour`，但父物件契約與 Condition 系統完全不同**（Action 用 `_conditions[]`，Render 用 `_conditionGroup`，`HasError` 各自檢查父型別）。

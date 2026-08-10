@@ -1,1 +1,2 @@
 - SetVarBoolAction 新增可選 `_sourceVar`（VarBool dropdown），有指定就取它的值、蓋過常數 `TargetValue`（舊名保留以免 prefab override 失效）。
+- HeadLookAtAnimatorApplier 改繼承 AbstractRenderBehaviour（原本是 AbstractStateAction，掛在 OnStateUpdate 下，client 因 authority gate 不執行導致頭骨不轉）；掛在 `[State]` 節點直接底下即可，該狀態 active 時每 render frame 觸發、兩端都跑。

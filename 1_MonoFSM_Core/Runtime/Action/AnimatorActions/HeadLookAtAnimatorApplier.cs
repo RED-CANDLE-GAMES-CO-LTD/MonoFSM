@@ -1,3 +1,4 @@
+using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using Fusion;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime.Action;
@@ -13,7 +14,7 @@ namespace MonoFSM.Animation
     /// 需在 Animator Controller 對應 Layer 打開 IK Pass。
     /// 之後敵人全面 migrate 到 AnimationClipPlayAction 後可整個刪除，改用 HeadLookAtClipModifier。
     /// </summary>
-    public class HeadLookAtAnimatorApplier : AbstractStateAction
+    public class HeadLookAtAnimatorApplier : AbstractRenderBehaviour
     {
         [Auto] private Animator _animator;
 
@@ -34,11 +35,16 @@ namespace MonoFSM.Animation
         //     _headBone.rotation = Quaternion.LookRotation(forward, Vector3.up);
         // }
 
-        public void AfterRender()
+        // protected override void OnActionExecuteImplement()
+        // {
+        //
+        // }
+
+        public override void OnEnterRenderImplement()
         {
         }
 
-        protected override void OnActionExecuteImplement()
+        public override void OnRenderImplement()
         {
             if (_headBone == null || _aimForward == null || !_aimForward.IsValueExist)
             {
