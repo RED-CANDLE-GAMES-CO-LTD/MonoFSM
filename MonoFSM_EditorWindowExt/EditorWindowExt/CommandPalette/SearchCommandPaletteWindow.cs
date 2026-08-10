@@ -281,6 +281,15 @@ namespace CommandPalette
 
                     break;
 
+                case KeyCode.L:
+                    if (Event.current.command || Event.current.control)
+                    {
+                        CopySelectedLink();
+                        Event.current.Use();
+                    }
+
+                    break;
+
                 case KeyCode.UpArrow:
                     if (_selectableCount > 0)
                     {
@@ -363,7 +372,8 @@ namespace CommandPalette
             }
 
             const float btnWidth = 50f;
-            var searchRect = new Rect(5, 5, position.width - 10 - btnWidth - 4, 18);
+            const float linkBtnWidth = 40f;
+            var searchRect = new Rect(5, 5, position.width - 10 - btnWidth - linkBtnWidth - 8, 18);
             var newSearchString = _searchField.OnGUI(searchRect, _searchString);
 
             if (newSearchString != _searchString)
@@ -371,6 +381,15 @@ namespace CommandPalette
                 _searchString = newSearchString;
                 EditorPrefs.SetString(SearchStringPrefKey, _searchString);
                 PerformUnifiedSearch();
+            }
+
+            // 複製選取項的 unity link（Cmd/Ctrl+L 也可以）
+            var linkBtnRect = new Rect(position.width - btnWidth - linkBtnWidth - 9, 5, linkBtnWidth, 18);
+            using (new EditorGUI.DisabledScope(!CanCopySelectedLink()))
+            {
+                var linkContent = new GUIContent("Link", "複製選取項的連結（Cmd/Ctrl+L），點連結會回到 Unity 執行");
+                if (GUI.Button(linkBtnRect, linkContent, EditorStyles.miniButton))
+                    CopySelectedLink();
             }
 
             // 排序模式切換按鈕（Tab 已改為跳組，排序切換改由此按鈕點擊）
@@ -593,6 +612,53 @@ namespace CommandPalette
                     break;
                 case SearchMode.Windows:
                     OpenWindowResult(row);
+                    break;
+            }
+        }
+
+        //Windows 分類沒有可以還原成連結的識別碼，其他分類都可以
+        private bool CanCopySelectedLink()
+        {
+            var row = GetSelectedRow();
+            return row != null && row._category != SearchMode.Windows;
+        }
+
+        /// <summary>
+        /// 複製選取項的 unity link：MenuItem 複製成「點了就執行這個指令」，
+        /// Prefab / SO / Scene 則複製成既有的 asset_guid 連結。
+        /// </summary>
+        private void CopySelectedLink()
+        {
+            var row = GetSelectedRow();
+            if (row == null)
+            {
+                Debug.LogWarning("[CommandPalette] 沒有選取項，無法複製連結");
+                return;
+            }
+
+            switch (row._category)
+            {
+                case SearchMode.Prefabs:
+                case SearchMode.ScriptableObjects:
+                case SearchMode.Scenes:
+                    var assetResults = GetAssetResults(row._category);
+                    if (row._itemIndex >= assetResults.Count) return;
+                    var asset = assetResults[row._itemIndex].Item;
+                    CommandPaletteLinkHelper.CopyToClipboard(
+                        asset.name, CommandPaletteLinkHelper.BuildAssetLink(asset.guid));
+                    ShowNotification(new GUIContent("已複製連結\n" + asset.name));
+                    break;
+
+                case SearchMode.MenuItems:
+                    if (row._itemIndex >= _menuItemResults.Count) return;
+                    var menuItem = _menuItemResults[row._itemIndex].Item;
+                    CommandPaletteLinkHelper.CopyToClipboard(
+                        menuItem.displayName, CommandPaletteLinkHelper.BuildMenuLink(menuItem.menuPath));
+                    ShowNotification(new GUIContent("已複製指令連結\n" + menuItem.displayName));
+                    break;
+
+                default:
+                    Debug.LogWarning("[CommandPalette] 這個分類不支援複製連結：" + row._category);
                     break;
             }
         }
