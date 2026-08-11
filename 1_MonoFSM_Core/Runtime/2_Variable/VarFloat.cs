@@ -1,4 +1,5 @@
 using System.Globalization;
+using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Simulate;
@@ -124,6 +125,11 @@ namespace MonoFSM.Variable
         [ShowInDebugMode]
         private float _lastDecreasingTime;
 
+        //方向性事件：和 _valueChangedHandler（Field listener 驅動、任何變化都跑、拿不到舊值）互補。
+        //這裡拿得到 old/new，所以分得出「變大 / 變小」，arg 傳變化量絕對值。
+        //陣列：同一顆 Var 底下 Increase / Decrease 可以各掛一顆
+        [CompRef] [AutoChildren] public OnValueDirectionChangedHandler[] _directionChangedHandlers;
+
         /// <summary>
         /// 把值寫入，表示
         /// </summary>
@@ -133,6 +139,19 @@ namespace MonoFSM.Variable
         {
             if (newValue < oldValue)
                 _lastDecreasingTime = WorldUpdateSimulator.SimulationTime;
+
+            if (_directionChangedHandlers == null)
+                return;
+            //SetValueExecution 已擋掉「值沒變化」的情況，所以這裡 delta 不會是 0
+            var delta = newValue - oldValue;
+            var isIncrease = delta > 0f;
+            var direction = isIncrease
+                ? ValueChangeDirection.Increase
+                : ValueChangeDirection.Decrease;
+            var amount = isIncrease ? delta : -delta;
+            foreach (var handler in _directionChangedHandlers)
+                if (handler != null && handler._direction == direction)
+                    handler.EventHandle(amount);
         }
 
         [ShowInDebugMode]

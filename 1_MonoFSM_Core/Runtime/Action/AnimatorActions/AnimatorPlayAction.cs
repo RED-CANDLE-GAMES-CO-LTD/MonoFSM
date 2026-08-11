@@ -727,7 +727,11 @@ namespace MonoFSM.Animation
             var t = StateNormalizedTime;
             UpdateProgressLatch(t);
             if (_hasSeenPlayingSinceEnter && t >= ratio)
+            {
+                Debug.Log("animation done!!!", this);
                 return true;
+            }
+
             return IsFallbackTimeUp(ratio);
         }
 

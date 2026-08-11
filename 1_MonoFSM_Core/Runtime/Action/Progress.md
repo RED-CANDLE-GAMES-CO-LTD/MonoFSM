@@ -1,2 +1,4 @@
 - SetVarBoolAction 新增可選 `_sourceVar`（VarBool dropdown），有指定就取它的值、蓋過常數 `TargetValue`（舊名保留以免 prefab override 失效）。
 - HeadLookAtAnimatorApplier 改繼承 AbstractRenderBehaviour（原本是 AbstractStateAction，掛在 OnStateUpdate 下，client 因 authority gate 不執行導致頭骨不轉）；掛在 `[State]` 節點直接底下即可，該狀態 active 時每 render frame 觸發、兩端都跑。
+- 新增 ParticlePulseRender（ParticleSystemActions）：render action，被觸發時把特效 pulse 一下（localScale 倍率 / PS startSize 倍率 / noise strength 加量）再依 `_falloffPower` 衰減回原樣；「何時閃」交給 handler（ex: OnValueDirectionChangedHandler 設 Increase），arg（變化量）配 `_fullPulseDelta` 縮放幅度。衰減靠 IRenderUpdate 每幀跑，client 端靠 Var 自己的網路同步觸發 handler，不需要 render sync。
+- 新增 OnValueDirectionChangedHandler（4_Event）+ VarFloat 的 `_directionChangedHandlers`（`[AutoChildren]` 陣列）：由 `OnValueSet(old,new)` 觸發，用 enum `_direction` 分 Increase / Decrease，arg 是變化量絕對值。和 `_valueChangedHandler`（Field listener 驅動、任何變化都跑、判不出方向）互補，同一顆 Var 下兩個方向可各掛一顆。

@@ -2,6 +2,14 @@
 
 只負責回答「東西在哪個檔案」。內容一律走 Unity 匯出（見 [read.md](read.md)）。
 
+**這條路還沒被取代**：Unity 端沒有全專案搜尋（`refs` 只掃單一 prefab / scene，`types`
+只查型別名），跨資產定位就只有 `find`。也不要退回 `grep` prefab YAML —— 慢、抓不到
+variant 繼承、而且拿不到節點路徑。
+
+**每次 `find` 之前先確認索引是新的** —— `find` 不會自己更新。改過 prefab / scene 就
+`up index`（mtime 增量；實測一天的變更量 234 個資產 2.3 秒）。`(no match)`、或找到的節點
+路徑跟現況對不上，第一個嫌疑都是索引過期。
+
 ```bash
 up index                        # 建立/更新索引（mtime 增量）
 up find --comp GrabSlotHolder

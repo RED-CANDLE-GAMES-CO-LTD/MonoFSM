@@ -45,6 +45,14 @@ namespace Gameplay.EffectZone
         [SerializeField]
         private float _radius = 90f;
 
+        [Tooltip(
+            "半徑乘上自己 transform 的最大軸 lossyScale，對齊 SphereCollider 的物理行為。"
+                + "開了之後 _radius 填 local 半徑（ex: 0.5），實例縮放 prefab 時範圍會跟著變"
+        )]
+        [HideIf("@_coverage == ZoneCoverage.Hierarchy")]
+        [SerializeField]
+        private bool _scaleRadiusWithTransform;
+
         [Tooltip("圓心，留空則用自己的 transform")]
         [HideIf("@_coverage == ZoneCoverage.Hierarchy")]
         [SerializeField]
@@ -60,9 +68,30 @@ namespace Gameplay.EffectZone
         public Vector3 Center =>
             _centerOverride != null ? _centerOverride.position : transform.position;
 
-        public float Radius => _radius;
+        /// <summary>世界半徑；有開 scale 跟隨就乘最大軸 lossyScale（和 SphereCollider 同規則）。</summary>
+        public float Radius
+        {
+            get
+            {
+                if (!_scaleRadiusWithTransform)
+                    return _radius;
+                var s = transform.lossyScale;
+                var maxScale = Mathf.Max(
+                    Mathf.Abs(s.x),
+                    Mathf.Max(Mathf.Abs(s.y), Mathf.Abs(s.z))
+                );
+                return _radius * maxScale;
+            }
+        }
 
-        public float RadiusSqr => _radius * _radius;
+        public float RadiusSqr
+        {
+            get
+            {
+                var r = Radius;
+                return r * r;
+            }
+        }
 
         /// <summary>沒設 _isActiveVar 就永遠有效；有設就跟著那顆 VarBool。</summary>
         [ShowInInspector]
@@ -106,7 +135,7 @@ namespace Gameplay.EffectZone
             if (!HasRadiusCoverage)
                 return;
             Gizmos.color = IsZoneActive ? new Color(1f, 0.9f, 0.2f, 0.5f) : new Color(0.5f, 0.5f, 0.5f, 0.35f);
-            Gizmos.DrawWireSphere(Center, _radius);
+            Gizmos.DrawWireSphere(Center, Radius);
         }
 #endif
     }

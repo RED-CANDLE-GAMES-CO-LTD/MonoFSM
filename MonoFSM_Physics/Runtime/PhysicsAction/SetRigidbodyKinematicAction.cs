@@ -7,17 +7,13 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
 {
     public class SetRigidbodyKinematicAction : AbstractStateAction
     {
-        // [Required] [CompRef] [AutoChildren] private ICompProvider<Rigidbody> _rigidbodyProvider;
-
-        //FIXME: 還是寫code嗎？
-        [ValueTypeValidate(typeof(Rigidbody))] [DropDownRef]
-        public ValueProvider _rigidbodyValueProvider;
+        [SerializeField] private Rigidbody _rigidbody;
         public bool _isKinematic = true;
 
         protected override void OnActionExecuteImplement()
         {
             // var rb = _rigidbodyProvider.Get();
-            var rb = _rigidbodyValueProvider.Get<Rigidbody>();
+            var rb = _rigidbody;
             if (rb != null)
             {
                 rb.isKinematic = _isKinematic;

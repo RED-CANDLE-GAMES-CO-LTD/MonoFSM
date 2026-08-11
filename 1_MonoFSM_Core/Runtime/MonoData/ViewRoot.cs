@@ -88,6 +88,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
             // 把 SceneStart 的 attach 當成 baseline 快照，ResetStateRestore 還原用
             SnapshotSceneStartBaseline(parentEntity);
+            MountVersion++;
 
             _sceneStarted = true;
         }
@@ -130,7 +131,10 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         #region FollowTarget 掛載
 
-        [ShowInInspector] private Transform _mountPointTarget; //連線同步走 NetworkedViewRoot（MountPointRegistry index）
+        [ShowInInspector] private Transform _mountPointTarget; //連線同步走 NetworkedViewRoot（NetworkedMountPoint 的 NetworkBehaviourId）
+
+        // mount 狀態版本號：mount 相關欄位變動時 +1，NetworkedViewRoot 靠它跳過沒變動的 tick
+        [ShowInPlayMode] public int MountVersion { get; private set; }
 
         // 給 NetworkedViewRoot 讀取當前 mount 狀態用
         public MonoEntity AttachToEntity => _attachToEntityWrapper.Value;
@@ -263,6 +267,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
             //為什麼要？
             RecordOffsets(target);
+            MountVersion++;
         }
 
         public void ClearFollowTarget()
@@ -270,6 +275,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             // Debug.Log($"[ViewRoot] '{name}' cleared follow target.", this);
             _attachToEntityWrapper.ClearValue();
             _mountPointTarget = null;
+            MountVersion++;
         }
 
         // Mount 時被關掉的 colliders（Unmount 只還原這些，避免動到本來就 disabled 的）
@@ -354,6 +360,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
                 _followParentRotOffset = _baselineParentRotOffset;
                 _followViewOffset = _baselineViewOffset;
                 _followViewRotOffset = _baselineViewRotOffset;
+                MountVersion++;
             }
             else
             {

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace MonoFSM.ParticleSystemActions
 {
-    public class ParticleEmitAction : AbstractDescriptionBehaviour, IRenderBehaiour
+    public class ParticleEmitAction : AbstractRenderBehaviour
     {
         public override string Description =>
             $"Emit {_emitCount} particles from [{(_particleSystem != null ? _particleSystem.name : "null")}]";
@@ -22,14 +22,15 @@ namespace MonoFSM.ParticleSystemActions
         //     _particleSystem.Emit(_emitCount);
         // }
 
-        public void OnEnterRender()
+        public override void OnEnterRenderImplement()
         {
             _particleSystem.Emit(_emitCount);
         }
 
-        public void OnRender()
+        public override void OnRenderImplement()
         {
             // throw new System.NotImplementedException();
         }
+        
     }
 }

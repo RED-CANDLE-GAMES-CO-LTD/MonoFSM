@@ -23,7 +23,8 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | 找到之後要**能直接下鑽**（拿可餵給 `--node` 的完整路徑） | `find --resolve` | ✅ | [offline-index.md](references/offline-index.md) |
 | 貼了 asset guid / webhook 連結（`?asset_guid=`）要換成路徑 | `guid` | ❌ | [offline-index.md](references/offline-index.md) |
 | prefab override 稽核、索引範圍調整 | `overrides` / `scope stats` | ❌ | [offline-index.md](references/offline-index.md) |
-| prefab 階層、子樹 component 欄位細節、FSM 架構 | `prefab read` / `scene ls`（`--fsm`） | ✅ | [read.md](references/read.md) |
+| prefab 階層、子樹 component 欄位細節、FSM 架構 | `prefab read`（`--fsm` / `--budget`） | ✅ | [read.md](references/read.md) |
+| scene 上的階層（**沒有 budget 保護，要自己給 `--depth`**） | `scene ls` | ✅ | [read.md](references/read.md) |
 | 貼了 **scene 物件連結**（`globalId=GlobalObjectId_V1-…`） | `obj` | ✅ | [read.md](references/read.md) |
 | **改** prefab / scene 結構、開/複製/存 scene、建 variant | `prefab do` / `scene do` / `scene copy` / `prefab variant` | ✅ | [edit.md](references/edit.md) |
 | **建 / 改 ScriptableObject asset**（registry / config 類） | `asset create` / `set` / `set-ref` / `add-element` | ✅ | [asset.md](references/asset.md) |
@@ -37,18 +38,24 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | 按 asset 上的 Odin `[Button]`（無參數方法） | `asset invoke` | ✅ | [asset.md](references/asset.md) |
 
 一句話版本：**使用者貼連結走 `guid`（asset）/ `obj`（scene 物件），定位走 `find`（要接著
-下鑽就加 `--resolve`），讀結構走 `prefab read` / `scene ls`（預設就分層摺疊，再用 `--node`
-下鑽），查引用走 `refs`，要改走 `prefab do` / `scene do`，建/改 ScriptableObject 走 `asset`，
+下鑽就加 `--resolve`），讀 prefab 結構走 `prefab read`（預設就分層摺疊，再用 `--node`
+下鑽），讀 scene 結構走 `scene ls`（要自己控 `--depth`），查引用走 `refs`，要改走 `prefab do` / `scene do`，建/改 ScriptableObject 走 `asset`，
 加 localized 文字提示走 `prompt`。**
 
 ## 鐵則
 
 - **所有需要 Unity 的操作都有 CLI 入口 —— 不要直接寫 `uloop execute-dynamic-code`**，
   它每次回傳 15 行 JSON envelope（Logs / SecurityLevel / Diagnostics…），CLI 只回結果那一行。
+- **離線索引還是唯一的跨資產定位手段** —— Unity 端沒有全專案搜尋（`refs` 只掃單一
+  prefab / scene，`types` 只查型別名），所以「這個 component 在哪些檔案裡」只有 `find`
+  答得出來，而且快兩個數量級（find 0.1s vs Unity 一次來回含 domain reload 十幾秒）。
+  離線的就只有 `index` / `scope` / `find` / `guid` / `overrides` 這幾條。
 - **離線索引只回答「在哪個檔案」，內容一律走 Unity 匯出。** 離線 YAML 讀不到 variant
   繼承來的東西（stripped 佔位 document 沒有名稱、component、真值），連 `find` 印的節點
   路徑都是局部的、不能直接餵給 `--node`（要完整路徑就 `--resolve`）。原因與實測數據見
   [internals.md](references/internals.md)。
+- **`find` 不會自己更新索引** —— 改過 prefab 就先 `up index`（增量，實測一天的變更量
+  234 個資產 2.3 秒）。`(no match)` 或路徑對不上時，第一個嫌疑就是索引過期。
 - **DSL 欄位用 `|` 分隔，不用空白** —— 節點名帶空白、`[Tag] ` 前綴與中文，空白分隔一定炸。
 - **結構改完一定要下 `auto|`** —— MonoFSM 大量欄位靠 `[Auto*]` attribute 填，不補這步會
   存出「看起來對、欄位全是 null」的資料，只有進 Play Mode 才發現。

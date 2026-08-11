@@ -1,7 +1,7 @@
 using System;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Foundation;
-using MonoFSM.Runtime.Variable;
+using MonoFSM.Runtime;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -9,14 +9,14 @@ using UnityEngine;
 namespace MonoFSM.Core.DataProvider
 {
     /// <summary>
-    ///     opt-in 的 value source：沿 transform 階層往上找第一個持有 _varTag 的 VariableFolder，
-    ///     用那顆變數當這顆 Var 的值來源。掛在一顆 Var 下即可（被 _valueSources 撿走）。
+    ///     opt-in 的 value source：沿 transform 階層往上逐顆 MonoEntity 找，
+    ///     問每顆 entity 的 VariableFolder 有沒有 _varTag，第一顆有的就當這顆 Var 的值來源。
+    ///     掛在一顆 Var 下即可（被 _valueSources 撿走）。
     ///     跟 GetVarFromParentEntitySource 的差別：
-    ///     後者只看 [AutoParent] 抓到的「最近一顆 MonoEntity」，這個會一路往上走，
-    ///     而且提供方只要掛 VariableFolder 就好、不需要是 MonoEntity —— 想放哪一層就放哪一層。
+    ///     後者只看「自己所屬的那顆 MonoEntity」，這個會跳過自己那顆、一路往上問 ancestor entity。
     ///     語意是「往上找設定，找不到就用自己的 local 值」，所以找不到不是錯誤：
     ///     IsValid 回 false 讓 ValueResolver 跳過這個 source、fallback 回 Var 的 local field。
-    ///     最近的祖先優先，所以外層設全域預設、內層可以再蓋掉。
+    ///     最近的祖先優先，所以外層 entity 設全域預設、內層 entity 可以再蓋掉。
     /// </summary>
     public class GetVarFromAncestorSource : AbstractGetter, IValueProvider, IVariableProvider
     {
@@ -24,10 +24,6 @@ namespace MonoFSM.Core.DataProvider
         [Header("變數名稱")]
         [PropertyOrder(-1)]
         public VariableTag _varTag;
-
-        //自己這層的 VariableFolder 一定要跳過：這顆 source 的擁有者（同 tag 的 Var）就在裡面，
-        //不跳過就會解析回自己 → 無限遞迴。
-        private VariableFolder OwnFolder => GetComponentInParent<VariableFolder>(true);
 
         [NonSerialized] private AbstractMonoVariable _cached;
 
@@ -50,17 +46,25 @@ namespace MonoFSM.Core.DataProvider
             if (_varTag == null)
                 return null;
 
-            var ownFolder = OwnFolder;
             //用 transform 往上走而不是 GetComponentsInParent：零 GC，而且不受 GameObject active 影響
             //（起火點這類節點會被 culling 關掉）
-            var t = ownFolder != null ? ownFolder.transform.parent : transform.parent;
-            for (; t != null; t = t.parent)
-                if (t.TryGetComponent<VariableFolder>(out var folder))
+            //自己所屬的那顆 MonoEntity 一定要跳過：這顆 source 的擁有者（同 tag 的 Var）就註冊在它的
+            //VariableFolder 裡，不跳過就會解析回自己 → 無限遞迴。要抓自己那層請用 GetVarFromParentEntitySource。
+            var ownEntitySkipped = false;
+            for (var t = transform; t != null; t = t.parent)
+            {
+                if (!t.TryGetComponent<MonoEntity>(out var entity))
+                    continue;
+                if (!ownEntitySkipped)
                 {
-                    var v = folder.GetVariable(_varTag);
-                    if (v != null)
-                        return v;
+                    ownEntitySkipped = true;
+                    continue;
                 }
+
+                var v = entity.GetVar(_varTag);
+                if (v != null)
+                    return v;
+            }
 
             return null;
         }
@@ -95,6 +99,6 @@ namespace MonoFSM.Core.DataProvider
             where TVariable : AbstractMonoVariable => Resolved as TVariable;
 
         public override string Description =>
-            $"Get [{(_varTag != null ? _varTag.name : "?")}] from Ancestor";
+            $"Get [{(_varTag != null ? _varTag.name : "?")}] from Ancestor Entity";
     }
 }

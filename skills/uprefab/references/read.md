@@ -8,20 +8,26 @@ up prefab read "Assets/…/X.prefab" --fsm                          # 附狀態�
 
 # scene 版：--node 留空只列 root 一層（附 (+N nodes) 展開成本）
 up scene ls
-up scene ls --node "資源生成器 FSM/[StateFolder] StateFolder"
+up scene ls --node "資源生成器 FSM/[StateFolder] StateFolder" --depth 2
 ```
 
-| 參數 | 預設 | 說明 |
-|---|---|---|
-| `--node` | 整棵 / scene 的 root 一層 | 子樹路徑。**scene 的第一段是 root object 名稱** |
-| `--budget` | 20000 | 字元上限，超標自動摺到塞得進的那層；`0` = 不限 |
-| `--depth` | -1 | 明確指定往下幾層。**給了就不看 `--budget`** |
-| `--fsm` | 關 | 附 `FsmTextExporter` 的 states / transitions / conditions markdown |
-| `--fold` | 關 | 摺疊已知子樹並排除視覺 component（Renderer / ParticleSystem / IK / HighlightEffect …） |
+| 參數 | 預設 | 說明 | `prefab read` / `obj` | `scene ls` |
+|---|---|---|---|---|
+| `--node` | 整棵 / scene 的 root 一層 | 子樹路徑。**scene 的第一段是 root object 名稱** | ✅ | ✅ |
+| `--depth` | -1 | 明確指定往下幾層 | ✅（給了就不看 `--budget`） | ✅ |
+| `--fold` | 關 | 摺疊已知子樹並排除視覺 component（Renderer / ParticleSystem / IK / HighlightEffect …） | ✅ | ✅ |
+| `--budget` | 20000 | 字元上限，超標自動摺到塞得進的那層；`0` = 不限 | ✅ | ❌ |
+| `--fsm` | 關 | 附 `FsmTextExporter` 的 states / transitions / conditions markdown | ✅ | ❌ |
+
+**`scene ls --node` 沒有 budget 保護，會整棵展開** —— `SceneEdit.Export` 走的是
+`HierarchyTextExporter` 的 FullExpand，不經過 `prefab read` 的分層試算。下鑽大子樹前先看
+root 那層印的 `(+N nodes)`，上千節點就配 `--depth 2` 一層一層走，或改用 `up obj`
+（同一個節點若拿得到 GlobalObjectId 連結，那條路有 `--budget` / `--fsm`）。
+要 scene 上的 FSM markdown 目前也只能走 `up obj --fsm`。
 
 同名節點的 `[n]` 後綴語法與 `do` 共用，見 [edit.md](edit.md)。
 
-## 預設就是安全的
+## `prefab read` / `obj` 預設就是安全的
 
 不帶參數不會噴一大坨 —— `--budget` 會由淺往深試，取「塞得進預算的最深一層」，
 並在檔頭寫下摺在第幾層、下一層要多少字元：

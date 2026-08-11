@@ -31,6 +31,18 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         [ShowInDebugMode] private float _lastRenderTime;
         [ShowInDebugMode] private float _lastEnterRenderTime;
 
+        [Button]
+        void ForceTestOnEnter()
+        {
+            OnEnterRenderImplement();
+        }
+
+        [Button]
+        void ForceTestRenderUpdate()
+        {
+            OnRenderImplement();
+        }
+
         //fixme: 改 protected
         public abstract void OnEnterRenderImplement();
 
