@@ -643,16 +643,109 @@ namespace MonoFSM.Animation
         [AutoParent]
         private MonoStateBehaviour _stateBehaviour; //這個是State的行為，還是要有個StateAction來做事情
 
-        //FIXME: 錯了！抓到BUG 要cache? 切State後，StateTime就會重置了
-        public bool IsDone => _stateBehaviour.StateTime >= ClipLength; // && IsPlayingCurrentClip();
+        /// <summary>
+        ///     這個 Action 要播的 state 的播放進度（0~1 為第一輪，loop 會繼續累加）。
+        ///     -1 代表「animator 現在不是在播我要的 state」（被別的 state 搶走 / 沒有 controller）。
+        ///     normalizedTime 的推進已經含 animator.speed、state speed、speed multiplier，
+        ///     blend tree 也是加權後的長度，所以不需要事先 cache ClipLength。
+        /// </summary>
+        [ShowInPlayMode]
+        private float StateNormalizedTime
+        {
+            get
+            {
+                if (animator == null || animator.runtimeAnimatorController == null)
+                    return -1f;
+                //transition 中 GetCurrentAnimatorStateInfo 拿到的還是舊 state，要看 next
+                var info = animator.IsInTransition(stateLayer)
+                    ? animator.GetNextAnimatorStateInfo(stateLayer)
+                    : animator.GetCurrentAnimatorStateInfo(stateLayer);
+                if (info.shortNameHash != StateHash)
+                    return -1f;
+                return info.normalizedTime;
+            }
+        }
 
-        public bool IsProgressPassedRatio(float ratio) =>
-            _stateBehaviour.StateTime >= ClipLength * ratio;
+        //Play 之後 animator 有沒有真的從頭求值過。
+        //防止「進 state 第一幀 animator 還沒 Update，讀到上一輪殘留的 normalizedTime(停在1)」而誤判播完
+        private bool _hasSeenPlayingSinceEnter;
+        private bool _hasLoggedFallback;
+
+        private void UpdateProgressLatch(float normalizedTime)
+        {
+            if (_hasSeenPlayingSinceEnter)
+                return;
+            if (normalizedTime >= 0f && normalizedTime < 1f)
+                _hasSeenPlayingSinceEnter = true;
+        }
+
+        [TitleGroup("Animator")]
+        [Tooltip(
+            "保險：animator 沒在求值時（Culling / enabled=false / 被 animator controller 自己的 transition 切走），"
+                + "normalizedTime 不會前進，改用邏輯時間 StateTime 超過 ClipLength * 這個倍率就視為播完，避免 FSM 永遠出不去"
+        )]
+        [SerializeField]
+        private float _fallbackDurationScale = 2f;
+
+        [TitleGroup("Animator")]
+        [Tooltip("沒有 cache 到 ClipLength（例如 blend tree）時，保險用的秒數上限")]
+        [SerializeField]
+        private float _fallbackMaxDuration = 5f;
+
+        private bool IsFallbackTimeUp(float ratio)
+        {
+            if (_stateBehaviour == null)
+                return false;
+            var duration =
+                _cachedClipLength > 0f
+                    ? _cachedClipLength * _fallbackDurationScale
+                    : _fallbackMaxDuration;
+            if (_stateBehaviour.StateTime < duration * ratio)
+                return false;
+
+            if (_hasLoggedFallback == false)
+            {
+                _hasLoggedFallback = true;
+                Debug.Log(
+                    "[AnimatorPlayAction] IsDone 走 fallback(邏輯時間)，animator 可能沒在求值或被切走。state:"
+                        + StateName
+                        + ", normalizedTime:"
+                        + StateNormalizedTime
+                        + ", StateTime:"
+                        + _stateBehaviour.StateTime,
+                    this
+                );
+            }
+
+            return true;
+        }
+
+        public bool IsDone => IsProgressPassedRatio(1f);
+
+        public bool IsProgressPassedRatio(float ratio)
+        {
+            var t = StateNormalizedTime;
+            UpdateProgressLatch(t);
+            if (_hasSeenPlayingSinceEnter && t >= ratio)
+                return true;
+            return IsFallbackTimeUp(ratio);
+        }
+
+#if UNITY_EDITOR
+        //給 AnimationDoneCondition 的 Description 用，方便在 Inspector 上看是走哪條路徑
+        public string ProgressDebugInfo
+        {
+            get
+            {
+                var t = StateNormalizedTime;
+                if (t < 0f)
+                    return "not playing";
+                return _hasSeenPlayingSinceEnter ? t.ToString("F2") : "waiting first update";
+            }
+        }
+#endif
 
         // [SerializeField] private float clipDuration;
-
-        //FIXME: 用邏輯時間
-        // public bool IsDone => CurrentPlayingNormalizedTime >= 1; // && IsPlayingCurrentClip();
 
         private bool IsStatePlaying(int layer)
         {
@@ -662,6 +755,8 @@ namespace MonoFSM.Animation
         private void OnEnable() //State雖然過來了，但是關著就沒有進ActionStateEnter
         {
             HasAnimationPlaySuccess = false;
+            _hasSeenPlayingSinceEnter = false;
+            _hasLoggedFallback = false;
         }
 
         private bool HasAnimationPlaySuccess
@@ -863,6 +958,8 @@ namespace MonoFSM.Animation
         {
             // Debug.Log("Play Animation State");
             HasAnimationPlaySuccess = false;
+            _hasSeenPlayingSinceEnter = false;
+            _hasLoggedFallback = false;
             if (animator == null)
             {
                 Debug.LogError("animator is null", this);
@@ -927,6 +1024,10 @@ namespace MonoFSM.Animation
                     runtimeStartNormalizedTimeOffset
                 );
             }
+
+            //從最後一幀起播(init skip)的話，不用等 animator 更新過才允許判定完成
+            if (runtimeStartNormalizedTimeOffset >= 1f)
+                _hasSeenPlayingSinceEnter = true;
 
             _lastOnRenderTime = Time.time;
             // FIXME: 不要update 0就不會造成這個onenable了？

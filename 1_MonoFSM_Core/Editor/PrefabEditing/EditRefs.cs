@@ -142,7 +142,7 @@ namespace MonoFSM.Editor.PrefabEditing
                         }
 
                         hits.Add(
-                            $"  {PathOf(owner, searchRoot)}\n" +
+                            $"  {PathOf(owner, searchRoot)}{NoteText.Suffix(NoteText.Of(comp))}\n" +
                             $"      {comp.GetType().Name}.{prop.propertyPath}" +
                             $"{TargetSuffix(value, onlyComp)}");
                     }
@@ -219,12 +219,25 @@ namespace MonoFSM.Editor.PrefabEditing
 
             if (t != null && scope.Any(r => t == r || t.IsChildOf(r)))
                 return $"{PathOf(t, searchRoot)}" +
-                       (value is Component c2 ? $"#{c2.GetType().Name}" : "");
+                       (value is Component c2 ? $"#{c2.GetType().Name}" : "") +
+                       NoteText.Suffix(NoteOf(value, t));
 
             var asset = AssetDatabase.GetAssetPath(value);
             return string.IsNullOrEmpty(asset)
                 ? $"{value.name} <{value.GetType().Name}> (樹外)"
-                : $"res:{asset}" + (value is Component c3 ? $"#{c3.GetType().Name}" : "");
+                : $"res:{asset}" + (value is Component c3 ? $"#{c3.GetType().Name}" : "") +
+                  NoteText.Suffix(NoteText.Of(value));
+        }
+
+        /// <summary>
+        /// 引用目標的 note。目標常常是 Transform（`_target` 這類欄位），note 卻寫在同節點的
+        /// 別的 component 上（例如 MonoStateBehaviour），所以自己沒有就退回節點層級找。
+        /// </summary>
+        private static string NoteOf(Object value, Transform node)
+        {
+            var own = NoteText.Of(value);
+            if (!string.IsNullOrEmpty(own)) return own;
+            return node != null ? NoteText.OfGameObject(node.gameObject) : "";
         }
 
         // ---- 共用 ----

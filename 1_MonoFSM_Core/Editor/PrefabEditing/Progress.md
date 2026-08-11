@@ -12,3 +12,6 @@
 - 路徑支援 `\/` 逃逸：節點名本身含 `/`（`=> Localized: GameplayUI/grab` 這類自動命名）時 `Transform.Find` 會誤判成階層，改走自掃子節點；`ChildLabels` / `PathOf` 列出的路徑也會自動逃逸。
 - 新增 `up prefab copy --out <path> [--name]`（`PrefabEdit.CopyAsset`）：複製成獨立 prefab 並順手改 root 名稱，拿既有 prefab 當模板改比從零建安全（`variant` 是要保留繼承時才用）。
 - prefab batch DSL 新增 `rename|<node>|<newName>`（`<node>` 留空 = root）：複製模板後 root / 節點名字還是舊的，之前沒有改名手段。注意帶 `AbstractDescriptionBehaviour` 的節點存檔後會被自動命名蓋掉。
+- `up refs` 的 inbound 每筆命中會接上引用來源的 `_note`（`# 安全區慢慢充電`）：節點名是自動命名的（`[Action] Stamina 電力 += 2`），看不出用途，只印路徑會讓人對每一筆再下鑽一次 `read` 才知道哪筆是要找的。
+- note 抽取抽成共用的 `MonoFSM.Editor.NoteText`（走 cache 過的反射，不 new SerializedObject —— 摺疊行要數整棵子樹的 note，而 `PrefabTextReader.Layered` 會把同一棵樹重跑幾十次探深度），涵蓋 `_note`（`AbstractDescriptionBehaviour` / `AbstractSOConfig`）與 `Note` 的舊 `note` 欄位。三處輸出面接上：hierarchy node 行尾（`up read` / `up scene ls` / `up obj`，同時把 `_note` 從欄位堆移除，免得被 `_maxFieldCharsPerComponent` 截掉）、摺疊行的 `(+N nodes, M notes)`、FSM markdown 的 state / transition / condition / action / variable。
+- `up refs --out` 的引用目標補上 note（原本只有 inbound 有，順著引用往下追一樣看不出用途）；目標是 Transform 這種本身沒 note 的 component 時退回節點層級找。

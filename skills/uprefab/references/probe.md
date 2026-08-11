@@ -72,7 +72,9 @@ up refs "…prefab" --node "…" --out              # 反向：這個節點指�
 up refs "…prefab" --node "…" --comp VarFloat    # 只算指向該 component 的（排除同節點其他 component）
 ```
 
-輸出是「節點路徑 + `型別.欄位`」：
+輸出是「節點路徑（有 `_note` 就接在後面）+ `型別.欄位`」。**note 是掃這份清單的關鍵** ——
+節點名是自動命名的（`[Action] Stamina 電力 += 2`），看不出用途，
+`# 安全區慢慢充電` 這種資訊只在 note 裡：
 
 ```
 14 個引用指向 Modules/Destroyable ModulePack Variant/[VarFolder] VariableFolder/[Var] Durability

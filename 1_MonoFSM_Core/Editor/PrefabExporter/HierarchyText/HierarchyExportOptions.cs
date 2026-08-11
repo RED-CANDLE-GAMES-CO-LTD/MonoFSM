@@ -20,6 +20,9 @@ namespace MonoFSM.Editor
         public bool _markOverrides = true;
         public bool _includeInactive = true; // false 時 inactive 子樹折成 "~Name (+N nodes)"
         public int _maxStringLength = 60;
+
+        // note 是「為什麼這樣做」的唯一出處，比一般字串欄位值錢，給它自己的（比較寬的）上限
+        public int _maxNoteLength = 120;
         public int _maxArrayElements = 8;
         public int _maxNestedDepth = 2;
         public int _maxFieldCharsPerComponent = 400; // 單一 component 欄位文字總量上限；<=0 不限

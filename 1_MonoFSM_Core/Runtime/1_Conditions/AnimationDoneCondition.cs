@@ -9,8 +9,18 @@ namespace MonoFSM.Core
     {
         [Range(0, 1)] public float _exitRatio = 0;
 
-        public override string Description =>
-            _exitRatio <= 0 ? "Anim Done" : "Anim Exit at: " + _exitRatio;
+        public override string Description
+        {
+            get
+            {
+                var desc = _exitRatio <= 0 ? "Anim Done" : "Anim Exit at: " + _exitRatio;
+#if UNITY_EDITOR
+                if (Application.isPlaying && _action != null)
+                    desc += " (" + _action.ProgressDebugInfo + ")";
+#endif
+                return desc;
+            }
+        }
 
         [Button]
         void SetExitRatio()

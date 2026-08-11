@@ -12,6 +12,15 @@ namespace MonoFSM.Editor
     // 給 LLM 閱讀／規劃用。read-only，單向匯出，不負責 round-trip 回 prefab。
     public static class FsmTextExporter
     {
+        /// <summary>
+        /// FSM 匯出的重點就是「為什麼這樣接」，而 why 只寫在 note 裡（Description 不含 note），
+        /// 所以這裡給的截斷上限比 hierarchy 寬。
+        /// </summary>
+        private const int NoteMaxLength = 200;
+
+        private static string NoteSuffix(Component c) =>
+            NoteText.Suffix(NoteText.Of(c, NoteMaxLength));
+
         public static string Export(GameObject root)
         {
             if (root == null) return string.Empty;
@@ -104,9 +113,9 @@ namespace MonoFSM.Editor
                 var displayName = CleanName(v.name);
                 var desc = SafeDescription(v);
                 if (!string.IsNullOrEmpty(desc) && desc != displayName)
-                    sb.AppendLine($"- {displayName} : {typeName}  — {desc}");
+                    sb.AppendLine($"- {displayName} : {typeName}  — {desc}{NoteSuffix(v)}");
                 else
-                    sb.AppendLine($"- {displayName} : {typeName}");
+                    sb.AppendLine($"- {displayName} : {typeName}{NoteSuffix(v)}");
             }
             sb.AppendLine();
         }
@@ -127,7 +136,7 @@ namespace MonoFSM.Editor
         private static void ExportState(MonoStateBehaviour state, StringBuilder sb)
         {
             var stateName = CleanName(state.name);
-            sb.AppendLine($"### {stateName}");
+            sb.AppendLine($"### {stateName}{NoteSuffix(state)}");
 
             // 走 state 的 direct children，分類成 transitions / actions container
             var transitions = new List<TransitionBehaviour>();
@@ -160,7 +169,7 @@ namespace MonoFSM.Editor
                 {
                     var desc = SafeDescription(a);
                     var typeName = a.GetType().Name;
-                    sb.AppendLine($"    - {desc}  ({typeName})");
+                    sb.AppendLine($"    - {desc}  ({typeName}){NoteSuffix(a)}");
                 }
             }
 
@@ -173,7 +182,7 @@ namespace MonoFSM.Editor
         private static void ExportTransition(TransitionBehaviour tr, StringBuilder sb)
         {
             var targetName = tr._target != null ? CleanName(tr._target.name) : "?";
-            sb.AppendLine($"  → {targetName}");
+            sb.AppendLine($"  → {targetName}{NoteSuffix(tr)}");
 
             // direct child conditions
             foreach (Transform child in tr.transform)
@@ -189,7 +198,7 @@ namespace MonoFSM.Editor
             var desc = SafeDescription(cond);
             var typeName = cond.GetType().Name;
             var prefix = cond.FinalResultInverted ? "if not " : "if ";
-            sb.AppendLine($"{indent}{prefix}{desc}  [{typeName}]");
+            sb.AppendLine($"{indent}{prefix}{desc}  [{typeName}]{NoteSuffix(cond)}");
         }
 
         // ---- helpers ----

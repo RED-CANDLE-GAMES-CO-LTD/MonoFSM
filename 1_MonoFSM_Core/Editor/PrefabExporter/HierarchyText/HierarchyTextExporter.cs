@@ -53,8 +53,7 @@ namespace MonoFSM.Editor
 
             if (!opt._includeInactive && !go.activeSelf && depth > 0)
             {
-                var n = CountDescendants(go);
-                sb.AppendLine($"{indent}~{go.name} (+{n} nodes)");
+                sb.AppendLine($"{indent}~{go.name}{FoldTail(go, opt)}");
                 return;
             }
 
@@ -74,18 +73,17 @@ namespace MonoFSM.Editor
                 var summarizer = SubtreeSummarizerRegistry.Find(go);
                 if (summarizer != null)
                 {
-                    var n = CountDescendants(go);
                     var flags = BuildFlags(go);
-                    sb.AppendLine($"{indent}{flags}{go.name} {summarizer.Summarize(go)} (+{n} nodes)");
+                    sb.AppendLine(
+                        $"{indent}{flags}{go.name} {summarizer.Summarize(go)}{FoldTail(go, opt)}");
                     return;
                 }
             }
 
             if (opt._maxDepth >= 0 && depth > opt._maxDepth && !forcedExpand)
             {
-                var n = CountDescendants(go);
                 var flags = BuildFlags(go);
-                sb.AppendLine($"{indent}{flags}{go.name} (+{n} nodes)");
+                sb.AppendLine($"{indent}{flags}{go.name}{FoldTail(go, opt)}");
                 return;
             }
 
@@ -133,7 +131,23 @@ namespace MonoFSM.Editor
                     sb.Append($" (prefab:res:{CompactValueFormatter.StripAssetsPrefix(srcPath)})");
             }
 
+            // note 提到行尾當註解，不留在欄位堆裡：欄位堆會被 _maxFieldCharsPerComponent 截掉，
+            // 而 note 是掃階層時最該一眼看到的東西
+            sb.Append(NoteText.NodeSuffix(go, ctx.Options._maxNoteLength));
+
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// 折疊行的尾巴：展開成本 + 子樹裡藏了幾則 note + 自己的 note。
+        /// 沒有 note 數的話，讀的人無從判斷這個 (+N nodes) 值不值得下鑽。
+        /// </summary>
+        private static string FoldTail(GameObject go, HierarchyExportOptions opt)
+        {
+            var nodes = CountDescendants(go);
+            var notes = NoteText.CountInDescendants(go);
+            var notePart = notes > 0 ? $", {notes} notes" : "";
+            return $" (+{nodes} nodes{notePart}){NoteText.NodeSuffix(go, opt._maxNoteLength)}";
         }
 
         private static string BuildFlags(GameObject go)
@@ -215,6 +229,10 @@ namespace MonoFSM.Editor
                 {
                     if (prop.name == "m_Script" || prop.name == "m_GameObject" ||
                         prop.name == "m_ObjectHideFlags" || prop.name == "m_Enabled")
+                        continue;
+
+                    // 已經被提到節點行尾了（NoteText.NodeSuffix）
+                    if (prop.name == "_note" || prop.name == "note")
                         continue;
 
                     var isOverride = opt._markOverrides && prop.prefabOverride && !prop.isDefaultOverride;

@@ -18,6 +18,7 @@ MonoFSM/1_MonoFSM_Core/Editor/PrefabExporter/HierarchyText/
 ├── ComponentDefaultCache.cs    # Component 預設值快取（DataEquals + heuristic fallback）
 ├── CompactValueFormatter.cs    # SerializedProperty → 精簡值文字
 ├── HierarchyTextExporter.cs    # 核心遍歷、node 行組裝、Export/ExportToFile 靜態 API
+│                               #（note 抽取在上一層 ../NoteText.cs，FSM 匯出與 up refs 共用）
 ├── SubtreeSummarizers.cs       # ISubtreeSummarizer + registry + 3 個內建 summarizer
 └── HierarchyTextContextMenu.cs # 右鍵選單入口
 ```
@@ -58,12 +59,14 @@ return MonoFSM.Editor.HierarchyTextExporter.ExportToFile(go);
 ### Node 行
 
 ```
-[縮排2空格][flags]Name [transform] [<components>] [(prefab:res:路徑)]
+[縮排2空格][flags]Name [transform] [<components>] [(prefab:res:路徑)] [   # note]
 ```
 
 - **flags**：`~` = inactive GameObject、`+` = prefab instance 新增的 GameObject（`IsAddedGameObjectOverride`）
 - **transform**：只輸出非 identity 的 local transform；`p=(x,y,z)`、`r=(x,y,z)`（localEulerAngles）、`s=0.5`（等比例縮寫）或 `s=(x,y,z)`；數字整數不帶小數點，float 最多 3 位小數（`0.###`）
 - root 是 prefab asset 時，第一行輸出 `# prefab: res:路徑`；node 本身是巢狀 prefab instance root 時，行尾附 `(prefab:res:路徑)`（`IsAnyPrefabInstanceRoot` + `GetPrefabAssetPathOfNearestInstanceRoot`）
+- **note**（`NoteText.NodeSuffix`）：節點上 component 的 `_note`（`AbstractDescriptionBehaviour` / `AbstractSOConfig`）或 `Note` 的舊 `note` 欄位，攤成單行掛在行尾當註解。節點名多半自動命名（`[Action] Stamina 電力 += 2`），看得出做什麼、看不出為什麼，why 只寫在 note 裡。同節點多個 component 各有 note 時標出型別：`# Note: xxx | HpHandler: yyy`。長度上限 `_maxNoteLength`。
+  - `_note` / `note` 因此**不再出現在 component 欄位堆裡**（避免被 `_maxFieldCharsPerComponent` 截掉，那是掃階層時最該一眼看到的東西）
 
 ### Component 區塊
 
@@ -142,6 +145,10 @@ DEF-spine p=(0,-0.001,0.005) r=(80.945,180,180) :: bones/transform-only (+6 node
 - `_foldKnownSubtrees=false` 或 node 路徑命中 `_expandPaths` → 不摺疊，正常展開
 - 超過 `_maxDepth`（且未被 `_expandPaths` 強制展開）→ 摺成 `Name (+N nodes)`（無 summarizer 時的純深度摺疊）
 - `_includeInactive=false` 時，inactive 子樹摺成 `~Name (+N nodes)`
+
+摺疊行的尾巴（`FoldTail`，含 summarizer 摺疊與深度摺疊）：`(+N nodes, M notes)` + 節點自己的 `# note`。
+`M notes` 是**子樹裡（不含自己）**的 note 數 —— 沒有它，讀的人無從判斷這個 `(+N nodes)` 值不值得下鑽。
+純 Transform 骨架摺疊不帶 note 數（整棵只有 Transform，不可能有 note）。
 - 同層子節點超過 `_maxChildrenPerNode` → 列出前 N 個，其餘顯示 `… (+M more siblings)`
 
 ## HierarchyExportOptions 欄位
@@ -161,6 +168,7 @@ DEF-spine p=(0,-0.001,0.005) r=(80.945,180,180) :: bones/transform-only (+6 node
 | `_markOverrides` | true | override 欄位名後加 `*` |
 | `_includeInactive` | true | false 時 inactive 子樹摺成一行 |
 | `_maxStringLength` | 60 | string 截斷長度 |
+| `_maxNoteLength` | 120 | node 行尾 note 的截斷長度（比一般 string 寬，note 是 why 的唯一出處） |
 | `_maxArrayElements` | 8 | 陣列展開元素上限 |
 | `_maxNestedDepth` | 2 | 巢狀 serializable 展開深度上限 |
 | `_maxFieldCharsPerComponent` | 400 | 單一 component 欄位文字總量上限，超過補 `…(+N more)`；<=0 不限 |
