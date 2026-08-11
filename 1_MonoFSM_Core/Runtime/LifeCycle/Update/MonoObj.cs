@@ -149,6 +149,26 @@ namespace MonoFSMCore.Runtime.LifeCycle
             //fixme: ??
             //play mode 被刪掉要怎麼處理？
             // Debug.Log("MonoObj OnDestroy" + name, this);
+#if UNITY_EDITOR
+            //還在 WorldUpdateSimulator 註冊表裡就被 Destroy → set 裡會留下 fake-null，
+            //Simulate 事後只知道「有人是 null」但問不出名字（destroy 後 name/transform 都不能存取）。
+            //在這裡報是唯一還能印出物件身份、且訊息可點擊定位的時機。
+            if (!Application.isPlaying)
+                return;
+            //切場景 / 退出 play mode 的整批卸載不算「亂 call destroy」
+            if (!gameObject.scene.isLoaded)
+                return;
+
+            //不要走 WorldUpdateSimulator property：parent 可能同時在被 destroy，存取它的 property 會噴 MissingReference
+            var world = _worldUpdateSimulator;
+            if (world == null && _parentObj != null)
+                world = _parentObj.WorldUpdateSimulator;
+            if (world != null && world.IsRegistered(this))
+                Debug.LogError(
+                    $"[MonoObj] 被 Destroy 但沒有先 Despawn/Unregister：{name} (parent:{(transform.parent != null ? transform.parent.name : "none")}, id:{GetInstanceID()})",
+                    this
+                );
+#endif
         }
 
         //有網路層(Fusion)時由它掛一顆實作 ISimulateAuthorityProvider 的 component；

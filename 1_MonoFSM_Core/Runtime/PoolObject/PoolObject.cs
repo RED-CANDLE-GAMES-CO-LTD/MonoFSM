@@ -194,6 +194,43 @@ public class
 
     private CancellationTokenSource _autoRecycleCts;
 
+    //stopAction 檢查用的共用 buffer。不用 [AutoChildren] 序列化 cache：新加的欄位在存量 prefab 上
+    //是空陣列（不是 null），檢查會靜默失效。改用 non-alloc 版查詢，只在 EnterSceneAwake 跑一次。
+    private static readonly List<ParticleSystem> _particleBuffer = new(8);
+
+    /// <summary>
+    ///     pool 物件不能讓 ParticleSystem 的 Stop Action 停在 Destroy：粒子播完 Unity 會直接把整顆
+    ///     GameObject Destroy 掉，繞過 Recycle()，pool 少一顆，而且 WorldUpdateSimulator 的註冊表會留下
+    ///     fake-null（症狀是 Simulate 每幀噴「MonoObj 已被 Destroy 但沒 UnregisterMonoObject」）。
+    ///     第三方 VFX prefab 很常預設成 Destroy（ex: AllIn1VfxToolkit 的 demo prefab），
+    ///     所以在這裡一律降級成 Disable，並在 editor 指名是哪顆粒子，讓人回 prefab 改掉。
+    ///     注意：降級成 Disable 只是不再破壞 pool，物件仍是「借出中」，要真的還回 pool 得開
+    ///     <see cref="_enableAutoRecycle" /> 或由 FSM 呼叫 Recycle()。
+    /// </summary>
+    private void SanitizeParticleStopAction()
+    {
+        GetComponentsInChildren(true, _particleBuffer);
+        for (var i = 0; i < _particleBuffer.Count; i++)
+        {
+            var ps = _particleBuffer[i];
+            if (ps == null)
+                continue;
+            var main = ps.main;
+            if (main.stopAction != ParticleSystemStopAction.Destroy)
+                continue;
+            main.stopAction = ParticleSystemStopAction.Disable;
+#if UNITY_EDITOR
+            Debug.LogError(
+                $"[PoolObject] {name} 的 ParticleSystem「{ps.name}」Stop Action 是 Destroy，"
+                    + "會把 pool 物件整顆 Destroy 掉（繞過 Recycle / UnregisterMonoObject）。"
+                    + "已在執行期降級成 Disable，請回 prefab 改掉，"
+                    + $"並用 PoolObject 的「延遲自動回收」({nameof(_enableAutoRecycle)}) 或 FSM 來回收。",
+                ps
+            );
+#endif
+        }
+    }
+
     public enum ProtectionState
     {
         Recyclable, // 可回收狀態，可以被池管理器回收
@@ -726,6 +763,7 @@ public class
         //這個要開著才能初始化
         //InitAnimResetters();
         CheckResetParameterInit();
+        SanitizeParticleStopAction();
     }
 
     private void OnValidate()

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MonoFSM.Core.Attributes;
@@ -241,6 +242,16 @@ namespace MonoFSM.Core.Simulate
             if (_monoObjectSet.Add(target))
             {
                 _monoObjectSetDirty = true;
+#if UNITY_EDITOR
+                //趁物件還活著記下身份，等它被 Destroy 成 fake-null 時才有東西可以印
+                var id = target.GetInstanceID();
+                if (!_registeredNames.ContainsKey(id))
+                {
+                    var parent = target.transform.parent;
+                    _registeredNames[id] =
+                        $"{target.name} (parent:{(parent != null ? parent.name : "none")}, poolObj:{target.isPoolObj})";
+                }
+#endif
                 target.SetWorldUpdateSimulator(this);
                 //所有 children都要？
                 //重置狀態
@@ -316,10 +327,25 @@ namespace MonoFSM.Core.Simulate
             _levelStartTime = SimulationTime;
             //FIXME: Pool回收會
             // PoolManager.Instance.ReturnAllObjects(); //會把player也回收掉？
-            foreach (var mono in _monoObjectSet)
-                mono.ResetStateRestore(isHardReset);
+            var objs = BuildResetIterationBuffer(nameof(ResetLevelRestore));
+            for (var i = 0; i < objs.Count; i++)
+            {
+                var mono = objs[i];
+                if (mono == null) //buffer 建好之後才被 destroy 的
+                    continue;
+                try
+                {
+                    mono.ResetStateRestore(isHardReset);
+                }
+                catch (System.Exception e)
+                {
+                    //單顆壞掉不能拖垮整批（對齊 MonoObj.HandleIResetStateRestore 內層的做法）
+                    Debug.LogException(e, this);
+                }
+            }
+
             Debug.Log(
-                $"WorldUpdateSimulator ResetStateRestore called with {_monoObjectSet.Count} MonoPoolObjs.",
+                $"WorldUpdateSimulator ResetStateRestore called with {objs.Count} MonoPoolObjs.",
                 this
             );
         }
@@ -327,10 +353,80 @@ namespace MonoFSM.Core.Simulate
         public void ResetLevelStart()
         {
             //FIXME: 有人在這個過程spawn?
-            var list = _monoObjectSet.ToList();
-            foreach (var mono in list)
-                mono.ResetStart();
-            // foreach (var mono in _monoObjectSet) mono.ResetStart();
+            var objs = BuildResetIterationBuffer(nameof(ResetLevelStart));
+            for (var i = 0; i < objs.Count; i++)
+            {
+                var mono = objs[i];
+                if (mono == null)
+                    continue;
+                try
+                {
+                    mono.ResetStart();
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogException(e, this);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     清掉「已被 destroy 但沒 UnregisterMonoObject」的殘留註冊，並盡量指名是誰。
+        ///     已 destroy 的 UnityEngine.Object 是 fake-null：name/transform 都不能再存取，
+        ///     但 GetInstanceID() 還是原本的 id，所以拿 id 去查 register 時記下的名字表反推兇手。
+        /// </summary>
+        private int PurgeDestroyedRegistrations(string phase)
+        {
+            var removed = _monoObjectSet.RemoveWhere(mono =>
+            {
+                if (mono != null)
+                    return false;
+#if UNITY_EDITOR
+                var id = mono.GetInstanceID();
+                _registeredNames.TryGetValue(id, out var who);
+                Debug.LogError(
+                    $"[WorldUpdateSimulator] {phase}: 註冊表裡的 MonoObj 已被 Destroy 但沒 UnregisterMonoObject，"
+                    + $"移除：{who ?? "(註冊時未記錄名字)"} id:{id}",
+                    this
+                );
+                _registeredNames.Remove(id);
+#endif
+                return true;
+            });
+
+            if (removed > 0)
+            {
+                _monoObjectSetDirty = true;
+#if !UNITY_EDITOR
+                Debug.LogError(
+                    $"[WorldUpdateSimulator] {phase}: 清掉 {removed} 個已被 destroy 但沒 unregister 的 MonoObj 註冊。",
+                    this
+                );
+#endif
+            }
+
+            return removed;
+        }
+
+        //reset 專用的迭代 buffer：reset 過程中會大量 spawn/despawn 改動 _monoObjectSet，
+        //不能共用 _iterationSnapshot（Simulate/Render 階段也會就地 Clear 重建同一個 List）
+        private readonly List<MonoObj> _resetIterationBuffer = new();
+
+        /// <summary>
+        ///     迭代前先把「已被 destroy 但沒 unregister」的殘留註冊清掉，再複製成 buffer。
+        ///     不清的話 foreach 撞到 destroyed MonoObj 會拋 MissingReferenceException，
+        ///     整批 reset 從那顆中斷，排在它後面的物件完全不會被 reset（症狀是按幾次 reset 才成功一次，
+        ///     因為 HashSet 的迭代順序會隨 ReturnAllObjects 改動而變）。
+        ///     複製成 buffer 是為了讓 reset 過程中的 spawn/despawn 不會造成 Collection was modified。
+        /// </summary>
+        private List<MonoObj> BuildResetIterationBuffer(string phase)
+        {
+            PurgeDestroyedRegistrations(phase);
+
+            _resetIterationBuffer.Clear();
+            foreach (var mono in _monoObjectSet)
+                _resetIterationBuffer.Add(mono);
+            return _resetIterationBuffer;
         }
 
         //世界進入點
@@ -402,6 +498,9 @@ namespace MonoFSM.Core.Simulate
 
             _pendingDespawns.Clear();
             _monoObjectSet.Clear();
+#if UNITY_EDITOR
+            _registeredNames.Clear();
+#endif
             _currentUpdatingObjs.Clear();
             _iterationSnapshot.Clear();
             _previewObj.Clear();
@@ -417,6 +516,11 @@ namespace MonoFSM.Core.Simulate
         // [PreviewInInspector] [AutoChildren] private IMonoObject[] _localMonoObjects; //FIXME這顆要掛在？
         private readonly HashSet<MonoObj> _monoObjectSet = new(); //這個是用來做reset的？還是要有一個MonoObjectRunner?
         private readonly List<MonoObj> _pendingDespawns = new();
+
+#if UNITY_EDITOR
+        //instanceID → 註冊時的物件身份描述。用來在物件被 Destroy 成 fake-null 之後還能指名是誰。
+        private readonly Dictionary<int, string> _registeredNames = new();
+#endif
 
         //迭代用 snapshot：避免 Render 中 SpawnVisual 註冊新 MonoObj 時 "Collection was modified"
         //只在 set 有增減時重建（dirty flag），不會每幀 ToList 產生 GC
@@ -523,20 +627,17 @@ namespace MonoFSM.Core.Simulate
             if (!IsReady)
                 return;
 
+            //Update 排程的本地 reset 在這裡執行（ManualResetLevelLocal 會一口氣重置所有 simulator，
+            //所以由第一個跑到 Simulate 的 simulator 消耗掉即可）
+            ConsumePendingLocalReset();
+
             ProcessPendingDespawns();
 
             TimeScaleCheck();
             _currentUpdatingObjs.Clear();
 
 #if UNITY_EDITOR //FIXME: 亂call destroy可能導致這個
-            if (_monoObjectSet.RemoveWhere(mono => mono == null) > 0)
-            {
-                Debug.LogError(
-                    "A MonoPoolObj in the WorldUpdateSimulator set is null. It might have been destroyed without unregistering. Removing it from the set.",
-                    this
-                );
-                _monoObjectSetDirty = true;
-            }
+            PurgeDestroyedRegistrations(nameof(Simulate));
 #endif
 
             foreach (var obj in _monoObjectSet)
@@ -634,6 +735,8 @@ namespace MonoFSM.Core.Simulate
         }
 
 #if UNITY_EDITOR
+
+        //這段是我把unity binding拿掉，然後又自己補回來...
         [MenuItem("MonoFSM/ResetLevel %R")]
         public static void ManualResetLevelMenu()
         {
@@ -672,7 +775,7 @@ namespace MonoFSM.Core.Simulate
             ILevelResetBroadcaster fallback = null;
             foreach (var b in _resetBroadcasters)
             {
-                if (b is Object o && o == null) continue; //已被 Destroy 的殘留註冊
+                if (b is UnityEngine.Object o && o == null) continue; //已被 Destroy 的殘留註冊
                 if (b.IsResetAuthority)
                     return b.TryBroadcastReset(isHardReset);
                 fallback ??= b;
@@ -691,11 +794,38 @@ namespace MonoFSM.Core.Simulate
                 return;
             }
 
+            RequestLocalReset(isHardReset);
+        }
+
+        //按鍵偵測必須留在 Update（Input System 的 wasPressedThisFrame 只有 Update 準），
+        //但 reset 不能在 tick 外執行 → 只記 pending，實際在 Simulate 開頭做。
+        private static bool _pendingLocalReset;
+        private static bool _pendingLocalHardReset;
+
+        /// <summary>
+        ///     排程一次本地 reset，延到下一次 Simulate 開頭執行（同 frame 的重複請求會被併成一次）。
+        /// </summary>
+        public static void RequestLocalReset(bool isHardReset = false)
+        {
+            _pendingLocalReset = true;
+            _pendingLocalHardReset |= isHardReset;
+            Debug.Log($"ResetLevel 請求已排程，延到下個 Simulate 執行 isHardReset:{isHardReset}");
+        }
+
+        private static void ConsumePendingLocalReset()
+        {
+            if (!_pendingLocalReset)
+                return;
+
+            _pendingLocalReset = false;
+            var isHardReset = _pendingLocalHardReset;
+            _pendingLocalHardReset = false;
             ManualResetLevelLocal(isHardReset);
         }
 
         /// <summary>
         ///     純本地 reset：把同進程所有 simulator 全部重置（無連線 / broadcaster 尚未 Spawned 的 fallback）。
+        ///     只該從 Simulate 開頭（ConsumePendingLocalReset）呼叫，別直接從 Update 叫。
         /// </summary>
         public static void ManualResetLevelLocal(bool isHardReset = false)
         {
