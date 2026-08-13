@@ -157,9 +157,11 @@ namespace MonoFSM.Core.LifeCycle
 
             MonoObj newObj;
             if (_isSpawningVisual)
-                newObj = _parentObj.WorldUpdateSimulator.SpawnVisual(prefab, position, rotation); //Runner.spawn?
+                newObj = _parentObj.WorldUpdateSimulator.SpawnVisual(prefab, position, rotation,
+                    this); //Runner.spawn?
             else
-                newObj = _parentObj.WorldUpdateSimulator.Spawn(prefab, position, rotation); //Runner.spawn?
+                newObj = _parentObj.WorldUpdateSimulator.Spawn(prefab, position, rotation,
+                    this); //Runner.spawn?
             if (newObj == null)
                 return;
             //用目前這個action的transform的scale,fixme; 可能需要別種？物件本身的scale?還是應該避免
@@ -181,11 +183,7 @@ namespace MonoFSM.Core.LifeCycle
             foreach (var preSpawnAction in _afterSpawnActions)
                 preSpawnAction.AfterSpawn(newObj, position, rotation, hitData);
 
-            var pobj = newObj.GetComponent<PoolObject>();
-            if (pobj == null)
-                Debug.LogError("SpawnAction: Spawned object does not have a PoolObject component",
-                    this);
-            pobj.lastPlayer = this;
+            //lastPlayer 已由 WorldUpdateSimulator.Spawn/SpawnVisual 統一綁
             newObj.HandleAfterSpawn(position, rotation,
                 hitData); //讓spawn出來的物件自己的 IAfterSpawnProcess 也能處理
         }

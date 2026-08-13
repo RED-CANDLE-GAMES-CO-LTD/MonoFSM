@@ -17,7 +17,7 @@ namespace MonoFSM_Physics.Runtime.PhysicsAction
             if (rb != null)
             {
                 rb.isKinematic = _isKinematic;
-                Debug.Log($"Set Rigidbody Kinematic: {rb.name} to {_isKinematic}", rb.gameObject);
+                // Debug.Log($"Set Rigidbody Kinematic: {rb.name} to {_isKinematic}", rb.gameObject);
             }
             else
             {

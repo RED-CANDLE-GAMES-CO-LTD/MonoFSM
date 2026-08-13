@@ -220,7 +220,7 @@ public class
                 continue;
             main.stopAction = ParticleSystemStopAction.Disable;
 #if UNITY_EDITOR
-            Debug.LogError(
+            Debug.LogWarning(
                 $"[PoolObject] {name} 的 ParticleSystem「{ps.name}」Stop Action 是 Destroy，"
                     + "會把 pool 物件整顆 Destroy 掉（繞過 Recycle / UnregisterMonoObject）。"
                     + "已在執行期降級成 Disable，請回 prefab 改掉，"

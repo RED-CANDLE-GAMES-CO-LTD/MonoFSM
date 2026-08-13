@@ -13,7 +13,7 @@ namespace MonoFSM.Core.LifeCycle
     /// 依 index 顯示在事先擺好的 _slots anchor 下（純 View，走 SpawnVisual pool）。
     /// list 增減或內容改變時自動 diff：prefab 沒變的 slot 不動，變的才換。
     /// </summary>
-    public class PreviewDataListRenderer : AbstractRenderBehaviour
+    public class PreviewDataListRenderer : AbstractRenderBehaviour, IPoolObjectPlayer
     {
         public override string Description =>
             "Preview List: " + (_varListData != null ? _varListData.name : "?");
@@ -66,7 +66,7 @@ namespace MonoFSM.Core.LifeCycle
                     return;
                 }
 
-                var newObj = sim.SpawnVisual(prefab, _slots[i].position, _slots[i].rotation);
+                var newObj = sim.SpawnVisual(prefab, _slots[i].position, _slots[i].rotation, this);
                 if (newObj == null)
                     continue;
 

@@ -93,6 +93,94 @@ namespace MonoFSM.Core
             }
         }
 
+        //_dict 只裝本地 Collections，external dict 的內容要另外問，
+        //否則 ContainsKey / Count / inspector 的 GetKeys 會少掉 AllValues 裡看得到的那些
+        public override bool Contains(T key)
+        {
+            if (base.Contains(key)) return true;
+
+            foreach (var dict in _externalDicts)
+            {
+                if (dict == null) continue;
+                if (dict.Contains(key)) return true;
+            }
+
+            return false;
+        }
+
+        public override bool Contains(string stringKey)
+        {
+            if (base.Contains(stringKey)) return true;
+
+            foreach (var dict in _externalDicts)
+            {
+                if (dict == null) continue;
+                if (dict.Contains(stringKey)) return true;
+            }
+
+            return false;
+        }
+
+        public override int Count
+        {
+            get
+            {
+                var count = base.Count;
+                foreach (var dict in _externalDicts)
+                {
+                    if (dict == null) continue;
+                    count += dict.Count;
+                }
+
+                return count;
+            }
+        }
+
+        public override List<T> GetKeys
+        {
+            get
+            {
+                var results = base.GetKeys;
+                foreach (var dict in _externalDicts)
+                {
+                    if (dict == null) continue;
+                    results.AddRange(dict.GetKeys);
+                }
+
+                return results;
+            }
+        }
+
+        public override List<Tu> GetValues
+        {
+            get
+            {
+                var results = base.GetValues;
+                foreach (var dict in _externalDicts)
+                {
+                    if (dict == null) continue;
+                    results.AddRange(dict.GetValues);
+                }
+
+                return results;
+            }
+        }
+
+        public override List<string> GetStringKeys
+        {
+            get
+            {
+                var results = base.GetStringKeys;
+                foreach (var dict in _externalDicts)
+                {
+                    if (dict == null) continue;
+                    results.AddRange(dict.GetStringKeys);
+                }
+
+                return results;
+            }
+        }
+
         public override Tu Get(T key)
         {
             var local = base.Get(key);

@@ -13,7 +13,7 @@ namespace MonoFSM.Core.LifeCycle
     /// prefab 沒變時不重生成；GameData 為 null 或沒有 PreviewDataFunction 時自動回收。
     /// 取代「事先擺一串 GameObject + SetGameObjectActiveByIndexAction」的做法。
     /// </summary>
-    public class PreviewDataRenderer : AbstractRenderBehaviour
+    public class PreviewDataRenderer : AbstractRenderBehaviour, IPoolObjectPlayer
     {
         public override string Description =>
             "Preview: " + (_gameData._var != null ? _gameData._var.name : _gameData.Value?.name);
@@ -45,7 +45,7 @@ namespace MonoFSM.Core.LifeCycle
             }
 
             var anchor = _anchor != null ? _anchor : transform;
-            var newObj = sim.SpawnVisual(prefab, anchor.position, anchor.rotation);
+            var newObj = sim.SpawnVisual(prefab, anchor.position, anchor.rotation, this);
             if (newObj == null)
                 return;
 

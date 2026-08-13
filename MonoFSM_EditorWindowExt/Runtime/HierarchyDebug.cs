@@ -29,10 +29,10 @@ namespace MonoFSM.EditorExtension
             set
             {
                 _isDebugMode = value;
-                if (_isDebugMode)
-                    Debug.Log("Hierarchy Debug Mode Enabled");
-                else
-                    Debug.Log("Hierarchy Debug Mode Disabled");
+                // if (_isDebugMode)
+                //     Debug.Log("Hierarchy Debug Mode Enabled");
+                // else
+                //     Debug.Log("Hierarchy Debug Mode Disabled");
             }
         }
     }

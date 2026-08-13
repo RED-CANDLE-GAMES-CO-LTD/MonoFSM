@@ -38,7 +38,8 @@ namespace MonoFSM.Core.Simulate
             this GameObject gObj,
             MonoObj obj,
             Vector3 position,
-            Quaternion rotation
+            Quaternion rotation,
+            IPoolObjectPlayer player = null
         )
         {
             if (gObj == null)
@@ -55,7 +56,7 @@ namespace MonoFSM.Core.Simulate
                 return null;
             }
 
-            return simulator.Spawn(obj, position, rotation);
+            return simulator.Spawn(obj, position, rotation, player);
         }
     }
 
@@ -139,14 +140,16 @@ namespace MonoFSM.Core.Simulate
             var obj = simulator.Spawn(
                 gobj.GetComponent<MonoObj>(),
                 gobj.transform.position,
-                gobj.transform.rotation
+                gobj.transform.rotation,
+                fromWho as IPoolObjectPlayer
             );
             return obj?.gameObject;
         }
 
         [Auto] PoolManager _poolManager;
         public PoolManager Pool => _poolManager;
-        public MonoObj SpawnVisual(MonoObj obj, Vector3 position, Quaternion rotation)
+        public MonoObj SpawnVisual(MonoObj obj, Vector3 position, Quaternion rotation,
+            IPoolObjectPlayer player = null)
         {
             //FIXME: 還要做updateSimulator的註冊？
             var newObj = _poolManager.BorrowOrInstantiate(obj, position, rotation);
@@ -155,7 +158,34 @@ namespace MonoFSM.Core.Simulate
             if (newObj != null)
                 newObj.AssignShouldSimulateForAllChildrenObj(false);
             AfterPoolSpawn(newObj);
+            BindLastPlayer(newObj, player);
             return newObj;
+        }
+
+        /// <summary>
+        ///     把「誰噴的」記在 PoolObject 上，Inspector 的「誰噴的」欄位才點得回來源。
+        ///     統一在這裡綁，避免每個呼叫點自己 GetComponent 又漏掉（漏掉的症狀是場上出現孤兒物件卻查不到來源）。
+        /// </summary>
+        private static void BindLastPlayer(MonoObj newObj, IPoolObjectPlayer player)
+        {
+            if (newObj == null || player == null)
+                return;
+
+            if (!newObj.TryGetComponent<PoolObject>(out var poolObj))
+            {
+                //spawn 出來的東西照慣例都該有 PoolObject（不然回收路徑也是壞的），沒有就是 prefab 少掛
+                Debug.LogWarning(
+                    $"[WorldUpdateSimulator] {newObj.name} 沒有 PoolObject，無法記錄 lastPlayer（來源：{(player as Component)?.name}）",
+                    newObj);
+                return;
+            }
+
+            poolObj.lastPlayer = player;
+#if UNITY_EDITOR
+            poolObj._lastPlayerName = (player as Component) != null
+                ? (player as Component).name + " (" + player.GetType().Name + ")"
+                : player.GetType().Name;
+#endif
         }
 
         public void DespawnVisual(MonoObj obj)
@@ -170,7 +200,8 @@ namespace MonoFSM.Core.Simulate
         //FIXME: 好像不對，photon應該用他原本的Spawn方法，這個處理要在之後觸發？
         //1. 想收斂Spawn進入點
         //2. 還是會出現Runner直接Spawn沒辦法避免？
-        public MonoObj Spawn(MonoObj obj, Vector3 position, Quaternion rotation)
+        public MonoObj Spawn(MonoObj obj, Vector3 position, Quaternion rotation,
+            IPoolObjectPlayer player = null)
         {
             if (obj == null)
             {
@@ -188,6 +219,7 @@ namespace MonoFSM.Core.Simulate
             //FIXME: spawner本來就該來call這個？順便call auto?
             //太晚？EnterSceneStart 已經做完了？
             RegisterMonoObject(result);
+            BindLastPlayer(result, player);
 
             return result;
         }

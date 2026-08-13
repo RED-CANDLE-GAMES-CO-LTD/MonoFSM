@@ -21,7 +21,7 @@ namespace MonoFSM.Core.SpawnTable
     /// <summary>
     /// 使用 SpawnTableConfig 來決定生成內容的狀態機動作
     /// </summary>
-    public class SpawnTableAction : AbstractStateAction
+    public class SpawnTableAction : AbstractStateAction, IPoolObjectPlayer
     {
         [InlineEditor] [SOConfig("Spawn Table")] [Required] [SerializeField]
         private SpawnTableConfig _spawnTable;
@@ -127,9 +127,9 @@ namespace MonoFSM.Core.SpawnTable
                     var spawnVisual = _isSpawningVisual || entry._isSpawningVisual;
                     MonoObj newObj;
                     if (spawnVisual)
-                        newObj = _parentObj.WorldUpdateSimulator.SpawnVisual(entry._prefab, spawnPos, rot);
+                        newObj = _parentObj.WorldUpdateSimulator.SpawnVisual(entry._prefab, spawnPos, rot, this);
                     else
-                        newObj = _parentObj.WorldUpdateSimulator.Spawn(entry._prefab, spawnPos, rot);
+                        newObj = _parentObj.WorldUpdateSimulator.Spawn(entry._prefab, spawnPos, rot, this);
 
                     if (newObj != null)
                     {

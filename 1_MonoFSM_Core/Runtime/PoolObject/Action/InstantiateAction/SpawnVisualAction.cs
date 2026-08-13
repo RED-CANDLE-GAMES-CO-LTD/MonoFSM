@@ -101,7 +101,7 @@ namespace MonoFSM.Core.LifeCycle
                 return;
             }
 
-            var newObj = sim.SpawnVisual(prefab, spawnPos, spawnRot);
+            var newObj = sim.SpawnVisual(prefab, spawnPos, spawnRot, this);
             if (newObj == null)
                 return;
 
@@ -112,7 +112,7 @@ namespace MonoFSM.Core.LifeCycle
 
             newObj.gameObject.SetActive(true);
             _lastSpawnedObj = newObj;
-            newObj.GetComponent<PoolObject>().lastPlayer = this;
+            //lastPlayer 已由 WorldUpdateSimulator.SpawnVisual 統一綁
         }
 
         public override void OnRenderImplement()

@@ -57,16 +57,16 @@ namespace MonoFSM.Core
         //現在是一個runtime dict...有點爛
         public Tu this[T key]
         {
-            get => _dict.GetValueOrDefault(key); //媽的有gc
+            get => Get(key); //走 virtual，MonoDictFolder 才問得到 external dict
             set => _dict[key] = value;
         }
 
         public bool ContainsKey(T key)
         {
-            return _dict.ContainsKey(key);
+            return Contains(key); //走 virtual Contains，才會含 external dict
         }
 
-        [ShowInDebugMode] public int Count => _dict.Count;
+        [ShowInDebugMode] public virtual int Count => _dict.Count;
 
         protected readonly Dictionary<T, Tu> _dict = new();
 
@@ -81,7 +81,7 @@ namespace MonoFSM.Core
 
         protected readonly List<T> _tempRemoveList = new();
 
-        public bool Contains(T key)
+        public virtual bool Contains(T key)
         {
             if (key == null)
                 return false;
@@ -101,7 +101,7 @@ namespace MonoFSM.Core
 #endif
         }
 
-        public bool Contains(string stringKey)
+        public virtual bool Contains(string stringKey)
         {
             if (stringKey == null)
                 return false;
@@ -279,13 +279,13 @@ namespace MonoFSM.Core
 
         [InfoBox("Variable 要有 varTag才會被加入到Dict中")]
         [ShowInInspector]
-        public List<string> GetStringKeys => new(_stringDict.Keys);
+        public virtual List<string> GetStringKeys => new(_stringDict.Keys);
 
         [ShowInInspector]
-        public List<T> GetKeys => new(_dict.Keys);
+        public virtual List<T> GetKeys => new(_dict.Keys);
 
         [ShowInInspector]
-        public List<Tu> GetValues //FIXME: 效能不好
+        public virtual List<Tu> GetValues //FIXME: 效能不好
         {
             get
             {
