@@ -33,6 +33,67 @@ namespace MonoFSM.Editor
             return PrefabUtility.IsPartOfPrefabInstance(component.gameObject);
         }
 
+        //把改過的 GameObject 名字 apply 到 nested prefab 鏈最內層的那個 prefab asset
+        [MenuItem("CONTEXT/Component/Apply GameObject Name to Prefab (Innermost)")]
+        static void ApplyGameObjectNameToPrefab(MenuCommand command)
+        {
+            if (command.context is not Component component) return;
+
+            var go = component.gameObject;
+            if (!PrefabUtility.IsPartOfPrefabInstance(go))
+            {
+                Debug.LogWarning("[ApplyName] 這個 GameObject 不是 prefab instance", go);
+                return;
+            }
+
+            var innermostSource = GetInnermostPrefabSource(go);
+            if (innermostSource == null)
+            {
+                Debug.LogWarning("[ApplyName] 找不到對應的 prefab source", go);
+                return;
+            }
+
+            var assetPath = AssetDatabase.GetAssetPath(innermostSource);
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                Debug.LogWarning($"[ApplyName] source {innermostSource.name} 沒有 asset path", go);
+                return;
+            }
+
+            var serializedObject = new SerializedObject(go);
+            var nameProp = serializedObject.FindProperty("m_Name");
+            try
+            {
+                PrefabUtility.ApplyPropertyOverride(nameProp, assetPath, InteractionMode.UserAction);
+                Debug.Log($"[ApplyName] \"{go.name}\" → {assetPath}", go);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[ApplyName] apply 到 {assetPath} 失敗: {e.Message}", go);
+            }
+        }
+
+        [MenuItem("CONTEXT/Component/Apply GameObject Name to Prefab (Innermost)", true)]
+        static bool ApplyGameObjectNameToPrefabValidate(MenuCommand command)
+        {
+            if (command.context is not Component component) return false;
+            return PrefabUtility.IsPartOfPrefabInstance(component.gameObject);
+        }
+
+        //一路往下追 nested prefab 的來源，直到最裡面那層
+        static GameObject GetInnermostPrefabSource(GameObject go)
+        {
+            var source = PrefabUtility.GetCorrespondingObjectFromSource(go);
+            while (source != null)
+            {
+                var deeper = PrefabUtility.GetCorrespondingObjectFromSource(source);
+                if (deeper == null || deeper == source) break;
+                source = deeper;
+            }
+
+            return source;
+        }
+
         [MenuItem("CONTEXT/MonoBehaviour/Dump Field Values")]
         static void DumpFieldValues(MenuCommand command)
         {
