@@ -1,10 +1,12 @@
 using System;
+using MonoFSM.Foundation;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action.VariableAction
 {
+    [QuickCreate]
     public class SetVarFloatToBoundAction : AbstractStateAction
     {
         public override string Description => "Set $" + _targetVar?.name + " -> " +
@@ -22,8 +24,11 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
             DecreaseByPercentage
         }
 
+        [OnValueChanged(nameof(Rename))]
         [Required]
         [DropDownRef] public VarFloat _targetVar;
+
+        [OnValueChanged(nameof(Rename))]
         public BoundType _boundType = BoundType.Max;
 
         [Range(0f, 1f)]

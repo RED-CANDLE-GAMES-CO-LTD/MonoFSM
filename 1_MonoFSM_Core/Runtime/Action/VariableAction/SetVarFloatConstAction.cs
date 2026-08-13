@@ -1,9 +1,11 @@
 using System;
 using MonoFSM.Core.Runtime.Action;
+using MonoFSM.Foundation;
 using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable
 {
+    [QuickCreate]
     public class SetVarFloatConstAction : AbstractStateAction
     {
         public override string Description =>

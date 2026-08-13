@@ -1,3 +1,4 @@
+using MonoFSM.Foundation;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -18,6 +19,7 @@ namespace MonoFSM.Variable.Condition
     /// 和FloatCompareCondition重複？還是這個要做成簡單版？ simple compare
     /// fixme:  把Const拿掉
     /// </summary>
+    [QuickCreate(Priority = 90)] //Var 快速建立(Alt+V) 的置頂常用
     public class VarFloatCompareConstCondition : AbstractConditionBehaviour, ITransitionCheckInvoker
     {
         public override string Description => _monoVariableFloat != null

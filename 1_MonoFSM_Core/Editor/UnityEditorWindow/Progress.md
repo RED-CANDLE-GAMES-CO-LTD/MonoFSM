@@ -1,0 +1,1 @@
+- 新增 `VarQuickCreateShortcut`：選中 Var 節點按 Alt+V，反射列出可指向該 Var 型別的 Action / Condition / Getter（含 VarWrapper 這類巢狀一層的欄位），用帶搜尋的 AdvancedDropdown 選一個，就在 Var 底下生成 GameObject、掛元件、回填引用並 Rename。常用型別在 class 或 static preset method 上標 `[QuickCreate]` 即可置頂。
