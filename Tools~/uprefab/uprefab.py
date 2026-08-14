@@ -11,12 +11,14 @@ import json
 import os
 import re
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import indexer  # noqa: E402
 import query  # noqa: E402
 import unity  # noqa: E402
+import usage  # noqa: E402
 from config import CONFIG_NAME, Config  # noqa: E402
 
 
@@ -686,12 +688,38 @@ def main() -> None:
     py.add_argument("action", choices=["play", "stop", "pause"])
     py.set_defaults(fn=cmd_play)
 
+    pu = sub.add_parser("usage", help="使用記錄統計（哪一步最花時間）")
+    pu.add_argument("--gap", type=int, default=900,
+                    help="間隔超過幾秒視為新的一段調查（預設 900）")
+    pu.add_argument("--top", type=int, default=8)
+
     args = p.parse_args()
     root = find_root(args.root)
+    if args.cmd == "usage":
+        usage.report(root, args.gap, args.top)
+        return
+
+    tee = usage.Tee(sys.stdout) if usage.enabled() else None
+    if tee:
+        sys.stdout = tee
+    t0 = time.time()
+    status = "ok"
     try:
         args.fn(args, root, Config.load(root))
     except unity.UnityError as e:
+        status = "unity-error"
         raise SystemExit(f"# Unity 呼叫失敗：{e}")
+    except SystemExit as e:
+        status = f"exit:{e.code}"
+        raise
+    except Exception:
+        status = "error"
+        raise
+    finally:
+        if tee:
+            sys.stdout = tee._real
+            usage.record(root, args, tee.chars,
+                         int((time.time() - t0) * 1000), status, tee.head)
 
 
 if __name__ == "__main__":

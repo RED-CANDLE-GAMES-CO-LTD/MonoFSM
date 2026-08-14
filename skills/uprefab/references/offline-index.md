@@ -91,6 +91,29 @@ up guid "TestKCC Gravity 拔神像.unity"                            # 反向：
 連結裡是 `globalId=`（不是 `asset_guid=`）時它會提醒你轉去 `up obj` —— 那種連結指的是
 scene 上的某個節點，見 [read.md](read.md) 的 `obj`。
 
+## `usage` —— 量測「調查一件事花了多少來回」
+
+每次 CLI 呼叫都會在 repo root 的 `.uprefab-usage.jsonl` 追加一行（指令、參數、
+output 字元數、耗時、是否落空）。被動蒐集，不影響任何既有行為；
+`UPREFAB_NO_USAGE_LOG=1` 可關掉，檔案已 gitignore。
+
+```bash
+up usage                    # 統計報告
+up usage --gap 600 --top 12 # 調整「間隔多久算新的一段調查」與列出筆數
+```
+
+報告直接對應四種調查成本，用數據取代猜測：
+
+| 報告區塊 | 對應的痛點 |
+|---|---|
+| 落空後立刻換參數重試 N 次 | **猜不到入口關鍵字** —— `find` 的 `--comp` / `--name` 要試好幾輪 |
+| 一段調查要幾次呼叫（中位數 / 最長） | **找到後要跳很多次** —— 逐層 `--node` 下鑽的鏈長 |
+| 反覆重查：同一目標在多段調查裡被讀 | **重複調查** —— 該把路徑寫進 `alishan-code-map` 的訊號 |
+| 各指令總輸出 / 最肥的幾次呼叫 | **回傳量太大** —— 該調 `--budget` / `--fold` 或加新摺疊規則 |
+
+**看到「反覆重查」清單有東西，就是該回寫 code-map 的時候** —— 把那條路徑補進
+對應的 `references/*.md`，下次直接跳過整段導航。
+
 ## 設定 `.uprefab.json`（repo root）
 
 | 欄位 | 說明 |

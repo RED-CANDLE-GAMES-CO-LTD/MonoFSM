@@ -35,104 +35,6 @@ description: MonoFSM 有限狀態機框架的使用指南。當需要：(1) 了�
 
 實作 Editor 工具（匯出、視覺化、批次修改）需要 traverse MonoFSM 階層時，見 [references/fsm-traversal.md](references/fsm-traversal.md)。涵蓋 StateFolder 偵測、變數/狀態/轉換/條件/動作的走訪規則，以及 `AnimatorPlayAction` 不繼承 `AbstractStateAction` 等 gotcha。實作範本：`MonoFSM/1_MonoFSM_Core/Editor/PrefabExporter/FsmTextExporter.cs`。
 
-## 撰寫 C# 腳本
-
-### Action
-
-```csharp
-public class MyAction : AbstractStateAction
-{
-    [Required] [SerializeField] private VarEntity _target;
-
-    protected override void OnActionExecuteImplement()
-    {
-        // 動作邏輯
-    }
-}
-```
-
-### Condition
-
-```csharp
-public class MyCondition : AbstractConditionBehaviour
-{
-    protected override bool IsValid => /* 條件邏輯 */;
-}
-```
-
-### Description override
-
-`AbstractDescriptionBehaviour` 預設 `public virtual string Description => GetType().Name;`，State 樹列表上只看到類別名。**自訂 Action / Condition 應該 override `Description`**，組合關鍵欄位成一句話，方便在 Inspector / State 樹一眼看出每個節點在做什麼，不用點進去看欄位。
-
-```csharp
-// HasStateTagCondition
-public override string Description => $"Has Tag [{(_tag != null ? _tag.name : "?")}]";
-
-// IsStateCondition
-public override string Description => $"Is {_targetState?.name}";
-```
-
-要點：
-- 欄位空時填 `?`（避免 NRE，並提示尚未設定）
-- 不要在字串裡加 `[Action]` / `[Condition]` 之類的 tag，父類的 `DescriptionTag` 會自動加上
-- `VarFloatWrapper` 等 wrapper 已有 `Description` 屬性可以直接組合進去
-
-可參考：`1_MonoFSM_Core/Runtime/1_Conditions/HasStateTagCondition.cs`、`IsStateCondition.cs`
-
-### Render behaviour 掛在哪 → 決定何時觸發（多人時決定 client 跑不跑）
-
-`AbstractRenderBehaviour`（`IRenderBehaiour`）是被**父物件收集後代呼叫**的，同樣一顆元件掛在不同位置，觸發頻率完全不同：
-
-| 掛載位置 | 收集者 | 觸發 |
-|---|---|---|
-| `[State] Xxx` 節點**直接底下** | `AbstractStateBehaviour._renderActions`（`[AutoChildren(DepthOneOnly)]`） | 該 state active 時**每 render frame** `OnRender()`；進入時 `OnEnterRender()`。**自帶狀態範圍，不用再加 `IsStateCondition`** |
-| `[Event] OnStateUpdate` 等 event handler 底下 | `AbstractEventHandler._renderActions` | **只有 `EnterRenderInvoke()`** —— state enter 時呼叫一次 `OnEnterRender()`，**沒有每幀的 render invoke**。把每幀邏輯放這裡會靜靜地不跑 |
-| `[Event] RenderLoop`（`RenderLoopHandler`）底下 | 同上，但 handler 自己實作 `IRenderUpdate.Render()` | 每 render frame，**無狀態範圍**，要自己用 `_conditionGroup` 把關 |
-
-「這個狀態期間每幀套用」的東西（骨骼朝向覆寫、beam、IK、跟隨）→ 掛 `[State]` 節點底下，最單純。
-
-**多人時這是 client 端唯一會跑的路徑**：`MonoObj.Simulate()` 在 `!ShouldSimulte` 時整棵子樹直接 return，`AbstractEventHandler` 也有同一道 gate（`_forceExecuteWithoutStateAuthority` 沒用，被 MonoObj 擋在更外層），所以 proxy 上 Action / RaycastCache / timer 全部不執行；只有 Render / AfterRender 兩個 phase 兩端都跑。
-
-推論：**凡是兩端都要看到的持續性視覺，套用端必須是 render behaviour，而它讀的資料要嘛掛 `NetworkedVarTag` 從 SA 同步過來，要嘛在 render 端本地重算。** 只同步資料而套用端還留在 Action（simulate）底下，症狀是「host 正常、client 的視覺不動或指錯方向，但判定是對的」。
-
-實例：噴水怪 `1_Enemy 噴水怪 Variant` 的水槍 —— `HeadLookAtAnimatorApplier` 從 `OnStateUpdate` 下的 Action 改成掛在 `[State] Shoot Attack` 底下的 `AbstractRenderBehaviour`，並把 `HeadForward Out`（瞄準方向）與 `hitPosVar`（RaycastCache 的落點、beam 終點）兩個 `VarVector3` 加 `NetworkedVarTag` 進 `NetworkedVarSyncArray._syncVector3s`。
-
-### 同一功能要同時支援 Action 與 Render
-
-`AbstractStateAction`（掛 `IActionParent`、event 觸發）與 `AbstractRenderBehaviour`（掛 `IRenderInvoker`、每 render frame 觸發）**都繼承 `AbstractDescriptionBehaviour`，但父物件契約與 Condition 系統完全不同**（Action 用 `_conditions[]`，Render 用 `_conditionGroup`，`HasError` 各自檢查父型別）。
-
-C# 單一繼承，**不要在同一個 class 上 implement `IRenderBehaiour` 硬兼容兩者**：不管選哪個 base，另一邊的 `HasError` 會因父物件型別不符而報錯，掛載位置被綁死。
-
-正解：**把核心邏輯抽成一個 `[Serializable]` class，做兩個薄 wrapper**：
-
-```csharp
-[Serializable]
-public class XxxWriter // 共用邏輯 + 欄位 + Description
-{
-    public string Description => ...;
-    public void Write(Object byWho) { ... }
-}
-
-public class XxxAction : AbstractStateAction
-{
-    [HideLabel] [InlineProperty] public XxxWriter _writer = new();
-    public override string Description => _writer.Description;
-    protected override void OnActionExecuteImplement() => _writer.Write(this);
-}
-
-public class XxxRender : AbstractRenderBehaviour
-{
-    [HideLabel] [InlineProperty] public XxxWriter _writer = new();
-    public override string Description => _writer.Description;
-    public override void OnEnterRenderImplement() => _writer.Write(this);
-    public override void OnRenderImplement() => _writer.Write(this);
-}
-```
-
-`[HideLabel][InlineProperty]` 讓 writer 欄位在 Inspector 攤平，看起來就像直接寫在 wrapper 上。
-
-**參考實作**：`1_MonoFSM_Core/Runtime/Action/VariableAction/`（`PositionToVarVector3Writer` + `SetVarVector3FromTargetAction` / `SetVarVector3FromTargetRender`）
-
 ## Auto Attributes
 
 ```csharp
@@ -184,133 +86,6 @@ public class XxxRender : AbstractRenderBehaviour
 
 `VarFloatWrapper` / `VarIntWrapper` 等 `[Serializable]` 包裝類，讓欄位在 Inspector 二選一：綁一個 `Var` 引用，或直接填常數。取值一律用 `.Value`，宣告預設值用 `new(...)`（如 `private VarIntWrapper _index = new(-1)`），namespace 為 `MonoFSM.Variable`。詳見 [references/var-wrapper.md](references/var-wrapper.md)。
 
-## Data-Driven 控制模式
-
-**核心精神**：用 Var 變數作為組件之間的溝通介面，而非直接呼叫 method。
-
-當一個系統（如角色移動）需要被多個 State/Action 控制時：
-1. **在 Controller 上開 Var 欄位**（如 `VarVector3 _moveDirection`、`VarFloat _speedMultiplier`、`VarVector3 _externalForce`）
-2. **Controller 的 Simulate() 每幀從 Var 讀取**，驅動底層行為
-3. **各 State/Action 透過通用的 SetVarAction 寫入 Var**，不需要為每個操作寫專用 Action
-
-**範例**：
-- Chase State：Action 計算目標方向 → 寫入 `_moveDirection`
-- Hurt State：進入時 SetVarAction 把 `_moveDirection` 設為 `(0,0,0)` → 角色停下
-- Slow Debuff：SetVarAction 把 `_speedMultiplier` 設為 `0.5` → 角色減速
-- 擊退：SetVarAction 把 `_externalForce` 設為擊退向量 → Controller 自動衰減
-
-**好處**：
-- 不需要為每種操作寫封裝 Action（如 StopCharacterAction、SlowAction）
-- 通用 Action 即可覆蓋大部分需求
-- 新的控制需求只需新增 Var 欄位，不需改 Action 程式碼
-
-**何時該寫專用 Action**：當操作涉及複雜邏輯（如計算追蹤方向、路徑規劃）而非單純設值時。
-
-**參考實作**：`SimpleChController`（MonoFSM-Pro/Runtime/GamePlay/Source/Characters/）
-
-## 持續性狀態：拉式 Getter + Switch Simulate，不要用 Enter/Exit 推
-
-「**只要 A 成立就維持 B**」這種持續性狀態，不要在 `EffectEnterNode` 設值、`EffectExitNode` 復原。
-Enter/Exit 是**邊緣觸發**，只在偵測表變化的那一幀跑一次，任何一邊漏掉狀態就永久卡住：
-
-- Exit 沒觸發 —— detectable 被 despawn / disable / culling 關掉、reset 清空偵測表
-- Enter 沒觸發 —— receiver 註冊鏈還沒完成那一幀（見 `EffectDetector` 的 stay 重試）
-- 兩個 detector 範圍重疊時，A 的 exit 蓋掉 B 的 enter
-
-改成拉式：**狀態用 Getter VarBool 表達，每幀由 `SwitchCaseActionSimulator` 對齊**。
-狀態是每幀重算出來的，沒有「漏一次就錯到底」的問題。
-
-```
-[VarFolder] VariableFolder
-  [Getter] Dealer $xxx hit any?   <VarBool>            ← 真相來源，每幀重算
-    [If] Dealer $xxx hit any?     <IsDealerHitAnyReceiverCondition _dealer=…>
-
-Context/Animator/LogicRoot
-  [Switch Simulate] Switch (FirstMatch)  <SwitchCaseActionSimulator _mode=FirstMatch>
-    [Case] SwitchCase                    ← 同一個 case 內多個 [If] = AND
-      [If] 開關 == True
-      [If] Dealer $xxx hit any? == True
-      [Action] [Var] d_IsToggleOn = True
-    [Case] SwitchCase                    ← FirstMatch，走到這裡代表上面不成立
-      [If] 開關 == True
-      [Action] [Var] d_IsToggleOn = False
-```
-
-**選 condition**：dealer 端問「我現在有沒有壓到任何 receiver」是
-`IsDealerHitAnyReceiverCondition`（`_dealer` 指到 `GeneralEffectDealer`）。
-`IsBestMatchedReceiverCondition` 是 **receiver 端**問「我是不是被選中的最佳互動目標」，
-用在互動提示 / highlight，兩者不要混用。
-
-**Enter/Exit 仍然該用的場合**：一次性的**事件**（撞擊瞬間扣血、噴特效、震動、播音效）。
-判斷準則 —— 「錯過一次會怎樣」：錯過一次特效沒差 → 用 Enter；錯過一次狀態就卡住 → 用拉式。
-
-同一個原則的其他長相：`SetHighlightAction` 從「兩個 receiver 各推 enter/exit」改成
-`[Getter] Is BestMatched` 單一來源 + RenderLoop 每幀讀。
-
-**成本**：每幀 SetValue 同值只是 field 賦值，不送事件、不產生 GC，不需要自己加 change check。
-
-**實例**：`鑽頭.prefab` 的自動啟動（前方預判 detector → `[Getter] Dealer $d_NavMeshBlocking
-hit any?` → Switch Simulate 開關 `d_IsToggleOn`）、`Train FSM Variant.prefab` 的
-Target Speed、`水桶 Water Jug.prefab` 的下雨集水。
-
-## Callback Cache → Simulate 統一處理模式
-
-Unity 回調（`OnCollisionEnter`、`OnEnable`、`OnDisable`、`OnTriggerEnter` 等）的觸發時機不可控：可能在同一幀多次觸發、可能在 Simulate 執行順序之外發生。**不要在回調中直接執行邏輯或修改狀態**，改為 cache 資料/flag，在 `Simulate()` 統一處理。
-
-**原則**：
-1. 回調只做 **cache**（設 flag、存資料），不改核心狀態
-2. `Simulate()` 開頭檢查 cache，**統一處理一次後清除**
-3. 重複觸發時只保留第一筆（`if (_cached) return;`）
-
-```csharp
-// 回調只 cache
-private bool _cached;
-private SomeData _pendingData;
-
-private void OnXxx(...)  // OnCollisionEnter / OnEnable / OnTriggerEnter 等
-{
-    if (_cached) return;
-    _pendingData = ...;
-    _cached = true;
-}
-
-public void Simulate(float deltaTime)
-{
-    if (_cached) { /* 處理 _pendingData */ _cached = false; }
-    // ... 正常邏輯 ...
-}
-```
-
-**參考實作**：
-- 碰撞反彈：`SimpleFlyingCharacter`（MonoFSM-Pro/Runtime/GamePlay/Source/Characters/）
-- Enable/Disable 事件：`OnEnableInvoker`（MonoFSM/1_MonoFSM_Core/Runtime/Module/）
-
-## Raycast 慣例
-
-**所有 raycast 應透過 `IRaycastProcessor`**（namespace `MonoFSM.PhysicsWrapper`），不要直接呼叫 `Physics.Raycast`。讓專案可以集中替換實作（如紀錄、debug overlay、Fusion lag compensation 等）。
-
-取得方式：
-```csharp
-private IRaycastProcessor _raycastProcessor;
-private IRaycastProcessor RaycastProcessor =>
-    _raycastProcessor ??= WorldUpdateSimulator
-        .GetWorldUpdateSimulator(gameObject)
-        ?.GetCompCache<IRaycastProcessor>();
-```
-
-使用時建議保留 `Physics.Raycast` fallback（當 simulator 不存在於 prefab preview 或 edit-time 時仍能運作）：
-```csharp
-if (RaycastProcessor != null)
-    RaycastProcessor.Raycast(origin, dir, out hit, dist, mask, QueryTriggerInteraction.Ignore);
-else
-    Physics.Raycast(origin, dir, out hit, dist, mask, QueryTriggerInteraction.Ignore);
-```
-
-同介面群還有 `ISphereCastProcessor` / `ICapsuleRaycastProcessor` / `IBoxCastProcessor`，需要 SphereCast / BoxCast 時用對應介面。
-
-**參考實作**：`MonoFSM/MonoFSM_Physics/Runtime/Interact/SpatialDetection/Raycast/MyRaycast.cs`
-**介面定義**：`MonoFSM/MonoFSM_Physics/Runtime/Interact/SpatialDetection/Raycast/IRaycastProcessor.cs`
-
 ## C# 效能模式
 
 撰寫 MonoFSM 相關 C# 程式碼時的 GC 避免技巧，見 [references/csharp-patterns.md](references/csharp-patterns.md)。
@@ -318,3 +93,18 @@ else
 ## Serialized 欄位型別遷移
 
 需要把已序列化的欄位改成不同型別（如 `VarFloat` 直接參照 → `VarFloatWrapper`）又不想掉 prefab reference 時，見 [references/serialization-migration.md](references/serialization-migration.md)。涵蓋為何直接改型別一定掉 ref、legacy 欄位 + `FormerlySerializedAs` 接舊資料、`LoadPrefabContents` 批次遷移、驗證與清孤兒資料的完整 6 步流程。
+
+## References
+
+| 檔案 | 什麼情況要讀它 |
+|---|---|
+| [references/writing-actions.md](references/writing-actions.md) | 要新寫或修改 Action / Condition 的 C# 腳本時。含 Action / Condition 範本、`Description` override 慣例、Render behaviour 掛載位置決定觸發時機（多人時 client 跑不跑）、同一功能要同時支援 Action 與 Render 的 Writer 拆法 |
+| [references/design-patterns.md](references/design-patterns.md) | 設計一個新機制、或既有機制會漏狀態／時序出錯時。含 Data-Driven（用 Var 當溝通介面）、持續性狀態改用拉式 Getter + Switch Simulate、Unity 回調 cache 到 Simulate 統一處理、Raycast 一律走 `IRaycastProcessor` |
+| [references/scene-editing.md](references/scene-editing.md) | 要在 Unity Scene / prefab 上實際新增或修改 State、Transition、Condition、Action 節點時 |
+| [references/fsm-traversal.md](references/fsm-traversal.md) | 寫 Editor 工具要程式化走訪 FSM 階層（匯出、視覺化、批次修改）時 |
+| [references/components.md](references/components.md) | 想知道有哪些現成的 State / Action / Condition / Timer 等組件可以直接用，不用自己寫時 |
+| [references/effect-system.md](references/effect-system.md) | 處理 EffectDealer / EffectReceiver 互動（誰能對誰造成效果、偵測、判定）時 |
+| [references/value-source.md](references/value-source.md) | 要做每幀計算並提供值的 `AbstractValueSource<T>`，或需要理解 Variable 的 `IsValueExist` 語意時 |
+| [references/var-wrapper.md](references/var-wrapper.md) | 欄位要讓使用者在「綁一個 Var」與「直接填常數」之間二選一（`VarFloatWrapper` 等）時 |
+| [references/csharp-patterns.md](references/csharp-patterns.md) | 寫每幀執行的程式碼、需要避免 GC 配置時 |
+| [references/serialization-migration.md](references/serialization-migration.md) | 要改已序列化欄位的型別又不想掉 prefab reference 時 |
