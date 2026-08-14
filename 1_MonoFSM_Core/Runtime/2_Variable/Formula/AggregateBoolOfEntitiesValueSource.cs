@@ -1,38 +1,25 @@
-using MonoFSM.Core.Attributes;
-using MonoFSM.Core.Variable;
-using MonoFSM.Foundation;
-using MonoFSM.Variable;
-
 namespace MonoFSM.Core.Formula
 {
-    public class AggregateBoolOfEntitiesValueSource : AbstractValueSource<bool>
+    public class AggregateBoolOfEntitiesValueSource : AbstractEntityBoolVarSource<bool>
     {
-        public VarListEntity _entities;
-
-        //這個怎麼dropdown找？
-        [SOConfig("VariableType")]
-        public VariableTag _boolVarTag; //hmm??
-
         //TODO: OR, And?
         //and, 需要 or?
         public override bool Value
         {
             get
             {
-                if (_entities == null || _boolVarTag == null)
+                //維持原行為：沒設 tag 直接算 false
+                if (_boolVarTag == null)
                     return false;
 
-                foreach (var entity in _entities.GetList())
-                {
-                    if (entity == null)
-                        continue;
+                var list = GetSourceList();
+                if (list == null)
+                    return false;
 
-                    var boolVar = entity.GetVar<VarBool>(_boolVarTag);
-                    if (boolVar != null && !boolVar.Value)
-                    {
+                foreach (var entity in list)
+                    //找不到這顆 var 的 entity 不影響 AND 結果（維持原行為）
+                    if (TryGetBool(entity, out var isTrue) && !isTrue)
                         return false;
-                    }
-                }
 
                 return true;
             }

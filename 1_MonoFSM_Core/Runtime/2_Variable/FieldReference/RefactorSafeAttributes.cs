@@ -100,6 +100,21 @@ namespace MonoFSM.Variable.FieldReference
     public static class RefactorSafeNameResolver
     {
         /// <summary>
+        /// 名稱 → 型別的解析結果快取，解析失敗的 null 也會被記住，避免同一個壞名稱反覆觸發全域掃描
+        /// </summary>
+        private static readonly Dictionary<string, Type> _resolvedTypeCache = new();
+
+        /// <summary>
+        /// 全域型別索引，只在第一次解析失敗時才建立
+        /// </summary>
+        private static Dictionary<string, Type> _fullNameIndex;
+
+        /// <summary>
+        /// 簡單名稱索引，撞名的項目值為 null 代表無法判定、不予採用
+        /// </summary>
+        private static Dictionary<string, Type> _simpleNameIndex;
+
+        /// <summary>
         /// 根據當前名稱和歷史名稱，找到匹配的型別
         /// </summary>
         public static Type FindTypeByCurrentOrFormerName(
@@ -114,133 +129,180 @@ namespace MonoFSM.Variable.FieldReference
                 return null;
             }
 
-            // 1. 先嘗試直接用當前名稱查找
+            if (!_resolvedTypeCache.TryGetValue(currentName, out var type))
+            {
+                type = ResolveTypeUncached(currentName, assemblyName);
+                _resolvedTypeCache[currentName] = type;
+            }
+
+            if (type == null)
+                Debug.LogError(
+                    "Type not found: "
+                        + currentName
+                        + ". Please check if the type has been renamed or moved to another assembly.",
+                    obj
+                );
+
+            return type;
+        }
+
+        private static Type ResolveTypeUncached(string currentName, string assemblyName)
+        {
+            // 1. 直接解析，名稱與 Assembly 都沒變動時走這條
             var type = Type.GetType(currentName);
             if (type != null)
                 return type;
 
-            // 2. 搜尋所有已載入的 Assembly 中的型別
-            Debug.Log("Searching for former type: " + currentName);
-#if UNITY_EDITOR
-            var formerNameTypes = TypeCache.GetTypesWithAttribute<FormerlyNamedAsAttribute>();
-            foreach (var formerType in formerNameTypes)
-            {
-                var formerNameAttrs = formerType
-                    .GetCustomAttributes(typeof(FormerlyNamedAsAttribute), false)
-                    .Cast<FormerlyNamedAsAttribute>();
+            // 2. 剝掉 AssemblyQualifiedName 尾端的 Assembly 資訊，後續都用純型別全名比對
+            var fullName = ExtractFullName(currentName);
 
-                foreach (var attr in formerNameAttrs)
-                {
-                    // Debug.Log("Checking former name: " + attr.FormerName + " for searchName: " + currentName);
-                    if (
-                        currentName.Contains(attr.FormerName)
-                        || currentName.Contains($"{formerType.Namespace}.{attr.FormerName}")
-                    )
-                    {
-                        Debug.Log("Found type by former name: " + attr.FormerName);
-                        return formerType;
-                    }
-                }
-            }
-#endif
-
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            // 如果指定了 Assembly，優先搜尋該 Assembly
+            // 3. 有指定 Assembly 就優先在該 Assembly 裡找
             if (!string.IsNullOrEmpty(assemblyName))
             {
-                var targetAssembly = assemblies.FirstOrDefault(a =>
-                    a.GetName().Name == assemblyName
-                );
-                if (targetAssembly != null)
-                {
-                    var foundType = SearchTypeInAssembly(targetAssembly, currentName);
-                    if (foundType != null)
-                        return foundType;
-                }
+                var targetAssembly = AppDomain
+                    .CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == assemblyName);
+                var foundType = targetAssembly?.GetType(fullName, false);
+                if (foundType != null)
+                    return foundType;
             }
 
-            // 3. 在所有 Assembly 中搜尋
-            // foreach (var assembly in assemblies)
-            // {
-            //     var foundType = SearchTypeInAssembly(assembly, currentName);
-            //     if (foundType != null) return foundType;
-            // }
-            Debug.LogError(
-                "Type not found: "
-                    + currentName
-                    + ". Please check if the type has been renamed or moved to another assembly.",
-                obj
-            );
+            EnsureNameIndexBuilt();
+
+            // 4. 型別全名沒變，只是被搬到另一個 Assembly（例如原本在 Assembly-CSharp，拆 asmdef 後搬走）
+            if (_fullNameIndex.TryGetValue(fullName, out var byFullName))
+                return byFullName;
+
+            // 5. namespace 換過但類別名沒變，只有唯一候選時才敢認
+            var simpleName = ExtractSimpleName(fullName);
+            if (_simpleNameIndex.TryGetValue(simpleName, out var bySimpleName) && bySimpleName != null)
+                return bySimpleName;
+
             return null;
         }
 
         /// <summary>
-        /// 在指定 Assembly 中搜尋型別（包含歷史名稱）
+        /// 從 AssemblyQualifiedName 取出型別全名。泛型型別的名稱含有 '['，格式複雜且 Type.GetType 多半已能處理，維持原樣不動
         /// </summary>
-        private static Type SearchTypeInAssembly(
-            System.Reflection.Assembly assembly,
-            string searchName
-        )
+        private static string ExtractFullName(string typeName)
         {
-            Debug.Log(
-                "Searching for type: " + searchName + " in assembly: " + assembly.GetName().Name
-            );
-            try
+            if (typeName.IndexOf('[') >= 0)
+                return typeName;
+
+            var commaIndex = typeName.IndexOf(',');
+            return commaIndex < 0 ? typeName : typeName.Substring(0, commaIndex).Trim();
+        }
+
+        private static readonly char[] _nameSeparators = { '.', '+' };
+
+        private static string ExtractSimpleName(string fullName)
+        {
+            var separatorIndex = fullName.LastIndexOfAny(_nameSeparators);
+            return separatorIndex < 0 ? fullName : fullName.Substring(separatorIndex + 1);
+        }
+
+        private static void EnsureNameIndexBuilt()
+        {
+            if (_fullNameIndex != null)
+                return;
+
+            _fullNameIndex = new Dictionary<string, Type>();
+            _simpleNameIndex = new Dictionary<string, Type>();
+
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                var types = assembly.GetTypes();
+                Type[] types;
+                try
+                {
+                    types = assembly.GetTypes();
+                }
+                catch (System.Reflection.ReflectionTypeLoadException e)
+                {
+                    types = e.Types; // 部分載入成功的型別仍然可用
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
 
                 foreach (var type in types)
                 {
-                    // 檢查當前名稱
-                    if (type.FullName == searchName || type.Name == searchName)
-                        return type;
+                    if (type == null)
+                        continue;
 
-                    // 檢查歷史完整名稱
-                    var formerFullNameAttrs = type.GetCustomAttributes(
-                            typeof(FormerlyFullNameAttribute),
-                            false
-                        )
-                        .Cast<FormerlyFullNameAttribute>();
-
-                    foreach (var attr in formerFullNameAttrs)
-                    {
-                        if (attr.FormerFullName == searchName)
-                            return type;
-                    }
-
-                    // 檢查歷史簡單名稱
-                    var formerNameAttrs = type.GetCustomAttributes(
-                            typeof(FormerlyNamedAsAttribute),
-                            false
-                        )
-                        .Cast<FormerlyNamedAsAttribute>();
-
-                    foreach (var attr in formerNameAttrs)
-                    {
-                        Debug.Log(
-                            "Checking former name: "
-                                + attr.FormerName
-                                + " for searchName: "
-                                + searchName
-                        );
-                        if (
-                            searchName.Contains(attr.FormerName)
-                            || searchName.Contains($"{type.Namespace}.{attr.FormerName}")
-                        )
-                            return type;
-                    }
+                    RegisterFullName(type.FullName, type);
+                    RegisterSimpleName(type.Name, type);
                 }
             }
-            catch (System.Reflection.ReflectionTypeLoadException)
+
+            RegisterFormerNames();
+        }
+
+        /// <summary>
+        /// 把標了歷史名稱 attribute 的型別，用它的舊名字也登記進索引
+        /// </summary>
+        private static void RegisterFormerNames()
+        {
+#if UNITY_EDITOR
+            var formerFullNameTypes = TypeCache.GetTypesWithAttribute<FormerlyFullNameAttribute>();
+            var formerNameTypes = TypeCache.GetTypesWithAttribute<FormerlyNamedAsAttribute>();
+#else
+            // 迴圈中會寫回索引，必須先取出快照再迭代
+            var allTypes = _fullNameIndex.Values.ToArray();
+            var formerFullNameTypes = allTypes;
+            var formerNameTypes = allTypes;
+#endif
+
+            foreach (var type in formerFullNameTypes)
             {
-                // 忽略無法載入的型別
-            }
-            catch (Exception)
-            {
-                // 忽略其他錯誤
+                foreach (
+                    var attr in type.GetCustomAttributes(typeof(FormerlyFullNameAttribute), false)
+                        .Cast<FormerlyFullNameAttribute>()
+                )
+                {
+                    RegisterFullName(attr.FormerFullName, type);
+                }
             }
 
-            return null;
+            foreach (var type in formerNameTypes)
+            {
+                foreach (
+                    var attr in type.GetCustomAttributes(typeof(FormerlyNamedAsAttribute), false)
+                        .Cast<FormerlyNamedAsAttribute>()
+                )
+                {
+                    RegisterSimpleName(attr.FormerName, type);
+                    RegisterFullName($"{type.Namespace}.{attr.FormerName}", type);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 先登記的優先，避免舊名稱蓋掉某個型別實際使用中的全名
+        /// </summary>
+        private static void RegisterFullName(string name, Type type)
+        {
+            if (string.IsNullOrEmpty(name))
+                return;
+            if (!_fullNameIndex.ContainsKey(name))
+                _fullNameIndex[name] = type;
+        }
+
+        /// <summary>
+        /// 簡單名稱撞名時記成 null，寧可解不出來也不要認錯型別
+        /// </summary>
+        private static void RegisterSimpleName(string name, Type type)
+        {
+            if (string.IsNullOrEmpty(name))
+                return;
+            if (_simpleNameIndex.TryGetValue(name, out var existing))
+            {
+                if (existing != type)
+                    _simpleNameIndex[name] = null;
+                return;
+            }
+
+            _simpleNameIndex[name] = type;
         }
 
         /// <summary>

@@ -7,7 +7,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
 {
     public class IsEnableHandleActive : AbstractConditionBehaviour
     {
-        public override string Description => $"{enableHandle.name} is active and enabled";
+        public override string Description => $"{enableHandle?.name} is active and enabled";
 
         //tag mapping find...?
         // [DropDownRef]

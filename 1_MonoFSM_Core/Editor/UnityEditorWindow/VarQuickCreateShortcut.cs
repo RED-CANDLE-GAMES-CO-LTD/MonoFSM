@@ -20,6 +20,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
     ///     選一個就在該 Var 底下生成新 GameObject、掛上元件、把引用指回這個 Var 並 Rename。
     ///     清單是反射掃出來的，新寫的 Action / Condition 會自動出現，不需要維護白名單。
     ///     要把常用的排到置頂區就在型別上標 [QuickCreate]（或 Condition 用既有的 [ConditionPreset]）。
+    ///     選中的是 AbstractEventHandler（OnStateEnter / OnPointerClick 之類）時，改列出所有 AbstractStateAction
+    ///     子類別直接建成子物件（會被 handler 的 _eventReceivers 抓到，不需要指欄位）。
     /// </summary>
     public static class VarQuickCreateShortcut
     {
@@ -43,11 +45,37 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 return;
             }
 
+            //EventHandler 模式：沒有 Var 可指，單純列出所有 Action 建成子物件
+            var handler = go.GetComponent<AbstractEventHandler>();
+            if (handler != null)
+            {
+                var eventChildCandidates = GetEventChildCandidates();
+                if (eventChildCandidates.Count == 0)
+                {
+                    Debug.LogWarning(
+                        $"{LogTag} 找不到任何 AbstractStateAction / AbstractConditionBehaviour 子類別",
+                        go
+                    );
+                    return;
+                }
+
+                ShowDropdown(
+                    handler.transform,
+                    $"{handler.GetType().Name}　{handler.name}",
+                    null,
+                    eventChildCandidates
+                );
+                return;
+            }
+
             //一個節點上理論上只掛一個 Var，多掛時取第一個
             var variables = go.GetComponents<AbstractMonoVariable>();
             if (variables.Length == 0)
             {
-                Debug.LogWarning($"{LogTag} {go.name} 上沒有 Var 元件（AbstractMonoVariable）", go);
+                Debug.LogWarning(
+                    $"{LogTag} {go.name} 上沒有 Var 元件（AbstractMonoVariable）或 AbstractEventHandler",
+                    go
+                );
                 return;
             }
 
@@ -66,7 +94,12 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 return;
             }
 
-            ShowDropdown(variable, candidates);
+            ShowDropdown(
+                variable.transform,
+                $"{variable.GetType().Name}　{variable.name}",
+                variable,
+                candidates
+            );
         }
 
         #region Dropdown UI
@@ -75,11 +108,19 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
         private static readonly AdvancedDropdownState _dropdownState = new();
 
         private static void ShowDropdown(
-            AbstractMonoVariable variable,
+            Transform parent,
+            string header,
+            AbstractMonoVariable variable, //可為 null（EventHandler 模式沒有 var）
             List<Candidate> candidates
         )
         {
-            var dropdown = new CandidateDropdown(_dropdownState, variable, candidates);
+            var dropdown = new CandidateDropdown(
+                _dropdownState,
+                parent,
+                header,
+                variable,
+                candidates
+            );
             //Shortcut 是在 window 的 event 處理中觸發，通常拿得到 mousePosition
             var mouse = Event.current?.mousePosition ?? new Vector2(200, 200);
             dropdown.Show(new Rect(mouse.x, mouse.y, 320, 0));
@@ -99,15 +140,21 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
         private class CandidateDropdown : AdvancedDropdown
         {
             private readonly List<Candidate> _candidates;
-            private readonly AbstractMonoVariable _variable;
+            private readonly string _header;
+            private readonly Transform _parent;
+            private readonly AbstractMonoVariable _variable; //可為 null
 
             public CandidateDropdown(
                 AdvancedDropdownState state,
+                Transform parent,
+                string header,
                 AbstractMonoVariable variable,
                 List<Candidate> candidates
             )
                 : base(state)
             {
+                _parent = parent;
+                _header = header;
                 _variable = variable;
                 _candidates = candidates;
                 minimumSize = new Vector2(320, 340);
@@ -115,18 +162,16 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
             protected override AdvancedDropdownItem BuildRoot()
             {
-                var root = new AdvancedDropdownItem(
-                    $"{_variable.GetType().Name}　{_variable.name}"
-                );
+                var root = new AdvancedDropdownItem(_header);
 
-                //置頂區直接掛在 root 上，不用再點一層
+                //置頂區維持扁平（不用再點一層），但標上 Kind 才看得出是 Action 還是 Condition
                 var hasTop = false;
                 foreach (var c in _candidates)
                 {
                     if (!c.IsTop)
                         continue;
                     hasTop = true;
-                    root.AddChild(new CandidateItem(c.ItemLabel, c));
+                    root.AddChild(new CandidateItem($"{c.Kind}／{c.ItemLabel}", c));
                 }
 
                 if (hasTop)
@@ -155,7 +200,7 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
             protected override void ItemSelected(AdvancedDropdownItem item)
             {
                 if (item is CandidateItem candidateItem)
-                    Create(_variable, candidateItem._candidate);
+                    Create(_parent, _variable, candidateItem._candidate);
             }
         }
 
@@ -163,9 +208,12 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
         #region Create
 
-        private static void Create(AbstractMonoVariable variable, Candidate candidate)
+        private static void Create(
+            Transform parent,
+            AbstractMonoVariable variable,
+            Candidate candidate
+        )
         {
-            var parent = variable.transform;
             var undoName = "Create " + candidate.CompType.Name;
 
             var go = new GameObject(candidate.CompType.Name);
@@ -177,7 +225,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
             go.transform.localScale = Vector3.one;
 
             var comp = Undo.AddComponent(go, candidate.CompType);
-            if (!AssignVar(comp, candidate, variable))
+            //EventHandler 模式沒有 Var 也沒有欄位要指，直接跳過回填
+            if (variable != null && candidate.FieldPath != null && !AssignVar(comp, candidate, variable))
             {
                 Debug.LogWarning(
                     $"{LogTag} {candidate.CompType.Name} 的欄位 {candidate.FieldPathName} 回填失敗，"
@@ -194,11 +243,17 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
             Selection.activeGameObject = go;
             EditorGUIUtility.PingObject(go);
-            Debug.Log(
-                $"{LogTag} 在 {parent.name} 底下建立 {candidate.CompType.Name}，"
-                + $"{candidate.FieldPathName} → {variable.name}",
-                comp
-            );
+            if (variable != null)
+                Debug.Log(
+                    $"{LogTag} 在 {parent.name} 底下建立 {candidate.CompType.Name}，"
+                    + $"{candidate.FieldPathName} → {variable.name}",
+                    comp
+                );
+            else
+                Debug.Log(
+                    $"{LogTag} 在 {parent.name} 底下建立 {candidate.CompType.Name}",
+                    comp
+                );
         }
 
         /// <summary>沿著 FieldPath 走到最後一層把 Var 塞進去，中間的 wrapper 是 null 就 new 一個</summary>
@@ -263,7 +318,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
             public int Priority;
             public int SortKey;
 
-            public string FieldPathName => string.Join(".", FieldPath.Select(f => f.Name));
+            public string FieldPathName =>
+                FieldPath == null ? "" : string.Join(".", FieldPath.Select(f => f.Name));
 
             //巢狀時把欄位路徑標出來，才看得出值是塞進 wrapper 還是直接欄位
             public string ItemLabel => IsNested ? $"{DisplayName}  ({FieldPathName})" : DisplayName;
@@ -271,8 +327,70 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
         private static readonly Dictionary<Type, List<Candidate>> _cacheByVarType = new();
 
+        //EventHandler 子物件候選跟目標無關，全域只有一份
+        private static List<Candidate> _eventChildCandidatesCache;
+
         [InitializeOnLoadMethod]
-        private static void ResetCache() => _cacheByVarType.Clear();
+        private static void ResetCache()
+        {
+            _cacheByVarType.Clear();
+            _eventChildCandidatesCache = null;
+        }
+
+        private static List<Candidate> GetEventChildCandidates()
+        {
+            if (_eventChildCandidatesCache != null)
+                return _eventChildCandidatesCache;
+            _eventChildCandidatesCache = CollectEventChildCandidates();
+            return _eventChildCandidatesCache;
+        }
+
+        /// <summary>
+        ///     EventHandler 模式：所有具體的 AbstractStateAction（被 _eventReceivers 抓）與
+        ///     AbstractConditionBehaviour（被 _conditionFolder 抓），兩者都是 depth-one 子物件自動接上，
+        ///     沒有欄位要回填，所以也不收 method 級的 [QuickCreate] / [ConditionPreset] preset
+        ///     （那些是設計給「指定回填哪個 Var 欄位」用的）。class 級 [QuickCreate] 只拿來做常用排序。
+        ///     KindOf 會把兩者分到不同組，dropdown 依 Kind 分組時自然分開顯示。
+        /// </summary>
+        private static List<Candidate> CollectEventChildCandidates()
+        {
+            var list = new List<Candidate>();
+            AddPlainCandidates(list, TypeCache.GetTypesDerivedFrom<AbstractStateAction>());
+            AddPlainCandidates(list, TypeCache.GetTypesDerivedFrom<AbstractConditionBehaviour>());
+
+            return list.OrderBy(c => c.SortKey)
+                .ThenByDescending(c => c.Priority)
+                .ThenBy(c => c.Kind)
+                .ThenBy(c => c.DisplayName)
+                .ToList();
+        }
+
+        /// <summary>不指欄位的候選：只用 class 級 [QuickCreate] 做常用排序</summary>
+        private static void AddPlainCandidates(List<Candidate> list, IEnumerable<Type> types)
+        {
+            foreach (var t in types)
+            {
+                if (t.IsAbstract)
+                    continue;
+
+                var classAttr = t.GetCustomAttribute<QuickCreateAttribute>();
+                var isTop = classAttr != null;
+                list.Add(new Candidate
+                {
+                    CompType = t,
+                    FieldPath = null,
+                    DisplayName = string.IsNullOrEmpty(classAttr?.DisplayName)
+                        ? t.Name
+                        : classAttr.DisplayName,
+                    Kind = KindOf(t),
+                    IsNested = false,
+                    IsTop = isTop,
+                    Priority = classAttr?.Priority ?? 0,
+                    PresetSetup = null,
+                    SortKey = isTop ? 0 : 1,
+                });
+            }
+        }
 
         private static List<Candidate> GetCandidates(Type varType)
         {

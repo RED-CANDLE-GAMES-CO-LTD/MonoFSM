@@ -398,10 +398,11 @@ namespace MonoFSM.Editor.PrefabEditing
                 }
                 case "ref":
                 {
-                    // 留空 = root（MonoEntity / MonoObj / NetworkObject 都掛在 root 上），跟 `add` / `delcomp` 一致
+                    // 留空 = root（MonoEntity / MonoObj / NetworkObject 都掛在 root 上），跟 `add` / `delcomp` 一致。
+                    // targetNodePath 同樣可留空 = 指向 root 自己（例如 _overrideRoot 這種要接 prefab 根節點 Transform 的欄位）。
                     var nodePath = EditBatch.At(a, 0);
                     var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
-                    var targetPath = EditBatch.Need(a, 3, verb, "targetNodePath");
+                    var targetPath = EditBatch.At(a, 3);
                     var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
                         EditBatch.Need(a, 1, verb, "componentType"));
                     var so = new SerializedObject(comp);
@@ -415,7 +416,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     prop.objectReferenceValue = targetComp;
                     so.ApplyModifiedPropertiesWithoutUndo();
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> " +
-                           $"{targetPath}.{targetComp.GetType().Name}";
+                           $"{EditResolve.Describe(targetPath)}.{targetComp.GetType().Name}";
                 }
                 case "aref":
                 {

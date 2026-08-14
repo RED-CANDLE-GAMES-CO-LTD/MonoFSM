@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using _1_MonoFSM_Core.Runtime.Action.VariableAction;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.EditorExtension;
+using MonoFSM.Foundation;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable
 {
+    [QuickCreate]
     public class SetVarBoolAction
         : AbstractStateAction,
             IArgEventReceiver<bool>,

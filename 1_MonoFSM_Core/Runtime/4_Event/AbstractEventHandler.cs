@@ -253,6 +253,8 @@ namespace MonoFSM.Core
         {
             EventHandleImplement(0, true);
         }
+
+        [AutoNested]
         [SerializeField] private ConditionGroup _conditionFolder;
         public void ResetStateRestore(bool isHardReset)
         {
