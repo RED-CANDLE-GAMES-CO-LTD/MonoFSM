@@ -769,16 +769,18 @@ namespace MonoFSM.Core.Simulate
 #if UNITY_EDITOR
 
         //這段是我把unity binding拿掉，然後又自己補回來...
-        [MenuItem("MonoFSM/ResetLevel %R")]
+        [MenuItem("MonoFSM/ResetLevel %_R")]
         public static void ManualResetLevelMenu()
         {
             if (!Application.isPlaying)
             {
                 // CompilationPipeline.RequestScriptCompilation();
                 //refresh editor
+                Debug.Log("Refresh");
                 AssetDatabase.Refresh();
                 return;
             }
+            //改走CheatManager了比較對？
             // ManualResetLevel();
         }
 #endif

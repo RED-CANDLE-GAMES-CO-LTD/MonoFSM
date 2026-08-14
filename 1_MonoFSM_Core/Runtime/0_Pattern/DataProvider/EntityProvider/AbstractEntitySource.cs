@@ -22,7 +22,7 @@ namespace MonoFSM.Core.Runtime
         : AbstractValueSource<MonoEntity>,
             IEntityValueProvider
     {
-        public abstract string SuggestDeclarationName { get; }
+        public virtual string SuggestDeclarationName => "";
 
         [Required]
         [FormerlySerializedAs("_monoEntityTag")]
@@ -49,7 +49,7 @@ namespace MonoFSM.Core.Runtime
         private ValueProvider[] _valueProviders;
 
         // public abstract string NickName { get; }
-        public string Description => $"{SuggestDeclarationName}({entityTag})";
+        // public override string Description => $"{SuggestDeclarationName}({entityTag.name})";
         public override MonoEntity Value => monoEntity;
     }
 }

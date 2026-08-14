@@ -13,7 +13,7 @@ namespace MonoFSM.Core.Formula
         [Tooltip("只保留該變數等於此值的 entity")] [SerializeField]
         private bool _expectedValue;
 
-        [Tooltip("entity 上找不到這個變數時是否保留")] [SerializeField]
+        [Tooltip("entity 上找不到這個變數、或該變數被 disable / inactive 時是否保留")] [SerializeField]
         private bool _keepWhenVarMissing = true;
 
         //避免 GC：固定重用同一個 list
@@ -65,7 +65,7 @@ namespace MonoFSM.Core.Formula
 
                     if (!TryGetBool(entity, out var boolValue))
                     {
-                        //沒有這顆 var
+                        //沒有這顆 var、或 var 被 disable / inactive
                         if (_keepWhenVarMissing)
                             _filtered.Add(entity);
                         continue;

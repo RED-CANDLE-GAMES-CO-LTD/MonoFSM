@@ -14,8 +14,8 @@ namespace MonoFSM.Core.Runtime
     /// </summary>
     public class EntityFromListIndexProvider : AbstractEntitySource
     {
-        public override string SuggestDeclarationName =>
-            _varList != null ? _varList.name : "listItem";
+        public override string Description =>
+            _varList != null ? _varList.Description + "[" + _index.Value + "]" : "listItem";
 
         [PropertyOrder(-1)]
         [DropDownRef]
@@ -24,6 +24,8 @@ namespace MonoFSM.Core.Runtime
 
         [SerializeField]
         private VarIntWrapper _index = new(-1);
+
+        public override string SuggestDeclarationName { get; }
 
         [ShowInPlayMode]
         public override MonoEntity monoEntity =>

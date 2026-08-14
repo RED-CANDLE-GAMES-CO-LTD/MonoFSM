@@ -195,9 +195,11 @@ namespace MonoFSM.Variable
         private string _valueDebugStatus;
 
         /// <summary>
-        ///     實際的 Value 獲取邏輯，從原本的 Value getter 分離出來
+        ///     實際的 Value 獲取邏輯，從原本的 Value getter 分離出來。
+        ///     子類可 override 換成「由所屬容器決定」的取值（如 VarEntityCurrentItem 讀 parent VarList 的
+        ///     CurrentListItem）；遞迴／循環引用保護在外層 Value getter，override 一樣受保護。
         /// </summary>
-        private TValueType GetValueInternal()
+        protected virtual TValueType GetValueInternal()
         {
             // Debug.Log($"Getting value of {name}", this);
             //要擋掉嗎？那Editor Time就都不要顯示？

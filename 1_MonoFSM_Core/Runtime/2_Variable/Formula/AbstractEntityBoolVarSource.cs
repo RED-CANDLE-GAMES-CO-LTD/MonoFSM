@@ -34,6 +34,7 @@ namespace MonoFSM.Core.Formula
 
         /// <summary>
         ///     讀 entity 上的 bool 變數，沒有這顆變數就回 false（value 也是 false）
+        ///     var 被 disable 或所在物件 inactive 時也回 false，視為「不參與統計」
         /// </summary>
         protected bool TryGetBool(MonoEntity entity, out bool value)
         {
@@ -43,6 +44,10 @@ namespace MonoFSM.Core.Formula
 
             var boolVar = entity.GetVar<VarBool>(_boolVarTag);
             if (boolVar == null)
+                return false;
+
+            //disable / inactive 的 var 會留著上次的殘值，不能採信
+            if (!boolVar.enabled || !boolVar.gameObject.activeInHierarchy)
                 return false;
 
             value = boolVar.Value;

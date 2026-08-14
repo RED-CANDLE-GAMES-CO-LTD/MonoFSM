@@ -53,6 +53,10 @@ namespace MonoFSM.Variable.Condition
             {
                 if (_varFloat == null) return false;
 
+                //來源變數所在的物件被關掉 = 那個模組沒作用，條件一律不成立
+                //對齊 VarBoolCompareCondition 的行為，讓「關掉模組」能連帶讓跨模組的數值判定失效
+                if (_varFloat.isActiveAndEnabled == false) return false;
+
                 return _boundType switch
                 {
                     BoundType.Max => _varFloat.IsMax,
