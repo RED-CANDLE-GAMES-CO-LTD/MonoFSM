@@ -76,6 +76,30 @@ namespace MonoFSM.Variable
         [ShowInInspector] //TODO; runtime才會知道？
         protected AbstractMonoVariable varRef => _parentVarEntity?.Value?.GetVar(_varTag);
 
+        //varRef 解不到時指出這條鏈斷在哪一段。
+        //整條鏈上只有 MonoDict 的 not-prepared 會出聲，其餘（AutoParent 沒解到 / CurrentEntity 為 null /
+        //VariableFolder 為 null / entity 沒有這顆 var）全是靜默 null，
+        //寫入會靜默 fallback 成寫進 proxy 自己 —— byWhoQueue 看起來有寫成功，目標 entity 卻毫無反應。
+        //只在失敗路徑才組字串，正常路徑不呼叫、不付 GC 代價。
+        [ShowInDebugMode]
+        public string VarRefFailureReason
+        {
+            get
+            {
+                if (_parentVarEntity == null)
+                    return "_parentVarEntity 為 null（AutoParent 沒解到，或 parent 上沒有 VarEntity）";
+                var entity = _parentVarEntity.Value;
+                if (entity == null)
+                    return $"[{_parentVarEntity.name}].Value 為 null（foreach 沒在迭代中，或 list 該格是空的）";
+                if (_varTag == null)
+                    return "_varTag 沒設，無從查表";
+                if (entity.GetVar(_varTag) == null)
+                    return $"entity [{entity.name}] 身上找不到 {_varTag.name}"
+                           + "（VariableFolder 為 null，或 folder 裡沒有這顆 var）";
+                return null;
+            }
+        }
+
         //ver reference?
 
         [ShowInInspector]

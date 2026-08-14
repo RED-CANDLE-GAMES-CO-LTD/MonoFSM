@@ -44,6 +44,32 @@ description: MonoFSM 有限狀態機框架的使用指南。當需要：(1) 了�
 [AutoChildren(DepthOneOnly = true)]  // 僅直接子物件
 ```
 
+欄位型別可以是 interface（`[AutoParent] private ICurrentEntityOwner _owner;`），底層走 `GetComponentInParent(Type, true)`，取到的是**最近的一顆** parent，可用來當「多種容器共用同一個 child 元件」的自動接線。
+
+### Editor 下 Auto 欄位還沒解析：用 AutoReferenceFieldEditor
+
+Auto 系列在 **editor 下要等 Inspector 被點開才會解析**，所以 `Description`、`IsValid` 這類「畫 hierarchy 就會被呼叫」的成員裡，Auto 欄位常常還是 null → NRE 或一直噴 error。**不要**自己寫 `GetComponentInParent` 補，也不要用 `if (Application.isPlaying)` 迴避，要當場補解析：
+
+```csharp
+[ShowInInspector] [AutoParent] private ICurrentEntityOwner _owner;
+
+private ICurrentEntityOwner Owner
+{
+    get
+    {
+        if (_owner == null)
+            AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_owner));
+        return _owner;
+    }
+}
+```
+
+- `AutoAttributeManager` 在 global namespace，不用 using；方法標了 `[Conditional("UNITY_EDITOR")]`，build 時整個 call site 被移除，內部又自己 `if (Application.isPlaying) return`，**runtime 零成本**
+- 走的是同一顆 attribute 的 `Execute`，`LimitedType` / includeSelf 等設定都會被尊重，不會把語意寫死
+- 反射結果進 `FieldCache`，比每次 `GetComponentInParent` 便宜
+- 即使補了解析仍可能是 null（真的沒接），呼叫端還是要 null guard；**error log 只在 `Application.isPlaying` 時才印**，否則 editor 會刷滿 console
+- 既有範例：`AbstractMonoVariable.HasParentVarEntity`、`MonoEntity._fsmLogic`、`MonoBlackboard` 的各 folder、`ValueProvider._parentEntity`、`VarEntityCurrentItem.Owner`
+
 ## 其他常用 Attributes
 
 ```csharp
@@ -67,6 +93,7 @@ description: MonoFSM 有限狀態機框架的使用指南。當需要：(1) 了�
 
 - `SerializeField` 和 `public field` 以底線開頭：`_myField`
 - 百分比/比例欄位使用 **0~1 範圍**（`[Range(0f, 1f)]`），不用 0~100
+- **新寫的 component（繼承鏈上有 `AbstractDescriptionBehaviour`）一律 override `Description`**，把關鍵欄位組成一句話，hierarchy / State 樹才看得懂。細節與陷阱見 [references/writing-actions.md](references/writing-actions.md#description-override每個新-component-都要做)
 
 ## 常用組件清單
 

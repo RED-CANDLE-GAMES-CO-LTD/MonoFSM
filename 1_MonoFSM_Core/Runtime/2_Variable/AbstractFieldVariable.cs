@@ -461,6 +461,9 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
     // private MonoBehaviour lastValueSetter;
 
+    //varRef 接不通的 error 只印一次，避免每 tick 刷屏
+    private bool _hasLoggedVarRefFailure;
+
     // SetValue???
 
     /// <summary>
@@ -492,13 +495,26 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         Profiler.BeginSample("FieldVariable SetValueInternal");
 
         // 如果有 ParentVarEntity，代理 SetValue 到 parent entity 的 Variable
-        if (varRef != null)
+        var proxyTarget = varRef;
+        if (proxyTarget != null)
         {
             //代理型 Var 不會被掛上 NetworkedVarSync（同步的是被指向的實體 Var），
             //gate 與 fromNetwork 都交給對面那個 Var 自己判斷
-            varRef.SetRaw(value, byWho);
+            proxyTarget.SetRaw(value, byWho);
             Profiler.EndSample();
             return;
+        }
+
+        //接了 parent entity、也沒有 valueSource，卻解不到目標 var：意圖是 proxy 但沒接通。
+        //下面會靜默 fallback 成寫進自己，byWhoQueue 看起來寫成功、目標 entity 卻毫無反應，
+        //最常見的是 entity 身上根本沒有這顆 varTag（例如對鍋爐設 FirePoint 才有的 Heat）。
+        //每個 instance 只印一次，避免每 tick 刷屏；正常路徑不會進來，沒有額外成本
+        if (_parentVarEntity != null && !HasValueSource && !_hasLoggedVarRefFailure)
+        {
+            _hasLoggedVarRefFailure = true;
+            Debug.LogError(
+                $"[VarRef] {name} 解不到目標 var，改寫進自己身上（目標沒有任何反應）：{VarRefFailureReason}",
+                this);
         }
 
         var (result, tempValue) = SetValueExecution(value, byWho as MonoBehaviour, fromNetwork);

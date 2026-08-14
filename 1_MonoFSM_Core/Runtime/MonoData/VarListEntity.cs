@@ -15,8 +15,18 @@ using Object = UnityEngine.Object;
 namespace MonoFSM.Core.Variable
 {
     public class VarListEntity
-        : VarList<MonoEntity> //這個變
-    { }
+        : VarList<MonoEntity>, //這個變
+            MonoFSM.Runtime.Variable.ICurrentEntityOwner
+    {
+        //給掛在 child 的 VarEntityCurrentItem 取值用（proxy 模式時 CurrentListItem 自己會 forward）
+        public MonoEntity CurrentEntity => CurrentListItem;
+        public string ListDescription => Description;
+
+#if UNITY_EDITOR
+        //list 本身沒有「跑過一輪」的語意，內容直接看 list 就好
+        public IReadOnlyList<MonoEntity> DebugIteratedEntities => null;
+#endif
+    }
 
     //FIXME: 用的到set或queue嗎？ 還是乾脆把List做完就好，其他要用再說另外實作？
     public class VarList<T> : AbstractVarList, ISerializationCallbackReceiver, IResetStateRestore

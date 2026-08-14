@@ -23,9 +23,9 @@ public class MyCondition : AbstractConditionBehaviour
 }
 ```
 
-### Description override
+### Description override（每個新 component 都要做）
 
-`AbstractDescriptionBehaviour` 預設 `public virtual string Description => GetType().Name;`，State 樹列表上只看到類別名。**自訂 Action / Condition 應該 override `Description`**，組合關鍵欄位成一句話，方便在 Inspector / State 樹一眼看出每個節點在做什麼，不用點進去看欄位。
+`AbstractDescriptionBehaviour` 預設 `public virtual string Description => GetType().Name;`，hierarchy / State 樹上只看到類別名。**只要是新寫的 component，繼承鏈上有 `AbstractDescriptionBehaviour` 就一律 override `Description`**（Action、Condition、Render、Variable、ValueSource、Detector… 都算），組合關鍵欄位成一句話，方便在 Inspector / State 樹一眼看出每個節點在做什麼，不用點進去看欄位。`Rename` 按鈕就是拿 `Description` 去改 gameObject 名字。
 
 ```csharp
 // HasStateTagCondition
@@ -33,14 +33,19 @@ public override string Description => $"Has Tag [{(_tag != null ? _tag.name : "?
 
 // IsStateCondition
 public override string Description => $"Is {_targetState?.name}";
+
+// VarEntityCurrentItem（Variable 也一樣要給）
+public override string Description =>
+    EntityTag != null ? $"CurrentItem<{EntityTag.name}>" : "CurrentItem";
 ```
 
 要點：
 - 欄位空時填 `?`（避免 NRE，並提示尚未設定）
-- 不要在字串裡加 `[Action]` / `[Condition]` 之類的 tag，父類的 `DescriptionTag` 會自動加上
+- 不要在字串裡加 `[Action]` / `[Condition]` 之類的 tag，父類的 `DescriptionTag` 會自動加上；要換 tag 就 override `DescriptionTag`
 - `VarFloatWrapper` 等 wrapper 已有 `Description` 屬性可以直接組合進去
+- 有些 base class 會 override `Rename()` 走自己的命名捷徑，蓋掉 `Description`（例：`AbstractMonoVariable` 有 `_varTag` 時用 tag 名；`VarEntity` 有 `_monoEntityTag` + proxy 時固定叫 `Get<Tag>`）。新 component 要確認名字有沒有真的吃到，必要時一併 override `Rename()`
 
-可參考：`1_MonoFSM_Core/Runtime/1_Conditions/HasStateTagCondition.cs`、`IsStateCondition.cs`
+可參考：`1_MonoFSM_Core/Runtime/1_Conditions/HasStateTagCondition.cs`、`IsStateCondition.cs`、`1_MonoFSM_Core/Runtime/MonoData/VarEntityCurrentItem.cs`
 
 ### Render behaviour 掛在哪 → 決定何時觸發（多人時決定 client 跑不跑）
 

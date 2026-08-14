@@ -42,8 +42,9 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
                     this);
                 return;
             }
-            var range = _targetVar.Max - _targetVar.Min;
 
+            var range = _targetVar.Max - _targetVar.Min;
+            this.Log("SetVarFloatToBoundAction", _targetVar);
             switch (_boundType)
             {
                 case BoundType.Min:

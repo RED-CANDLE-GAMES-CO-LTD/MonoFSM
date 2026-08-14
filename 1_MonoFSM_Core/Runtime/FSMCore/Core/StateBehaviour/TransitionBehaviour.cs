@@ -1,5 +1,6 @@
 using MonoFSM.FSM;
 using MonoFSM.Core;
+using MonoFSM.Core.Simulate;
 using MonoFSM.EditorExtension;
 using MonoFSM.Foundation;
 using MonoFSM.Variable.Attributes;
@@ -25,13 +26,18 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         {
             _transitionData = new TransitionData<MonoStateBehaviour>(
                 _target,
-                (state, machine) =>
+                (from, to) =>
                 {
                     if (isActiveAndEnabled == false)
                         return false;
 
                     // Check all conditions
-                    return _conditions.IsAllValid();
+                    if (_conditions.IsAllValid() == false)
+                        return false;
+#if UNITY_EDITOR
+                    RecordDebugTick(from);
+#endif
+                    return true;
                 }
             );
         }
@@ -48,6 +54,65 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         private AbstractConditionBehaviour[] _conditions;
 
 #if UNITY_EDITOR
+        //transition 通過條件的 tick 歷史，用來對照 resimulation 時同一個 tick 是否被重複判定
+        private struct DebugTickRecord
+        {
+            public int _tick;
+            public bool _isStage; //false = resimulate（重跑過去的 tick）
+            public bool _hasValue;
+        }
+
+        private const int DebugTickHistoryCapacity = 16;
+
+        private readonly DebugTickRecord[] _debugTickHistory = new DebugTickRecord[
+            DebugTickHistoryCapacity
+        ];
+
+        private int _debugTickWriteIndex;
+        private static readonly System.Text.StringBuilder DebugTickStringBuilder = new(128);
+
+        private void RecordDebugTick(MonoStateBehaviour fromState)
+        {
+            var tickProvider = fromState?.Machine?.TickProvider;
+            _debugTickHistory[_debugTickWriteIndex] = new DebugTickRecord
+            {
+                _tick = tickProvider?.Tick ?? WorldUpdateSimulator.CurrentTick,
+                _isStage = tickProvider?.IsStage ?? true,
+                _hasValue = true,
+            };
+            _debugTickWriteIndex = (_debugTickWriteIndex + 1) % DebugTickHistoryCapacity;
+        }
+
+        [ShowInInspector]
+        [PropertyOrder(100)]
+        [DisplayAsString(false)]
+        [LabelText("Transition Ticks (新→舊)")]
+        private string DebugTickHistoryText
+        {
+            get
+            {
+                DebugTickStringBuilder.Clear();
+                for (var i = 0; i < DebugTickHistoryCapacity; i++)
+                {
+                    //從最後寫入的位置往回讀，最新的排前面
+                    var index =
+                        (_debugTickWriteIndex - 1 - i + DebugTickHistoryCapacity)
+                        % DebugTickHistoryCapacity;
+                    var record = _debugTickHistory[index];
+                    if (record._hasValue == false)
+                        continue;
+                    if (DebugTickStringBuilder.Length > 0)
+                        DebugTickStringBuilder.Append(", ");
+                    DebugTickStringBuilder.Append(record._tick);
+                    DebugTickStringBuilder.Append(record._isStage ? "" : "(resim)");
+                }
+
+                return DebugTickStringBuilder.Length == 0
+                    ? "(尚未觸發)"
+                    : DebugTickStringBuilder.ToString();
+            }
+        }
+
         // public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
         public string IconName => "CollabMoved Icon";
         public bool IsDrawingIcon => true;
