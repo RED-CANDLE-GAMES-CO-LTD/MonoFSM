@@ -49,6 +49,14 @@ def enabled() -> bool:
     return os.environ.get("UPREFAB_NO_USAGE_LOG") != "1"
 
 
+# 指令執行中補上的欄位（目前只有 cache=hit/miss/off），record 時併進那一行
+_EXTRA: dict = {}
+
+
+def note(key: str, value) -> None:
+    _EXTRA[key] = value
+
+
 def _clip(v):
     if isinstance(v, str) and len(v) > _MAX_VAL:
         return v[:_MAX_VAL] + "…"
@@ -86,6 +94,7 @@ def record(root: str, args, out_chars: int, elapsed_ms: int, status: str,
             "ms": elapsed_ms,
             "st": status,
         }
+        row.update(_EXTRA)
         # 「找不到」是診斷「猜不到入口關鍵字」的主要訊號
         if "(no match)" in out_head or "解不開" in out_head or out_chars == 0:
             row["miss"] = True

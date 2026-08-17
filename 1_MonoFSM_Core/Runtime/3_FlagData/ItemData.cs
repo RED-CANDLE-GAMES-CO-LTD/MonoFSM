@@ -25,8 +25,7 @@ namespace MonoFSM.Runtime.FSM._3_FlagData
         public virtual bool needInstance => false;
 
 //FIXME:要把PoolObject拿過來嗎？
-        [BoxGroup("物品")] [Required] public MonoObj fsmPrefab;
-        public override MonoObj bindPrefab => fsmPrefab; //需要這個變數嗎...
+        //fsmPrefab 已併入 GameData._bindPrefab（一級欄位 + _baseConfig 疊層繼承）
 
         public MonoObj InstantiateFsm(Transform parent)
         {

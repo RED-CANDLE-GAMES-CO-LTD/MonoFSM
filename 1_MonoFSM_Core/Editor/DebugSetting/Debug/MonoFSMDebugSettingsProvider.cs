@@ -15,11 +15,11 @@ namespace MonoDebugSetting
         //         : base(RCGDebugSetting.settings, key, value, SettingsScope.User) { }
         // }
 
-        public static class MonoFSMDebugSetting
+        public static class MonoFsmDebugSetting
         {
             // public static Settings settings = new Settings("com.rcg.debug", "RCGDebugSetting");
-            // [UserSetting("User-specific preferences", 
-            //     "Enable Debug Mode (Ctrl/Cmd + Shift + D)", 
+            // [UserSetting("User-specific preferences",
+            //     "Enable Debug Mode (Ctrl/Cmd + Shift + D)",
             //     "打開debug mode")]
             // public static DebugSetting<bool> IsDebugMode = new("rcg.isDebugMode", false);
             public const string PrefPath = "MonoFSM.DebugSetting.IsDebugMode";
@@ -31,7 +31,7 @@ namespace MonoDebugSetting
                 set
                 {
                     if (_isDebugMode == value) return;
-                    
+
                     _isDebugMode = value;
                     RuntimeDebugSetting.SetDebugMode(_isDebugMode);
                     HierarchyDebug.IsDebugMode = _isDebugMode;
@@ -39,7 +39,7 @@ namespace MonoDebugSetting
                     EditorApplication.RepaintHierarchyWindow();
                     EditorWindowKeyboardNavigate.RepaintAll();
                     EditorWindowKeyboardNavigate.RepaintToolBar();
-                    
+
                     Debug.Log("ToggleDebugMode: " + _isDebugMode + " " +
                               EditorPrefs.GetBool(PrefPath, false));
                 }
@@ -55,12 +55,12 @@ namespace MonoDebugSetting
                 RuntimeDebugSetting.SetDebugMode(_isDebugMode);
                 HierarchyDebug.IsDebugMode = _isDebugMode;
             }
-            
+
             // Shared team settings
-            // [UserSetting("Auto-add BlackBox component", "To new Prefabs", 
+            // [UserSetting("Auto-add BlackBox component", "To new Prefabs",
             //     "Automatically adds a BlackBox component to all newly created Prefabs.")]
             // public static DebugSetting<bool> AutoAddToPrefabs = new("general.autoAddToPrefab", false);
-  
+
             private const string MenuName = "Tools/MonoFSM/Toggle DebugMode #%_D";
 
             [MenuItem(MenuName)]
@@ -69,7 +69,7 @@ namespace MonoDebugSetting
                 // RCGDebugSetting.IsDebugMode.SetValue(!RCGDebugSetting.IsDebugMode.value);
                 IsDebugMode = !IsDebugMode;
             }
-            
+
             private static void OnSettingsSaved()
             {
                 SaveSettingsRuntimeSide();

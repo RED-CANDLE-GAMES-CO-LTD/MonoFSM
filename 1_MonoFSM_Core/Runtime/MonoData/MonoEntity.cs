@@ -42,7 +42,7 @@ namespace MonoFSM.Runtime
     [Searchable]
     [FormerlyNamedAs("MonoDescriptable")]
     public class MonoEntity
-        : AbstractMonoDescriptable<GameData>, //不需要這層？
+        : AbstractMonoDescriptable, //不需要這層？
             IInstantiated,
             IBeforePrefabSaveCallbackReceiver,
             // IGameDataProvider,
@@ -293,12 +293,11 @@ namespace MonoFSM.Runtime
     //應該要可以繼承這個嗎？Inventory
     //不該有variable嗎？
     //FIXME: 這層多餘嗎？
-    public class AbstractMonoDescriptable<TMonoDescriptable>
-        : MonoBlackboard,
+    public class AbstractMonoDescriptable : MonoBlackboard,
             // IMonoDescriptable,
             ISceneAwake,
             ISceneStart
-        where TMonoDescriptable : GameData //,IVariableOwner //VariableOwner?
+    //,IVariableOwner //VariableOwner?
     {
         //FIXME: 更複雜的描述組合？
         // [UsedImplicitly] //從UI直接選

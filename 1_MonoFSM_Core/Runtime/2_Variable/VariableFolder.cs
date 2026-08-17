@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using MonoFSM.Core;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Variable;
-using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 public abstract class AbstractFolder : MonoBehaviour
 {

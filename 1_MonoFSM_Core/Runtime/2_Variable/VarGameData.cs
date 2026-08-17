@@ -1,4 +1,9 @@
 using MonoFSM.Variable.FieldReference;
+#if UNITY_EDITOR
+using Sirenix.OdinInspector;
+using UnityEditor;
+using UnityEngine;
+#endif
 
 namespace MonoFSM.Variable
 {
@@ -18,6 +23,32 @@ namespace MonoFSM.Variable
             }
             return false;
         }
+
+#if UNITY_EDITOR
+        //對目前的 _defaultValue 建一顆 variant（原 asset 當 base），並把 _defaultValue 指到新 variant
+        [Button("從 _defaultValue 建立 Variant", ButtonSizes.Medium)]
+        [HideIf(nameof(HideDefaultValue))]
+        private void CreateVariantFromDefault()
+        {
+            if (_defaultValue == null)
+            {
+                Debug.LogError("[VarGameData] _defaultValue 沒設，無法建立 variant", this);
+                return;
+            }
+
+            var variant = GameData.CreateVariantAsset(_defaultValue);
+            if (variant == null)
+                return;
+
+            Undo.RecordObject(this, "Create GameData Variant");
+            _defaultValue = variant;
+            EditorUtility.SetDirty(this);
+            //在 prefab instance 上按的話要讓 override 寫回去
+            PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+            EditorGUIUtility.PingObject(variant);
+            Debug.Log($"[VarGameData] _defaultValue 已指向新 variant {variant.name}", this);
+        }
+#endif
         // /// <summary>
         // /// 返回動態型別，讓反射系統能看到實際的子類別成員
         // /// </summary>

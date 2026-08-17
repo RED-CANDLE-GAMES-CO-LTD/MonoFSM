@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -115,33 +114,22 @@ namespace MonoFSM.Variable.FieldReference
         private static Dictionary<string, Type> _simpleNameIndex;
 
         /// <summary>
-        /// 根據當前名稱和歷史名稱，找到匹配的型別
+        /// 根據當前名稱和歷史名稱，找到匹配的型別。
+        /// 找不到就靜默回傳 null，錯誤訊息由呼叫端負責印（它才知道是哪個 asset 的哪個欄位）
         /// </summary>
         public static Type FindTypeByCurrentOrFormerName(
             string currentName,
-            string assemblyName = null,
-            Object obj = null
+            string assemblyName = null
         )
         {
             if (string.IsNullOrEmpty(currentName))
-            {
-                Debug.LogError("Current name is null or empty. Cannot find type.");
                 return null;
-            }
 
             if (!_resolvedTypeCache.TryGetValue(currentName, out var type))
             {
                 type = ResolveTypeUncached(currentName, assemblyName);
                 _resolvedTypeCache[currentName] = type;
             }
-
-            if (type == null)
-                Debug.LogError(
-                    "Type not found: "
-                        + currentName
-                        + ". Please check if the type has been renamed or moved to another assembly.",
-                    obj
-                );
 
             return type;
         }

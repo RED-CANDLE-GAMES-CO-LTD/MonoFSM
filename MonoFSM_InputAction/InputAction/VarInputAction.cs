@@ -16,7 +16,7 @@ namespace MonoFSM_InputAction
         MonoInputAction _inputActionRef;
 
         // Fallback：沒設 direct ref 時，從 VarEntity 透過 varTag 取得承載 MonoInputAction 的 Variable（VarMonoInputAction）
-        [FormerlySerializedAs("_monoInputAction")] [SerializeField] [DropDownRef]
+        [FormerlySerializedAs("_monoInputAction")] [SerializeField] [DropDownRef(isOptional: true)]
         private VarMonoInput _monoInput;
 
         protected override string DescriptionTag => "VarInput";

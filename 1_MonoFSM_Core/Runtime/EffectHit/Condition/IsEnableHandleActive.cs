@@ -16,7 +16,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit.Condition
             ? _overrideEnableHandle
             : _enableHandleVar?.Value as EnableHandle;
 
-        [DropDownRef] [SerializeField] EnableHandle _overrideEnableHandle;
+        [DropDownRef(isOptional: true)] [SerializeField]
+        EnableHandle _overrideEnableHandle;
 
         [HideIf(nameof(_overrideEnableHandle))]
         public VarComp _enableHandleVar;

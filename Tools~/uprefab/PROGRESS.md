@@ -551,3 +551,18 @@ component 清單、`--budget` 分層、`--node` 下鑽（含路徑打錯時列�
 是 null，會誤報成「沒有 enterNode」→ 退回用階層找，且結論箭頭只在 Play Mode 印；
 另外拿來比對的值要用原始 object（`Prop`）而不是印給人看的字串（`Call`）——
 `string` 也是 `IEnumerable`，錯用會讓 `registered` 永遠是 NO。
+
+---
+
+## `prefab read` 加一層磁碟快取（readcache.py）
+
+`up prefab read` 是唯一「純讀、輸出到 budget 上限、同一份東西會被反覆問」的指令
+（variant 的 base 在一次調查裡常被讀好幾次），所以只有它值得快取。
+key = 指令參數 + 依賴集合的 (相對路徑, mtime_ns, size)：從目標 .prefab 出發離線掃
+YAML 的 `guid:`，用既有的 `query.asset_by_guid` 翻成路徑、只留 .prefab，遞迴三層 ——
+這樣 variant base（`m_SourcePrefab`）與 nested prefab 會一起被納入，改了 base 就自動失效。
+
+正確性優先於命中率：guid 解不開、檔案讀不到、任何例外一律當 miss 直接走 Unity。
+命中時在輸出最前面印一行提醒（Inspector 改了沒存檔的話請加 `--no-cache`）；
+`--no-cache` 跳過讀取但仍寫入。快取放 `.uprefab-cache/read/`（已進 .gitignore），
+超過 200 檔依 mtime 刪到剩 150。usage 記錄多一個 `cache` 欄位（hit / miss / bypass / off）。

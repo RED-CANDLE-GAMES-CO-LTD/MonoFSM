@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import indexer  # noqa: E402
 import query  # noqa: E402
+import readcache  # noqa: E402
 import unity  # noqa: E402
 import usage  # noqa: E402
 from config import CONFIG_NAME, Config  # noqa: E402
@@ -331,11 +332,39 @@ def cmd_prefab(args, root, cfg):
     elif args.action == "copy":
         print(unity.call(f"{PREFAB}.CopyAsset", args.asset, args.out, args.name))
     elif args.action == "read":
-        print(unity.call(
-            f"{READER}.Export", args.asset, args.node, args.depth,
-            not args.fold, args.budget, args.fsm))
+        _prefab_read(args, root)
     elif args.action == "do":
         print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args)))
+
+
+def _prefab_read(args, root):
+    """prefab read 的唯一出入口 —— 中間夾一層以檔案 mtime 為 key 的磁碟快取。
+
+    只有 read 值得快取：它是唯一「純讀、輸出很肥、同一份東西會被反覆問」的 action。
+    key 算不出來時（readcache 回 None）就退化成沒有快取的原本行為。
+    """
+    fold = not args.fold
+    params = {"asset": args.asset, "node": args.node, "depth": args.depth,
+              "budget": args.budget, "fsm": args.fsm, "fold": fold}
+    key = readcache.key_for(root, args.asset, params)
+
+    if key and not args.no_cache:
+        cached = readcache.load(root, key)
+        if cached is not None:
+            usage.note("cache", "hit")
+            print(readcache.HIT_NOTE)
+            print(cached)
+            return
+
+    if not key:
+        usage.note("cache", "off")  # key 算不出來（不是 prefab 檔 / 解析失敗）
+    else:
+        usage.note("cache", "bypass" if args.no_cache else "miss")
+    text = unity.call(f"{READER}.Export", args.asset, args.node, args.depth,
+                      fold, args.budget, args.fsm)
+    print(text)
+    if key:
+        readcache.store(root, key, text)
 
 
 def cmd_asset(args, root, cfg):
@@ -545,6 +574,8 @@ def main() -> None:
     pp.add_argument("--fsm", action="store_true",
                     help="read：附 FSM markdown 段（states / transitions / conditions）")
     pp.add_argument("--fold", action="store_true")
+    pp.add_argument("--no-cache", action="store_true",
+                    help="read：跳過讀取快取（仍會寫入新結果）")
     pp.add_argument("--out", help="variant / copy：新 prefab 的 asset path")
     pp.add_argument("--name", help="variant / copy：root 名稱（預設用檔名）")
     pp.add_argument("-f", "--file", help="do：從檔案讀批次操作")

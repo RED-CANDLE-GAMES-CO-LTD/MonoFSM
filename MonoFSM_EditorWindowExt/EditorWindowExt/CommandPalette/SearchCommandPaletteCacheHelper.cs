@@ -191,9 +191,9 @@ namespace CommandPalette
                 }
 
                 stopwatch.Stop();
-                Debug.Log(
-                    $"[CommandPalette] MenuItem收集完成，共 {menuItems.Count} 個，耗時 {stopwatch.ElapsedMilliseconds}ms"
-                );
+                // Debug.Log(
+                //     $"[CommandPalette] MenuItem收集完成，共 {menuItems.Count} 個，耗時 {stopwatch.ElapsedMilliseconds}ms"
+                // );
             }
             catch (Exception e)
             {

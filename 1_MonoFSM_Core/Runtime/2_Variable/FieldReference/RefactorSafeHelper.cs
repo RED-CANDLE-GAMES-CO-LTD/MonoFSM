@@ -24,34 +24,27 @@ namespace MonoFSM.Variable.FieldReference
             var syncedCount = 0;
             var totalCount = 0;
 
-            // 使用反射取得所有 MySerializedType 欄位
             var fields = typeof(VariableTag).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            
+
             foreach (var field in fields)
             {
-                if (IsMySerializedTypeField(field.FieldType))
+                if (field.GetValue(variableTag) is not IMySerializedType mySerializedType)
+                    continue;
+
+                totalCount++;
+                mySerializedType.BindObject = variableTag;
+
+                var originalTypeName = mySerializedType.SerializedTypeName;
+                if (!mySerializedType.ValidateTypeReference())
                 {
-                    totalCount++;
-                    var mySerializedType = field.GetValue(variableTag);
-                    
-                    if (mySerializedType != null)
-                    {
-                        var originalTypeName = GetTypeFullName(mySerializedType);
-                        
-                        // 呼叫 ValidateTypeReference 觸發同步
-                        var validateMethod = field.FieldType.GetMethod("ValidateTypeReference");
-                        if (validateMethod != null)
-                        {
-                            validateMethod.Invoke(mySerializedType, null);
-                            
-                            var newTypeName = GetTypeFullName(mySerializedType);
-                            if (originalTypeName != newTypeName)
-                            {
-                                Debug.Log($"✓ 欄位 '{field.Name}' 型別已同步：'{originalTypeName}' -> '{newTypeName}'");
-                                syncedCount++;
-                            }
-                        }
-                    }
+                    Debug.LogWarning($"✗ 欄位 '{field.Name}' 的型別 '{originalTypeName}' 解析不到，需要手動重選", variableTag);
+                    continue;
+                }
+
+                if (originalTypeName != mySerializedType.SerializedTypeName)
+                {
+                    Debug.Log($"✓ 欄位 '{field.Name}' 型別已同步：'{originalTypeName}' -> '{mySerializedType.SerializedTypeName}'");
+                    syncedCount++;
                 }
             }
 
@@ -78,32 +71,26 @@ namespace MonoFSM.Variable.FieldReference
             Debug.Log($"=== 檢查 VariableTag '{variableTag.name}' 的型別同步狀態 ===");
 
             var totalCount = 0;
+            var outOfSyncCount = 0;
 
-            // 使用反射取得所有 MySerializedType 欄位
             var fields = typeof(VariableTag).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            
+
             foreach (var field in fields)
             {
-                if (IsMySerializedTypeField(field.FieldType))
-                {
-                    totalCount++;
-                    var mySerializedType = field.GetValue(variableTag);
-                    
-                    if (mySerializedType != null)
-                    {
-                        Debug.Log($"--- 檢查欄位 '{field.Name}' ---");
-                        
-                        // 呼叫 CheckTypeNameSync
-                        var checkMethod = field.FieldType.GetMethod("CheckTypeNameSync");
-                        if (checkMethod != null)
-                        {
-                            checkMethod.Invoke(mySerializedType, null);
-                        }
-                    }
-                }
+                if (field.GetValue(variableTag) is not IMySerializedType mySerializedType)
+                    continue;
+
+                totalCount++;
+                mySerializedType.BindObject = variableTag;
+
+                if (mySerializedType.IsNameInSync)
+                    continue;
+
+                outOfSyncCount++;
+                Debug.Log($"欄位 '{field.Name}' 的型別名稱 '{mySerializedType.SerializedTypeName}' 不同步，執行同步可修正", variableTag);
             }
 
-            Debug.Log($"檢查完成：已檢查 {totalCount} 個型別引用");
+            Debug.Log($"檢查完成：已檢查 {totalCount} 個型別引用，{outOfSyncCount} 個不同步");
         }
 
         /// <summary>
@@ -167,38 +154,6 @@ namespace MonoFSM.Variable.FieldReference
 #else
             Debug.LogWarning("SyncAllVariableTagAssets 只能在編輯器中使用");
 #endif
-        }
-
-        /// <summary>
-        /// 檢查型別是否為 MySerializedType
-        /// </summary>
-        private static bool IsMySerializedTypeField(Type fieldType)
-        {
-            if (fieldType.IsGenericType)
-            {
-                var genericTypeDef = fieldType.GetGenericTypeDefinition();
-                return genericTypeDef == typeof(MySerializedType<>);
-            }
-            return fieldType == typeof(MySerializedType);
-        }
-
-        /// <summary>
-        /// 取得 MySerializedType 的 FullName
-        /// </summary>
-        private static string GetTypeFullName(object mySerializedType)
-        {
-            if (mySerializedType == null) return "";
-
-            // 使用反射取得 _typeFullName 欄位
-            var typeFullNameField = mySerializedType.GetType().GetField("_typeFullName", 
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            
-            if (typeFullNameField != null)
-            {
-                return (string)typeFullNameField.GetValue(mySerializedType) ?? "";
-            }
-
-            return "";
         }
 
         /// <summary>

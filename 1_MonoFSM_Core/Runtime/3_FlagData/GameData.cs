@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using _1_MonoFSM_Core.Runtime.Attributes;
 using MonoDebugSetting;
 using MonoFSM.AddressableAssets;
 using MonoFSM.Core;
@@ -168,15 +169,15 @@ public static class GameDataUtility
 [CreateAssetMenu(fileName = "Descriptable", menuName = "ScriptableObjects/Descriptable", order = 1)]
 [Searchable]
 [FormerlyNamedAs("DescriptableData")]
-public class GameData
+public partial class GameData
     : GameFlagBase,
         IDescriptableData,
         IMonoDescriptable,
         ISceneSavingCallbackReceiver,
         IFieldPathRootTypeProvider, IItemData
 {
-    [FormerlySerializedAs("descriptableTag")]
-    public MonoEntityTag _entityTag; //fixme: 有需要這個嗎？
+    // [FormerlySerializedAs("descriptableTag")]
+    // public MonoEntityTag _entityTag; //fixme: 有需要這個嗎？
 
     public LocalizedString titleStr; //FIXME: 應該用interface？但這樣怎麼用別人的...從主專案再接過去嗎
 
@@ -219,6 +220,8 @@ public class GameData
     {
         base.FlagAwake(mode);
         RebuildDataFunctionDict();
+        RebuildConfigDict(); //GameData.Config.cs
+        RebuildObjConfigDict(); //GameData.Config.cs
     }
 
     void RebuildDataFunctionCheck()
@@ -392,20 +395,34 @@ public class GameData
     //類別，需要的自己用enum override掉
     public virtual int category => 0;
 
-    [PreviewInInspector]
-    public virtual MonoObj bindPrefab
-    {
-        get
-        {
-            if (!Application.isPlaying)
-                RebuildDataFunctionCheck();
+    //本體 prefab：每個 GameData 最多一個，是 identity 的一部分，所以是一級欄位不是 config 表的 tag entry。
+    //留 null 有兩種語意：(1) 有 _baseConfig 就繼承 base 的 (2) 沒有 base 就是這個 GameData 不可生成（例：車廂類型）
+    [PrefabFilter] [SerializeField] private MonoObj _bindPrefab;
 
-            if (_dataFunctionDict.TryGetValue(typeof(PickableData), out var dataFunction))
-                return ((PickableData)dataFunction).EntityPrefab;
-            // Debug.LogError("No PickableData found in " + name, this);
+    [PreviewInInspector] public virtual MonoObj bindPrefab => GetBindPrefabInternal(0);
+
+    //疊層查詢，防循環比照 GameData.Config.cs 的 MaxConfigDepth
+    private MonoObj GetBindPrefabInternal(int depth)
+    {
+        if (depth >= MaxConfigDepth)
+        {
+            Debug.LogError($"[GameData] _bindPrefab 疊層超過 {MaxConfigDepth} 層，可能有循環引用: {name}", this);
             return null;
         }
-    } //FIXME: 要弄這個？
+
+        if (_bindPrefab != null)
+            return _bindPrefab;
+
+        if (BaseConfig != null)
+            return BaseConfig.GetBindPrefabInternal(depth + 1);
+
+        //舊資料 fallback：還沒遷移的 asset 走 PickableData（遷移完成確認無誤後才拆）
+        if (!Application.isPlaying)
+            RebuildDataFunctionCheck();
+        if (_dataFunctionDict.TryGetValue(typeof(PickableData), out var dataFunction))
+            return ((PickableData)dataFunction).EntityPrefab;
+        return null;
+    }
 
     //售價，給商店類機台用。沒掛 PriceData 就是非賣品（HasPrice = false）
     [PreviewInInspector]
@@ -738,10 +755,10 @@ public class GameData
     //FIXME: 亂寫看看
     public MonoEntityTag Key { get; }
 
-    public MonoEntityTag[] GetKeys()
-    {
-        return new[] { _entityTag };
-    }
+    // public MonoEntityTag[] GetKeys()
+    // {
+    //     return new[] { _entityTag };
+    // }
 
     public IDescriptableData Descriptable => this;
 
@@ -753,6 +770,8 @@ public class GameData
     public override void OnBeforeSceneSave()
     {
         RebuildDataFunctionDict();
+        RebuildConfigDict(); //GameData.Config.cs
+        RebuildObjConfigDict(); //GameData.Config.cs
         //FIXME:
         //自動改名、validation之類的
         // name = name.Replace("[", "(").Replace("]", ")");

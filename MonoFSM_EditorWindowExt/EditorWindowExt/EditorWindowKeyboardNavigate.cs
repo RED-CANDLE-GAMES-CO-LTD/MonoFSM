@@ -20,7 +20,7 @@ namespace MonoFSM_EditorWindowExt.EditorWindowExt
 
         public static void RepaintToolBar()
         {
-            Toolbar.get.Repaint();
+            // Toolbar.get.Repaint();
         }
 
         public static void RepaintAll()
@@ -50,7 +50,7 @@ namespace MonoFSM_EditorWindowExt.EditorWindowExt
 
         private static double _lastEscapeTime;
         private static int _escapeCount;
-        
+
         private static void ExitPrefabStage()
         {
             if (Application.isPlaying)
@@ -584,7 +584,7 @@ namespace MonoFSM_EditorWindowExt.EditorWindowExt
             if (PrefabStageUtility.GetCurrentPrefabStage() == null)
             {
                 _escapeCount = 0;
-                Debug.Log("Escape key pressed but not in Prefab Stage, ignoring.");
+                // Debug.Log("Escape key pressed but not in Prefab Stage, ignoring.");
                 return;
             }
 

@@ -107,8 +107,9 @@ namespace MonoFSM.Variable
             SetValue(arg);
         }
 
-        public string ValueInfo => "Cross Ref:" + _target.BindEntity.name; //highlight顏色？
-        public bool IsDrawingValueInfo => _target != null && IsVarExternal;
+        //這個 cross ref 的慣例很不錯噎，應該要讓大家都用？
+        public override string ValueInfo => "Ref:" + _target.BindEntity.name; //highlight顏色？
+        public override bool IsDrawingValueInfo => _target != null && IsVarExternal;
     }
 
     // public class SetPropertyAction : AbstractAction

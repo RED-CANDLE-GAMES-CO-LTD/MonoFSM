@@ -17,8 +17,8 @@ namespace MonoFSM.Runtime.Variable
     //FIXME: 不需要這個吧？
     [DisallowMultipleComponent]
     public class
-        MonoBlackboard : MonoBehaviour, IMonoEntity,
-        IAfterSimulate //FIXME: 沒有必要用介面？
+        MonoBlackboard : MonoBehaviour, IMonoEntity
+    // IAfterSimulate //FIXME: 沒有必要用介面？
     {
         private bool IsVariableMissing()
         {
@@ -252,8 +252,8 @@ namespace MonoFSM.Runtime.Variable
 
         public int DescriptableTagCount => DescriptableTags?.Count ?? 0;
 
-        public void AfterSimulate(float deltaTime)
-        {
-        }
+        // public void AfterSimulate(float deltaTime)
+        // {
+        // }
     }
 }

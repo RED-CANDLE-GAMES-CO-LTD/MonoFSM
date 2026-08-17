@@ -17,10 +17,14 @@ MonoBehaviour:
   Note: 
   _variableType:
     _baseFilterTypeName: 
+    _typeFullName: MonoFSM.Core.Variable.VarListPrefab
+    _assemblyName: MonoFSM.Core.Runtime
     typeName: MonoFSM.Core.Variable.VarListPrefab, MonoFSM.Core.Runtime, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null
   _valueFilterType:
     _baseFilterTypeName: 
+    _typeFullName: 
+    _assemblyName: 
     typeName: System.Collections.Generic.List`1[[MonoFSMCore.Runtime.LifeCycle.MonoPoolObj,
       MonoFSM.Core.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]],
       mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089

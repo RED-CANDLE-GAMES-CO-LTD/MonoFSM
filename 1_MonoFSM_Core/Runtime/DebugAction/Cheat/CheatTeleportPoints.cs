@@ -41,6 +41,10 @@ namespace MonoFSM.Core
             if (!keyboard.leftAltKey.isPressed && !keyboard.rightAltKey.isPressed)
                 return;
 
+            //Alt+Shift+數字 是火車傳送（CheatTeleportSplineTrainPoints），不要一起觸發玩家瞬移
+            if (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed)
+                return;
+
             for (var i = 0; i < _digitKeys.Length; i++)
                 if (keyboard[_digitKeys[i]].wasPressedThisFrame)
                 {
