@@ -5,7 +5,7 @@ using UnityEngine;
 using Sirenix.OdinInspector;
 
 //提供給動畫用的string list, 但是hash效率比較好，盡量用StateHashValue
-public class AnimatorStateStringListProvider : AbstractStringProvider
+public class AnimatorStateStringListProvider : AbstractStringProvider, IStateHashProvider
 {
     public Animator animator;
 

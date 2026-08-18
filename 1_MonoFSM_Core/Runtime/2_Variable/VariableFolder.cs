@@ -15,49 +15,9 @@ public abstract class AbstractFolder : MonoBehaviour
 
 public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>, IAfterSimulate
 {
-    // private Dictionary<VariableTag, AbstractMonoVariable> _varMap = new();
-
     private Dictionary<string, AbstractMonoVariable> _nameMap = new();
 
     private bool _initialized;
-
-    // public override void EnterSceneAwake()
-    // {
-    //     base.EnterSceneAwake();
-    //     // RebuildVariableMap();
-    // }
-
-
-    // [Button]
-    // public void RebuildVariableMap()
-    // {
-    //     // _varMap.Clear();
-    //     _nameMap.Clear();
-    //     var variables = GetComponentsInChildren<AbstractMonoVariable>(true);
-    //     foreach (var v in variables)
-    //     {
-    //         if (v == null) continue;
-    //         //FIXME: 想要做很狂的GetVar系統，任何var用tag就可以拿到
-    //         // // 和 collection 的 Add 路徑共用同一套判定，proxy var 不該被 GetVar 解析到
-    //         // if (!IsAddValid(v)) continue;
-    //         if (v._varTag != null)
-    //         {
-    //             _varMap.TryAdd(v._varTag, v);
-    //         }
-    //
-    //         if (!string.IsNullOrEmpty(v.name))
-    //         {
-    //             // Assuming we want to look up by the variable name (e.g. "[Var] Health")
-    //             // Or maybe the user logic cleans up the name.
-    //             // For now, using the gameObject name or a property if available.
-    //             // Assuming gameObject name for now as the key if no other ID exists.
-    //             _nameMap.TryAdd(v.name, v);
-    //         }
-    //     }
-    //
-    //     _initialized = true;
-    // }
-
     //FIXME: external dict?
     protected override bool IsStringDictEnable => true;
 

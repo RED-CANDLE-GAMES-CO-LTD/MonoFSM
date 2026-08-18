@@ -1,0 +1,1 @@
+- 新增 AnimatorStateNameSource / AnimatorStateNameEntry：依 condition 順序 override AnimatorPlayAction 的 state name；抽出 IStateHashProvider 取代原本對 AnimatorStateStringListProvider 的特判。

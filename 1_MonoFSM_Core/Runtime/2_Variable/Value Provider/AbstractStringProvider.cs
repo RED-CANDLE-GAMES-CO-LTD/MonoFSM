@@ -7,6 +7,12 @@ using Sirenix.OdinInspector;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 
+//提供 animator state hash，比 string 快，AnimatorPlayAction 會優先用這個
+public interface IStateHashProvider
+{
+    int StateHashValue { get; }
+}
+
 public abstract class AbstractStringProvider : MonoBehaviour
 {
     public abstract string StringValue { get; }

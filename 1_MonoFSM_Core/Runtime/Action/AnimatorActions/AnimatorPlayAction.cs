@@ -158,8 +158,8 @@ namespace MonoFSM.Animation
         public string StateName => stateNameProvider ? stateNameProvider.StringValue : stateName;
 
         private int StateHash =>
-            stateNameProvider && stateNameProvider is AnimatorStateStringListProvider listProvider
-                ? listProvider.StateHashValue
+            stateNameProvider && stateNameProvider is IStateHashProvider hashProvider
+                ? hashProvider.StateHashValue
                 : _stateNameHash;
 
 #if UNITY_EDITOR

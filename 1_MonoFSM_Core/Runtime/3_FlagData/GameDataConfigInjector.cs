@@ -56,7 +56,7 @@ namespace MonoFSM.Variable
                 return;
             }
 
-            var comps = _folder.Collections;
+            var comps = _folder.AllValues;
             if (comps == null)
                 return;
 
