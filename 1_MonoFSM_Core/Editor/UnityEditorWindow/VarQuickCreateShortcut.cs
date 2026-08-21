@@ -5,6 +5,7 @@ using System.Reflection;
 using MonoFSM.Core.Editor.PropertyDrawer;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Foundation;
+using MonoFSM.Runtime.Variable;
 using MonoFSM.Variable;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -22,6 +23,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
     ///     要把常用的排到置頂區就在型別上標 [QuickCreate]（或 Condition 用既有的 [ConditionPreset]）。
     ///     選中的是 AbstractEventHandler（OnStateEnter / OnPointerClick 之類）時，改列出所有 AbstractStateAction
     ///     子類別直接建成子物件（會被 handler 的 _eventReceivers 抓到，不需要指欄位）。
+    ///     清單裡還會多一組「Var 變數」，列出所有 AbstractMonoVariable 子類別：
+    ///     選中的是 VariableFolder / VarEntity（容器類）時建成子物件，其他 Var 則建成 sibling（同一個 folder 下）。
     /// </summary>
     public static class VarQuickCreateShortcut
     {
@@ -45,6 +48,20 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 return;
             }
 
+            //VarFolder 上沒有 Var 元件，只列 Var 候選、建成子物件
+            var folder = go.GetComponent<VariableFolder>();
+            if (folder != null && go.GetComponent<AbstractMonoVariable>() == null)
+            {
+                ShowDropdown(
+                    folder.transform,
+                    $"{folder.GetType().Name}　{folder.name}",
+                    null,
+                    GetVarCandidates(),
+                    folder.transform
+                );
+                return;
+            }
+
             //EventHandler 模式：沒有 Var 可指，單純列出所有 Action 建成子物件
             var handler = go.GetComponent<AbstractEventHandler>();
             if (handler != null)
@@ -63,7 +80,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                     handler.transform,
                     $"{handler.GetType().Name}　{handler.name}",
                     null,
-                    eventChildCandidates
+                    eventChildCandidates,
+                    handler.transform
                 );
                 return;
             }
@@ -87,18 +105,33 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 );
 
             var varType = variable.GetType();
-            var candidates = GetCandidates(varType);
+            //Var 候選一律附在後面（自己是容器類就建 child，否則建 sibling）
+            var candidates = new List<Candidate>(GetCandidates(varType));
+            candidates.AddRange(GetVarCandidates());
             if (candidates.Count == 0)
             {
                 Debug.LogWarning($"{LogTag} 找不到任何可以指向 {varType.Name} 的 Action / Condition", go);
                 return;
             }
 
+            //VarEntity 的 schema 缺項置頂（跟 inspector 的「加入 Var」同一份來源），可直接搜尋 tag 名字
+            if (variable is VarEntity schemaEntity)
+                candidates.InsertRange(0, CollectSchemaCandidates(schemaEntity));
+
+            //VarEntity 這種容器類 Var，新 Var 掛在它底下才會被當成它的 property
+            var isVarContainer = variable is VarEntity || go.GetComponent<VariableFolder>() != null;
+            var varParent = isVarContainer
+                ? variable.transform
+                : variable.transform.parent; //其他 Var → sibling
+            if (varParent == null)
+                varParent = variable.transform;
+
             ShowDropdown(
                 variable.transform,
                 $"{variable.GetType().Name}　{variable.name}",
                 variable,
-                candidates
+                candidates,
+                varParent
             );
         }
 
@@ -111,7 +144,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
             Transform parent,
             string header,
             AbstractMonoVariable variable, //可為 null（EventHandler 模式沒有 var）
-            List<Candidate> candidates
+            List<Candidate> candidates,
+            Transform varParent //建 Var 元件時用的 parent（可能是 sibling 的 parent）
         )
         {
             var dropdown = new CandidateDropdown(
@@ -119,7 +153,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 parent,
                 header,
                 variable,
-                candidates
+                candidates,
+                varParent
             );
             //Shortcut 是在 window 的 event 處理中觸發，通常拿得到 mousePosition
             var mouse = Event.current?.mousePosition ?? new Vector2(200, 200);
@@ -143,13 +178,15 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
             private readonly string _header;
             private readonly Transform _parent;
             private readonly AbstractMonoVariable _variable; //可為 null
+            private readonly Transform _varParent;
 
             public CandidateDropdown(
                 AdvancedDropdownState state,
                 Transform parent,
                 string header,
                 AbstractMonoVariable variable,
-                List<Candidate> candidates
+                List<Candidate> candidates,
+                Transform varParent
             )
                 : base(state)
             {
@@ -157,6 +194,7 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 _header = header;
                 _variable = variable;
                 _candidates = candidates;
+                _varParent = varParent;
                 minimumSize = new Vector2(320, 340);
             }
 
@@ -199,14 +237,41 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
             protected override void ItemSelected(AdvancedDropdownItem item)
             {
-                if (item is CandidateItem candidateItem)
-                    Create(_parent, _variable, candidateItem._candidate);
+                if (item is not CandidateItem candidateItem)
+                    return;
+                var c = candidateItem._candidate;
+                //Schema 缺項走 VarEntity 自己的建立流程（會設 _varTag 與 _parentVarEntity）
+                if (c.SchemaTag != null && _variable is VarEntity entity)
+                    CreateSchemaVar(entity, c);
+                //Var 元件不需要回填欄位，parent 也另外算
+                else if (c.IsVarComponent)
+                    Create(_varParent, null, c);
+                else
+                    Create(_parent, _variable, c);
             }
         }
 
         #endregion
 
         #region Create
+
+        private static void CreateSchemaVar(VarEntity entity, Candidate candidate)
+        {
+            Undo.RegisterCompleteObjectUndo(entity.gameObject, "Add Schema Var");
+            var variable = entity.AddVarOfSchemaTag(candidate.SchemaTag);
+            if (variable == null)
+            {
+                Debug.LogWarning($"{LogTag} {candidate.SchemaTag.name} 生成失敗", entity);
+                return;
+            }
+
+            Undo.RegisterCreatedObjectUndo(variable.gameObject, "Add Schema Var");
+            Debug.Log(
+                $"{LogTag} 在 {entity.name} 底下建立 {candidate.CompType.Name}（tag {candidate.SchemaTag.name}）",
+                variable
+            );
+            SelectDelayed(variable.gameObject);
+        }
 
         private static void Create(
             Transform parent,
@@ -241,8 +306,7 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
             EditorUtility.SetDirty(comp);
             EditorUtility.SetDirty(go);
 
-            Selection.activeGameObject = go;
-            EditorGUIUtility.PingObject(go);
+            SelectDelayed(go);
             if (variable != null)
                 Debug.Log(
                     $"{LogTag} 在 {parent.name} 底下建立 {candidate.CompType.Name}，"
@@ -254,6 +318,19 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                     $"{LogTag} 在 {parent.name} 底下建立 {candidate.CompType.Name}",
                     comp
                 );
+        }
+
+        /// <summary>dropdown 關閉那一帧會把 selection 還原回原本的節點，延一帧設才選得到新物件</summary>
+        private static void SelectDelayed(GameObject go)
+        {
+            Selection.activeGameObject = go;
+            EditorApplication.delayCall += () =>
+            {
+                if (go == null)
+                    return;
+                Selection.activeGameObject = go;
+                EditorGUIUtility.PingObject(go);
+            };
         }
 
         /// <summary>沿著 FieldPath 走到最後一層把 Var 塞進去，中間的 wrapper 是 null 就 new 一個</summary>
@@ -313,6 +390,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
             public bool IsNested;
             public bool IsTop; //置頂區（有 QuickCreate / ConditionPreset）
+            public bool IsVarComponent; //本身是 AbstractMonoVariable，建 child / sibling 不指欄位
+            public VariableTag SchemaTag; //VarEntity 的 schema 缺項，建立時要順便設 _varTag
             public string Kind;
             public MethodInfo PresetSetup; //預填 method，可為 null
             public int Priority;
@@ -330,11 +409,31 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
         //EventHandler 子物件候選跟目標無關，全域只有一份
         private static List<Candidate> _eventChildCandidatesCache;
 
+        //Var 候選也跟目標無關
+        private static List<Candidate> _varCandidatesCache;
+
         [InitializeOnLoadMethod]
         private static void ResetCache()
         {
             _cacheByVarType.Clear();
             _eventChildCandidatesCache = null;
+            _varCandidatesCache = null;
+        }
+
+        /// <summary>所有具體的 AbstractMonoVariable 子類別，建成 child / sibling，沒有欄位要回填</summary>
+        private static List<Candidate> GetVarCandidates()
+        {
+            if (_varCandidatesCache != null)
+                return _varCandidatesCache;
+            var list = new List<Candidate>();
+            AddPlainCandidates(list, TypeCache.GetTypesDerivedFrom<AbstractMonoVariable>());
+            foreach (var c in list)
+                c.IsVarComponent = true;
+            _varCandidatesCache = list
+                .OrderByDescending(c => c.Priority)
+                .ThenBy(c => c.DisplayName)
+                .ToList();
+            return _varCandidatesCache;
         }
 
         private static List<Candidate> GetEventChildCandidates()
@@ -374,7 +473,9 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                     continue;
 
                 var classAttr = t.GetCustomAttribute<QuickCreateAttribute>();
-                var isTop = classAttr != null;
+                //Var 是完整清單，全丟置頂區會塞爆，統一放分組裡
+                var isTop = classAttr != null
+                            && !typeof(AbstractMonoVariable).IsAssignableFrom(t);
                 list.Add(new Candidate
                 {
                     CompType = t,
@@ -390,6 +491,34 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                     SortKey = isTop ? 0 : 1,
                 });
             }
+        }
+
+        /// <summary>VarEntity 的 EntityTag 宣告了、但還沒生出來的 Var（每次重新掃，跟著場上狀態變）</summary>
+        private static List<Candidate> CollectSchemaCandidates(VarEntity entity)
+        {
+            var list = new List<Candidate>();
+            foreach (var tag in entity.GetMissingSchemaTags())
+            {
+                var varType = tag.VariableMonoType;
+                if (varType == null || !typeof(AbstractMonoVariable).IsAssignableFrom(varType))
+                    continue;
+                list.Add(new Candidate
+                {
+                    CompType = varType,
+                    FieldPath = null,
+                    DisplayName = $"{tag.name} <{varType.Name}>",
+                    Kind = "Schema 缺的 Var",
+                    IsNested = false,
+                    IsTop = true, //置頂扁平，搜尋時直接打 tag 名字就找得到
+                    Priority = 100,
+                    PresetSetup = null,
+                    SortKey = 0,
+                    IsVarComponent = true,
+                    SchemaTag = tag,
+                });
+            }
+
+            return list;
         }
 
         private static List<Candidate> GetCandidates(Type varType)
@@ -555,6 +684,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
         private static string KindOf(Type t)
         {
+            if (typeof(AbstractMonoVariable).IsAssignableFrom(t))
+                return "Var 變數";
             if (typeof(AbstractConditionBehaviour).IsAssignableFrom(t))
                 return "If 條件";
             if (typeof(AbstractStateAction).IsAssignableFrom(t))
