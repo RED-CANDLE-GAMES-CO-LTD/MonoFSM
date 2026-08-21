@@ -324,6 +324,131 @@ namespace MonoFSM.Variable
         [SOConfig("VariableType", nameof(CreateTagPostProcess))]
         public VariableTag _varTag; //直接看當下是什麼就可以 好像可以再往下抽？ ValueContainer? , readonly => Config, settable
 
+#if UNITY_EDITOR
+
+        #region GameData config 覆寫提示（editor-only）
+
+        //這顆 Var 的 _varTag 若出現在同 VariableFolder 的 GameDataConfigInjector 所綁 GameData 的 config 表裡，
+        //ResetStart 會把本地值蓋掉，inspector 上必須看得出來，不然改了 prefab 值卻沒反應會很難查。
+        private double _lastConfigHintCheckTime;
+        private bool _isConfigOverridden;
+        private bool _isConfigSkipped;
+        private string _configHintMessage;
+        private GameDataConfigInjector _cachedConfigInjector;
+
+        //inspector 每幀都會問，掃子樹的成本要節流
+        private void RefreshConfigOverrideHint()
+        {
+            var now = EditorApplication.timeSinceStartup;
+            if (now - _lastConfigHintCheckTime < 0.5)
+                return;
+            _lastConfigHintCheckTime = now;
+
+            _isConfigOverridden = false;
+            _isConfigSkipped = false;
+            _configHintMessage = null;
+
+            if (_varTag == null)
+                return;
+
+            var folder = GetComponentInParent<VariableFolder>(true);
+            if (folder == null)
+                return;
+
+            //injector 可以掛在 folder 本身或它底下任一節點
+            if (_cachedConfigInjector == null)
+                _cachedConfigInjector = folder.GetComponentInChildren<GameDataConfigInjector>(true);
+            var injector = _cachedConfigInjector;
+            if (injector == null)
+                return;
+
+            var data = injector.EditorBoundGameData;
+            if (data == null)
+                return;
+
+            var isFloatVar = this is VarFloat;
+            var isObjVar = this is MonoFSM.Core.Variable.VarMonoObj;
+            var hasConfig = isFloatVar
+                ? data.HasConfig(_varTag)
+                : isObjVar && data.HasObjConfig(_varTag);
+            if (!hasConfig)
+                return;
+
+            if (injector.IsTagSkipped(_varTag))
+            {
+                _isConfigSkipped = true;
+                _configHintMessage =
+                    $"本地值優先：GameData「{data.name}」有 {_varTag.name} 的 config，但已列在 {injector.name} 的 skipTags。";
+                return;
+            }
+
+            _isConfigOverridden = true;
+            if (isFloatVar && data.TryGetConfig(_varTag, out var floatValue))
+                _configHintMessage =
+                    $"ResetStart 會被 GameData「{data.name}」的 config 覆寫成 {floatValue}，這裡填的本地值不會生效。";
+            else if (isObjVar && data.TryGetObjConfig(_varTag, out var objValue))
+                _configHintMessage =
+                    $"ResetStart 會被 GameData「{data.name}」的 config 覆寫成 "
+                    + $"{(objValue != null ? objValue.name : "null")}，這裡填的本地值不會生效。";
+        }
+
+        private bool IsOverriddenByGameDataConfig
+        {
+            get
+            {
+                RefreshConfigOverrideHint();
+                return _isConfigOverridden;
+            }
+        }
+
+        private bool IsGameDataConfigSkipped
+        {
+            get
+            {
+                RefreshConfigOverrideHint();
+                return _isConfigSkipped;
+            }
+        }
+
+        private string ConfigOverrideHintMessage => _configHintMessage;
+
+        //空字串當 InfoBox 的掛點：訊息由 InfoBox 畫，property 自己不佔版面
+        [PropertyOrder(-2)]
+        [ShowInInspector]
+        [HideLabel]
+        [DisplayAsString]
+        [InfoBox("$" + nameof(ConfigOverrideHintMessage), InfoMessageType.Warning,
+            VisibleIf = nameof(IsOverriddenByGameDataConfig))]
+        [InfoBox("$" + nameof(ConfigOverrideHintMessage), InfoMessageType.Info,
+            VisibleIf = nameof(IsGameDataConfigSkipped))]
+        private string ConfigHintAnchor => "";
+
+        [PropertyOrder(-2)]
+        [ShowIf(nameof(IsOverriddenByGameDataConfig))]
+        [Button("加入 skipTags（保留本地值）", ButtonSizes.Small)]
+        private void AddToGameDataConfigSkipTags()
+        {
+            if (_cachedConfigInjector == null || _varTag == null)
+                return;
+            _cachedConfigInjector.EditorAddSkipTag(_varTag);
+            _lastConfigHintCheckTime = 0; //強制下次重查
+        }
+
+        [PropertyOrder(-2)]
+        [ShowIf(nameof(IsGameDataConfigSkipped))]
+        [Button("從 skipTags 移除（改吃 GameData config）", ButtonSizes.Small)]
+        private void RemoveFromGameDataConfigSkipTags()
+        {
+            if (_cachedConfigInjector == null || _varTag == null)
+                return;
+            _cachedConfigInjector.EditorRemoveSkipTag(_varTag);
+            _lastConfigHintCheckTime = 0;
+        }
+
+        #endregion
+
+#endif
+
         protected void CreateTagPostProcess()
         {
         }

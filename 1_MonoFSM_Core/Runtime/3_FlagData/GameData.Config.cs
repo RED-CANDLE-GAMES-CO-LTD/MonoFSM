@@ -48,14 +48,23 @@ public class GameDataObjConfigEntry
 
 public partial class GameData
 {
+    //日常編輯走「Config 疊層總覽」那張表（GameData.ConfigOverview.cs），這裡是原始資料備用
+    [FoldoutGroup(RawConfigGroup, false)]
+    [PropertyOrder(-15)]
     [OnCollectionChanged(nameof(RebuildConfigDict))] [TableList] [SerializeField]
     private GameDataConfigEntry[] _configs = Array.Empty<GameDataConfigEntry>();
 
+    [FoldoutGroup(RawConfigGroup)]
+    [PropertyOrder(-15)]
     [OnCollectionChanged(nameof(RebuildObjConfigDict))] [TableList] [SerializeField]
     private GameDataObjConfigEntry[] _objConfigs = Array.Empty<GameDataObjConfigEntry>();
 
+    private const string RawConfigGroup = "原始 config 陣列";
+
     //疊層用：variant 的 GameData 只存 delta，自己的 _configs 查不到時 fallback 到 base 繼續查。
     //可以留 null（就是沒有 base）。防循環：查詢深度上限 MaxConfigDepth。
+    [PropertyOrder(-21)]
+    [LabelText("Base Config（疊層來源）")]
     [SerializeField] private GameData _baseConfig;
 
     //給同 partial class 的其他檔案（GameData.cs 的 _bindPrefab 疊層）用

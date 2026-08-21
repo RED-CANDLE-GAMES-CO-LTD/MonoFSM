@@ -15,7 +15,13 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
         [Required] [DropDownRef] [SerializeField]
         private VarFloat _targetVar;
 
-        public override string Description => "Stamp $" + (_targetVar != null ? _targetVar.name : "?") + " = now";
+        [Tooltip("記關卡時間（LevelSimulationTime，關卡開始為 0）而不是全域 SimulationTime。" +
+                 "要跟 FloatLevelSimulationTime 做時間差的話一定要勾，時間基準才一致")]
+        [SerializeField]
+        private bool _useLevelSimulationTime;
+
+        public override string Description => "Stamp $" + (_targetVar != null ? _targetVar.name : "?") +
+                                             (_useLevelSimulationTime ? " = level now" : " = now");
 
         protected override void OnActionExecuteImplement()
         {
@@ -25,7 +31,10 @@ namespace MonoFSM.Core.Runtime.Action.VariableAction
                 return;
             }
 
-            _targetVar.SetValue(WorldUpdateSimulator.SimulationTime, this);
+            _targetVar.SetValue(
+                _useLevelSimulationTime
+                    ? WorldUpdateSimulator.LevelSimulationTime
+                    : WorldUpdateSimulator.SimulationTime, this);
         }
     }
 }

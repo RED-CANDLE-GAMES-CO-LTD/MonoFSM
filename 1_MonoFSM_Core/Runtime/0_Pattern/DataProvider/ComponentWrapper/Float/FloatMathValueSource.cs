@@ -11,7 +11,9 @@ namespace _1_MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper.Float
         Add,
         Subtract,
         Multiply,
-        Divide
+        Divide,
+        Min,
+        Max
     }
 
     /// <summary>
@@ -39,6 +41,8 @@ namespace _1_MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper.Float
                     FloatMathOperation.Subtract => v1 - v2,
                     FloatMathOperation.Multiply => v1 * v2,
                     FloatMathOperation.Divide => v2 != 0f ? v1 / v2 : 0f,
+                    FloatMathOperation.Min => Mathf.Min(v1, v2),
+                    FloatMathOperation.Max => Mathf.Max(v1, v2),
                     _ => 0f
                 };
             }
@@ -50,6 +54,8 @@ namespace _1_MonoFSM_Core.Runtime._0_Pattern.DataProvider.ComponentWrapper.Float
             FloatMathOperation.Subtract => "-",
             FloatMathOperation.Multiply => "×",
             FloatMathOperation.Divide => "/",
+            FloatMathOperation.Min => "min",
+            FloatMathOperation.Max => "max",
             _ => "?"
         };
 

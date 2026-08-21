@@ -69,7 +69,7 @@ namespace MonoFSM.Variable
                 if (tag == null || IsSkipped(tag))
                     continue;
 
-                if (comp is VarFloat varFloat)
+                if (comp is VarFloat varFloat && comp.HasProxySource == false)
                 {
                     if (data.TryGetConfig(tag, out var value))
                         varFloat.SetValue(value, this);
@@ -231,6 +231,219 @@ namespace MonoFSM.Variable
                 Debug.Log($"[ConfigInject] {data.name} 的 config tag 都已存在，沒有補齊任何 Var", this);
             }
         }
+
+        #region 給 Var inspector 用的 editor API
+
+        public GameData EditorBoundGameData => _bindData != null ? _bindData.Value : null;
+
+        public bool IsTagSkipped(VariableTag tag)
+        {
+            return IsSkipped(tag);
+        }
+
+        public void EditorAddSkipTag(VariableTag tag)
+        {
+            if (tag == null || IsSkipped(tag))
+                return;
+            Undo.RecordObject(this, "Add Config Skip Tag");
+            _skipTags ??= Array.Empty<VariableTag>();
+            var appended = new VariableTag[_skipTags.Length + 1];
+            Array.Copy(_skipTags, appended, _skipTags.Length);
+            appended[_skipTags.Length] = tag;
+            _skipTags = appended;
+            EditorUtility.SetDirty(this);
+            EditorApplication.delayCall += RebuildInjectPreview;
+        }
+
+        public void EditorRemoveSkipTag(VariableTag tag)
+        {
+            if (tag == null || _skipTags == null)
+                return;
+            var index = Array.IndexOf(_skipTags, tag);
+            if (index < 0)
+                return;
+            Undo.RecordObject(this, "Remove Config Skip Tag");
+            var shrunk = new VariableTag[_skipTags.Length - 1];
+            Array.Copy(_skipTags, 0, shrunk, 0, index);
+            Array.Copy(_skipTags, index + 1, shrunk, index, _skipTags.Length - index - 1);
+            _skipTags = shrunk;
+            EditorUtility.SetDirty(this);
+            EditorApplication.delayCall += RebuildInjectPreview;
+        }
+
+        #endregion
+
+        #region 注入對照表
+
+        [PropertyOrder(95)]
+        [LabelText("列出不受 config 管的 Var")]
+        [ShowInInspector]
+        [OnValueChanged(nameof(RebuildInjectPreview))]
+        private bool _showLocalOnlyVars;
+
+        [PropertyOrder(96)]
+        [ShowInInspector]
+        [TableList(AlwaysExpanded = true, IsReadOnly = true, ShowPaging = false)]
+        [LabelText("注入對照表")]
+        private List<ConfigInjectPreviewRow> _injectPreview;
+
+        [PropertyOrder(97)]
+        [Button("重新掃描注入對照", ButtonSizes.Small)]
+        [OnInspectorInit]
+        private void RebuildInjectPreview()
+        {
+            _injectPreview ??= new List<ConfigInjectPreviewRow>();
+            _injectPreview.Clear();
+
+            var folder = ResolveFolder();
+            var data = EditorBoundGameData;
+            if (folder == null || data == null)
+                return;
+
+            var vars = folder.GetComponentsInChildren<AbstractMonoVariable>(true);
+
+            var tags = new List<VariableTag>();
+            data.CollectConfigTags(tags);
+            var floatTagCount = tags.Count; //前段是 float 表的 tag，後段是 obj 表
+            data.CollectObjConfigTags(tags);
+
+            for (var i = 0; i < tags.Count; i++)
+            {
+                var tag = tags[i];
+                if (tag == null)
+                    continue;
+                //obj 表段落裡若該 tag 也在 float 表出現過就跳過，避免重複列
+                if (i >= floatTagCount && tags.IndexOf(tag) < floatTagCount)
+                    continue;
+                _injectPreview.Add(new ConfigInjectPreviewRow(this, tag, FindVar(vars, tag), true));
+            }
+
+            if (!_showLocalOnlyVars)
+                return;
+
+            for (var i = 0; i < vars.Length; i++)
+            {
+                var v = vars[i];
+                if (v == null || v._varTag == null)
+                    continue;
+                if (data.HasConfig(v._varTag) || data.HasObjConfig(v._varTag))
+                    continue;
+                _injectPreview.Add(new ConfigInjectPreviewRow(this, v._varTag, v, false));
+            }
+        }
+
+        private static AbstractMonoVariable FindVar(AbstractMonoVariable[] vars, VariableTag tag)
+        {
+            for (var i = 0; i < vars.Length; i++)
+                if (vars[i] != null && vars[i]._varTag == tag)
+                    return vars[i];
+            return null;
+        }
+
+        /// <summary>
+        ///     一列＝一個 tag：看得出 config 表與 folder 底下的 Var 怎麼對上，
+        ///     以及注入後這顆 Var 的值會變成什麼。
+        /// </summary>
+        public class ConfigInjectPreviewRow
+        {
+            private readonly GameDataConfigInjector _injector;
+            private readonly VariableTag _tag;
+            private readonly AbstractMonoVariable _var;
+            private readonly bool _hasConfig;
+
+            public ConfigInjectPreviewRow(
+                GameDataConfigInjector injector,
+                VariableTag tag,
+                AbstractMonoVariable var,
+                bool hasConfig
+            )
+            {
+                _injector = injector;
+                _tag = tag;
+                _var = var;
+                _hasConfig = hasConfig;
+            }
+
+            [TableColumnWidth(150, false)]
+            [ShowInInspector]
+            [ReadOnly]
+            [LabelText("Tag")]
+            public VariableTag Tag => _tag;
+
+            [TableColumnWidth(140, false)]
+            [ShowInInspector]
+            [DisplayAsString]
+            [LabelText("狀態")]
+            public string Status
+            {
+                get
+                {
+                    if (!_hasConfig)
+                        return "只有本地值";
+                    if (_var == null)
+                        return "缺 Var（可按補齊）";
+                    return _injector.IsTagSkipped(_tag) ? "本地值優先 (skip)" : "會被注入";
+                }
+            }
+
+            [TableColumnWidth(170, false)]
+            [ShowInInspector]
+            [ReadOnly]
+            [LabelText("Var 節點")]
+            public AbstractMonoVariable Var => _var;
+
+            [TableColumnWidth(90, false)]
+            [ShowInInspector]
+            [DisplayAsString]
+            [LabelText("本地值")]
+            public string LocalValueText
+            {
+                get
+                {
+                    if (_var is VarFloat varFloat)
+                        return varFloat._localField != null
+                            ? varFloat._localField.ProductionValue.ToString("0.###")
+                            : "-";
+                    return "-";
+                }
+            }
+
+            [TableColumnWidth(90, false)]
+            [ShowInInspector]
+            [DisplayAsString]
+            [LabelText("Config 值")]
+            public string ConfigValueText
+            {
+                get
+                {
+                    var data = _injector.EditorBoundGameData;
+                    if (data == null || !_hasConfig)
+                        return "-";
+                    if (data.TryGetConfig(_tag, out var floatValue))
+                        return floatValue.ToString("0.###");
+                    if (data.TryGetObjConfig(_tag, out var objValue))
+                        return objValue != null ? objValue.name : "null";
+                    return "-";
+                }
+            }
+
+            private bool CanToggleSkip => _hasConfig && _var != null;
+
+            private string SkipToggleLabel => _injector.IsTagSkipped(_tag) ? "取消 skip" : "設為 skip";
+
+            [TableColumnWidth(95, false)]
+            [ShowIf(nameof(CanToggleSkip))]
+            [Button("$SkipToggleLabel")]
+            private void ToggleSkip()
+            {
+                if (_injector.IsTagSkipped(_tag))
+                    _injector.EditorRemoveSkipTag(_tag);
+                else
+                    _injector.EditorAddSkipTag(_tag);
+            }
+        }
+
+        #endregion
 #endif
     }
 }
