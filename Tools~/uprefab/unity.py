@@ -95,7 +95,14 @@ def lit(value) -> str:
         return "false"
     if isinstance(value, (int, float)):
         return repr(value)
-    return '@"' + str(value).replace('"', '""') + '"'
+    text = str(value)
+    # 含換行時不能用 verbatim —— execute-dynamic-code 會把整段程式碼縮排，
+    # verbatim 字串裡的換行會連帶吃到縮排空白。改用逐字跳脫的普通字串。
+    if "\n" in text or "\r" in text:
+        escaped = (text.replace("\\", "\\\\").replace('"', '\\"')
+                   .replace("\r", "\\r").replace("\n", "\\n"))
+        return '"' + escaped + '"'
+    return '@"' + text.replace('"', '""') + '"'
 
 
 def call(target: str, *args) -> str:

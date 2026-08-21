@@ -66,7 +66,9 @@ namespace MonoFSM.Variable
 
         private string sign => FinalValue >= 0 ? "+" : "-"; //這個是用來顯示的
 
-        public override string Description => _valueVarRef + " " + ValueDescription;
+        //只有指向 VarFloat 時才顯示來源名稱，否則常數值會和 ValueDescription 重複顯示（"1 +1"）
+        public override string Description =>
+            _valueVarRef._var != null ? _valueVarRef._var.name + " " + ValueDescription : ValueDescription;
 
         [ShowInInspector]
         private string ValueDescription =>

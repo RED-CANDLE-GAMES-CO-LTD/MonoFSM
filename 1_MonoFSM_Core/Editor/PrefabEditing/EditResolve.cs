@@ -53,7 +53,7 @@ namespace MonoFSM.Editor.PrefabEditing
         }
 
         internal static bool HasEscapedSlash(string path) =>
-            path != null && path.Contains("\\/");
+            path != null && (path.Contains("\\/") || path.Contains("\\n"));
 
         /// <summary>第一個「真的是階層分隔」的 `/` 位置；`\/` 不算。找不到回 -1。</summary>
         internal static int IndexOfUnescapedSlash(string path)
@@ -72,10 +72,16 @@ namespace MonoFSM.Editor.PrefabEditing
             return -1;
         }
 
-        internal static string Unescape(string segment) => segment.Replace("\\/", "/");
+        internal static string Unescape(string segment) =>
+            segment.Replace("\\/", "/").Replace("\\n", "\n");
 
-        /// <summary>把節點名裡的 `/` 轉成 `\/`，讓列出來的候選可以直接抄進路徑。</summary>
-        internal static string EscapeName(string name) => name.Replace("/", "\\/");
+        /// <summary>
+        /// 把節點名裡的 `/` 轉成 `\/`、換行轉成 `\n`，讓列出來的候選可以直接抄進路徑。
+        /// 換行會出現在自動命名裡（localized 文案本身有換行），而 CLI 的 op 是一行一個，
+        /// 不逃逸就完全指不到那個節點。
+        /// </summary>
+        internal static string EscapeName(string name) =>
+            name.Replace("/", "\\/").Replace("\n", "\\n").Replace("\r", "");
 
         /// <summary>
         /// 依 `/` 切段，但 `\/` 是「名稱裡的斜線」不切（切完會還原成 `/`）。
@@ -91,6 +97,14 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (c == '\\' && i + 1 < path.Length && path[i + 1] == '/')
                 {
                     current.Append('/');
+                    i++;
+                    continue;
+                }
+
+                //`\n` = 名稱裡的換行（localized 自動命名會帶進來）
+                if (c == '\\' && i + 1 < path.Length && path[i + 1] == 'n')
+                {
+                    current.Append('\n');
                     i++;
                     continue;
                 }
@@ -501,8 +515,16 @@ namespace MonoFSM.Editor.PrefabEditing
                     prop.floatValue = Convert.ToSingle(value);
                     break;
                 case SerializedPropertyType.Integer:
-                    prop.intValue = Convert.ToInt32(value);
+                {
+                    //long 欄位（例如 TableEntryReference.m_KeyId）超出 int 範圍時要走 longValue，
+                    //不然 Convert.ToInt32 會丟 OverflowException。
+                    var longValue = Convert.ToInt64(value);
+                    if (longValue > int.MaxValue || longValue < int.MinValue)
+                        prop.longValue = longValue;
+                    else
+                        prop.intValue = (int)longValue;
                     break;
+                }
                 case SerializedPropertyType.Boolean:
                     prop.boolValue = Convert.ToBoolean(value);
                     break;
@@ -632,7 +654,7 @@ namespace MonoFSM.Editor.PrefabEditing
             switch (prop.propertyType)
             {
                 case SerializedPropertyType.Float: return prop.floatValue.ToString("0.###");
-                case SerializedPropertyType.Integer: return prop.intValue.ToString();
+                case SerializedPropertyType.Integer: return prop.longValue.ToString();
                 case SerializedPropertyType.Boolean: return prop.boolValue.ToString();
                 case SerializedPropertyType.String: return prop.stringValue;
                 case SerializedPropertyType.Vector3: return prop.vector3Value.ToString("0.##");

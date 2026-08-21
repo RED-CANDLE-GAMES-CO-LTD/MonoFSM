@@ -392,6 +392,11 @@ def cmd_prompt(args, root, cfg):
     Rename 四個系統，每次臨時寫 execute-dynamic-code 都要重踩同一批雷（m_KeyId 是 long、
     節點名含 `/`、{token} 沒開 IsSmart 不會展開）。實作在 C# 的 PromptEdit。
     """
+    if getattr(args, "check", False):
+        # 只驗不改：手工組的（ConditionRef / SmartStringTokenBinding）Apply 蓋不到，
+        # 但驗收一樣要看「每顆 source 組出什麼」＋「Token 檢查有沒有 ✗」
+        print(unity.call(f"{PROMPT}.Check", args.asset, args.var_node, args.locale))
+        return
     cases = "\n".join(args.case) if args.case else _cases_from_file(args)
     print(unity.call(
         f"{PROMPT}.Apply", args.asset, args.var_node, cases,
@@ -400,7 +405,8 @@ def cmd_prompt(args, root, cfg):
 
 def cmd_loc(args, root, cfg):
     """直接讀寫 string table 條目（文案的持有者是 SO 而不是節點時用）。"""
-    print(unity.call(f"{LOC}.Set", args.table, args.key, args.text, args.locale))
+    print(unity.call(f"{LOC}.Set", args.table, args.key, args.text, args.locale,
+                     bool(getattr(args, "smart", False))))
 
 
 def _cases_from_file(args) -> str:
@@ -634,6 +640,8 @@ def main() -> None:
     pm.add_argument("--prune", action="store_true",
                     help="刪掉不在 --case 清單裡的既有 value source")
     pm.add_argument("-f", "--file", help="從檔案讀 case（一行一條）")
+    pm.add_argument("--check", action="store_true",
+                    help="只驗不改：印出每顆 value source 組出的字串與 Token 檢查報告")
     pm.set_defaults(fn=cmd_prompt)
 
     pl = sub.add_parser(
@@ -645,6 +653,8 @@ def main() -> None:
     pl.add_argument("text", nargs="?", default="", help="文案；留空 = 只讀出既有的")
     pl.add_argument("--locale", default="zh-TW", help="locale（預設 zh-TW）")
     pl.add_argument("--table", default="GameplayUI", help="string table collection（預設 GameplayUI）")
+    pl.add_argument("--smart", action="store_true",
+                    help="強制開 IsSmart（文案沒有 { 但同一組模板要靠 Smart String 串接時用）")
     pl.set_defaults(fn=cmd_loc)
 
     pr = sub.add_parser("refs", help="誰指向這個節點 / 它指向誰（需要 Unity）")

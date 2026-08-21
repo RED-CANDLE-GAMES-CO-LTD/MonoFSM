@@ -23,7 +23,7 @@ MonoBehaviour:
       Culture=neutral, PublicKeyToken=null
   _valueFilterType:
     _baseFilterTypeName: 
-    _typeFullName: 
+    _typeFullName: MonoFSM.Runtime.MonoEntity
     _assemblyName: MonoFSM.Core.Runtime
     typeName: MonoFSM.Runtime.MonoEntity, MonoFSM.Core.Runtime, Version=0.0.0.0,
       Culture=neutral, PublicKeyToken=null

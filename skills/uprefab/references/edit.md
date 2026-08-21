@@ -37,7 +37,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 （`MonoEntity` / `MonoObj` / `NetworkObject` 都掛在 root 上）。scene 版沒有這個語意 ——
 scene 沒有唯一 root，第一段一定要是 root object 名稱。
 
-## 節點名裡有 `/` 要寫成 `\/`
+## 節點名裡有 `/` 要寫成 `\/`、換行寫成 `\n`
 
 MonoFSM 的自動命名會把 `Table/key` 塞進名字（`=> Localized: GameplayUI/grab`），
 而 `Transform.Find` 把 `/` 一律當階層分隔 —— 不逃逸就永遠指不到那個節點，
@@ -48,6 +48,9 @@ up prefab do "$P" "del|…/[Getter] d_ Select Text Prompt 文字提示/=> Locali
 ```
 
 路徑打錯時列出的候選已經幫你逃逸好了，照抄就對。`find --resolve` 給的路徑同樣是逃逸過的。
+
+名稱含**換行**的節點（`Localized: <含換行的譯文> (Table/key)` 這種自動命名）同理寫成 `\n`。
+`set` 的值是 long（`m_TableEntryReference.m_KeyId`）也支援，超出 int 範圍會自動走 `longValue`。
 
 要點：
 

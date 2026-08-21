@@ -135,7 +135,7 @@ namespace MonoFSM.Editor
 
             return p.propertyType switch
             {
-                SerializedPropertyType.Integer => p.intValue == 0,
+                SerializedPropertyType.Integer => p.longValue == 0,
                 SerializedPropertyType.Boolean => p.boolValue == false,
                 SerializedPropertyType.Float => p.floatValue == 0f,
                 SerializedPropertyType.String => string.IsNullOrEmpty(p.stringValue),

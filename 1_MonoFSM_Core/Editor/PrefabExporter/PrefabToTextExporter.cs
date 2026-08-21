@@ -274,7 +274,7 @@ namespace MonoFSM.Editor
         {
             return property.propertyType switch
             {
-                SerializedPropertyType.Integer => property.intValue,
+                SerializedPropertyType.Integer => property.longValue,
                 SerializedPropertyType.Boolean => property.boolValue,
                 SerializedPropertyType.Float => property.floatValue,
                 SerializedPropertyType.String => property.stringValue,

@@ -32,6 +32,39 @@ case 格式 `key|文案|spec;spec`：
 **順序就是挑選優先序** —— value source 是「依 child 順序取第一個 `IsValid`」，所以
 有條件的排前面、無條件的墊底。無條件的不是最後一條時會出 `[warn]`。
 
+## `--check` —— 只驗不改
+
+`ConditionRef`（proxy 到別處的條件）、`SmartStringTokenBinding`（token 指向另一顆 VarString）
+這些 `--case` 語法蓋不到，只能用 `prefab do` 手工組。組完要驗收就用 `--check`：
+
+```bash
+up prompt "$P" --var "…/[Getter] d_Prompt_String 提示說明" --check
+```
+
+```
+[值] locale = zh-TW
+[值] [Getter] d_Prompt_String 提示說明 =            ← VarString.CurrentValue 在非 Play 時是空的，正常
+[值] 1. 墊底 → 耐久度 40
+[token] 1. ✓ {durability} ← durability = Durability → 40
+```
+
+`[值]` 每行一顆 value source（順序＝優先序），條件欄印的是節點名而不是結果 ——
+`AbstractConditionBehaviour.FinalResult` 在非 Play 時一律回 false，印結果只會誤導。
+`[token]` 是 inspector 那個「Token 檢查」的同一份報告，有 `✗` 就是模板 token 與 binding 對不上。
+
+**多行組合（外層模板 + token 指向巢狀 VarString）只有分支自己的文字驗得起來** ——
+token 讀的是巢狀 VarString 的 `CurrentValue`，非 Play 時解析不出來，所以外層會看到 token 位置是空的。
+最終三行長怎樣要進 Play Mode 看。
+
+## 節點名含換行要寫成 `\n`
+
+`Localized: <譯文> (Table/key)` 這種自動命名會把含換行的譯文塞進 GameObject 名字，
+於是路徑同時含 `/` 和換行。`\/` 之外再加一條：**換行寫成 `\n`**，`--var` 與 `prefab do` 的
+`<node>` 都吃得下（`prefab read` 印出來的候選已經逃逸好了，照抄就對）。
+
+順帶兩個踩過的：`Transform.Find` 對名稱含換行的節點**一律找不到**（要自己逐一比 `child.name`）；
+`m_KeyId` 是 long，用 `SerializedProperty.intValue` 讀寫會溢位／截斷成負數。
+
 ## 回傳自帶驗證，不用進 Play Mode
 
 ```
@@ -68,9 +101,16 @@ case 格式 `key|文案|spec;spec`：
 up loc ev_amulet_blocked "護身符擋下了落雷！"          # 預設 table=GameplayUI locale=zh-TW
 up loc ev_hit_by_bolt "{player} 被落雷擊中" --table GameplayUI
 up loc ev_amulet_blocked                              # 文案留空 = 只讀出既有的
+up loc eff_normal $'\n能源效率 正常' --locale zh-TW --smart   # 沒有 token 但要當 Smart String 分支
 ```
 
 key 不存在就建，含 `{` 自動開 IsSmart，一樣只 `SaveAssetIfDirty` 自己那兩個 asset。
+文案沒有 `{` 但會被別的模板當 `{token}` 串進去時（多行組合的分支）要自己加 `--smart`。
+回傳含 `id=<m_KeyId>`，那個 long 就是節點上 `TableEntryReference` 要填的值。
+
+**換行直接用真實換行字元**（shell 用 `$'\n…'`）—— `\n` 兩個字面字元 SmartFormat 不會轉義。
+`unity.lit` 對含換行的字串會改用跳脫字串而非 verbatim：verbatim 的換行會把
+execute-dynamic-code 的程式碼縮排一起吃進文案（實測會多出 12 個空白）。
 實作：`MonoFSM-Pro/Editor/LocEdit.cs`。
 
 **SO 上不要存 `LocalizedString`** —— 它序列化的是 `m_KeyId`(long)，CLI / 腳本很難填對；

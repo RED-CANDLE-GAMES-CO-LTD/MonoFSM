@@ -27,7 +27,8 @@ namespace MonoFSM.Editor
                 case SerializedPropertyType.Boolean:
                     return property.boolValue ? "" : "off";
                 case SerializedPropertyType.Integer:
-                    return property.intValue.ToString();
+                    //long 欄位（m_KeyId）用 intValue 會被截斷成負數
+                    return property.longValue.ToString();
                 case SerializedPropertyType.Float:
                     return FormatFloat(property.floatValue);
                 case SerializedPropertyType.String:

@@ -53,7 +53,7 @@ namespace MonoFSM.Editor
 
             if (!opt._includeInactive && !go.activeSelf && depth > 0)
             {
-                sb.AppendLine($"{indent}~{go.name}{FoldTail(go, opt)}");
+                sb.AppendLine($"{indent}~{NodeName(go)}{FoldTail(go, opt)}");
                 return;
             }
 
@@ -64,7 +64,7 @@ namespace MonoFSM.Editor
                 var flags = BuildFlags(go);
                 var trPart = FormatTransform(go.transform);
                 var tr = string.IsNullOrEmpty(trPart) ? "" : " " + trPart;
-                sb.AppendLine($"{indent}{flags}{go.name}{tr} :: bones/transform-only (+{n} nodes)");
+                sb.AppendLine($"{indent}{flags}{NodeName(go)}{tr} :: bones/transform-only (+{n} nodes)");
                 return;
             }
 
@@ -75,7 +75,7 @@ namespace MonoFSM.Editor
                 {
                     var flags = BuildFlags(go);
                     sb.AppendLine(
-                        $"{indent}{flags}{go.name} {summarizer.Summarize(go)}{FoldTail(go, opt)}");
+                        $"{indent}{flags}{NodeName(go)} {summarizer.Summarize(go)}{FoldTail(go, opt)}");
                     return;
                 }
             }
@@ -83,7 +83,7 @@ namespace MonoFSM.Editor
             if (opt._maxDepth >= 0 && depth > opt._maxDepth && !forcedExpand)
             {
                 var flags = BuildFlags(go);
-                sb.AppendLine($"{indent}{flags}{go.name}{FoldTail(go, opt)}");
+                sb.AppendLine($"{indent}{flags}{NodeName(go)}{FoldTail(go, opt)}");
                 return;
             }
 
@@ -109,12 +109,20 @@ namespace MonoFSM.Editor
             }
         }
 
+        /// <summary>
+        /// 節點名裡的換行會把一行的樹狀輸出切成兩行，讓路徑沒辦法直接抄回 --node。
+        /// 自動命名把 localized 文案（本身含換行）塞進名字時就會發生，所以一律逃逸成 `\n`
+        /// —— 這也是 uprefab 路徑解析吃得下的寫法。
+        /// </summary>
+        private static string NodeName(GameObject go) =>
+            go.name.Replace("\r", "").Replace("\n", "\\n");
+
         private static string BuildNodeLine(GameObject go, string indent, HierarchyExportContext ctx)
         {
             var sb = new StringBuilder();
             sb.Append(indent);
             sb.Append(BuildFlags(go));
-            sb.Append(go.name);
+            sb.Append(NodeName(go));
 
             var transformPart = FormatTransform(go.transform);
             if (!string.IsNullOrEmpty(transformPart))

@@ -52,7 +52,7 @@ namespace MonoFSM.Editor
         {
             return property.propertyType switch
             {
-                SerializedPropertyType.Integer => property.intValue.ToString(),
+                SerializedPropertyType.Integer => property.longValue.ToString(),
                 SerializedPropertyType.Boolean => property.boolValue ? "true" : "false",
                 SerializedPropertyType.Float => FormatFloat(property.floatValue),
                 SerializedPropertyType.String => $"\"{EscapeString(property.stringValue)}\"",
