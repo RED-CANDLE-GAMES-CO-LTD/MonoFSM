@@ -308,6 +308,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (_proxyProvider != null)
                 proxyDealer.OnHitEnter(_currentHitData, detectData);
 
+            RecordEffectEnter();
             var receiverEntity = _currentHitData.GeneralReceiver.BindEntity;
             if (_singleEntityPerEnable && _lockedEntity == null)
                 _lockedEntity = receiverEntity;

@@ -35,16 +35,6 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return _parentEntity.GetSchema<T>();
         }
 
-        // public MonoEntity ParentEntity
-        // {
-        //     get
-        //     {
-        //         AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_parentEntity));
-        //         // this.EnsureComponentInParent(ref _parentEntity);
-        //         return _parentEntity;
-        //     }
-        // }
-
         [ShowInDebugMode]
         protected GeneralEffectHitData _currentHitData; //FIXME: 和last差在哪？
 
@@ -163,9 +153,21 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public override string ValueInfo => IsValid ? "Valid" : "Off";
         public override bool IsDrawingValueInfo => Application.isPlaying && isActiveAndEnabled;
 
+        // 上次 effect enter 的 tick，-1 = 從沒 enter 過
+        [ShowInDebugMode]
+        protected int _lastEnterTick = -1;
+
         // 上次 effect exit 的 tick，-1 = 從沒 exit 過
         [ShowInDebugMode]
         protected int _lastExitTick = -1;
+
+        /// <summary>
+        /// effect enter 時呼叫，記錄當下 sim tick（本地用，不同步）
+        /// </summary>
+        protected void RecordEffectEnter()
+        {
+            _lastEnterTick = WorldUpdateSimulator.CurrentTick;
+        }
 
         /// <summary>
         /// effect exit 時呼叫，記錄當下 sim tick（本地用，不同步）
@@ -174,6 +176,15 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             _lastExitTick = WorldUpdateSimulator.CurrentTick;
         }
+
+        /// <summary>
+        /// 距離上次 effect enter 經過的秒數；從沒 enter 過回傳 +∞
+        /// </summary>
+        [ShowInDebugMode]
+        public float SecondsSinceLastEnter =>
+            _lastEnterTick < 0
+                ? float.PositiveInfinity
+                : (WorldUpdateSimulator.CurrentTick - _lastEnterTick) * WorldUpdateSimulator.DeltaTime;
 
         /// <summary>
         /// 距離上次 effect exit 經過的秒數；從沒 exit 過回傳 +∞
@@ -189,6 +200,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             _currentHitData = null;
             //殘留的話 GetDetectData() 會回 reset 前的命中點/法線
             _detectData = null;
+            _lastEnterTick = -1;
             _lastExitTick = -1;
         }
     }

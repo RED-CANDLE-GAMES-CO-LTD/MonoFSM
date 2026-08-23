@@ -1,3 +1,5 @@
 - 新增 `VarQuickCreateShortcut`：選中 Var 節點按 Alt+V，反射列出可指向該 Var 型別的 Action / Condition / Getter（含 VarWrapper 這類巢狀一層的欄位），用帶搜尋的 AdvancedDropdown 選一個，就在 Var 底下生成 GameObject、掛元件、回填引用並 Rename。常用型別在 class 或 static preset method 上標 `[QuickCreate]` 即可置頂。
 - VarQuickCreateShortcut 加「Var 變數」分組：VariableFolder / VarEntity 上建成 child，其他 Var 建成 sibling。
 - Shift+V 快捷整合 VarEntity 的「加入 Var」：schema 缺的 VariableTag 置頂可搜尋，選了走 VarEntity.AddVarOfSchemaTag（設 _varTag / _parentVarEntity）；建立後延一帧選取新物件。
+- VarQuickCreate 新增「ValueSource 值來源」候選組：對 Var 按 Alt+V 時列出 value type 對得上的 IValueProvider<T>（FloatLiteralComp 等），建成 Var 子物件靠 _valueSources 的 [AutoChildren] 自動接上，不回填欄位。
+- dropdown item 名字補上型別名（SearchLabel）：[QuickCreate] 把 DisplayName 換成中文後，搜尋打型別名撈不到的問題。

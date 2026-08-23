@@ -8,6 +8,7 @@ namespace MonoFSM.DataProvider
 {
     //FloatConstant?
     //value
+    [QuickCreate("常數 Float", Priority = 80)]
     public class FloatLiteralComp : AbstractValueSource<float>, IFloatProvider
     {
         // [MCPExtractable]

@@ -293,6 +293,13 @@ namespace MonoFSM.Core.Detection
         //需要debug是誰改的嗎？
         public ManualEffectDetectAction _manualEffectDetectAction; //被Action控走的話，就不自己update了
 
+        //不能搬到 BeforeSimulate phase：FusionSimulatorRunner 是 IBeforeTick，一律跑在所有
+        //FixedUpdateNetwork（含 RunnerSimulatePhysics 的物理步進）之前，而 TriggerDetectorSource
+        //的來源是 OnTriggerStay 這個物理回呼 —— 在物理之前讀，永遠讀到剛被自己 AfterDetection
+        //清空的集合（resim 每個 tick 都會呼叫 BeforeTick，物理卻只步進有限次），偵測結果會恆為空。
+        //同一個 MonoObj scope 內用 SimulateOrder 讓 detector 排在 FSM／Condition 之前。
+        int IUpdateSimulate.SimulateOrder => -1000;
+
         //注意：目前關掉也會持續判定喔，這樣exit才會正確判
         public void Simulate(float deltaTime)
         {

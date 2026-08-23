@@ -50,6 +50,7 @@ public class GeneralState : MonoStateBehaviour
     protected override void OnEnterState()
     {
         base.OnEnterState();
+        _lastEnterTick = WorldUpdateSimulator.CurrentTick;
         OnStateEnter();
     }
 
@@ -60,8 +61,21 @@ public class GeneralState : MonoStateBehaviour
         _lastExitTick = WorldUpdateSimulator.CurrentTick;
     }
 
+    // 上次進入此 state 的 tick，-1 = 從沒 enter 過
+    [ShowInDebugMode] private int _lastEnterTick = -1;
+
     // 上次離開此 state 的 tick，-1 = 從沒 exit 過
     [ShowInDebugMode] private int _lastExitTick = -1;
+
+    /// <summary>
+    /// 距離上次進入此 state 經過的秒數；從沒 enter 過回傳 +∞
+    /// 時間來源為 WorldUpdateSimulator tick 換算，本地不同步
+    /// </summary>
+    [ShowInDebugMode]
+    public float SecondsSinceLastEnter =>
+        _lastEnterTick < 0
+            ? float.PositiveInfinity
+            : (WorldUpdateSimulator.CurrentTick - _lastEnterTick) * WorldUpdateSimulator.DeltaTime;
 
     /// <summary>
     /// 距離上次離開此 state 經過的秒數；從沒 exit 過回傳 +∞

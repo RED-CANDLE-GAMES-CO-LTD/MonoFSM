@@ -173,7 +173,7 @@ namespace MonoFSM.Core
             EditorPrepareCheck();
             if (_isPrepared == false && Application.isPlaying)
             {
-                Debug.LogError($"GetFrom {type} Dict, Not prepared", this);
+                LogNotPreparedOnce(type);
                 return default;
             }
 
@@ -211,14 +211,27 @@ namespace MonoFSM.Core
 
             if (_isPrepared == false && Application.isPlaying)
             {
-                Debug.LogError($"GetFrom {key} Dict, Not prepared" + "name" + transform.GetPath(),
-                    transform.parent);
+                LogNotPreparedOnce(key);
                 return default;
             }
 
             //FIXME:
             return _dict.GetValueOrDefault(key);
             // Debug.LogError($"Key:{key} not found in {this}",this);
+        }
+
+        [NonSerialized] private bool _hasLoggedNotPrepared;
+
+        //每幀都可能被 Inspector/Hierarchy 的 ValueInfo 問到，洪水式 LogError 會蓋掉真正的訊息。
+        //只印第一次（Refresh 後會重置），字串也只在真的要印時才組（避免每幀 GC）。
+        private void LogNotPreparedOnce(object keyOrType)
+        {
+            if (_hasLoggedNotPrepared)
+                return;
+            _hasLoggedNotPrepared = true;
+            Debug.LogError(
+                $"[MonoDict] GetFrom {keyOrType} Dict, Not prepared. path:{transform.GetPath()}（此訊息只印一次）",
+                this);
         }
 
         //remove
@@ -267,6 +280,7 @@ namespace MonoFSM.Core
                 Remove(key);
             }
 
+            _tempRemoveList.Clear(); //不清會一路累積，下次 Clear 重複 Remove 舊 key
             _dict.Clear();
         }
 
@@ -326,10 +340,24 @@ namespace MonoFSM.Core
                 _collections = GetComponentsInChildren<Tu>(true);
             }
 #endif
-            _isPrepared = true;
             // Debug.Log("PrepareDictCheck" + name + collections.Length, this);
+            //Awake 這麼早（WorldUpdateSimulator.Awake 直接呼 binder.EnterSceneAwake）AutoChildren 可能還沒綁。
+            //這裡不能因此 return，否則 _isPrepared 永遠是 false，之後 Get 全部回 default —— 像 MonoEntityBinder
+            //這種內容靠 runtime Add（MonoEntity.OnInstantiated）的 dict 根本不依賴 _collections。
             if (_collections == null)
-                return;
+            {
+                AutoAttributeManager.AutoReference(this);
+                if (_collections == null)
+                {
+                    Debug.LogWarning(
+                        $"[MonoDict] {DescriptionTag} '{name}' PrepareDictCheck 時 _collections 綁不到，以空集合 prepared",
+                        this);
+                    _collections = Array.Empty<Tu>();
+                }
+            }
+
+            _isPrepared = true;
+            _hasLoggedNotPrepared = false;
             foreach (var item in _collections)
             {
                 if (CanBeAdded(item) == false)
@@ -355,7 +383,11 @@ namespace MonoFSM.Core
 
         public virtual void EnterSceneAwake()
         {
-            PrepareDictCheck();
+            //Edit Mode 的 EditorPrepareCheck 建好的 dict 會連著 _isPrepared=true 一起帶進 Play Mode，
+            //之後在 Inspector 改 Key 欄位（例如 receiver 的 _effectType）dict 不會重建，
+            //runtime 就一直用舊 key 查不到值（靜默失敗）。
+            //這裡是 AutoReference 已完成、遊戲還沒開始的時機點，無條件重建一次才是權威狀態。
+            Refresh();
             // Debug.Log("MonoDict EnterSceneAwake Dict", this);
             // foreach (var key in _dict.Keys)
             // {

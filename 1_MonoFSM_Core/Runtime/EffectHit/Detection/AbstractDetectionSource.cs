@@ -81,7 +81,7 @@ namespace MonoFSM.Core.Detection
 
         public virtual void AfterDetection() { }
 
-        public override string ValueInfo => "L:" + LayerMask.LayerToName(gameObject.layer);
+        public override string ValueInfo => "hit:" + _thisFrameColliders.Count;
         public override bool IsDrawingValueInfo => true;
     }
 }

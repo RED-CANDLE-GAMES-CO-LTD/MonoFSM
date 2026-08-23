@@ -390,7 +390,10 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         }
     }
 
-    public bool IsNull => _isNull;
+    //Getter 型（有 valueSource）的值每次現算、不走 SetValue，_isNull 會永遠停在 serialized 的初值 true，
+    //拿來判斷有沒有值會恆為 null（IsValueExist 恆 false，接了 getter 的防禦式 early return 會 100% 早退）。
+    //有 source 時「算不算有值」歸 source 負責，這裡一律不視為 null。
+    public bool IsNull => !HasValueSource && _isNull;
 
     [SerializeField]
     private bool _isNull = false; //預設是ProductionValue

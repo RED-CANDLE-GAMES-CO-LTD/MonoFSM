@@ -253,26 +253,17 @@ namespace MonoFSMCore.Runtime.LifeCycle
         // [AutoChildren]
         // private IAfterUpdate[] _updateSimulates;
 
-        //遞迴檢查 scope + 所有直屬 child subtree，任一有 item 且該 node 未被 cull 就回 true
-        //Root cull → false; 否則自己 scope 空但 child 有東西也要回 true（不然 WorldUpdateSimulator 會 skip 整個 tree）
-        public bool IsUpdateSimulatesNeeded =>
-            CheckPhaseNeededRecursive(self => self._updateSimulates);
-        public bool IsBeforeSimulatesNeeded => CheckPhaseNeededRecursive(self => self._beforeSimulates);
-        public bool IsAfterSimulatesNeeded => CheckPhaseNeededRecursive(self => self._afterSimulates);
-        public bool IsRenderSimulatesNeeded => CheckPhaseNeededRecursive(self => self._renderSimulates);
+        //只看自己 scope（StopAtType = MonoObj）：nested MonoObj 都各自向 WorldUpdateSimulator 註冊、
+        //各自被呼叫，不需要再遞迴問子樹（子樹自己那份會由它自己的 needed 判斷）
+        public bool IsUpdateSimulatesNeeded => IsPhaseNeeded(_updateSimulates);
+        public bool IsBeforeSimulatesNeeded => IsPhaseNeeded(_beforeSimulates);
+        public bool IsAfterSimulatesNeeded => IsPhaseNeeded(_afterSimulates);
+        public bool IsRenderSimulatesNeeded => IsPhaseNeeded(_renderSimulates);
 
-        private bool CheckPhaseNeededRecursive<T>(Func<MonoObj, T[]> getList) where T : class
+        private bool IsPhaseNeeded<T>(T[] list) where T : class
         {
             if (IsCulling) return false;
-            var list = getList(this);
-            if (list != null && list.Length > 0) return true;
-            if (_childrenObjs == null) return false;
-            for (var i = 0; i < _childrenObjs.Length; i++)
-            {
-                var c = _childrenObjs[i];
-                if (c != null && c != this && c.CheckPhaseNeededRecursive(getList)) return true;
-            }
-            return false;
+            return list is { Length: > 0 };
         }
 
         //FIXME: PoolBeforeReturnToPool? OnReturnPool?
@@ -332,13 +323,13 @@ namespace MonoFSMCore.Runtime.LifeCycle
         void Init()
         {
             InitParentLinks();
-
+            SortUpdateSimulates();
             if (HasParent)
                 return;
 // #if UNITY_EDITOR
 //             AutoAttributeManager.AutoReferenceAllChildren(gameObject);
 // #endif
-            SortUpdateSimulates();
+
             //FIXME: prefab cache restore?
         }
 
@@ -594,8 +585,8 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         public void BeforeSimulate(float deltaTime)
         {
-            if (HasParent)
-                return;
+            //nested MonoObj 自己也會被 WorldUpdateSimulator 註冊、自己被呼叫（同 Simulate/AfterSimulate/Render），
+            //不再由 root 遞迴下來——否則子樹會繞過 IsActiveInSimulator/IsProxy 檢查
             if (IsProxy)
                 return;
             if (!IsActiveInSimulator)
@@ -605,21 +596,13 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         private void TickBeforeSimulatePhase(float deltaTime)
         {
-            if (IsCulling) return; //我被 cull → 整棵子樹跳過
-            if (_beforeSimulates != null)
+            if (IsCulling) return; //我被 cull → 自己這層跳過（子 MonoObj 的 IsCulling 也會繼承 parent）
+            if (_beforeSimulates == null) return;
+            foreach (var item in _beforeSimulates)
             {
-                foreach (var item in _beforeSimulates)
-                {
-                    if (item is not { isActiveAndEnabled: true })
-                        continue;
-                    item.BeforeSimulate(deltaTime);
-                }
-            }
-            if (_childrenObjs == null) return;
-            for (var i = 0; i < _childrenObjs.Length; i++)
-            {
-                var c = _childrenObjs[i];
-                if (c != null && c != this) c.TickBeforeSimulatePhase(deltaTime);
+                if (item is not { IsBeforeUpdating: true })
+                    continue;
+                item.BeforeSimulate(deltaTime);
             }
         }
 

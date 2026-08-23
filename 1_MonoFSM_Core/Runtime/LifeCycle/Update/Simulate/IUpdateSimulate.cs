@@ -7,6 +7,10 @@ namespace MonoFSM.Core.Simulate
         void BeforeSimulate(float deltaTime);
         bool isActiveAndEnabled { get; }
 
+        //對應 IUpdateSimulate.IsUpdating：需要「自己被 disable 後還要再跑一次收尾」的實作可 override
+        //（ex: EffectDetector 要補送 exit）
+        bool IsBeforeUpdating => isActiveAndEnabled;
+
         GameObject gameObject { get; }
 
         /// <summary>

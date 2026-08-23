@@ -30,7 +30,7 @@ namespace MonoFSM.Core.Detection
         }
 
         //FIXME: 檢查是不是 trigger
-        public override string ValueInfo => "hit:" + _thisFrameColliders.Count;
+
 
         [InfoBox("Collider is Not Trigger!", InfoMessageType.Error,
             "@_collider != null && !_collider.isTrigger")]

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Editor.PropertyDrawer;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Foundation;
@@ -23,6 +24,8 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
     ///     要把常用的排到置頂區就在型別上標 [QuickCreate]（或 Condition 用既有的 [ConditionPreset]）。
     ///     選中的是 AbstractEventHandler（OnStateEnter / OnPointerClick 之類）時，改列出所有 AbstractStateAction
     ///     子類別直接建成子物件（會被 handler 的 _eventReceivers 抓到，不需要指欄位）。
+    ///     清單裡還會多一組「ValueSource 值來源」，列出 value type 對得上的 provider（FloatLiteralComp 這種
+    ///     常數來源、算式 getter），建成 Var 底下的子物件被 _valueSources 的 [AutoChildren] 抓走，不指欄位。
     ///     清單裡還會多一組「Var 變數」，列出所有 AbstractMonoVariable 子類別：
     ///     選中的是 VariableFolder / VarEntity（容器類）時建成子物件，其他 Var 則建成 sibling（同一個 folder 下）。
     /// </summary>
@@ -30,6 +33,7 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
     {
         private const string LogTag = "[VarQuickCreate]";
         private const string TopCategory = "★ 常用";
+        private const string ValueSourceKind = "ValueSource 值來源";
 
         //預設 Alt+V，可在 Edit/Shortcuts 裡改鍵
         // [Shortcut(
@@ -209,7 +213,7 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                     if (!c.IsTop)
                         continue;
                     hasTop = true;
-                    root.AddChild(new CandidateItem($"{c.Kind}／{c.ItemLabel}", c));
+                    root.AddChild(new CandidateItem($"{c.Kind}／{c.SearchLabel}", c));
                 }
 
                 if (hasTop)
@@ -229,7 +233,7 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                         root.AddChild(group);
                     }
 
-                    group.AddChild(new CandidateItem(c.ItemLabel, c));
+                    group.AddChild(new CandidateItem(c.SearchLabel, c));
                 }
 
                 return root;
@@ -402,6 +406,11 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
             //巢狀時把欄位路徑標出來，才看得出值是塞進 wrapper 還是直接欄位
             public string ItemLabel => IsNested ? $"{DisplayName}  ({FieldPathName})" : DisplayName;
+
+            //AdvancedDropdown 的搜尋是比對 item 的 name，[QuickCreate] 把 DisplayName 換成中文後
+            //型別名就搜不到了（打 FloatLiteral 撈不到「常數 Float」），所以補在尾巴當搜尋用的別名
+            public string SearchLabel =>
+                DisplayName == CompType.Name ? ItemLabel : $"{ItemLabel}  {CompType.Name}";
         }
 
         private static readonly Dictionary<Type, List<Candidate>> _cacheByVarType = new();
@@ -588,11 +597,59 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 );
             }
 
+            //不指欄位、靠 [AutoChildren] 被 Var 抓進 _valueSources 的值來源
+            list.AddRange(CollectValueSourceCandidates(varType));
+
             return list.OrderBy(c => c.SortKey)
                 .ThenByDescending(c => c.Priority)
                 .ThenBy(c => c.Kind)
                 .ThenBy(c => c.DisplayName)
                 .ToList();
+        }
+
+        /// <summary>
+        ///     這個 Var 的 value source 候選：AbstractMonoVariable._valueSources 標了
+        ///     [AutoChildren(DepthOneOnly, _isSelfInclude)]，所以建成 Var 底下的子物件就會自動接上，
+        ///     沒有欄位要回填（跟 EventHandler 模式一樣）。方向跟主清單相反 ——
+        ///     主清單是「有欄位指向這個 Var」的消費者，這裡是「被這個 Var 拿去取值」的提供者，
+        ///     像 FloatLiteralComp 這種只有 float _literal、沒有任何 Var 欄位的常數來源只會出現在這組。
+        ///     只收 value type 對得上的（IValueProvider&lt;out T&gt; 是 covariant，子型別的 provider 也餵得進去）。
+        /// </summary>
+        private static List<Candidate> CollectValueSourceCandidates(Type varType)
+        {
+            var list = new List<Candidate>();
+            var valueType = ResolveVarValueType(varType);
+            if (valueType == null)
+                return list;
+
+            var providerType = typeof(IValueProvider<>).MakeGenericType(valueType);
+            var matched = new List<Type>();
+            foreach (var t in TypeCache.GetTypesDerivedFrom<AbstractGetter>())
+            {
+                if (t.IsAbstract)
+                    continue;
+                //Var 自己也是 provider，但它有自己一組候選（GetVarCandidates）
+                if (typeof(AbstractMonoVariable).IsAssignableFrom(t))
+                    continue;
+                if (!providerType.IsAssignableFrom(t))
+                    continue;
+                matched.Add(t);
+            }
+
+            AddPlainCandidates(list, matched);
+            //KindOf 會把它們全歸成「ValueGetter 取值」，跟主清單那組混在一起看不出差別
+            foreach (var c in list)
+                c.Kind = ValueSourceKind;
+            return list;
+        }
+
+        /// <summary>TypedMonoVariable&lt;T&gt; 的 T 就是這個 Var 的值型別（解不到就不列 value source）</summary>
+        private static Type ResolveVarValueType(Type varType)
+        {
+            for (var t = varType; t != null; t = t.BaseType)
+                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(TypedMonoVariable<>))
+                    return t.GetGenericArguments()[0];
+            return null;
         }
 
         private static Candidate MakeCandidate(
@@ -690,6 +747,9 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 return "If 條件";
             if (typeof(AbstractStateAction).IsAssignableFrom(t))
                 return "Action 動作";
+            if (typeof(AbstractGetter).IsAssignableFrom(t))
+                return "ValueGetter 取值";
+
             if (InheritsName(t, "AbstractRenderBehaviour"))
                 return "Render";
             return "Getter 其他";
