@@ -137,6 +137,13 @@ namespace MonoFSM.Core.Variable
         [SerializeField] // This will be used by Unity for serialization
         protected List<T> _backingListForSerialization = new();
 
+        /// <summary>
+        /// 集合內容的來源清單。預設就是 prefab 上序列化的 backing list，
+        /// 子類可以覆寫成「外部 asset 提供的清單」（見 VarListData._sourceConfig）。
+        /// 注意：這個 getter 會在 OnAfterDeserialize 期間被呼叫，實作不可以碰 Unity API。
+        /// </summary>
+        protected virtual List<T> SourceList => _backingListForSerialization;
+
         [ShowInPlayMode]
         private object _activeCollection; // Runtime instance: List<T>, Queue<T>, or HashSet<T>
 
@@ -445,28 +452,28 @@ namespace MonoFSM.Core.Variable
             {
                 case CollectionStorageType.List:
                     var list = new List<T>();
-                    if (_backingListForSerialization != null)
-                        list.AddRange(_backingListForSerialization);
+                    if (SourceList != null)
+                        list.AddRange(SourceList);
                     _activeCollection = list;
                     break;
                 case CollectionStorageType.Queue:
                     var queue = new Queue<T>();
-                    if (_backingListForSerialization != null)
-                        foreach (var item in _backingListForSerialization)
+                    if (SourceList != null)
+                        foreach (var item in SourceList)
                             queue.Enqueue(item);
                     _activeCollection = queue;
                     break;
                 case CollectionStorageType.HashSet:
                     var hashSet = new HashSet<T>();
-                    if (_backingListForSerialization != null)
-                        foreach (var item in _backingListForSerialization)
+                    if (SourceList != null)
+                        foreach (var item in SourceList)
                             hashSet.Add(item);
                     _activeCollection = hashSet;
                     break;
                 default: // Fallback to List<T>
                     var defaultList = new List<T>();
-                    if (_backingListForSerialization != null)
-                        defaultList.AddRange(_backingListForSerialization);
+                    if (SourceList != null)
+                        defaultList.AddRange(SourceList);
                     _activeCollection = defaultList;
                     break;
             }
@@ -524,20 +531,20 @@ namespace MonoFSM.Core.Variable
             ClearValue();
 
             // 如果 backing list 有內容，恢復這些內容
-            if (_backingListForSerialization != null && _backingListForSerialization.Count > 0)
+            if (SourceList != null && SourceList.Count > 0)
                 switch (_storageType)
                 {
                     case CollectionStorageType.List:
-                        ((List<T>)_activeCollection).AddRange(_backingListForSerialization);
+                        ((List<T>)_activeCollection).AddRange(SourceList);
                         break;
                     case CollectionStorageType.Queue:
                         var queue = (Queue<T>)_activeCollection;
-                        foreach (var item in _backingListForSerialization)
+                        foreach (var item in SourceList)
                             queue.Enqueue(item);
                         break;
                     case CollectionStorageType.HashSet:
                         var hashSet = (HashSet<T>)_activeCollection;
-                        foreach (var item in _backingListForSerialization)
+                        foreach (var item in SourceList)
                             hashSet.Add(item);
                         break;
                 }
@@ -546,7 +553,7 @@ namespace MonoFSM.Core.Variable
             SetRawIndex(_defaultIndex);
 
             // 通知變更（Clear() 已經調用過，但如果有恢復內容需要��次通知）
-            if (_backingListForSerialization != null && _backingListForSerialization.Count > 0)
+            if (SourceList != null && SourceList.Count > 0)
                 OnValueChanged();
         }
 

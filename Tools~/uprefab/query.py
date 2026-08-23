@@ -9,6 +9,56 @@ from __future__ import annotations
 import sqlite3
 
 
+def _find_where(comp=None, name=None, path=None):
+    """find / find_count / find_by_asset 共用的 FROM+WHERE 與參數。
+
+    抽出來是為了讓「列出來的那 50 筆」跟「總共幾筆」一定是同一組條件 ——
+    兩邊各寫一份 SQL 的話，改了一邊沒改另一邊會回出互相矛盾的數字。
+    """
+    args: list = []
+    if comp:
+        sql = """
+            FROM comps c
+            JOIN nodes n ON n.asset_id = c.asset_id AND n.file_id = c.go_file_id
+            JOIN assets a ON a.id = n.asset_id
+           WHERE c.type LIKE ?
+        """
+        args.append(comp)
+    else:
+        sql = """
+            FROM nodes n JOIN assets a ON a.id = n.asset_id
+           WHERE 1=1
+        """
+    if name:
+        sql += " AND n.name LIKE ?"
+        args.append(name)
+    if path:
+        sql += " AND a.path LIKE ?"
+        args.append(path)
+    return sql, args
+
+
+def find_count(con: sqlite3.Connection, comp=None, name=None, path=None) -> int:
+    """同條件的總命中數 —— 讓 limit 切掉時能講出「50 / 共 4132」。"""
+    sql, args = _find_where(comp, name, path)
+    return con.execute("SELECT COUNT(*) " + sql, args).fetchone()[0]
+
+
+def find_totals(con: sqlite3.Connection, comp=None, name=None, path=None):
+    """(總命中數, 涵蓋幾個資產) —— --by-asset 的表尾要能講「列出的只是前幾名」。"""
+    sql, args = _find_where(comp, name, path)
+    return con.execute(
+        "SELECT COUNT(*), COUNT(DISTINCT a.path) " + sql, args).fetchone()
+
+
+def find_by_asset(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50):
+    """同條件的分佈：[(資產路徑, 命中數)]，多的排前面。"""
+    sql, args = _find_where(comp, name, path)
+    sql = ("SELECT a.path, COUNT(*) " + sql +
+           " GROUP BY a.path ORDER BY COUNT(*) DESC, a.path LIMIT ?")
+    return con.execute(sql, args + [limit]).fetchall()
+
+
 def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50):
     """依 component 型別 / 節點名 / 資產路徑定位節點。
 
@@ -23,32 +73,10 @@ def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50):
        會變成 correlated scalar subquery，對每一列候選都跑一次（而 `comps` 沒有
        `(asset_id, go_file_id)` 的 index，每次都是該 asset 內的線性掃）。
     """
-    args: list = []
-    if comp:
-        sql = """
-          SELECT a.path, n.asset_id, n.file_id, n.path, n.is_active
-            FROM comps c
-            JOIN nodes n ON n.asset_id = c.asset_id AND n.file_id = c.go_file_id
-            JOIN assets a ON a.id = n.asset_id
-           WHERE c.type LIKE ?
-        """
-        args.append(comp)
-    else:
-        sql = """
-          SELECT a.path, n.asset_id, n.file_id, n.path, n.is_active
-            FROM nodes n JOIN assets a ON a.id = n.asset_id
-           WHERE 1=1
-        """
-    if name:
-        sql += " AND n.name LIKE ?"
-        args.append(name)
-    if path:
-        sql += " AND a.path LIKE ?"
-        args.append(path)
-    sql += " ORDER BY a.path, n.path LIMIT ?"
-    args.append(limit)
-
-    rows = con.execute(sql, args).fetchall()
+    where, args = _find_where(comp, name, path)
+    sql = ("SELECT a.path, n.asset_id, n.file_id, n.path, n.is_active " + where +
+           " ORDER BY a.path, n.path LIMIT ?")
+    rows = con.execute(sql, args + [limit]).fetchall()
 
     out = []
     for apath, asset_id, fid, npath, active in rows:
@@ -94,6 +122,49 @@ def overrides(con: sqlite3.Connection, asset_like: str, limit=200):
     ).fetchall()
 
 
+def _noise_sql(include_noise: bool):
+    """雜訊欄位的 SQL 濾網（跟 is_noise 同一組 pattern，聚合查詢在 SQL 裡就要濾掉）。"""
+    if include_noise:
+        return "", []
+    clause = "".join(" AND m.prop NOT LIKE ?" for _ in NOISE_PATTERNS)
+    return clause, [f"%{p}%" for p in NOISE_PATTERNS]
+
+
+def overrides_count(con: sqlite3.Connection, asset_like: str, noise=False) -> int:
+    """同條件的 override 總數（noise=True 才算進特效/曲線欄位）。"""
+    clause, extra = _noise_sql(noise)
+    return con.execute(
+        "SELECT COUNT(*) FROM mods m JOIN assets a ON a.id = m.asset_id "
+        "WHERE a.path LIKE ?" + clause,
+        [asset_like] + extra,
+    ).fetchone()[0]
+
+
+def overrides_by_target(con: sqlite3.Connection, asset_like: str, limit=50, noise=False):
+    """override 的分佈：[(資產, instance fileID, source, 目標節點, 筆數)]，多的排前面。"""
+    clause, extra = _noise_sql(noise)
+    return con.execute(
+        """
+      SELECT a.path, i.file_id, s.path,
+             COALESCE(tl.label, 'fileID:' || m.target_file_id) AS target_label,
+             COUNT(*) AS c
+        FROM mods m
+        JOIN assets a ON a.id = m.asset_id
+        JOIN instances i ON i.asset_id = m.asset_id AND i.file_id = m.instance_file_id
+        LEFT JOIN assets s ON s.guid = i.source_guid
+        LEFT JOIN target_labels tl
+               ON tl.guid = m.target_guid AND tl.file_id = m.target_file_id
+       WHERE a.path LIKE ?"""
+        + clause
+        + """
+       GROUP BY a.path, i.file_id, target_label
+       ORDER BY c DESC, a.path, i.file_id
+       LIMIT ?
+        """,
+        [asset_like] + extra + [limit],
+    ).fetchall()
+
+
 def scope_stats(con: sqlite3.Connection):
     """各 tier / 副檔名的索引統計，用來調 .uprefab.json 範圍。"""
     return con.execute(
@@ -135,3 +206,41 @@ def guid_by_path(con: sqlite3.Connection, path_like: str, limit=20):
 
 def anchor(asset_path: str, file_id: int) -> str:
     return f"{asset_path}#{file_id}"
+
+
+# ── C# 型別目錄（catalog 表）────────────────────────────────────────
+
+def catalog_one(con, cls: str):
+    """精確或不分大小寫地找一個 class。"""
+    row = con.execute(
+        "SELECT class, path, kind, bases, is_abstract, is_obsolete, summary, has_doc, fields "
+        "FROM catalog WHERE class=? COLLATE NOCASE", (cls,)).fetchone()
+    return row
+
+
+def catalog_list(con, kind=None, kinds=None, keyword=None, missing=False,
+                 include_abstract=False, include_obsolete=False, limit=200):
+    sql = ("SELECT class, path, kind, bases, is_abstract, is_obsolete, summary, "
+           "has_doc, fields FROM catalog WHERE 1=1")
+    args = []
+    if kind:
+        sql += " AND kind=?"
+        args.append(kind)
+    elif kinds:
+        sql += " AND kind IN (%s)" % ",".join("?" * len(kinds))
+        args += list(kinds)
+    else:
+        sql += " AND kind!=''"
+    if not include_abstract:
+        sql += " AND is_abstract=0"
+    if not include_obsolete:
+        sql += " AND is_obsolete=0"
+    if keyword:
+        sql += " AND (class LIKE ? OR summary LIKE ?)"
+        args += [f"%{keyword}%", f"%{keyword}%"]
+    if missing:
+        sql += " AND (summary='' OR has_doc=0)"
+    total = con.execute(f"SELECT COUNT(*) FROM ({sql})", args).fetchone()[0]
+    sql += " ORDER BY class LIMIT ?"
+    args.append(limit)
+    return total, con.execute(sql, args).fetchall()

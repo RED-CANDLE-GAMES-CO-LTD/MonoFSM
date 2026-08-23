@@ -88,6 +88,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8388388469843436753}
   - component: {fileID: 2641676531158844801}
+  - component: {fileID: 5064069830900110380}
   m_Layer: 0
   m_Name: '[Getter] d_this'
   m_TagString: Untagged
@@ -107,8 +108,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 5056037886137724283}
+  m_Children: []
   m_Father: {fileID: 199713319535136511}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2641676531158844801
@@ -131,45 +131,13 @@ MonoBehaviour:
   _isRuntimeOnly: 0
   _defaultValue: {fileID: 0}
   _monoEntityTag: {fileID: 0}
---- !u!1 &1963731304556780603
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5056037886137724283}
-  - component: {fileID: 8183961740039816131}
-  m_Layer: 0
-  m_Name: => ParentEntitySource
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5056037886137724283
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1963731304556780603}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8388388469843436753}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8183961740039816131
+--- !u!114 &5064069830900110380
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1963731304556780603}
+  m_GameObject: {fileID: 1483091229315079868}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5284113b147d4e44b6ace51be46ea75e, type: 3}
@@ -568,6 +536,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: MonoFSM.Core.Runtime::_1_MonoFSM_Core.Runtime.Action.AnimatorActions.RenderLoopHandler
   _note: 
   _forceExecuteWithoutStateAuthority: 0
+  _stateAuthorityOnly: 0
+  _lastSkipReason: 
+  _lastSkipTime: -1
 --- !u!1 &4731588778212171276
 GameObject:
   m_ObjectHideFlags: 0
@@ -779,6 +750,8 @@ MonoBehaviour:
   _canInterruptSameState: 1
   _clipLayerName: 
   _cachedClipLength: -1
+  _fallbackDurationScale: 2
+  _fallbackMaxDuration: 5
   _isSkipOnRenderCheck: 0
 --- !u!1 &9020763545861940387
 GameObject:

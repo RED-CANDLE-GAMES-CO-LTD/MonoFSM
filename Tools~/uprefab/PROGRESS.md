@@ -566,3 +566,53 @@ YAML 的 `guid:`，用既有的 `query.asset_by_guid` 翻成路徑、只留 .pre
 命中時在輸出最前面印一行提醒（Inspector 改了沒存檔的話請加 `--no-cache`）；
 `--no-cache` 跳過讀取但仍寫入。快取放 `.uprefab-cache/read/`（已進 .gitignore），
 超過 200 檔依 mtime 刪到剩 150。usage 記錄多一個 `cache` 欄位（hit / miss / bypass / off）。
+
+---
+
+## 三項省 token 的改動：欄位級讀取、命中聚合、批次 DSL 路徑代換
+
+依 `up usage`（1125 次呼叫、3.27M 字元輸出）挑的三個最大來源：
+`prefab read` 佔 62%、`find` 佔 20%、`overrides` 佔 10%，而寫入的 `prefab do` 只佔 2.2%
+—— 所以寫入的 DSL 本身沒有換掉的理由（直接寫 execute-dynamic-code 還要多付 envelope，
+直接改 YAML 讀不到 variant 繼承），要省的是讀取量與重複的路徑字串。
+
+1. **`up prefab peek`**（`EditProbe.PeekAsset`）—— 讀 prefab asset 上一顆 component 的
+   幾個欄位。原本「那條 ref 接上了沒」的最小單位是 `prefab read` 的整顆子樹（平均
+   6.4KB），現在是 ~150 字元。`--members` 留空時列 serialize 欄位而不是 public 屬性
+   （asset 上沒跑過 runtime 邏輯，屬性大半空的或會炸），所以 `Peek` 的傾印邏輯抽成
+   `Dump(comp, header, members, serializedByDefault)` 共用。
+
+2. **命中聚合** —— `find --by-asset`、`overrides --by-target` 只回「集中在哪」的分佈；
+   並且被 `-n` 切掉時表尾一定講出「50 / 共 2809」。原本只印「50 match(es)」，會被讀成
+   「總共就這些」，後續「這個 component 只有這幾處用到」的結論整個是錯的。
+   `find` / `find_count` / `find_by_asset` / `find_totals` 共用 `_find_where()`，避免
+   「列出的那幾筆」跟「總共幾筆」用到不同條件。
+
+3. **批次 DSL 的 `$` 代換與 FSM 複合操作** —— `$` = 上一個建立節點的操作碰到的節點、
+   `mark|<label>[|<node>]` + `$label` = 命名代換（`EditBatch`，prefab / scene 共用）；
+   `state` / `trans` / `if` / `act` 四個複合操作（`EditFsm`，兩邊 Dispatch 的 default
+   接進去）。實測同一份 FSM 從 1.5KB 降到 0.8KB，差的全是重複的長路徑。
+   代換只認 `^\$([A-Za-z_]\w*)?(/.*)?$`，所以 prompt 的 `${token}` 不受影響（`$$` 是跳脫）。
+   只做「一定會這樣做」的部分：`[State]` / `[Transition] =>` / `[If]` / `[Action]` /
+   `[Event]` 命名慣例、phase → handler 型別對照、transition 的 `_target`。
+   已知限制：`[Action]` / `[If]` 節點存檔後會被 `AbstractDescriptionBehaviour` 的自動命名
+   蓋掉，整份重跑前要先 `read` 看實際名稱，否則會建出重複節點（原有 `add` 也一樣）。
+
+## catalog：組 FSM 時挑 component 的離線目錄
+
+`up catalog [action|condition|render|handler|getter|var|so|all] [keyword]`。
+資料在 `catalog.py`（純字串比對抽 .cs）→ `.uprefab.db` 的 `catalog` 表，跟著
+`up index` 全庫重建（約 2 秒）。每列給「class ─ 用途第一句」＋壓縮欄位行，
+`--type` 看單一型別完整說明與 tooltip，`--missing` 是缺 `/// summary` 的待補清單。
+`up fields` 也會在 Unity 欄位真值前補上這裡的說明。
+
+抽取上踩到的三個雷（都已修，改的時候別改回去）：
+1. class 宣告的 regex 會把上方 `[Attr]` 行一起吃進 match，所以 match 起始行不一定是
+   `public class` 那行 —— 要先 `_skip_attrs_up` 才判斷得出 summary 與 `[Obsolete]`。
+2. 泛型參數與 base list 之間常常換行（`class Foo<T>\n    : Bar`），base 的 `:` 前要允許空白，
+   不然整條繼承鏈斷掉，底下幾十個 class 全部歸不了類。
+3. kind 靠繼承鏈遞移，但鏈上的中繼 class 不一定自己一個檔案（`AbstractGetter` 寫在
+   `AbstractValueSource.cs` 裡），所以 bases 對照表要收「檔案裡每一個 class 宣告」，
+   catalog 條目本身才只認檔名 stem。
+
+`[Obsolete]` 沿繼承鏈遞移並預設隱藏（整批 `VarXxxProviderRef` 都是），避免挑到廢棄型別。

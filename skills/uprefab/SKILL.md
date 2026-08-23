@@ -31,8 +31,11 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | **加 / 改互動文字提示**（localized、按狀態切換） | `prompt` | ✅ | [prompt.md](references/prompt.md) |
 | **只要 localization 條目**（文案持有者是 SO 不是節點） | `loc` | ✅ | [prompt.md](references/prompt.md) |
 | 某個節點被誰指到 / 它指向誰 | `refs` | ✅ | [probe.md](references/probe.md) |
+| **組 FSM 時要挑 Action / Condition**（有哪些可用、各自幹嘛、欄位填什麼） | `catalog` | ❌ | [catalog.md](references/catalog.md) |
 | 某個型別叫什麼、有哪些欄位 | `types` / `fields`（Component）、`asset fields`（SO） | ✅ | [probe.md](references/probe.md) |
 | 場上有幾個某某物件、某個 component 現在的值 | `scene count` / `peek` | ✅ | [probe.md](references/probe.md) |
+| **prefab 上某顆 component 的某幾個欄位**（「這條 ref 接上了沒」） | `prefab peek`（**不要用 `read`**，貴 50 倍） | ✅ | [probe.md](references/probe.md) |
+| 命中/override 有幾千筆，想先知道集中在哪 | `find --by-asset` / `overrides --by-target` | ❌ | [offline-index.md](references/offline-index.md) |
 | **Play Mode 下改一個 Var 的值**（自動測試撥旗標 / 給錢） | `poke` | ✅ | [probe.md](references/probe.md) |
 | **EffectReceiver 沒觸發**，要一次看完整條鏈卡在哪 | `effect-trace` | ✅ | [probe.md](references/probe.md) |
 | 按 asset 上的 Odin `[Button]`（無參數方法） | `asset invoke` | ✅ | [asset.md](references/asset.md) |
@@ -41,7 +44,7 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 一句話版本：**使用者貼連結走 `guid`（asset）/ `obj`（scene 物件），定位走 `find`（要接著
 下鑽就加 `--resolve`），讀 prefab 結構走 `prefab read`（預設就分層摺疊，再用 `--node`
 下鑽），讀 scene 結構走 `scene ls`（要自己控 `--depth`），查引用走 `refs`，要改走 `prefab do` / `scene do`，建/改 ScriptableObject 走 `asset`，
-加 localized 文字提示走 `prompt`。**
+加 localized 文字提示走 `prompt`，挑 Action / Condition 走 `catalog`。**
 
 ## 鐵則
 
@@ -55,6 +58,10 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
   繼承來的東西（stripped 佔位 document 沒有名稱、component、真值），連 `find` 印的節點
   路徑都是局部的、不能直接餵給 `--node`（要完整路徑就 `--resolve`）。原因與實測數據見
   [internals.md](references/internals.md)。
+- **挑 component 之前先 `up catalog`，不要 grep 或 Read .cs** —— 108 個 Action、87 個
+  Condition 的用途與欄位一次列完（離線、0.1s），比逐檔讀便宜兩個數量級。
+  讀到 `⚠無說明` 而你為了工作實際去讀了那份原始碼，**順手補一段 `/// <summary>` 再走** ——
+  這是目錄唯一的補齊來源，補完下一個人就不用再讀一次。
 - **`find` 不會自己更新索引** —— 改過 prefab 就先 `up index`（增量，實測一天的變更量
   234 個資產 2.3 秒）。`(no match)` 或路徑對不上時，第一個嫌疑就是索引過期。
 - **DSL 欄位用 `|` 分隔，不用空白** —— 節點名帶空白、`[Tag] ` 前綴與中文，空白分隔一定炸。
@@ -80,6 +87,7 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | [edit.md](references/edit.md) | 批次 DSL 全部操作、失敗語意、`[n]` 後綴、`auto`、variant / 模板 |
 | [asset.md](references/asset.md) | ScriptableObject asset 的 create / set / set-ref / add-element / fields |
 | [prompt.md](references/prompt.md) | localized 文字提示：case 格式、優先序、自帶驗證輸出 |
+| [catalog.md](references/catalog.md) | `catalog`：Action / Condition 目錄、`--type` 細查、`--missing` 待補清單、`/// summary` 撰寫規範 |
 | [probe.md](references/probe.md) | `types` / `fields` / `peek` / `refs` / `scene count` 與 Play Mode 驗證流程 |
 | [example-fsm.md](references/example-fsm.md) | 完整實例：從零組「定時生資源」FSM 並在 Play Mode 驗證速率 |
 | [internals.md](references/internals.md) | 設計取捨（為何不用離線讀內容 / 為何拆掉 cache）、已知限制、模組結構 —— **改 uprefab 本身前先讀** |

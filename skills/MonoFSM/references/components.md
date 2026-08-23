@@ -99,6 +99,36 @@
 
 ---
 
+### 「進入某個 state 已經幾秒」：三種讀法，選錯會靜默失效
+
+| 要什麼 | 用什麼 | 注意 |
+|---|---|---|
+| condition：滿 N 秒才 transition | `StateTimeUpCondition` | 有 `_timeVar: VarFloat` 欄位，`time => _timeVar != null ? _timeVar.Value : _time`。**要單一來源就指 `_timeVar`**，不要在多處填 `_time` 常數 |
+| value：把「已進入幾秒」當 float 讀出來 | `StateStatusTimerValueSource` | `Value => TargetState?.statusTimer ?? -1f`。腳本 `MonoFSM/1_MonoFSM_Core/Runtime/2_Variable/Value Provider/StateStatusTimerValueSource.cs` |
+| CD／冷卻 | 時間戳 + `SinceVarFloatTimeStampCondition` | 見下方「時間基準」的坑 |
+
+**兩個共通陷阱**（`GeneralState.statusTimer => Machine?.ActiveState == this ? Machine.StateTime : -1f`）：
+
+1. **state 不是當前 active state 時，`statusTimer` 回 `-1`**（不是 0、也不是最後停留的秒數）。
+   所以 `A - StateStatusTimerValueSource` 這種倒數 getter 在該 state 沒活著時會變成 `A + 1`，
+   顯示端一定要另外 gate。也因此，在 state X 裡讀 state Y 的 time 只有 Y 正活著時才有意義 ——
+   若流程會從 Y 轉到 Z 再判定，Y 的計時條件當下必定為 false，要把條件包成 OR 涵蓋兩條路徑。
+2. **`_externalState` 是靜態序列化的 `GeneralState` 參考**，只能指同一個 prefab / scene instance 內的節點。
+   runtime 才生成的另一個 instance（別的玩家、別的 spawn 物件）**指不過去**，
+   跨 entity 要走 proxy var（見 alishan-code-map 的「跨 entity 取值」）。
+
+### 時間基準：`SimulationTime` 與 `LevelSimulationTime` 不通用
+
+- `SinceVarFloatTimeStampCondition` 內部**硬寫** `WorldUpdateSimulator.SimulationTime`（全域）。
+- 而 ValueSource 層唯一暴露的是 `FloatLevelSimulationTime`（= `LevelSimulationTime`，關卡開始為 0）；
+  **沒有任何 ValueSource 暴露全域 `SimulationTime`**。
+- `SetVarFloatToCurrentTimeAction` 有 `_useLevelSimulationTime` 開關 —— 勾了才能跟
+  `FloatLevelSimulationTime` 做時間差，但勾了 `SinceVarFloatTimeStampCondition` 就算錯。
+- → **同一顆時間戳無法同時餵給 condition 和 UI 顯示**。要兩邊都用就別走時間戳，
+  改用 state statusTimer 路線（不需要同步變數，state 本身已由 `NetworkStateMachineController` 同步）。
+- 另外 `SinceVarFloatTimeStampCondition` 把 `stamp <= 0` 當成「冷卻已結束」（回 `+∞`，condition 直接 true）。
+  搭配 level time 使用時，關卡最開頭幾幀蓋的時間戳 ≈ 0 → 條件立刻成立。
+
 ## Variable 相關
 
 ### `VarFloat`

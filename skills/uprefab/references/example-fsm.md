@@ -20,35 +20,40 @@ up scene copy --template "Assets/1_Prototype/Module Test/Network FSM Template.un
 `fsm.ops`（`up prefab do "Assets/…/資源生成器 FSM.prefab" -f fsm.ops`）：
 
 ```
-add||Timer|VarFloatCountDownTimer
-set|Timer|VarFloatCountDownTimer|_timeMax._tempValue|1
+mark|SF|[StateFolder] StateFolder
 
-add|[StateFolder] StateFolder|[State] spawn|GeneralState
+add||Timer|VarFloatCountDownTimer
+mark|T
+set|$T|VarFloatCountDownTimer|_timeMax._tempValue|1
+
+state|$SF|spawn
+mark|SPAWN
 
 # idle：進入時重置計時器；時間到就去 spawn
-add|[StateFolder] StateFolder/[State] idle|[Event] OnStateEnter|OnStateEnterHandler
-add|[StateFolder] StateFolder/[State] idle/[Event] OnStateEnter|[Action] Reset Timer|ResetTimerAction
-ref|[StateFolder] StateFolder/[State] idle/[Event] OnStateEnter/[Action] Reset Timer|ResetTimerAction|timer|Timer
-add|[StateFolder] StateFolder/[State] idle|[Transition] => spawn|TransitionBehaviour
-ref|[StateFolder] StateFolder/[State] idle/[Transition] => spawn|TransitionBehaviour|_target|[StateFolder] StateFolder/[State] spawn
-add|[StateFolder] StateFolder/[State] idle/[Transition] => spawn|[If] Timer Up|IsTimerUpCondition
-ref|[StateFolder] StateFolder/[State] idle/[Transition] => spawn/[If] Timer Up|IsTimerUpCondition|_timer|Timer
+act|$SF/[State] idle|enter|Reset Timer|ResetTimerAction
+ref|$|ResetTimerAction|timer|$T
+trans|$SF/[State] idle|$SPAWN
+if|$|Timer Up|IsTimerUpCondition|_timer|$T
 
 # spawn：進入時生一顆，然後回 idle
-add|[StateFolder] StateFolder/[State] spawn|[Event] OnStateEnter|OnStateEnterHandler
-add|[StateFolder] StateFolder/[State] spawn/[Event] OnStateEnter|[Action] Spawn 資源|SpawnAction
-aref|[StateFolder] StateFolder/[State] spawn/[Event] OnStateEnter/[Action] Spawn 資源|SpawnAction|_poolObjFoldOut._constObjValue|Assets/…/測試資源 Rock Variant.prefab
-add|[StateFolder] StateFolder/[State] spawn|[Transition] => idle|TransitionBehaviour
-ref|[StateFolder] StateFolder/[State] spawn/[Transition] => idle|TransitionBehaviour|_target|[StateFolder] StateFolder/[State] idle
+act|$SPAWN|enter|Spawn 資源|SpawnAction
+aref|$|SpawnAction|_poolObjFoldOut._constObjValue|Assets/…/測試資源 Rock Variant.prefab
+trans|$SPAWN|$SF/[State] idle
 
 auto|
 ```
+
+`state` / `trans` / `if` / `act` 是複合操作，`$` / `$label` 是路徑代換 —— 兩者都見
+[edit.md](edit.md)。同一份 FSM 用純原語寫是 1.5KB，這樣寫 0.8KB，差的全是重複的長路徑。
 
 放進場景並驗證：
 
 ```bash
 up scene do "prefab|Assets/…/資源生成器 FSM.prefab" "pos|資源生成器 FSM|0,3,0" "save"
-up scene ls --node "資源生成器 FSM/[StateFolder] StateFolder"   # 確認 _conditions 有被 auto 綁上
+# 確認 _conditions 有被 auto 綁上 —— 只看一顆 component 就用 prefab peek，別讀整棵
+up prefab peek "Assets/…/資源生成器 FSM.prefab" \
+    --node "[StateFolder] StateFolder/[State] idle/[Transition] => spawn" \
+    --comp TransitionBehaviour --members _target,_conditions
 
 up clear && up play play
 for t in 4 8 12; do sleep 4; up scene count --name 測試資源 | head -1; done

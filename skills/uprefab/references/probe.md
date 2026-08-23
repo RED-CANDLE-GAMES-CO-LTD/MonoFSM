@@ -14,6 +14,21 @@ up peek "資源生成器 FSM/Timer" VarFloatCountDownTimer --members "IsTimerUp,
 `peek` 在 Play Mode 下讀的是**當下的 runtime 值** —— 除「為什麼沒動」最快的一步。
 `--members` 留空會 dump 所有 public 屬性（很吵，通常指定幾個就好）。
 
+## `prefab peek` —— 只讀 prefab 上一顆 component 的欄位
+
+```bash
+up prefab peek "Assets/…/資源生成器 FSM.prefab" \
+    --node "[StateFolder] StateFolder/[State] idle/[Transition] => spawn" \
+    --comp TransitionBehaviour --members _target,_conditions
+```
+
+**「那條 ref 到底接上了沒」不要用 `prefab read`。** `read` 的最小單位是一整顆子樹的摺疊
+輸出（實測平均 6.4KB），同一個問題走 `prefab peek` 是一百多字元。不進 Play Mode、
+不看場上實例，讀的是 asset 上的值。
+
+`--members` 留空 = 列出這顆 component 的**所有 serialize 欄位**（不是 public 屬性 ——
+asset 上沒跑過任何 runtime 邏輯，屬性大半是空的或會炸）。`--node` 留空 = prefab root。
+
 ## `poke` —— Play Mode 下設一個 Var 的值（peek 的寫入面）
 
 ```bash

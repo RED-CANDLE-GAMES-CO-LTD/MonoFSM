@@ -205,6 +205,25 @@ public partial class GameData
 
     // private readonly HashSet<IDataFunction> _hashSet = new();
 
+    /// <summary>
+    ///     GetDataFunction 的不噴錯版本：問「有沒有掛這個 DataFunction」用這顆，沒掛是合法狀態時別用 GetDataFunction。
+    /// </summary>
+    public bool TryGetDataFunction<T>(out T result)
+        where T : class, IDataFeature
+    {
+        if (!Application.isPlaying)
+            RebuildDataFunctionCheck();
+
+        if (_dataFunctionDict.TryGetValue(typeof(T), out var dataFunction))
+        {
+            result = dataFunction as T;
+            return result != null;
+        }
+
+        result = null;
+        return false;
+    }
+
     public T GetDataFunction<T>()
         where T : class, IDataFeature
     {

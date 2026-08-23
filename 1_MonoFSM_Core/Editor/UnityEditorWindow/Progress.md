@@ -3,3 +3,4 @@
 - Shift+V 快捷整合 VarEntity 的「加入 Var」：schema 缺的 VariableTag 置頂可搜尋，選了走 VarEntity.AddVarOfSchemaTag（設 _varTag / _parentVarEntity）；建立後延一帧選取新物件。
 - VarQuickCreate 新增「ValueSource 值來源」候選組：對 Var 按 Alt+V 時列出 value type 對得上的 IValueProvider<T>（FloatLiteralComp 等），建成 Var 子物件靠 _valueSources 的 [AutoChildren] 自動接上，不回填欄位。
 - dropdown item 名字補上型別名（SearchLabel）：[QuickCreate] 把 DisplayName 換成中文後，搜尋打型別名撈不到的問題。
+- Alt+V 改成通則：掃選中節點所有 component 的 [AutoChildren] 欄位（[AutoNested] 往內遞迴）當候選來源，Transition / EventHandler / ValueSource 的 condition 插槽全自動涵蓋，EventHandler 特例程式碼移除；有 Var 時再疊加欄位回填 / ValueSource / Var 三組。

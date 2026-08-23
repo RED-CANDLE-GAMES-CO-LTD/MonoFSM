@@ -155,6 +155,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 Dirty();
                 var full = string.IsNullOrEmpty(parentPath) ? name : $"{parentPath}/{name}";
+                EditBatch.Touch(full);
                 return $"建立 {full}  <{string.Join(", ", added)}>";
             });
         }
@@ -188,6 +189,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 Dirty();
                 var full = string.IsNullOrEmpty(parentPath) ? go.name : $"{parentPath}/{go.name}";
+                EditBatch.Touch(full);
                 return $"放入 {full}  <- res:{prefabPath}";
             });
         }
@@ -471,9 +473,18 @@ namespace MonoFSM.Editor.PrefabEditing
                 case "save":
                     return Save();
                 default:
+                {
+                    var ctx = new EditFsm.Ctx
+                    {
+                        Node = p => EditResolve.NodeInRoots(Roots(Active()), p),
+                        Dirty = Dirty,
+                    };
+                    if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
                         "不認得的操作 '" + verb +
-                        "'。可用的：add prefab comp set ref aref pos active mv idx auto del delcomp save");
+                        "'。可用的：add prefab comp set ref aref addel pos active mv idx auto del delcomp save mark " +
+                        EditFsm.Verbs);
+                }
             }
         }
 

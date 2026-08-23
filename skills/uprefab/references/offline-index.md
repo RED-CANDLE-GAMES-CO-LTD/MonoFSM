@@ -24,12 +24,27 @@ up scope stats
 | 指令 | 用途 |
 |---|---|
 | `index [--rebuild] [-q]` | 預設走 mtime 增量。改了 `indexer.py` 的 schema 要 `--rebuild` |
-| `find [--comp X] [--name Y] [--path Z] [-n N] [--resolve]` | 定位節點，回傳 anchor。條件都是模糊比對。`--resolve` 另外附上可直接餵給 `--node` 的完整路徑（**要 Unity 開著**，見下） |
+| `find [--comp X] [--name Y] [--path Z] [-n N] [--resolve] [--by-asset]` | 定位節點，回傳 anchor。條件都是模糊比對。`--resolve` 另外附上可直接餵給 `--node` 的完整路徑（**要 Unity 開著**，見下）。`--by-asset` 只回分佈 |
 | `guid <token> [-v] [-n N]` | guid ⇄ 資產路徑互查 |
-| `overrides <asset> [-n N] [--all]` | prefab override 稽核 |
+| `overrides <asset> [-n N] [--all] [--by-target]` | prefab override 稽核。`--by-target` 只回分佈 |
 | `scope list \| stats \| init` | `stats` 列出節點數最多的資產，用來決定還要濾掉什麼 |
 
 anchor 格式 `Assets/.../PPlayer.prefab#272130150518276317`，`#` 後是 fileID，對改名穩定。
+
+## 命中很多時先看分佈，不要硬讀
+
+常用的 component 一撈就是幾千筆（`find --comp SetVarBoolAction` 實測 2809 筆），
+逐節點列出是幾十萬字元。**先問「集中在哪」，再對那一個下鑽**：
+
+```bash
+up find --comp SetVarBoolAction --by-asset -n 10   # 哪個資產各幾筆
+up find --comp SetVarBoolAction --path "%PPlayer%" # 再限定範圍逐節點看
+
+up overrides "0_下山逃脫_July_lake.unity" --by-target -n 10   # 改動集中在哪個 instance / 節點
+```
+
+被 `-n` 切掉時表尾會講「50 / 共 2809」—— **看到這行就不要把列出的那幾筆當成全部**
+（「這個 component 只有這幾處用到」這種結論會整個是錯的）。
 
 ## `find --resolve` —— 把命中變成可以直接下鑽的路徑
 

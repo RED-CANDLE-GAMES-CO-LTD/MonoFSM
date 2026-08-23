@@ -339,6 +339,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     }
 
                     var full = string.IsNullOrEmpty(parentPath) ? name : $"{parentPath}/{name}";
+                    EditBatch.Touch(full);
                     return $"建立 {full}  <{EditResolve.Join(added)}>";
                 }
                 case "prefab":
@@ -363,6 +364,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var fullPath = string.IsNullOrEmpty(parentPath)
                         ? nodeName
                         : $"{parentPath}/{nodeName}";
+                    EditBatch.Touch(fullPath);
                     return $"放入 {fullPath}  <- res:{prefabPath}";
                 }
                 case "comp":
@@ -553,9 +555,13 @@ namespace MonoFSM.Editor.PrefabEditing
                         : $"{EditResolve.Describe(nodePath)} -= <{EditResolve.Join(removed)}>";
                 }
                 default:
+                {
+                    var ctx = new EditFsm.Ctx { Node = p => EditResolve.Node(root, p) };
+                    if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref active idx mv auto rename del delcomp" +
-                        "（prefab / pos / save 只有 SceneEdit 有）");
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel pos scale rot active idx mv auto rename del delcomp mark " +
+                        EditFsm.Verbs + "（save 只有 SceneEdit 有）");
+                }
             }
         }
 

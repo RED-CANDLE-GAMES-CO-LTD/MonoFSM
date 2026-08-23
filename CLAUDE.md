@@ -11,6 +11,9 @@
       @MonoFSM/1_MonoFSM_Core/Runtime/Action/AbstractStateAction.cs)
     * Condition,條件實作等，透過繼承 AbstractConditionBehaviour 來實現 (
       @MonoFSM/1_MonoFSM_Core/Runtime/1_Conditions/AbstractConditionBehaviour.c)
+    * 新寫或改動 Action / Condition 時，class 上**一定要有 `/// <summary>`**：第一句就要能獨立看懂用途
+      （`up catalog` 的清單只顯示第一句），寫「什麼時候用它、掛在哪」而不是實作細節；欄位語意不明顯時加
+      `[Tooltip]`。挑既有 component 用 `up catalog`，讀到沒說明的就順手補
 * 用 Debug.Log 來讓我協助測試與除錯
     * Debug.Log 第二個參數記得加上 this，或是需要顯示標記目標對象的Object，方便我點擊訊息後定位到程式碼位置或對象
     * Debug 用的欄位可以加上 Odin 的 ShowInInspector，方便我在 Inspector 中觀察數值變化

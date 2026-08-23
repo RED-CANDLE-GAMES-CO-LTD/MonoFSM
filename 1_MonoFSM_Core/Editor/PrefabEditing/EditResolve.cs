@@ -132,11 +132,99 @@ namespace MonoFSM.Editor.PrefabEditing
             var cursor = root;
             foreach (var seg in SplitPath(path))
             {
-                cursor = FindSegment(cursor, seg);
-                if (cursor == null) return null;
+                var next = FindSegment(cursor, seg) ?? FuzzySegment(cursor, seg);
+                if (next == null) return null;
+                cursor = next;
             }
 
             return cursor;
+        }
+
+        // ---- 自動命名容錯 ----
+
+        /// <summary>
+        /// 自動命名容錯：exact 找不到時，看同層有沒有「明顯是同一顆、只是被改名了」的候選。
+        ///
+        /// 為什麼需要：AbstractDescriptionBehaviour 會在存檔時把節點名改成「當下的描述」，
+        /// 所以上一輪 read 拿到的路徑很容易在下一輪就失效 —— 譯文變了、locale 換了、
+        /// 引用的欄位改了，名字就跟著變。這不是使用者打錯字，硬報錯只是逼對方多跑一次 read。
+        ///
+        /// 判準刻意嚴格，因為誤判的代價是對**錯的節點**下 del / set：
+        ///   1. `[Tag]` 前綴必須完全一致（一邊有一邊沒有也不算） —— `[If] X` 不會配到 `[Action] X`
+        ///   2. 最長共同子序列要佔較長那邊的 70% 以上
+        ///   3. 通過的候選必須恰好一個；兩個以上就回 null，讓呼叫端照原本的方式列候選
+        /// 命中時記一行 note，呼叫端會印出來 —— 靜默對應到別的節點比報錯更難查。
+        /// </summary>
+        private static Transform FuzzySegment(Transform cursor, string seg)
+        {
+            // 有 `[n]` 後綴的本來就是「同名的第幾個」，名字對不上時談不上唯一候選
+            if (string.IsNullOrEmpty(seg) || TrySplitIndexSuffix(seg, out _, out _)) return null;
+
+            var segTag = TagPrefixOf(seg);
+            Transform best = null;
+            foreach (Transform child in cursor)
+            {
+                if (TagPrefixOf(child.name) != segTag) continue;
+                if (Similarity(seg, child.name) < 0.7) continue;
+                if (best != null) return null; // 有兩個像的，不猜
+                best = child;
+            }
+
+            if (best == null) return null;
+
+            Note($"節點 '{seg}' 找不到，自動對應到同層的 '{best.name}'" +
+                 "（自動命名把名字改掉了）。請改用新名字，或用 mark/$label 避免寫死路徑");
+            return best;
+        }
+
+        /// <summary>`[If] Foo` → `[If]`；沒有前綴回空字串。</summary>
+        private static string TagPrefixOf(string name)
+        {
+            if (string.IsNullOrEmpty(name) || name[0] != '[') return "";
+            var close = name.IndexOf(']');
+            return close < 0 ? "" : name.Substring(0, close + 1);
+        }
+
+        /// <summary>最長共同子序列長度 / 較長那邊的長度。名字都不長，DP 的成本可以忽略。</summary>
+        private static double Similarity(string a, string b)
+        {
+            var longer = Math.Max(a.Length, b.Length);
+            if (longer == 0) return 1.0;
+
+            // 只留一列的滾動 DP，避免每個候選都配置 n*m 的表
+            var prev = new int[b.Length + 1];
+            var cur = new int[b.Length + 1];
+            for (var i = 1; i <= a.Length; i++)
+            {
+                for (var j = 1; j <= b.Length; j++)
+                    cur[j] = a[i - 1] == b[j - 1]
+                        ? prev[j - 1] + 1
+                        : Math.Max(prev[j], cur[j - 1]);
+                (prev, cur) = (cur, prev);
+                Array.Clear(cur, 0, cur.Length);
+            }
+
+            return (double)prev[b.Length] / longer;
+        }
+
+        // ---- note sink ----
+        // 解析層發現的「不是錯誤但該讓人知道」的事（目前只有自動命名容錯）。
+        // 呼叫端每跑完一個操作就 Drain 一次；沒人 drain 的路徑（例如唯讀查詢）靠上限自己封頂。
+        private static readonly List<string> Notes = new();
+
+        internal static void Note(string message)
+        {
+            if (Notes.Count >= 20) return;
+            if (!Notes.Contains(message)) Notes.Add(message);
+        }
+
+        /// <summary>取出並清空累積的 note；沒有就回 null。每行都以 `# ` 開頭。</summary>
+        internal static string DrainNotes()
+        {
+            if (Notes.Count == 0) return null;
+            var text = string.Join("\n", Notes.Select(n => "# " + n));
+            Notes.Clear();
+            return text;
         }
 
         internal static Transform FindSegment(Transform cursor, string seg)

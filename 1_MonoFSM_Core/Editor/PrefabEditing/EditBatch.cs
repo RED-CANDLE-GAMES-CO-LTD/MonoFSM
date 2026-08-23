@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace MonoFSM.Editor.PrefabEditing
@@ -29,7 +30,21 @@ namespace MonoFSM.Editor.PrefabEditing
     /// mv|&lt;node&gt;|&lt;newParent&gt;                 換 parent（僅 scene）
     /// del|&lt;node&gt;                            刪節點
     /// save                                  存檔（僅 scene；prefab 每次都自動存）
+    ///
+    /// # FSM 複合操作（一行取代三到四行原語，見 EditFsm）
+    /// state|&lt;folder&gt;|&lt;name&gt;[|&lt;type&gt;]        建 `[State] name`（預設 GeneralState）
+    /// trans|&lt;from&gt;|&lt;to&gt;[|&lt;name&gt;]           建 `[Transition] =&gt; to` 並接上 _target
+    /// if|&lt;node&gt;|&lt;name&gt;|&lt;condType&gt;[|&lt;field&gt;|&lt;target&gt;]  建 `[If] name`，順手接一條引用
+    /// act|&lt;state&gt;|&lt;phase&gt;|&lt;name&gt;|&lt;actionType&gt;         確保 `[Event] On…` 在，掛 `[Action] name`
+    ///
+    /// # 路徑代換
+    /// mark|&lt;label&gt;[|&lt;node&gt;]                 給節點取名；不給 node 就標記上一個操作碰到的節點
     /// </code>
+    ///
+    /// **`$` 代換**：任何參數寫 `$` = 上一個操作碰到的節點，`$label` = `mark` 標過的節點，
+    /// 後面可以再接 `/子路徑`。MonoFSM 的節點路徑很長（`[StateFolder] StateFolder/[State] idle/
+    /// [Event] OnStateEnter/[Action] X`），而 `add` 完緊接著 `ref` 是最常見的組合 ——
+    /// 少了代換，同一條長路徑要在相鄰兩行各寫一次。要寫字面 `$` 就打 `$$`。
     ///
     /// **第一個失敗就停**（回傳的那行以 `# 未修改` 開頭）—— 後面的操作通常依賴前面的結果，
     /// 硬跑下去只會產生一長串誤導性的錯誤。
@@ -38,9 +53,20 @@ namespace MonoFSM.Editor.PrefabEditing
     {
         internal delegate string Apply(string verb, string[] args);
 
+        /// <summary>上一個操作碰到的節點路徑（`$` 代換的來源）。由各 verb 用 Touch() 回報。</summary>
+        private static string _last;
+        private static readonly Dictionary<string, string> Marks = new();
+
+        /// <summary>verb 回報「我建立/操作的是這個節點」，讓下一行可以用 `$` 指回來。</summary>
+        internal static void Touch(string nodePath) => _last = nodePath ?? "";
+
         internal static string Run(string ops, Apply apply)
         {
             if (string.IsNullOrWhiteSpace(ops)) return "# 沒有操作";
+
+            _last = null;
+            Marks.Clear();
+            EditResolve.DrainNotes(); // 上一次跑剩的殘留（唯讀查詢路徑不會 drain）不要算到這次頭上
 
             var lines = ops.Replace("\r\n", "\n").Split('\n');
             var sb = new StringBuilder();
@@ -54,12 +80,13 @@ namespace MonoFSM.Editor.PrefabEditing
                 var parts = line.Split('|');
                 var verb = parts[0].Trim().ToLowerInvariant();
                 var args = new string[parts.Length - 1];
-                for (var j = 1; j < parts.Length; j++) args[j - 1] = parts[j];
 
                 string result;
                 try
                 {
-                    result = apply(verb, args);
+                    for (var j = 1; j < parts.Length; j++) args[j - 1] = Expand(parts[j]);
+                    // mark 只動代換表，不碰資料，所以在這裡處理 —— prefab / scene 兩邊都免費拿到
+                    result = verb == "mark" ? Mark(args) : apply(verb, args);
                 }
                 catch (EditResolve.EditAbort abort)
                 {
@@ -71,6 +98,9 @@ namespace MonoFSM.Editor.PrefabEditing
                 }
 
                 sb.AppendLine($"{i + 1}: {result}");
+                // 解析層的容錯提示（自動命名對應）要跟著那一行出現，不然看不出是哪個操作觸發的
+                var notes = EditResolve.DrainNotes();
+                if (notes != null) sb.AppendLine(notes);
                 if (result.StartsWith("# 未修改"))
                 {
                     sb.AppendLine(
@@ -83,6 +113,52 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             return sb.ToString();
+        }
+
+        // `$`、`$label`、`$/子路徑`、`$label/子路徑`。`${...}` 這種不是識別字的（prompt 的
+        // smart string token）不動，`$$` 是字面 `$` 的跳脫。
+        private static readonly Regex RefRe = new(@"^\$([A-Za-z_][A-Za-z0-9_]*)?(/.*)?$");
+
+        private static string Expand(string arg)
+        {
+            if (string.IsNullOrEmpty(arg) || arg[0] != '$') return arg;
+            if (arg.StartsWith("$$")) return arg.Substring(1);
+
+            var m = RefRe.Match(arg);
+            if (!m.Success) return arg;
+
+            var label = m.Groups[1].Value;
+            string basePath;
+            if (label.Length == 0)
+            {
+                if (_last == null)
+                    throw new EditResolve.EditAbort("`$` 沒有可代換的節點（前面還沒有任何建立/操作節點的操作）");
+                basePath = _last;
+            }
+            else if (!Marks.TryGetValue(label, out basePath))
+            {
+                throw new EditResolve.EditAbort(
+                    $"`${label}` 還沒被 mark 過。已有的：{(Marks.Count == 0 ? "(無)" : string.Join(", ", Marks.Keys))}");
+            }
+
+            var rest = m.Groups[2].Value; // 含開頭的 '/'
+            if (rest.Length == 0) return basePath;
+            return basePath.Length == 0 ? rest.Substring(1) : basePath + rest;
+        }
+
+        private static string Mark(string[] args)
+        {
+            var label = Need(args, 0, "mark", "label");
+            var path = At(args, 1);
+            if (path == null)
+            {
+                if (_last == null)
+                    throw new EditResolve.EditAbort("`mark` 沒有 node 參數時要接在一個建立/操作節點的操作後面");
+                path = _last;
+            }
+
+            Marks[label] = path;
+            return $"${label} = {EditResolve.Describe(path)}";
         }
 
         /// <summary>args[i] 取值，超出範圍或空字串就回 null（讓選填參數走預設）。</summary>

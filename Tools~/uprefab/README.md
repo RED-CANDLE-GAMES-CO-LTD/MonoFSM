@@ -24,14 +24,20 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 
 up index                        # 建立/更新索引（增量）
 up find --comp GrabSlotHolder
+up find --comp SetVarBoolAction --by-asset      # 命中幾千筆時先看分佈
 up overrides PPlayer.prefab
+up overrides 主場景.unity --by-target            # override 集中在哪個 instance / 節點
 up scope stats
 
 up prefab read "Assets/…/X.prefab" --node "[StateFolder] StateFolder"
+up prefab peek "Assets/…/X.prefab" --node "…/[Transition] => spawn" \
+    --comp TransitionBehaviour --members _target,_conditions   # 只要幾個欄位，別讀整棵
 up obj "[名稱](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-…)"   # 貼 scene 物件連結
 up obj "<連結>" --locate                                    # 只要節點路徑 + component 清單
 up refs "Assets/…/X.prefab" --node "…/[Var] Durability"    # 誰指向它（--out = 它指向誰）
 up scene do "add||Spawner|MonoEntity,MonoObj" "auto|Spawner" "save"
+up prefab do "Assets/…/FSM.prefab" "state|[StateFolder] StateFolder|spawn" \
+    "act|$|enter|Spawn|SpawnAction"          # FSM 複合操作 + `$` 代換上一個節點
 up scene count --name 測試資源 --sample 3
 up effect-trace "Zone Arrive Trigger 找到火車 Variant"      # receiver 沒觸發，卡在哪一段（Play Mode）
 
@@ -49,6 +55,9 @@ up prompt "Assets/…/X.prefab" --var "…/[Getter] d_ Select Text Prompt 文字
 
 索引在 repo root 的 `.uprefab.db`（已 gitignore，隨時可重建）。
 實測 5323 個資產全量 25 秒、增量 3 秒、查詢 0.12 秒。
+
+寫入的批次 DSL 支援 `$` / `$label` 路徑代換與 `state` / `trans` / `if` / `act` 複合操作 ——
+一份 FSM 從純原語的 1.5KB 降到 0.8KB，差的全是重複的長路徑。
 
 `prefab read` 預設會依 `--budget`（20000 字元）自動摺到塞得進的那一層，
 檔頭寫下摺在第幾層、下一層要多少字元，再用 `--node` 下鑽。

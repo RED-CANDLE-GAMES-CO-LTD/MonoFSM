@@ -80,6 +80,20 @@ namespace MonoFSM.Editor.PrefabEditing
             return sb.ToString();
         }
 
+        /// <summary>型別上所有 serialize 欄位的名稱（含繼承來的，子類優先）。</summary>
+        private static List<string> SerializedNames(Type type)
+        {
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
+                                       BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+            var names = new List<string>();
+            var seen = new HashSet<string>();
+            for (var t = type; t != null && t != typeof(MonoBehaviour); t = t.BaseType)
+                foreach (var f in t.GetFields(flags))
+                    if (IsSerialized(f) && seen.Add(f.Name))
+                        names.Add(f.Name);
+            return names;
+        }
+
         private static bool IsSerialized(FieldInfo f)
         {
             if (f.IsStatic || f.IsLiteral) return false;
@@ -123,17 +137,65 @@ namespace MonoFSM.Editor.PrefabEditing
                 return $"# {abort.Message}";
             }
 
+            return Dump(comp,
+                $"{nodePath}.{comp.GetType().Name}  [{(Application.isPlaying ? "PlayMode" : "EditMode")}]",
+                members, serializedByDefault: false);
+        }
+
+        /// <summary>
+        /// 讀 prefab asset 上某個節點某個 component 的欄位值 —— 不進 Play Mode、不載整棵子樹。
+        ///
+        /// 為什麼跟 Peek 分開：`prefab read` 的最小單位是「一整顆子樹摺疊輸出」（實測平均
+        /// 6.4KB），而最常問的其實是「那條 ref 到底接上了沒」。同一個問題走這裡是 ~100 字元。
+        /// members 留空 = 列出這顆 component 的 serialize 欄位（不是 public 屬性 —— asset
+        /// 上沒跑過任何 runtime 邏輯，屬性大半是空的或會炸）。
+        /// </summary>
+        public static string PeekAsset(
+            string assetPath, string nodePath, string componentType, string members = null)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+            if (asset == null) return $"# 找不到 prefab: {assetPath}";
+
+            Component comp;
+            try
+            {
+                var node = string.IsNullOrEmpty(nodePath)
+                    ? asset.transform
+                    : EditResolve.TryNode(asset.transform, nodePath);
+                if (node == null)
+                    return EditResolve.DescribeChildren(asset.transform, nodePath);
+                comp = EditResolve.Comp(node, nodePath, componentType);
+            }
+            catch (EditResolve.EditAbort abort)
+            {
+                return $"# {abort.Message}";
+            }
+
+            return Dump(comp, $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}  [asset]",
+                members, serializedByDefault: true);
+        }
+
+        /// <summary>
+        /// 印出 component 上指定成員的值。members 留空時：serializedByDefault = 走反射看
+        /// serialize 欄位（asset 用），否則列 public 屬性（runtime 用）。
+        /// </summary>
+        private static string Dump(
+            Component comp, string header, string members, bool serializedByDefault)
+        {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
                                        BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
             var type = comp.GetType();
-            var sb = new StringBuilder(
-                $"{nodePath}.{type.Name}  [{(Application.isPlaying ? "PlayMode" : "EditMode")}]\n");
+            var sb = new StringBuilder(header + "\n");
 
-            var names = string.IsNullOrEmpty(members)
-                ? type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+            List<string> names;
+            if (!string.IsNullOrEmpty(members))
+                names = members.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
+            else if (serializedByDefault)
+                names = SerializedNames(type);
+            else
+                names = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
                     .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
-                    .Select(p => p.Name).ToList()
-                : members.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
+                    .Select(p => p.Name).ToList();
 
             foreach (var name in names)
             {

@@ -17,22 +17,24 @@ using UnityEngine;
 namespace MonoFSM.Core.Editor.VarQuickCreate
 {
     /// <summary>
-    ///     選中一個 Var 節點（VarBool / VarFloat / …）按 Alt+V，跳出帶搜尋的 dropdown 列出所有
-    ///     「有欄位可以指向這個 Var 型別」的 Action / Condition / Getter，
-    ///     選一個就在該 Var 底下生成新 GameObject、掛上元件、把引用指回這個 Var 並 Rename。
-    ///     清單是反射掃出來的，新寫的 Action / Condition 會自動出現，不需要維護白名單。
+    ///     選中任何節點按 Alt+V，跳出帶搜尋的 dropdown 列出「這個節點底下可以掛什麼」，選一個就生成子
+    ///     GameObject、掛上元件並 Rename。
+    ///     主要來源是節點上各 component 用 [AutoChildren] 宣告的欄位 —— 那就是它期待底下掛什麼的白名單，
+    ///     所以 Transition / EventHandler 的 _conditions、AbstractGetter 的 _conditionGroup（[AutoNested]
+    ///     會再往裡面找一層）、_eventReceivers、_renderActions 全都自動涵蓋，建完不用回填欄位，
+    ///     AutoAttributeManager 會把子物件抓進去。新寫的 Action / Condition 會自動出現，不需要維護白名單。
+    ///     節點上有 Var（VarBool / VarFloat / …）時額外多三組：
+    ///     1. 有欄位可以指向這個 Var 型別的 Action / Condition / Getter（建立時順便把引用指回來）
+    ///     2. 「ValueSource 值來源」—— value type 對得上的 provider（FloatLiteralComp 這種常數來源），
+    ///     建成子物件被 _valueSources 的 [AutoChildren] 抓走
+    ///     3. 「Var 變數」—— 所有 AbstractMonoVariable 子類別，容器類（VariableFolder / VarEntity）建成子物件，
+    ///     其他 Var 建成 sibling；VarEntity 還會把 EntityTag 宣告了但沒生出來的 Var 置頂
     ///     要把常用的排到置頂區就在型別上標 [QuickCreate]（或 Condition 用既有的 [ConditionPreset]）。
-    ///     選中的是 AbstractEventHandler（OnStateEnter / OnPointerClick 之類）時，改列出所有 AbstractStateAction
-    ///     子類別直接建成子物件（會被 handler 的 _eventReceivers 抓到，不需要指欄位）。
-    ///     清單裡還會多一組「ValueSource 值來源」，列出 value type 對得上的 provider（FloatLiteralComp 這種
-    ///     常數來源、算式 getter），建成 Var 底下的子物件被 _valueSources 的 [AutoChildren] 抓走，不指欄位。
-    ///     清單裡還會多一組「Var 變數」，列出所有 AbstractMonoVariable 子類別：
-    ///     選中的是 VariableFolder / VarEntity（容器類）時建成子物件，其他 Var 則建成 sibling（同一個 folder 下）。
     /// </summary>
     public static class VarQuickCreateShortcut
     {
         private const string LogTag = "[VarQuickCreate]";
-        private const string TopCategory = "★ 常用";
+        private const int MaxCandidatesPerSlot = 500;
         private const string ValueSourceKind = "ValueSource 值來源";
 
         //預設 Alt+V，可在 Edit/Shortcuts 裡改鍵
@@ -52,91 +54,43 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 return;
             }
 
-            //VarFolder 上沒有 Var 元件，只列 Var 候選、建成子物件
+            //主清單：這個節點上的 component 用 [AutoChildren] 宣告了「底下期待掛什麼」，那就是能建的東西
+            var candidates = new List<Candidate>(CollectAutoChildrenCandidates(go));
+
+            //節點上有 Var，再加上「有欄位指向這個 Var」的消費者、Var 的 value source、以及 Var 自己
+            var variable = go.GetComponent<AbstractMonoVariable>();
             var folder = go.GetComponent<VariableFolder>();
-            if (folder != null && go.GetComponent<AbstractMonoVariable>() == null)
+            var varParent = go.transform;
+            if (variable != null)
             {
-                ShowDropdown(
-                    folder.transform,
-                    $"{folder.GetType().Name}　{folder.name}",
-                    null,
-                    GetVarCandidates(),
-                    folder.transform
-                );
-                return;
+                candidates.AddRange(GetCandidates(variable.GetType()));
+                candidates.AddRange(GetVarCandidates());
+                //VarEntity / VariableFolder 這種容器類，新 Var 掛在它底下才會被當成它的 property
+                var isVarContainer = variable is VarEntity || folder != null;
+                if (!isVarContainer && go.transform.parent != null)
+                    varParent = go.transform.parent; //其他 Var → sibling
+                //VarEntity 的 schema 缺項置頂（跟 inspector 的「加入 Var」同一份來源），可直接搜尋 tag 名字
+                if (variable is VarEntity schemaEntity)
+                    candidates.InsertRange(0, CollectSchemaCandidates(schemaEntity));
+            }
+            else if (folder != null)
+            {
+                candidates.AddRange(GetVarCandidates());
             }
 
-            //EventHandler 模式：沒有 Var 可指，單純列出所有 Action 建成子物件
-            var handler = go.GetComponent<AbstractEventHandler>();
-            if (handler != null)
-            {
-                var eventChildCandidates = GetEventChildCandidates();
-                if (eventChildCandidates.Count == 0)
-                {
-                    Debug.LogWarning(
-                        $"{LogTag} 找不到任何 AbstractStateAction / AbstractConditionBehaviour 子類別",
-                        go
-                    );
-                    return;
-                }
-
-                ShowDropdown(
-                    handler.transform,
-                    $"{handler.GetType().Name}　{handler.name}",
-                    null,
-                    eventChildCandidates,
-                    handler.transform
-                );
-                return;
-            }
-
-            //一個節點上理論上只掛一個 Var，多掛時取第一個
-            var variables = go.GetComponents<AbstractMonoVariable>();
-            if (variables.Length == 0)
+            if (candidates.Count == 0)
             {
                 Debug.LogWarning(
-                    $"{LogTag} {go.name} 上沒有 Var 元件（AbstractMonoVariable）或 AbstractEventHandler",
+                    $"{LogTag} {go.name} 上沒有任何 [AutoChildren] 欄位、Var 或 VariableFolder，沒有候選可列",
                     go
                 );
                 return;
             }
 
-            var variable = variables[0];
-            if (variables.Length > 1)
-                Debug.LogWarning(
-                    $"{LogTag} {go.name} 上有 {variables.Length} 個 Var，只處理第一個 {variable.GetType().Name}",
-                    variable
-                );
-
-            var varType = variable.GetType();
-            //Var 候選一律附在後面（自己是容器類就建 child，否則建 sibling）
-            var candidates = new List<Candidate>(GetCandidates(varType));
-            candidates.AddRange(GetVarCandidates());
-            if (candidates.Count == 0)
-            {
-                Debug.LogWarning($"{LogTag} 找不到任何可以指向 {varType.Name} 的 Action / Condition", go);
-                return;
-            }
-
-            //VarEntity 的 schema 缺項置頂（跟 inspector 的「加入 Var」同一份來源），可直接搜尋 tag 名字
-            if (variable is VarEntity schemaEntity)
-                candidates.InsertRange(0, CollectSchemaCandidates(schemaEntity));
-
-            //VarEntity 這種容器類 Var，新 Var 掛在它底下才會被當成它的 property
-            var isVarContainer = variable is VarEntity || go.GetComponent<VariableFolder>() != null;
-            var varParent = isVarContainer
-                ? variable.transform
-                : variable.transform.parent; //其他 Var → sibling
-            if (varParent == null)
-                varParent = variable.transform;
-
-            ShowDropdown(
-                variable.transform,
-                $"{variable.GetType().Name}　{variable.name}",
-                variable,
-                candidates,
-                varParent
-            );
+            var header = variable != null
+                ? $"{variable.GetType().Name}　{variable.name}"
+                : go.name;
+            ShowDropdown(go.transform, header, variable, candidates, varParent);
         }
 
         #region Dropdown UI
@@ -415,9 +369,6 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
         private static readonly Dictionary<Type, List<Candidate>> _cacheByVarType = new();
 
-        //EventHandler 子物件候選跟目標無關，全域只有一份
-        private static List<Candidate> _eventChildCandidatesCache;
-
         //Var 候選也跟目標無關
         private static List<Candidate> _varCandidatesCache;
 
@@ -425,8 +376,140 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
         private static void ResetCache()
         {
             _cacheByVarType.Clear();
-            _eventChildCandidatesCache = null;
+            _candidatesByTargetType.Clear();
             _varCandidatesCache = null;
+        }
+
+        //同一個 TargetType 的候選清單只算一次
+        private static readonly Dictionary<Type, List<Candidate>> _candidatesByTargetType = new();
+
+        /// <summary>[AutoChildren] 宣告的一個「子物件插槽」</summary>
+        private class ChildSlot
+        {
+            public string FieldPathName; //"_eventReceivers" / "_conditionFolder._conditions"
+            public Type TargetType; //LimitedType ?? 欄位（元素）型別
+
+            public string Kind => $"{TargetType.Name}（{FieldPathName}）";
+        }
+
+        /// <summary>
+        ///     這個節點上所有 component 的 [AutoChildren] 欄位，就是「在這個節點底下建子物件會被誰抓走」的宣告，
+        ///     所以拿它們的目標型別當候選來源，建完不用回填欄位（AutoAttributeManager 會抓）。
+        ///     [AutoNested] 的欄位往裡面遞迴一層層找（ConditionGroup._conditions 這種）。
+        ///     一個 TargetType 只留一組（多個 component 宣告同一種時候選內容一樣）。
+        /// </summary>
+        private static List<Candidate> CollectAutoChildrenCandidates(GameObject go)
+        {
+            var slots = new Dictionary<Type, ChildSlot>();
+            //有 Var 的話 IValueProvider 那組交給 CollectValueSourceCandidates 依 value type 收窄，
+            //不然 _valueSources 會把所有 provider（含每個 Condition）都倒出來
+            var narrowedByVar = go.GetComponent<AbstractMonoVariable>() != null;
+            foreach (var comp in go.GetComponents<Component>())
+            {
+                if (comp == null) //missing script
+                    continue;
+                ScanChildSlots(comp.GetType(), "", 0, slots, narrowedByVar);
+            }
+
+            var list = new List<Candidate>();
+            foreach (var slot in slots.Values)
+                list.AddRange(GetCandidatesOfTargetType(slot));
+            return list;
+        }
+
+        private static void ScanChildSlots(
+            Type type,
+            string prefix,
+            int depth,
+            Dictionary<Type, ChildSlot> slots,
+            bool narrowedByVar
+        )
+        {
+            if (type == null || depth > 3) //跟 AutoNested 的 maxDepth 一致
+                return;
+
+            foreach (var f in EnumerateFields(type))
+            {
+                var autoChildren = f.GetCustomAttribute<AutoChildrenAttribute>();
+                if (autoChildren != null)
+                {
+                    var target = ResolveSlotTargetType(f, autoChildren);
+                    if (target == null || slots.ContainsKey(target))
+                        continue;
+                    //IValueProvider 太寬（所有 Var / Condition 都是），有 Var 就走收窄過的那組
+                    if (narrowedByVar && target == typeof(IValueProvider))
+                        continue;
+                    slots.Add(target, new ChildSlot
+                    {
+                        FieldPathName = prefix + f.Name,
+                        TargetType = target,
+                    });
+                    continue;
+                }
+
+                if (f.GetCustomAttribute<AutoNestedAttribute>() != null)
+                    ScanChildSlots(f.FieldType, prefix + f.Name + ".", depth + 1, slots,
+                        narrowedByVar);
+            }
+        }
+
+        /// <summary>陣列 / List 取元素型別，[AutoChildren(LimitedType = ...)] 優先（那才是真正要撈的型別）</summary>
+        private static Type ResolveSlotTargetType(FieldInfo f, AutoChildrenAttribute attr)
+        {
+            if (attr.LimitedType != null)
+                return attr.LimitedType;
+
+            var t = f.FieldType;
+            if (t.IsArray)
+                t = t.GetElementType();
+            else if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(List<>))
+                t = t.GetGenericArguments()[0];
+
+            if (t == null)
+                return null;
+            //要能掛在 GameObject 上才建得出來（interface 型別的實作者稍後再過濾）
+            if (!t.IsInterface && !typeof(Component).IsAssignableFrom(t))
+                return null;
+            return t;
+        }
+
+        private static List<Candidate> GetCandidatesOfTargetType(ChildSlot slot)
+        {
+            if (_candidatesByTargetType.TryGetValue(slot.TargetType, out var cached))
+                return cached;
+
+            var types = new List<Type>();
+            foreach (var t in TypeCache.GetTypesDerivedFrom(slot.TargetType))
+            {
+                if (t.IsAbstract)
+                    continue;
+                //interface 的實作者可能不是 Component，那就掛不上去
+                if (!typeof(MonoBehaviour).IsAssignableFrom(t))
+                    continue;
+                types.Add(t);
+            }
+
+            var list = new List<Candidate>();
+            //型別太泛的 slot（MonoObj[] 這種）會倒出上千個選項把 dropdown 塞爆，選了也不會是想要的
+            if (types.Count > MaxCandidatesPerSlot)
+            {
+                Debug.Log(
+                    $"{LogTag} {slot.FieldPathName} 的目標型別 {slot.TargetType.Name} 有 {types.Count} 個子類別，"
+                    + $"超過 {MaxCandidatesPerSlot} 不列入清單"
+                );
+                _candidatesByTargetType[slot.TargetType] = list;
+                return list;
+            }
+
+            AddPlainCandidates(list, types);
+            foreach (var c in list)
+                c.Kind = slot.Kind;
+            list = list
+                .OrderByDescending(c => c.Priority)
+                .ThenBy(c => c.DisplayName)
+                .ToList();
+            _candidatesByTargetType[slot.TargetType] = list;
+            return list;
         }
 
         /// <summary>所有具體的 AbstractMonoVariable 子類別，建成 child / sibling，沒有欄位要回填</summary>
@@ -443,34 +526,6 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 .ThenBy(c => c.DisplayName)
                 .ToList();
             return _varCandidatesCache;
-        }
-
-        private static List<Candidate> GetEventChildCandidates()
-        {
-            if (_eventChildCandidatesCache != null)
-                return _eventChildCandidatesCache;
-            _eventChildCandidatesCache = CollectEventChildCandidates();
-            return _eventChildCandidatesCache;
-        }
-
-        /// <summary>
-        ///     EventHandler 模式：所有具體的 AbstractStateAction（被 _eventReceivers 抓）與
-        ///     AbstractConditionBehaviour（被 _conditionFolder 抓），兩者都是 depth-one 子物件自動接上，
-        ///     沒有欄位要回填，所以也不收 method 級的 [QuickCreate] / [ConditionPreset] preset
-        ///     （那些是設計給「指定回填哪個 Var 欄位」用的）。class 級 [QuickCreate] 只拿來做常用排序。
-        ///     KindOf 會把兩者分到不同組，dropdown 依 Kind 分組時自然分開顯示。
-        /// </summary>
-        private static List<Candidate> CollectEventChildCandidates()
-        {
-            var list = new List<Candidate>();
-            AddPlainCandidates(list, TypeCache.GetTypesDerivedFrom<AbstractStateAction>());
-            AddPlainCandidates(list, TypeCache.GetTypesDerivedFrom<AbstractConditionBehaviour>());
-
-            return list.OrderBy(c => c.SortKey)
-                .ThenByDescending(c => c.Priority)
-                .ThenBy(c => c.Kind)
-                .ThenBy(c => c.DisplayName)
-                .ToList();
         }
 
         /// <summary>不指欄位的候選：只用 class 級 [QuickCreate] 做常用排序</summary>

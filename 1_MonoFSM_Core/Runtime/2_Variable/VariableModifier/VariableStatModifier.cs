@@ -15,17 +15,6 @@ namespace MonoFSM.Variable
         [AutoParent]
         private IConditionChangeListener _inParent; //遠遠的註冊就沒有這個？還是註冊時assign
 
-        //還是用Variable比較好，可以被UI顯示？
-        // [BoxGroup("Target")] public VariableFloatProvider _targetStatProvider;
-
-        // [BoxGroup("Modifier")] [CompRef] [Auto]
-        // public VarFloatProviderRef _valueProvider; //FIXME: 不該用這個ㄅ？
-
-        // [Required]
-        // [BoxGroup("Modifier")] [CompRef] [Auto]
-        // private IValueProvider<float>
-        //     _floatProvider; //來源
-
         [BoxGroup("Modifier")]
         [SerializeField]
         [ValidateInput(nameof(ValidateValueVarNotAncestor),
@@ -66,9 +55,19 @@ namespace MonoFSM.Variable
 
         private string sign => FinalValue >= 0 ? "+" : "-"; //這個是用來顯示的
 
-        //只有指向 VarFloat 時才顯示來源名稱，否則常數值會和 ValueDescription 重複顯示（"1 +1"）
-        public override string Description =>
-            _valueVarRef._var != null ? _valueVarRef._var.name + " " + ValueDescription : ValueDescription;
+        //有指向 VarFloat 時把來源值和 multiplier 攤開成公式（"MaxHP(25) x1.5 → +37.5"），
+        //否則常數值會和 ValueDescription 重複顯示（"1 +1"），只印結果
+        public override string Description
+        {
+            get
+            {
+                if (_valueVarRef._var == null)
+                    return ValueDescription;
+                var multiplierPart =
+                    Mathf.Approximately(_valueMultiplier, 1f) ? "" : $" x{_valueMultiplier}";
+                return $"{_valueVarRef._var.name}({_valueVarRef.Value}){multiplierPart} → {ValueDescription}";
+            }
+        }
 
         [ShowInInspector]
         private string ValueDescription =>

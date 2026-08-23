@@ -97,13 +97,22 @@ def cmd_scope(args, root, cfg):
 
 def cmd_find(args, root, cfg):
     con = indexer.connect(root)
-    rows = query.find(
-        con,
-        comp=_like(args.comp),
-        name=_like(args.name),
-        path=_like(args.path),
-        limit=args.limit,
-    )
+    where = dict(comp=_like(args.comp), name=_like(args.name), path=_like(args.path))
+
+    if args.by_asset:
+        groups = query.find_by_asset(con, limit=args.limit, **where)
+        if not groups:
+            print("(no match)")
+            return
+        for apath, count in groups:
+            print(f"{count:5d}  {apath}")
+        total, assets = query.find_totals(con, **where)
+        shown = sum(c for _, c in groups)
+        more = f"（列出最多的 {len(groups)} 個 = {shown} 筆）" if assets > len(groups) else ""
+        print(f"\n{total} match(es) 分佈在 {assets} 個資產{more}")
+        return
+
+    rows = query.find(con, limit=args.limit, **where)
     if not rows:
         print("(no match)")
         return
@@ -123,6 +132,15 @@ def cmd_find(args, root, cfg):
                 print(f"    --node {payload}" + (f"   [{how}]" if how else ""))
             else:
                 print(f"    ✗ anchor 解不開：{payload}")
+
+    # 命中被 limit 切掉時一定要講 —— 只印「50 match(es)」會被讀成「總共就這些」，
+    # 接著做的分析（「這個 component 只有這幾處用到」）就整個是錯的
+    if len(rows) >= args.limit:
+        total = query.find_count(con, **where)
+        if total > len(rows):
+            print(f"\n{len(rows)} / 共 {total} match(es) —— 被 -n {args.limit} 切掉了。"
+                  f"用 --by-asset 看分佈，或縮小條件")
+            return
     print(f"\n{len(rows)} match(es)")
 
 
@@ -236,6 +254,9 @@ def cmd_guid(args, root, cfg):
 
 def cmd_overrides(args, root, cfg):
     con = indexer.connect(root)
+    if args.by_target:
+        _overrides_by_target(args, con)
+        return
     # 雜訊會被摺疊成一行計數，所以先多撈一些再過濾
     rows = query.overrides(con, _like(args.asset), limit=args.limit * 20)
     if not rows:
@@ -273,7 +294,39 @@ def cmd_overrides(args, root, cfg):
     flush_noise()
 
     tail = f"（另有 {noise} 筆特效/曲線欄位已摺疊）" if noise and not args.all else ""
-    print(f"\n{shown} override(s) {tail}")
+    total = query.overrides_count(con, _like(args.asset), noise=args.all)
+    head = f"{shown} / 共 {total}" if total > shown else str(shown)
+    cut = f"（-n {args.limit} 切掉了，用 --by-target 看分佈）" if total > shown else ""
+    print(f"\n{head} override(s){cut}{tail}")
+
+
+def _overrides_by_target(args, con):
+    """只看分佈：一份大場景動輒幾千筆 override，逐欄位列出會是幾十萬字元。
+
+    先看「改動集中在哪個 instance / 哪個節點」，再用 -n 對那一個下鑽，才是划算的順序。
+    """
+    rows = query.overrides_by_target(con, _like(args.asset), limit=args.limit,
+                                     noise=args.all)
+    if not rows:
+        print("(no overrides)")
+        return
+    # SQL 是照筆數排的（要挑出最熱的那幾組），但同一個 instance 的列要黏在一起才讀得懂，
+    # 所以這裡照「該 instance 的最高筆數」重排一次
+    hot = {}
+    for apath, ifid, _src, _tpath, count in rows:
+        key = (apath, ifid)
+        hot[key] = max(hot.get(key, 0), count)
+    rows = sorted(rows, key=lambda r: (-hot[(r[0], r[1])], r[0], r[1], -r[4]))
+
+    cur_inst = None
+    for apath, ifid, src, tpath, count in rows:
+        if (apath, ifid) != cur_inst:
+            cur_inst = (apath, ifid)
+            print(f"\n{query.anchor(apath, ifid)}  ← {src or '(source 未索引)'}")
+        print(f"  {count:5d}  @ {tpath or '(root)'}")
+    total = query.overrides_count(con, _like(args.asset), noise=args.all)
+    print(f"\n共 {total} override(s)"
+          f"（顯示 override 數最多的 {len(rows)} 組 instance×節點）")
 
 
 # ---- 需要 Unity 開著的指令（走 uloop） ----
@@ -333,6 +386,10 @@ def cmd_prefab(args, root, cfg):
         print(unity.call(f"{PREFAB}.CopyAsset", args.asset, args.out, args.name))
     elif args.action == "read":
         _prefab_read(args, root)
+    elif args.action == "peek":
+        if not args.comp:
+            raise SystemExit("peek 要 --comp <component 型別>")
+        print(unity.call(f"{PROBE}.PeekAsset", args.asset, args.node, args.comp, args.members))
     elif args.action == "do":
         print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args)))
 
@@ -428,11 +485,135 @@ def cmd_refs(args, root, cfg):
         print(unity.call(f"{REFS}.SceneRefs", args.node, args.comp, args.out, args.limit))
 
 
+FSM_KINDS = ("action", "condition", "render", "handler", "getter", "var")
+
+CATALOG_KINDS = {"action": "Action", "condition": "Condition",
+                 "render": "RenderBehaviour", "handler": "EventHandler",
+                 "getter": "Getter / ValueSource", "var": "Var",
+                 "so": "ScriptableObject"}
+
+
+def _fmt_fields(raw: str, verbose=False) -> list[str]:
+    """欄位壓成一行；[Auto] 系列標出來（那些不用在 prefab 上手填）。"""
+    try:
+        fields = json.loads(raw or "[]")
+    except json.JSONDecodeError:
+        return []
+    if not fields:
+        return []
+    if verbose:
+        out = []
+        for f in fields:
+            auto = f"[{f['auto']}] " if f["auto"] else ""
+            tip = f"  — {f['tip']}" if f["tip"] else ""
+            out.append(f"    {auto}{f['name']}: {f['type']}{tip}")
+        return out
+    parts = []
+    for f in fields:
+        auto = f"[{f['auto']}]" if f["auto"] else ""
+        parts.append(f"{auto}{f['name']}:{f['type']}")
+    return ["    " + "  ".join(parts)]
+
+
+def _first_sentence(text: str, limit=100) -> str:
+    """清單模式只給第一句 —— 完整說明用 --type / -v 看。"""
+    m = re.search(r"^(.{10,%d}?[。．.！!？?])\s" % limit, text + " ")
+    head = m.group(1) if m else text
+    if len(head) > limit:
+        head = head[:limit].rstrip() + "…"
+    return head
+
+
+def _print_catalog_row(row, verbose=False, show_path=False):
+    cls, path, kind, bases, is_abs, is_obs, summary, has_doc, fields = row
+    head = cls
+    if is_abs:
+        head += " (abstract)"
+    if is_obs:
+        head += " ⛔Obsolete"
+    if summary:
+        mark = "" if has_doc else " ~"  # ~ = 只有 // 註解，不是正式 doc
+        body = summary if verbose else _first_sentence(summary)
+        print(f"{head} ─{mark} {body}")
+    else:
+        print(f"{head} ⚠無說明  {path}")
+    if verbose:
+        print(f"    <{bases}>  {path}")
+    elif show_path and summary:
+        print(f"    {path}")
+    for line in _fmt_fields(fields, verbose):
+        print(line)
+
+
+def cmd_catalog(args, root, cfg):
+    """列 Action / Condition 等型別的用途與欄位，免得為了挑 component 去讀 .cs。"""
+    con = indexer.connect(root)
+    if con.execute("SELECT COUNT(*) FROM catalog").fetchone()[0] == 0:
+        raise SystemExit("# catalog 是空的 —— 先跑 `up index`")
+
+    if args.type:
+        row = query.catalog_one(con, args.type)
+        if not row:
+            _, rows = query.catalog_list(con, keyword=args.type, include_abstract=True, limit=15)
+            if not rows:
+                raise SystemExit(f"# 沒有叫 '{args.type}' 的型別（名稱要跟檔名一致）")
+            print(f"# 沒有精確叫 '{args.type}' 的型別，名稱相近的：")
+            for r in rows:
+                _print_catalog_row(r)
+            return
+        _print_catalog_row(row, verbose=True)
+        return
+
+    # `all` = 所有掛在 FSM 節點上的東西；ScriptableObject 數量級差一位數
+    # 又多半是第三方 asset，要看得明確指定 `so`
+    kinds = None if args.kind != "all" else FSM_KINDS
+    kind = None if args.kind == "all" else args.kind
+    total, rows = query.catalog_list(
+        con, kind=kind, kinds=kinds, keyword=args.keyword, missing=args.missing,
+        include_abstract=args.abstract, include_obsolete=args.obsolete,
+        limit=args.limit)
+    label = CATALOG_KINDS.get(kind, "FSM 節點型別")
+    scope = f"{label}"
+    if args.keyword:
+        scope += f" 含 '{args.keyword}'"
+    if args.missing:
+        scope += "（缺說明）"
+    shown = f"，顯示 {len(rows)}" if len(rows) < total else ""
+    print(f"# {scope}：{total} 個{shown}")
+    for r in rows:
+        _print_catalog_row(r, verbose=args.verbose, show_path=args.path)
+    if len(rows) < total:
+        print(f"# … 還有 {total - len(rows)} 個，用 --limit 或加關鍵字縮小")
+
+
 def cmd_types(args, root, cfg):
     print(unity.call(f"{PROBE}.Types", args.keyword, args.limit))
 
 
 def cmd_fields(args, root, cfg):
+    """Unity 端的欄位真值，前面補上離線 catalog 的用途說明與欄位 tooltip。
+
+    只有型別名與欄位名時常常還是不知道要填什麼，說明與 [Tooltip] 才是關鍵，
+    但那些只存在 .cs 裡 —— 這裡一起吐出來，省掉再去 Read 一次原始碼。
+    欄位清單由 Unity 段負責，這裡只補它沒有的語意，不重印一遍。
+    """
+    try:
+        row = query.catalog_one(indexer.connect(root), args.type)
+    except Exception:
+        row = None
+    if row:
+        cls, path, kind, bases, is_abs, is_obs, summary, has_doc, fields = row
+        print(f"# {cls}{' ⛔Obsolete' if is_obs else ''} <{bases}>  {path}")
+        if summary:
+            print(f"# {summary}")
+        else:
+            print("# ⚠ 這個型別沒有 /// summary —— 讀完原始碼後請順手補一行")
+        for f in json.loads(fields or "[]"):
+            if f["tip"] or f["auto"]:
+                auto = f"[{f['auto']}] " if f["auto"] else ""
+                tip = f" — {f['tip']}" if f["tip"] else ""
+                print(f"#   {auto}{f['name']}{tip}")
+        print()
     print(unity.call(f"{PROBE}.Fields", args.type, not args.own))
 
 
@@ -532,6 +713,8 @@ def main() -> None:
     pf.add_argument("--name", help="GameObject 名稱")
     pf.add_argument("--path", help="資產路徑")
     pf.add_argument("-n", "--limit", type=int, default=50)
+    pf.add_argument("--by-asset", action="store_true",
+                    help="只回「哪個資產各幾筆」的分佈，不逐節點列出")
     pf.add_argument(
         "--resolve",
         action="store_true",
@@ -549,6 +732,8 @@ def main() -> None:
     po.add_argument("asset", help="資產路徑（模糊比對）")
     po.add_argument("-n", "--limit", type=int, default=200)
     po.add_argument("--all", action="store_true", help="不摺疊特效/曲線等雜訊欄位")
+    po.add_argument("--by-target", action="store_true",
+                    help="只回「哪個 instance / 哪個節點各幾筆 override」的分佈，不列出欄位")
     po.set_defaults(fn=cmd_overrides)
 
     # ---- 需要 Unity 開著 ----
@@ -570,9 +755,12 @@ def main() -> None:
     pc.set_defaults(fn=cmd_scene)
 
     pp = sub.add_parser("prefab", help="對 prefab asset 讀 / 寫（需要 Unity）")
-    pp.add_argument("action", choices=["read", "do", "variant", "copy"])
+    pp.add_argument("action", choices=["read", "peek", "do", "variant", "copy"])
     pp.add_argument("asset", help="prefab asset path")
-    pp.add_argument("--node", help="read：子樹路徑")
+    pp.add_argument("--node", help="read / peek：子樹路徑（peek 留空 = root）")
+    pp.add_argument("--comp", help="peek：component 型別")
+    pp.add_argument("--members",
+                    help="peek：逗號分隔的欄位名；留空 = 這顆 component 的所有 serialize 欄位")
     pp.add_argument("--depth", type=int, default=-1,
                     help="read：明確指定往下幾層（給了就不看 --budget）")
     pp.add_argument("--budget", type=int, default=20000,
@@ -667,6 +855,24 @@ def main() -> None:
                     help="反向：列出目標指向誰（預設是誰指向目標）")
     pr.add_argument("-n", "--limit", type=int, default=60)
     pr.set_defaults(fn=cmd_refs)
+
+    pcat = sub.add_parser(
+        "catalog", aliases=["cat"],
+        help="Action / Condition 等型別的用途與 serialized 欄位（離線）")
+    pcat.add_argument("kind", nargs="?", default="action",
+                      choices=["action", "condition", "render", "handler",
+                               "getter", "var", "so", "all"],
+                      help="預設 action")
+    pcat.add_argument("keyword", nargs="?", help="過濾型別名或說明")
+    pcat.add_argument("--type", help="只看某一個型別（完整欄位 + tooltip）")
+    pcat.add_argument("--missing", action="store_true", help="只列缺 /// summary 的（待補清單）")
+    pcat.add_argument("--abstract", action="store_true", help="連 abstract 基底也列出")
+    pcat.add_argument("--obsolete", action="store_true",
+                      help="連 [Obsolete] 的也列出（預設隱藏，別挑到廢棄的）")
+    pcat.add_argument("--path", action="store_true", help="每一列都附檔案路徑")
+    pcat.add_argument("-v", "--verbose", action="store_true", help="展開每個欄位與 tooltip")
+    pcat.add_argument("-n", "--limit", type=int, default=200)
+    pcat.set_defaults(fn=cmd_catalog)
 
     pt = sub.add_parser("types", help="名稱含關鍵字的 Component 型別（需要 Unity）")
     pt.add_argument("keyword")

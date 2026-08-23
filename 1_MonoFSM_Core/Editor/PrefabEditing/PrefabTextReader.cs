@@ -49,16 +49,21 @@ namespace MonoFSM.Editor.PrefabEditing
             if (asset == null) return $"# 找不到 prefab: {assetPath}";
 
             var root = asset.transform;
+            EditResolve.DrainNotes(); // 清掉別的呼叫留下的殘留，只報這次的
+            string resolveNotes = null;
             if (!string.IsNullOrEmpty(subPath))
             {
                 var found = EditResolve.TryNode(root, subPath);
                 if (found == null) return DescribeChildren(root, subPath);
                 root = found;
+                // 走了自動命名容錯的話要講出來，不然使用者手上那條路徑會一直是舊的
+                resolveNotes = EditResolve.DrainNotes();
             }
 
             // 不印 prefab 路徑 —— HierarchyTextExporter 自己會印一行，兩邊都印就重複了
             var header = new StringBuilder();
             if (!string.IsNullOrEmpty(subPath)) header.AppendLine($"# subtree: {subPath}");
+            if (resolveNotes != null) header.AppendLine(resolveNotes);
 
             var body = ExportNode(root.gameObject, depth, fullExpand, charBudget, header);
 

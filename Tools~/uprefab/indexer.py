@@ -7,6 +7,7 @@ import re
 import sqlite3
 import time
 
+import catalog as catalog_mod
 import scripts as scripts_mod
 import uyaml
 from config import Config
@@ -81,6 +82,14 @@ CREATE TABLE IF NOT EXISTS pending_parent (
   PRIMARY KEY (asset_id, go_file_id)
 );
 
+-- C# 型別目錄：class → 用途說明 + serialized 欄位（給 up catalog / up fields 用）
+CREATE TABLE IF NOT EXISTS catalog (
+  class TEXT PRIMARY KEY, path TEXT, kind TEXT, bases TEXT,
+  is_abstract INTEGER, is_obsolete INTEGER, summary TEXT, has_doc INTEGER,
+  fields TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_catalog_kind ON catalog(kind);
+
 -- (guid, fileID) → 人類可讀標籤的解析結果快取，全庫索引完才算得出來
 CREATE TABLE IF NOT EXISTS target_labels (
   guid TEXT, file_id INTEGER, label TEXT, PRIMARY KEY (guid, file_id)
@@ -138,6 +147,7 @@ def build(root: str, cfg: Config, incremental: bool = True, progress=None) -> di
     t0 = time.time()
 
     _build_script_table(con, root, progress)
+    _build_catalog_table(con, root, progress)
     guid2class = {g: (c, n) for g, c, n in con.execute("SELECT guid, class, ns FROM scripts")}
 
     known = {p: (m, s) for p, m, s in con.execute("SELECT path, mtime, size FROM assets")}
@@ -363,6 +373,20 @@ def _build_script_table(con: sqlite3.Connection, root: str, progress) -> None:
     con.commit()
     if progress:
         progress(f"scripts: {len(rows)}")
+
+
+def _build_catalog_table(con: sqlite3.Connection, root: str, progress) -> None:
+    """重建 C# 型別目錄。全庫掃一次約 2 秒，不做增量（繼承鏈要整批才解得出 kind）。"""
+    if progress:
+        progress("scan .cs catalog …")
+    rows = catalog_mod.build_rows(root)
+    # 這張表每次全建，欄位加減時直接重來，省掉 migration
+    con.execute("DROP TABLE IF EXISTS catalog")
+    con.executescript(SCHEMA)
+    con.executemany("INSERT OR REPLACE INTO catalog VALUES (?,?,?,?,?,?,?,?,?)", rows)
+    con.commit()
+    if progress:
+        progress(f"catalog: {len(rows)}")
 
 
 def _purge(con: sqlite3.Connection, path: str) -> None:

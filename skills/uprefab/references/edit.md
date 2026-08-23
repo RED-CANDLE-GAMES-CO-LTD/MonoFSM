@@ -32,6 +32,59 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `del\|<node>` | 刪節點 |
 | `delcomp\|<node>\|<comp,comp>` | 移除節點上的 component。不存在就跳過（語意是「確保它不在」）。prefab 版 `<node>` 留空 = root |
 | `save` | 存 scene（**只有 scene**；prefab batch 結束自動存） |
+| `mark\|<label>[\|<node>]` | 給節點取個短名，之後用 `$label` 代換。不給 `<node>` = 標記上一個建立節點的操作 |
+
+## `$` 代換 —— 不要把同一條長路徑寫兩次
+
+MonoFSM 的節點路徑動輒六十個字元（`[StateFolder] StateFolder/[State] idle/[Event]
+OnStateEnter/[Action] Reset Timer`），而「`add` 完緊接著 `ref`」是最常見的組合。
+任何參數都可以寫：
+
+| 寫法 | 代換成 |
+|---|---|
+| `$` | 上一個**建立節點**的操作（`add` / `prefab` / `state` / `trans` / `if` / `act`）碰到的節點 |
+| `$/子路徑` | 同上，再往下接 |
+| `$label` / `$label/子路徑` | `mark` 標過的節點 |
+| `$$` | 字面上的 `$`（prompt 的 `${token}` 不是識別字，不會被誤代換，不用跳脫） |
+
+`set` / `ref` / `pos` 這類不建節點的操作**不會**更新 `$`，所以 `add` 之後可以連著下好幾條
+`ref|$|…`。
+
+## FSM 複合操作 —— 一行取代三到四行原語
+
+| 操作 | 展開成 |
+|---|---|
+| `state\|<folder>\|<name>[\|<type>]` | 建 `[State] <name>` + `GeneralState`（或指定的 type） |
+| `trans\|<from>\|<to>[\|<name>]` | 建 `[Transition] => <to 的名字>` + `TransitionBehaviour` + 接上 `_target` |
+| `if\|<node>\|<name>\|<condType>[\|<field>\|<target>]` | 建 `[If] <name>` + condType，順手接一條引用（給 `_timer` / `_varBool` 這種） |
+| `act\|<state>\|<phase>\|<name>\|<actionType>` | 確保 `[Event] On<Phase>` + handler 在（多個 action 共用），再掛 `[Action] <name>` + actionType |
+
+`phase`：`enter` / `exit` / `update` / `enterRender` / `exitRender`。
+名稱沒帶 `[Tag] ` 前綴會自動補上；節點已存在就沿用（跟 `add` 一致，方便整份重跑）。
+每個複合操作都會更新 `$`，指向它建的那個節點（`act` 指到 action，不是 event 節點）。
+
+```
+mark|SF|[StateFolder] StateFolder
+add||Timer|VarFloatCountDownTimer
+mark|T
+set|$T|VarFloatCountDownTimer|_timeMax._tempValue|1
+
+state|$SF|spawn
+mark|SPAWN
+act|$SF/[State] idle|enter|Reset Timer|ResetTimerAction
+ref|$|ResetTimerAction|timer|$T
+trans|$SF/[State] idle|$SPAWN
+if|$|Timer Up|IsTimerUpCondition|_timer|$T
+act|$SPAWN|enter|Spawn 資源|SpawnAction
+aref|$|SpawnAction|_poolObjFoldOut._constObjValue|Assets/…/測試資源 Rock Variant.prefab
+trans|$SPAWN|$SF/[State] idle
+auto|
+```
+
+只做「一定會這樣做」的部分（命名慣例、handler 型別對照、`_target`），其餘欄位照舊
+`set` / `ref`。`[Action]` / `[If]` 節點存檔後會被 `AbstractDescriptionBehaviour` 的自動命名
+蓋掉（`[Action] Reset Timer` → `[Action] ResetTimerAction`），所以**整份重跑前先 `read`
+看實際名稱**，否則會建出重複節點。
 
 **`add` / `comp` / `set` / `ref` / `aref` / `addel` / `delcomp` 的 `<node>` 留空 = prefab root**
 （`MonoEntity` / `MonoObj` / `NetworkObject` 都掛在 root 上）。scene 版沒有這個語意 ——
@@ -121,7 +174,13 @@ Unity 只在 PrefabStage（人工打開 prefab 編輯再存）觸發這個 callb
 單機測完全正常，只有多人實測才發現。
 
 log 尾巴會出現 `# 存檔前 callback：920 個 OK`。專案幾乎每個 MonoBehaviour 都實作這個介面，
-所以只報數量，出錯的才點名。`_syncFloats` / `_syncInts` **不要手動編**，會被這步覆寫。
+所以只報數量，出錯的才點名。
+
+⚠️ **但 callback 不保證會把 var 填進陣列**。2026-08-23 在「升級訂購機 Variant」上新增
+`[Var] Sold Out Mask`（VarInt + `NetworkedVarTag`）後，存檔前 callback 有跑、`_syncInts` 仍是空的；
+改用 `addel` + `ref …|VarInt` 手動寫入才生效，且**手動寫入不會被後續存檔覆寫**（peek 驗證過留住了）。
+所以流程是：加 `NetworkedVarTag` → 存檔 → **peek 確認該 var 真的進了 `_syncXxx`** →
+沒進就手動 `addel` + `ref`。不要假設 callback 會補完，也不要因為怕被覆寫而不敢手動編。
 
 ## nested prefab 實例：改動會存成外層的 override，不會污染源 prefab
 
@@ -132,12 +191,48 @@ log 尾巴會出現 `# 存檔前 callback：920 個 OK`。專案幾乎每個 Mon
 
 驗證方式：改完 `grep` 一下 script 的 guid 落在哪個 `.prefab` 檔。
 
-## 節點名會被 rename，`del` 舊節點前先看實際名稱
+## 節點名會被自動改名 —— 這是正常的，不是你寫錯
 
-`AbstractDescriptionBehaviour` 會依 `DescriptionTag` 改 GameObject 名字，`add` 當下給的名字
-存檔後可能變樣 —— `[If OR] …` 會變成 `[if OR] …`（tag 是 `"if " + OR`）。同一批 ops 內接續
-引用剛建的節點沒問題（rename 還沒發生），但**下一批**要 `del` / `--node` 時得用實際名稱。
-路徑打錯的錯誤訊息會列出該層真正的子節點，照抄就好。
+**掛 `AbstractDescriptionBehaviour` 的節點（絕大多數 MonoFSM component）的名字不是你取的，
+是存檔時由 `Description` 算出來的。** 看到路徑失效的第一反應應該是「它被改名了」，
+不是「我抄錯字」—— 後者會讓你白跑一輪 debug。
+
+改名時機是**存檔**（prefab batch 結束時自動存），所以：
+
+- **同一批 ops 內**接續引用剛建的節點沒問題（rename 還沒發生）
+- **下一批 / 下一次 read** 拿到的可能是新名字
+
+會變樣的幾種：
+
+| 情況 | 例 |
+|---|---|
+| tag 大小寫與拼法跟你給的不一樣 | `add` 給 `[If OR] X` → 存成 `[if OR] X`（tag 是 `"if " + OR`） |
+| 名字含引用目標，改了引用就改名 | `[If] Get<Player>.d_CanAffordRevive == False` |
+| **名字來自譯文，跟著 Editor 當下的 SelectedLocale 變** | `[Getter] Localized: 團隊資金：$ {var1} (GameplayUI/money)` 在 SelectedLocale=en 時會存成 `[Getter] Localized: $ {var1} (…)`（en 譯文沒有前綴）；該 locale 沒有 entry 時連中文都沒有，只剩 `Localized: GameplayUI/rain_chance` |
+| **譯文型的名字可能含真實換行** | 多行提示模板，路徑根本寫不進單行 DSL |
+
+### 三道防線，按優先序
+
+1. **同一批內一律用 `mark` + `$label`，不要把長路徑寫兩次。** 這是最有效的一道 ——
+   `$` 代換記的是節點本身，改名完全影響不到它。13 行 ops 建一整棵子樹、中間穿插改名，
+   用 `$label` 可以一行都不受影響。
+2. **跨批次不要把路徑寫死進計畫 md**。要嘛在執行前重新 `read` 取當下名稱，要嘛把
+   「改哪個節點」描述成結構位置（「`strings` 底下第 2 顆 getter」）讓執行者自己解。
+3. **解析層有自動命名容錯**（見下）—— 名字小幅變動時會自己對應過去，你會看到一行提示。
+
+### 自動命名容錯
+
+`--node` / ops 的路徑找不到時，會再看同層有沒有「明顯是同一顆、只是被改名了」的候選，
+命中就直接用，並印一行：
+
+```
+# 節點 'X' 找不到，自動對應到同層的 'Y'（自動命名把名字改掉了）。請改用新名字，或用 mark/$label 避免寫死路徑
+```
+
+判準刻意嚴格，因為誤判的代價是對**錯的節點**下 `del` / `set`：`[Tag]` 前綴必須完全一致
+（`[If] X` 不會配到 `[Action] X`）、最長共同子序列要佔七成以上、**通過的候選必須恰好一個**。
+兩個以上就不猜，照原本的方式列出該層子節點讓你自己挑。所以看到列候選而不是自動對應，
+表示這次的差異大到不該猜 —— 照抄候選就好。
 
 ## 建新東西：一律開 variant / 複製模板，不要從零建
 
