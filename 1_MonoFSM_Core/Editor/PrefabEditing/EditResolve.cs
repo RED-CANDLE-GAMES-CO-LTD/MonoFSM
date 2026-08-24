@@ -802,19 +802,37 @@ namespace MonoFSM.Editor.PrefabEditing
         /// （TransitionBehaviour._conditions 是 [AutoChildren]、Action 的 _parentObj 是
         /// [AutoParent]），平常是 Inspector 畫到時順手綁的。用 API 建節點不會經過 Inspector，
         /// 不補這一步就會存出一份「看起來對、欄位全是 null」的資料。
+        ///
+        /// 回傳裡的「綁上 / 沒綁上」是 [Auto*] attribute 自己回報的數字（`Execute` 的
+        /// true / false）。之前只回「掃了幾顆 MonoBehaviour」，那個數字跟綁定結果無關 ——
+        /// 一顆都沒綁上時看起來跟全部綁上一模一樣，是「auto 回報成功但欄位還是空的」
+        /// 最主要的資訊缺口。`prefab instance`（variant 繼承來的節點）那份計數另外報，
+        /// 這樣「動到的到底是繼承節點還是本檔案的節點」在 log 裡看得出來。
         /// </summary>
         internal static string RunAuto(Transform root)
         {
-            AutoAttributeManager.AutoReferenceAllChildren(root.gameObject);
+            var success = 0;
+            var failed = 0;
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
+            {
+                AutoAttributeManager.AutoReference(t.gameObject, out var s, out var f);
+                success += s;
+                failed += f;
+            }
+
             var touched = 0;
+            var inherited = 0;
             foreach (var mb in root.GetComponentsInChildren<MonoBehaviour>(true))
             {
                 if (mb == null) continue;
                 EditorUtility.SetDirty(mb);
                 touched++;
+                if (PrefabUtility.IsPartOfPrefabInstance(mb)) inherited++;
             }
 
-            return $"Auto 綁定重跑：{root.name} 底下 {touched} 個 MonoBehaviour";
+            return $"Auto 綁定重跑：{root.name} 底下 {touched} 個 MonoBehaviour" +
+                   $"（{inherited} 個屬於繼承來的 prefab instance）"+
+                   $"，[Auto*] 欄位綁上 {success}、沒綁上 {failed}";
         }
 
         /// <summary>

@@ -125,6 +125,10 @@ namespace MonoFSM.Variable
             : base(defaultValue) { }
     }
 
+    /// <summary>
+    /// float 的「Var 引用或直接常數」二選一欄位。_var 有指到 VarFloat 就讀它，否則讀 _tempValue。
+    /// 給 Action / Condition 的參數欄位用，讓同一個欄位既能填死數字、也能改成引用某顆 VarFloat。
+    /// </summary>
     [Serializable]
     public class VarFloatWrapper : VarWrapper<VarFloat, float>
     {

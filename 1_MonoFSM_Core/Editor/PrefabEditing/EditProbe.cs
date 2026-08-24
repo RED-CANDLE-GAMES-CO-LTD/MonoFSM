@@ -121,7 +121,12 @@ namespace MonoFSM.Editor.PrefabEditing
 
         /// <summary>
         /// 讀 runtime 值（Play Mode 驗證用）：某個節點上 component 的某幾個欄位/屬性現在是多少。
-        /// 欄位名逗號分隔；留空 = 列出所有 public 屬性中的簡單值。
+        /// 欄位名逗號分隔；留空 = 列出 serialize 欄位，並在尾巴附上可查的屬性名清單。
+        ///
+        /// 為什麼留空時不直接掃所有 public 屬性（2026-08-24 改）：那會對每個屬性呼叫 getter，
+        /// 而 Unity component 上的屬性 getter 有些會在 native 層 abort 或把 stack 爆掉
+        /// （Editor.log 留下 mono stack dump，managed try/catch 攔不到）—— 一次 peek 就閃退整個
+        /// Editor。屬性要查得顯式寫進 members，範圍縮到一個，炸了也知道是誰。
         /// </summary>
         public static string Peek(string nodePath, string componentType, string members = null)
         {
@@ -139,7 +144,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
             return Dump(comp,
                 $"{nodePath}.{comp.GetType().Name}  [{(Application.isPlaying ? "PlayMode" : "EditMode")}]",
-                members, serializedByDefault: false);
+                members, serializedByDefault: true, listPropertiesWhenEmpty: true);
         }
 
         /// <summary>
@@ -180,22 +185,19 @@ namespace MonoFSM.Editor.PrefabEditing
         /// serialize 欄位（asset 用），否則列 public 屬性（runtime 用）。
         /// </summary>
         private static string Dump(
-            Component comp, string header, string members, bool serializedByDefault)
+            Component comp, string header, string members, bool serializedByDefault,
+            bool listPropertiesWhenEmpty = false)
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
                                        BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
             var type = comp.GetType();
-            var sb = new StringBuilder(header + "\n");
+            var sb = new StringBuilder(string.IsNullOrEmpty(header) ? "" : header + "\n");
 
             List<string> names;
             if (!string.IsNullOrEmpty(members))
                 names = members.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
-            else if (serializedByDefault)
-                names = SerializedNames(type);
             else
-                names = type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
-                    .Select(p => p.Name).ToList();
+                names = SerializedNames(type);
 
             foreach (var name in names)
             {
@@ -213,15 +215,15 @@ namespace MonoFSM.Editor.PrefabEditing
 
                     var p = t.GetProperty(name, flags | BindingFlags.DeclaredOnly);
                     if (p == null || !p.CanRead) continue;
-                    try
+                    // 有些 getter 呼叫下去會 native abort，managed catch 攔不到 —— 見 ProbeMineField
+                    if (ProbeMineField.IsMine(p))
                     {
-                        value = p.GetValue(comp);
-                    }
-                    catch (Exception e)
-                    {
-                        value = $"<throw {e.GetType().Name}>";
+                        sb.AppendLine($"  {name} = # 跳過（已知會讓 Editor 閃退，或 [Obsolete]）");
+                        found = true;
+                        continue;
                     }
 
+                    value = ProbeMineField.ReadGuarded(p, comp);
                     found = true;
                 }
 
@@ -235,8 +237,79 @@ namespace MonoFSM.Editor.PrefabEditing
                 sb.AppendLine($"  {name} = {Show(value)}");
             }
 
+            if (listPropertiesWhenEmpty && string.IsNullOrEmpty(members))
+                AppendPropertyNames(sb, type);
+
             return sb.ToString();
         }
+
+        /// <summary>
+        /// 一顆 component 的全部內容：serialize 欄位 + 全部可讀的 public 屬性值。
+        ///
+        /// 給 Inspector 右鍵選單用（`ComponentDumpMenu`）—— 使用者想一次撈完整狀態貼出來，
+        /// 而 `up peek` 走 CLI 是刻意保守的（留空不掃屬性）。這裡掃，但每個屬性都走
+        /// <see cref="ProbeMineField"/> 的麵包屑保護，炸過一次就永久跳過。
+        /// </summary>
+        public static string DumpAll(Component comp, bool includeProperties)
+        {
+            var type = comp.GetType();
+            var header = $"{PathOf(comp.transform)}.{type.Name}" +
+                         $"  [{(Application.isPlaying ? "PlayMode" : "EditMode")}]";
+
+            var crash = ProbeMineField.HarvestCrashReport();
+            var sb = new StringBuilder();
+            if (crash != null) sb.AppendLine(crash);
+
+            sb.Append(Dump(comp, header, null, serializedByDefault: true));
+
+            if (!includeProperties) return sb.ToString();
+
+            var props = PropertyNames(type);
+            if (props.Count > 0)
+            {
+                sb.AppendLine("  # --- 屬性 ---");
+                sb.Append(Dump(comp, "", string.Join(",", props), serializedByDefault: false));
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>hierarchy 路徑，dump 出來的內容要能看出是誰。</summary>
+        private static string PathOf(Transform t)
+        {
+            var path = t.name;
+            for (var p = t.parent; p != null; p = p.parent) path = p.name + "/" + path;
+            return path;
+        }
+
+        /// <summary>
+        /// 列出「可以再用 --members 點名去查」的屬性名 —— 只印名字，不呼叫任何 getter。
+        /// 過濾掉 Component / Behaviour / Object 這層的 Unity 內建屬性（沒有 gameplay 資訊，
+        /// 而且 legacy 的那幾個正是會讓 Editor 閃退的來源）。
+        /// </summary>
+        private static void AppendPropertyNames(StringBuilder sb, Type type)
+        {
+            var names = PropertyNames(type);
+            if (names.Count == 0) return;
+            sb.AppendLine($"  # 屬性（要看值請 --members 點名，一次一兩個）：{string.Join(", ", names)}");
+        }
+
+        /// <summary>
+        /// 值得看的 public 屬性名。過濾掉 Component / Behaviour / Object 這層的 Unity 內建屬性
+        /// （沒有 gameplay 資訊，而且 legacy 的那幾個正是會讓 Editor 閃退的來源）。
+        /// </summary>
+        private static List<string> PropertyNames(Type type) =>
+            type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
+                .Where(p => !ProbeMineField.IsMine(p))
+                .Where(p => p.DeclaringType != typeof(Component) &&
+                            p.DeclaringType != typeof(Behaviour) &&
+                            p.DeclaringType != typeof(MonoBehaviour) &&
+                            p.DeclaringType != typeof(UnityEngine.Object))
+                .Select(p => p.Name)
+                .Distinct()
+                .OrderBy(n => n)
+                .ToList();
 
         /// <summary>
         /// Play Mode 下把一個 Var 的 runtime 值設成 value —— 自動測試用的「手動撥一下」。
@@ -302,7 +375,18 @@ namespace MonoFSM.Editor.PrefabEditing
             return $"{nodePath}.{type.Name}.Value: {Show(before)} -> {Show(after)}";
         }
 
-        private static string Show(object v) => Show(v, 0);
+        private static string Show(object v)
+        {
+            try
+            {
+                return Show(v, 0);
+            }
+            catch (Exception e)
+            {
+                // dump 是除錯工具：一個欄位印不出來不該讓整份輸出消失
+                return $"<throw {e.GetType().Name}>";
+            }
+        }
 
         private static string Show(object v, int depth)
         {
@@ -311,7 +395,11 @@ namespace MonoFSM.Editor.PrefabEditing
                 case null: return "null";
                 case string s: return s.Length > 60 ? s.Substring(0, 60) + "…" : s;
                 case float f: return f.ToString("0.###");
-                case UnityEngine.Object o: return $"{o.name} <{o.GetType().Name}>";
+                // Unity 的「假 null」不是 C# null，接不到上面的 case null：未指派的 reference
+                // （UnassignedReference）跟已 destroy 的物件都會在讀 .name 時丟 exception。
+                // 要用 Unity 自己的 == 才判得出來。
+                case UnityEngine.Object o:
+                    return o == null ? $"null <{o.GetType().Name}>" : $"{o.name} <{o.GetType().Name}>";
                 case IEnumerable e when !(v is string):
                 {
                     var items = e.Cast<object>().Take(6).Select(x => Show(x, depth + 1)).ToList();

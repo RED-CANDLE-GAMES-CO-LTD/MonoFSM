@@ -216,6 +216,12 @@ namespace MonoFSM.Animation
         [TitleGroup("Animator")]
         public float animatorEnterCrossFade;
 
+        [Tooltip(
+            "Animator 已經在 transition 中時，CrossFade 會被吞掉（重複起跳播不到 Jump_Start）。"
+            + "打開時這種情況改用 Play 硬切，保證一定從第一幀重播"
+        )]
+        public bool _forcePlayWhenAnimatorInTransition = true;
+
 #if UNITY_EDITOR
 
 #endif
@@ -728,7 +734,7 @@ namespace MonoFSM.Animation
             UpdateProgressLatch(t);
             if (_hasSeenPlayingSinceEnter && t >= ratio)
             {
-                Debug.Log("animation done!!!", this);
+                // Debug.Log("animation done!!!", this);
                 return true;
             }
 
@@ -973,16 +979,22 @@ namespace MonoFSM.Animation
 
             if (!IsValid)
             {
+                this.Log("[AnimatorPlayAction] skip: IsValid == false, state:", StateName);
                 return;
             }
 
             if (IsSkippedByCurrentState())
+            {
+                this.Log("[AnimatorPlayAction] skip: IsSkippedByCurrentState, state:", StateName);
                 return;
+            }
+
             if (animator.runtimeAnimatorController == null)
-                // Debug.Log(animator);
-                // Debug.Log(animator.runtimeAnimatorController);
-                // Debug.LogError("animator.runtimeAnimatorController == null? "+this._fsmOwner.name,this);
+            {
+                this.Log("[AnimatorPlayAction] skip: runtimeAnimatorController == null, state:",
+                    StateName);
                 return;
+            }
 
             //FIXME: 這個感覺有點危險
             // animator.keepAnimatorStateOnDisable = true;
@@ -990,8 +1002,11 @@ namespace MonoFSM.Animation
                 animator.enabled = true;
 
             if (animator.isActiveAndEnabled == false)
-                // Debug.LogError("animator.isActiveAndEnabled == false "+this._fsmOwner.name,this);
+            {
+                this.Log("[AnimatorPlayAction] skip: animator.isActiveAndEnabled == false, state:",
+                    StateName);
                 return;
+            }
 
             this.Log("[AnimatorPlayAction]", gameObject, ":[", stateLayer, "]:", StateName);
 
@@ -1000,7 +1015,19 @@ namespace MonoFSM.Animation
             // if (CheckInitAndSkipAnimationToLastFrame())
             //     runtimeStartNormalizedTimeOffset = 1;
             // Debug.Log("runtimeStartNormalizedTimeOffset" + runtimeStartNormalizedTimeOffset, this);
-            if (animatorEnterCrossFade == 0)
+            //CrossFade 在 animator 已經在 transition 中時會被吞掉（例：落地動畫還在 transition 就重新起跳，
+            //Jump_Start 的 CrossFade 沒生效），這種情況退回 Play 硬切，保證一定重播
+            var isForcePlayByTransition =
+                animatorEnterCrossFade > 0
+                && _forcePlayWhenAnimatorInTransition
+                && animator.IsInTransition(stateLayer);
+            if (isForcePlayByTransition)
+                this.Log(
+                    "[AnimatorPlayAction] animator 正在 transition，CrossFade 改用 Play 硬切:",
+                    StateName
+                );
+
+            if (animatorEnterCrossFade == 0 || isForcePlayByTransition)
             {
                 this.Log("Play Animation:", StateName, "layer:", stateLayer);
                 // Debug.Log("Play Animation:" + StateName + "layer:" + stateLayer, this);

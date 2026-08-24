@@ -6,6 +6,11 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable.Condition
 {
+    /// <summary>
+    /// 比對一顆 VarBool 的值是否等於 targetValue（預設 true）。
+    /// 最常用的布林條件：掛在 [If] 節點上把關 action / transition / getter。
+    /// _varBool 為 null 或該 VarBool 所在物件被停用時，條件視為不成立。
+    /// </summary>
     public class VarBoolCompareCondition : AbstractConditionBehaviour
     {
         [ConditionPreset("Bool == true", Category = "Bool", Priority = 90, ColorHex = "#88D070")]
