@@ -162,14 +162,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             }
             if (r._effectType != _effectType)
             {
-                _candidateReceivers.Add(receiver); //什麼時候清掉？
+                AddCandidateReceiver(receiver);
                 SetFailReason("EffectType mismatch");
                 return false;
             }
 
             if (!receiver.IsValid) //沒開的不算
             {
-                _candidateReceivers.Add(receiver); //什麼時候清掉？
+                AddCandidateReceiver(receiver);
                 SetFailReason("Receiver is not valid");
                 return false;
             }
@@ -229,6 +229,13 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [PreviewInDebugMode]
         private HashSet<IEffectReceiver> _candidateReceivers = new();
 
+        //純 debug 觀察用（沒有任何邏輯讀它），build 不要付這個代價，也順便消掉「只加不清」的成長
+        [Conditional("UNITY_EDITOR")]
+        private void AddCandidateReceiver(IEffectReceiver receiver)
+        {
+            _candidateReceivers.Add(receiver);
+        }
+
         public void ClearCandidateReceivers()
         {
             _candidateReceivers.Clear();
@@ -249,13 +256,28 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         private GeneralEffectReceiver FindBestMatch()
         {
             //只有一個就不用計分了
+            if (_receivers.Count == 0)
+                return null;
+
             GeneralEffectReceiver bestMatch = null;
             var bestScore = float.MinValue;
+            //預設的距離計分不需要開根號（單調遞增，排序結果一樣），且 transform.position 是 native
+            //call，先取出來不要在迴圈裡每個 receiver 重抓一次
+            var hasScorer = _onlyTriggerBestMatch != null;
+            var myPos = hasScorer ? Vector3.zero : transform.position;
             foreach (var receiver in _receivers)
             {
-                var score = _onlyTriggerBestMatch != null
-                    ? _onlyTriggerBestMatch.CalculateScore(this, receiver)
-                    : -Vector3.Distance(transform.position, receiver.transform.position); // 距離越近分數越高
+                float score;
+                if (hasScorer)
+                {
+                    score = _onlyTriggerBestMatch.CalculateScore(this, receiver);
+                }
+                else
+                {
+                    var offset = receiver.transform.position - myPos;
+                    score = -offset.sqrMagnitude; // 距離越近分數越高
+                }
+
                 if (score <= bestScore)
                     continue;
                 bestScore = score;

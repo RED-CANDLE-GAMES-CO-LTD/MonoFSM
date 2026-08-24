@@ -143,6 +143,12 @@ namespace MonoFSM.Core.Detection
         // 追蹤 dealer 狀態以檢測變化
         private readonly Dictionary<GeneralEffectDealer, bool> _dealerLastStates = new();
 
+        //HandleDealerStateChanges 每次呼叫重用，避免每 tick new
+        private readonly Dictionary<
+            GeneralEffectDealer,
+            (bool lastState, bool currentState)
+        > _dealerStateChanges = new();
+
         //Detector 節點被關掉時，Simulate 就不會再跑，殘留的重疊永遠等不到 exit
         //（receiver._dealers / dealer._receivers 會殘留 → HasDealerOverlap 一直是 true）
         private void OnDisable()
@@ -353,6 +359,10 @@ namespace MonoFSM.Core.Detection
             // if (_monoContext && _monoContext.isActiveAndEnabled == false) //被culling 整個關掉就不檢測
             //     return;
 
+            //conditions 只在這裡判一次，下面收集迴圈不再逐個 result 重算（ManualEffectDetectAction
+            //會直接呼叫這支，繞過 Simulate 的早退，所以檢查要留在這層而不是只留在 Simulate）
+            var isConditionValid = _conditions.IsAllValid();
+
             // 每frame重建檢測列表
             _lastDetectCheckTime = Time.time;
             // 1. 記錄上一幀的檢測狀態
@@ -401,7 +411,7 @@ namespace MonoFSM.Core.Detection
                         //下面 ProcessDetectionChanges 的 exit diff 會 carry、也不發 Exit
                         if (detectable != null && detectable.IsSuspendedByCulling)
                             continue;
-                        if (detectable != null && _conditions.IsAllValid())
+                        if (detectable != null && isConditionValid)
                         {
                             //FIXME: 需要的話Detector也可以判才對
                             detectable.CanBeInteractedBy(this); //還是應該是assign而不是回傳，condition是
@@ -451,10 +461,9 @@ namespace MonoFSM.Core.Detection
 
         private void HandleDealerStateChanges()
         {
-            // 先收集所有狀態變化
-            //FIXME: 不該new
-            var dealerStateChanges =
-                new Dictionary<GeneralEffectDealer, (bool lastState, bool currentState)>();
+            // 先收集所有狀態變化（重用欄位，不要每次 new）
+            var dealerStateChanges = _dealerStateChanges;
+            dealerStateChanges.Clear();
 
             foreach (var dealer in _dealers)
             {
@@ -595,26 +604,24 @@ namespace MonoFSM.Core.Detection
             Dictionary<EffectDetectable, DetectData> currentDetected
         )
         {
-            // 找出新進入的物件（在current但不在previous）
+            //一次走完：不在 previous 的是新進入（Enter），兩邊都有的是持續重疊（Stay，刷新 hit 資訊）。
+            //分兩個迴圈時，Editor 下第一個迴圈的 _lastDetectedObjects 寫入會讓第二圈把剛 enter 的
+            //也判成 Stay（同 tick Enter+Stay），合併後 Editor 和 Player 行為一致
             foreach (var kvp in currentDetected)
             {
                 var detectable = kvp.Key;
                 var detectData = kvp.Value;
-                if (!previousDetected.ContainsKey(detectable))
+                if (previousDetected.ContainsKey(detectable))
                 {
-                    TriggerEnterEventsForDetectable(detectData);
-#if UNITY_EDITOR
-                    _lastDetectedObjects[detectable] = detectData;
-                    detectable._debugDetectors.Add(this);
-#endif
+                    TriggerStayEventsForDetectable(detectData);
+                    continue;
                 }
-            }
 
-            // 持續重疊的物件（previous和current都有）→ Stay 事件，刷新 hit 資訊
-            foreach (var kvp in currentDetected)
-            {
-                if (previousDetected.ContainsKey(kvp.Key))
-                    TriggerStayEventsForDetectable(kvp.Value);
+                TriggerEnterEventsForDetectable(detectData);
+#if UNITY_EDITOR
+                _lastDetectedObjects[detectable] = detectData;
+                detectable._debugDetectors.Add(this);
+#endif
             }
 
             // 找出離開的物件（在previous但不在current）

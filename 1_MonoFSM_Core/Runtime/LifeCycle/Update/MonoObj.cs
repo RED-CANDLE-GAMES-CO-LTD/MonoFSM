@@ -255,14 +255,20 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         //只看自己 scope（StopAtType = MonoObj）：nested MonoObj 都各自向 WorldUpdateSimulator 註冊、
         //各自被呼叫，不需要再遞迴問子樹（子樹自己那份會由它自己的 needed 判斷）
-        public bool IsUpdateSimulatesNeeded => IsPhaseNeeded(_updateSimulates);
-        public bool IsBeforeSimulatesNeeded => IsPhaseNeeded(_beforeSimulates);
-        public bool IsAfterSimulatesNeeded => IsPhaseNeeded(_afterSimulates);
-        public bool IsRenderSimulatesNeeded => IsPhaseNeeded(_renderSimulates);
+        public bool IsUpdateSimulatesNeeded => IsSimulationPhaseNeeded(_updateSimulates);
+        public bool IsBeforeSimulatesNeeded => IsSimulationPhaseNeeded(_beforeSimulates);
+        public bool IsAfterSimulatesNeeded => IsSimulationPhaseNeeded(_afterSimulates);
+        public bool IsRenderSimulatesNeeded => IsRenderPhaseNeeded(_renderSimulates);
 
-        private bool IsPhaseNeeded<T>(T[] list) where T : class
+        private bool IsSimulationPhaseNeeded<T>(T[] list) where T : class
         {
-            if (IsCulling) return false;
+            if (IsSimulationCulling) return false;
+            return list is { Length: > 0 };
+        }
+
+        private bool IsRenderPhaseNeeded<T>(T[] list) where T : class
+        {
+            if (IsRenderCulling) return false;
             return list is { Length: > 0 };
         }
 
@@ -457,12 +463,38 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         [AutoChildren(StopAtType = typeof(MonoObj))] public CullingActiveHandle _cullingHandle;
 
-        //有而且關著
+        [AutoChildren(StopAtType = typeof(MonoObj))]
+        public SimulationCullingActiveHandle _simulationCullingHandle;
+
+        [AutoChildren(StopAtType = typeof(MonoObj))]
+        public RenderCullingActiveHandle _renderCullingHandle;
+
+        private bool IsSelfDisabledOrLegacyCulling =>
+            !isActiveAndEnabled ||
+            _cullingHandle != null && !_cullingHandle.gameObject.activeSelf;
+
+        /// <summary>
+        /// Simulation-side culling. The legacy handle still stops every phase; the simulation handle
+        /// only stops Before/Simulate/After and gameplay event handling.
+        /// </summary>
         [ShowInInspector]
-        public bool IsCulling => isActiveAndEnabled == false ||
-                                 (!_isIgnoreParentObjCulling && HasParent &&
-                                  _parentObj.IsCulling) ||
-                                 _cullingHandle != null && !_cullingHandle.gameObject.activeSelf;
+        public bool IsSimulationCulling =>
+            IsSelfDisabledOrLegacyCulling ||
+            (!_isIgnoreParentObjCulling && HasParent && _parentObj.IsSimulationCulling) ||
+            _simulationCullingHandle != null && !_simulationCullingHandle.gameObject.activeSelf;
+
+        /// <summary>
+        /// Render-side culling. The legacy handle still stops every phase; the render handle only
+        /// stops Render/AfterRender, leaving authoritative simulation untouched.
+        /// </summary>
+        [ShowInInspector]
+        public bool IsRenderCulling =>
+            IsSelfDisabledOrLegacyCulling ||
+            (!_isIgnoreParentObjCulling && HasParent && _parentObj.IsRenderCulling) ||
+            _renderCullingHandle != null && !_renderCullingHandle.gameObject.activeSelf;
+
+        // Compatibility: existing gameplay/event code treats IsCulling as "simulation is suspended".
+        public bool IsCulling => IsSimulationCulling;
 
 //FIXME: ignore parent culling? 要給這個性質嗎...
         public bool _isIgnoreParentObjCulling = false;
@@ -471,10 +503,11 @@ namespace MonoFSMCore.Runtime.LifeCycle
         //OnDisable 裡要分辨「被 cull 連帶關掉」vs「真的被關掉」只能用這個（IsCulling 兩者都 true）
         public bool IsCulledByHandle =>
             _cullingHandle != null && !_cullingHandle.gameObject.activeSelf ||
+            _simulationCullingHandle != null && !_simulationCullingHandle.gameObject.activeSelf ||
             (!_isIgnoreParentObjCulling && HasParent && _parentObj.IsCulledByHandle);
 
-        //只收自己 scope（StopAtType）：nested MonoObj 自己也會被註冊、自己 latch，
-        //parent 被 cull 時子 MonoObj 的 IsCulling 也跟著是 true，所以不會漏也不會重複廣播
+        //只收自己 scope（StopAtType）：nested MonoObj 自己也會被註冊、自己 latch。
+        //這是 simulation culling 的收尾通知；render-only culling 不應凍結 gameplay overlap。
         [PreviewInDebugMode]
         [AutoChildren(StopAtType = typeof(MonoObj))]
         private ICullingEnterHandler[] _cullingHandlers;
@@ -482,14 +515,14 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [ShowInDebugMode] private bool _wasCulling;
 
         /// <summary>
-        /// 由 WorldUpdateSimulator 每幀呼叫。被 cull 的那一刻整棵子樹就停止 tick，
+        /// 由 WorldUpdateSimulator 每幀呼叫。simulation 被 cull 的那一刻該 scope 就停止 simulation tick，
         /// 殘留的狀態（ex: EffectDetector 的重疊）會永遠等不到收尾，所以在邊緣廣播一次。
         /// 注意這必須在 IsUpdateSimulatesNeeded 判斷「之前」呼叫 —— 被 cull 時那個 property 回 false，
         /// Simulate 根本不會被呼叫，latch 就沒人跑了。
         /// </summary>
         public void CullingStateCheck()
         {
-            var isCulling = IsCulling;
+            var isCulling = IsSimulationCulling;
             if (isCulling == _wasCulling)
                 return;
             _wasCulling = isCulling;
@@ -596,7 +629,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         private void TickBeforeSimulatePhase(float deltaTime)
         {
-            if (IsCulling) return; //我被 cull → 自己這層跳過（子 MonoObj 的 IsCulling 也會繼承 parent）
+            if (IsSimulationCulling) return;
             if (_beforeSimulates == null) return;
             foreach (var item in _beforeSimulates)
             {
@@ -622,7 +655,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
         [ShowInInspector] float _lastSimulateTime;
         private void TickSimulatePhase(float deltaTime)
         {
-            if (IsCulling) return; //我被 cull → 整棵子樹跳過
+            if (IsSimulationCulling) return;
             if (_updateSimulates != null)
             {
                 _lastSimulateTime = Time.realtimeSinceStartup;
@@ -668,7 +701,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         private void TickAfterSimulatePhase(float deltaTime)
         {
-            if (IsCulling) return; //我被 cull → 整棵子樹跳過
+            if (IsSimulationCulling) return;
             if (_afterSimulates != null)
             {
                 foreach (var item in _afterSimulates)
@@ -699,7 +732,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         private void TickRenderPhase(float deltaTimelocalAlpha)
         {
-            if (IsCulling) return; //我被 cull → 整棵子樹跳過
+            if (IsRenderCulling) return;
             if (_renderSimulates != null)
             {
                 foreach (var item in _renderSimulates) //如果 render有順序問題就哭惹？
@@ -835,13 +868,16 @@ namespace MonoFSMCore.Runtime.LifeCycle
             if (assignedWorld != null && owningWorld != assignedWorld)
                 sb.AppendLine("  ⚠ Assigned 與實際註冊的 simulator 不一致");
             sb.AppendLine($"  IsActiveInSimulator: {IsActiveInSimulator}");
-            sb.AppendLine($"  IsCulling: {IsCulling}");
+            sb.AppendLine($"  IsSimulationCulling: {IsSimulationCulling}");
+            sb.AppendLine($"  IsRenderCulling: {IsRenderCulling}");
             sb.AppendLine($"  IsProxy: {IsProxy}");
             sb.AppendLine(
                 $"  Phase needed — Before:{IsBeforeSimulatesNeeded}  Update:{IsUpdateSimulatesNeeded}  After:{IsAfterSimulatesNeeded}  Render:{IsRenderSimulatesNeeded}");
 
-            var willUpdate = owningWorld != null && !HasParent && IsActiveInSimulator && !IsCulling;
-            sb.AppendLine($"  => 會被 WorldUpdateSimulator 更新嗎？ {(willUpdate ? "YES" : "NO")}");
+            var willSimulate = owningWorld != null && IsActiveInSimulator &&
+                               !IsSimulationCulling && ShouldSimulte;
+            var willRender = owningWorld != null && IsActiveInSimulator && !IsRenderCulling;
+            sb.AppendLine($"  => Simulate:{(willSimulate ? "YES" : "NO")}  Render:{(willRender ? "YES" : "NO")}");
 
             if (owningWorld != null)
                 Debug.Log(sb.ToString(), this);
@@ -876,7 +912,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         private void TickAfterRenderPhase()
         {
-            if (IsCulling) return; //我被 cull → 整棵子樹跳過
+            if (IsRenderCulling) return;
             if (_afterRenders != null)
             {
                 foreach (var item in _afterRenders) //如果 render有順序問題就哭惹？
@@ -900,7 +936,11 @@ namespace MonoFSMCore.Runtime.LifeCycle
         {
         }
 
-        public string ValueInfo => IsCulling ? "Culling" : "Updating";
+        public string ValueInfo => IsSimulationCulling
+            ? "Simulation Culled"
+            : IsRenderCulling
+                ? "Render Culled"
+                : "Updating";
         public bool IsDrawingValueInfo => Application.isPlaying;
 
         [PreviewInInspector] [AutoChildren] private CullingPivot _cullingPivot;

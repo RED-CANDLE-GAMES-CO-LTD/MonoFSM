@@ -140,27 +140,26 @@ namespace MonoFSM.Core
         //FIXME: override怎麼處理？
         private void EventHandleImplement<T>(T arg, bool ignoreArg = false)
         {
-            if (_conditionFolder.IsValid == false)
+            if (!gameObject.activeSelf)
             {
-                MarkSkipped("condition invalid");
+                MarkSkipped("gameObject inactive");
                 return;
             }
-
             if (_parentObj.IsCulling) //FIXME: 有需要分visual和logic culling?
             {
                 MarkSkipped("parentObj culling");
                 return;
             }
 
-            if (_stateAuthorityOnly && !_parentObj.HasStateAuthority)
+            if (_conditionFolder.IsValid == false)
             {
-                MarkSkipped("stateAuthorityOnly: not state authority");
+                MarkSkipped("condition invalid");
                 return;
             }
 
-            if (!gameObject.activeSelf)
+            if (_stateAuthorityOnly && !_parentObj.HasStateAuthority)
             {
-                MarkSkipped("gameObject inactive");
+                MarkSkipped("stateAuthorityOnly: not state authority");
                 return;
             }
 
