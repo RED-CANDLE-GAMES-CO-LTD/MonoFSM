@@ -1,0 +1,45 @@
+# 節點名是自動命名的 —— 不要寫死路徑
+
+**掛 `AbstractDescriptionBehaviour` 的節點（絕大多數 MonoFSM component）的名字不是你取的，
+是存檔時由 `Description` 算出來的。** `add` / `rename` 給的名字只是暫時的，存完就被蓋掉
+（`[Action] Reset Timer` → `[Action] ResetTimerAction`）。
+
+所以**不要花力氣想「該取什麼名字」，要花力氣避免把名字寫進路徑**。看到路徑失效的第一反應
+應該是「它被改名了」而不是「我抄錯字」—— 後者會白跑一輪 debug。
+
+改名時機是**存檔**（prefab batch 結束時自動存）：
+
+- **同一批 ops 內**接續引用剛建的節點沒問題（rename 還沒發生）
+- **下一批 / 下一次 read** 拿到的可能是新名字
+
+名字裡會出現什麼無法預期：tag 的大小寫與拼法（`[If OR]` 存成 `[if OR]`）、引用目標
+（`[If] Get<Player>.d_CanAffordRevive == False`，改了引用就改名）、譯文（跟著 Editor 當下的
+`SelectedLocale` 變，該 locale 沒 entry 時只剩 key），甚至**真實換行**。
+
+## 三道防線，按優先序
+
+1. **同一批內一律用 `mark` + `$label`，不要把長路徑寫兩次。** 這是最有效的一道 ——
+   `$` 代換記的是節點本身，改名完全影響不到它。13 行 ops 建一整棵子樹、中間穿插改名，
+   用 `$label` 可以一行都不受影響。見 [edit.md](edit.md) 的 `$` 代換。
+2. **跨批次不要把路徑寫死進計畫 md**。要嘛在執行前重新 `read` 取當下名稱，要嘛把
+   「改哪個節點」描述成結構位置（「`strings` 底下第 2 顆 getter」）讓執行者自己解。
+   同理，**整份 ops 重跑之前先 `read`** 看實際名稱，否則會建出重複節點。
+3. **解析層有自動命名容錯**：`--node` / ops 的路徑找不到時，會看同層有沒有「明顯是同一顆、
+   只是被改名了」的候選，命中就直接用並印一行提示。判準刻意嚴格（誤判的代價是對錯的節點下
+   `del` / `set`），**通過的候選必須恰好一個**，兩個以上就不猜、照原本的方式列出該層子節點。
+   所以看到列候選而不是自動對應，表示這次差異大到不該猜 —— 照抄候選就好。
+
+## 路徑逃逸：`/` 寫成 `\/`、換行寫成 `\n`
+
+自動命名會把 `Table/key` 與譯文塞進名字（`=> Localized: GameplayUI/grab`），而
+`Transform.Find` 把 `/` 一律當階層分隔 —— 不逃逸就永遠指不到那個節點，而且錯誤訊息看起來
+像「這層明明就有」。含換行的名字（多行提示模板）同理寫成 `\n`。
+
+```bash
+up prefab do "$P" "del|…/[Getter] d_ Select Text Prompt 文字提示/=> Localized: GameplayUI\/grab"
+```
+
+**`prefab read` 列出的候選、`find --resolve` 給的路徑都已經逃逸好了，照抄就對。**
+`--node` / `--var` / ops 的 `<node>` 全部吃這套。
+
+（`Transform.Find` 對名稱含換行的節點一律找不到，實作端是逐一比 `child.name` 繞過的。）

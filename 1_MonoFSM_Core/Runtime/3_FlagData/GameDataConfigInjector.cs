@@ -52,7 +52,7 @@ namespace MonoFSM.Variable
             var data = _bindData.Value;
             if (data == null)
             {
-                Debug.Log("[ConfigInject] bindData 為 null，用 prefab local value", this);
+                // Debug.Log("[ConfigInject] bindData 為 null，用 prefab local value", this);
                 return;
             }
 

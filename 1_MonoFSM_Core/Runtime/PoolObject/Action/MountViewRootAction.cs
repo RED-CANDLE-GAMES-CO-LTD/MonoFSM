@@ -76,9 +76,10 @@ namespace MonoFSM.Core.LifeCycle
             source.ViewRoot.MountTo(target.ViewRoot, mountPoint.position, mountPoint.rotation,
                 mountPoint, _handlePhysics, _disableColliders);
 
-            // Debug.Log(
-            //     $"[MountViewRoot] Mounted {source.name} to {target.name} at {_mountPoint.position}",
-            //     this);
+            Debug.Log(
+                $"[MountViewRoot] Mounted {source.name} to {target.name} at {mountPoint.position} " +
+                $"tick:{MonoFSM.Core.Simulate.WorldUpdateSimulator.CurrentTick}",
+                this);
         }
     }
 }

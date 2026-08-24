@@ -17,7 +17,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `add\|<parent>\|<name>\|<comp,comp>` | 建節點並掛 component。parent 留空 = prefab root 下 / scene root 層 |
 | `prefab\|<prefabPath>\|<parent>\|<name>` | 放 prefab 實例（prefab / scene 都支援；prefab 端就是裝 nested prefab 模組）。name 留空 = 用 prefab 自己的名字 |
 | `comp\|<node>\|<comp,comp>` | 對既有節點加 component |
-| `set\|<node>\|<comp>\|<field>\|<value>` | 設值。float / int / bool / string / enum（傳名稱）/ Vector3（`"x,y,z"`） |
+| `set\|<node>\|<comp>\|<field>\|<value>` | 設值。float / int / bool / string / enum（傳名稱）/ Vector3（`"x,y,z"`）。long（`m_TableEntryReference.m_KeyId`）超出 int 範圍會自動走 `longValue` |
 | `ref\|<node>\|<comp>\|<field>\|<target>[\|<targetComp>]` | 指向另一個節點。targetComp 省略 = 用欄位宣告型別去找 |
 | `aref\|<node>\|<comp>\|<field>\|<assetPath>` | 指向 asset（prefab / SO）。prefab 會按欄位型別取 component。內建 primitive 用 `builtin:Cube` / `Quad` / `Sphere` / `Capsule` / `Cylinder` / `Plane` / `Default-Material` —— 它們住在 `Library/unity default resources`，`AssetDatabase` 讀不到 |
 | `addel\|<node>\|<comp>\|<field>` | 陣列 / List 欄位尾端加一個元素，回傳新 index；接著用 `set` / `aref` 補 `<field>.Array.data[<i>]`。**不能用 `set` 改 `.Array.size`**（ArraySize propertyType 走不進 ApplyValue） |
@@ -27,18 +27,25 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（第二格必填，不猜預設值） |
 | `idx\|<node>\|<siblingIndex>` | 調 sibling 順序。**child 順序＝優先序**（value source / condition 取第一個成立的），負數從尾端算（`-1` = 最後） |
 | `mv\|<node>\|<newParent>` | 換 parent（scene 與 prefab 都支援） |
-| `rename\|<node>\|<newName>` | 改節點名（`<node>` 留空 = root）。**掛 `AbstractDescriptionBehaviour` 的節點存檔後會被自動命名蓋掉**（`[Detector] None` → `[Follow] None`），改完要 `read` 看實際名稱 |
+| `rename\|<node>\|<newName>` | 改節點名（`<node>` 留空 = root）。**只對沒掛 `AbstractDescriptionBehaviour` 的節點有意義**，其餘存檔後會被自動命名蓋掉，見 [naming.md](naming.md) |
 | `auto\|<node>` | **重跑 `[Auto*]` 綁定 —— 結構改完一定要下這行**，見下面 |
 | `del\|<node>` | 刪節點 |
 | `delcomp\|<node>\|<comp,comp>` | 移除節點上的 component。不存在就跳過（語意是「確保它不在」）。prefab 版 `<node>` 留空 = root |
 | `save` | 存 scene（**只有 scene**；prefab batch 結束自動存） |
 | `mark\|<label>[\|<node>]` | 給節點取個短名，之後用 `$label` 代換。不給 `<node>` = 標記上一個建立節點的操作 |
 
+**`add` / `comp` / `set` / `ref` / `aref` / `addel` / `delcomp` 的 `<node>` 留空 = prefab root**
+（`MonoEntity` / `MonoObj` / `NetworkObject` 都掛在 root 上）。scene 版沒有這個語意 ——
+scene 沒有唯一 root，第一段一定要是 root object 名稱。
+
+節點名含 `/` 或換行時的逃逸規則見 [naming.md](naming.md)。
+
 ## `$` 代換 —— 不要把同一條長路徑寫兩次
 
 MonoFSM 的節點路徑動輒六十個字元（`[StateFolder] StateFolder/[State] idle/[Event]
 OnStateEnter/[Action] Reset Timer`），而「`add` 完緊接著 `ref`」是最常見的組合。
-任何參數都可以寫：
+**這也是對抗自動命名最有效的一招**（見 [naming.md](naming.md)）：`$` 記的是節點本身，
+不受改名影響。任何參數都可以寫：
 
 | 寫法 | 代換成 |
 |---|---|
@@ -82,34 +89,14 @@ auto|
 ```
 
 只做「一定會這樣做」的部分（命名慣例、handler 型別對照、`_target`），其餘欄位照舊
-`set` / `ref`。`[Action]` / `[If]` 節點存檔後會被 `AbstractDescriptionBehaviour` 的自動命名
-蓋掉（`[Action] Reset Timer` → `[Action] ResetTimerAction`），所以**整份重跑前先 `read`
-看實際名稱**，否則會建出重複節點。
-
-**`add` / `comp` / `set` / `ref` / `aref` / `addel` / `delcomp` 的 `<node>` 留空 = prefab root**
-（`MonoEntity` / `MonoObj` / `NetworkObject` 都掛在 root 上）。scene 版沒有這個語意 ——
-scene 沒有唯一 root，第一段一定要是 root object 名稱。
-
-## 節點名裡有 `/` 要寫成 `\/`、換行寫成 `\n`
-
-MonoFSM 的自動命名會把 `Table/key` 塞進名字（`=> Localized: GameplayUI/grab`），
-而 `Transform.Find` 把 `/` 一律當階層分隔 —— 不逃逸就永遠指不到那個節點，
-而且錯誤訊息看起來像「這層明明就有」：
-
-```bash
-up prefab do "$P" "del|…/[Getter] d_ Select Text Prompt 文字提示/=> Localized: GameplayUI\/grab"
-```
-
-路徑打錯時列出的候選已經幫你逃逸好了，照抄就對。`find --resolve` 給的路徑同樣是逃逸過的。
-
-名稱含**換行**的節點（`Localized: <含換行的譯文> (Table/key)` 這種自動命名）同理寫成 `\n`。
-`set` 的值是 long（`m_TableEntryReference.m_KeyId`）也支援，超出 int 範圍會自動走 `longValue`。
+`set` / `ref`。
 
 要點：
 
 - **第一個失敗就停**，並回報「停在第幾行、前面幾個已生效」。後面的操作通常依賴前面的
   結果，硬跑下去只會產生一長串誤導性錯誤。prefab batch 更進一步：**任何一行失敗就整批不存檔**。
-- **`add` 重複不算錯**，回「（跳過）已存在」。批次的實際用法是「修一行再整份重跑」。
+- **`add` 重複不算錯**，回「（跳過）已存在」。批次的實際用法是「修一行再整份重跑」——
+  但重跑前先 `read` 拿當下的節點名，見 [naming.md](naming.md)。
 - **錯誤訊息會給下一步的線索**：路徑錯 → 列出走到哪、那層有哪些子節點；型別打錯 → 列出
   名稱相近的候選；欄位名錯 → 列出可用欄位；**巢狀路徑錯 → 列出走得通的那一層底下有什麼**
   （`_timeMax._constValue` → 「走到 `_timeMax`（VarFloatWrapper），這層底下有 `_tempValue: float`」）。
@@ -177,10 +164,12 @@ log 尾巴會出現 `# 存檔前 callback：920 個 OK`。專案幾乎每個 Mon
 所以只報數量，出錯的才點名。
 
 ⚠️ **但 callback 不保證會把 var 填進陣列**。2026-08-23 在「升級訂購機 Variant」上新增
-`[Var] Sold Out Mask`（VarInt + `NetworkedVarTag`）後，存檔前 callback 有跑、`_syncInts` 仍是空的；
-改用 `addel` + `ref …|VarInt` 手動寫入才生效，且**手動寫入不會被後續存檔覆寫**（peek 驗證過留住了）。
-所以流程是：加 `NetworkedVarTag` → 存檔 → **peek 確認該 var 真的進了 `_syncXxx`** →
-沒進就手動 `addel` + `ref`。不要假設 callback 會補完，也不要因為怕被覆寫而不敢手動編。
+`[Var] Sold Out Mask`（VarInt + `NetworkedVarTag`）後，存檔前 callback 有跑、`_syncInts` 仍是空的。
+
+所以流程是：加 `NetworkedVarTag` → 存檔 → **`peek` 確認該 var 真的進了 `_syncXxx`**。
+**沒進的話不要自己 `addel` + `ref` 補** —— 接進 sync 陣列（含換成容量更大的
+`NetworkedVarSyncBool4Float4`）由 Jerryee 在 Editor 端處理，手動動陣列容易搞亂既有槽位配置。
+回報時說一句「這顆要接進 sync」就好。
 
 ## nested prefab 實例：改動會存成外層的 override，不會污染源 prefab
 
@@ -190,49 +179,6 @@ log 尾巴會出現 `# 存檔前 callback：920 個 OK`。專案幾乎每個 Mon
 才有的 `[State] Plugged`）的做法。
 
 驗證方式：改完 `grep` 一下 script 的 guid 落在哪個 `.prefab` 檔。
-
-## 節點名會被自動改名 —— 這是正常的，不是你寫錯
-
-**掛 `AbstractDescriptionBehaviour` 的節點（絕大多數 MonoFSM component）的名字不是你取的，
-是存檔時由 `Description` 算出來的。** 看到路徑失效的第一反應應該是「它被改名了」，
-不是「我抄錯字」—— 後者會讓你白跑一輪 debug。
-
-改名時機是**存檔**（prefab batch 結束時自動存），所以：
-
-- **同一批 ops 內**接續引用剛建的節點沒問題（rename 還沒發生）
-- **下一批 / 下一次 read** 拿到的可能是新名字
-
-會變樣的幾種：
-
-| 情況 | 例 |
-|---|---|
-| tag 大小寫與拼法跟你給的不一樣 | `add` 給 `[If OR] X` → 存成 `[if OR] X`（tag 是 `"if " + OR`） |
-| 名字含引用目標，改了引用就改名 | `[If] Get<Player>.d_CanAffordRevive == False` |
-| **名字來自譯文，跟著 Editor 當下的 SelectedLocale 變** | `[Getter] Localized: 團隊資金：$ {var1} (GameplayUI/money)` 在 SelectedLocale=en 時會存成 `[Getter] Localized: $ {var1} (…)`（en 譯文沒有前綴）；該 locale 沒有 entry 時連中文都沒有，只剩 `Localized: GameplayUI/rain_chance` |
-| **譯文型的名字可能含真實換行** | 多行提示模板，路徑根本寫不進單行 DSL |
-
-### 三道防線，按優先序
-
-1. **同一批內一律用 `mark` + `$label`，不要把長路徑寫兩次。** 這是最有效的一道 ——
-   `$` 代換記的是節點本身，改名完全影響不到它。13 行 ops 建一整棵子樹、中間穿插改名，
-   用 `$label` 可以一行都不受影響。
-2. **跨批次不要把路徑寫死進計畫 md**。要嘛在執行前重新 `read` 取當下名稱，要嘛把
-   「改哪個節點」描述成結構位置（「`strings` 底下第 2 顆 getter」）讓執行者自己解。
-3. **解析層有自動命名容錯**（見下）—— 名字小幅變動時會自己對應過去，你會看到一行提示。
-
-### 自動命名容錯
-
-`--node` / ops 的路徑找不到時，會再看同層有沒有「明顯是同一顆、只是被改名了」的候選，
-命中就直接用，並印一行：
-
-```
-# 節點 'X' 找不到，自動對應到同層的 'Y'（自動命名把名字改掉了）。請改用新名字，或用 mark/$label 避免寫死路徑
-```
-
-判準刻意嚴格，因為誤判的代價是對**錯的節點**下 `del` / `set`：`[Tag]` 前綴必須完全一致
-（`[If] X` 不會配到 `[Action] X`）、最長共同子序列要佔七成以上、**通過的候選必須恰好一個**。
-兩個以上就不猜，照原本的方式列出該層子節點讓你自己挑。所以看到列候選而不是自動對應，
-表示這次的差異大到不該猜 —— 照抄候選就好。
 
 ## 建新東西：一律開 variant / 複製模板，不要從零建
 

@@ -95,6 +95,13 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         // === ResetStateRestore baseline（只記 SceneStart 時 mount 的，動態 mount 不記）===
         [ShowInInspector] private MonoEntity _sceneStartAttachEntity;
+
+        /// <summary>
+        /// SceneStart 當下就已經 attach 到 parent entity（真正的 nested ViewRoot）。
+        /// 這種的 reset 由 parent 帶著一起還原，LocalTransformResetter 不該自己搬 transform；
+        /// 動態 mount（插槽、抓取、Dock）則要自己還原，不能靠 AttachToViewRoot 判斷（reset 順序不保證）。
+        /// </summary>
+        public bool IsSceneStartAttached => _sceneStartAttachEntity != null;
         Vector3 _baselineParentOffset;
         Quaternion _baselineParentRotOffset;
         Vector3 _baselineViewOffset;
@@ -364,7 +371,11 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             }
             else
             {
-                // 純動態 mount（SceneStart 沒 attach）→ 清掉
+                // 純動態 mount（SceneStart 沒 attach）→ 清掉，位置/物理交給 LocalTransformResetter 還原
+                _mountHandledPhysics = false;
+                Debug.Log(
+                    $"[ViewRoot] ResetStateRestore clear dynamic mount '{name}' tick:{WorldUpdateSimulator.CurrentTick}",
+                    this);
                 ClearFollowTarget();
             }
         }

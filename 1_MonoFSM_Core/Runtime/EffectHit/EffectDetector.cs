@@ -82,6 +82,10 @@ namespace MonoFSM.Core.Detection
         [ShowInDebugMode]
         private bool _isResumeGraceTick;
 
+        //reset 後第一個 detect tick 整批丟棄，見 ResetStateRestore
+        [ShowInDebugMode]
+        private bool _isResetGraceTick;
+
         private bool HasNoParentObj => _parentObj == null;
 
         public override string ValueInfo =>
@@ -163,6 +167,7 @@ namespace MonoFSM.Core.Detection
         private void ClearAllDetections(string reason)
         {
             _isResumeGraceTick = false; //真的清掉就沒有凍結可言
+            _isResetGraceTick = false;
             _dealerLastStates.Clear(); //latch 歸零，重新 enable 後才會補放 enter
             if (_thisFrameDetectedObjects.Count == 0)
             {
@@ -415,6 +420,23 @@ namespace MonoFSM.Core.Detection
 
                 //放這OK嗎？ 小心上面的foreach?
                 detectionSource.AfterDetection();
+            }
+
+            //reset 後第一個 detect tick 的重疊資料不可信：LocalTransformResetter 這個 tick 才把
+            //transform 搬回原點，物理還沒用新位置重跑，TriggerDetectorSource 的 OnTriggerStay
+            //餵進來的仍是 reset 前的重疊。而 ResetStateRestore 又清空了 last，拿它 diff 會把
+            //「reset 後其實已離開」的重疊當成新 enter 重放一次（插槽 mount、傷害等副作用會誤觸發）。
+            //上面的 UpdateDetection/AfterDetection 已把 source 的陳舊資料吃掉，這裡整批丟棄，
+            //下一 tick 物理用新位置跑過後才是權威 —— 真的還重疊的仍會重放 enter，只是晚一 tick。
+            if (_isResetGraceTick)
+            {
+                _isResetGraceTick = false;
+                Debug.Log(
+                    $"[EffectDetector] Reset grace tick，丟棄陳舊 overlap:{_thisFrameDetectedObjects.Count}",
+                    this);
+                _thisFrameDetectedObjects.Clear();
+                _lastDetectedObjects.Clear();
+                return;
             }
 
             // 4. 檢查 dealer 狀態變化
@@ -726,6 +748,8 @@ namespace MonoFSM.Core.Detection
             _lastDetectedObjects.Clear();
             _thisFrameDetectedObjects.Clear();
             _isResumeGraceTick = false;
+            //物理還沒用還原後的位置重跑，這個 tick 的重疊資料要整批丟棄（見 DetectUpdateCheck）
+            _isResetGraceTick = true;
             //dealer 有效性的 latch 也要歸零，否則「reset 前有效、reset 後仍有效」會被判成沒變化，
             //少放一次 enter（見 CheckDealerStateChanges / HandleDealerStateChanges）
             _dealerLastStates.Clear();

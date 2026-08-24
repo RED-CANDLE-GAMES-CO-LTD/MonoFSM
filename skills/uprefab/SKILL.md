@@ -27,6 +27,7 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | scene 上的階層（**沒有 budget 保護，要自己給 `--depth`**） | `scene ls` | ✅ | [read.md](references/read.md) |
 | 貼了 **scene 物件連結**（`globalId=GlobalObjectId_V1-…`） | `obj` | ✅ | [read.md](references/read.md) |
 | **改** prefab / scene 結構、開/複製/存 scene、建 variant | `prefab do` / `scene do` / `scene copy` / `prefab variant` | ✅ | [edit.md](references/edit.md) |
+| **路徑失效、名字跟上次讀到的不一樣**、節點名含 `/` 或換行 | —— | | [naming.md](references/naming.md) |
 | **建 / 改 ScriptableObject asset**（registry / config 類） | `asset create` / `set` / `set-ref` / `add-element` | ✅ | [asset.md](references/asset.md) |
 | **加 / 改互動文字提示**（localized、按狀態切換） | `prompt` | ✅ | [prompt.md](references/prompt.md) |
 | **只要 localization 條目**（文案持有者是 SO 不是節點） | `loc` | ✅ | [prompt.md](references/prompt.md) |
@@ -48,35 +49,25 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 
 ## 鐵則
 
+開檔案之前就要做的判斷，只有五條（DSL 語法、失敗語意、Auto 綁定那些細節在對應的
+reference 裡，真的要改的時候一定會讀到）：
+
 - **所有需要 Unity 的操作都有 CLI 入口 —— 不要直接寫 `uloop execute-dynamic-code`**，
   它每次回傳 15 行 JSON envelope（Logs / SecurityLevel / Diagnostics…），CLI 只回結果那一行。
 - **離線索引還是唯一的跨資產定位手段** —— Unity 端沒有全專案搜尋（`refs` 只掃單一
   prefab / scene，`types` 只查型別名），所以「這個 component 在哪些檔案裡」只有 `find`
   答得出來，而且快兩個數量級（find 0.1s vs Unity 一次來回含 domain reload 十幾秒）。
-  離線的就只有 `index` / `scope` / `find` / `guid` / `overrides` 這幾條。
+  離線的就只有 `index` / `scope` / `find` / `guid` / `overrides` / `catalog` 這幾條。
 - **離線索引只回答「在哪個檔案」，內容一律走 Unity 匯出。** 離線 YAML 讀不到 variant
   繼承來的東西（stripped 佔位 document 沒有名稱、component、真值），連 `find` 印的節點
   路徑都是局部的、不能直接餵給 `--node`（要完整路徑就 `--resolve`）。原因與實測數據見
-  [internals.md](references/internals.md)。
-- **挑 component 之前先 `up catalog`，不要 grep 或 Read .cs** —— 108 個 Action、87 個
-  Condition 的用途與欄位一次列完（離線、0.1s），比逐檔讀便宜兩個數量級。
-  讀到 `⚠無說明` 而你為了工作實際去讀了那份原始碼，**順手補一段 `/// <summary>` 再走** ——
-  這是目錄唯一的補齊來源，補完下一個人就不用再讀一次。
-- **`find` 不會自己更新索引** —— 改過 prefab 就先 `up index`（增量，實測一天的變更量
-  234 個資產 2.3 秒）。`(no match)` 或路徑對不上時，第一個嫌疑就是索引過期。
-- **DSL 欄位用 `|` 分隔，不用空白** —— 節點名帶空白、`[Tag] ` 前綴與中文，空白分隔一定炸。
-- **結構改完一定要下 `auto|`** —— MonoFSM 大量欄位靠 `[Auto*]` attribute 填，不補這步會
-  存出「看起來對、欄位全是 null」的資料，只有進 Play Mode 才發現。
-- **`add` condition 到別人的節點下之前，先確認那個節點上沒有別的 `[AutoChildren]` 使用者** ——
-  子節點是整個 GameObject 共用的，多掛一個 condition 可能默默把同節點上其他 component 的行為
-  也一起關掉（無錯誤訊息）。要只影響單一 component 就走 `VarBool` + `[DropDownRef]` 引用，
-  見 [edit.md](references/edit.md)。
-- **建新東西一律開 variant / 複製模板，不要從零建** —— prefab 帶著大量共用底盤
-  （MonoEntity / MonoObj / NetworkObject / ModulePack），scene 需要 WorldUpdateSimulator /
-  SpawnProcessor / PoolManager / AutoAttributeManager。
-- **路徑或欄位打錯不會白跑** —— 錯誤訊息會列出走到哪一層、那層有什麼候選，照著修就好。
-  同名節點（一排 `[Case] SwitchCase`）用 `[n]` 後綴指定第幾個。
-- **改完直接 `prefab read` / `scene ls` 驗證** —— 讀到的一定是當下真值，沒有落檔 cache。
+  [internals.md](references/internals.md)。**`find` 也不會自己更新索引** —— 改過 prefab
+  先 `up index`，`(no match)` 的第一個嫌疑就是索引過期。
+- **挑 component 之前先 `up catalog`，不要 grep 或 Read .cs** —— 近 400 個 Action /
+  Condition / Getter 的用途與欄位一次列完（離線、0.1s）。讀到 `⚠無說明` 而你為了工作
+  實際去讀了那份原始碼，**順手補一段 `/// <summary>` 再走**，見 [catalog.md](references/catalog.md)。
+- **節點名是框架自動命名的，路徑寫死一定會過期** —— 同批 ops 內用 `mark` + `$label`，
+  跨批次 / 寫進計畫 md 時描述結構位置而不是抄名字。見 [naming.md](references/naming.md)。
 
 ## References
 
@@ -84,7 +75,8 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 |---|---|
 | [offline-index.md](references/offline-index.md) | `index` / `find`（含 `--resolve`）/ `guid` / `overrides` / `scope`、`.uprefab.json` 設定、中文名稱 escape |
 | [read.md](references/read.md) | `prefab read` / `scene ls` 參數與 `--budget` 分層下鑽、`obj`（GlobalObjectId 連結） |
-| [edit.md](references/edit.md) | 批次 DSL 全部操作、失敗語意、`[n]` 後綴、`auto`、variant / 模板 |
+| [edit.md](references/edit.md) | 批次 DSL 全部操作、`$` 代換、FSM 複合操作、`[n]` 後綴、失敗語意、`auto` 與 AutoChildren 陷阱、存檔 callback、variant / 模板 |
+| [naming.md](references/naming.md) | 自動命名：為什麼路徑會過期、三道防線、`\/` 與 `\n` 逃逸 |
 | [asset.md](references/asset.md) | ScriptableObject asset 的 create / set / set-ref / add-element / fields |
 | [prompt.md](references/prompt.md) | localized 文字提示：case 格式、優先序、自帶驗證輸出 |
 | [catalog.md](references/catalog.md) | `catalog`：Action / Condition 目錄、`--type` 細查、`--missing` 待補清單、`/// summary` 撰寫規範 |

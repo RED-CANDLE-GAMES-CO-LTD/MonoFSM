@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime._1_Conditions
 {
+    /// <summary>
+    ///     把子節點的 condition 用 AND 或 OR 組起來的容器（_operationType 選）。
+    ///     需要「A 或 B 成立」時掛這顆，把各條件當它的子節點；也可以當 Var 的 bool valueSource
+    ///     （例如 d_is_raining = 強制下雨 OR 累積機率滿）。
+    ///     只撈深度一層的子 condition，自己被 disable 或沒有子條件時一律視為成立。
+    /// </summary>
     public class CompositeCondition : AbstractConditionBehaviour
     {
         public override bool IsDrawingValueInfo => true;

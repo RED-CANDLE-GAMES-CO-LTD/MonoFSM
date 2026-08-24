@@ -56,14 +56,14 @@ up prompt "$P" --var "…/[Getter] d_Prompt_String 提示說明" --check
 token 讀的是巢狀 VarString 的 `CurrentValue`，非 Play 時解析不出來，所以外層會看到 token 位置是空的。
 最終三行長怎樣要進 Play Mode 看。
 
-## 節點名含換行要寫成 `\n`
+## 節點名同時含 `/` 和換行
 
-`Localized: <譯文> (Table/key)` 這種自動命名會把含換行的譯文塞進 GameObject 名字，
-於是路徑同時含 `/` 和換行。`\/` 之外再加一條：**換行寫成 `\n`**，`--var` 與 `prefab do` 的
-`<node>` 都吃得下（`prefab read` 印出來的候選已經逃逸好了，照抄就對）。
+`Localized: <譯文> (Table/key)` 這種自動命名會把 `Table/key` 與含換行的譯文一起塞進
+GameObject 名字，所以 `--var` 的路徑常常要同時逃逸 `\/` 和 `\n` —— 規則見
+[naming.md](naming.md)。
 
-順帶兩個踩過的：`Transform.Find` 對名稱含換行的節點**一律找不到**（要自己逐一比 `child.name`）；
-`m_KeyId` 是 long，用 `SerializedProperty.intValue` 讀寫會溢位／截斷成負數。
+prompt 這邊特有的一個：`m_KeyId` 是 long，用 `SerializedProperty.intValue` 讀寫會溢位／
+截斷成負數。
 
 ## 回傳自帶驗證，不用進 Play Mode
 

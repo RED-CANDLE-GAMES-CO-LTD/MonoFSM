@@ -679,9 +679,14 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
 
             var providerType = typeof(IValueProvider<>).MakeGenericType(valueType);
             var matched = new List<Type>();
-            foreach (var t in TypeCache.GetTypesDerivedFrom<AbstractGetter>())
+            //_valueSources 是 IValueProvider[]，不是 AbstractGetter[] —— 掃 AbstractGetter 會整批漏掉
+            //Condition（AbstractConditionBehaviour 那條線，實作 IValueProvider<bool>/<float>）
+            foreach (var t in TypeCache.GetTypesDerivedFrom<IValueProvider>())
             {
                 if (t.IsAbstract)
+                    continue;
+                //要能 AddComponent 到子物件上才餵得進 [AutoChildren]
+                if (!typeof(Component).IsAssignableFrom(t))
                     continue;
                 //Var 自己也是 provider，但它有自己一組候選（GetVarCandidates）
                 if (typeof(AbstractMonoVariable).IsAssignableFrom(t))

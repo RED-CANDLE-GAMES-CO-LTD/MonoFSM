@@ -74,7 +74,16 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore, IResetS
 
     public void ResetStateRestore(bool isHardReset)
     {
-        if (_viewRoot?.AttachToViewRoot != null) return; //有parent就不reset，等parent reset的時候一起reset就好
+        //只有「SceneStart 就 nested attach」的才跳過（等 parent reset 一起還原）。
+        //動態 mount 的（插槽、抓取、Dock）一定要還原，不能看 AttachToViewRoot：
+        //ViewRoot 的 ClearFollowTarget 與這裡分屬不同 MonoObj，reset 順序不保證。
+        if (_viewRoot != null && _viewRoot.IsSceneStartAttached)
+        {
+            Debug.Log(
+                $"[LocalTransformResetter] skip (SceneStart nested attach) tick:{MonoFSM.Core.Simulate.WorldUpdateSimulator.CurrentTick}",
+                this);
+            return;
+        }
 
         if (ParameterInitCheck()) //第一次記下來？還是分開感覺比較好？
         {
@@ -96,6 +105,12 @@ public class LocalTransformResetter : MonoBehaviour, IResetStateRestore, IResetS
 
             _rigidbody.ResetInertiaTensor();
         }
+
+        Debug.Log(
+            $"[LocalTransformResetter] restored '{name}' localPos:{transform.localPosition} world:{transform.position} " +
+            $"parent:{(transform.parent != null ? transform.parent.name : "null")} kinematic:{_isKinematic} " +
+            $"tick:{MonoFSM.Core.Simulate.WorldUpdateSimulator.CurrentTick}",
+            this);
     }
 
     public void ResetStart()
