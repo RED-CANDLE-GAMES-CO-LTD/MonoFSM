@@ -201,6 +201,11 @@ namespace CommandPalette
             if (tokenScore > 0)
                 return new SearchResult<AssetEntry>(asset, tokenScore, "tokens");
 
+            // 層次 3.6：CJK 逐字匹配（中文 query 無空白可拆 token）
+            var cjkScore = ScoreCjkSubsequence(query, nameLower);
+            if (cjkScore > 0)
+                return new SearchResult<AssetEntry>(asset, cjkScore, "cjk");
+
             // 層次 4：路徑匹配
             if (pathLower.Contains(query))
             {
@@ -240,6 +245,12 @@ namespace CommandPalette
             if (tokenScore > 0)
                 return new SearchResult<EditorWindowEntry>(window, tokenScore, "tokens");
 
+            // 層次 3.6：CJK 逐字匹配
+            var cjkScore = Math.Max(ScoreCjkSubsequence(query, displayNameLower),
+                ScoreCjkSubsequence(query, typeNameLower));
+            if (cjkScore > 0)
+                return new SearchResult<EditorWindowEntry>(window, cjkScore, "cjk");
+
             // 層次 4：Category 匹配
             if (categoryLower.Contains(query))
                 return new SearchResult<EditorWindowEntry>(window, 0.6f, "category");
@@ -277,6 +288,11 @@ namespace CommandPalette
             var tokenScore = ScoreAllTokens(tokens, displayNameLower);
             if (tokenScore > 0)
                 return new SearchResult<MenuItemEntry>(menuItem, tokenScore, "tokens");
+
+            // 層次 3.6：CJK 逐字匹配
+            var cjkScore = ScoreCjkSubsequence(query, displayNameLower);
+            if (cjkScore > 0)
+                return new SearchResult<MenuItemEntry>(menuItem, cjkScore, "cjk");
 
             // 層次 4：Path 匹配
             if (menuPathLower.Contains(query))
@@ -329,6 +345,44 @@ namespace CommandPalette
 
             var coverage = (float)totalLen / target.Length;
             return 0.75f + coverage * 0.1f;
+        }
+
+        /// <summary>
+        /// CJK 友善匹配：中文 query 沒有空白可拆成 token，acronym／token 兩層對中文都無效，
+        /// 這裡改以「每個字元都出現且順序一致（允許中間插字）」計分。
+        /// 例：「黑雲」可命中「打雷的黑色雲朵」。單字元 query 交給上層 Contains 處理即可。
+        /// 分數 = 0.7 + coverage * 0.05（低於 Contains 的 0.8，高於路徑匹配的 0.6）
+        /// </summary>
+        private static float ScoreCjkSubsequence(string query, string target)
+        {
+            if (query.Length < 2 || string.IsNullOrEmpty(target)) return 0f;
+            if (query.IndexOf(' ') >= 0) return 0f; // 有空白的走 multi-token 路徑
+            if (!ContainsCjk(query)) return 0f;
+
+            var searchFrom = 0;
+            foreach (var c in query)
+            {
+                var idx = target.IndexOf(c, searchFrom);
+                if (idx < 0) return 0f;
+                searchFrom = idx + 1;
+            }
+
+            var coverage = (float)query.Length / target.Length;
+            return 0.7f + coverage * 0.05f;
+        }
+
+        /// <summary>
+        /// 是否含 CJK 字元（統一漢字含擴充 A、相容漢字，以及全／半形假名）
+        /// </summary>
+        private static bool ContainsCjk(string s)
+        {
+            foreach (var c in s)
+            {
+                if (c >= 0x3040 && c <= 0x9FFF) return true;   // 假名 + 統一漢字（含擴充 A）
+                if (c >= 0xF900 && c <= 0xFAFF) return true;   // 相容漢字
+            }
+
+            return false;
         }
 
         /// <summary>

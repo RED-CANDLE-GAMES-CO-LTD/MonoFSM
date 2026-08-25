@@ -64,7 +64,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         }
 
         [FormerlySerializedAs("HittingLayer")]
-        [CustomSerializable]
+        // [CustomSerializable]
         public LayerMask _hittingLayer;
 
         [PreviewInInspector]

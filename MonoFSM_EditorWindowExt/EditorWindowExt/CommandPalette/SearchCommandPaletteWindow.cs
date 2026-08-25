@@ -41,6 +41,9 @@ namespace CommandPalette
         // IME 組字追蹤
         private bool _wasComposing;
 
+        // 開窗回填上次 query 時要全選，否則新打的字（特別是中文 IME）會直接接在舊字串後面
+        private bool _pendingSelectAll;
+
         // 拖拉相關
         private int _dragStartIndex = -1; // selectable index
         private Vector2 _dragStartPos;
@@ -107,6 +110,7 @@ namespace CommandPalette
             _sortMode = (SearchSortMode)EditorPrefs.GetInt(SortModePrefKey, (int)SearchSortMode.ScoreBased);
             _searchString = EditorPrefs.GetString(SearchStringPrefKey, "");
             // 立刻載入 Prefabs（最重要），其他非同步補齊
+            _pendingSelectAll = !string.IsNullOrEmpty(_searchString);
             _assetCache[SearchMode.Prefabs] = LoadAssetsForMode(SearchMode.Prefabs);
             PerformUnifiedSearch();
 
@@ -163,6 +167,9 @@ namespace CommandPalette
                 : new List<SearchResult<EditorWindowEntry>>();
 
             BuildFlatRows();
+            if (_selectableCount == 0 && !string.IsNullOrEmpty(_searchString))
+                Debug.Log($"[CommandPalette] 查無結果 query=\"{_searchString}\" len={_searchString.Length} " +
+                          $"codes=[{string.Join(",", _searchString.Select(c => ((int)c).ToString("X4")))}]");
             _selectedIndex = _selectableCount > 0 ? 0 : -1;
             Repaint();
         }
@@ -376,6 +383,12 @@ namespace CommandPalette
             var searchRect = new Rect(5, 5, position.width - 10 - btnWidth - linkBtnWidth - 8, 18);
             var newSearchString = _searchField.OnGUI(searchRect, _searchString);
 
+            if (_pendingSelectAll && Event.current.type == EventType.Repaint)
+            {
+                _pendingSelectAll = false;
+                TrySelectAllInFocusedTextField();
+            }
+
             if (newSearchString != _searchString)
             {
                 _searchString = newSearchString;
@@ -403,6 +416,26 @@ namespace CommandPalette
             if (GUI.Button(btnRect, btnLabel, EditorStyles.miniButton))
                 ToggleSortMode();
             GUI.color = origColor;
+        }
+
+        /// <summary>
+        /// 全選目前 focus 的 IMGUI 文字欄位內容（回填上次 query 時用）。
+        /// IMGUI 沒有公開 API，只能反射拿 EditorGUI 內部的 RecycledTextEditor；拿不到就放棄（不影響搜尋）。
+        /// </summary>
+        private static void TrySelectAllInFocusedTextField()
+        {
+            var editorField = typeof(EditorGUI).GetField("activeEditor",
+                                  BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
+                              ?? typeof(EditorGUI).GetField("s_RecycledEditor",
+                                  BindingFlags.Static | BindingFlags.NonPublic);
+            if (editorField == null)
+            {
+                Debug.Log("[CommandPalette] 找不到 EditorGUI 內部 TextEditor，略過全選");
+                return;
+            }
+
+            var textEditor = editorField.GetValue(null);
+            textEditor?.GetType().GetMethod("SelectAll")?.Invoke(textEditor, null);
         }
 
         private void ScrollToSelected()

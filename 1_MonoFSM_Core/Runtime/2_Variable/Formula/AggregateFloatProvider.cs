@@ -1,4 +1,5 @@
 using System;
+using MonoDebugSetting;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Variable;
@@ -112,10 +113,11 @@ namespace MonoFSM.Core.Formula
             var variable = entity.VariableFolder.GetVariable(_variableToAggregate);
             if (variable == null)
             {
-                Debug.LogError(
-                    $"Variable '{_variableToAggregate.name}' not found on '{entity.name}'.",
-                    entity
-                );
+                if (RuntimeDebugSetting.IsDebugMode)
+                    Debug.LogWarning(
+                        $"Variable '{_variableToAggregate.name}' not found on '{entity.name}'.",
+                        entity
+                    );
                 return 0f;
             }
 

@@ -479,6 +479,12 @@ namespace MonoFSM.Core.Editor.VarQuickCreate
                 return cached;
 
             var types = new List<Type>();
+            //欄位型別本身就是具體 component 時（[AutoChildren] private OnStateEnterHandler _onStateEnter
+            //這種單一欄位），它就是要建的東西 —— GetTypesDerivedFrom 不含自己，不補這行整組會漏掉
+            if (!slot.TargetType.IsAbstract
+                && !slot.TargetType.IsInterface
+                && typeof(MonoBehaviour).IsAssignableFrom(slot.TargetType))
+                types.Add(slot.TargetType);
             foreach (var t in TypeCache.GetTypesDerivedFrom(slot.TargetType))
             {
                 if (t.IsAbstract)
