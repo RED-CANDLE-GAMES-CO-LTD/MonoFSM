@@ -28,7 +28,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         [ShowInInspector] Quaternion _followParentRotOffset;
         [ShowInInspector] Vector3 _followViewOffset; // View 相對 parentVR.transform（AfterRender 用）
         [ShowInInspector] Quaternion _followViewRotOffset;
-
+        bool IUpdateSimulate.IsUpdating => isActiveAndEnabled && AttachToViewRoot != null;
         //FIXME: 要檢查上面有Rigidbody?
         public Transform Root =>
             _bindRb != null

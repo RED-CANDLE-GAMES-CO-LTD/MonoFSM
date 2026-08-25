@@ -259,6 +259,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
         public bool IsBeforeSimulatesNeeded => IsSimulationPhaseNeeded(_beforeSimulates);
         public bool IsAfterSimulatesNeeded => IsSimulationPhaseNeeded(_afterSimulates);
         public bool IsRenderSimulatesNeeded => IsRenderPhaseNeeded(_renderSimulates);
+        public bool IsAfterRendersNeeded => IsRenderPhaseNeeded(_afterRenders);
 
         private bool IsSimulationPhaseNeeded<T>(T[] list) where T : class
         {

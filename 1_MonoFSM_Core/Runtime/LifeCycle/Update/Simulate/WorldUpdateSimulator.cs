@@ -963,7 +963,7 @@ namespace MonoFSM.Core.Simulate
                 var monoObject = objs[i];
                 if (monoObject is { isActiveAndEnabled: true })
                 {
-                    if (monoObject.IsRenderSimulatesNeeded)
+                    if (monoObject.IsAfterRendersNeeded)
                     {
                         Profiler.BeginSample("Render", monoObject);
                         monoObject.AfterRender();
