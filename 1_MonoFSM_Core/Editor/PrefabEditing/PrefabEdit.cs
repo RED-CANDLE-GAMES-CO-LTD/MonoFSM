@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using MonoFSM.Core;
 using UnityEditor;
 using UnityEngine;
@@ -217,8 +219,9 @@ namespace MonoFSM.Editor.PrefabEditing
             try
             {
                 root.name = rootName;
-                PrefabUtility.SaveAsPrefabAsset(root, newAssetPath, out var ok);
-                if (!ok) return $"# 複製了但 root 改名存檔失敗: {newAssetPath}";
+                var saved = PrefabUtility.SaveAsPrefabAsset(root, newAssetPath, out var ok);
+                if (!ok || saved == null)
+                    return $"# 複製了但 root 改名存檔失敗: {newAssetPath}";
             }
             finally
             {
@@ -255,24 +258,48 @@ namespace MonoFSM.Editor.PrefabEditing
         /// **整批共用一次 LoadPrefabContents / SaveAsPrefabAsset** —— 逐個原語呼叫的話，
         /// 建一個 FSM 會 load/save 幾十次，慢且每次都重跑一遍 cache 更新。
         /// </summary>
-        public static string Batch(string assetPath, string ops)
+        public static string Batch(string assetPath, string ops) => Batch(assetPath, ops, false);
+
+        /// <summary>
+        /// 一次跑多行操作。quiet=true 時，成功只回 compact summary；任何操作、存檔或
+        /// reload 驗證失敗仍回完整逐行 log，不能為了省輸出藏掉修正線索。
+        /// </summary>
+        public static string Batch(string assetPath, string ops, bool quiet)
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(assetPath) == null)
                 return $"# 找不到 prefab: {assetPath}";
 
             var root = PrefabUtility.LoadPrefabContents(assetPath);
+            var touches = new List<VerifyTouch>();
             try
             {
-                var log = EditBatch.Run(ops, (verb, a) => Dispatch(root.transform, verb, a));
+                var log = EditBatch.Run(
+                    ops, (verb, a) => Dispatch(root.transform, verb, a, touches), out var done);
                 // 有任何一行失敗就整批不存檔 —— 半套的 FSM 比沒改更難收拾
                 if (log.Contains("# 未修改")) return log + "# 整批未存檔。";
-                log += RunBeforeSaveCallbacks(root);
-                PrefabUtility.SaveAsPrefabAsset(root, assetPath);
-                return log;
+
+                var callbackLog = RunBeforeSaveCallbacks(root);
+                var saved = PrefabUtility.SaveAsPrefabAsset(root, assetPath, out var saveOk);
+                if (!saveOk || saved == null)
+                    return log + callbackLog + $"# 存檔失敗：{assetPath}\n";
+
+                // SaveAsPrefabAsset 會替新物件分配 local file ID。一定要在 save 後、unload 前
+                // 快照，才能把內部 object reference 也轉成可跨 reload 比對的穩定 identity。
+                foreach (var touch in touches) touch.Capture(root.transform);
+
+                PrefabUtility.UnloadPrefabContents(root);
+                root = null;
+
+                var report = VerifyReloaded(assetPath, touches);
+                // quiet 只壓成功輸出；驗證錯誤要把原始逐行操作一起帶回，才知道是哪一步寫的。
+                var prefix = quiet && report.Failures.Count == 0 && !callbackLog.Contains("個失敗")
+                    ? $"# 操作：{done} 個 OK\n"
+                    : log;
+                return prefix + callbackLog + "# 存檔：OK\n" + report.Format();
             }
             finally
             {
-                PrefabUtility.UnloadPrefabContents(root);
+                if (root != null) PrefabUtility.UnloadPrefabContents(root);
             }
         }
 
@@ -288,7 +315,7 @@ namespace MonoFSM.Editor.PrefabEditing
         private static string RunBeforeSaveCallbacks(GameObject root)
         {
             var receivers = root.GetComponentsInChildren<IBeforePrefabSaveCallbackReceiver>(true);
-            if (receivers.Length == 0) return "";
+            if (receivers.Length == 0) return "# 存檔前 callback：0 個（無 receiver）\n";
 
             // 專案裡幾乎每個 MonoBehaviour 都實作這個介面，逐個列名字會洗掉整份 log，
             // 所以只報數量；出錯的才點名，那才是要看的東西。
@@ -314,7 +341,8 @@ namespace MonoFSM.Editor.PrefabEditing
                    "\n";
         }
 
-        private static string Dispatch(Transform root, string verb, string[] a)
+        private static string Dispatch(
+            Transform root, string verb, string[] a, List<VerifyTouch> touches)
         {
             switch (verb)
             {
@@ -395,6 +423,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var before = EditResolve.Preview(prop);
                     EditResolve.ApplyValue(prop, EditBatch.At(a, 3) ?? "", fieldPath);
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}: " +
                            $"{before} -> {EditResolve.Preview(prop)}";
                 }
@@ -417,6 +446,7 @@ namespace MonoFSM.Editor.PrefabEditing
                         EditBatch.At(a, 4));
                     prop.objectReferenceValue = targetComp;
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> " +
                            $"{EditResolve.Describe(targetPath)}.{targetComp.GetType().Name}";
                 }
@@ -434,6 +464,7 @@ namespace MonoFSM.Editor.PrefabEditing
                         throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用");
                     prop.objectReferenceValue = AssetRef.Resolve(target, comp, fieldPath);
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> res:{target}";
                 }
                 case "addel":
@@ -447,6 +478,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var prop = EditResolve.Prop(so, fieldPath, comp);
                     var index = EditResolve.AddArrayElement(prop, fieldPath);
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}[{index}] " +
                            $"新增（現有 {prop.arraySize} 筆）";
                 }
@@ -455,6 +487,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
                     var node = EditResolve.Node(root, nodePath);
                     node.localPosition = EditBatch.Vec3(a, 1, verb, "pos");
+                    touches.Add(VerifyTouch.TransformValue(node, VerifyKind.LocalPosition, verb));
                     return $"{EditResolve.Describe(nodePath)}.localPosition = {node.localPosition}";
                 }
                 case "scale":
@@ -462,6 +495,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
                     var node = EditResolve.Node(root, nodePath);
                     node.localScale = EditBatch.Vec3(a, 1, verb, "scale");
+                    touches.Add(VerifyTouch.TransformValue(node, VerifyKind.LocalScale, verb));
                     return $"{EditResolve.Describe(nodePath)}.localScale = {node.localScale}";
                 }
                 case "rot":
@@ -469,13 +503,21 @@ namespace MonoFSM.Editor.PrefabEditing
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
                     var node = EditResolve.Node(root, nodePath);
                     node.localEulerAngles = EditBatch.Vec3(a, 1, verb, "rot");
+                    touches.Add(VerifyTouch.TransformValue(node, VerifyKind.LocalEulerAngles, verb));
                     return $"{EditResolve.Describe(nodePath)}.localEulerAngles = {node.localEulerAngles}";
                 }
                 case "active":
                 {
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
                     var active = EditBatch.Bool(a, 1, verb);
-                    EditResolve.Node(root, nodePath).gameObject.SetActive(active);
+                    var node = EditResolve.Node(root, nodePath);
+                    node.gameObject.SetActive(active);
+                    EditorUtility.SetDirty(node.gameObject);
+                    // nested prefab / variant 的 activeSelf 必須成為外層的 property override；只
+                    // SetActive 在部分 nested instance 上會看似成功，Save 後卻消失。
+                    if (PrefabUtility.IsPartOfPrefabInstance(node.gameObject))
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(node.gameObject);
+                    touches.Add(VerifyTouch.TransformValue(node, VerifyKind.ActiveSelf, verb));
                     return $"{EditResolve.Describe(nodePath)}.activeSelf = {active}";
                 }
                 case "idx":
@@ -515,8 +557,15 @@ namespace MonoFSM.Editor.PrefabEditing
                     return $"{nodePath} -> {newParentPath}/{node.name}";
                 }
                 case "auto":
-                    return EditResolve.RunAuto(
-                        EditResolve.Node(root, EditBatch.At(a, 0)));
+                {
+                    var node = EditResolve.Node(root, EditBatch.At(a, 0));
+                    var result = EditResolve.RunAuto(node);
+                    // Auto 可能碰任意 [Auto*] 欄位，目前沒有可枚舉「實際改了哪些欄位」的
+                    // API。明確列 unsupported，避免把 reload 成功誤報成完整驗證。
+                    touches.Add(VerifyTouch.Unsupported(node, verb,
+                        "auto 會改任意 [Auto*] 欄位，無法完整枚舉"));
+                    return result;
+                }
                 case "rename":
                 {
                     // 留空 = root（複製模板後 root 名字還是舊的，這是最常見的用途）
@@ -554,12 +603,22 @@ namespace MonoFSM.Editor.PrefabEditing
                         ? $"（跳過）{EditResolve.Describe(nodePath)} 上沒有那些 component"
                         : $"{EditResolve.Describe(nodePath)} -= <{EditResolve.Join(removed)}>";
                 }
+                case "delmissing":
+                {
+                    // 已刪掉 C# 型別後，Unity 只剩 null MonoBehaviour，無法再用 delcomp 的型別名解析。
+                    var nodePath = EditBatch.At(a, 0);
+                    var node = EditResolve.Node(root, nodePath);
+                    var removed = GameObjectUtility.RemoveMonoBehavioursWithMissingScript(node.gameObject);
+                    return removed == 0
+                        ? $"（跳過）{EditResolve.Describe(nodePath)} 上沒有 MissingScript"
+                        : $"{EditResolve.Describe(nodePath)} -= <MissingScript x{removed}>";
+                }
                 default:
                 {
                     var ctx = new EditFsm.Ctx { Node = p => EditResolve.Node(root, p) };
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel pos scale rot active idx mv auto rename del delcomp mark " +
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel pos scale rot active idx mv auto rename del delcomp delmissing mark " +
                         EditFsm.Verbs + "（save 只有 SceneEdit 有）");
                 }
             }
@@ -586,13 +645,329 @@ namespace MonoFSM.Editor.PrefabEditing
                     return $"# 未修改：{abort.Message}";
                 }
 
-                PrefabUtility.SaveAsPrefabAsset(root, assetPath);
-                return message;
+                var saved = PrefabUtility.SaveAsPrefabAsset(root, assetPath, out var ok);
+                return ok && saved != null
+                    ? message
+                    : message + $"\n# 存檔失敗：{assetPath}";
             }
             finally
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
         }
+
+        // ---- 存檔後 reload 驗證 ----
+
+        private enum VerifyKind
+        {
+            Serialized,
+            ActiveSelf,
+            LocalPosition,
+            LocalScale,
+            LocalEulerAngles,
+            Unsupported
+        }
+
+        /// <summary>
+        /// 持有 loaded contents 裡的 object 到 Save 完成，再快照成 path/type/value。Unload 之後
+        /// 不保留任何 UnityEngine.Object reference，確保驗證真的讀的是重新載入的資料。
+        /// </summary>
+        private sealed class VerifyTouch
+        {
+            private readonly VerifyKind _kind;
+            private readonly Component _component;
+            private readonly Transform _node;
+            private readonly string _fieldPath;
+            private readonly string _verb;
+            private readonly string _unsupportedReason;
+
+            private string _nodePath;
+            private string _componentType;
+            private string _expected;
+            private string _captureError;
+
+            private VerifyTouch(
+                VerifyKind kind, Component component, Transform node, string fieldPath,
+                string verb, string unsupportedReason)
+            {
+                _kind = kind;
+                _component = component;
+                _node = node;
+                _fieldPath = fieldPath;
+                _verb = verb;
+                _unsupportedReason = unsupportedReason;
+            }
+
+            internal static VerifyTouch Serialized(Component component, string fieldPath, string verb) =>
+                new(VerifyKind.Serialized, component, component.transform, fieldPath, verb, null);
+
+            internal static VerifyTouch TransformValue(Transform node, VerifyKind kind, string verb) =>
+                new(kind, null, node, null, verb, null);
+
+            internal static VerifyTouch Unsupported(Transform node, string verb, string reason) =>
+                new(VerifyKind.Unsupported, null, node, null, verb, reason);
+
+            internal bool IsUnsupported => _kind == VerifyKind.Unsupported || _captureError != null;
+            internal string UnsupportedReason => _captureError ?? _unsupportedReason;
+            internal string Label => _kind == VerifyKind.Serialized
+                ? $"{EditResolve.Describe(_nodePath)}.{ShortType(_componentType)}.{_fieldPath}"
+                : $"{EditResolve.Describe(_nodePath)}.{KindName(_kind)}";
+
+            internal void Capture(Transform root)
+            {
+                if (_node == null)
+                {
+                    _captureError = $"{_verb} 的 target 被後續操作刪除，無法驗證";
+                    return;
+                }
+
+                _nodePath = EditResolve.PathOf(root, _node);
+                if (_nodePath == null)
+                {
+                    _captureError = $"{_verb} 的 target 已不在 prefab root 底下";
+                    return;
+                }
+
+                if (_kind == VerifyKind.Unsupported) return;
+
+                try
+                {
+                    switch (_kind)
+                    {
+                        case VerifyKind.Serialized:
+                        {
+                            if (_component == null)
+                            {
+                                _captureError = $"{_verb} 的 component 被後續操作刪除，無法驗證";
+                                return;
+                            }
+
+                            _componentType = _component.GetType().FullName;
+                            var so = new SerializedObject(_component);
+                            var prop = EditResolve.Prop(so, _fieldPath, _component);
+                            _expected = Snapshot(prop, root);
+                            if (_expected.StartsWith("unsupported-property:"))
+                                _captureError = $"{_verb} 欄位型別 {prop.propertyType} 尚未支援 reload 驗證";
+                            break;
+                        }
+                        case VerifyKind.ActiveSelf:
+                            _expected = _node.gameObject.activeSelf ? "true" : "false";
+                            break;
+                        case VerifyKind.LocalPosition:
+                            _expected = Vector(_node.localPosition);
+                            break;
+                        case VerifyKind.LocalScale:
+                            _expected = Vector(_node.localScale);
+                            break;
+                        case VerifyKind.LocalEulerAngles:
+                            // Transform 實際序列化的是 quaternion；Euler angle 有多種等價表示，
+                            // reload 後直接比 Euler 會製造假 mismatch。
+                            _expected = Quaternion(_node.localRotation);
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    _captureError = $"{_verb} 快照失敗：{e.GetType().Name}: {e.Message}";
+                }
+            }
+
+            /// <returns>null = 驗證成功；否則為完整 mismatch 訊息。</returns>
+            internal string Verify(Transform reloadedRoot)
+            {
+                if (IsUnsupported) return null;
+
+                try
+                {
+                    var node = EditResolve.TryNode(reloadedRoot, _nodePath);
+                    if (node == null) return $"{Label}：reload 後找不到節點";
+
+                    string actual;
+                    switch (_kind)
+                    {
+                        case VerifyKind.Serialized:
+                        {
+                            var comp = EditResolve.Comp(node, _nodePath, _componentType);
+                            var so = new SerializedObject(comp);
+                            actual = Snapshot(EditResolve.Prop(so, _fieldPath, comp), reloadedRoot);
+                            break;
+                        }
+                        case VerifyKind.ActiveSelf:
+                            actual = node.gameObject.activeSelf ? "true" : "false";
+                            break;
+                        case VerifyKind.LocalPosition:
+                            actual = Vector(node.localPosition);
+                            break;
+                        case VerifyKind.LocalScale:
+                            actual = Vector(node.localScale);
+                            break;
+                        case VerifyKind.LocalEulerAngles:
+                            actual = Quaternion(node.localRotation);
+                            break;
+                        default:
+                            return null;
+                    }
+
+                    return actual == _expected
+                        ? null
+                        : $"{Label}：expected {_expected}，reload got {actual}";
+                }
+                catch (Exception e)
+                {
+                    return $"{Label}：{e.GetType().Name}: {e.Message}";
+                }
+            }
+
+            private static string ShortType(string fullName)
+            {
+                if (string.IsNullOrEmpty(fullName)) return "component";
+                var dot = fullName.LastIndexOf('.');
+                return dot < 0 ? fullName : fullName.Substring(dot + 1);
+            }
+
+            private static string KindName(VerifyKind kind) => kind switch
+            {
+                VerifyKind.ActiveSelf => "activeSelf",
+                VerifyKind.LocalPosition => "localPosition",
+                VerifyKind.LocalScale => "localScale",
+                VerifyKind.LocalEulerAngles => "localEulerAngles",
+                VerifyKind.Unsupported => "auto",
+                _ => kind.ToString()
+            };
+        }
+
+        private sealed class VerifyReport
+        {
+            internal int Verified;
+            internal int Unsupported;
+            internal readonly List<string> Failures = new();
+            internal readonly List<string> UnsupportedReasons = new();
+
+            internal string Format()
+            {
+                var text = $"# 驗證（set/ref/aref/addel/active/transform）：" +
+                           $"{Verified} 個 OK，{Failures.Count} 個失敗，{Unsupported} 個 unsupported";
+                if (UnsupportedReasons.Count > 0)
+                    text += $"（{string.Join("；", UnsupportedReasons.Distinct())}）";
+                text += "\n";
+                if (Failures.Count > 0)
+                    text += "# 驗證失敗明細：\n" + string.Join("\n", Failures.Select(f => "# - " + f)) + "\n";
+                return text;
+            }
+        }
+
+        private static VerifyReport VerifyReloaded(string assetPath, List<VerifyTouch> touches)
+        {
+            var report = new VerifyReport();
+            foreach (var touch in touches)
+            {
+                if (!touch.IsUnsupported) continue;
+                report.Unsupported++;
+                if (!string.IsNullOrEmpty(touch.UnsupportedReason))
+                    report.UnsupportedReasons.Add(touch.UnsupportedReason);
+            }
+
+            GameObject reloaded = null;
+            try
+            {
+                reloaded = PrefabUtility.LoadPrefabContents(assetPath);
+                if (reloaded == null)
+                {
+                    report.Failures.Add($"reload 失敗：{assetPath}");
+                    return report;
+                }
+
+                foreach (var touch in touches)
+                {
+                    if (touch.IsUnsupported) continue;
+                    var failure = touch.Verify(reloaded.transform);
+                    if (failure == null) report.Verified++;
+                    else report.Failures.Add(failure);
+                }
+            }
+            catch (Exception e)
+            {
+                report.Failures.Add($"reload 驗證例外：{e.GetType().Name}: {e.Message}");
+            }
+            finally
+            {
+                if (reloaded != null) PrefabUtility.UnloadPrefabContents(reloaded);
+            }
+
+            return report;
+        }
+
+        private static string Snapshot(SerializedProperty prop, Transform root)
+        {
+            if (prop.isArray && prop.propertyType != SerializedPropertyType.String)
+                return $"array-size:{prop.arraySize}";
+
+            switch (prop.propertyType)
+            {
+                case SerializedPropertyType.Float:
+                    return prop.floatValue.ToString("R", CultureInfo.InvariantCulture);
+                case SerializedPropertyType.Integer:
+                    return prop.longValue.ToString(CultureInfo.InvariantCulture);
+                case SerializedPropertyType.Boolean:
+                    return prop.boolValue ? "true" : "false";
+                case SerializedPropertyType.String:
+                    return "string:" + prop.stringValue;
+                case SerializedPropertyType.Enum:
+                    return $"enum:{prop.enumValueIndex}";
+                case SerializedPropertyType.Vector2:
+                    return Vector(prop.vector2Value);
+                case SerializedPropertyType.Vector3:
+                    return Vector(prop.vector3Value);
+                case SerializedPropertyType.Color:
+                    return Color(prop.colorValue);
+                case SerializedPropertyType.LayerMask:
+                    return $"layer:{prop.intValue}";
+                case SerializedPropertyType.ObjectReference:
+                    return Reference(prop.objectReferenceValue, root);
+                default:
+                    return $"unsupported-property:{prop.propertyType}";
+            }
+        }
+
+        private static string Reference(UnityEngine.Object value, Transform root)
+        {
+            if (value == null) return "ref:null";
+
+            var transform = value switch
+            {
+                GameObject go => go.transform,
+                Component component => component.transform,
+                _ => null
+            };
+            var path = transform == null ? null : EditResolve.PathOf(root, transform);
+            if (path != null)
+                return $"ref-path:{path}:{value.GetType().FullName}";
+
+            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(value, out var guid, out long fileId))
+                return $"ref:{guid}:{fileId}";
+
+            return $"ref-fallback:{AssetDatabase.GetAssetPath(value)}:{value.GetType().FullName}:{value.name}";
+        }
+
+        private static string Vector(Vector2 value) =>
+            $"v2:{value.x.ToString("R", CultureInfo.InvariantCulture)}," +
+            value.y.ToString("R", CultureInfo.InvariantCulture);
+
+        private static string Vector(Vector3 value) =>
+            $"v3:{value.x.ToString("R", CultureInfo.InvariantCulture)}," +
+            value.y.ToString("R", CultureInfo.InvariantCulture) + "," +
+            value.z.ToString("R", CultureInfo.InvariantCulture);
+
+        private static string Color(Color value) =>
+            $"color:{value.r.ToString("R", CultureInfo.InvariantCulture)}," +
+            value.g.ToString("R", CultureInfo.InvariantCulture) + "," +
+            value.b.ToString("R", CultureInfo.InvariantCulture) + "," +
+            value.a.ToString("R", CultureInfo.InvariantCulture);
+
+        private static string Quaternion(Quaternion value) =>
+            $"q:{value.x.ToString("R", CultureInfo.InvariantCulture)}," +
+            value.y.ToString("R", CultureInfo.InvariantCulture) + "," +
+            value.z.ToString("R", CultureInfo.InvariantCulture) + "," +
+            value.w.ToString("R", CultureInfo.InvariantCulture);
     }
 }

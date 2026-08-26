@@ -11,7 +11,7 @@ namespace MonoFSM.Variable
         public override string ValueInfo => CurrentValue.eulerAngles.ToString();
         public override bool IsDrawingValueInfo => true;
 
-        public override bool IsValueExist => !IsNull;
+        protected override bool IsLocalValueExist => !IsNull;
 
         [Button]
         void MoveTransformRotationToValue()

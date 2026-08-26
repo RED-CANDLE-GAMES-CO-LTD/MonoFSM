@@ -6,6 +6,7 @@
 ```bash
 # prefab：整批共用一次 LoadPrefabContents / SaveAsPrefabAsset
 up prefab do "Assets/…/FireBurn FSM 起火點.prefab" -f ops.txt
+up prefab do "Assets/…/FireBurn FSM 起火點.prefab" -f ops.txt --quiet  # 成功只看摘要
 
 # scene：對當前開著的 scene；scene 不需要 load/save 配對，最後一行 save 就好
 up scene do -f ops.txt
@@ -24,17 +25,18 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `pos\|<node>\|x,y,z` | 設 localPosition |
 | `scale\|<node>\|x,y,z` | 設 localScale（**只有 prefab**） |
 | `rot\|<node>\|x,y,z` | 設 localEulerAngles（**只有 prefab**） |
-| `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（第二格必填，不猜預設值） |
+| `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（含 nested prefab override 記錄與 reload 驗證；第二格必填） |
 | `idx\|<node>\|<siblingIndex>` | 調 sibling 順序。**child 順序＝優先序**（value source / condition 取第一個成立的），負數從尾端算（`-1` = 最後） |
 | `mv\|<node>\|<newParent>` | 換 parent（scene 與 prefab 都支援） |
 | `rename\|<node>\|<newName>` | 改節點名（`<node>` 留空 = root）。**只對沒掛 `AbstractDescriptionBehaviour` 的節點有意義**，其餘存檔後會被自動命名蓋掉，見 [naming.md](naming.md) |
 | `auto\|<node>` | **重跑 `[Auto*]` 綁定 —— 結構改完一定要下這行**，見下面 |
 | `del\|<node>` | 刪節點 |
 | `delcomp\|<node>\|<comp,comp>` | 移除節點上的 component。不存在就跳過（語意是「確保它不在」）。prefab 版 `<node>` 留空 = root |
+| `delmissing\|<node>` | 移除該節點上所有 MissingScript；已刪 C# 型別後無法用 `delcomp` 時使用。prefab 版 `<node>` 留空 = root |
 | `save` | 存 scene（**只有 scene**；prefab batch 結束自動存） |
 | `mark\|<label>[\|<node>]` | 給節點取個短名，之後用 `$label` 代換。不給 `<node>` = 標記上一個建立節點的操作 |
 
-**`add` / `comp` / `set` / `ref` / `aref` / `addel` / `delcomp` 的 `<node>` 留空 = prefab root**
+**`add` / `comp` / `set` / `ref` / `aref` / `addel` / `delcomp` / `delmissing` 的 `<node>` 留空 = prefab root**
 （`MonoEntity` / `MonoObj` / `NetworkObject` 都掛在 root 上）。scene 版沒有這個語意 ——
 scene 沒有唯一 root，第一段一定要是 root object 名稱。
 
@@ -100,7 +102,10 @@ auto|
 - **錯誤訊息會給下一步的線索**：路徑錯 → 列出走到哪、那層有哪些子節點；型別打錯 → 列出
   名稱相近的候選；欄位名錯 → 列出可用欄位；**巢狀路徑錯 → 列出走得通的那一層底下有什麼**
   （`_timeMax._constValue` → 「走到 `_timeMax`（VarFloatWrapper），這層底下有 `_tempValue: float`」）。
-- **改完直接 `prefab read` 驗證** —— 讀到的一定是當下真值，不必擔心快取同步。
+- `prefab do` 會檢查 `SaveAsPrefabAsset` 成功，並 reload 驗證可推導的 touched 欄位；至少
+  `active` 一定驗證。`auto` 若無法完整推導，摘要會明講 unsupported，不會假裝已驗。
+  `--quiet` 只壓縮成功 log，錯誤仍保留完整行號與下一步線索。
+- 要人工補驗時用預設不碰 cache 的 `prefab peek` / `prefab read`；不要為了「新鮮」加 `--cache`。
 
 ## 同名節點用 `[n]` 指定第幾個
 

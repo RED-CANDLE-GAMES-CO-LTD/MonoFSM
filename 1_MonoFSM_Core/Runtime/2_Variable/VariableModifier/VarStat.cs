@@ -282,6 +282,19 @@ namespace MonoFSM.Variable
             }
         }
 
+        /// <summary>
+        /// 已註冊的 modifier「自己的 GetValue 變了」時呼叫（例如抓取慢移隨物件重量／kinematic 狀態變化）。
+        /// VarStat 只在有人讀 CurrentValue 時才 ForceCalValues 並發 OnValueChanged，
+        /// 光改 StatModifier.Value 不會有任何人被通知（StatModifier.IsDirty 恆為 false），
+        /// 綁在後面的 CharacterValueSetter 之類的 listener 就收不到 → character 上的數值停在舊值。
+        /// Register/RemoveModifier 內部那行 `var value = CurrentValue` 做的就是這件事。
+        /// </summary>
+        public void NotifyModifierValueChanged()
+        {
+            _isDirty = true;
+            var _ = CurrentValue; //戳一下觸發 ForceCalValues → OnValueChanged
+        }
+
         public bool RemoveModifier(IStatModifer mod)
         {
             if (_statModifiers.Remove(mod))

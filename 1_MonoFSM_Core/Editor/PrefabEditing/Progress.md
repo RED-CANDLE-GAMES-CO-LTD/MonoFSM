@@ -20,3 +20,4 @@
 - `up prompt --check`（`PromptEdit.Check`）：只驗不改，印出每顆 value source 組出的字串＋inspector 的「Token 檢查」報告（`LocalizedStringValueSource.GetTokenReportEditor`）。手工組的 `ConditionRef` / `SmartStringTokenBinding` 是 `--case` 蓋不到的，之前只能開 Unity 用眼睛看。順手修 `PromptEdit.ResolveNode`：改用逐一比 `child.name`（`Transform.Find` 對名稱含換行的節點一律找不到）並支援 `\/` `\n`，路徑錯也會把原因印出來。
 - 2026-08-24 `up peek` 留空不再盲掃 public property（getter 會 native crash，managed catch 攔不到）；新增 `ProbeMineField` 麵包屑機制自動把閃退的屬性列入黑名單，以及 Inspector 右鍵「Dump 欄位 / 欄位+屬性 → 剪貼簿」（`ComponentDumpMenu`）
 - 2026-08-24 `auto` 的回報改成「其中幾顆屬於繼承來的 prefab instance ＋ [Auto*] 綁上/沒綁上」；之前只回掃過幾顆 MonoBehaviour，「一顆都沒綁上」跟「全部綁上」的輸出一模一樣。順手查證：在 variant 上對繼承節點做反射寫入（[Auto*] 的做法）SaveAsPrefabAsset 會正確寫出 m_Modifications，不需要 RecordPrefabInstancePropertyModifications。
+- prefab batch DSL 新增 `delmissing|<node>`，供 C# 型別已刪、無法再以 `delcomp` 解析名稱時，透過 Unity 官方 API 清除該節點上的 MissingScript。

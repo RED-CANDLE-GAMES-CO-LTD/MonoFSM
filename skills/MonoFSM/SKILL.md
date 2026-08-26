@@ -89,6 +89,13 @@ private ICurrentEntityOwner Owner
 
 狀態有 `Priority` 屬性，高優先級狀態不會被低優先級狀態打斷。
 
+## 狀態進入條件
+
+**優先把「能否進入此 State」的條件放在目標 State 的 `CanEnterState`。**
+不要把相同條件分散複製到各個來源 State 的 Transition；這樣多個 State 要轉入同一目標時，只需各自建立轉向該 State 的 Transition，進入資格仍由目標 State 統一維護。
+
+只有條件確實取決於「從哪個來源 State 離開」時，才放在該來源的 Transition。
+
 ## 命名規範
 
 - `SerializeField` 和 `public field` 以底線開頭：`_myField`

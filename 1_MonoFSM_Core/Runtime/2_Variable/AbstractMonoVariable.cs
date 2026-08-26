@@ -757,8 +757,58 @@ namespace MonoFSM.Variable
         public string Name => gameObject.name;
         public VariableTag Key => _varTag;
 
+        //proxy / getter 型的值不在自己身上（local field 永遠是空的），問自己一定回 false，
+        //接了防禦式 early return 的呼叫端會 100% 早退且沒有任何錯誤訊息。
+        //有來源時「算不算有值」一律轉問來源，沒有來源才問自己的 IsLocalValueExist。
         [ShowInInspector] //FIXME: 這個show的話，可能會造成 value 重運算
-        public abstract bool IsValueExist { get; }
+        public virtual bool IsValueExist
+        {
+            get
+            {
+                //value-source / proxy 可能接成參照環（X 的 source 讀 Y、Y 又繞回 X），
+                //沿 IsValueExist 遞迴下去會 StackOverflow → Unity 不寫 log 直接閃退。
+                //同一顆 instance 重入時降級成 false，把環變成看得見的訊息而非 crash。
+                if (_resolvingValueExist)
+                {
+                    Debug.LogError(
+                        "IsValueExist re-entrant：value-source/proxy 接成參照環，已中止以避免 StackOverflow。請檢查接線。",
+                        this);
+                    return false;
+                }
+
+                _resolvingValueExist = true;
+                try
+                {
+                    //proxy 優先：值的家在 parent entity 上那顆同 tag 的 var
+                    if (HasParentVarEntity)
+                    {
+                        var proxy = varRef;
+                        //entity 當下沒值（foreach 沒在迭代 / list 該格是空的）或對面沒有這個 tag 的 var
+                        if (proxy == null || proxy == this)
+                            return false;
+                        return proxy.IsValueExist;
+                    }
+
+                    var source = valueSource;
+                    if (source != null)
+                        return source.IsValueExist;
+
+                    return IsLocalValueExist;
+                }
+                finally
+                {
+                    _resolvingValueExist = false;
+                }
+            }
+        }
+
+        [NonSerialized] private bool _resolvingValueExist;
+
+        /// <summary>
+        ///     這顆變數「自己身上」的值算不算存在，由各型別定義空值語意（0 / 空字串 / null / Count 0…）。
+        ///     只在沒有 valueSource 也沒有 parent VarEntity proxy 時才會被呼叫，不需要自己處理來源轉發。
+        /// </summary>
+        protected abstract bool IsLocalValueExist { get; }
 
         //value source 機制：所有變數共用（TypedMonoVariable / VarList 都繼承這套），
         //一致地撿任何 child IValueProvider（含 GetVarFromParentEntitySource）。

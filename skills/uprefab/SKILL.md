@@ -23,8 +23,8 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | 找到之後要**能直接下鑽**（拿可餵給 `--node` 的完整路徑） | `find --resolve` | ✅ | [offline-index.md](references/offline-index.md) |
 | 貼了 asset guid / webhook 連結（`?asset_guid=`）要換成路徑 | `guid` | ❌ | [offline-index.md](references/offline-index.md) |
 | prefab override 稽核、索引範圍調整 | `overrides` / `scope stats` | ❌ | [offline-index.md](references/offline-index.md) |
-| prefab 階層、子樹 component 欄位細節、FSM 架構 | `prefab read`（`--fsm` / `--budget`） | ✅ | [read.md](references/read.md) |
-| scene 上的階層（**沒有 budget 保護，要自己給 `--depth`**） | `scene ls` | ✅ | [read.md](references/read.md) |
+| prefab 階層、子樹 component 欄位細節、FSM 架構 | `prefab read`（hard `--budget` / `--fsm-only` / `--structure-only`） | ✅ | [read.md](references/read.md) |
+| scene 上的階層 | `scene ls`（hard `--budget`，`0` 才不限） | ✅ | [read.md](references/read.md) |
 | 貼了 **scene 物件連結**（`globalId=GlobalObjectId_V1-…`） | `obj` | ✅ | [read.md](references/read.md) |
 | **改** prefab / scene 結構、開/複製/存 scene、建 variant | `prefab do` / `scene do` / `scene copy` / `prefab variant` | ✅ | [edit.md](references/edit.md) |
 | **路徑失效、名字跟上次讀到的不一樣**、節點名含 `/` 或換行 | —— | | [naming.md](references/naming.md) |
@@ -36,15 +36,17 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | 某個型別叫什麼、有哪些欄位 | `types` / `fields`（Component）、`asset fields`（SO） | ✅ | [probe.md](references/probe.md) |
 | 場上有幾個某某物件、某個 component 現在的值 | `scene count` / `peek` | ✅ | [probe.md](references/probe.md) |
 | **prefab 上某顆 component 的某幾個欄位**（「這條 ref 接上了沒」） | `prefab peek`（**不要用 `read`**，貴 50 倍） | ✅ | [probe.md](references/probe.md) |
+| 已知 prefab 內找合併後的 component / 節點路徑 | `prefab locate --comp/--name` | ✅ | [probe.md](references/probe.md) |
+| 同一 prefab 一次查多顆 component 欄位 | `prefab peek-batch -f probes.txt` | ✅ | [probe.md](references/probe.md) |
 | 命中/override 有幾千筆，想先知道集中在哪 | `find --by-asset` / `overrides --by-target` | ❌ | [offline-index.md](references/offline-index.md) |
 | **Play Mode 下改一個 Var 的值**（自動測試撥旗標 / 給錢） | `poke` | ✅ | [probe.md](references/probe.md) |
 | **EffectReceiver 沒觸發**，要一次看完整條鏈卡在哪 | `effect-trace` | ✅ | [probe.md](references/probe.md) |
 | 按 asset 上的 Odin `[Button]`（無參數方法） | `asset invoke` | ✅ | [asset.md](references/asset.md) |
 | 想知道「調查為什麼慢」的實際數據 | `usage` | ❌ | [offline-index.md](references/offline-index.md) |
 
-一句話版本：**使用者貼連結走 `guid`（asset）/ `obj`（scene 物件），定位走 `find`（要接著
-下鑽就加 `--resolve`），讀 prefab 結構走 `prefab read`（預設就分層摺疊，再用 `--node`
-下鑽），讀 scene 結構走 `scene ls`（要自己控 `--depth`），查引用走 `refs`，要改走 `prefab do` / `scene do`，建/改 ScriptableObject 走 `asset`，
+一句話版本：**使用者貼連結走 `guid`（asset）/ `obj`（scene 物件），定位走 `find`（預設 full；
+要 shallow 才 `--scope all`，要接著下鑽就加 `--resolve`），讀 prefab 結構走 `prefab read`
+（hard budget，再用 `--node` 下鑽），讀 scene 結構走 `scene ls`，查引用走 `refs`，要改走 `prefab do` / `scene do`，建/改 ScriptableObject 走 `asset`，
 加 localized 文字提示走 `prompt`，挑 Action / Condition 走 `catalog`。**
 
 ## 鐵則
@@ -63,6 +65,11 @@ reference 裡，真的要改的時候一定會讀到）：
   路徑都是局部的、不能直接餵給 `--node`（要完整路徑就 `--resolve`）。原因與實測數據見
   [internals.md](references/internals.md)。**`find` 也不會自己更新索引** —— 改過 prefab
   先 `up index`，`(no match)` 的第一個嫌疑就是索引過期。
+- **`find` 預設只查 full tier。** shallow 是 override target 解析層，第三方 Example 命中常比
+  gameplay 多兩個數量級；表尾若提示有 shallow 命中，真的需要時才加 `--scope all`。
+- **read 的 `--budget` 是 hierarchy + FSM hard cap，`--depth` 不能繞過。** `--budget 0` 才是
+  明確允許無上限；只看狀態機用 `--fsm-only`，只導航用 `--structure-only`。磁碟 cache 預設關閉，
+  只有確定 prefab 已存且會反覆讀時才明確加 `--cache`。
 - **挑 component 之前先 `up catalog`，不要 grep 或 Read .cs** —— 近 400 個 Action /
   Condition / Getter 的用途與欄位一次列完（離線、0.1s）。讀到 `⚠無說明` 而你為了工作
   實際去讀了那份原始碼，**順手補一段 `/// <summary>` 再走**，見 [catalog.md](references/catalog.md)。

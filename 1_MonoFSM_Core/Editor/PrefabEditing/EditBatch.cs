@@ -60,8 +60,15 @@ namespace MonoFSM.Editor.PrefabEditing
         /// <summary>verb 回報「我建立/操作的是這個節點」，讓下一行可以用 `$` 指回來。</summary>
         internal static void Touch(string nodePath) => _last = nodePath ?? "";
 
-        internal static string Run(string ops, Apply apply)
+        internal static string Run(string ops, Apply apply) => Run(ops, apply, out _);
+
+        /// <summary>
+        /// 跟 <see cref="Run(string,Apply)"/> 相同，另外回報實際成功執行的操作數。
+        /// PrefabEdit 的 quiet 模式用這個數字取代逐行成功 log；錯誤時仍保留完整逐行輸出。
+        /// </summary>
+        internal static string Run(string ops, Apply apply, out int done)
         {
+            done = 0;
             if (string.IsNullOrWhiteSpace(ops)) return "# 沒有操作";
 
             _last = null;
@@ -70,8 +77,6 @@ namespace MonoFSM.Editor.PrefabEditing
 
             var lines = ops.Replace("\r\n", "\n").Split('\n');
             var sb = new StringBuilder();
-            var done = 0;
-
             for (var i = 0; i < lines.Length; i++)
             {
                 var line = lines[i].Trim();

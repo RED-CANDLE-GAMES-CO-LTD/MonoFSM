@@ -97,24 +97,35 @@ def cmd_scope(args, root, cfg):
 
 def cmd_find(args, root, cfg):
     con = indexer.connect(root)
-    where = dict(comp=_like(args.comp), name=_like(args.name), path=_like(args.path))
+    where = dict(comp=_like(args.comp), name=_like(args.name), path=_like(args.path),
+                 scope=args.scope)
+
+    def scope_note() -> str:
+        if args.scope != "full":
+            return ""
+        all_where = dict(where, scope="all")
+        all_total = query.find_count(con, **all_where)
+        full_total = query.find_count(con, **where)
+        hidden = all_total - full_total
+        return (f"；另有 {hidden} 筆 shallow 命中（用 --scope all 顯示）"
+                if hidden > 0 else "")
 
     if args.by_asset:
         groups = query.find_by_asset(con, limit=args.limit, **where)
         if not groups:
-            print("(no match)")
+            print("(no match)" + scope_note())
             return
         for apath, count in groups:
             print(f"{count:5d}  {apath}")
         total, assets = query.find_totals(con, **where)
         shown = sum(c for _, c in groups)
         more = f"（列出最多的 {len(groups)} 個 = {shown} 筆）" if assets > len(groups) else ""
-        print(f"\n{total} match(es) 分佈在 {assets} 個資產{more}")
+        print(f"\n{total} match(es) 分佈在 {assets} 個資產{more}{scope_note()}")
         return
 
     rows = query.find(con, limit=args.limit, **where)
     if not rows:
-        print("(no match)")
+        print("(no match)" + scope_note())
         return
 
     resolved = _resolve_anchors(rows) if args.resolve else {}
@@ -139,9 +150,9 @@ def cmd_find(args, root, cfg):
         total = query.find_count(con, **where)
         if total > len(rows):
             print(f"\n{len(rows)} / 共 {total} match(es) —— 被 -n {args.limit} 切掉了。"
-                  f"用 --by-asset 看分佈，或縮小條件")
+                  f"用 --by-asset 看分佈，或縮小條件{scope_note()}")
             return
-    print(f"\n{len(rows)} match(es)")
+    print(f"\n{len(rows)} match(es){scope_note()}")
 
 
 def _resolve_anchors(rows) -> dict:
@@ -361,6 +372,18 @@ def _ops_text(args) -> str:
     return sys.stdin.read()
 
 
+def _probe_text(args) -> str:
+    """peek-batch 的 probe 清單。格式：node|comp|members；-f - 代表 stdin。"""
+    if not args.file:
+        if sys.stdin.isatty():
+            raise SystemExit("peek-batch 要 -f <probes.txt>，或用 -f - 從 stdin 讀")
+        return sys.stdin.read()
+    if args.file == "-":
+        return sys.stdin.read()
+    with open(args.file, encoding="utf-8") as fh:
+        return fh.read()
+
+
 def cmd_scene(args, root, cfg):
     a = args.action
     if a == "new":
@@ -372,7 +395,8 @@ def cmd_scene(args, root, cfg):
     elif a == "save":
         print(unity.call(f"{SCENE}.Save"))
     elif a == "ls":
-        print(unity.call(f"{SCENE}.Export", args.node, args.depth, not args.fold))
+        print(unity.call(f"{SCENE}.Export", args.node, args.depth, not args.fold,
+                         args.budget, args.structure_only))
     elif a == "count":
         print(unity.call(f"{SCENE}.Count", args.comp, args.name, args.sample))
     elif a == "do":
@@ -390,8 +414,15 @@ def cmd_prefab(args, root, cfg):
         if not args.comp:
             raise SystemExit("peek 要 --comp <component 型別>")
         print(unity.call(f"{PROBE}.PeekAsset", args.asset, args.node, args.comp, args.members))
+    elif args.action == "peek-batch":
+        print(unity.call(f"{PROBE}.PeekAssetBatch", args.asset, _probe_text(args)))
+    elif args.action == "locate":
+        if not args.comp and not args.name:
+            raise SystemExit("locate 至少要 --comp <component> 或 --name <節點名稱>")
+        print(unity.call(f"{PROBE}.LocateAsset", args.asset, args.comp,
+                         args.name, args.members, args.limit))
     elif args.action == "do":
-        print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args)))
+        print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet))
 
 
 def _prefab_read(args, root):
@@ -402,10 +433,12 @@ def _prefab_read(args, root):
     """
     fold = not args.fold
     params = {"asset": args.asset, "node": args.node, "depth": args.depth,
-              "budget": args.budget, "fsm": args.fsm, "fold": fold}
-    key = readcache.key_for(root, args.asset, params)
+              "budget": args.budget, "fsm": args.fsm, "fsm_only": args.fsm_only,
+              "structure_only": args.structure_only, "fold": fold}
+    use_cache = args.cache and not args.no_cache
+    key = readcache.key_for(root, args.asset, params) if use_cache else None
 
-    if key and not args.no_cache:
+    if key:
         cached = readcache.load(root, key)
         if cached is not None:
             usage.note("cache", "hit")
@@ -413,14 +446,19 @@ def _prefab_read(args, root):
             print(cached)
             return
 
-    if not key:
-        usage.note("cache", "off")  # key 算不出來（不是 prefab 檔 / 解析失敗）
+    if args.no_cache:
+        usage.note("cache", "bypass")
+    elif not args.cache:
+        usage.note("cache", "off")
+    elif not key:
+        usage.note("cache", "unavailable")
     else:
-        usage.note("cache", "bypass" if args.no_cache else "miss")
+        usage.note("cache", "miss")
     text = unity.call(f"{READER}.Export", args.asset, args.node, args.depth,
-                      fold, args.budget, args.fsm)
+                      fold, args.budget, args.fsm, args.fsm_only,
+                      args.structure_only)
     print(text)
-    if key:
+    if use_cache and key:
         readcache.store(root, key, text)
 
 
@@ -638,7 +676,8 @@ def cmd_obj(args, root, cfg):
         return
     print(unity.call(
         f"{GID}.Peek", token, args.node, args.depth, not args.fold,
-        args.budget, args.fsm, args.open, args.select))
+        args.budget, args.fsm, args.open, args.select, args.fsm_only,
+        args.structure_only))
 
 
 def cmd_peek(args, root, cfg):
@@ -712,6 +751,8 @@ def main() -> None:
     pf.add_argument("--comp", help="component 型別（短名，模糊比對）")
     pf.add_argument("--name", help="GameObject 名稱")
     pf.add_argument("--path", help="資產路徑")
+    pf.add_argument("--scope", choices=["full", "all", "shallow"], default="full",
+                    help="索引 tier；預設 full（--scope all 才包含供 override 解析的 shallow）")
     pf.add_argument("-n", "--limit", type=int, default=50)
     pf.add_argument("--by-asset", action="store_true",
                     help="只回「哪個資產各幾筆」的分佈，不逐節點列出")
@@ -746,6 +787,10 @@ def main() -> None:
     pc.add_argument("--defaults", action="store_true", help="new：帶 Camera + Light")
     pc.add_argument("--node", help="ls：子樹路徑（留空只列 root 一層）")
     pc.add_argument("--depth", type=int, default=-1, help="ls：往下幾層")
+    pc.add_argument("--budget", type=int, default=20000,
+                    help="ls：總輸出 hard cap；0 = 明確允許無上限")
+    pc.add_argument("--structure-only", action="store_true",
+                    help="ls：只列結構與 component 名，不列 serialized 欄位")
     pc.add_argument("--fold", action="store_true", help="ls：摺疊已知子樹並排除視覺 component")
     pc.add_argument("--comp", help="count：component 型別（含子類）")
     pc.add_argument("--name", help="count：名稱含這段")
@@ -755,24 +800,36 @@ def main() -> None:
     pc.set_defaults(fn=cmd_scene)
 
     pp = sub.add_parser("prefab", help="對 prefab asset 讀 / 寫（需要 Unity）")
-    pp.add_argument("action", choices=["read", "peek", "do", "variant", "copy"])
+    pp.add_argument("action", choices=["read", "peek", "peek-batch", "locate",
+                                       "do", "variant", "copy"])
     pp.add_argument("asset", help="prefab asset path")
     pp.add_argument("--node", help="read / peek：子樹路徑（peek 留空 = root）")
     pp.add_argument("--comp", help="peek：component 型別")
     pp.add_argument("--members",
                     help="peek：逗號分隔的欄位名；留空 = 這顆 component 的所有 serialize 欄位")
     pp.add_argument("--depth", type=int, default=-1,
-                    help="read：明確指定往下幾層（給了就不看 --budget）")
+                    help="read：最多往下幾層；仍受 --budget hard cap")
     pp.add_argument("--budget", type=int, default=20000,
                     help="read：字元上限，超標自動摺到塞得進的深度；0 = 不限")
     pp.add_argument("--fsm", action="store_true",
                     help="read：附 FSM markdown 段（states / transitions / conditions）")
+    pp.add_argument("--fsm-only", action="store_true",
+                    help="read：只輸出 FSM markdown，不輸出 hierarchy")
+    pp.add_argument("--structure-only", action="store_true",
+                    help="read：只列結構與 component 名，不列 serialized 欄位")
     pp.add_argument("--fold", action="store_true")
-    pp.add_argument("--no-cache", action="store_true",
-                    help="read：跳過讀取快取（仍會寫入新結果）")
+    cache_group = pp.add_mutually_exclusive_group()
+    cache_group.add_argument("--cache", action="store_true",
+                             help="read：明確啟用磁碟快取（預設不讀也不寫）")
+    cache_group.add_argument("--no-cache", action="store_true",
+                             help="read：相容旗標；完全不讀也不寫快取")
     pp.add_argument("--out", help="variant / copy：新 prefab 的 asset path")
     pp.add_argument("--name", help="variant / copy：root 名稱（預設用檔名）")
-    pp.add_argument("-f", "--file", help="do：從檔案讀批次操作")
+    pp.add_argument("-n", "--limit", type=int, default=20,
+                    help="locate：命中筆數上限")
+    pp.add_argument("-f", "--file", help="do：批次操作；peek-batch：probe 清單（- = stdin）")
+    pp.add_argument("--quiet", action="store_true",
+                    help="do：成功只回摘要、callback、save/verify；錯誤仍完整")
     pp.add_argument("ops", nargs="*", help="do：直接帶操作（一個參數一行）")
     pp.set_defaults(fn=cmd_prefab)
 
@@ -890,10 +947,13 @@ def main() -> None:
                      help="含 GlobalObjectId 的文字：markdown 連結 / URL / 裸 id；`-` = 讀 stdin")
     pob.add_argument("--node", help="從命中的物件再往下鑽的相對路徑")
     pob.add_argument("--depth", type=int, default=-1,
-                     help="明確指定往下幾層（給了就不看 --budget）")
+                     help="最多往下幾層；仍受 --budget hard cap")
     pob.add_argument("--budget", type=int, default=20000,
                      help="字元上限，超標自動摺到塞得進的深度；0 = 不限")
     pob.add_argument("--fsm", action="store_true", help="附 FSM markdown 段")
+    pob.add_argument("--fsm-only", action="store_true", help="只輸出 FSM markdown")
+    pob.add_argument("--structure-only", action="store_true",
+                     help="只列結構與 component 名，不列 serialized 欄位")
     pob.add_argument("--fold", action="store_true", help="摺疊已知子樹、排除視覺 component")
     pob.add_argument("--locate", action="store_true",
                      help="只回節點路徑 + component 清單，不匯出子樹")
@@ -939,11 +999,13 @@ def main() -> None:
     pu.add_argument("--gap", type=int, default=900,
                     help="間隔超過幾秒視為新的一段調查（預設 900）")
     pu.add_argument("--top", type=int, default=8)
+    pu.add_argument("--since", type=float, metavar="HOURS",
+                    help="只統計最近幾小時，避免舊版行為掩蓋新資料")
 
     args = p.parse_args()
     root = find_root(args.root)
     if args.cmd == "usage":
-        usage.report(root, args.gap, args.top)
+        usage.report(root, args.gap, args.top, args.since)
         return
 
     tee = usage.Tee(sys.stdout) if usage.enabled() else None

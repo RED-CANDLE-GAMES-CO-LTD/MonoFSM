@@ -29,6 +29,35 @@ up prefab peek "Assets/…/資源生成器 FSM.prefab" \
 `--members` 留空 = 列出這顆 component 的**所有 serialize 欄位**（不是 public 屬性 ——
 asset 上沒跑過任何 runtime 邏輯，屬性大半是空的或會炸）。`--node` 留空 = prefab root。
 
+## `prefab locate` —— 在合併後 prefab 裡直接找節點
+
+已經知道要查哪份 prefab、但不知道 component 在 variant 合併後落在哪時，不要用 `read` 一層層猜：
+
+```bash
+up prefab locate "Assets/…/X Variant.prefab" --comp TransitionBehaviour -n 20
+up prefab locate "Assets/…/X Variant.prefab" --name "Durability" \
+    --comp VarFloat --members CurrentValue,_defaultValue
+```
+
+它在 Unity 端一次遍歷合併後真值，回 canonical escaped node path、component 與可選欄位；
+表尾會給總命中與截斷提示。這是「單一已知 prefab 內定位」；跨資產仍先走離線 `find`。
+
+## `prefab peek-batch` —— 一次查多顆欄位
+
+逐行格式 `node|component|members`；members 是逗號分隔，可留空表示所有 serialized 欄位：
+
+```text
+[StateFolder] StateFolder/[State] idle/[Transition] => spawn|TransitionBehaviour|_target,_conditions
+Timer|VarFloatCountDownTimer|_timeMax,IsTimerUp
+```
+
+```bash
+up prefab peek-batch "Assets/…/X.prefab" -f probes.txt
+up prefab peek-batch "Assets/…/X.prefab" -f - < probes.txt
+```
+
+整份清單只做一次 Unity call / prefab load。單筆失敗會就地回報，但不會吞掉其它 probe。
+
 ## `poke` —— Play Mode 下設一個 Var 的值（peek 的寫入面）
 
 ```bash

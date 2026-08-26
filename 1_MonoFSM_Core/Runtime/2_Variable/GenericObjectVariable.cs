@@ -83,7 +83,7 @@ namespace MonoFSM.Variable
 
         [CompRef] [Auto] private IVarValueSettingProcessor<TValueType> _beforeSetProcessor;
 
-        public override bool IsValueExist => Value != null;
+        protected override bool IsLocalValueExist => Value != null;
         [HideIf(nameof(HasProxySource))] public bool _isRuntimeOnly = false;
 
         protected override bool HasError()

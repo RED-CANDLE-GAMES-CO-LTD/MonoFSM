@@ -32,7 +32,7 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
                         return false;
 
                     // Check all conditions
-                    if (_conditions.IsAllValid() == false)
+                    if (AreConditionsValid() == false)
                         return false;
 #if UNITY_EDITOR
                     RecordDebugTick(from);
@@ -52,6 +52,15 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
         private AbstractConditionBehaviour[] _conditions;
+
+        /// <summary>
+        /// 只檢查這個 transition 的 condition 群，不含自身 isActiveAndEnabled 與 target 判定。
+        /// 給 TransitionRef 共用同一組條件用。
+        /// </summary>
+        public bool AreConditionsValid()
+        {
+            return _conditions.IsAllValid();
+        }
 
 #if UNITY_EDITOR
         //transition 通過條件的 tick 歷史，用來對照 resimulation 時同一個 tick 是否被重複判定

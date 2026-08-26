@@ -41,12 +41,18 @@ namespace MonoFSM.Editor.PrefabEditing
         /// <param name="fullExpand">不摺疊已知子樹（StateFolder / VariableFolder …）、不排除視覺 component</param>
         /// <param name="charBudget">輸出上限；超標就自動加深摺疊。0 = 不限</param>
         /// <param name="includeFsm">附上 FSM markdown 段（states / transitions / conditions）</param>
+        /// <param name="fsmOnly">只輸出 FSM，不重複 hierarchy</param>
+        /// <param name="structureOnly">只輸出 hierarchy 結構，不輸出 component 欄位或 FSM</param>
         public static string Export(
             string assetPath, string subPath = null, int depth = -1,
-            bool fullExpand = true, int charBudget = DefaultCharBudget, bool includeFsm = false)
+            bool fullExpand = true, int charBudget = DefaultCharBudget, bool includeFsm = false,
+            bool fsmOnly = false, bool structureOnly = false)
         {
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
-            if (asset == null) return $"# 找不到 prefab: {assetPath}";
+            if (asset == null)
+                return HardCap($"# 找不到 prefab: {assetPath}", charBudget);
+            if (fsmOnly && structureOnly)
+                return HardCap("# fsmOnly 與 structureOnly 不能同時開啟\n", charBudget);
 
             var root = asset.transform;
             EditResolve.DrainNotes(); // 清掉別的呼叫留下的殘留，只報這次的
@@ -54,7 +60,7 @@ namespace MonoFSM.Editor.PrefabEditing
             if (!string.IsNullOrEmpty(subPath))
             {
                 var found = EditResolve.TryNode(root, subPath);
-                if (found == null) return DescribeChildren(root, subPath);
+                if (found == null) return HardCap(DescribeChildren(root, subPath), charBudget);
                 root = found;
                 // 走了自動命名容錯的話要講出來，不然使用者手上那條路徑會一直是舊的
                 resolveNotes = EditResolve.DrainNotes();
@@ -65,26 +71,8 @@ namespace MonoFSM.Editor.PrefabEditing
             if (!string.IsNullOrEmpty(subPath)) header.AppendLine($"# subtree: {subPath}");
             if (resolveNotes != null) header.AppendLine(resolveNotes);
 
-            var body = ExportNode(root.gameObject, depth, fullExpand, charBudget, header);
-
-            var sb = new StringBuilder();
-            sb.Append(header);
-            sb.AppendLine();
-            sb.Append(body);
-
-            if (includeFsm)
-            {
-                var fsm = FsmTextExporter.Export(root.gameObject);
-                if (!string.IsNullOrEmpty(fsm) && !fsm.StartsWith("# (no FSM found"))
-                {
-                    sb.AppendLine();
-                    sb.AppendLine("---");
-                    sb.AppendLine();
-                    sb.Append(fsm);
-                }
-            }
-
-            return sb.ToString();
+            return ExportResolvedNode(root.gameObject, depth, fullExpand, charBudget, header,
+                includeFsm, fsmOnly, structureOnly);
         }
 
         /// <summary>
@@ -94,16 +82,65 @@ namespace MonoFSM.Editor.PrefabEditing
         /// <param name="header">分層的說明會 append 進來，由呼叫端決定印在哪</param>
         public static string ExportNode(
             GameObject root, int depth = -1, bool fullExpand = true,
-            int charBudget = DefaultCharBudget, StringBuilder header = null)
+            int charBudget = DefaultCharBudget, StringBuilder header = null,
+            bool includeFsm = false, bool fsmOnly = false, bool structureOnly = false)
         {
-            return depth < 0 && charBudget > 0
-                ? Layered(root, fullExpand, charBudget, header ?? new StringBuilder())
-                : Once(root, fullExpand, depth);
+            if (root == null) return "";
+            if (fsmOnly && structureOnly)
+                return HardCap("# fsmOnly 與 structureOnly 不能同時開啟\n", charBudget);
+
+            var prefix = header ?? new StringBuilder();
+            var result = ExportResolvedNode(root, depth, fullExpand, charBudget, prefix,
+                includeFsm, fsmOnly, structureOnly);
+
+            // 舊 API 的契約是「header 由呼叫端印、這裡只回 body」。保留這個行為；
+            // 新的內部入口 ExportResolvedNode 才回完整且計入 header 的 hard-capped 結果。
+            var prefixText = prefix.ToString();
+            if (prefixText.Length == 0) return result;
+            if (result.StartsWith(prefixText))
+            {
+                var offset = prefixText.Length;
+                if (offset < result.Length && result[offset] == '\n') offset++;
+                return result.Substring(offset);
+            }
+
+            return result;
         }
 
-        private static string Once(GameObject root, bool fullExpand, int depth)
+        /// <summary>
+        /// 已定位 GameObject 的完整輸出入口。header、hierarchy、FSM 與截斷提示全都計入
+        /// charBudget；給 prefab / scene / GlobalObjectId 三條讀取路徑共用。
+        /// </summary>
+        internal static string ExportResolvedNode(
+            GameObject root, int depth, bool fullExpand, int charBudget, StringBuilder header,
+            bool includeFsm = false, bool fsmOnly = false, bool structureOnly = false)
         {
-            var options = Options(fullExpand);
+            if (root == null) return "";
+            if (fsmOnly && structureOnly)
+                return HardCap("# fsmOnly 與 structureOnly 不能同時開啟\n", charBudget);
+
+            var wantStructure = !fsmOnly;
+            var wantFsm = fsmOnly || (includeFsm && !structureOnly);
+            var fsm = wantFsm ? FsmTextExporter.Export(root) : null;
+            if (!fsmOnly && (string.IsNullOrEmpty(fsm) || fsm.StartsWith("# (no FSM found")))
+                fsm = null;
+
+            string hierarchy = null;
+            if (wantStructure)
+            {
+                hierarchy = depth < 0 && charBudget > 0
+                    ? Layered(root, fullExpand, structureOnly, charBudget, header, fsm)
+                    : Once(root, fullExpand, depth, structureOnly);
+            }
+
+            var text = Compose(header, hierarchy, fsm);
+            return HardCap(text, charBudget);
+        }
+
+        private static string Once(
+            GameObject root, bool fullExpand, int depth, bool structureOnly)
+        {
+            var options = Options(fullExpand, structureOnly);
             options._maxDepth = depth;
             return HierarchyTextExporter.Export(root, options);
         }
@@ -115,48 +152,118 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 而淺層那幾次都很便宜，通常第 3～5 次就命中。
         /// </summary>
         private static string Layered(
-            GameObject root, bool fullExpand, int charBudget, StringBuilder header)
+            GameObject root, bool fullExpand, bool structureOnly, int charBudget,
+            StringBuilder header, string fsm)
         {
             const int maxProbe = 40;
-            var options = Options(fullExpand);
+            var options = Options(fullExpand, structureOnly);
 
             string best = null;
             var bestDepth = 0;
-            for (var d = 1; d <= maxProbe; d++)
+            for (var d = 0; d <= maxProbe; d++)
             {
                 options._maxDepth = d;
                 var text = HierarchyTextExporter.Export(root, options);
 
-                if (text.Length > charBudget && best != null)
-                {
-                    header.AppendLine(
-                        $"# 依 charBudget {charBudget} 摺到第 {bestDepth} 層" +
-                        $"（下一層會到 {text.Length} 字元）。折疊行的 (+N nodes) 是展開成本，" +
-                        "要細節用 --node 指定子樹下鑽。");
-                    return best;
-                }
-
-                // 加深了但輸出沒變 = 已經到底，不用再試
+                // 加深了但輸出沒變 = 已經到底，不用再試。
                 if (best != null && text.Length == best.Length)
                 {
-                    header.AppendLine($"# 全展開 {text.Length} 字元（在 charBudget {charBudget} 內）");
+                    var note = $"# 全展開 {text.Length} 字元（在 charBudget {charBudget} 內）";
+                    if (Fits(header, note, text, fsm, charBudget)) header.AppendLine(note);
                     return text;
+                }
+
+                if (!Fits(header, null, text, fsm, charBudget))
+                {
+                    if (best == null)
+                    {
+                        header.AppendLine($"# 最淺結構仍超過 charBudget {charBudget}，輸出已截斷");
+                        return text;
+                    }
+
+                    var note = $"# 依 charBudget {charBudget} 摺到第 {bestDepth} 層" +
+                               $"（下一層完整輸出會到 {Compose(header, text, fsm).Length} 字元）。" +
+                               "折疊行的 (+N nodes) 是展開成本，要細節用 --node 指定子樹下鑽。";
+                    if (Fits(header, note, best, fsm, charBudget)) header.AppendLine(note);
+                    else header.AppendLine($"# charBudget {charBudget}：摺到第 {bestDepth} 層");
+                    return best;
                 }
 
                 best = text;
                 bestDepth = d;
             }
 
-            header.AppendLine($"# 探到第 {maxProbe} 層就停了（結構異常地深）");
+            var stopped = $"# 探到第 {maxProbe} 層就停了（結構異常地深）";
+            if (Fits(header, stopped, best, fsm, charBudget)) header.AppendLine(stopped);
             return best;
         }
 
-        private static HierarchyExportOptions Options(bool fullExpand)
+        private static bool Fits(
+            StringBuilder header, string note, string hierarchy, string fsm, int charBudget)
+        {
+            if (charBudget <= 0) return true;
+            var probeHeader = new StringBuilder(header.ToString());
+            if (!string.IsNullOrEmpty(note)) probeHeader.AppendLine(note);
+            return Compose(probeHeader, hierarchy, fsm).Length <= charBudget;
+        }
+
+        private static string Compose(StringBuilder header, string hierarchy, string fsm)
+        {
+            var sb = new StringBuilder();
+            if (header != null && header.Length > 0)
+            {
+                sb.Append(header);
+                if (sb.Length > 0 && sb[sb.Length - 1] != '\n') sb.AppendLine();
+            }
+
+            if (!string.IsNullOrEmpty(hierarchy))
+            {
+                if (sb.Length > 0) sb.AppendLine();
+                sb.Append(hierarchy);
+            }
+
+            if (!string.IsNullOrEmpty(fsm))
+            {
+                if (!string.IsNullOrEmpty(hierarchy))
+                {
+                    if (sb.Length > 0 && sb[sb.Length - 1] != '\n') sb.AppendLine();
+                    sb.AppendLine();
+                    sb.AppendLine("---");
+                    sb.AppendLine();
+                }
+                else if (sb.Length > 0)
+                {
+                    sb.AppendLine();
+                }
+
+                sb.Append(fsm);
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>最終輸出的 hard cap。budget=0 表示不限；截斷提示本身也算在預算內。</summary>
+        internal static string HardCap(string text, int charBudget)
+        {
+            text ??= "";
+            if (charBudget <= 0 || text.Length <= charBudget) return text;
+            if (charBudget == 1) return "…";
+
+            var hint = $"\n# … 截斷（charBudget {charBudget}）\n";
+            if (hint.Length >= charBudget)
+                return ("#…" + new string('.', charBudget)).Substring(0, charBudget);
+            return text.Substring(0, charBudget - hint.Length) + hint;
+        }
+
+        private static HierarchyExportOptions Options(bool fullExpand, bool structureOnly)
         {
             var options = fullExpand
                 ? HierarchyExportOptions.FullExpand
                 : HierarchyExportOptions.Default;
             if (!fullExpand) options._excludeComponents.AddRange(VisualComponents);
+            // includeComponents 非空時只允許匹配型別；這個 sentinel 不可能是 Component 型別，
+            // 因而只保留節點、Transform、inactive/prefab flags 與 note。
+            if (structureOnly) options._includeComponents.Add("__uprefab_structure_only__");
             return options;
         }
 

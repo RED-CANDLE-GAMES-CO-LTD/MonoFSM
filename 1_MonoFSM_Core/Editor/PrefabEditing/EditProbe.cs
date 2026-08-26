@@ -181,6 +181,168 @@ namespace MonoFSM.Editor.PrefabEditing
         }
 
         /// <summary>
+        /// 在 Unity 合併後的 prefab contents 裡定位節點。variant 繼承來的節點/component 也看得到；
+        /// 路徑走 EditResolve 的 escape + 同名 sibling [n] 規則，可直接餵回 --node。
+        /// </summary>
+        /// <param name="componentType">component 短名或 FullName；留空 = 不用 component 篩選</param>
+        /// <param name="nameContains">節點名包含（忽略大小寫）；留空 = 不用名稱篩選</param>
+        /// <param name="members">有指定 component 時，順便 dump 這些逗號分隔的欄位/屬性</param>
+        /// <param name="limit">最多顯示幾個節點；total / cut 仍回報完整命中數</param>
+        public static string LocateAsset(
+            string assetPath, string componentType = null, string nameContains = null,
+            string members = null, int limit = 20)
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(assetPath) == null)
+                return $"# 找不到 prefab: {assetPath}";
+            if (!string.IsNullOrEmpty(members) && string.IsNullOrEmpty(componentType))
+                return "# --members 需要同時指定 --comp";
+
+            Type wanted = null;
+            try
+            {
+                if (!string.IsNullOrEmpty(componentType))
+                    wanted = EditResolve.CompType(componentType);
+            }
+            catch (EditResolve.EditAbort abort)
+            {
+                return $"# {abort.Message}";
+            }
+
+            GameObject root = null;
+            try
+            {
+                // LoadPrefabContents 是關鍵：AssetDatabase 的離線/YAML 視角在 variant 邊界
+                // 看不到完整繼承階層；這裡要的是 Unity 合併後真值。
+                root = PrefabUtility.LoadPrefabContents(assetPath);
+                var hits = new List<(Transform node, Component comp)>();
+                foreach (var node in root.GetComponentsInChildren<Transform>(true))
+                {
+                    if (!string.IsNullOrEmpty(nameContains) &&
+                        node.name.IndexOf(nameContains, StringComparison.OrdinalIgnoreCase) < 0)
+                        continue;
+
+                    var comp = wanted == null ? null : node.GetComponent(wanted);
+                    if (wanted != null && comp == null) continue;
+                    hits.Add((node, comp));
+                }
+
+                var shown = Math.Min(Math.Max(0, limit), hits.Count);
+                var cut = hits.Count - shown;
+                var sb = new StringBuilder();
+                sb.AppendLine($"# prefab locate: {assetPath}");
+                sb.AppendLine($"# filter: comp={componentType ?? "*"} name={nameContains ?? "*"}");
+                sb.AppendLine($"# total={hits.Count} shown={shown} cut={cut}");
+                sb.AppendLine("# paths are root-relative; (root) means an empty --node");
+
+                foreach (var hit in hits.Take(shown))
+                {
+                    var path = EditResolve.PathOf(root.transform, hit.node);
+                    sb.AppendLine(string.IsNullOrEmpty(path) ? "(root)" : path);
+
+                    if (hit.comp != null)
+                    {
+                        sb.AppendLine($"  <{hit.comp.GetType().Name}>");
+                        if (!string.IsNullOrEmpty(members))
+                            sb.Append(Dump(hit.comp, "", members, serializedByDefault: true));
+                    }
+                    else
+                    {
+                        var comps = hit.node.GetComponents<Component>()
+                            .Where(c => c != null && !(c is Transform))
+                            .Select(c => c.GetType().Name);
+                        sb.AppendLine($"  <{string.Join(" ", comps)}>");
+                    }
+                }
+
+                return sb.ToString();
+            }
+            catch (Exception e)
+            {
+                return $"# prefab locate 失敗：{e.GetType().Name}: {e.Message}";
+            }
+            finally
+            {
+                if (root != null) PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        /// <summary>
+        /// 一次載入 prefab 後執行多筆 peek。probes 每行 `node|component|members`；node 留空 = root，
+        /// members 留空 = 所有 serialized 欄位。每筆各自攔錯，前一筆失敗不會吃掉後面的結果。
+        /// </summary>
+        public static string PeekAssetBatch(string assetPath, string probes)
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(assetPath) == null)
+                return $"# 找不到 prefab: {assetPath}";
+
+            var lines = (probes ?? "").Replace("\r", "").Split('\n')
+                .Select(s => s.Trim())
+                .Where(s => s.Length > 0 && !s.StartsWith("#"))
+                .ToList();
+            if (lines.Count == 0) return "# 沒有 probe；每行格式是 node|component|members";
+
+            GameObject root = null;
+            try
+            {
+                root = PrefabUtility.LoadPrefabContents(assetPath);
+                var sb = new StringBuilder();
+                sb.AppendLine($"# prefab peek batch: {assetPath} ({lines.Count} probes)");
+                for (var i = 0; i < lines.Count; i++)
+                {
+                    var raw = lines[i];
+                    var a = raw.Split(new[] { '|' }, 3);
+                    var nodePath = a.Length > 0 ? a[0].Trim() : "";
+                    var componentType = a.Length > 1 ? a[1].Trim() : "";
+                    var members = a.Length > 2 ? a[2].Trim() : null;
+
+                    sb.AppendLine($"## probe {i + 1}: {raw}");
+                    if (string.IsNullOrEmpty(componentType))
+                    {
+                        sb.AppendLine("# 失敗：缺 component；格式是 node|component|members");
+                        continue;
+                    }
+
+                    try
+                    {
+                        var node = string.IsNullOrEmpty(nodePath)
+                            ? root.transform
+                            : EditResolve.TryNode(root.transform, nodePath);
+                        if (node == null)
+                        {
+                            sb.AppendLine("# 失敗：" + EditResolve.DescribeChildren(
+                                root.transform, nodePath));
+                            continue;
+                        }
+
+                        var comp = EditResolve.Comp(node, nodePath, componentType);
+                        sb.Append(Dump(comp,
+                            $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}  [asset]",
+                            members, serializedByDefault: true));
+                    }
+                    catch (EditResolve.EditAbort abort)
+                    {
+                        sb.AppendLine($"# 失敗：{abort.Message}");
+                    }
+                    catch (Exception e)
+                    {
+                        // 查詢工具不該因一顆 getter/序列化資料異常而吞掉剩下 probes。
+                        sb.AppendLine($"# 失敗：{e.GetType().Name}: {e.Message}");
+                    }
+                }
+
+                return sb.ToString();
+            }
+            catch (Exception e)
+            {
+                return $"# prefab peek batch 載入失敗：{e.GetType().Name}: {e.Message}";
+            }
+            finally
+            {
+                if (root != null) PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        /// <summary>
         /// 印出 component 上指定成員的值。members 留空時：serializedByDefault = 走反射看
         /// serialize 欄位（asset 用），否則列 public 屬性（runtime 用）。
         /// </summary>

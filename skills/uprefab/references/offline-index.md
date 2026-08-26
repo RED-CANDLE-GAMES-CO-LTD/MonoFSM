@@ -12,7 +12,8 @@ variant 繼承、而且拿不到節點路徑。
 
 ```bash
 up index                        # 建立/更新索引（mtime 增量）
-up find --comp GrabSlotHolder
+up find --comp GrabSlotHolder             # 預設只查 full tier
+up find --comp GrabSlotHolder --scope all # 明確包含 shallow（第三方 / override 解析層）
 up guid 66750e1a364434c63b2d3fd15d471000
 up overrides PPlayer.prefab
 up scope stats
@@ -24,12 +25,16 @@ up scope stats
 | 指令 | 用途 |
 |---|---|
 | `index [--rebuild] [-q]` | 預設走 mtime 增量。改了 `indexer.py` 的 schema 要 `--rebuild` |
-| `find [--comp X] [--name Y] [--path Z] [-n N] [--resolve] [--by-asset]` | 定位節點，回傳 anchor。條件都是模糊比對。`--resolve` 另外附上可直接餵給 `--node` 的完整路徑（**要 Unity 開著**，見下）。`--by-asset` 只回分佈 |
+| `find [--comp X] [--name Y] [--path Z] [--scope full\|all\|shallow] [-n N] [--resolve] [--by-asset]` | 定位節點，回傳 anchor。預設 `--scope full`；`--resolve` 另外附上可直接餵給 `--node` 的完整路徑（**要 Unity 開著**，見下）。`--by-asset` 只回分佈 |
 | `guid <token> [-v] [-n N]` | guid ⇄ 資產路徑互查 |
 | `overrides <asset> [-n N] [--all] [--by-target]` | prefab override 稽核。`--by-target` 只回分佈 |
 | `scope list \| stats \| init` | `stats` 列出節點數最多的資產，用來決定還要濾掉什麼 |
 
 anchor 格式 `Assets/.../PPlayer.prefab#272130150518276317`，`#` 後是 fileID，對改名穩定。
+
+`includeShallow` 的用途是讓 override target 能解析第三方來源，不是一般 gameplay 搜尋。
+所以 `find` 預設只查 `full`；若表尾顯示「另有 N 筆 shallow 命中」，真的需要第三方 / Example
+內容時再加 `--scope all`。只想稽核 shallow 本身則用 `--scope shallow`。
 
 ## 命中很多時先看分佈，不要硬讀
 
@@ -115,6 +120,7 @@ output 字元數、耗時、是否落空）。被動蒐集，不影響任何既�
 ```bash
 up usage                    # 統計報告
 up usage --gap 600 --top 12 # 調整「間隔多久算新的一段調查」與列出筆數
+up usage --since 24         # 只看最近 24 小時，驗新行為時不被歷史資料淹沒
 ```
 
 報告直接對應四種調查成本，用數據取代猜測：
@@ -125,6 +131,9 @@ up usage --gap 600 --top 12 # 調整「間隔多久算新的一段調查」與�
 | 一段調查要幾次呼叫（中位數 / 最長） | **找到後要跳很多次** —— 逐層 `--node` 下鑽的鏈長 |
 | 反覆重查：同一目標在多段調查裡被讀 | **重複調查** —— 該把路徑寫進 `alishan-code-map` 的訊號 |
 | 各指令總輸出 / 最肥的幾次呼叫 | **回傳量太大** —— 該調 `--budget` / `--fold` 或加新摺疊規則 |
+
+報告另列各指令 elapsed avg / p95、明確 opt-in cache 的 hit ratio，以及 `prefab read` 超過
+budget 的次數（hard budget 上線後，新資料應維持 0）。
 
 **看到「反覆重查」清單有東西，就是該回寫 code-map 的時候** —— 把那條路徑補進
 對應的 `references/*.md`，下次直接跳過整段導航。

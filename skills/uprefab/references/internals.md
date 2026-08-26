@@ -15,7 +15,7 @@
 所以離線索引（`find` / `overrides`）只負責「在哪個檔案」，內容一律走 Unity 匯出的結果
 （`prefab read` / `scene ls`）—— 那才是**合併後**的真值。
 
-## 為什麼沒有落檔 cache 了
+## 為什麼拆掉 marker cache；現在的 cache 為何只做 opt-in
 
 原本有一套「掛 `PrefabTextCacheMarker`、存檔時寫 `.md` 到 `Tools/uprefab/cache/`」的機制，
 理由是大 prefab 的匯出結果落成檔案可以先 `grep` 再只讀那 60 行，而回傳值一定整份進 context。
@@ -24,7 +24,13 @@
 （差 80～135 秒），而照過期 cache 做的分析會給出「看起來合理但已經不成立」的結論 ——
 這種錯最難察覺。加上它要靠人記得掛 marker、記得掃新舊。
 
-`--budget` 分層拿到同樣的省 context 效果（PPlayer 122KB → 17KB），而且讀到的一定是當下真值。
+拆掉的是要人工掛 marker、由 Editor 存 `.md` 的舊機制。後來 CLI 曾重新加入自動 mtime cache，
+但 usage 實測 hit 率低，而且 cache 只省 Unity 往返、不省回到 context 的輸出量；未存 Inspector
+狀態也無法由磁碟 mtime 判斷。
+
+因此現在 `prefab read` **預設完全不碰 cache**。只有使用者明確給 `--cache` 才讀寫；key 包含
+prefab 依賴以及直接影響文字格式的 Python/C# tool hash。`--no-cache` 是相容旗標，完全不讀不寫。
+省 token 的主路仍是 hard `--budget`、`--node`、`--structure-only`、`--fsm-only` 與欄位級 peek。
 
 ## 已知限制
 

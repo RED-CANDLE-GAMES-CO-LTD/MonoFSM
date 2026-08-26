@@ -208,7 +208,7 @@ namespace MonoFSM.Variable
         }
         public override bool IsDrawingValueInfo => true;
 
-        public override bool IsValueExist => Field.CurrentValue != 0f; //  CurrentValue != 0f;
+        protected override bool IsLocalValueExist => Field.CurrentValue != 0f; //  CurrentValue != 0f;
 
         public override void ResetStateRestore(bool IsHardReset)
         {

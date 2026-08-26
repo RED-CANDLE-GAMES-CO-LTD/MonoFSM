@@ -10,7 +10,7 @@ namespace MonoFSM.Variable
         public override string ValueInfo => CurrentValue.ToString();
         public override bool IsDrawingValueInfo => true;
 
-        public override bool IsValueExist => !IsNull;
+        protected override bool IsLocalValueExist => !IsNull;
 
         //FIXME: 另外寫nullable? 用一個bool過？hmmm 到了要清掉這樣嗎？
         [Button]

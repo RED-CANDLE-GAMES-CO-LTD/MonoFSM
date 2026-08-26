@@ -34,20 +34,29 @@ namespace MonoFSM.Editor.PrefabEditing
         /// <param name="includeFsm">附上 FSM markdown 段</param>
         /// <param name="openScene">物件所在 scene 沒開著時，允許幫忙開（會換掉當前 scene）</param>
         /// <param name="select">同時在 Unity 裡選中並 ping 它</param>
+        /// <param name="fsmOnly">只輸出 FSM，不重複 hierarchy</param>
+        /// <param name="structureOnly">只輸出 hierarchy 結構，不輸出 component 欄位或 FSM</param>
         public static string Peek(
             string token, string subPath = null, int depth = -1, bool fullExpand = true,
             int charBudget = PrefabTextReader.DefaultCharBudget, bool includeFsm = false,
-            bool openScene = false, bool select = false)
+            bool openScene = false, bool select = false,
+            bool fsmOnly = false, bool structureOnly = false)
         {
+            if (fsmOnly && structureOnly)
+                return PrefabTextReader.HardCap(
+                    "# fsmOnly 與 structureOnly 不能同時開啟\n", charBudget);
+
             var match = GidRe.Match(token ?? "");
             if (!match.Success)
-                return "# 沒有 GlobalObjectId：貼上的內容裡找不到 GlobalObjectId_V1-… 片段\n" +
-                       "# 期望像這樣：[名稱](http://localhost:8888/webhook?globalId=" +
-                       "GlobalObjectId_V1-2-<32位guid>-<objectId>-<prefabId>)";
+                return PrefabTextReader.HardCap(
+                    "# 沒有 GlobalObjectId：貼上的內容裡找不到 GlobalObjectId_V1-… 片段\n" +
+                    "# 期望像這樣：[名稱](http://localhost:8888/webhook?globalId=" +
+                    "GlobalObjectId_V1-2-<32位guid>-<objectId>-<prefabId>)", charBudget);
 
             var gidStr = match.Value;
             if (!GlobalObjectId.TryParse(gidStr, out var gid))
-                return $"# GlobalObjectId 格式對但 Unity 解析失敗：{gidStr}";
+                return PrefabTextReader.HardCap(
+                    $"# GlobalObjectId 格式對但 Unity 解析失敗：{gidStr}", charBudget);
 
             var assetPath = AssetDatabase.GUIDToAssetPath(match.Groups[2].Value);
             var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
@@ -57,7 +66,8 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (TryOpenOwnerScene(assetPath, openScene, out var note))
                     obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
                 if (obj == null)
-                    return Unresolved(gid, gidStr, assetPath, note);
+                    return PrefabTextReader.HardCap(
+                        Unresolved(gid, gidStr, assetPath, note), charBudget);
             }
 
             if (select)
@@ -68,7 +78,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
             var go = obj as GameObject ?? (obj as Component)?.gameObject;
             if (go == null)
-                return AssetSummary(obj, gidStr);
+                return PrefabTextReader.HardCap(AssetSummary(obj, gidStr), charBudget);
 
             var header = new StringBuilder();
             header.AppendLine($"# gid: {gidStr}");
@@ -80,35 +90,18 @@ namespace MonoFSM.Editor.PrefabEditing
             var root = go.transform;
             if (!string.IsNullOrEmpty(subPath))
             {
-                var found = root.Find(subPath);
+                var found = EditResolve.TryNode(root, subPath);
                 if (found == null)
-                    return header + $"# 找不到子路徑 {subPath}；這層的子節點：\n" +
-                           string.Join("\n", root.Cast<Transform>().Select(c => "  " + c.name));
+                    return PrefabTextReader.HardCap(
+                        header + $"# 找不到子路徑 {subPath}；" +
+                        EditResolve.DescribeChildren(root, subPath), charBudget);
                 root = found;
                 header.AppendLine($"# subtree: {subPath}");
             }
 
-            var body = PrefabTextReader.ExportNode(
-                root.gameObject, depth, fullExpand, charBudget, header);
-
-            var sb = new StringBuilder();
-            sb.Append(header);
-            sb.AppendLine();
-            sb.Append(body);
-
-            if (includeFsm)
-            {
-                var fsm = FsmTextExporter.Export(root.gameObject);
-                if (!string.IsNullOrEmpty(fsm) && !fsm.StartsWith("# (no FSM found"))
-                {
-                    sb.AppendLine();
-                    sb.AppendLine("---");
-                    sb.AppendLine();
-                    sb.Append(fsm);
-                }
-            }
-
-            return sb.ToString();
+            return PrefabTextReader.ExportResolvedNode(
+                root.gameObject, depth, fullExpand, charBudget, header,
+                includeFsm, fsmOnly, structureOnly);
         }
 
         /// <summary>只回「這條連結指到誰」，不匯出內容 —— 想接著用 up scene ls / refs 時夠用。</summary>

@@ -495,7 +495,9 @@ namespace MonoFSM.Editor.PrefabEditing
         /// nodePath 留空 = 只列 root object 一層，附 (+N nodes) 展開成本 —— 大 scene 直接
         /// 整棵匯出會爆 context，所以預設就是「先看目錄」。
         /// </summary>
-        public static string Export(string nodePath = null, int depth = -1, bool fullExpand = true)
+        public static string Export(
+            string nodePath = null, int depth = -1, bool fullExpand = true,
+            int charBudget = PrefabTextReader.DefaultCharBudget, bool structureOnly = false)
         {
             var scene = SceneManager.GetActiveScene();
             var roots = Roots(scene);
@@ -507,13 +509,15 @@ namespace MonoFSM.Editor.PrefabEditing
                 sb.AppendLine("# 這層是目錄。要看子樹細節：SceneEdit.Export(\"<root 名>/<子路徑>\")");
                 foreach (var go in roots.Where(g => g != null))
                 {
-                    var comps = string.Join(" ", go.GetComponents<Component>()
-                        .Where(c => c != null).Select(c => c.GetType().Name));
+                    var comps = structureOnly
+                        ? ""
+                        : "  <" + string.Join(" ", go.GetComponents<Component>()
+                            .Where(c => c != null).Select(c => c.GetType().Name)) + ">";
                     sb.AppendLine(
                         $"  {(go.activeSelf ? "" : "~")}{go.name}  " +
-                        $"(+{EditResolve.CountDescendants(go.transform)} nodes)  <{comps}>");
+                        $"(+{EditResolve.CountDescendants(go.transform)} nodes){comps}");
                 }
-                return sb.ToString();
+                return PrefabTextReader.HardCap(sb.ToString(), charBudget);
             }
 
             Transform node;
@@ -523,18 +527,15 @@ namespace MonoFSM.Editor.PrefabEditing
             }
             catch (Abort abort)
             {
-                return $"# {abort.Message}";
+                return PrefabTextReader.HardCap($"# {abort.Message}", charBudget);
             }
 
-            var options = fullExpand
-                ? HierarchyExportOptions.FullExpand
-                : HierarchyExportOptions.Default;
-            options._maxDepth = depth;
-            if (!fullExpand)
-                options._excludeComponents.AddRange(PrefabTextReader.VisualComponents);
-
-            var head = $"# scene: {scene.path}\n# subtree: {nodePath}\n\n";
-            return head + HierarchyTextExporter.Export(node.gameObject, options);
+            var head = new StringBuilder();
+            head.AppendLine($"# scene: {scene.path}");
+            head.AppendLine($"# subtree: {nodePath}");
+            return PrefabTextReader.ExportResolvedNode(
+                node.gameObject, depth, fullExpand, charBudget, head,
+                includeFsm: false, fsmOnly: false, structureOnly: structureOnly);
         }
 
         /// <summary>

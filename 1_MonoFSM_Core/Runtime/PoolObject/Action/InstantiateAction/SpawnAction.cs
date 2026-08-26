@@ -27,8 +27,10 @@ namespace MonoFSM.Core.LifeCycle
         ); //對著某個東西spawn?
     }
 
-    //FIXME: 把Visual獨立拆出來
-    //重寫FXPlayer
+    /// <summary>
+    /// 從常值或 VarMonoObj 取得 prefab，透過父 MonoObj 的 WorldUpdateSimulator 生成同步物件或純視覺物件；
+    /// 可指定生成位置、旋轉、縮放，並把生成結果送給 SpawnEventHandler／IAfterSpawnProcess。
+    /// </summary>
     public class SpawnAction : AbstractArgEventHandler<GeneralEffectHitData>, IMonoObjectProvider,
         IPoolObjectPlayer //ICompProvider<MonoPoolObj>
     {

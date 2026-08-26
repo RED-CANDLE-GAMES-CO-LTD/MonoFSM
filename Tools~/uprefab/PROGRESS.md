@@ -616,3 +616,22 @@ YAML 的 `guid:`，用既有的 `query.asset_by_guid` 翻成路徑、只留 .pre
    catalog 條目本身才只認檔名 stem。
 
 `[Obsolete]` 沿繼承鏈遞移並預設隱藏（整批 `VarXxxProviderRef` 都是），避免挑到廢棄型別。
+
+## 2026-08-25 —— hard budget、merged locate、批次 probe、寫後驗證
+
+依累積 2421 次 usage（6.72M 字元）重排優先度：`prefab read` 占 68%，而一般 `find`
+對常用 component 的 2807 筆命中有 2677 筆來自只供 override 解析的 shallow tier。
+
+- `find` 預設改成 `--scope full`；`--scope all` / `shallow` 才擴大，表尾會講被隱藏數。
+- prefab / scene / obj 共用 hierarchy + FSM 總輸出的 hard budget；`depth` 只是最大深度，
+  不能繞過。新增 `--fsm-only` / `--structure-only`。
+- `prefab locate` 在 Unity 合併後真值裡一次按 component / name 定位；`peek-batch` 用
+  `node|comp|members` 清單一次讀多顆欄位。
+- prefab batch 檢查 SaveAsPrefabAsset、reload 驗證 touched 值；`active` 支援 inherited nested
+  override。`--quiet` 只壓縮成功 log，錯誤不裁。
+- read cache 改成 `--cache` opt-in；預設與 `--no-cache` 都完全不讀不寫。key 額外含直接影響
+  匯出格式的 Python/C# tool hash。這層只省 Unity latency，不宣稱省 context。
+- `usage --since <hours>` 可只看新資料；報告新增 avg/p95、cache hit ratio 與 budget 超量數。
+
+舊章節的「拆 cache」指人工 marker `.md` 機制；後來加回的 CLI cache 已依上面改成 opt-in，
+不再與「預設讀當下真值」衝突。

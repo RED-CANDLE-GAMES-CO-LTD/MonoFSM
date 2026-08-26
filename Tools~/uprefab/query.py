@@ -9,7 +9,7 @@ from __future__ import annotations
 import sqlite3
 
 
-def _find_where(comp=None, name=None, path=None):
+def _find_where(comp=None, name=None, path=None, scope="full"):
     """find / find_count / find_by_asset 共用的 FROM+WHERE 與參數。
 
     抽出來是為了讓「列出來的那 50 筆」跟「總共幾筆」一定是同一組條件 ——
@@ -35,31 +35,41 @@ def _find_where(comp=None, name=None, path=None):
     if path:
         sql += " AND a.path LIKE ?"
         args.append(path)
+    if scope == "full":
+        sql += " AND a.tier='full'"
+    elif scope == "shallow":
+        sql += " AND a.tier='shallow'"
+    elif scope != "all":
+        raise ValueError(f"unknown find scope: {scope}")
     return sql, args
 
 
-def find_count(con: sqlite3.Connection, comp=None, name=None, path=None) -> int:
+def find_count(con: sqlite3.Connection, comp=None, name=None, path=None,
+               scope="full") -> int:
     """同條件的總命中數 —— 讓 limit 切掉時能講出「50 / 共 4132」。"""
-    sql, args = _find_where(comp, name, path)
+    sql, args = _find_where(comp, name, path, scope)
     return con.execute("SELECT COUNT(*) " + sql, args).fetchone()[0]
 
 
-def find_totals(con: sqlite3.Connection, comp=None, name=None, path=None):
+def find_totals(con: sqlite3.Connection, comp=None, name=None, path=None,
+                scope="full"):
     """(總命中數, 涵蓋幾個資產) —— --by-asset 的表尾要能講「列出的只是前幾名」。"""
-    sql, args = _find_where(comp, name, path)
+    sql, args = _find_where(comp, name, path, scope)
     return con.execute(
         "SELECT COUNT(*), COUNT(DISTINCT a.path) " + sql, args).fetchone()
 
 
-def find_by_asset(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50):
+def find_by_asset(con: sqlite3.Connection, comp=None, name=None, path=None,
+                  limit=50, scope="full"):
     """同條件的分佈：[(資產路徑, 命中數)]，多的排前面。"""
-    sql, args = _find_where(comp, name, path)
+    sql, args = _find_where(comp, name, path, scope)
     sql = ("SELECT a.path, COUNT(*) " + sql +
            " GROUP BY a.path ORDER BY COUNT(*) DESC, a.path LIMIT ?")
     return con.execute(sql, args + [limit]).fetchall()
 
 
-def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50):
+def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50,
+         scope="full"):
     """依 component 型別 / 節點名 / 資產路徑定位節點。
 
     分兩階段，理由是查詢計劃：
@@ -73,7 +83,7 @@ def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50):
        會變成 correlated scalar subquery，對每一列候選都跑一次（而 `comps` 沒有
        `(asset_id, go_file_id)` 的 index，每次都是該 asset 內的線性掃）。
     """
-    where, args = _find_where(comp, name, path)
+    where, args = _find_where(comp, name, path, scope)
     sql = ("SELECT a.path, n.asset_id, n.file_id, n.path, n.is_active " + where +
            " ORDER BY a.path, n.path LIMIT ?")
     rows = con.execute(sql, args + [limit]).fetchall()

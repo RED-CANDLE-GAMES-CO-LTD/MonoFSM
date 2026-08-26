@@ -873,7 +873,10 @@ namespace MonoFSM.Core.Variable
         public const int NoSelectionIndex = -1;
 
         public override string StringValue => $"Count: {Count}";
+        //Count 本身已經處理 value-source / proxy 的轉發，且「空 list」要算沒有值——
+        //base 的 source 委派對 List<T> 只判 null，空 list 會被誤判成有值，所以整顆蓋掉。
         public override bool IsValueExist => Count > 0;
+        protected override bool IsLocalValueExist => Count > 0;
 
         // public override Type ValueType => typeof(List<T>);
         // public override object objectValue => _list;

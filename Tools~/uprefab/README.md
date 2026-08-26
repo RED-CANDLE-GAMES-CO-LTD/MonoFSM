@@ -23,20 +23,24 @@
 up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 
 up index                        # 建立/更新索引（增量）
-up find --comp GrabSlotHolder
+up find --comp GrabSlotHolder                       # 預設只查 full tier
+up find --comp GrabSlotHolder --scope all           # 明確包含 shallow
 up find --comp SetVarBoolAction --by-asset      # 命中幾千筆時先看分佈
 up overrides PPlayer.prefab
 up overrides 主場景.unity --by-target            # override 集中在哪個 instance / 節點
 up scope stats
 
 up prefab read "Assets/…/X.prefab" --node "[StateFolder] StateFolder"
+up prefab read "Assets/…/X.prefab" --fsm-only --budget 8000
+up prefab locate "Assets/…/X.prefab" --comp TransitionBehaviour --members _target,_conditions
 up prefab peek "Assets/…/X.prefab" --node "…/[Transition] => spawn" \
     --comp TransitionBehaviour --members _target,_conditions   # 只要幾個欄位，別讀整棵
 up obj "[名稱](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-…)"   # 貼 scene 物件連結
 up obj "<連結>" --locate                                    # 只要節點路徑 + component 清單
 up refs "Assets/…/X.prefab" --node "…/[Var] Durability"    # 誰指向它（--out = 它指向誰）
+up prefab peek-batch "Assets/…/X.prefab" -f probes.txt       # node|comp|members，一次 load
 up scene do "add||Spawner|MonoEntity,MonoObj" "auto|Spawner" "save"
-up prefab do "Assets/…/FSM.prefab" "state|[StateFolder] StateFolder|spawn" \
+up prefab do "Assets/…/FSM.prefab" --quiet "state|[StateFolder] StateFolder|spawn" \
     "act|$|enter|Spawn|SpawnAction"          # FSM 複合操作 + `$` 代換上一個節點
 up scene count --name 測試資源 --sample 3
 up effect-trace "Zone Arrive Trigger 找到火車 Variant"      # receiver 沒觸發，卡在哪一段（Play Mode）
@@ -59,8 +63,10 @@ up prompt "Assets/…/X.prefab" --var "…/[Getter] d_ Select Text Prompt 文字
 寫入的批次 DSL 支援 `$` / `$label` 路徑代換與 `state` / `trans` / `if` / `act` 複合操作 ——
 一份 FSM 從純原語的 1.5KB 降到 0.8KB，差的全是重複的長路徑。
 
-`prefab read` 預設會依 `--budget`（20000 字元）自動摺到塞得進的那一層，
-檔頭寫下摺在第幾層、下一層要多少字元，再用 `--node` 下鑽。
+`prefab read` / `scene ls` / `obj` 的 `--budget`（預設 20000 字元）是 hierarchy + FSM
+總輸出的 hard cap；明確 `--depth` 也不能繞過，只有 `--budget 0` 才不限。用 `--node` 下鑽、
+`--fsm-only` 只看狀態機、`--structure-only` 只導航。read cache 預設完全關閉，確定資產已存且
+會重複讀才加 `--cache`。
 實測 PPlayer 全展開 122KB → 預設 17KB。
 
 ## 完整用法

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using MonoFSM.Animation;
@@ -64,36 +65,67 @@ namespace MonoFSM.Editor.ReferenceSystem
 
             foreach (var field in fields)
             {
-                // 1. 直接引用：欄位型別是 UnityEngine.Object 子類（Component, ScriptableObject 等）
-                if (typeof(Object).IsAssignableFrom(field.FieldType))
+                var elemType = GetCollectionElementType(field.FieldType);
+                if (elemType == null)
                 {
-                    ScanDirectField(comp, field);
+                    ScanValue(comp, field.GetValue(comp), field.FieldType, field.Name);
+                    continue;
                 }
-                // 2. Variable 特殊：VarWrapper 間接引用
-                else if (typeof(AbstractVarWrapper).IsAssignableFrom(field.FieldType))
+
+                // 陣列 / List 欄位：逐個元素掃，路徑帶 index
+                if (!IsScannableType(elemType)) continue;
+                if (field.GetValue(comp) is not IEnumerable enumerable) continue;
+
+                var index = 0;
+                foreach (var item in enumerable)
                 {
-                    ScanVarWrapperField(comp, field);
-                }
-                // 3. Variable 特殊：ValueProvider 間接引用
-                else if (typeof(ValueProvider).IsAssignableFrom(field.FieldType))
-                {
-                    ScanValueProviderField(comp, field);
+                    ScanValue(comp, item, elemType, $"{field.Name}[{index}]");
+                    index++;
                 }
             }
         }
 
-        private static void ScanDirectField(Component comp, FieldInfo field)
+        //取得陣列 / List<> 的元素型別，不是集合則回 null
+        private static Type GetCollectionElementType(Type fieldType)
         {
-            var value = field.GetValue(comp) as Object;
+            if (fieldType.IsArray)
+                return fieldType.GetElementType();
+            if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                return fieldType.GetGenericArguments()[0];
+            return null;
+        }
+
+        private static bool IsScannableType(Type type) =>
+            typeof(Object).IsAssignableFrom(type)
+            || typeof(AbstractVarWrapper).IsAssignableFrom(type)
+            || typeof(ValueProvider).IsAssignableFrom(type);
+
+        private static void ScanValue(Component comp, object value, Type declaredType, string fieldPath)
+        {
+            if (value == null) return;
+
+            // 1. 直接引用：型別是 UnityEngine.Object 子類（Component, ScriptableObject 等）
+            if (typeof(Object).IsAssignableFrom(declaredType))
+                ScanDirectValue(comp, value, fieldPath);
+            // 2. Variable 特殊：VarWrapper 間接引用
+            else if (typeof(AbstractVarWrapper).IsAssignableFrom(declaredType))
+                ScanVarWrapperValue(comp, value, fieldPath);
+            // 3. Variable 特殊：ValueProvider 間接引用
+            else if (typeof(ValueProvider).IsAssignableFrom(declaredType))
+                ScanValueProviderValue(comp, value, fieldPath);
+        }
+
+        private static void ScanDirectValue(Component comp, object rawValue, string fieldPath)
+        {
+            var value = rawValue as Object;
             if (value == null) return;
             if (ReferenceEquals(value, comp)) return;
 
-            AddToCache(value, CreateInfo(value, comp, field.Name, ReferenceType.DirectField));
+            AddToCache(value, CreateInfo(value, comp, fieldPath, ReferenceType.DirectField));
         }
 
-        private static void ScanVarWrapperField(Component comp, FieldInfo wrapperField)
+        private static void ScanVarWrapperValue(Component comp, object wrapper, string fieldPath)
         {
-            var wrapper = wrapperField.GetValue(comp);
             if (wrapper == null) return;
 
             var varField = FindFieldInHierarchy(wrapper.GetType(), "_var");
@@ -103,19 +135,18 @@ namespace MonoFSM.Editor.ReferenceSystem
             if (variable == null) return;
 
             AddToCache(variable,
-                CreateInfo(variable, comp, $"{wrapperField.Name}._var", ReferenceType.VarWrapper));
+                CreateInfo(variable, comp, $"{fieldPath}._var", ReferenceType.VarWrapper));
         }
 
-        private static void ScanValueProviderField(Component comp, FieldInfo providerField)
+        private static void ScanValueProviderValue(Component comp, object rawProvider, string fieldPath)
         {
-            var provider = providerField.GetValue(comp) as ValueProvider;
-            if (provider == null) return;
+            if (rawProvider is not ValueProvider provider) return;
 
             var varRaw = provider.VarRaw;
             if (varRaw == null) return;
 
             AddToCache(varRaw,
-                CreateInfo(varRaw, comp, $"{providerField.Name} (ValueProvider)", ReferenceType.ValueProvider));
+                CreateInfo(varRaw, comp, $"{fieldPath} (ValueProvider)", ReferenceType.ValueProvider));
         }
 
         private static FieldInfo FindFieldInHierarchy(Type type, string fieldName)

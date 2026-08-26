@@ -348,6 +348,16 @@ namespace MonoFSM.FSM
             // Assert.Check(_tickProvider.Stage != default, "State changes are not allowed from Render calls");
             // Assert.Check(_tickProvider.IsStage, "State changes are not allowed from Render calls");
 
+            //還沒被 MonoStateMachineController.Initialize 過就切狀態的話，_tickProvider 是 null
+            //多半是有人比 Controller 的 Start/OnEnable 更早（Awake / ISceneAwake / Fusion attach）就切狀態
+            if (_tickProvider == null)
+            {
+                Debug.LogError(
+                    $"StateMachine {Name} 還沒 Initialize（_tickProvider == null），忽略 ChangeState 到 {_states[stateId]}({stateId})"
+                );
+                return;
+            }
+
             _previousStateId = _activeStateId;
             _activeStateId = stateId;
             // Debug.Log("activeStateId" + _activeStateId);

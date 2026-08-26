@@ -8,6 +8,6 @@ namespace MonoFSM.Variable
     {
         public override string ValueInfo => CurrentValue.ToString();
         public override bool IsDrawingValueInfo => true;
-        public override bool IsValueExist => CurrentValue != Vector2.zero;
+        protected override bool IsLocalValueExist => CurrentValue != Vector2.zero;
     }
 }

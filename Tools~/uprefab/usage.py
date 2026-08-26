@@ -151,27 +151,72 @@ def _target(r: dict) -> str:
     return ""
 
 
-def report(root: str, gap_sec: int = 900, top: int = 8) -> None:
+def _percentile(values: list[int], q: float) -> int:
+    if not values:
+        return 0
+    ordered = sorted(values)
+    return ordered[min(int((len(ordered) - 1) * q), len(ordered) - 1)]
+
+
+def report(root: str, gap_sec: int = 900, top: int = 8,
+           since_hours: float | None = None) -> None:
     rows = _load(root)
+    if since_hours is not None:
+        cutoff = time.time() - since_hours * 3600
+        rows = [r for r in rows if r.get("ts", 0) >= cutoff]
+        if not rows:
+            raise SystemExit(f"# 最近 {since_hours:g} 小時沒有使用記錄")
     sess = _sessions(rows, gap_sec)
     total_out = sum(r.get("out", 0) for r in rows)
+    elapsed = [int(r.get("ms", 0)) for r in rows]
 
     print(f"# {len(rows)} 次呼叫 / {len(sess)} 段調查"
-          f"（間隔 >{gap_sec}s 視為新的一段）/ 總輸出 {total_out:,} 字元")
+          f"（間隔 >{gap_sec}s 視為新的一段）/ 總輸出 {total_out:,} 字元"
+          f" / elapsed avg={sum(elapsed) // max(len(elapsed), 1)}ms"
+          f" p95={_percentile(elapsed, .95)}ms")
 
     # 每個指令的次數與輸出量
     per_cmd = {}
     for r in rows:
-        d = per_cmd.setdefault(r.get("cmd", "?"), {"n": 0, "out": 0, "miss": 0})
+        d = per_cmd.setdefault(r.get("cmd", "?"),
+                               {"n": 0, "out": 0, "miss": 0, "ms": []})
         d["n"] += 1
         d["out"] += r.get("out", 0)
         d["miss"] += 1 if r.get("miss") else 0
+        d["ms"].append(int(r.get("ms", 0)))
     print("\n## 各指令")
-    print("| 指令 | 次數 | 總輸出 | 平均 | 落空 |")
-    print("|---|---|---|---|---|")
+    print("| 指令 | 次數 | 總輸出 | 平均字元 | avg ms | p95 ms | 落空 |")
+    print("|---|---|---|---|---|---|---|")
     for cmd, d in sorted(per_cmd.items(), key=lambda kv: -kv[1]["out"])[:top * 2]:
         print(f"| {cmd} | {d['n']} | {d['out']:,} | {d['out'] // max(d['n'], 1):,} "
+              f"| {sum(d['ms']) // max(d['n'], 1)} | {_percentile(d['ms'], .95)} "
               f"| {d['miss']} |")
+
+    # read cache 只在明確 --cache 時啟用。hit ratio 不把 off/bypass/unavailable 算進分母。
+    cache_rows = [r for r in rows if r.get("cmd") == "prefab read" and r.get("cache")]
+    cache_counts = {}
+    for r in cache_rows:
+        cache_counts[r["cache"]] = cache_counts.get(r["cache"], 0) + 1
+    hits = cache_counts.get("hit", 0)
+    attempts = hits + cache_counts.get("miss", 0)
+    print("\n## prefab read cache")
+    print(f"hit ratio: {hits}/{attempts} "
+          f"({hits * 100 // max(attempts, 1)}%)；狀態 {cache_counts or '(無)'}")
+
+    # 舊版 depth / FSM 可繞過 budget；新版 hard cap 上線後這裡應逐漸歸零。
+    oversized = []
+    for r in rows:
+        if r.get("cmd") != "prefab read":
+            continue
+        a = r.get("args", {})
+        budget = a.get("budget", 20000)
+        if isinstance(budget, int) and budget > 0 and r.get("out", 0) > budget + 300:
+            oversized.append(r)
+    explicit = sum(1 for r in oversized if r.get("args", {}).get("depth", -1) >= 0)
+    with_fsm = sum(1 for r in oversized if r.get("args", {}).get("fsm"))
+    print("\n## prefab read budget 超量")
+    print(f"{len(oversized)} 次（explicit depth={explicit}、含 FSM={with_fsm}）；"
+          "新版 hard budget 正常時應為 0")
 
     # 痛點 1：猜不到入口 —— 落空後緊接著同指令重試
     retries = 0

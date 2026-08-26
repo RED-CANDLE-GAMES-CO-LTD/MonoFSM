@@ -19,6 +19,22 @@ import query
 
 CACHE_DIR = os.path.join(".uprefab-cache", "read")
 GUID_RE = re.compile(r"guid: ([0-9a-f]{32})")
+CACHE_FORMAT_VERSION = "3"
+
+# 匯出文字的格式與預設值判斷也會隨工具程式改變。只看 prefab mtime 會在改 exporter 後
+# 繼續回舊格式，因此把直接影響 read 結果的 Python / C# 真相來源一起納入 key。
+TOOL_FILES = (
+    "MonoFSM/Tools~/uprefab/readcache.py",
+    "MonoFSM/Tools~/uprefab/uprefab.py",
+    "MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/PrefabTextReader.cs",
+    "MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/EditResolve.cs",
+    "MonoFSM/1_MonoFSM_Core/Editor/PrefabExporter/FsmTextExporter.cs",
+    "MonoFSM/1_MonoFSM_Core/Editor/PrefabExporter/HierarchyText/HierarchyExportOptions.cs",
+    "MonoFSM/1_MonoFSM_Core/Editor/PrefabExporter/HierarchyText/HierarchyTextExporter.cs",
+    "MonoFSM/1_MonoFSM_Core/Editor/PrefabExporter/HierarchyText/CompactValueFormatter.cs",
+    "MonoFSM/1_MonoFSM_Core/Editor/PrefabExporter/HierarchyText/ComponentDefaultCache.cs",
+    "MonoFSM/1_MonoFSM_Core/Editor/PrefabExporter/HierarchyText/SubtreeSummarizers.cs",
+)
 
 # 依賴圖往下追幾層（variant base 的 base…）。再深就沒有實務意義，但掃描成本會線性上升。
 MAX_DEPTH = 3
@@ -27,7 +43,7 @@ MAX_DEPTH = 3
 KEEP_MAX = 200
 KEEP_MIN = 150
 
-HIT_NOTE = ("# [cache] 命中；來源 prefab 自上次讀取後未變動。"
+HIT_NOTE = ("# [cache] 命中；來源 prefab 依賴與匯出工具自上次讀取後未變動。"
             "若剛在 Unity Inspector 改過但未存檔，請加 --no-cache")
 
 
@@ -84,8 +100,13 @@ def key_for(root: str, asset: str, params: dict) -> str | None:
         if rel is None or not rel.endswith(".prefab"):
             return None
         h = hashlib.sha256()
+        h.update(("format=" + CACHE_FORMAT_VERSION + "\n").encode())
         for k in sorted(params):
             h.update(f"{k}={params[k]}\n".encode())
+        for tool in TOOL_FILES:
+            with open(os.path.join(root, tool), "rb") as fh:
+                h.update(tool.encode())
+                h.update(hashlib.sha256(fh.read()).digest())
         for dep in _deps(root, rel):
             st = os.stat(os.path.join(root, dep))
             h.update(f"{dep}|{st.st_mtime_ns}|{st.st_size}\n".encode())

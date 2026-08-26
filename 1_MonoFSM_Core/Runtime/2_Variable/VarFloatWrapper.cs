@@ -44,7 +44,7 @@ namespace MonoFSM.Variable
 
         // [ShowIf(nameof(_isVarNeeded))]
 
-        [HideIf(nameof(_constValue))]
+        // [HideIf(nameof(_constValue))]
         [SerializeField] protected TVarType _var;
 
         [HideIf(nameof(HideConstValue))] [SerializeField]
