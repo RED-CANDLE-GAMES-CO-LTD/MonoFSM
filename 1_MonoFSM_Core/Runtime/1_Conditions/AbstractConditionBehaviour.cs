@@ -22,6 +22,7 @@ using Debug = UnityEngine.Debug;
 [Serializable]
 public class ConditionGroup //AndGroup? //封裝的蠻好的...? 但是auto可能會遇到問題...
 {
+    [ShowInInspector]
     public bool IsValid => _conditions.IsAllValid();
 
     [CompRef]

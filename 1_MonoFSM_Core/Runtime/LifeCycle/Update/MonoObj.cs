@@ -617,6 +617,32 @@ namespace MonoFSMCore.Runtime.LifeCycle
         //ResetStateRestore 等 reset 流程仍會 iterate 整個 set，不受此 flag 影響。
         [ShowInInspector] public bool IsActiveInSimulator { get; set; } = true;
 
+        //debug 用：把 Simulate 實際會不會跑的四道 gate 收在一起。
+        //只看 ShouldSimulte 會誤判（despawn 後它仍可能是 true，但 IsActiveInSimulator 已經關掉）。
+        [ShowInInspector]
+        public bool IsSimulating =>
+            IsActiveInSimulator && !IsProxy && !IsSimulationCulling && ShouldSimulte;
+
+        /// <summary>
+        /// debug 用：Simulate 沒跑的話是卡在哪一道 gate（順序同 Simulate/TickSimulatePhase 的判斷）。
+        /// </summary>
+        [ShowInInspector]
+        public string SimulateBlockReason
+        {
+            get
+            {
+                if (!IsActiveInSimulator)
+                    return "IsActiveInSimulator=false（已 Despawn / Unregister）";
+                if (IsProxy)
+                    return "IsProxy=true";
+                if (!ShouldSimulte)
+                    return "ShouldSimulte=false（沒有 State/Input Authority）";
+                if (IsSimulationCulling)
+                    return "IsSimulationCulling=true";
+                return "";
+            }
+        }
+
         public void BeforeSimulate(float deltaTime)
         {
             //nested MonoObj 自己也會被 WorldUpdateSimulator 註冊、自己被呼叫（同 Simulate/AfterSimulate/Render），
@@ -875,10 +901,14 @@ namespace MonoFSMCore.Runtime.LifeCycle
             sb.AppendLine(
                 $"  Phase needed — Before:{IsBeforeSimulatesNeeded}  Update:{IsUpdateSimulatesNeeded}  After:{IsAfterSimulatesNeeded}  Render:{IsRenderSimulatesNeeded}");
 
-            var willSimulate = owningWorld != null && IsActiveInSimulator &&
-                               !IsSimulationCulling && ShouldSimulte;
+            sb.AppendLine($"  ShouldSimulte: {ShouldSimulte}  (lastSimulateTime:{_lastSimulateTime})");
+
+            var willSimulate = owningWorld != null && IsSimulating;
             var willRender = owningWorld != null && IsActiveInSimulator && !IsRenderCulling;
             sb.AppendLine($"  => Simulate:{(willSimulate ? "YES" : "NO")}  Render:{(willRender ? "YES" : "NO")}");
+            if (!willSimulate)
+                sb.AppendLine(
+                    $"  ⚠ 不會 Simulate 的原因: {(owningWorld == null ? "沒有註冊到任何 WorldUpdateSimulator" : SimulateBlockReason)}");
 
             if (owningWorld != null)
                 Debug.Log(sb.ToString(), this);
@@ -937,11 +967,19 @@ namespace MonoFSMCore.Runtime.LifeCycle
         {
         }
 
-        public string ValueInfo => IsSimulationCulling
-            ? "Simulation Culled"
-            : IsRenderCulling
-                ? "Render Culled"
-                : "Updating";
+        //不能只看 culling：despawn 後 IsActiveInSimulator=false，culling 兩個都是 false，
+        //舊寫法會顯示 "Updating" 但其實整顆都沒在 tick。
+        public string ValueInfo => !IsActiveInSimulator
+            ? "Despawned (not simulating)"
+            : IsProxy
+                ? "Proxy (not simulating)"
+                : IsSimulationCulling
+                    ? "Simulation Culled"
+                    : !ShouldSimulte
+                        ? "No Authority (not simulating)"
+                        : IsRenderCulling
+                            ? "Render Culled"
+                            : "Updating";
         public bool IsDrawingValueInfo => Application.isPlaying;
 
         [PreviewInInspector] [AutoChildren] private CullingPivot _cullingPivot;
