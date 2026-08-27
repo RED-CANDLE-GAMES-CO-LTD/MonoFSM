@@ -13,10 +13,11 @@ namespace MonoFSM.Core.LifeCycle
     /// <summary>
     /// Visual-only Spawn Action，跑在 Render Tier (OnEnterRender)。
     /// 不參與 Simulate / 網路同步，純粹用於特效、預覽物件等視覺呈現。
-    /// 實作 IArgRenderBehaviour&lt;GeneralEffectHitData&gt;，收到 hit 資料時直接在 hitPoint spawn。
+    /// 實作 IArgRenderBehaviour&lt;IRenderHitData&gt;，可同時消費本地與網路層的 hit payload，
+    /// 收到 hit 資料時直接在 hit point spawn。
     /// </summary>
     public class SpawnVisualAction : AbstractRenderBehaviour, IPoolObjectPlayer,
-        IArgRenderBehaviour<GeneralEffectHitData>
+        IArgRenderBehaviour<IRenderHitData>
     {
         public override string Description =>
             "SpawnVisual " + (_poolObjFoldOut?.Value != null ? _poolObjFoldOut.Value.name : "?");
@@ -57,14 +58,14 @@ namespace MonoFSM.Core.LifeCycle
         }
 
         //收到 hit 資料版本：有 hitPoint 就在 hitPoint spawn，並用 hitNormal 對齊朝向
-        public void OnArgEnterRender(GeneralEffectHitData arg)
+        public void OnArgEnterRender(IRenderHitData arg)
         {
-            if (arg?.hitPoint is { } hitPoint)
+            if (arg != null && arg.HasHitPoint)
             {
-                var rot = arg.hitNormal is { } normal
-                    ? Quaternion.LookRotation(normal)
+                var rot = arg.HasHitNormal && arg.HitNormal.sqrMagnitude > 0f
+                    ? Quaternion.LookRotation(arg.HitNormal)
                     : SpawnRot;
-                SpawnAt(hitPoint, rot);
+                SpawnAt(arg.HitPoint, rot);
             }
             else
             {
@@ -72,7 +73,7 @@ namespace MonoFSM.Core.LifeCycle
             }
         }
 
-        public void OnArgRender(GeneralEffectHitData arg)
+        public void OnArgRender(IRenderHitData arg)
         {
             //應該用不到對ㄅ
         }

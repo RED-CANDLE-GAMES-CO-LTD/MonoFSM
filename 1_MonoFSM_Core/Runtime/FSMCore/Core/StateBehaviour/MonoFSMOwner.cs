@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using MonoFSM.FSM;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Variable.Attributes;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 {
     /// <summary>
-    /// FIXME: 好像可以和 StateMachineLogic 合併成一個 MonoBehaviour
+    /// FIXME: 好像可以和 StateFolder 合併成一個 MonoBehaviour
     /// </summary>
     //想要HFSM?
     public class MonoFSMOwner : MonoBehaviour, IStateMachineOwner
@@ -57,7 +58,10 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
             return _fsm.ActiveStateId;
         }
 
+        [ShowInInspector]
         public IMonoState CurrentState => _fsm?.ActiveState;
+
+        [ShowInInspector]
         public IMonoState PreviousState => _fsm?.PreviousState;
         public float DeltaTime { get; set; }
 

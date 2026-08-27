@@ -98,38 +98,38 @@ namespace MonoFSM.FSM
         public bool _stateMachinesCollected { get; protected set; }
         public bool _manualUpdateMode { get; protected set; }
 
-        public bool IsCurrentState(IMonoState state)
-        {
-            if (state == null) return false;
-            if (!_stateMachinesCollected) return false;
-            if (_owners == null) return false;
-            foreach (var owner in _owners)
-                if (owner != null && owner.IsCurrentState(state))
-                    return true;
-            return false;
-        }
+        // public bool IsCurrentState(IMonoState state)
+        // {
+        //     if (state == null) return false;
+        //     if (!_stateMachinesCollected) return false;
+        //     if (_owners == null) return false;
+        //     foreach (var owner in _owners)
+        //         if (owner != null && owner.IsCurrentState(state))
+        //             return true;
+        //     return false;
+        // }
 
-        [ShowInInspector]
-        private IMonoState PreviousState
-        {
-            get
-            {
-                if (!_stateMachinesCollected) return null;
-                if (_owners == null || _owners.Length == 0) return null;
-                return _owners[0]?.PreviousState;
-            }
-        }
-
-        [ShowInInspector]
-        public IMonoState CurrentState
-        {
-            get
-            {
-                if (!_stateMachinesCollected) return null;
-                if (_owners == null || _owners.Length == 0) return null;
-                return _owners[0]?.CurrentState;
-            }
-        }
+        // [ShowInInspector]
+        // private IMonoState PreviousState
+        // {
+        //     get
+        //     {
+        //         if (!_stateMachinesCollected) return null;
+        //         if (_owners == null || _owners.Length == 0) return null;
+        //         return _owners[0]?.PreviousState;
+        //     }
+        // }
+        //
+        // [ShowInInspector]
+        // public IMonoState CurrentState
+        // {
+        //     get
+        //     {
+        //         if (!_stateMachinesCollected) return null;
+        //         if (_owners == null || _owners.Length == 0) return null;
+        //         return _owners[0]?.CurrentState;
+        //     }
+        // }
 
         // Called by controllers to initialize.
         public void InitializeLogic()

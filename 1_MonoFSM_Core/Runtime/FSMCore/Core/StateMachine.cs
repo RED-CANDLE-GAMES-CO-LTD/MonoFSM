@@ -353,7 +353,8 @@ namespace MonoFSM.FSM
             if (_tickProvider == null)
             {
                 Debug.LogError(
-                    $"StateMachine {Name} 還沒 Initialize（_tickProvider == null），忽略 ChangeState 到 {_states[stateId]}({stateId})"
+                    $"StateMachine {Name} 還沒 Initialize（_tickProvider == null），忽略 ChangeState 到 {_states[stateId]}({stateId})",
+                    _logic
                 );
                 return;
             }

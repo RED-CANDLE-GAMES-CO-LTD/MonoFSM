@@ -4,6 +4,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Runtime;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Foundation;
+using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
@@ -88,12 +89,22 @@ namespace MonoFSM.Core
             _lastRenderEventTime = Time.time;
             if (_renderActions == null)
                 return;
+
+            // Generic variance 不適用 value type。Fusion 的 RenderEventSyncData 是 struct，
+            // 因此在一次性 VFX event 進入時 boxing 一次，讓 Core 的 IRenderHitData receiver 能消費它。
+            // 這不在每-frame Render loop，且避免 Core 依賴任何網路 package payload 型別。
+            var renderHitData = arg is IRenderHitData hitData ? hitData : null;
             foreach (var action in _renderActions)
             {
                 if (action is IArgRenderBehaviour<T> argAction)
                 {
                     if (argAction.isActiveAndEnabled)
                         argAction.OnArgEnterRender(arg);
+                }
+                else if (renderHitData != null && action is IArgRenderBehaviour<IRenderHitData> hitAction)
+                {
+                    if (hitAction.isActiveAndEnabled)
+                        hitAction.OnArgEnterRender(renderHitData);
                 }
                 else
                 {

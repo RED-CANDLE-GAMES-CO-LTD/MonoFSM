@@ -8,9 +8,21 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 {
     public interface IActor { }
 
+    /// <summary>
+    /// Render-only hit position/normal contract. Network packages can implement this without making
+    /// MonoFSM Core depend on a specific transport or network payload type.
+    /// </summary>
+    public interface IRenderHitData
+    {
+        bool HasHitPoint { get; }
+        Vector3 HitPoint { get; }
+        bool HasHitNormal { get; }
+        Vector3 HitNormal { get; }
+    }
+
     //TODO: 要用Struct還是用 Class? 好像是為了要pass下去
     [Serializable] //沒用？
-    public class GeneralEffectHitData : IEffectHitData
+    public class GeneralEffectHitData : IEffectHitData, IRenderHitData
     {
         //反而是detector對detectable的資料？比較有用？
         //FIXME: 需要實作borrow?
@@ -87,6 +99,11 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         private Vector3? _hitPoint;
         private Vector3? _hitNormal;
         private Vector3? _hitDirection;
+
+        bool IRenderHitData.HasHitPoint => hitPoint.HasValue;
+        Vector3 IRenderHitData.HitPoint => hitPoint.GetValueOrDefault();
+        bool IRenderHitData.HasHitNormal => hitNormal.HasValue;
+        Vector3 IRenderHitData.HitNormal => hitNormal.GetValueOrDefault();
 
         public T GetComponentFromDealerOwner<T>()
             where T : class
