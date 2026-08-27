@@ -183,6 +183,11 @@ namespace MonoFSM.FSM
             for (var i = 0; i < owners.Length; i++)
             {
                 var owner = owners[i] as IStateMachineOwner;
+                if (owner == null)
+                {
+                    Debug.LogError("owner is null", this);
+                    continue;
+                }
                 owner.CollectStateMachines(tempMachines);
                 CheckCollectedMachines(owners[i], tempMachines);
 
