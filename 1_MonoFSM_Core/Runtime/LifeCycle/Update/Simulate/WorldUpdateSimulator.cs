@@ -818,9 +818,32 @@ namespace MonoFSM.Core.Simulate
             return fallback != null && fallback.TryBroadcastReset(isHardReset);
         }
 
+        /// <summary>
+        ///     Build 版的 reset 權限閘門：由網路層（Fusion）在啟動時掛上，回傳「本機是否有權發動 level reset」。
+        ///     沒掛（純單機 build）時視為有權。Editor 不套用，方便 multi-peer 測試時從任一端 reset。
+        /// </summary>
+        public static Func<bool> LocalResetAuthorityCheck;
+
+        private static bool IsResetAllowedOnThisPeer()
+        {
+#if UNITY_EDITOR
+            return true;
+#else
+            if (LocalResetAuthorityCheck == null)
+                return true;
+            if (LocalResetAuthorityCheck())
+                return true;
+            Debug.Log("[ResetLevel] 非權威端（client），忽略 ManualResetLevel");
+            return false;
+#endif
+        }
+
         public static void ManualResetLevel(bool isHardReset = false) //Cheat Reset?
         {
             Debug.Log("ResetLevel CMD+Shift+R isHardReset:" + isHardReset);
+            if (!IsResetAllowedOnThisPeer())
+                return;
+
             //有網路 broadcaster 就走 SA 廣播：SA bump 版本號，各 peer 收到後各自 ResetLevel 自己的 simulator
             if (TryBroadcastResetToNetwork(isHardReset))
             {

@@ -20,7 +20,8 @@ namespace MonoFSM.Core
     public abstract class AbstractStateBehaviour<TState>
         : AbstractDescriptionBehaviour,
             IMonoState,
-            IOwnedState<TState>, IRenderInvoker
+            IOwnedState<TState>, IRenderInvoker,
+            ILastTransitionRecord
         where TState : AbstractStateBehaviour<TState>
     {
         // PUBLIC MEMBERS
@@ -185,9 +186,7 @@ namespace MonoFSM.Core
                     if (CanTransition(ref t._transitionData))
                     {
                         //try catch 抓問題？
-#if UNITY_EDITOR
-                        _lastTransition = t;
-#endif
+                        RecordLastTransition(t);
                         if (Machine.TryActivateState(t.TargetState))
                             return;
                     }
@@ -207,9 +206,8 @@ namespace MonoFSM.Core
                             continue; //anyState不應該轉自己，避免無限迴圈)
                         // Debug.Log($"anyState ForceActivateState to {t.TargetState.Name} with " + t,
                         //     t);
-#if UNITY_EDITOR
-                        _lastTransition = t;
-#endif
+                        //記在「現在這個 state」上，log 的 previous state 才查得到
+                        RecordLastTransition(t);
                         if (Machine.TryActivateState(t.TargetState))
                             return;
                     }
@@ -219,9 +217,29 @@ namespace MonoFSM.Core
 
             OnFixedUpdate();
         }
-#if UNITY_EDITOR
-        [ShowInInspector] AbstractDescriptionBehaviour _lastTransition = null;
-#endif
+        [ShowInInspector]
+        private AbstractDescriptionBehaviour _lastTransition;
+
+        //最後一次通過 transition 條件的 tick，用來分辨「這次 state change 是不是走 transition 來的」
+        private int _lastTransitionTick = int.MinValue;
+
+        private void RecordLastTransition(AbstractDescriptionBehaviour transition)
+        {
+            _lastTransition = transition;
+            _lastTransitionTick = Machine?.TickProvider?.Tick ?? WorldUpdateSimulator.CurrentTick;
+        }
+
+        //只在 state change log 時被呼叫，允許組字串
+        public string GetLastTransitionInfo(int currentTick)
+        {
+            if (_lastTransition == null)
+                return "無 transition 紀錄(直接 ActivateState)";
+
+            if (_lastTransitionTick != currentTick)
+                return $"非 transition 觸發(直接 ActivateState)，最後一次 transition: {_lastTransition.name}@tick{_lastTransitionTick}";
+
+            return $"{_lastTransition.name} [{_lastTransition.GetType().Name}]";
+        }
 
         bool IMonoState.CanExitState(IMonoState nextState, bool isExplicitDeactivation)
         {

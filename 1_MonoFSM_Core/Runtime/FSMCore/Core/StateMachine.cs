@@ -427,9 +427,14 @@ namespace MonoFSM.FSM
 
             var activeStateName = ActiveState != null ? ActiveState.Name : "None";
             var previousStateName = PreviousState != null ? PreviousState.Name : "None";
+            //從 previous state 上問「是走哪一條 transition 過來的」
+            var transitionInfo =
+                PreviousState is ILastTransitionRecord record
+                    ? record.GetLastTransitionInfo(_tickProvider?.Tick ?? WorldUpdateSimulator.CurrentTick)
+                    : "?";
 
             Debug.Log(
-                $"{_logic.gameObject.name} - <color=#F04C4C>State Machine <b>{Name}</b>: Change State to <b>{activeStateName}</b></color> - Previous: {previousStateName}, Tick: {WorldUpdateSimulator.CurrentTick} IsResim{WorldUpdateSimulator.IsResimulation}",
+                $"{_logic.gameObject.name} - <color=#F04C4C>State Machine <b>{Name}</b>: Change State to <b>{activeStateName}</b></color> - Previous: {previousStateName}, via Transition: <b>{transitionInfo}</b>, Tick: {WorldUpdateSimulator.CurrentTick} IsResim{WorldUpdateSimulator.IsResimulation}",
                 _logic
             );
         }

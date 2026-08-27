@@ -52,7 +52,12 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
                         return false;
 
                     //只借條件，不看來源 transition 自己的啟用狀態
-                    return _sourceTransition.AreConditionsValid();
+                    if (_sourceTransition.AreConditionsValid() == false)
+                        return false;
+#if UNITY_EDITOR
+                    RecordDebugTick(from);
+#endif
+                    return true;
                 }
             );
         }
