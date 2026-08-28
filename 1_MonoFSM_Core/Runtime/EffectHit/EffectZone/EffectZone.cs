@@ -1,4 +1,5 @@
 using MonoFSM.Core.Attributes;
+using MonoFSM.Runtime;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable;
 using Sirenix.OdinInspector;
@@ -63,7 +64,28 @@ namespace Gameplay.EffectZone
         [SerializeField]
         private VarBool _isActiveVar;
 
+        [Tooltip("這個區域提供的數值（ex: 供電量、輻射強度），留空則用下面的固定值")]
+        [DropDownRef]
+        [SerializeField]
+        private VarFloat _valueVar;
+
+        [Tooltip("沒指定 _valueVar 時用的固定數值")]
+        [HideIf("@_valueVar != null")]
+        [SerializeField]
+        private float _constantValue = 1f;
+
+        [Tooltip("這個 zone 屬於誰（編輯時往上抓，給 EffectZoneEntitySource 反查來源）")]
+        [AutoParent]
+        [SerializeField]
+        private MonoEntity _ownerEntity;
+
         public GeneralEffectType ZoneType => _zoneType;
+
+        /// <summary>提供這個 zone 的 entity（ex: 供電廟本體），編輯時 cache，runtime 零 GetComponent。</summary>
+        public MonoEntity OwnerEntity => _ownerEntity;
+
+        /// <summary>這個 zone 提供的數值；有接 VarFloat 就讀它，否則用序列化的固定值。</summary>
+        public float ZoneValue => _valueVar != null ? _valueVar.Value : _constantValue;
 
         public Vector3 Center =>
             _centerOverride != null ? _centerOverride.position : transform.position;
