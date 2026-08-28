@@ -7,16 +7,14 @@ using UnityEngine;
 //掛在 AnimatorStateNameSource 底下，condition 成立時提供 state name 蓋掉 AnimatorPlayAction 的 stateName
 public class AnimatorStateNameEntry : AbstractDescriptionBehaviour
 {
-    public override string Description =>
-        (_condition != null ? _condition.name : "NO CONDITION") + " -> " + _stateName;
+    public override string Description => " -> " + _stateName;
 
     protected override string DescriptionTag => "StateName";
 
     [AutoParent] private AnimatorStateNameSource _source;
 
     //同節點或子節點上的條件
-    [SerializeField] [CompRef] [AutoChildren]
-    private AbstractConditionBehaviour _condition;
+    [AutoNested] [SerializeField] protected ConditionGroup _conditionGroup;
 
 #if UNITY_EDITOR
     [ValueDropdown(nameof(GetStateNames), NumberOfItemsBeforeEnablingSearch = 3)]
@@ -24,7 +22,7 @@ public class AnimatorStateNameEntry : AbstractDescriptionBehaviour
     [SerializeField]
     private string _stateName;
 
-    public bool IsMatch => _condition != null && _condition.FinalResult;
+    public bool IsMatch => _conditionGroup.IsValid;
 
     public string StateName => _stateName;
 
