@@ -36,6 +36,36 @@ namespace MonoFSM.Core.LifeCycle
         private bool HasMountPointVar => _mountPointVar != null && _mountPointVar.HasValue;
         private Transform MountPoint => HasMountPointVar ? _mountPointVar.Value : _mountPoint;
 
+#if UNITY_EDITOR
+        /// <summary>
+        /// 給 Editor 側驗證器讀（例如 Fusion 的 NetworkedMountPoint 漏綁檢查）。
+        /// 回 false 表示 mount point 由 runtime 的 Var 決定，editor time 無法判斷、不該報錯。
+        /// 純粹暴露既有序列化欄位，不引入任何網路依賴。
+        /// </summary>
+        public bool TryGetEditorMountPoint(out Transform mountPoint)
+        {
+            mountPoint = null;
+            if (_mountPointVar != null && _mountPointVar._var != null)
+                return false; //接了 VarTransform，值要等 runtime 才知道
+            mountPoint = MountPoint;
+            return true;
+        }
+
+        /// <summary>
+        /// 給 Editor 側驗證器讀 mount 的 target entity（被 attach 的對象）。
+        /// 回 false 表示由 runtime 的 Var 決定，editor time 無法判斷、不該報錯。
+        /// </summary>
+        public bool TryGetEditorTargetEntity(out MonoEntity entity)
+        {
+            entity = null;
+            if (_targetEntity != null && _targetEntity._var != null)
+                return false; //接了 VarEntity，值要等 runtime 才知道
+            //_parentEntity 是 [AutoParent]，editor time 不一定 cache 過，這裡自己抓
+            entity = _targetEntity?.Value ?? GetComponentInParent<MonoEntity>();
+            return true;
+        }
+#endif
+
         protected override void OnActionExecuteImplement()
         {
             var source = _sourceEntity.Value;

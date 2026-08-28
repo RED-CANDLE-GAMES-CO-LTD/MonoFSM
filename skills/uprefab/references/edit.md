@@ -172,6 +172,12 @@ log 尾巴會出現 `# 存檔前 callback：920 個 OK`。專案幾乎每個 Mon
 `[Var] Sold Out Mask`（VarInt + `NetworkedVarTag`）後，存檔前 callback 有跑、`_syncInts` 仍是空的。
 
 所以流程是：加 `NetworkedVarTag` → 存檔 → **`peek` 確認該 var 真的進了 `_syncXxx`**。
+
+⚠️ **反過來，callback 也可能自動換掉 sync 元件的型別**。2026-08-27 在「中控開關」「中控室建築候選」
+上新增 VarInt + `NetworkedVarTag` 後，root 的 `NetworkedVarSyncFloat4` /
+`NetworkedVarSyncBool4Float4` 被自動升級成 `NetworkedVarSyncArray`，新 VarInt 自己進了
+`_syncInts`，既有 `_syncFloats` / `_syncBools` 內容保留。所以 `peek` 驗的時候別預設元件型別沒變。
+
 **沒進的話不要自己 `addel` + `ref` 補** —— 接進 sync 陣列（含換成容量更大的
 `NetworkedVarSyncBool4Float4`）由 Jerryee 在 Editor 端處理，手動動陣列容易搞亂既有槽位配置。
 回報時說一句「這顆要接進 sync」就好。

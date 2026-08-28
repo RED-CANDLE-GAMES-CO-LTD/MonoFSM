@@ -14,6 +14,12 @@ using Object = UnityEngine.Object;
 
 namespace MonoFSM.Core.Variable
 {
+    /// <summary>
+    ///     MonoEntity 清單的 Var（VarList&lt;MonoEntity&gt;）。也實作 ICurrentEntityOwner，
+    ///     所以 CurrentEntity（= CurrentListItem）可被子節點的 VarEntityCurrentItem 直接鏡射。
+    ///     搭配 SelectRandomIndexAction / VarListToNextAction 之類的 Action 移動游標；
+    ///     index 要跨端一致時，把 _currentIndexVar 綁一顆掛 NetworkedVarTag 的 VarInt。
+    /// </summary>
     public class VarListEntity
         : VarList<MonoEntity>, //這個變
             MonoFSM.Runtime.Variable.ICurrentEntityOwner
