@@ -9,8 +9,22 @@ using UnityEngine.InputSystem;
 namespace MonoFSM.Core
 {
     /// <summary>
+    ///     Cheat 傳送的網路分派介面：由網路層（Fusion）實作，把傳送請求轉給 StateAuthority 執行。
+    ///     core 這層不依賴 Fusion，只透過這個介面問「這次要不要走網路」。
+    /// </summary>
+    public interface ICheatTeleportDispatcher
+    {
+        /// <summary>
+        ///     回傳 true 表示已經接手（本地端不要再自己 teleport，否則會被 host 的 snapshot 蓋回去）。
+        ///     單機 / 還沒 spawn 時回傳 false，讓呼叫端走原本的本地路徑。
+        /// </summary>
+        bool TryDispatchTeleport(Vector3 position);
+    }
+
+    /// <summary>
     ///     Cheat 用：Alt + 1~9 瞬移玩家到指定位置，Alt + T 依序循環切換。
     ///     掛在有 IArgEventReceiver&lt;Vector3&gt; 子節點（例如 FusionCharacterTeleportAction）的 GameObject 上。
+    ///     連線中會優先走 <see cref="ICheatTeleportDispatcher" />（CheatTeleportAllRelay），由 host 把全體玩家一起瞬移。
     /// </summary>
     //不繼承 AbstractDescriptionBehaviour：它會用 Description 去改 GameObject 名字，
     //會蓋掉共用節點（例如 [SpawnPoint] PlayerStartSpawnPoint）原本的名稱
@@ -23,6 +37,10 @@ namespace MonoFSM.Core
 
         [CompRef] [AutoChildren] [ShowInInspector]
         private IArgEventReceiver<Vector3> _playerTeleporter;
+
+        //連線中由網路層接手（host 把所有玩家一起傳送），單機時為 null 或回傳 false
+        [CompRef] [AutoChildren] [ShowInInspector]
+        private ICheatTeleportDispatcher _dispatcher;
 
         [ShowInInspector] [ReadOnly] private int _currentIndex = -1;
 
@@ -80,13 +98,21 @@ namespace MonoFSM.Core
             }
 
             var point = points[index].transform;
+            _currentIndex = index;
+
+            //連線中：交給 host 把全體玩家一起傳送。client 自己 teleport 會被 host snapshot 蓋回去
+            if (_dispatcher != null && _dispatcher.TryDispatchTeleport(point.position))
+            {
+                Debug.Log($"[CheatTeleport] Alt+{index + 1} 全體傳送到 {point.name} {point.position}", point);
+                return;
+            }
+
             if (_playerTeleporter == null)
             {
                 Debug.LogWarning("[CheatTeleport] 找不到子節點上的 IArgEventReceiver<Vector3>，瞬移沒有作用", this);
                 return;
             }
 
-            _currentIndex = index;
             Debug.Log($"[CheatTeleport] Alt+{index + 1} 瞬移到 {point.name} {point.position}", point);
             _playerTeleporter.ArgEventReceived(point.position);
         }

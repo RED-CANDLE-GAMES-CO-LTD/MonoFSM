@@ -5,6 +5,8 @@ namespace MonoFSM.Core
 {
     /// <summary>
     ///  Condition that checks if a specific key is pressed.
+    ///  「這一幀按下」走 <see cref="CheatKeyLatch"/>：input 在 dynamic update 收，但判定多半跑在
+    ///  Simulate（FixedUpdate/FixedUpdateNetwork），直接查 wasPressedThisFrame 會漏按。
     ///  FIXME: 應該要 Debug mode才？
     /// </summary>
     public class WasKeyPressCheatCondition : AbstractConditionBehaviour //FIXME: parent的模組需要拔掉的話怎麼辦？
@@ -32,9 +34,8 @@ namespace MonoFSM.Core
 
         protected override bool IsValid =>
             _key > 0
+            && Keyboard.current != null
             && !(_ignoreIfModifierHeld && IsModifierHeld)
-            && (_isPress
-                ? Keyboard.current[_key].isPressed
-                : Keyboard.current[_key].wasPressedThisFrame);
+            && (_isPress ? Keyboard.current[_key].isPressed : CheatKeyLatch.WasPressed(_key));
     }
 }

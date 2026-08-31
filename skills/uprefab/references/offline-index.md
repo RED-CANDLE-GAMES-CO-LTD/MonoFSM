@@ -25,7 +25,7 @@ up scope stats
 | 指令 | 用途 |
 |---|---|
 | `index [--rebuild] [-q]` | 預設走 mtime 增量。改了 `indexer.py` 的 schema 要 `--rebuild` |
-| `find [--comp X] [--name Y] [--path Z] [--scope full\|all\|shallow] [-n N] [--resolve] [--by-asset]` | 定位節點，回傳 anchor。預設 `--scope full`；`--resolve` 另外附上可直接餵給 `--node` 的完整路徑（**要 Unity 開著**，見下）。`--by-asset` 只回分佈 |
+| `find [--comp X] [--name Y] [--path Z] [--scope full\|all\|shallow] [-n N] [--resolve] [--by-asset] [--no-inherit]` | 定位節點，回傳 anchor。預設 `--scope full`；`--resolve` 另外附上可直接餵給 `--node` 的完整路徑（**要 Unity 開著**，見下）。`--by-asset` 只回分佈。帶 `--path` 時預設展開 variant / nested prefab 繼承鏈（見下） |
 | `guid <token> [-v] [-n N]` | guid ⇄ 資產路徑互查 |
 | `overrides <asset> [-n N] [--all] [--by-target]` | prefab override 稽核。`--by-target` 只回分佈 |
 | `scope list \| stats \| init` | `stats` 列出節點數最多的資產，用來決定還要濾掉什麼 |
@@ -35,6 +35,32 @@ anchor 格式 `Assets/.../PPlayer.prefab#272130150518276317`，`#` 後是 fileID
 `includeShallow` 的用途是讓 override target 能解析第三方來源，不是一般 gameplay 搜尋。
 所以 `find` 預設只查 `full`；若表尾顯示「另有 N 筆 shallow 命中」，真的需要第三方 / Example
 內容時再加 `--scope all`。只想稽核 shallow 本身則用 `--scope shallow`。
+
+## variant / nested prefab：`--path` 會自動展開繼承鏈
+
+離線索引只存「每個檔案自己 YAML 寫出來的節點」。查一個 **variant** 時，繼承自 base 的
+節點不在那個檔案裡 —— 以前會直接回 `(no match)`，是個看起來像定論的**假陰性**（照著它
+去重建一份已經存在的節點，很難察覺）。
+
+現在 `find` 帶 `--path` 時，會沿 `m_SourcePrefab` 遞迴把 base / nested prefab 來源
+一起納入查詢範圍，並在每筆命中標出來自哪一層：
+
+```bash
+up find --comp GeneralEffectReceiver --path "路邊發電鴿"
+# 已沿 prefab 繼承鏈展開：1 個查詢對象 + 27 個 base / nested 來源（--no-inherit 可關閉）
+# MonoFSM-Pro/Prefabs/Premade/[Network] 3D Culling Physics Obj Variant.prefab#7319…
+#     [Receiver] d_UseGrabbingItem 發動使用道具   [繼承來源 L3] ← …
+```
+
+- 沒標籤 = 命中在查詢對象本檔；`[繼承來源 Ln]` = 來自第 n 層來源，`←` 是它從哪個檔案被帶進來的。
+- 展開是**過近似**：來源集合是傳遞閉包，理論上可能含到該 variant 實際沒有實例化的節點。
+  要確定的合併真值仍以 `up prefab locate` 為準（實測兩個 variant 上兩者總數一致）。
+- `--no-inherit` 關閉展開；`--inherit-max N`（預設 30）限制 `--path` 命中太多資產時不展開。
+  這兩種情況若查詢對象是 variant，輸出會明講「繼承節點未計入」。
+- **沒帶 `--path` 的全庫查詢無法展開**，所以 `(no match)` 一律附上警告與 `up prefab locate` 的提示。
+
+`up prefab locate` 走 `LoadPrefabContents`，看到的是合併後真值（繼承節點都在），
+它的 `total=0` 才是該 prefab 內的定論。
 
 ## 命中很多時先看分佈，不要硬讀
 

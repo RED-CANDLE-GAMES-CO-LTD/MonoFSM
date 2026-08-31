@@ -105,7 +105,7 @@
 |---|---|---|
 | condition：滿 N 秒才 transition | `StateTimeUpCondition` | 有 `_timeVar: VarFloat` 欄位，`time => _timeVar != null ? _timeVar.Value : _time`。**要單一來源就指 `_timeVar`**，不要在多處填 `_time` 常數 |
 | value：把「已進入幾秒」當 float 讀出來 | `StateStatusTimerValueSource` | `Value => TargetState?.statusTimer ?? -1f`。腳本 `MonoFSM/1_MonoFSM_Core/Runtime/2_Variable/Value Provider/StateStatusTimerValueSource.cs` |
-| CD／冷卻 | 時間戳 + `SinceVarFloatTimeStampCondition` | 見下方「時間基準」的坑 |
+| CD／冷卻 | 時間戳三件套（**不要用倒數 timer**） | 見下方「CD／冷卻的標準做法」 |
 
 **兩個共通陷阱**（`GeneralState.statusTimer => Machine?.ActiveState == this ? Machine.StateTime : -1f`）：
 
@@ -117,17 +117,58 @@
    runtime 才生成的另一個 instance（別的玩家、別的 spawn 物件）**指不過去**，
    跨 entity 要走 proxy var（見 alishan-code-map 的「跨 entity 取值」）。
 
-### 時間基準：`SimulationTime` 與 `LevelSimulationTime` 不通用
+### CD／冷卻的標準做法：時間戳三件套
 
-- `SinceVarFloatTimeStampCondition` 內部**硬寫** `WorldUpdateSimulator.SimulationTime`（全域）。
-- 而 ValueSource 層唯一暴露的是 `FloatLevelSimulationTime`（= `LevelSimulationTime`，關卡開始為 0）；
-  **沒有任何 ValueSource 暴露全域 `SimulationTime`**。
-- `SetVarFloatToCurrentTimeAction` 有 `_useLevelSimulationTime` 開關 —— 勾了才能跟
-  `FloatLevelSimulationTime` 做時間差，但勾了 `SinceVarFloatTimeStampCondition` 就算錯。
-- → **同一顆時間戳無法同時餵給 condition 和 UI 顯示**。要兩邊都用就別走時間戳，
-  改用 state statusTimer 路線（不需要同步變數，state 本身已由 `NetworkStateMachineController` 同步）。
-- 另外 `SinceVarFloatTimeStampCondition` 把 `stamp <= 0` 當成「冷卻已結束」（回 `+∞`，condition 直接 true）。
-  搭配 level time 使用時，關卡最開頭幾幀蓋的時間戳 ≈ 0 → 條件立刻成立。
+**做冷卻不要用 `VarFloatCountDownTimer` 倒數**，用時間戳。三件套指向同一顆 VarFloat 時間戳與同一組秒數：
+
+| 角色 | 積木 | 腳本 |
+|---|---|---|
+| 蓋時間戳（消耗發生時） | `SetVarFloatToCurrentTimeAction` | `MonoFSM/1_MonoFSM_Core/Runtime/Action/VariableAction/SetVarFloatToCurrentTimeAction.cs` |
+| 判斷冷卻到了沒（transition 條件） | `SinceVarFloatTimeStampCondition` | `MonoFSM/1_MonoFSM_Core/Runtime/1_Conditions/SinceVarFloatTimeStampCondition.cs` |
+| 冷卻進度 0~1（給視覺／UI） | `TimeStampProgressValueSource` | `MonoFSM/1_MonoFSM_Core/Runtime/0_Pattern/DataProvider/ComponentWrapper/Float/TimeStampProgressValueSource.cs` |
+
+比倒數 timer 好的地方：不用每幀跑衰減；網路上**只同步一顆時間戳**（且只在消耗那一刻寫入，不是每 tick 寫），
+中途加入或重連的 client 也算得出正確的剩餘進度。
+
+**進度不要再手工串 `FloatMathValueSource`**（先減再除那兩顆）—— 直接用 `TimeStampProgressValueSource`，
+它已經處理好 clamp 與除零。
+
+典型形狀（並行的冷卻子狀態，跟主狀態機分開）：
+
+```
+[Var] d_LastXxxTime          # VarFloat + NetworkedVarTag（要同步就掛這顆，別動 root 的 sync 陣列）
+[Var] XxxCooldown            # VarFloat，秒數，不用同步
+[Getter] Progress …          # TimeStampProgressValueSource → 驅動量規 _Percentage / 燈號 / UI
+
+[State] Ready       enter: 可用旗標 = True
+  → Recharging:  [If!] Since d_LastXxxTime >= XxxCooldown
+[State] Recharging  enter: 可用旗標 = False
+  → Ready:       [If]  Since d_LastXxxTime >= XxxCooldown
+```
+
+消耗端做 `Stamp d_LastXxxTime = now`，**記得加 `[If] Is [State] Ready`** ——
+否則冷卻期間重複觸發（例如 dealer 條件是 `IsPressed` 這種每幀成立的）會一直刷新時間戳，把冷卻無限延長。
+
+實例：`Assets/0_Gameplay/0_Base/Tutorial/復活機台 Variant.prefab`（庫存 + 補充版）、
+`Assets/0_Gameplay/Physics Object/NPC 神像/路邊發電鴿和底座 Base statue Variant.prefab`（單發 CD 版）。
+
+**要拆成多條各自獨立的冷卻**：一組三件套 = 一顆時間戳。複製一顆時間戳 Var，
+把對應的 Stamp Action / Condition / ProgressValueSource 各自指過去即可，不需要改任何 C#。
+
+#### 時間基準：三邊必須一致
+
+三件套都有 `_useLevelSimulationTime` 開關：不勾 = 全域 `WorldUpdateSimulator.SimulationTime`，
+勾 = `LevelSimulationTime`（關卡開始為 0）。**三邊要勾一樣**，否則是拿兩個不同基準相減，
+冷卻會算成完全錯誤的值，而且沒有任何錯誤訊息。沒有特殊需求就三邊都不勾。
+
+> 2026-08-29 之前 `SinceVarFloatTimeStampCondition` 硬寫全域 `SimulationTime`、沒有這個開關，
+> 所以當時的結論是「同一顆時間戳無法同時餵給 condition 和 UI 顯示」。
+> 現在 condition 補上了開關、也有了 `TimeStampProgressValueSource` 直接吐 0~1，
+> **這個限制已解除**，不必再為了 UI 改走 state statusTimer 路線。
+
+另外 `SinceVarFloatTimeStampCondition` 與 `TimeStampProgressValueSource` 都把 `stamp <= 0`
+當成「從沒觸發過 → 冷卻已結束」（condition 直接 true、progress 回 1）。
+搭配 level time 使用時，關卡最開頭幾幀蓋的時間戳 ≈ 0 → 會被誤判成沒蓋過。
 
 ## Variable 相關
 

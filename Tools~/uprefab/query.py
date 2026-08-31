@@ -9,7 +9,7 @@ from __future__ import annotations
 import sqlite3
 
 
-def _find_where(comp=None, name=None, path=None, scope="full"):
+def _find_where(comp=None, name=None, path=None, scope="full", paths=None):
     """find / find_count / find_by_asset 共用的 FROM+WHERE 與參數。
 
     抽出來是為了讓「列出來的那 50 筆」跟「總共幾筆」一定是同一組條件 ——
@@ -32,7 +32,12 @@ def _find_where(comp=None, name=None, path=None, scope="full"):
     if name:
         sql += " AND n.name LIKE ?"
         args.append(name)
-    if path:
+    if paths:
+        # 展開 prefab 繼承鏈後，條件是一組明確路徑（本檔 + 各層 base / nested 來源），
+        # 不能再用單一 LIKE 表達
+        sql += " AND a.path IN (%s)" % ",".join("?" * len(paths))
+        args.extend(paths)
+    elif path:
         sql += " AND a.path LIKE ?"
         args.append(path)
     if scope == "full":
@@ -45,31 +50,31 @@ def _find_where(comp=None, name=None, path=None, scope="full"):
 
 
 def find_count(con: sqlite3.Connection, comp=None, name=None, path=None,
-               scope="full") -> int:
+               scope="full", paths=None) -> int:
     """同條件的總命中數 —— 讓 limit 切掉時能講出「50 / 共 4132」。"""
-    sql, args = _find_where(comp, name, path, scope)
+    sql, args = _find_where(comp, name, path, scope, paths)
     return con.execute("SELECT COUNT(*) " + sql, args).fetchone()[0]
 
 
 def find_totals(con: sqlite3.Connection, comp=None, name=None, path=None,
-                scope="full"):
+                scope="full", paths=None):
     """(總命中數, 涵蓋幾個資產) —— --by-asset 的表尾要能講「列出的只是前幾名」。"""
-    sql, args = _find_where(comp, name, path, scope)
+    sql, args = _find_where(comp, name, path, scope, paths)
     return con.execute(
         "SELECT COUNT(*), COUNT(DISTINCT a.path) " + sql, args).fetchone()
 
 
 def find_by_asset(con: sqlite3.Connection, comp=None, name=None, path=None,
-                  limit=50, scope="full"):
+                  limit=50, scope="full", paths=None):
     """同條件的分佈：[(資產路徑, 命中數)]，多的排前面。"""
-    sql, args = _find_where(comp, name, path, scope)
+    sql, args = _find_where(comp, name, path, scope, paths)
     sql = ("SELECT a.path, COUNT(*) " + sql +
            " GROUP BY a.path ORDER BY COUNT(*) DESC, a.path LIMIT ?")
     return con.execute(sql, args + [limit]).fetchall()
 
 
 def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50,
-         scope="full"):
+         scope="full", paths=None):
     """依 component 型別 / 節點名 / 資產路徑定位節點。
 
     分兩階段，理由是查詢計劃：
@@ -83,7 +88,7 @@ def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50,
        會變成 correlated scalar subquery，對每一列候選都跑一次（而 `comps` 沒有
        `(asset_id, go_file_id)` 的 index，每次都是該 asset 內的線性掃）。
     """
-    where, args = _find_where(comp, name, path, scope)
+    where, args = _find_where(comp, name, path, scope, paths)
     sql = ("SELECT a.path, n.asset_id, n.file_id, n.path, n.is_active " + where +
            " ORDER BY a.path, n.path LIMIT ?")
     rows = con.execute(sql, args + [limit]).fetchall()
@@ -96,6 +101,67 @@ def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50,
         ).fetchone()[0]
         out.append((apath, fid, npath, active, comps))
     return out
+
+
+# ── prefab 繼承鏈（variant base / nested prefab）─────────────────────
+#
+# 離線索引只存「每個檔案自己 YAML 裡寫出來的節點」。variant 繼承來的節點與
+# nested prefab 內部的節點都不在自己的檔案裡，直接查會回 (no match) —— 一個
+# 看起來像定論的假陰性。這裡沿 instances.source_guid 把來源檔案一起拉進查詢範圍，
+# 讓 find 至少能指出「那個節點存在，在 base 裡」。
+
+
+def assets_matching(con: sqlite3.Connection, path_like: str, limit: int = 200):
+    """--path 的 LIKE 條件實際命中哪些資產 → [(path, guid)]。"""
+    return con.execute(
+        "SELECT path, guid FROM assets WHERE path LIKE ? ORDER BY path LIMIT ?",
+        (path_like, limit),
+    ).fetchall()
+
+
+def prefab_sources(con: sqlite3.Connection, asset_paths, max_depth: int = 8):
+    """沿 instances.source_guid 遞迴展開 variant base 與 nested prefab 來源。
+
+    回 {source_path: (depth, via_path)}，不含輸入本身。depth 1 = 直接來源。
+    索引不到的 guid（不在索引範圍內的資產）會被跳過，不會假裝解出來。
+    """
+    seen = {p: 0 for p in asset_paths}
+    out: dict[str, tuple[int, str]] = {}
+    frontier = list(asset_paths)
+    for depth in range(1, max_depth + 1):
+        if not frontier:
+            break
+        rows = con.execute(
+            "SELECT a.path, i.source_guid FROM instances i JOIN assets a ON a.id = i.asset_id "
+            "WHERE a.path IN (%s) AND i.source_guid IS NOT NULL"
+            % ",".join("?" * len(frontier)),
+            frontier,
+        ).fetchall()
+        nxt = []
+        for via, guid in rows:
+            row = con.execute(
+                "SELECT path FROM assets WHERE guid=?", (guid,)).fetchone()
+            if not row:
+                continue
+            src = row[0]
+            if src in seen:
+                continue
+            seen[src] = depth
+            out[src] = (depth, via)
+            nxt.append(src)
+        frontier = nxt
+    return out
+
+
+def has_instances(con: sqlite3.Connection, asset_paths) -> bool:
+    """這批資產裡有沒有任何 prefab instance（= 是 variant 或含 nested prefab）。"""
+    if not asset_paths:
+        return False
+    return con.execute(
+        "SELECT 1 FROM instances i JOIN assets a ON a.id = i.asset_id "
+        "WHERE a.path IN (%s) LIMIT 1" % ",".join("?" * len(asset_paths)),
+        list(asset_paths),
+    ).fetchone() is not None
 
 
 # ParticleSystem 模組內部、gradient/curve 的逐點數值：override 稽核時是雜訊，

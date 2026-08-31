@@ -34,6 +34,9 @@ prefab 依賴以及直接影響文字格式的 Python/C# tool hash。`--no-cache
 
 ## 已知限制
 
+- **`find --path` 的繼承鏈展開是過近似**：沿 `instances.source_guid` 取傳遞閉包，
+  沒有判斷該來源在這個 variant 裡實際有沒有被實例化（判斷需要合併後的階層，離線做不到）。
+  實測兩個 variant 上總數與 `prefab locate` 一致，但原理上可能多報。要精確就用 `prefab locate`。
 - **離線索引的階層在 variant 邊界會斷**（見上面）。已有 `pending_parent` 表 +
   `_resolve_stripped_parents()` 跨檔回推，但只解出 153/2414 —— 中間層常常只有 stripped
   Transform、沒有對應的 stripped GameObject，鏈就斷了。

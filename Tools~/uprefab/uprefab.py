@@ -95,10 +95,68 @@ def cmd_scope(args, root, cfg):
             print(f"  {nodes:>7} nodes  {human(size):>7}  {path}")
 
 
+INHERIT_WARN = (
+    "⚠ 離線索引只含每個檔案自己 YAML 寫出來的節點；prefab variant 繼承來的、"
+    "nested prefab 內部的節點不在裡面。"
+)
+INHERIT_TIP = (
+    "→ 要看合併後的真值（含繼承節點）用：up prefab locate <asset.prefab> "
+    "--comp <型別> / --name <名稱>"
+)
+
+
+def _inherit_expand(con, args):
+    """--path 指到 variant / 含 nested prefab 時，把 base 來源一起拉進查詢範圍。
+
+    回 (paths, layers, notes)：
+      paths  —— None = 不展開，維持原本的單一 LIKE 條件
+      layers —— asset path → 來源層標籤（空字串 = 查詢對象本檔）
+      notes  —— 一定要印出來的說明 / 警告
+    """
+    notes: list[str] = []
+    if not args.path:
+        return None, {}, notes
+    direct = [row[0] for row in query.assets_matching(con, _like(args.path))]
+    if not direct:
+        notes.append(f"⚠ --path 沒有比對到任何已索引的資產（索引過期？先跑 up index）")
+        return None, {}, notes
+    if args.no_inherit:
+        if query.has_instances(con, direct):
+            notes.append("⚠ --no-inherit：查詢對象是 variant 或含 nested prefab，"
+                         "只掃了本檔的節點，繼承節點未計入")
+        return None, {}, notes
+    if len(direct) > args.inherit_max:
+        if query.has_instances(con, direct):
+            notes.append(f"⚠ --path 命中 {len(direct)} 個資產（> --inherit-max "
+                         f"{args.inherit_max}），未展開繼承鏈。{INHERIT_WARN}")
+        return None, {}, notes
+
+    sources = query.prefab_sources(con, direct)
+    if not sources:
+        return None, {}, notes
+    layers = {p: "" for p in direct}
+    for src, (depth, via) in sources.items():
+        layers[src] = f"[繼承來源 L{depth}] ← {via}"
+    notes.append(f"# 已沿 prefab 繼承鏈展開：{len(direct)} 個查詢對象 + "
+                 f"{len(sources)} 個 base / nested 來源（--no-inherit 可關閉）")
+    return direct + sorted(sources), layers, notes
+
+
+def _no_match(notes, expanded: bool) -> None:
+    """0 筆是最危險的輸出 —— 一定要講清楚「掃的範圍到哪」，不能讓 0 看起來像定論。"""
+    print("(no match)")
+    for n in notes:
+        print(n)
+    if not expanded:
+        print(INHERIT_WARN)
+    print(INHERIT_TIP)
+
+
 def cmd_find(args, root, cfg):
     con = indexer.connect(root)
+    paths, layers, notes = _inherit_expand(con, args)
     where = dict(comp=_like(args.comp), name=_like(args.name), path=_like(args.path),
-                 scope=args.scope)
+                 scope=args.scope, paths=paths)
 
     def scope_note() -> str:
         if args.scope != "full":
@@ -110,13 +168,17 @@ def cmd_find(args, root, cfg):
         return (f"；另有 {hidden} 筆 shallow 命中（用 --scope all 顯示）"
                 if hidden > 0 else "")
 
+    for n in notes:
+        print(n)
+
     if args.by_asset:
         groups = query.find_by_asset(con, limit=args.limit, **where)
         if not groups:
-            print("(no match)" + scope_note())
+            _no_match([], bool(paths))
             return
         for apath, count in groups:
-            print(f"{count:5d}  {apath}")
+            tag = layers.get(apath, "")
+            print(f"{count:5d}  {apath}" + (f"  {tag}" if tag else ""))
         total, assets = query.find_totals(con, **where)
         shown = sum(c for _, c in groups)
         more = f"（列出最多的 {len(groups)} 個 = {shown} 筆）" if assets > len(groups) else ""
@@ -125,7 +187,7 @@ def cmd_find(args, root, cfg):
 
     rows = query.find(con, limit=args.limit, **where)
     if not rows:
-        print("(no match)" + scope_note())
+        _no_match([], bool(paths))
         return
 
     resolved = _resolve_anchors(rows) if args.resolve else {}
@@ -133,7 +195,8 @@ def cmd_find(args, root, cfg):
     for apath, fid, npath, active, comps in rows:
         flag = "" if active else "~"
         anchor = query.anchor(apath, fid)
-        print(anchor)
+        tag = layers.get(apath, "")
+        print(anchor + (f"   {tag}" if tag else ""))
         print(f"    {flag}{npath}  <{comps or ''}>")
         if args.resolve:
             status, payload, how = resolved.get(
@@ -419,8 +482,14 @@ def cmd_prefab(args, root, cfg):
     elif args.action == "locate":
         if not args.comp and not args.name:
             raise SystemExit("locate 至少要 --comp <component> 或 --name <節點名稱>")
-        print(unity.call(f"{PROBE}.LocateAsset", args.asset, args.comp,
-                         args.name, args.members, args.limit))
+        out = unity.call(f"{PROBE}.LocateAsset", args.asset, args.comp,
+                         args.name, args.members, args.limit)
+        print(out)
+        # locate 走 LoadPrefabContents，看到的是合併後的真值 —— 明講這件事，
+        # 免得 total=0 被拿去跟離線 find 的 (no match) 混為一談
+        if "# total=0" in (out or ""):
+            print("# total=0 是合併後的結果（已含 variant 繼承與 nested prefab 節點），"
+                  "在這個 prefab 內可視為定論")
     elif args.action == "do":
         print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet))
 
@@ -754,6 +823,11 @@ def main() -> None:
     pf.add_argument("--scope", choices=["full", "all", "shallow"], default="full",
                     help="索引 tier；預設 full（--scope all 才包含供 override 解析的 shallow）")
     pf.add_argument("-n", "--limit", type=int, default=50)
+    pf.add_argument("--no-inherit", action="store_true",
+                    help="--path 指到 variant 時，不要把 base / nested prefab 來源"
+                         "一起納入（預設會納入，並標示每筆命中來自哪一層）")
+    pf.add_argument("--inherit-max", type=int, default=30,
+                    help="--path 命中超過幾個資產就不展開繼承鏈（預設 30）")
     pf.add_argument("--by-asset", action="store_true",
                     help="只回「哪個資產各幾筆」的分佈，不逐節點列出")
     pf.add_argument(
