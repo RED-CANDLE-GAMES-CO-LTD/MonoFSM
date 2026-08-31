@@ -3,6 +3,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.EditorExtension;
 using MonoFSM.Foundation;
 using MonoFSM.Runtime.Interact.EffectHit;
+using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -41,7 +42,8 @@ namespace MonoFSM.Core.Detection
     // public interface IDetectionSource //AbstractComponent
     public abstract class AbstractDetectionSource
         : AbstractDescriptionBehaviour,
-            IHierarchyValueInfo
+            IHierarchyValueInfo,
+            ISceneAwake
     {
         protected override string DescriptionTag => "DetectionSource";
 
@@ -63,6 +65,32 @@ namespace MonoFSM.Core.Detection
 
         // [PreviewInDebugMode]
         // protected readonly HashSet<Collider> _lastFrameColliders = new(); //ondisable也要清掉？
+
+        // --- 忽略命中 ---
+
+        [Title("忽略命中")]
+        [SerializeField]
+        private IgnoreColliderFilter _ignoreFilter = new();
+
+        public IgnoreColliderFilter IgnoreFilter => _ignoreFilter;
+
+        /// <summary>命中這個 collider 要不要跳過。子類在收集 collider 時呼叫。</summary>
+        public bool IsIgnored(Collider col)
+        {
+            return _ignoreFilter.IsIgnored(col);
+        }
+
+        public virtual void EnterSceneAwake()
+        {
+            _ignoreFilter.Init(this);
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            _ignoreFilter.EditorRefreshPreview(this);
+        }
+#endif
 
         private void OnDisable()
         {

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Detection
 {
-    public class TriggerDetectorSource : AbstractDetectionSource, ISceneAwake
+    public class TriggerDetectorSource : AbstractDetectionSource
     {
         // protected override void Awake()
         // {
@@ -52,6 +52,8 @@ namespace MonoFSM.Core.Detection
 
         private void OnTriggerStay(Collider other)
         {
+            if (IsIgnored(other))
+                return;
             // 收集當前幀中仍在trigger內的collider
             _thisFrameColliders.Add(other);
         }
@@ -98,8 +100,9 @@ namespace MonoFSM.Core.Detection
         }
 
         //FIXME: Gizmo?
-        public void EnterSceneAwake()
+        public override void EnterSceneAwake()
         {
+            base.EnterSceneAwake();
             if (_collider != null)
                 _collider.isTrigger = true;
         }

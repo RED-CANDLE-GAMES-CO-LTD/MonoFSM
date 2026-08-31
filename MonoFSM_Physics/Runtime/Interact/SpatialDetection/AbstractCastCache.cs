@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MonoDebugSetting;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Detection;
 using MonoFSM.Core.Runtime.Interact.SpatialDetection;
 using MonoFSM_Physics.Runtime.Interact.SpatialDetection;
 using MonoFSM.Core.Simulate;
@@ -120,34 +121,15 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public bool _manualUpdateMode;
 
         [Title("忽略命中")]
-        [Tooltip("忽略這些 Entity 底下所有 collider 的命中。SphereCast 從玩家身上發射會掃到自己，" +
-                 "layer 表達不了「誰發射的」，只能在這裡明確指定")]
         [SerializeField]
-        private List<MonoEntity> _ignoreEntities = new();
+        private IgnoreColliderFilter _ignoreFilter = new();
 
-        [Tooltip("把自己所屬的 MonoEntity 也一起忽略")]
-        [SerializeField]
-        private bool _ignoreSelfEntity;
-
-        [ShowIf(nameof(_ignoreSelfEntity))]
-        [AutoParent(false)]
-        [CompRef]
-        [SerializeField]
-        private MonoEntity _ownerEntity;
-
-        //把要忽略的 collider 攤平成 set，每幀只做 O(1) 查表，不用每個 hit 爬 transform
-        private readonly HashSet<Collider> _ignoredColliders = new();
-
-        //GetComponentsInChildren(list) 的收集用 buffer，重複使用避免 GC
-        private readonly List<Collider> _colliderQueryBuffer = new();
+        public IgnoreColliderFilter IgnoreFilter => _ignoreFilter;
 
 #if UNITY_EDITOR
         [ShowInDebugMode]
         [ReadOnly]
         private int _debugIgnoredHitCount;
-
-        [ShowInDebugMode]
-        private int IgnoredColliderCount => _ignoredColliders.Count;
 #endif
 
         protected readonly RaycastHit[] _castResultsBuffer = new RaycastHit[20];
@@ -162,8 +144,15 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
             _cachedHits.SimValue = new List<RaycastHit>();
             _cachedHits.RenderValue = new List<RaycastHit>();
 
-            RebuildIgnoredColliders();
+            _ignoreFilter.Init(this);
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            _ignoreFilter.EditorRefreshPreview(this);
+        }
+#endif
 
         public void BeforeSimulate(float deltaTime)
         {
@@ -272,56 +261,6 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         // --- Ignore Filter ---
 
         /// <summary>
-        ///     重建忽略用的 collider set。Entity 底下的 collider 有增減時要呼叫（生成部件、換裝備等）。
-        /// </summary>
-        public void RebuildIgnoredColliders()
-        {
-            _ignoredColliders.Clear();
-            if (_ignoreSelfEntity)
-            {
-                if (_ownerEntity == null)
-                    Debug.LogWarning(
-                        "_ignoreSelfEntity 有開但找不到 parent MonoEntity，忽略自己不會生效", this);
-                else
-                    CollectCollidersOf(_ownerEntity);
-            }
-
-            for (var i = 0; i < _ignoreEntities.Count; i++)
-                CollectCollidersOf(_ignoreEntities[i]);
-        }
-
-        /// <summary>
-        ///     執行期加入要忽略的 Entity（例如抓在手上的物件）。
-        /// </summary>
-        public void AddIgnoreEntity(MonoEntity entity)
-        {
-            if (entity == null || _ignoreEntities.Contains(entity))
-                return;
-            _ignoreEntities.Add(entity);
-            CollectCollidersOf(entity);
-        }
-
-        /// <summary>
-        ///     執行期移除要忽略的 Entity（例如放手）。collider 可能與其他忽略對象重疊，所以整份重建。
-        /// </summary>
-        public void RemoveIgnoreEntity(MonoEntity entity)
-        {
-            if (entity == null || !_ignoreEntities.Remove(entity))
-                return;
-            RebuildIgnoredColliders();
-        }
-
-        private void CollectCollidersOf(MonoEntity entity)
-        {
-            if (entity == null)
-                return;
-            _colliderQueryBuffer.Clear();
-            entity.GetComponentsInChildren(true, _colliderQueryBuffer);
-            for (var i = 0; i < _colliderQueryBuffer.Count; i++)
-                _ignoredColliders.Add(_colliderQueryBuffer[i]);
-        }
-
-        /// <summary>
         ///     把被忽略的 hit 從 buffer 中原地移除（保持順序），回傳剩下的數量。零 GC。
         /// </summary>
         private int FilterIgnoredHits(RaycastHit[] array, int count)
@@ -329,13 +268,13 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 #if UNITY_EDITOR
             _debugIgnoredHitCount = 0;
 #endif
-            if (_ignoredColliders.Count == 0 || count <= 0)
+            if (count <= 0 || !_ignoreFilter.HasIgnoreTarget)
                 return count;
 
             var write = 0;
             for (var i = 0; i < count; i++)
             {
-                if (_ignoredColliders.Contains(array[i].collider))
+                if (_ignoreFilter.IsIgnored(array[i].collider))
                 {
 #if UNITY_EDITOR
                     _debugIgnoredHitCount++;

@@ -194,7 +194,11 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
 
             // 收集這一frame的colliders
             for (var i = 0; i < _hitCount; i++)
+            {
+                if (IsIgnored(_overlapResults[i]))
+                    continue;
                 _thisFrameColliders.Add(_overlapResults[i]);
+            }
 
             // 檢查進入事件：上個frame不在，這個frame在
             // foreach (var col in _thisFrameColliders)
