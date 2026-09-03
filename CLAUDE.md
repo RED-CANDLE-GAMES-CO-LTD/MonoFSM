@@ -1,5 +1,3 @@
-* 當我提出需求時，先回應我清楚度 1-10分，當問題不清楚時(<7)，請要求我提供更多資訊
-* 當 cs 檔案過長時，應進行 refactor 或是需要拆模組到其他檔案
 * 此專案使用 Odin Inspector, 編輯器工具盡量使用已有的 Attribute (已搭配AttributeDrawer)
     * ex: 1_MonoFSM_Core/Runtime/Attributes/CompRefAttribute.cs
 * SerializedField 和 public field 以 _開頭命名

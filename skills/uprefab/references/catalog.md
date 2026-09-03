@@ -1,8 +1,12 @@
 # catalog —— Action / Condition 目錄
 
 組 FSM 的成本大半不在改 prefab，而在「有哪些 component 可以用、每個欄位要填什麼」。
-`up catalog` 把這份資訊從 .cs 離線抽出來（掃全庫約 2 秒，跟著 `up index` 一起建），
-一次列完用途與 serialized 欄位，取代逐檔 Read 原始碼。
+`up catalog` 把這份資訊從 .cs 離線抽出來，一次列完用途與 serialized 欄位，取代逐檔 Read 原始碼。
+
+**目錄不會過期，不用手動重建**：`up catalog` / `up fields` 每次執行都先比對全庫 .cs 的
+mtime/size，只重 parse 有變動的那幾支（沒變動約 0.2 秒，有變動時會印
+`# catalog 已自動更新（N 支 .cs 有變動）`）。kind / [Obsolete] 的繼承鏈仍每次整批重解，
+所以改一支 base class 底下的子類也會跟著更新。
 
 ```bash
 up catalog                        # 全部 Action（預設）
@@ -65,7 +69,7 @@ class 上一定要有 `/// <summary>`，並且：
 **遇到 `⚠無說明` 而你為了工作實際讀了那份 .cs：讀完順手補一段 summary 再走。**
 目錄沒有別的補齊來源，補一次省掉之後每一次的重讀。反過來說，沒讀過的不要憑欄位名亂猜補。
 
-補完跑 `up index` 讓目錄跟上（catalog 每次都全庫重建，不需要特別指定）。
+補完不用做別的，下次 `up catalog` 會自己抓到。
 
 ## 實作
 

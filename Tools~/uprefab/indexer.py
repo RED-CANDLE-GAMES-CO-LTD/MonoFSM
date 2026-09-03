@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sqlite3
@@ -86,9 +87,15 @@ CREATE TABLE IF NOT EXISTS pending_parent (
 CREATE TABLE IF NOT EXISTS catalog (
   class TEXT PRIMARY KEY, path TEXT, kind TEXT, bases TEXT,
   is_abstract INTEGER, is_obsolete INTEGER, summary TEXT, has_doc INTEGER,
-  fields TEXT
+  fields TEXT, self_obsolete INTEGER
 );
 CREATE INDEX IF NOT EXISTS ix_catalog_kind ON catalog(kind);
+
+-- catalog 的增量依據：每支 .cs 的 mtime/size，加上該檔所有 class 宣告的 base 清單
+-- （kind 要沿全庫繼承鏈解，中繼 class 的 base 不能只留在被改動的那幾支檔案裡）
+CREATE TABLE IF NOT EXISTS cs_files (
+  path TEXT PRIMARY KEY, mtime REAL, size INTEGER, bases TEXT
+);
 
 -- (guid, fileID) → 人類可讀標籤的解析結果快取，全庫索引完才算得出來
 CREATE TABLE IF NOT EXISTS target_labels (
@@ -375,18 +382,113 @@ def _build_script_table(con: sqlite3.Connection, root: str, progress) -> None:
         progress(f"scripts: {len(rows)}")
 
 
-def _build_catalog_table(con: sqlite3.Connection, root: str, progress) -> None:
-    """重建 C# 型別目錄。全庫掃一次約 2 秒，不做增量（繼承鏈要整批才解得出 kind）。"""
+def _build_catalog_table(con: sqlite3.Connection, root: str, progress=None,
+                         incremental: bool = True) -> int:
+    """重建 C# 型別目錄，回傳實際重新 parse 的檔案數。
+
+    走 mtime/size 增量：全庫 walk 只要 0.2 秒，重 parse 才是那 4 秒的來源，
+    所以沒改檔時刷新幾乎免費 —— 這是 `up catalog` 每次呼叫都能自動對齊原始碼的前提。
+    kind / obsolete 的繼承鏈仍每次整批重解（靠 cs_files 存下的 base 表），
+    改一支 base class 才不會漏更新底下的子類。
+    """
     if progress:
         progress("scan .cs catalog …")
-    rows = catalog_mod.build_rows(root)
-    # 這張表每次全建，欄位加減時直接重來，省掉 migration
+
+    known = {p: (m, s, b) for p, m, s, b in
+             con.execute("SELECT path, mtime, size, bases FROM cs_files")}
+    has_rows = con.execute("SELECT COUNT(*) FROM catalog").fetchone()[0] > 0
+    if not incremental or not known or not has_rows:
+        per_file: dict[str, dict] = {}
+        rows = catalog_mod.build_rows(root, per_file)
+        con.execute("DELETE FROM cs_files")
+        files = _cs_file_stats(root)
+        con.executemany(
+            "INSERT OR REPLACE INTO cs_files VALUES (?,?,?,?)",
+            [(rel, mt, sz, json.dumps(per_file.get(rel, {}), ensure_ascii=False))
+             for rel, (mt, sz) in files.items()],
+        )
+        _write_catalog(con, rows)
+        if progress:
+            progress(f"catalog: {len(rows)}（全建）")
+        return len(files)
+
+    files = _cs_file_stats(root)
+    changed = [rel for rel, (mt, sz) in files.items()
+               if rel not in known or known[rel][:2] != (mt, sz)]
+    removed = set(known) - set(files)
+    if not changed and not removed:
+        return 0
+
+    # 未變動的檔案沿用 catalog / cs_files 裡的既有結果
+    all_bases: dict[str, list[str]] = {}
+    stale_paths = set(changed) | removed
+    for rel, (_, _, raw) in known.items():
+        if rel in stale_paths:
+            continue
+        for name, bs in json.loads(raw or "{}").items():
+            if bs or name not in all_bases:
+                all_bases[name] = bs
+
+    rows: dict[str, dict] = {}
+    for r in con.execute(
+            "SELECT class, path, bases, is_abstract, summary, has_doc, fields, self_obsolete "
+            "FROM catalog"):
+        if r[1] in stale_paths:
+            continue
+        rows[r[0]] = {
+            "class": r[0], "path": r[1], "bases": (r[2] or "").split(",") if r[2] else [],
+            "abstract": bool(r[3]), "summary": r[4], "has_doc": bool(r[5]),
+            "fields": json.loads(r[6] or "[]"), "self_obsolete": bool(r[7]),
+        }
+
+    for rel in changed:
+        info, bases = catalog_mod.parse_one(root, rel)
+        for name, bs in bases.items():
+            if bs or name not in all_bases:
+                all_bases[name] = bs
+        mt, sz = files[rel]
+        con.execute("INSERT OR REPLACE INTO cs_files VALUES (?,?,?,?)",
+                    (rel, mt, sz, json.dumps(bases, ensure_ascii=False)))
+        if info:
+            info["path"] = rel
+            info["self_obsolete"] = info["obsolete"]
+            rows[info["class"]] = info
+    for rel in removed:
+        con.execute("DELETE FROM cs_files WHERE path=?", (rel,))
+
+    _write_catalog(con, catalog_mod.rows_to_tuples(rows, all_bases))
+    if progress:
+        progress(f"catalog: {len(rows)}（增量 {len(changed)} 改 / {len(removed)} 刪）")
+    return len(changed) + len(removed)
+
+
+def _write_catalog(con: sqlite3.Connection, rows: list[tuple]) -> None:
+    # 這張表每次整批重寫，欄位加減時直接重來，省掉 migration
     con.execute("DROP TABLE IF EXISTS catalog")
     con.executescript(SCHEMA)
-    con.executemany("INSERT OR REPLACE INTO catalog VALUES (?,?,?,?,?,?,?,?,?)", rows)
+    con.executemany(
+        "INSERT OR REPLACE INTO catalog VALUES (?,?,?,?,?,?,?,?,?,?)", rows)
     con.commit()
-    if progress:
-        progress(f"catalog: {len(rows)}")
+
+
+def _cs_file_stats(root: str) -> dict[str, tuple[float, int]]:
+    out = {}
+    for rel in catalog_mod.iter_cs_paths(root):
+        try:
+            st = os.stat(os.path.join(root, rel))
+        except OSError:
+            continue
+        out[rel] = (st.st_mtime, st.st_size)
+    return out
+
+
+def refresh_catalog(con: sqlite3.Connection, root: str, progress=None) -> int:
+    """查詢前對齊原始碼。沒有 .cs 變動時只花一次 os.walk（約 0.2 秒）。
+
+    離線索引最容易踩的坑就是「改了 .cs 但沒重跑 up index」，
+    於是 `up catalog` 一直回舊的 summary / 欄位。與其靠人記得重建，不如查詢時自動補。
+    """
+    return _build_catalog_table(con, root, progress, incremental=True)
 
 
 def _purge(con: sqlite3.Connection, path: str) -> None:

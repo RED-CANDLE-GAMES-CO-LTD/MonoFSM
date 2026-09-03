@@ -4,6 +4,19 @@ using UnityEngine;
 
 namespace MonoFSM.Variable.Condition
 {
+    /// <summary>
+    /// 拿 VarFloat 跟它自己的上下界比：已達 Max / 已達 Min，或百分比比較。
+    /// 血量滿了、彈藥空了、電量低於 20% 這類「相對於上限」的判斷用這顆，
+    /// 不要用 VarFloatCompareConstCondition（那個比的是絕對值，Max 一改就失準）。
+    ///
+    /// _boundType = Percentage 時比的是 VarFloat.Percentage = (CurrentValue - Min)/(Max - Min)，
+    /// 搭 _op 與 _targetPercentage（[Range(0,1)]，所以 20% 填 0.2）。
+    /// Min/Max 會沿 varRef 轉發給真正的來源 var，所以指向純 proxy 的 Var 也算得對；
+    /// 但來源沒設 bound 時 Max 會 fallback 成 float.MaxValue，percentage 恆近 0。
+    ///
+    /// _varFloat.isActiveAndEnabled == false 時一律回 false（刻意對齊 VarBoolCompareCondition）。
+    /// Odin preset 只有 Float Max / Float Min，Percentage 要手動選 _boundType。
+    /// </summary>
     public class VarFloatIsBoundCondition : AbstractConditionBehaviour
     {
         [ConditionPreset("Float Max", Category = "Float", Priority = 100, ColorHex = "#FFB347")]

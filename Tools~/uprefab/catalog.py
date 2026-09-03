@@ -80,7 +80,7 @@ ATTR_LINE_RE = re.compile(r"^\s*\[")
 
 
 def _skip_attrs_up(lines: list[str], idx: int) -> int:
-    """從 class 宣告往上跳過 attribute 行與空行，回傳註解區的結束行 +1。
+    r"""從 class 宣告往上跳過 attribute 行與空行，回傳註解區的結束行 +1。
 
     宣告的 regex 會把上方的 `[Attr]` 行一起吃進 match（`\s*` 跨行），所以
     idx 不一定是 `public class` 那行；而 attribute 行夾在中間也會把
@@ -253,24 +253,35 @@ def parse_file(path: str, text: str) -> dict | None:
     }
 
 
+def iter_cs_paths(root: str):
+    """全庫 .cs 的相對路徑（跳過 Library / Temp / `~` 結尾等目錄）。"""
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and not d.endswith("~")]
+        for fn in filenames:
+            if fn.endswith(".cs") and not fn.endswith(".g.cs"):
+                yield os.path.relpath(os.path.join(dirpath, fn), root)
+
+
+def parse_one(root: str, rel: str):
+    """讀單一 .cs：回傳 (info | None, 該檔所有 class 的 base 表)。"""
+    try:
+        text = open(os.path.join(root, rel), encoding="utf-8", errors="replace").read()
+    except OSError:
+        return None, {}
+    if "class " not in text:
+        return None, {}
+    return parse_file(rel, text), parse_bases_of_all(text)
+
+
 def scan(root: str, paths: list[str] | None = None):
     """掃 .cs 產出 catalog 列。paths 為 None 時掃全庫。"""
     if paths is None:
-        paths = []
-        for dirpath, dirnames, filenames in os.walk(root):
-            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and not d.endswith("~")]
-            for fn in filenames:
-                if fn.endswith(".cs") and not fn.endswith(".g.cs"):
-                    paths.append(os.path.relpath(os.path.join(dirpath, fn), root))
+        paths = list(iter_cs_paths(root))
     for rel in paths:
-        try:
-            text = open(os.path.join(root, rel), encoding="utf-8", errors="replace").read()
-        except OSError:
+        info, bases = parse_one(root, rel)
+        if not bases and info is None:
             continue
-        if "class " not in text:
-            continue
-        info = parse_file(rel, text)
-        yield info, rel, parse_bases_of_all(text)
+        yield info, rel, bases
 
 
 def resolve_kinds(rows: dict[str, dict], all_bases: dict[str, list[str]]) -> None:
@@ -324,18 +335,15 @@ def resolve_obsolete(rows: dict[str, dict], all_bases: dict[str, list[str]]) -> 
         row["obsolete"] = is_obs(cls)
 
 
-def build_rows(root: str) -> list[tuple]:
-    """回傳可直接寫進 catalog 表的 tuple 列。"""
-    rows: dict[str, dict] = {}
-    all_bases: dict[str, list[str]] = {}
-    for info, rel, bases in scan(root):
-        for name, bs in bases.items():
-            if bs or name not in all_bases:
-                all_bases[name] = bs
-        if not info:
-            continue
-        info["path"] = rel
-        rows[info["class"]] = info
+def rows_to_tuples(rows: dict[str, dict], all_bases: dict[str, list[str]]) -> list[tuple]:
+    """解 kind / obsolete 繼承鏈後，轉成可直接寫進 catalog 表的 tuple 列。
+
+    `self_obsolete` 另外存一欄：resolve_obsolete 會把 base 的 [Obsolete] 遞移給子類，
+    若增量重建時拿「遞移後的值」當種子，base 拿掉標記後子類會永遠清不掉。
+    """
+    for r in rows.values():
+        r["self_obsolete"] = r.get("self_obsolete", r.get("obsolete", False))
+        r["obsolete"] = r["self_obsolete"]
     resolve_kinds(rows, all_bases)
     resolve_obsolete(rows, all_bases)
     out = []
@@ -350,5 +358,27 @@ def build_rows(root: str) -> list[tuple]:
             r["summary"],
             1 if r["has_doc"] else 0,
             json.dumps(r["fields"], ensure_ascii=False),
+            1 if r["self_obsolete"] else 0,
         ))
     return out
+
+
+def build_rows(root: str, per_file_bases: dict | None = None) -> list[tuple]:
+    """全庫掃描版（`up index --rebuild` 用）。
+
+    傳入 per_file_bases 時順便把「每支檔案宣告了哪些 class、各自的 base」帶出來，
+    給增量索引存進 cs_files —— 否則要再掃一次全庫才拿得到，等於付兩次 parse 錢。
+    """
+    rows: dict[str, dict] = {}
+    all_bases: dict[str, list[str]] = {}
+    for info, rel, bases in scan(root):
+        if per_file_bases is not None:
+            per_file_bases[rel] = bases
+        for name, bs in bases.items():
+            if bs or name not in all_bases:
+                all_bases[name] = bs
+        if not info:
+            continue
+        info["path"] = rel
+        rows[info["class"]] = info
+    return rows_to_tuples(rows, all_bases)

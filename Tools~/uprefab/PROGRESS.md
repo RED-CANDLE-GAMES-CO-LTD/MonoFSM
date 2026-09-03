@@ -635,3 +635,23 @@ YAML 的 `guid:`，用既有的 `query.asset_by_guid` 翻成路徑、只留 .pre
 
 舊章節的「拆 cache」指人工 marker `.md` 機制；後來加回的 CLI cache 已依上面改成 opt-in，
 不再與「預設讀當下真值」衝突。
+
+## catalog 自動增量刷新（2026-09-02）
+
+**問題**：catalog 只在 `up index` 時整批重建，改了 .cs 卻沒重跑索引時，
+`up catalog` 會回舊的 summary（實際案例：`VarFloatIsBoundCondition` 已有完整
+`/// <summary>` 卻仍顯示 `⚠ 沒有 summary`）。靠人記得重建不可靠。
+
+**做法**：查詢時自動對齊。`cmd_catalog` / `cmd_fields` 進來先跑
+`indexer.refresh_catalog()`，走 mtime/size 增量：
+- 全庫 .cs walk 只要 0.16 秒，那 4.5 秒的成本全在 parse —— 所以沒改檔時刷新幾乎免費
+- 新增 `cs_files(path, mtime, size, bases)` 表。存 bases 是因為 kind / obsolete
+  要沿**全庫**繼承鏈遞移，中繼 class 的 base 不能只留在被改動的那幾支檔案裡；
+  未變動檔案的 base 表從這裡取回，不用重讀原始碼
+- catalog 表加 `self_obsolete` 欄。resolve_obsolete 會把 base 的 [Obsolete] 遞移給子類，
+  增量時若拿「遞移後的值」當種子，base 拿掉標記後子類會永遠清不掉
+
+**實測**：無變動 0.18s、改 1 支 0.24s、初次全建 4.0s；增量結果與全建 4462 列逐欄比對 0 差異。
+
+**刻意不做**：沒有把增量下放到「只重算受影響的子樹」——繼承鏈重解整批也才幾十毫秒，
+不值得為此維護反向依賴圖。

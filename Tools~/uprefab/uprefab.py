@@ -652,9 +652,25 @@ def _print_catalog_row(row, verbose=False, show_path=False):
         print(line)
 
 
+def _refresh_catalog(con, root):
+    """查詢前把 catalog 對齊硬碟上的 .cs。
+
+    離線索引最常見的錯誤回報是「改了 .cs 卻還顯示舊 summary」——
+    沒改檔時這裡只花一次 os.walk，改了幾支就只重 parse 那幾支，
+    比要求使用者記得 `up index` 可靠得多。壞掉不該擋住查詢，所以吞例外。
+    """
+    try:
+        n = indexer.refresh_catalog(con, root)
+        if n:
+            print(f"# catalog 已自動更新（{n} 支 .cs 有變動）")
+    except Exception as e:
+        print(f"# catalog 自動更新失敗，資料可能過期：{e}")
+
+
 def cmd_catalog(args, root, cfg):
     """列 Action / Condition 等型別的用途與欄位，免得為了挑 component 去讀 .cs。"""
     con = indexer.connect(root)
+    _refresh_catalog(con, root)
     if con.execute("SELECT COUNT(*) FROM catalog").fetchone()[0] == 0:
         raise SystemExit("# catalog 是空的 —— 先跑 `up index`")
 
@@ -705,7 +721,9 @@ def cmd_fields(args, root, cfg):
     欄位清單由 Unity 段負責，這裡只補它沒有的語意，不重印一遍。
     """
     try:
-        row = query.catalog_one(indexer.connect(root), args.type)
+        con = indexer.connect(root)
+        _refresh_catalog(con, root)
+        row = query.catalog_one(con, args.type)
     except Exception:
         row = None
     if row:
