@@ -17,11 +17,14 @@ up scene ls --node "資源生成器 FSM/[StateFolder] StateFolder" --depth 2 --b
 |---|---|---|---|---|
 | `--node` | 整棵 / scene 的 root 一層 | 子樹路徑。**scene 的第一段是 root object 名稱** | ✅ | ✅ |
 | `--depth` | -1 | 最多往下幾層；**仍受 budget hard cap** | ✅ | ✅ |
-| `--fold` | 關 | 摺疊已知子樹並排除視覺 component（Renderer / ParticleSystem / IK / HighlightEffect …） | ✅ | ✅ |
+| `--full` | 關 | 不摺疊已知子樹、保留視覺 component（Renderer / ParticleSystem / IK / HighlightEffect …）與完整欄位。**預設就是省 token 的摺疊模式**，只在摘要不夠時才加 | ✅ | ✅ |
 | `--budget` | 20000 | hierarchy + FSM 的總字元 hard cap；`0` = 明確允許不限 | ✅ | ✅ |
 | `--fsm` | 關 | 附 `FsmTextExporter` 的 states / transitions / conditions markdown | ✅ | ❌ |
 | `--fsm-only` | 關 | 只輸出 FSM；仍受 budget | ✅ | ❌ |
 | `--structure-only` | 關 | 只列結構與 component 名，不列 serialized 欄位 | ✅ | ✅ |
+
+**你用 `--node` 點名的那個節點永不摺疊，只摺它的後代。**
+如果摺疊摘要行（`:: …` / `(+N nodes)`）出現在你點名的節點自己身上 = 工具壞了，回報。
 
 `scene ls` 現在與 prefab / obj 共用 hard budget。下鑽大子樹仍建議先看 root 的 `(+N nodes)`，
 再用 `--node` + `--depth`；若真的要完整輸出才明確給 `--budget 0`。scene 上的 FSM markdown
@@ -77,7 +80,7 @@ up obj - < link.txt               # 從 stdin 讀
 ```
 
 markdown 連結、裸 URL、只有 `GlobalObjectId_V1-…` 本身都吃 —— 整段貼進去就好，
-它自己用 regex 撈。匯出參數（`--node` / `--depth` / `--budget` / `--fold` / `--fsm`）
+它自己用 regex 撈。匯出參數（`--node` / `--depth` / `--budget` / `--full` / `--fsm`）
 與 `prefab read` 同一套，因為背後是同一個 renderer。
 
 `--locate` 的輸出可以直接餵給其他指令：

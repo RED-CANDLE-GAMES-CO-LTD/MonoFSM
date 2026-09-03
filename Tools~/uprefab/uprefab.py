@@ -458,7 +458,7 @@ def cmd_scene(args, root, cfg):
     elif a == "save":
         print(unity.call(f"{SCENE}.Save"))
     elif a == "ls":
-        print(unity.call(f"{SCENE}.Export", args.node, args.depth, not args.fold,
+        print(unity.call(f"{SCENE}.Export", args.node, args.depth, args.full,
                          args.budget, args.structure_only))
     elif a == "count":
         print(unity.call(f"{SCENE}.Count", args.comp, args.name, args.sample))
@@ -500,10 +500,10 @@ def _prefab_read(args, root):
     只有 read 值得快取：它是唯一「純讀、輸出很肥、同一份東西會被反覆問」的 action。
     key 算不出來時（readcache 回 None）就退化成沒有快取的原本行為。
     """
-    fold = not args.fold
+    full_expand = args.full
     params = {"asset": args.asset, "node": args.node, "depth": args.depth,
               "budget": args.budget, "fsm": args.fsm, "fsm_only": args.fsm_only,
-              "structure_only": args.structure_only, "fold": fold}
+              "structure_only": args.structure_only, "full": full_expand}
     use_cache = args.cache and not args.no_cache
     key = readcache.key_for(root, args.asset, params) if use_cache else None
 
@@ -524,7 +524,7 @@ def _prefab_read(args, root):
     else:
         usage.note("cache", "miss")
     text = unity.call(f"{READER}.Export", args.asset, args.node, args.depth,
-                      fold, args.budget, args.fsm, args.fsm_only,
+                      full_expand, args.budget, args.fsm, args.fsm_only,
                       args.structure_only)
     print(text)
     if use_cache and key:
@@ -762,7 +762,7 @@ def cmd_obj(args, root, cfg):
         print(unity.call(f"{GID}.Locate", token, args.open, args.select))
         return
     print(unity.call(
-        f"{GID}.Peek", token, args.node, args.depth, not args.fold,
+        f"{GID}.Peek", token, args.node, args.depth, args.full,
         args.budget, args.fsm, args.open, args.select, args.fsm_only,
         args.structure_only))
 
@@ -883,7 +883,7 @@ def main() -> None:
                     help="ls：總輸出 hard cap；0 = 明確允許無上限")
     pc.add_argument("--structure-only", action="store_true",
                     help="ls：只列結構與 component 名，不列 serialized 欄位")
-    pc.add_argument("--fold", action="store_true", help="ls：摺疊已知子樹並排除視覺 component")
+    pc.add_argument("--full", action="store_true", help="ls：保留 Renderer/ParticleSystem/AudioSource/Light 與完整欄位、不摺疊已知子樹（預設會摺、會排除，省 token）")
     pc.add_argument("--comp", help="count：component 型別（含子類）")
     pc.add_argument("--name", help="count：名稱含這段")
     pc.add_argument("--sample", type=int, default=0, help="count：附幾筆樣本路徑")
@@ -909,7 +909,7 @@ def main() -> None:
                     help="read：只輸出 FSM markdown，不輸出 hierarchy")
     pp.add_argument("--structure-only", action="store_true",
                     help="read：只列結構與 component 名，不列 serialized 欄位")
-    pp.add_argument("--fold", action="store_true")
+    pp.add_argument("--full", action="store_true", help="read：保留 Renderer/ParticleSystem/AudioSource/Light 與完整欄位、不摺疊已知子樹（預設會摺、會排除，省 token）")
     cache_group = pp.add_mutually_exclusive_group()
     cache_group.add_argument("--cache", action="store_true",
                              help="read：明確啟用磁碟快取（預設不讀也不寫）")
@@ -1046,7 +1046,7 @@ def main() -> None:
     pob.add_argument("--fsm-only", action="store_true", help="只輸出 FSM markdown")
     pob.add_argument("--structure-only", action="store_true",
                      help="只列結構與 component 名，不列 serialized 欄位")
-    pob.add_argument("--fold", action="store_true", help="摺疊已知子樹、排除視覺 component")
+    pob.add_argument("--full", action="store_true", help="保留 Renderer/ParticleSystem/AudioSource/Light 與完整欄位、不摺疊已知子樹（預設會摺、會排除，省 token）")
     pob.add_argument("--locate", action="store_true",
                      help="只回節點路徑 + component 清單，不匯出子樹")
     pob.add_argument("--open", action="store_true",

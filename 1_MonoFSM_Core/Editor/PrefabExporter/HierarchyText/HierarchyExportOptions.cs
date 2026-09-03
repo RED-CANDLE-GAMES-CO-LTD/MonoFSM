@@ -12,7 +12,8 @@ namespace MonoFSM.Editor
         public bool _excludeDefaults = true;
         public bool _foldKnownSubtrees = true;
         public bool _foldBareTransformChains = true; // 整棵子樹只有 Transform 時折成一行（rig bones）
-        public List<string> _expandPaths = new(); // root 相對路徑；尾端 "/*" 整棵展開；"*" 全展開
+        // root 相對路徑；"" = 匯出根節點自己；尾端 "/*" 整棵展開；"*" 全展開
+        public List<string> _expandPaths = new();
         public int _expandDepthOverride = -1;
         public List<string> _includeComponents = new(); // 空=全部；短名或 FullName，含子類
         public List<string> _excludeComponents = new();
@@ -44,7 +45,14 @@ namespace MonoFSM.Editor
             if (_expandPaths == null || _expandPaths.Count == 0) return false;
             foreach (var e in _expandPaths)
             {
-                if (string.IsNullOrEmpty(e)) continue;
+                if (e == null) continue;
+                // "" 只匹配匯出根節點（TraverseNode 給 root 的 path 是空字串）
+                if (e.Length == 0)
+                {
+                    if (path.Length == 0) return true;
+                    continue;
+                }
+
                 if (e == "*") return true;
                 if (path == e) return true;
                 if (e.EndsWith("/*"))

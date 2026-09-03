@@ -264,6 +264,9 @@ namespace MonoFSM.Editor.PrefabEditing
             // includeComponents 非空時只允許匹配型別；這個 sentinel 不可能是 Component 型別，
             // 因而只保留節點、Transform、inactive/prefab flags 與 note。
             if (structureOnly) options._includeComponents.Add("__uprefab_structure_only__");
+            // 匯出的根節點就是使用者點名的那個（prefab root 或 --node），它自己永不摺疊，
+            // 不然「下鑽到某個 StateFolder」只會換回一行摘要，整趟 read 白花。只折後代。
+            options._expandPaths.Add("");
             return options;
         }
 

@@ -655,3 +655,30 @@ YAML 的 `guid:`，用既有的 `query.asset_by_guid` 翻成路徑、只留 .pre
 
 **刻意不做**：沒有把增量下放到「只重算受影響的子樹」——繼承鏈重解整批也才幾十毫秒，
 不值得為此維護反向依賴圖。
+
+## `prefab read` 翻掉 FullExpand 預設（2026-09-03）
+
+**問題**：`uprefab.py` 的 `fold = not args.fold`，而 `--fold` 是 `store_true` 且連 help 都沒寫 ——
+不帶旗標就送 `fullExpand=true`，於是拿到 `HierarchyExportOptions.FullExpand`：不摺已知子樹、
+不排除 Renderer/ParticleSystem/AudioSource/Light/Cloth、欄位無上限。918 次 read 只有 14 次帶
+`--fold`。最省的那個模式被命名成 opt-in，等於整年都在付全展開的錢。
+
+**做法**：旗標反轉成 `--full`（`prefab read` / `scene ls` / `obj` 三個入口一起），預設走
+`Options.Default` + 排除視覺 component。
+
+**先補的安全欄（順序不能顛倒）**：`PrefabTextReader.Options()` 一律
+`options._expandPaths.Add("")`，讓匯出的根節點永不摺疊、只摺後代。沒有這一步，
+「`--node` 下鑽到某個 StateFolder」會被 `SubtreeSummarizerRegistry` 折回一行摘要 ——
+使用者為了看細節才點名，卻只拿到摘要，read 整趟白花。三個入口共用 `Options()`，一處到位。
+
+**踩到的坑**：`IsForcedExpand` 原本第一行是 `if (string.IsNullOrEmpty(e)) continue;`，
+所以照字面「加空字串」是**無效操作**，靜默沒效果。要先讓 `""` 有語意（只匹配 path 為空的根節點），
+才能拿它當 forced-expand root。`e == null` 的守衛要留著。
+
+**連帶**：readcache 的 param key `fold` → `full`，舊 cache 自然失效（值語意反了，本來就該失效）。
+
+**刻意不做**：沒有為「根節點永不摺疊」加獨立的 `_forceExpandRoot` bool。`_expandPaths` 已經是
+既有機制，多一個旗標就多一條要同步的分支。
+
+**驗收**：無旗標讀 Socket FSM prefab 回摺疊摘要（`:: 3 states: …`）；
+`--node "[StateFolder] StateFolder"` 回 910 字元完整展開，沒被折回一行。
