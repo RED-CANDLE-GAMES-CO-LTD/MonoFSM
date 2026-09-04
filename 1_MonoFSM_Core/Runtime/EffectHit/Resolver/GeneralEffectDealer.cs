@@ -14,6 +14,13 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 {
     public class ProxySource { }
 
+    /// <summary>
+    ///     效果的發送端：掛在 EffectDetector 的子節點上，由 detector 把重疊到的 EffectDetectable
+    ///     配對成同 _effectType 的 GeneralEffectReceiver，再由這顆負責發 Enter/Stay/Exit。
+    ///     自己維護命中帳本（_receivers / _hittingEntities / BestMatchReceiver），
+    ///     所以外部要問「現在打到誰」不用另外記狀態，直接讀 GetHittingEntities() / BestMatchReceiver。
+    ///     _isPassive 開起來就只偵測不施加效果，效果改由 ForceTriggerEffectAction 主動發。
+    /// </summary>
     //FIXME: 篩選掉同個owner下的判斷？
 //FIXME: 還是要可以帶一個變數會比較好 (或是一組變數？可以 remapping的？) 畢竟就算要 add force 之類的還是有可能會有多種力道之類的
     public class GeneralEffectDealer : EffectResolver, IEffectDealer
@@ -55,6 +62,20 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         [Header("一次 Enable 只能打一個 Entity")] [SerializeField]
         private bool _singleEntityPerEnable;
+
+        [Header("只偵測不施加效果")]
+        [Tooltip("開起來 = detector 照常判定重疊、照常維護這顆 dealer 的命中清單與 BestMatch"
+                 + "（GetHittingEntities / BestMatchReceiver 都有值、dealer 自己的 Enter/Exit 節點也照跑），"
+                 + "但不會呼叫對面 receiver 的 OnEffectHitEnter/Stay/Exit —— 也就是對方不會真的中效果。"
+                 + "實際施加改由 ForceTriggerEffectAction 在需要的那一刻主動發（走 ForceDirectEffectHit）。"
+                 + "用在「平常只要知道範圍內有什麼、按下才發一發」的道具（ex: 遙控器）。"
+                 + "passive 時 Stay 整段跳過（連 dealer 的 stay 節點也不跑），"
+                 + "因為 receiver 端沒有 enter 時的 hitData 可以重用。")]
+        [SerializeField]
+        private bool _isPassive;
+
+        /// <summary>只偵測不施加效果（見 _isPassive 的 Tooltip）。EffectDetector 用這個決定要不要打到 receiver。</summary>
+        public bool IsPassive => _isPassive;
 
         [ShowInDebugMode] private MonoEntity _lockedEntity;
 
@@ -296,7 +317,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (_lastBestMatchReceiver != null)
             {
                 var exitData = GetHitDataFor(_lastBestMatchReceiver);
-                _lastBestMatchReceiver.OnEffectHitBestMatchExit(exitData);
+                //passive：只做自己這邊的帳與事件，不通知對面（對方不該知道自己被瞄著）
+                if (!_isPassive)
+                    _lastBestMatchReceiver.OnEffectHitBestMatchExit(exitData);
                 BestMatchExitHandle(exitData);
                 //best match 換人的話下面馬上會寫入新值，所以這裡無條件清是安全的
                 _bestEnterNode?.ClearHittingEntityIfNeeded();
@@ -307,7 +330,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (bestMatch == null)
                 return;
             var enterData = GetHitDataFor(bestMatch);
-            bestMatch.OnEffectHitBestMatchEnter(enterData);
+            if (!_isPassive)
+                bestMatch.OnEffectHitBestMatchEnter(enterData);
             BestMatchEnterHandle(enterData, bestMatch.BindEntity);
         }
 

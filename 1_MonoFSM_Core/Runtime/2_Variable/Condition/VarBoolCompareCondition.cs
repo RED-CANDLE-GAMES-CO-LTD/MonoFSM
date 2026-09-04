@@ -54,6 +54,7 @@ namespace MonoFSM.Variable.Condition
         }
 
         // [Component] [Auto] IBoolProvider _boolValue; //會再度抓到自己，...沒屁用
+        [OnValueChanged(nameof(OnVariableChanged))]
         public bool targetValue = true;
 
         //FIXME: 會有需求要比對其他東西嗎？

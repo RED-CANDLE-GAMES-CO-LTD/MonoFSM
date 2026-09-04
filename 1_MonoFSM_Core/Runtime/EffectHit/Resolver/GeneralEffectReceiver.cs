@@ -8,6 +8,13 @@ using UnityEngine;
 
 namespace MonoFSM.Runtime.Interact.EffectHit
 {
+    /// <summary>
+    ///     效果的接收端：掛在 EffectDetectable 的子樹上，宣告「我吃這種 _effectType」。
+    ///     被 dealer 打中時由底下的 EffectEnterNode / StayNode / ExitNode 分派 action，
+    ///     enter node 的 _hittingEntity 會被填成發送方的 entity（要讀「誰打我」就讀那顆）。
+    ///     ForceDirectEffectHit 是不經 detector 的一次性觸發（enter 完馬上 exit），
+    ///     給 ForceTriggerEffectAction 這種「按下才發一發」的路徑用。
+    /// </summary>
     //FIXME: 應該要怎麼轉接比較好，我會有好幾種事件類型，幫每種事件類型定義類別，再讓下面的action去做事
     public class GeneralEffectReceiver
         : EffectResolver,

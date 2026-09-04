@@ -85,7 +85,16 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
 
     [ShowInDebugMode] [NonSerialized] private TType _netValue;
 
-    [ShowInDebugMode] private bool IsNetOverridden => _isNetOverridden;
+    [ShowInDebugMode] protected bool IsNetOverridden => _isNetOverridden;
+
+    /// <summary>proxy 端收到的權威值；子類（VarStat）在自己算 CurrentValue 時優先回這個。</summary>
+    protected TType NetOverrideValue => _netValue;
+
+    /// <summary>
+    ///     CurrentValue 不是 Field 直讀、而是本地現算（VarStat = Base + modifiers）的 Var 回 true：
+    ///     網路權威值不能寫進 Field（會被本地 modifier 再疊一次），要走覆寫通道。
+    /// </summary>
+    protected virtual bool IsNetworkValueComputed => false;
 
     /// <summary>
     ///     NetworkedVarSync 的 proxy 端寫入口。有 valueSource 就走覆寫，
@@ -93,7 +102,7 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
     /// </summary>
     public void SetValueFromNetwork(TType value, Object byWho)
     {
-        if (!HasValueSource)
+        if (!HasValueSource && !IsNetworkValueComputed)
         {
             //fromNetwork：權威端寫出前已經 clamp 過了，非 SA 端再 clamp 一次只會製造分歧。
             //bound 常綁在 VarStat 的 FinalValue 上，而 StatModifier 的來源不見得都有同步

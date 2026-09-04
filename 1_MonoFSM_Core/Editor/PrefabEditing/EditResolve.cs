@@ -42,6 +42,28 @@ namespace MonoFSM.Editor.PrefabEditing
             return found;
         }
 
+        /// <summary>
+        /// 字面模式：路徑只按 `/` 切，段內一個逃逸都不做，直接跟節點名做完全比對。
+        /// 存在理由：自動命名可能把任何字元塞進節點名，逃逸規則再怎麼補都會有邊界
+        /// （現在是 `\\` / `\/` / `\n` 三種）。這個入口讓「我就是要照原字比對」有一條確定的路。
+        /// 代價：名字本身含 `/` 的節點在這個模式下指不到 —— 那種請用逃逸模式。
+        /// 同層容錯（FuzzySegment）照樣有效。
+        /// </summary>
+        internal static Transform TryNodeLiteral(Transform root, string path)
+        {
+            if (string.IsNullOrEmpty(path)) return root;
+            var cursor = root;
+            foreach (var seg in path.Split('/'))
+            {
+                if (seg.Length == 0) continue;
+                var next = FindSegment(cursor, seg) ?? FuzzySegment(cursor, seg);
+                if (next == null) return null;
+                cursor = next;
+            }
+
+            return cursor;
+        }
+
         /// <summary>找不到回 null 的版本（讀取端用，讀不到不是錯誤，只是要換個訊息）。</summary>
         internal static Transform TryNode(Transform root, string path)
         {
@@ -52,8 +74,11 @@ namespace MonoFSM.Editor.PrefabEditing
             return root.Find(path) ?? FindByIndexedPath(root, path);
         }
 
+        // 只要出現反斜線就一定要走逃逸解析（Transform.Find 只認字面比對）。
+        // 原本只認 `\/` 與 `\n`，導致「名字裡真的有兩個字元 `\` + `n`」的節點
+        // （自動命名把 `以 "\n" 相接` 寫進名字）連 `\\n` 都指不到。
         internal static bool HasEscapedSlash(string path) =>
-            path != null && (path.Contains("\\/") || path.Contains("\\n"));
+            path != null && path.Contains("\\");
 
         /// <summary>第一個「真的是階層分隔」的 `/` 位置；`\/` 不算。找不到回 -1。</summary>
         internal static int IndexOfUnescapedSlash(string path)
@@ -72,8 +97,32 @@ namespace MonoFSM.Editor.PrefabEditing
             return -1;
         }
 
-        internal static string Unescape(string segment) =>
-            segment.Replace("\\/", "/").Replace("\\n", "\n");
+        /// <summary>
+        /// 單一段的逃逸還原。`\\` 要先於 `\/` / `\n` 判斷，所以不能用連續 Replace ——
+        /// `\\n`（字面反斜線 + n）會被前一個 Replace 吃掉變成真換行。
+        /// </summary>
+        internal static string Unescape(string segment)
+        {
+            if (segment == null || segment.IndexOf('\\') < 0) return segment;
+            var sb = new System.Text.StringBuilder(segment.Length);
+            for (var i = 0; i < segment.Length; i++)
+            {
+                if (segment[i] == '\\' && i + 1 < segment.Length)
+                {
+                    var next = segment[i + 1];
+                    if (next == '/' || next == 'n' || next == '\\')
+                    {
+                        sb.Append(next == 'n' ? '\n' : next);
+                        i++;
+                        continue;
+                    }
+                }
+
+                sb.Append(segment[i]);
+            }
+
+            return sb.ToString();
+        }
 
         /// <summary>
         /// 把節點名裡的 `/` 轉成 `\/`、換行轉成 `\n`，讓列出來的候選可以直接抄進路徑。
@@ -81,7 +130,9 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 不逃逸就完全指不到那個節點。
         /// </summary>
         internal static string EscapeName(string name) =>
-            name.Replace("/", "\\/").Replace("\n", "\\n").Replace("\r", "");
+            // `\\` 一定要最先換，否則名字裡本來就有的反斜線會跟後面補上的逃逸混在一起，
+            // 抄回去解析出來就不是原本那個名字（`以 "\n" 相接` 這種自動命名就是這樣指不到）
+            name.Replace("\\", "\\\\").Replace("/", "\\/").Replace("\n", "\\n").Replace("\r", "");
 
         /// <summary>
         /// 依 `/` 切段，但 `\/` 是「名稱裡的斜線」不切（切完會還原成 `/`）。
@@ -105,6 +156,16 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (c == '\\' && i + 1 < path.Length && path[i + 1] == 'n')
                 {
                     current.Append('\n');
+                    i++;
+                    continue;
+                }
+
+                //`\\` = 名稱裡真的有一個反斜線。少了這條，名字含字面 `\n` 兩個字元的節點
+                //（`Concat 4 段 (以 "\n" 相接)`）用 `\n` 會被當換行、用 `\\n` 會變成
+                //「反斜線 + 換行」，兩種寫法都指不到。
+                if (c == '\\' && i + 1 < path.Length && path[i + 1] == '\\')
+                {
+                    current.Append('\\');
                     i++;
                     continue;
                 }
@@ -628,6 +689,14 @@ namespace MonoFSM.Editor.PrefabEditing
                 case SerializedPropertyType.Vector2:
                     prop.vector2Value = ToVector2(value, fieldPath);
                     break;
+                case SerializedPropertyType.Vector4:
+                    prop.vector4Value = ToVector4(value, fieldPath);
+                    break;
+                case SerializedPropertyType.Quaternion:
+                    // 吃 "x,y,z,w"（原始四元數）或 "x,y,z"（歐拉角，會轉成四元數）。
+                    // Transform.m_LocalRotation 走這裡；歐拉角入口是給人看的，`rot` 也是同一套。
+                    prop.quaternionValue = ToQuaternion(value, fieldPath);
+                    break;
                 case SerializedPropertyType.Color:
                     prop.colorValue = ToColor(value, fieldPath);
                     break;
@@ -682,6 +751,48 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             throw Abort($"'{fieldPath}' 是 Vector3，值請傳 \"x,y,z\" 或 Vector3");
+        }
+
+        /// <summary>
+        /// Quaternion 欄位。`"x,y,z,w"` = 直接寫四元數；`"x,y,z"` = 當歐拉角轉過去。
+        /// 為什麼要吃三分量：唯一常用的 Quaternion 欄位是 Transform.m_LocalRotation，
+        /// 而人腦想的是歐拉角。四分量入口保留給「把 read 出來的值原封不動寫回去」。
+        /// </summary>
+        private static Quaternion ToQuaternion(object value, string fieldPath)
+        {
+            if (value is Quaternion q) return q;
+            if (value is Vector3 e) return Quaternion.Euler(e);
+            if (value is string s)
+            {
+                var parts = s.Split(',');
+                var v = new float[parts.Length];
+                var allNumbers = true;
+                for (var i = 0; i < parts.Length; i++)
+                    if (!float.TryParse(parts[i].Trim(), out v[i]))
+                        allNumbers = false;
+                if (allNumbers && parts.Length == 4) return new Quaternion(v[0], v[1], v[2], v[3]);
+                if (allNumbers && parts.Length == 3) return Quaternion.Euler(v[0], v[1], v[2]);
+            }
+
+            throw Abort($"'{fieldPath}' 是 Quaternion，值請傳 \"x,y,z,w\"（四元數）" +
+                        "或 \"x,y,z\"（歐拉角）；改 Transform 旋轉建議直接用 `rot`");
+        }
+
+        private static Vector4 ToVector4(object value, string fieldPath)
+        {
+            if (value is Vector4 v4) return v4;
+            if (value is string s)
+            {
+                var parts = s.Split(',');
+                if (parts.Length == 4 &&
+                    float.TryParse(parts[0], out var x) &&
+                    float.TryParse(parts[1], out var y) &&
+                    float.TryParse(parts[2], out var z) &&
+                    float.TryParse(parts[3], out var w))
+                    return new Vector4(x, y, z, w);
+            }
+
+            throw Abort($"'{fieldPath}' 是 Vector4，值請傳 \"x,y,z,w\" 或 Vector4");
         }
 
         private static Vector2 ToVector2(object value, string fieldPath)
@@ -746,6 +857,11 @@ namespace MonoFSM.Editor.PrefabEditing
                 case SerializedPropertyType.Boolean: return prop.boolValue.ToString();
                 case SerializedPropertyType.String: return prop.stringValue;
                 case SerializedPropertyType.Vector3: return prop.vector3Value.ToString("0.##");
+                case SerializedPropertyType.Vector2: return prop.vector2Value.ToString("0.##");
+                case SerializedPropertyType.Vector4: return prop.vector4Value.ToString("0.##");
+                case SerializedPropertyType.Quaternion:
+                    // 序列化的是四元數，但人看的是歐拉角 —— 兩個都印，才對得上 `rot` 的輸入
+                    return $"{prop.quaternionValue.eulerAngles.ToString("0.##")} (euler)";
                 case SerializedPropertyType.Enum:
                     return prop.enumValueIndex >= 0 && prop.enumValueIndex < prop.enumNames.Length
                         ? prop.enumNames[prop.enumValueIndex]

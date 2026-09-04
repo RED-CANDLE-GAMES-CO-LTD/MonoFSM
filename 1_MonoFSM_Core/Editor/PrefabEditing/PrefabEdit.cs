@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using MonoFSM.Core;
 using UnityEditor;
 using UnityEngine;
@@ -271,17 +272,21 @@ namespace MonoFSM.Editor.PrefabEditing
 
             var root = PrefabUtility.LoadPrefabContents(assetPath);
             var touches = new List<VerifyTouch>();
+            var reverts = new List<PendingRevert>();
             try
             {
                 var log = EditBatch.Run(
-                    ops, (verb, a) => Dispatch(root.transform, verb, a, touches), out var done);
+                    ops, (verb, a) => Dispatch(root.transform, verb, a, touches, reverts), out var done);
                 // 有任何一行失敗就整批不存檔 —— 半套的 FSM 比沒改更難收拾
                 if (log.Contains("# 未修改")) return log + "# 整批未存檔。";
 
                 var callbackLog = RunBeforeSaveCallbacks(root);
+                // revert 一定要排在 callback 之後：OnBeforePrefabSave 會重跑 [Auto*] 之類的
+                // 填值邏輯，在 callback 之前清掉的 override 會被它原封不動寫回來。
+                var revertLog = ApplyReverts(root.transform, reverts, touches);
                 var saved = PrefabUtility.SaveAsPrefabAsset(root, assetPath, out var saveOk);
                 if (!saveOk || saved == null)
-                    return log + callbackLog + $"# 存檔失敗：{assetPath}\n";
+                    return log + callbackLog + revertLog + $"# 存檔失敗：{assetPath}\n";
 
                 // SaveAsPrefabAsset 會替新物件分配 local file ID。一定要在 save 後、unload 前
                 // 快照，才能把內部 object reference 也轉成可跨 reload 比對的穩定 identity。
@@ -292,10 +297,11 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 var report = VerifyReloaded(assetPath, touches);
                 // quiet 只壓成功輸出；驗證錯誤要把原始逐行操作一起帶回，才知道是哪一步寫的。
-                var prefix = quiet && report.Failures.Count == 0 && !callbackLog.Contains("個失敗")
+                var prefix = quiet && report.Failures.Count == 0 &&
+                             !callbackLog.Contains("個失敗") && !revertLog.Contains("失敗")
                     ? $"# 操作：{done} 個 OK\n"
                     : log;
-                return prefix + callbackLog + "# 存檔：OK\n" + report.Format();
+                return prefix + callbackLog + revertLog + "# 存檔：OK\n" + report.Format();
             }
             finally
             {
@@ -341,8 +347,114 @@ namespace MonoFSM.Editor.PrefabEditing
                    "\n";
         }
 
+        /// <summary>
+        /// revert| 排入的待辦。**刻意不在 Dispatch 當下執行** —— 存檔前 callback
+        /// （<see cref="RunBeforeSaveCallbacks"/>）會重跑 OnBeforePrefabSave / [Auto*] 填值，
+        /// 把剛清掉的 override 原封不動寫回來（EffectDetectable._effectDetectTargets 就是
+        /// 這樣長出「合併後等於繼承值」的無效 override）。所以真正的 RevertPropertyOverride
+        /// 必須排在 callback 之後、SaveAsPrefabAsset 之前。
+        /// </summary>
+        private sealed class PendingRevert
+        {
+            internal Transform Node;
+            internal string NodePath;
+            internal string ComponentType; // 空 = GameObject 本身（m_IsActive / m_Name）
+            internal string FieldPath;
+            internal string Verb;
+        }
+
+        /// <summary>
+        /// 真正清掉 override。呼叫時機見 <see cref="PendingRevert"/>。
+        /// 一筆失敗不擋其他筆也不擋存檔 —— 這裡已經過了「整批不存檔」的閘門，
+        /// 前面的結構改動要嘛全落地要嘛全不落地，不能因為 revert 失敗就半途丟掉。
+        /// </summary>
+        private static string ApplyReverts(
+            Transform root, List<PendingRevert> reverts, List<VerifyTouch> touches)
+        {
+            if (reverts.Count == 0) return "";
+
+            var sb = new StringBuilder();
+            var ok = 0;
+            var failed = 0;
+            foreach (var r in reverts)
+            {
+                var label = $"{EditResolve.Describe(r.NodePath)}." +
+                            $"{(string.IsNullOrEmpty(r.ComponentType) ? "GameObject" : r.ComponentType)}." +
+                            r.FieldPath;
+                try
+                {
+                    if (r.Node == null)
+                    {
+                        sb.AppendLine($"# revert 失敗：{label} 的節點被後續操作刪掉了");
+                        failed++;
+                        continue;
+                    }
+
+                    Component comp = null;
+                    if (!string.IsNullOrEmpty(r.ComponentType))
+                        comp = EditResolve.Comp(r.Node, r.NodePath, r.ComponentType);
+                    var target = comp == null ? (UnityEngine.Object)r.Node.gameObject : comp;
+
+                    var so = new SerializedObject(target);
+                    var prop = so.FindProperty(r.FieldPath);
+                    if (prop == null)
+                    {
+                        sb.AppendLine($"# revert 失敗：{label} 這個 propertyPath 不存在" +
+                                      "（revert 吃的是序列化路徑，陣列元素要寫 `_f.Array.data[0]`）");
+                        failed++;
+                        continue;
+                    }
+
+                    if (!prop.prefabOverride)
+                    {
+                        // 不算失敗：語意是「確保這個欄位是繼承的」，本來就繼承就已經達成
+                        sb.AppendLine($"# revert 跳過：{label} 本來就不是 override（值已繼承自 base）");
+                        ok++;
+                        continue;
+                    }
+
+                    if (prop.isDefaultOverride)
+                    {
+                        sb.AppendLine($"# revert 失敗：{label} 是 defaultOverride" +
+                                      "（Unity 強制的 instance 欄位，如 m_Name / RectTransform 的 anchor），不能 revert");
+                        failed++;
+                        continue;
+                    }
+
+                    PrefabUtility.RevertPropertyOverride(prop, InteractionMode.AutomatedAction);
+                    // RevertPropertyOverride 直接改 instance 的 m_Modifications，不經 SerializedObject，
+                    // 所以不用（也不該）Apply；但要重讀一次才知道到底清掉了沒。
+                    var after = new SerializedObject(target).FindProperty(r.FieldPath);
+                    if (after != null && after.prefabOverride)
+                    {
+                        sb.AppendLine($"# revert 失敗：{label} 呼叫完仍是 override" +
+                                      "（多半是這顆物件不是 nested prefab instance 的一部分，本身就是 asset 自己的資料）");
+                        failed++;
+                        continue;
+                    }
+
+                    ok++;
+                    touches.Add(VerifyTouch.OverrideCleared(r.Node, comp, r.FieldPath, r.Verb));
+                }
+                catch (Abort abort)
+                {
+                    sb.AppendLine($"# revert 失敗：{label} -> {abort.Message}");
+                    failed++;
+                }
+                catch (Exception e)
+                {
+                    sb.AppendLine($"# revert 失敗：{label} -> {e.GetType().Name}: {e.Message}");
+                    failed++;
+                }
+            }
+
+            return $"# revert（callback 之後執行）：{ok} 個 OK" +
+                   (failed > 0 ? $"，{failed} 個失敗" : "") + "\n" + sb;
+        }
+
         private static string Dispatch(
-            Transform root, string verb, string[] a, List<VerifyTouch> touches)
+            Transform root, string verb, string[] a, List<VerifyTouch> touches,
+            List<PendingRevert> reverts)
         {
             switch (verb)
             {
@@ -482,27 +594,120 @@ namespace MonoFSM.Editor.PrefabEditing
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}[{index}] " +
                            $"新增（現有 {prop.arraySize} 筆）";
                 }
+                case "revert":
+                {
+                    // 只排隊、不執行 —— 執行時機見 PendingRevert 的註解
+                    var nodePath = EditBatch.At(a, 0);
+                    var compName = EditBatch.At(a, 1);
+                    var fieldPath = EditBatch.Need(a, 2, verb, "fieldPath");
+                    var node = EditResolve.Node(root, nodePath);
+                    // component 名字在這裡就解析一次，路徑打錯要在「整批不存檔」還來得及時報錯
+                    var compType = string.IsNullOrEmpty(compName)
+                        ? null
+                        : EditResolve.Comp(node, nodePath, compName).GetType().Name;
+                    reverts.Add(new PendingRevert
+                    {
+                        Node = node,
+                        NodePath = nodePath,
+                        ComponentType = compType,
+                        FieldPath = fieldPath,
+                        Verb = verb
+                    });
+                    return $"{EditResolve.Describe(nodePath)}." +
+                           $"{compType ?? "GameObject"}.{fieldPath} 排入 revert" +
+                           "（存檔前 callback 跑完後才真的清掉 override）";
+                }
                 case "pos":
                 {
-                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    // 留空 = root（從場景複製出來的 prefab 常帶殘留位移，root 是最常要歸零的節點）
+                    var nodePath = EditBatch.At(a, 0);
                     var node = EditResolve.Node(root, nodePath);
                     node.localPosition = EditBatch.Vec3(a, 1, verb, "pos");
+                    RecordTransformWrite(node);
                     touches.Add(VerifyTouch.TransformValue(node, VerifyKind.LocalPosition, verb));
-                    return $"{EditResolve.Describe(nodePath)}.localPosition = {node.localPosition}";
+                    // UI 節點的權威欄位是 anchoredPosition：Canvas 重新佈局時會依 anchor/pivot
+                    // 重算 localPosition，寫進去的值下次讀回來就變了。不靜默改語意，只指路。
+                    var uiWarning = node is RectTransform
+                        ? "\n# 注意：這是 RectTransform，localPosition 會被 Canvas relayout 覆寫。" +
+                          "要改 UI 位置請用 `rect|<node>|<x,y>`（寫 anchoredPosition）"
+                        : "";
+                    return $"{EditResolve.Describe(nodePath)}.localPosition = {node.localPosition}" +
+                           uiWarning;
+                }
+                case "rect":
+                {
+                    // UI 專用：pos 寫的 localPosition 是 Canvas 佈局的**輸出**，anchoredPosition
+                    // 才是輸入。四段參數都可留空 = 不動那一項。
+                    var nodePath = EditBatch.At(a, 0);
+                    var node = EditResolve.Node(root, nodePath);
+                    if (!(node is RectTransform rect))
+                        throw new Abort(
+                            $"'{EditResolve.Describe(nodePath)}' 上是 {node.GetType().Name} 不是 " +
+                            "RectTransform，`rect` 不適用；非 UI 節點請用 pos / scale / rot");
+
+                    var changed = new List<string>();
+                    var anchored = EditBatch.At(a, 1);
+                    if (!string.IsNullOrEmpty(anchored))
+                    {
+                        rect.anchoredPosition = EditBatch.Vec2(a, 1, verb, "anchoredPosition");
+                        touches.Add(VerifyTouch.Serialized(rect, "m_AnchoredPosition", verb));
+                        changed.Add($"anchoredPosition={rect.anchoredPosition}");
+                    }
+
+                    var size = EditBatch.At(a, 2);
+                    if (!string.IsNullOrEmpty(size))
+                    {
+                        rect.sizeDelta = EditBatch.Vec2(a, 2, verb, "sizeDelta");
+                        touches.Add(VerifyTouch.Serialized(rect, "m_SizeDelta", verb));
+                        changed.Add($"sizeDelta={rect.sizeDelta}");
+                    }
+
+                    var anchorSpec = EditBatch.At(a, 3);
+                    if (!string.IsNullOrEmpty(anchorSpec))
+                    {
+                        var (min, max) = EditBatch.AnchorPreset(anchorSpec, verb);
+                        rect.anchorMin = min;
+                        rect.anchorMax = max;
+                        touches.Add(VerifyTouch.Serialized(rect, "m_AnchorMin", verb));
+                        touches.Add(VerifyTouch.Serialized(rect, "m_AnchorMax", verb));
+                        changed.Add($"anchor={min}..{max}");
+                    }
+
+                    var pivot = EditBatch.At(a, 4);
+                    if (!string.IsNullOrEmpty(pivot))
+                    {
+                        rect.pivot = EditBatch.Vec2(a, 4, verb, "pivot");
+                        touches.Add(VerifyTouch.Serialized(rect, "m_Pivot", verb));
+                        changed.Add($"pivot={rect.pivot}");
+                    }
+
+                    if (changed.Count == 0)
+                        throw new Abort(
+                            "`rect` 至少要給一項：rect|<node>|<anchoredX,Y>|<sizeW,H>|" +
+                            "<anchor preset 或 minX,minY,maxX,maxY>|<pivotX,Y>");
+                    // rect 走的也是 property setter，同樣需要 record 才會留下 override
+                    RecordTransformWrite(rect);
+                    return $"{EditResolve.Describe(nodePath)}.RectTransform " +
+                           string.Join(" ", changed);
                 }
                 case "scale":
                 {
-                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    // 留空 = root，跟 pos / rot 一致
+                    var nodePath = EditBatch.At(a, 0);
                     var node = EditResolve.Node(root, nodePath);
                     node.localScale = EditBatch.Vec3(a, 1, verb, "scale");
+                    RecordTransformWrite(node);
                     touches.Add(VerifyTouch.TransformValue(node, VerifyKind.LocalScale, verb));
                     return $"{EditResolve.Describe(nodePath)}.localScale = {node.localScale}";
                 }
                 case "rot":
                 {
-                    var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
+                    // 留空 = root。原本用 Need 逼你給路徑，導致「prefab root 帶殘留旋轉要歸零」
+                    // 這個最常見的用途完全做不到（root 的路徑就是空字串）。
+                    var nodePath = EditBatch.At(a, 0);
                     var node = EditResolve.Node(root, nodePath);
                     node.localEulerAngles = EditBatch.Vec3(a, 1, verb, "rot");
+                    RecordTransformWrite(node);
                     touches.Add(VerifyTouch.TransformValue(node, VerifyKind.LocalEulerAngles, verb));
                     return $"{EditResolve.Describe(nodePath)}.localEulerAngles = {node.localEulerAngles}";
                 }
@@ -618,7 +823,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var ctx = new EditFsm.Ctx { Node = p => EditResolve.Node(root, p) };
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel pos scale rot active idx mv auto rename del delcomp delmissing mark " +
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel revert pos rect scale rot active idx mv auto rename del delcomp delmissing mark " +
                         EditFsm.Verbs + "（save 只有 SceneEdit 有）");
                 }
             }
@@ -658,6 +863,20 @@ namespace MonoFSM.Editor.PrefabEditing
 
         // ---- 存檔後 reload 驗證 ----
 
+        /// <summary>
+        /// Transform / RectTransform 的欄位是直接改 component 的 property（不經 SerializedObject），
+        /// 這條路**不會**自動在 prefab instance 上留下 property override：實測
+        /// variant root 第一次 rot 看似落地，第二次寫不同值就靜默不生效（既有 modification
+        /// 條目不會被更新）。SerializedObject.ApplyModifiedProperties 會自己記，直接寫 property
+        /// 不會 —— 所以 pos / scale / rot / rect 一律要補這一步，跟 case active 同一個道理。
+        /// </summary>
+        private static void RecordTransformWrite(Transform node)
+        {
+            EditorUtility.SetDirty(node);
+            if (PrefabUtility.IsPartOfPrefabInstance(node))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(node);
+        }
+
         private enum VerifyKind
         {
             Serialized,
@@ -665,6 +884,7 @@ namespace MonoFSM.Editor.PrefabEditing
             LocalPosition,
             LocalScale,
             LocalEulerAngles,
+            NotOverride,
             Unsupported
         }
 
@@ -686,6 +906,13 @@ namespace MonoFSM.Editor.PrefabEditing
             private string _expected;
             private string _captureError;
 
+            /// <summary>
+            /// 存檔後重讀時順便回報的 override 狀態；null = 這顆物件不在任何 prefab instance
+            /// 底下（純 prefab 自己的資料），沒有 override 這回事，不要印噪音。
+            /// 「寫進去了沒」在 variant / nested 上有兩種成功：值對了，且 override 真的留下來了。
+            /// </summary>
+            internal string OverrideNote;
+
             private VerifyTouch(
                 VerifyKind kind, Component component, Transform node, string fieldPath,
                 string verb, string unsupportedReason)
@@ -698,20 +925,84 @@ namespace MonoFSM.Editor.PrefabEditing
                 _unsupportedReason = unsupportedReason;
             }
 
-            internal static VerifyTouch Serialized(Component component, string fieldPath, string verb) =>
-                new(VerifyKind.Serialized, component, component.transform, fieldPath, verb, null);
+            /// <summary>
+            /// 跟 TransformValue 同一個道理：expected 要在 op 寫入的當下就記下來，否則
+            /// 「寫進 in-memory 但沒成為 override」會在存檔後被 instance 同步回 base 值，
+            /// 驗證跟著一起變成 base 值而回報 OK（實測 set| 對 nested prefab instance root
+            /// 的 Transform 就是這樣假陽性的）。
+            /// 唯一的例外是 object reference：它要等 SaveAsPrefabAsset 分配 local file ID 才
+            /// 能快照成可跨 reload 比對的 identity，所以那一類仍留在 Capture() 取。
+            /// </summary>
+            internal static VerifyTouch Serialized(Component component, string fieldPath, string verb)
+            {
+                var touch = new VerifyTouch(
+                    VerifyKind.Serialized, component, component.transform, fieldPath, verb, null);
+                try
+                {
+                    var so = new SerializedObject(component);
+                    var prop = EditResolve.Prop(so, fieldPath, component);
+                    if (prop.propertyType != SerializedPropertyType.ObjectReference)
+                    {
+                        var pinned = Snapshot(prop, null);
+                        // unsupported 的型別留給 Capture() 去產生原本那句錯誤訊息
+                        if (!pinned.StartsWith("unsupported-property:")) touch._expected = pinned;
+                    }
+                }
+                catch (Exception)
+                {
+                    // pin 失敗不是錯誤，退回原本的 post-save capture
+                }
 
-            internal static VerifyTouch TransformValue(Transform node, VerifyKind kind, string verb) =>
-                new(kind, null, node, null, verb, null);
+                return touch;
+            }
+
+            /// <summary>revert| 用：期望值固定是「存檔後重讀，這個欄位不再是 override」。</summary>
+            internal static VerifyTouch OverrideCleared(
+                Transform node, Component component, string fieldPath, string verb) =>
+                new(VerifyKind.NotOverride, component, node, fieldPath, verb, null);
+
+            /// <summary>
+            /// Transform 那幾種 kind 的 expected **必須在 op 寫入的當下就記下來**，不能等
+            /// Capture()。理由：若寫入沒成為 prefab instance 的 property override，
+            /// SaveAsPrefabAsset 會讓 instance 重新同步回 base 值，存檔後才取的 expected
+            /// 就跟著變成 base 值，跟 reload 出來的一致 → 驗證必然通過，寫不進去也回報 OK。
+            /// （Serialized 走 SerializedObject/ApplyModifiedProperties，會正確產生 override；
+            /// 它的 expected 仍留在 Capture()，因為 object reference 要等 save 後分配 local
+            /// file ID 才能快照。同類假陽性風險已知、目前沒觸發。）
+            /// </summary>
+            internal static VerifyTouch TransformValue(Transform node, VerifyKind kind, string verb)
+            {
+                var touch = new VerifyTouch(kind, null, node, null, verb, null);
+                if (node != null) touch._expected = TransformSnapshot(node, kind);
+                return touch;
+            }
+
+            private static string TransformSnapshot(Transform node, VerifyKind kind) => kind switch
+            {
+                VerifyKind.ActiveSelf => node.gameObject.activeSelf ? "true" : "false",
+                VerifyKind.LocalPosition => Vector(node.localPosition),
+                VerifyKind.LocalScale => Vector(node.localScale),
+                // Transform 實際序列化的是 quaternion；Euler angle 有多種等價表示，
+                // reload 後直接比 Euler 會製造假 mismatch。
+                VerifyKind.LocalEulerAngles => Quaternion(node.localRotation),
+                _ => null
+            };
 
             internal static VerifyTouch Unsupported(Transform node, string verb, string reason) =>
                 new(VerifyKind.Unsupported, null, node, null, verb, reason);
 
             internal bool IsUnsupported => _kind == VerifyKind.Unsupported || _captureError != null;
             internal string UnsupportedReason => _captureError ?? _unsupportedReason;
-            internal string Label => _kind == VerifyKind.Serialized
-                ? $"{EditResolve.Describe(_nodePath)}.{ShortType(_componentType)}.{_fieldPath}"
-                : $"{EditResolve.Describe(_nodePath)}.{KindName(_kind)}";
+            internal string Label => _kind switch
+            {
+                VerifyKind.Serialized =>
+                    $"{EditResolve.Describe(_nodePath)}.{ShortType(_componentType)}.{_fieldPath}",
+                VerifyKind.NotOverride =>
+                    $"{EditResolve.Describe(_nodePath)}." +
+                    $"{(_componentType == null ? "GameObject" : ShortType(_componentType))}." +
+                    $"{_fieldPath} override",
+                _ => $"{EditResolve.Describe(_nodePath)}.{KindName(_kind)}"
+            };
 
             internal void Capture(Transform root)
             {
@@ -743,6 +1034,9 @@ namespace MonoFSM.Editor.PrefabEditing
                             }
 
                             _componentType = _component.GetType().FullName;
+                            // 值型別的 expected 已在 Serialized() 於 op 當下 pin 住，這裡只補
+                            // object reference（要 save 後才有穩定的 local file ID）。
+                            if (_expected != null) break;
                             var so = new SerializedObject(_component);
                             var prop = EditResolve.Prop(so, _fieldPath, _component);
                             _expected = Snapshot(prop, root);
@@ -750,19 +1044,16 @@ namespace MonoFSM.Editor.PrefabEditing
                                 _captureError = $"{_verb} 欄位型別 {prop.propertyType} 尚未支援 reload 驗證";
                             break;
                         }
+                        case VerifyKind.NotOverride:
+                            _componentType = _component == null ? null : _component.GetType().FullName;
+                            _expected = "override:false";
+                            break;
                         case VerifyKind.ActiveSelf:
-                            _expected = _node.gameObject.activeSelf ? "true" : "false";
-                            break;
                         case VerifyKind.LocalPosition:
-                            _expected = Vector(_node.localPosition);
-                            break;
                         case VerifyKind.LocalScale:
-                            _expected = Vector(_node.localScale);
-                            break;
                         case VerifyKind.LocalEulerAngles:
-                            // Transform 實際序列化的是 quaternion；Euler angle 有多種等價表示，
-                            // reload 後直接比 Euler 會製造假 mismatch。
-                            _expected = Quaternion(_node.localRotation);
+                            // expected 已在 TransformValue() 於 op 當下 pin 住，這裡刻意不重取
+                            // —— 存檔後重取會把「沒寫進去」洗成「一致」（見該 factory 的註解）。
                             break;
                     }
                 }
@@ -789,11 +1080,26 @@ namespace MonoFSM.Editor.PrefabEditing
                         {
                             var comp = EditResolve.Comp(node, _nodePath, _componentType);
                             var so = new SerializedObject(comp);
-                            actual = Snapshot(EditResolve.Prop(so, _fieldPath, comp), reloadedRoot);
+                            var prop = EditResolve.Prop(so, _fieldPath, comp);
+                            actual = Snapshot(prop, reloadedRoot);
+                            NoteOverride(comp, prop);
+                            break;
+                        }
+                        case VerifyKind.NotOverride:
+                        {
+                            UnityEngine.Object target = _componentType == null
+                                ? node.gameObject
+                                : EditResolve.Comp(node, _nodePath, _componentType);
+                            var revertedProp = new SerializedObject(target).FindProperty(_fieldPath);
+                            actual = revertedProp == null
+                                ? "missing-property"
+                                : revertedProp.prefabOverride ? "override:true" : "override:false";
                             break;
                         }
                         case VerifyKind.ActiveSelf:
                             actual = node.gameObject.activeSelf ? "true" : "false";
+                            NoteOverride(node.gameObject,
+                                new SerializedObject(node.gameObject).FindProperty("m_IsActive"));
                             break;
                         case VerifyKind.LocalPosition:
                             actual = Vector(node.localPosition);
@@ -808,14 +1114,31 @@ namespace MonoFSM.Editor.PrefabEditing
                             return null;
                     }
 
-                    return actual == _expected
-                        ? null
-                        : $"{Label}：expected {_expected}，reload got {actual}";
+                    if (actual == _expected) return null;
+                    // 已知限制：目標若是巢狀 prefab instance 的節點，外層 prefab 常常產生不出
+                    // 這一筆 property override（實測 nested instance root 的 Transform 欄位
+                    // 兩條寫入路徑 —— 直接改 property 與 SerializedObject —— 都寫不進去，
+                    // 且 Unity 不報錯）。這條提示是為了讓人不要再去懷疑是 uprefab 寫錯。
+                    return $"{Label}：expected {_expected}，reload got {actual}" +
+                           "\n#   （值寫進了 in-memory 但存檔後不見：目標若來自巢狀 prefab，" +
+                           "外層 prefab 常常產生不出這一筆 override，要改就改在該 nested prefab 本體上）";
                 }
                 catch (Exception e)
                 {
                     return $"{Label}：{e.GetType().Name}: {e.Message}";
                 }
+            }
+
+            /// <summary>把 override 狀態記成一行；不在 prefab instance 底下就不記。</summary>
+            private void NoteOverride(UnityEngine.Object target, SerializedProperty prop)
+            {
+                if (prop == null || !PrefabUtility.IsPartOfPrefabInstance(target)) return;
+                OverrideNote = PrefabOverrideMark.IsMeaningfulOverride(prop)
+                    ? $"{Label} = override*（值真的留在這顆 prefab 上）"
+                    : prop.isDefaultOverride
+                        ? $"{Label} = defaultOverride（Unity 強制欄位，一律當 override 存）"
+                        : $"{Label} = 繼承（這顆沒留下 override —— 若你剛改過它，" +
+                          "多半是寫入沒生效或值剛好等於 base）";
             }
 
             private static string ShortType(string fullName)
@@ -831,6 +1154,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 VerifyKind.LocalPosition => "localPosition",
                 VerifyKind.LocalScale => "localScale",
                 VerifyKind.LocalEulerAngles => "localEulerAngles",
+                VerifyKind.NotOverride => "prefabOverride",
                 VerifyKind.Unsupported => "auto",
                 _ => kind.ToString()
             };
@@ -842,16 +1166,20 @@ namespace MonoFSM.Editor.PrefabEditing
             internal int Unsupported;
             internal readonly List<string> Failures = new();
             internal readonly List<string> UnsupportedReasons = new();
+            internal readonly List<string> OverrideNotes = new();
 
             internal string Format()
             {
-                var text = $"# 驗證（set/ref/aref/addel/active/transform）：" +
+                var text = $"# 驗證（set/ref/aref/addel/revert/active/transform）：" +
                            $"{Verified} 個 OK，{Failures.Count} 個失敗，{Unsupported} 個 unsupported";
                 if (UnsupportedReasons.Count > 0)
                     text += $"（{string.Join("；", UnsupportedReasons.Distinct())}）";
                 text += "\n";
                 if (Failures.Count > 0)
                     text += "# 驗證失敗明細：\n" + string.Join("\n", Failures.Select(f => "# - " + f)) + "\n";
+                if (OverrideNotes.Count > 0)
+                    text += "# override 狀態（存檔後重讀）：\n" +
+                            string.Join("\n", OverrideNotes.Distinct().Select(n => "# - " + n)) + "\n";
                 return text;
             }
         }
@@ -883,6 +1211,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var failure = touch.Verify(reloaded.transform);
                     if (failure == null) report.Verified++;
                     else report.Failures.Add(failure);
+                    if (touch.OverrideNote != null) report.OverrideNotes.Add(touch.OverrideNote);
                 }
             }
             catch (Exception e)
@@ -918,6 +1247,10 @@ namespace MonoFSM.Editor.PrefabEditing
                     return Vector(prop.vector2Value);
                 case SerializedPropertyType.Vector3:
                     return Vector(prop.vector3Value);
+                case SerializedPropertyType.Vector4:
+                    return $"v4:{prop.vector4Value.ToString("R", CultureInfo.InvariantCulture)}";
+                case SerializedPropertyType.Quaternion:
+                    return Quaternion(prop.quaternionValue);
                 case SerializedPropertyType.Color:
                     return Color(prop.colorValue);
                 case SerializedPropertyType.LayerMask:

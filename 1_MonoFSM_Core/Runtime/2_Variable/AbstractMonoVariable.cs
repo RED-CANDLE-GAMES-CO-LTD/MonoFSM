@@ -856,6 +856,12 @@ namespace MonoFSM.Variable
         public virtual bool HasProxySource =>
             HasValueSource || (HasParentVarEntity);
 
+        /// <summary>
+        ///     NetworkedVarSync 寫出端要不要每 tick 輪詢這顆 Var（而不是靠 OnValueChanged 標髒）。
+        ///     Getter/Ref 型改變不發事件所以預設跟 HasProxySource；VarStat 等現算型另外 override。
+        /// </summary>
+        public virtual bool IsNetworkPolled => HasProxySource;
+
 
         public VariableTag[] GetKeys()
         {

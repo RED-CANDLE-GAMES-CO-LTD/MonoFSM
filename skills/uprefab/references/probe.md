@@ -13,6 +13,8 @@ up peek "資源生成器 FSM/Timer" VarFloatCountDownTimer --members "IsTimerUp,
 
 `peek` 在 Play Mode 下讀的是**當下的 runtime 值** —— 除「為什麼沒動」最快的一步。
 `--members` 留空會 dump 所有 public 屬性（很吵，通常指定幾個就好）。
+**不知道該給哪顆 component 時把 comp / `--comp` 留空** —— 會列出該節點上掛了哪些
+component 的名稱（只取型別名，不呼叫任何 property getter）。
 
 ## `prefab peek` —— 只讀 prefab 上一顆 component 的欄位
 
@@ -28,6 +30,19 @@ up prefab peek "Assets/…/資源生成器 FSM.prefab" \
 
 `--members` 留空 = 列出這顆 component 的**所有 serialize 欄位**（不是 public 屬性 ——
 asset 上沒跑過任何 runtime 邏輯，屬性大半是空的或會炸）。`--node` 留空 = prefab root。
+
+### `*` = 這顆 prefab 自己 override 的欄位
+
+`peek` / `peek-batch` / `locate --members` 的輸出裡，欄位名後面有 `*` 表示這個值是
+**這顆 prefab 自己 override 的**，沒有 `*` 就是繼承自 base / nested prefab；表頭會多一行
+講來源檔名（nested 的話連 instance root 節點一起講）。判準與 hierarchy 匯出共用
+（`PrefabOverrideMark`），`isDefaultOverride` 已排除，所以 `m_Name` / instance root 的
+`m_LocalPosition` 這類 Unity 強制欄位不會滿版星號。
+
+它的用途是「改完 prefab 之後一眼確認寫進去了沒」—— 合併後的值看不出是繼承還是 override，
+過去要靠 `overrides`（實測平均 21KB）才問得到。`prefab do` 的寫後驗證也會多印一段
+`# override 狀態（存檔後重讀）`，其中「繼承（這顆沒留下 override）」＝ 你剛改的值沒留下來，
+或剛好等於 base 值。
 
 ## `prefab locate` —— 在合併後 prefab 裡直接找節點
 

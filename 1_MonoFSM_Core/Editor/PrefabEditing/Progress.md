@@ -21,3 +21,21 @@
 - 2026-08-24 `up peek` 留空不再盲掃 public property（getter 會 native crash，managed catch 攔不到）；新增 `ProbeMineField` 麵包屑機制自動把閃退的屬性列入黑名單，以及 Inspector 右鍵「Dump 欄位 / 欄位+屬性 → 剪貼簿」（`ComponentDumpMenu`）
 - 2026-08-24 `auto` 的回報改成「其中幾顆屬於繼承來的 prefab instance ＋ [Auto*] 綁上/沒綁上」；之前只回掃過幾顆 MonoBehaviour，「一顆都沒綁上」跟「全部綁上」的輸出一模一樣。順手查證：在 variant 上對繼承節點做反射寫入（[Auto*] 的做法）SaveAsPrefabAsset 會正確寫出 m_Modifications，不需要 RecordPrefabInstancePropertyModifications。
 - prefab batch DSL 新增 `delmissing|<node>`，供 C# 型別已刪、無法再以 `delcomp` 解析名稱時，透過 Unity 官方 API 清除該節點上的 MissingScript。
+
+## 2026-09-03 一批 uprefab 驅動的 op / probe 改動
+
+設計理由、踩過的坑與驗收數字都寫在 `MonoFSM/Tools~/uprefab/PROGRESS.md`（那份會被 agent 實際讀到），
+這裡只留索引：
+
+- `revert|` op（`PrefabEdit.cs`）—— 清單一 property override。**必須排在 before-save callbacks 之後**，
+  在那之前清會被 callback 原封寫回。見 PROGRESS「`revert|` —— 清掉單一 property override」
+- override 星號（新增 `PrefabOverrideMark.cs`，`EditProbe` / `HierarchyTextExporter` 共用同一顆判準）。
+  原本「LoadPrefabContents 看不到 root override」的疑慮實測推翻。見 PROGRESS「peek / locate / 寫後驗證吐 override 狀態」
+- `rect|` op、`pos`/`scale`/`rot` 的 nodePath 留空 = root、`ApplyValue` 支援 Quaternion / Vector4。
+  見 PROGRESS「`rect|` + `rot` 吃 root + `set` 吃 Quaternion」
+- **Transform 系 op 的靜默假陽性**（`VerifyTouch` 的 expected 前移到 op 當下 +
+  `RecordTransformWrite`）。這是本批最重要的正確性修正：驗證原本在存檔後才取 expected，
+  「寫不進去」會被洗成「一致」。見 PROGRESS「Transform 系 op 的靜默假陽性」
+- `EditResolve` 的路徑逃逸補「字面反斜線」，`PromptEdit` 改成轉呼 `EditResolve`
+  （asmdef reference + `InternalsVisibleTo`，刻意不把 `EditResolve` 改 public）。
+  見 PROGRESS「`prompt --var` 定位名字含字面 \n 的節點」

@@ -12,6 +12,11 @@
     * 新寫或改動 Action / Condition 時，class 上**一定要有 `/// <summary>`**：第一句就要能獨立看懂用途
       （`up catalog` 的清單只顯示第一句），寫「什麼時候用它、掛在哪」而不是實作細節；欄位語意不明顯時加
       `[Tooltip]`。挑既有 component 用 `up catalog`，讀到沒說明的就順手補
+    * **繼承鏈上有 `AbstractDescriptionBehaviour` 的 class（Action / Condition / Render / Variable /
+      ValueSource / Detector…）一律 `override Description`**，把關鍵欄位組成一句話 —— hierarchy 和 State
+      樹上只顯示這個，沒 override 就只看到類別名。`/// summary` 給 agent 看、`Description` 給人在 Inspector
+      看，兩者都要，不能互相取代。字串裡不要自己加 `[Action]` 之類的 tag（父類 `DescriptionTag` 會加）。
+      細節與陷阱見 MonoFSM skill 的 `references/writing-actions.md`
 * 用 Debug.Log 來讓我協助測試與除錯
     * Debug.Log 第二個參數記得加上 this，或是需要顯示標記目標對象的Object，方便我點擊訊息後定位到程式碼位置或對象
     * Debug 用的欄位可以加上 Odin 的 ShowInInspector，方便我在 Inspector 中觀察數值變化

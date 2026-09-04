@@ -53,11 +53,18 @@ up scene ls --node "資源生成器 FSM/[StateFolder] StateFolder" --depth 2 --b
 **路徑打錯不會白跑** —— 它會沿路徑走到最後一個通的節點，把那層的子節點連同
 `(+N nodes)` 列出來，照著修就好。MonoFSM 的節點名常帶 `[Tag] ` 前綴，很容易猜錯。
 
-## read cache 是 opt-in
+## read cache 預設開啟
 
-預設不讀也不寫 cache，確保拿到 Unity 當下真值。只有同一份已存檔 prefab 會反覆讀、且你
-確定 Inspector 沒有未存變動時才加 `--cache`；key 會包含 prefab 依賴與 exporter/tool 版本。
-`--no-cache` 保留作相容旗標，語意是完全不讀也不寫；它與 `--cache` 不能同時使用。
+key 綁「依賴 prefab（含 variant base / nested）的 mtime+size」與「決定輸出格式的 exporter
+C# 檔內容」，所以 prefab 一被存檔、exporter 一被改就自動失效。第二層是**本地切片**：
+要 `--node A/B/C` 而快取裡已有 A 的完整子樹時直接裁出來，不打 Unity（只裁 node，
+`--depth` / `--fsm` 一律回 Unity；子樹裡有任何摺疊標記就放棄）。
+
+`--no-cache` = 完全不讀不寫，剛在 Inspector 改過還沒存檔時用。`--cache` 留著當相容旗標
+（現在是預設，不用加），兩者不能同時給。
+
+另外有一層 60 秒的 argv memo（跨子指令）：同一條指令原封不動重打會直接回上次結果，
+期間跑過任何寫入類指令就整批失效。要繞過用全域 `--no-memo`。
 
 ## `obj` —— 使用者貼 scene 物件連結時
 

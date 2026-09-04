@@ -23,20 +23,71 @@ _MAX_VAL = 120
 
 
 class Tee:
-    """包住 stdout，一邊照常輸出一邊數字元數。"""
+    """包住 stdout：數字元數、（選配）攔在 cap、（選配）錄下實際印出的內容給 memo 用。
+
+    cap 是**第二道網**，不是主要手段：每個子指令該有自己的 -n / --budget。這裡只負責
+    「不管哪條路漏了上限，都不會一次吃掉整個 context」。攔截時一定要附**原長**與
+    **縮小範圍的建議** —— 只說「被截斷了」會讓人原封不動重打一次更貴的指令。
+    """
 
     HEAD = 400
 
-    def __init__(self, real):
+    def __init__(self, real, cap: int = 0, hint: str = ""):
         self._real = real
         self.chars = 0
         self.head = ""
+        self.cap = max(0, int(cap or 0))
+        self.hint = hint or ""
+        self.truncated = False
+        self._written = 0
+        self._buf = None
+
+    def capture(self) -> None:
+        """開始錄「實際印出去」的內容（含截斷提示），讓 memo replay 逐字相同。"""
+        self._buf = []
+
+    def text(self) -> str:
+        return "".join(self._buf) if self._buf is not None else ""
+
+    def _out(self, chunk):
+        if self._buf is not None:
+            self._buf.append(chunk)
+        return self._real.write(chunk)
 
     def write(self, s):
         self.chars += len(s)
         if len(self.head) < self.HEAD:
             self.head += s[: self.HEAD - len(self.head)]
-        return self._real.write(s)
+        if not self.cap:
+            return self._out(s)
+        room = self.cap - self._written
+        if room <= 0:
+            self.truncated = True
+            return len(s)
+        self._written += len(s)
+        if len(s) <= room:
+            return self._out(s)
+        self.truncated = True
+        self._out(s[:room])
+        return len(s)
+
+    def replay(self, text: str):
+        """memo 命中時原樣吐回去 —— 已經是攔截後的內容，不要再攔一次。"""
+        self.chars += len(text)
+        if len(self.head) < self.HEAD:
+            self.head += text[: self.HEAD - len(self.head)]
+        self._real.write(text)
+        if self._buf is not None:
+            self._buf.append(text)
+
+    def finish(self) -> None:
+        if not self.truncated:
+            return
+        note = (f"\n# ⚠ 輸出被 uprefab 攔在 {self.cap:,} 字元"
+                f"（完整輸出 {self.chars:,}，截掉 {self.chars - self.cap:,}）。"
+                f"{self.hint} 真的要全部：--max-chars 0\n")
+        self._out(note)
+        self.chars += len(note)
 
     def flush(self):
         return self._real.flush()
@@ -192,16 +243,22 @@ def report(root: str, gap_sec: int = 900, top: int = 8,
               f"| {sum(d['ms']) // max(d['n'], 1)} | {_percentile(d['ms'], .95)} "
               f"| {d['miss']} |")
 
-    # read cache 只在明確 --cache 時啟用。hit ratio 不把 off/bypass/unavailable 算進分母。
+    # hit ratio 不把 bypass/unavailable/off 算進分母。slice = 本地從較大子樹裁出來的，
+    # 一樣沒打 Unity，所以算在 hit 那邊。
     cache_rows = [r for r in rows if r.get("cmd") == "prefab read" and r.get("cache")]
     cache_counts = {}
     for r in cache_rows:
         cache_counts[r["cache"]] = cache_counts.get(r["cache"], 0) + 1
-    hits = cache_counts.get("hit", 0)
+    hits = cache_counts.get("hit", 0) + cache_counts.get("slice", 0)
     attempts = hits + cache_counts.get("miss", 0)
     print("\n## prefab read cache")
     print(f"hit ratio: {hits}/{attempts} "
           f"({hits * 100 // max(attempts, 1)}%)；狀態 {cache_counts or '(無)'}")
+
+    # argv memo（跨指令）：同一條指令在 60 秒內被原封不動重打
+    memo_hits = sum(1 for r in rows if r.get("memo") == "hit")
+    print(f"## argv memo 命中 {memo_hits} 次"
+          f"（佔全部呼叫 {memo_hits * 100 // max(len(rows), 1)}%）")
 
     # 舊版 depth / FSM 可繞過 budget；新版 hard cap 上線後這裡應逐漸歸零。
     oversized = []

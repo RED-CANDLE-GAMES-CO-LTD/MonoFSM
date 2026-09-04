@@ -110,6 +110,8 @@ private ICurrentEntityOwner Owner
 
 定義「誰可以對誰造成效果」的互動系統，見 [references/effect-system.md](references/effect-system.md)。
 
+物件（receiver 端）要讀「誰在跟我互動」身上的值時，走 best match 的 `EffectEnterBestMatchNode._hittingEntity`，**不要取本機玩家**；組法與坑見 effect-system.md 的「在物件上取『誰在跟我互動』的 selector entity」。
+
 ## ValueSource / Variable 系統
 
 `AbstractValueSource<T>` 泛型基類用於每幀計算並提供值（方向、位置、輸入等）。Variable 系統（VarFloat、VarVector3 等）的 `IsValueExist` 用於判斷 runtime 有效值。詳見 [references/value-source.md](references/value-source.md)。
@@ -137,7 +139,7 @@ private ICurrentEntityOwner Owner
 | [references/scene-editing.md](references/scene-editing.md) | 要在 Unity Scene / prefab 上實際新增或修改 State、Transition、Condition、Action 節點時 |
 | [references/fsm-traversal.md](references/fsm-traversal.md) | 寫 Editor 工具要程式化走訪 FSM 階層（匯出、視覺化、批次修改）時 |
 | [references/components.md](references/components.md) | 想知道有哪些現成的 State / Action / Condition / Timer 等組件可以直接用，不用自己寫時 |
-| [references/effect-system.md](references/effect-system.md) | 處理 EffectDealer / EffectReceiver 互動（誰能對誰造成效果、偵測、判定）時 |
+| [references/effect-system.md](references/effect-system.md) | 處理 EffectDealer / EffectReceiver 互動（誰能對誰造成效果、偵測、判定）時；也含「物件上要取互動者（selector）entity」的組法 |
 | [references/value-source.md](references/value-source.md) | 要做每幀計算並提供值的 `AbstractValueSource<T>`，或需要理解 Variable 的 `IsValueExist` 語意時 |
 | [references/var-wrapper.md](references/var-wrapper.md) | 欄位要讓使用者在「綁一個 Var」與「直接填常數」之間二選一（`VarFloatWrapper` 等）時 |
 | [references/csharp-patterns.md](references/csharp-patterns.md) | 寫每幀執行的程式碼、需要避免 GC 配置時 |

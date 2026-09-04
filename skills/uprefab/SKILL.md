@@ -8,11 +8,16 @@ description: 能讀懂並改動 Unity serialized data（prefab / scene / Scripta
 讀 / 改 Unity serialized data 的工具組。**先看決策表決定用哪一條路** —— 選錯會白跑一趟
 或讀到不完整的資料。
 
-範例裡的 `up` 是這個 shell function（**zsh 不會對 `$VAR` 斷詞，所以不要用
-`UP="python3 …"`**，會被當成一個檔名而找不到）：
+範例裡的 `up` 是 **PATH 上的真指令**（`~/.local/bin/up` symlink 到
+`.claude/scripts/up`，該 launcher 從 cwd 往上找 `MonoFSM/Tools~/uprefab/uprefab.py`），
+直接打 `up <subcommand>` 就好。
+
+**不要退回 shell function 或 `UP="python3 …"` 變數**：Claude Code 每個 Bash tool call
+都是新 shell，function 定義不會留存到下一個 call；`$VAR` 形式在 zsh 不斷詞會被當成單一檔名。
+真的噴 `command not found: up` 就是 symlink 掉了，重建：
 
 ```bash
-up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
+ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 ```
 
 ## 決策表
@@ -29,6 +34,7 @@ up() { python3 "MonoFSM/Tools~/uprefab/uprefab.py" "$@"; }
 | **改** prefab / scene 結構、開/複製/存 scene、建 variant | `prefab do` / `scene do` / `scene copy` / `prefab variant` | ✅ | [edit.md](references/edit.md) |
 | **路徑失效、名字跟上次讀到的不一樣**、節點名含 `/` 或換行 | —— | | [naming.md](references/naming.md) |
 | **建 / 改 ScriptableObject asset**（registry / config 類） | `asset create` / `set` / `set-ref` / `add-element` | ✅ | [asset.md](references/asset.md) |
+| 一個 asset 要改多個欄位（要原子性） | `asset do <asset> -f ops.txt`（任一行失敗就整批不套用） | ✅ | [asset.md](references/asset.md) |
 | **加 / 改互動文字提示**（localized、按狀態切換） | `prompt` | ✅ | [prompt.md](references/prompt.md) |
 | **只要 localization 條目**（文案持有者是 SO 不是節點） | `loc` | ✅ | [prompt.md](references/prompt.md) |
 | 某個節點被誰指到 / 它指向誰 | `refs` | ✅ | [probe.md](references/probe.md) |
@@ -68,8 +74,10 @@ reference 裡，真的要改的時候一定會讀到）：
 - **`find` 預設只查 full tier。** shallow 是 override target 解析層，第三方 Example 命中常比
   gameplay 多兩個數量級；表尾若提示有 shallow 命中，真的需要時才加 `--scope all`。
 - **read 的 `--budget` 是 hierarchy + FSM hard cap，`--depth` 不能繞過。** `--budget 0` 才是
-  明確允許無上限；只看狀態機用 `--fsm-only`，只導航用 `--structure-only`。磁碟 cache 預設關閉，
-  只有確定 prefab 已存且會反覆讀時才明確加 `--cache`。
+  明確允許無上限（但仍受全域 `--max-chars` 攔截，要真的無上限得同時 `--max-chars 0`）；
+  只看狀態機用 `--fsm-only`，只導航用 `--structure-only`。**磁碟 cache 現在預設開啟**
+  （key 綁 prefab 依賴 mtime + exporter 版本；還會從已快取的祖先子樹本地切片）——
+  剛在 Inspector 改過還沒存檔時才加 `--no-cache`。
 - **挑 component 之前先 `up catalog`，不要 grep 或 Read .cs** —— 近 400 個 Action /
   Condition / Getter 的用途與欄位一次列完（離線、0.1s）。讀到 `⚠無說明` 而你為了工作
   實際去讀了那份原始碼，**順手補一段 `/// <summary>` 再走**，見 [catalog.md](references/catalog.md)。

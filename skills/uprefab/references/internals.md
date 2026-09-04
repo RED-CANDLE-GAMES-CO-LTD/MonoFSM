@@ -28,8 +28,11 @@
 但 usage 實測 hit 率低，而且 cache 只省 Unity 往返、不省回到 context 的輸出量；未存 Inspector
 狀態也無法由磁碟 mtime 判斷。
 
-因此現在 `prefab read` **預設完全不碰 cache**。只有使用者明確給 `--cache` 才讀寫；key 包含
-prefab 依賴以及直接影響文字格式的 Python/C# tool hash。`--no-cache` 是相容旗標，完全不讀不寫。
+2026-09-03 翻回**預設開啟**：opt-in 的實測命中率只有 5.1%（415 次 21 中）—— 沒人記得加旗標，
+那層快取等於不存在。正確性改由 key 本身保證（依賴 prefab mtime+size ＋ 只含「決定輸出格式」
+的 exporter C# 檔指紋，刻意不含 `uprefab.py` / `readcache.py`），未存的 Inspector 狀態則靠
+`--no-cache` 逃生口。細節與踩過的順序陷阱見 `MonoFSM/Tools~/uprefab/PROGRESS.md` 的
+「`readcache` 翻預設 + 收窄 TOOL_FILES + 加一層 60 秒 argv memo」。
 省 token 的主路仍是 hard `--budget`、`--node`、`--structure-only`、`--fsm-only` 與欄位級 peek。
 
 ## 已知限制

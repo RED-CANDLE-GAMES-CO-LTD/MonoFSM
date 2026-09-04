@@ -115,7 +115,8 @@ namespace MonoFSM.Editor
         /// —— 這也是 uprefab 路徑解析吃得下的寫法。
         /// </summary>
         private static string NodeName(GameObject go) =>
-            go.name.Replace("\r", "").Replace("\n", "\\n");
+            // `\\` 先換，跟 EditResolve.EscapeName 同一套規則，抄回 --node 才解得回原名
+            go.name.Replace("\r", "").Replace("\\", "\\\\").Replace("\n", "\\n");
 
         private static string BuildNodeLine(GameObject go, string indent, HierarchyExportContext ctx)
         {
@@ -243,7 +244,9 @@ namespace MonoFSM.Editor
                     if (prop.name == "_note" || prop.name == "note")
                         continue;
 
-                    var isOverride = opt._markOverrides && prop.prefabOverride && !prop.isDefaultOverride;
+                    // 判準抽到 PrefabOverrideMark，跟 uprefab 的 peek / 寫後驗證共用一份
+                    var isOverride = opt._markOverrides &&
+                                     PrefabEditing.PrefabOverrideMark.IsMeaningfulOverride(prop);
 
                     if (opt._showOverridesOnly)
                     {

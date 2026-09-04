@@ -205,7 +205,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
                     return _authorityProvider.HasStateAuthority;
                 if (HasParent)
                     return _parentObj.HasStateAuthority;
-                return _shouldSimulateFlag;
+                return _shouldSimulateFlag; //單機用的
             }
         }
 
@@ -974,7 +974,7 @@ namespace MonoFSMCore.Runtime.LifeCycle
             : IsProxy
                 ? "Proxy (not simulating)"
                 : IsSimulationCulling
-                    ? "Simulation Culled"
+                    ? "SimCulled"
                     : !ShouldSimulte
                         ? "No Authority (not simulating)"
                         : IsRenderCulling

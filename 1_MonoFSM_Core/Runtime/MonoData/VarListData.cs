@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Variable;
 using UnityEngine;
@@ -11,6 +12,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         //選配：把清單抽成獨立 asset。指了就用 asset 的內容，沒指就走 prefab 上的 backing list。
         //同一台機台 prefab 換一顆 config 就是換一整份商品清單，不用在 variant 上疊 array override。
+        [SOConfig("List")]
         [SerializeField] private GameDataListConfig _sourceConfig;
 
         //警告只在 play 時印：Editor 序列化階段也會走到這裡，碰 Application.isPlaying 會丟 UnityException，

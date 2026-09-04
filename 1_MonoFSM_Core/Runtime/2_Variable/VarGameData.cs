@@ -2,6 +2,7 @@ using MonoFSM.Variable.FieldReference;
 #if UNITY_EDITOR
 using Sirenix.OdinInspector;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 #endif
 
@@ -36,7 +37,7 @@ namespace MonoFSM.Variable
                 return;
             }
 
-            var variant = GameData.CreateVariantAsset(_defaultValue);
+            var variant = GameData.CreateVariantAsset(_defaultValue, GetOwnerPrefabName());
             if (variant == null)
                 return;
 
@@ -47,6 +48,35 @@ namespace MonoFSM.Variable
             PrefabUtility.RecordPrefabInstancePropertyModifications(this);
             EditorGUIUtility.PingObject(variant);
             Debug.Log($"[VarGameData] _defaultValue 已指向新 variant {variant.name}", this);
+        }
+
+        /// <summary>
+        ///     新 variant 的檔名要用「這顆 VarGameData 所在的 prefab 名」。
+        ///     三種情境依序試：Prefab 編輯模式看 stage 的 assetPath、scene 上的 prefab instance 看它的來源 asset、
+        ///     都不是（純 scene 物件）就退回 hierarchy root 的名字。
+        /// </summary>
+        private string GetOwnerPrefabName()
+        {
+            //1. 正在 Prefab Stage 裡編輯：stage 的 assetPath 才是真正的 prefab，contentsRoot.name 可能被改過
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null && stage.IsPartOfPrefabContents(gameObject))
+            {
+                var stageName = System.IO.Path.GetFileNameWithoutExtension(stage.assetPath);
+                if (!string.IsNullOrEmpty(stageName))
+                    return stageName;
+            }
+
+            //2. scene 上的 prefab instance：取最近的 instance root 對應的 prefab asset
+            var instanceRoot = PrefabUtility.GetNearestPrefabInstanceRoot(gameObject);
+            if (instanceRoot != null)
+            {
+                var assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(instanceRoot);
+                if (!string.IsNullOrEmpty(assetPath))
+                    return System.IO.Path.GetFileNameWithoutExtension(assetPath);
+            }
+
+            //3. 純 scene 物件，只能用 root 名字
+            return transform.root.name;
         }
 #endif
         // /// <summary>

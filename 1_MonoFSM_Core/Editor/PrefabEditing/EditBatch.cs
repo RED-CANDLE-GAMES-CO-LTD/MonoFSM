@@ -41,6 +41,10 @@ namespace MonoFSM.Editor.PrefabEditing
     /// mark|&lt;label&gt;[|&lt;node&gt;]                 給節點取名；不給 node 就標記上一個操作碰到的節點
     /// </code>
     ///
+    /// `asset do`（AssetEdit.Batch）用的是同一個 Run，但 asset 沒有節點概念，所以只吃
+    /// `set|&lt;field&gt;|&lt;value&gt;`、`aref|&lt;field&gt;|&lt;assetPath&gt;`、`addel|&lt;field&gt;[|&lt;type&gt;]`
+    /// —— 第一個參數直接是 fieldPath，少一層 node/comp。
+    ///
     /// **`$` 代換**：任何參數寫 `$` = 上一個操作碰到的節點，`$label` = `mark` 標過的節點，
     /// 後面可以再接 `/子路徑`。MonoFSM 的節點路徑很長（`[StateFolder] StateFolder/[State] idle/
     /// [Event] OnStateEnter/[Action] X`），而 `add` 完緊接著 `ref` 是最常見的組合 ——
@@ -108,9 +112,12 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (notes != null) sb.AppendLine(notes);
                 if (result.StartsWith("# 未修改"))
                 {
+                    // 刻意不說「前面已生效」—— prefab / asset 的批次是全成功才落地
+                    // （PrefabEdit.Batch 不存檔、AssetEdit.Batch 不 Apply），只有 scene
+                    // 是直接改在開著的場景上。落地與否由呼叫端在下一行講。
                     sb.AppendLine(
-                        $"# 停在第 {i + 1} 行（`{line}`），前面 {done} 個操作已生效，" +
-                        "後面的都沒跑。修好這行再重跑剩下的部分。");
+                        $"# 停在第 {i + 1} 行（`{line}`），前面 {done} 個操作執行成功、" +
+                        "後面的都沒跑（是否落地看下一行）。修好這行再重跑剩下的部分。");
                     return sb.ToString();
                 }
 
@@ -219,6 +226,78 @@ namespace MonoFSM.Editor.PrefabEditing
                     throw new EditResolve.EditAbort(
                         $"`{verb}` 的 {what} 第 {n + 1} 個分量不是數字：'{xyz[n]}'");
             return new Vector3(v[0], v[1], v[2]);
+        }
+
+        /// <summary>"x,y" → Vector2。兩個分量都要有（UI 的 anchoredPosition / sizeDelta / pivot）。</summary>
+        internal static Vector2 Vec2(string[] args, int i, string verb, string what)
+        {
+            var raw = Need(args, i, verb, $"{what} 的 x,y");
+            var xy = raw.Split(',');
+            if (xy.Length != 2)
+                throw new EditResolve.EditAbort(
+                    $"`{verb}` 的 {what} 要是 x,y 兩個分量，收到 '{raw}'");
+
+            var v = new float[2];
+            for (var n = 0; n < 2; n++)
+                if (!float.TryParse(xy[n].Trim(), out v[n]))
+                    throw new EditResolve.EditAbort(
+                        $"`{verb}` 的 {what} 第 {n + 1} 個分量不是數字：'{xy[n]}'");
+            return new Vector2(v[0], v[1]);
+        }
+
+        /// <summary>
+        /// anchorMin/anchorMax。吃 Inspector 上那組 preset 名字（`center` / `top-left` /
+        /// `stretch` / `stretch-bottom`…），或直接寫 `minX,minY,maxX,maxY` 四個數字。
+        /// 之所以要 preset：手算 anchor 是 UI 改動最容易寫錯的一步，而名字對得上 Unity 的 UI。
+        /// </summary>
+        internal static (Vector2 min, Vector2 max) AnchorPreset(string spec, string verb)
+        {
+            var raw = (spec ?? "").Trim();
+            var parts = raw.Split(',');
+            if (parts.Length == 4)
+            {
+                var v = new float[4];
+                for (var n = 0; n < 4; n++)
+                    if (!float.TryParse(parts[n].Trim(), out v[n]))
+                        throw new EditResolve.EditAbort(
+                            $"`{verb}` 的 anchor 第 {n + 1} 個分量不是數字：'{parts[n]}'");
+                return (new Vector2(v[0], v[1]), new Vector2(v[2], v[3]));
+            }
+
+            var key = raw.ToLowerInvariant().Replace(" ", "-").Replace("_", "-");
+            switch (key)
+            {
+                case "bottom-left": return (Vector2.zero, Vector2.zero);
+                case "bottom-center": case "bottom":
+                    return (new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
+                case "bottom-right": return (new Vector2(1f, 0f), new Vector2(1f, 0f));
+                case "middle-left": case "left":
+                    return (new Vector2(0f, 0.5f), new Vector2(0f, 0.5f));
+                case "center": case "middle": case "middle-center":
+                    return (new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
+                case "middle-right": case "right":
+                    return (new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
+                case "top-left": return (new Vector2(0f, 1f), new Vector2(0f, 1f));
+                case "top-center": case "top":
+                    return (new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+                case "top-right": return (Vector2.one, Vector2.one);
+                case "stretch": case "stretch-all": case "full":
+                    return (Vector2.zero, Vector2.one);
+                case "stretch-top": return (new Vector2(0f, 1f), Vector2.one);
+                case "stretch-bottom": return (Vector2.zero, new Vector2(1f, 0f));
+                case "stretch-left": return (Vector2.zero, new Vector2(0f, 1f));
+                case "stretch-right": return (new Vector2(1f, 0f), Vector2.one);
+                case "stretch-h": case "stretch-horizontal":
+                    return (new Vector2(0f, 0.5f), new Vector2(1f, 0.5f));
+                case "stretch-v": case "stretch-vertical":
+                    return (new Vector2(0.5f, 0f), new Vector2(0.5f, 1f));
+                default:
+                    throw new EditResolve.EditAbort(
+                        $"`{verb}` 不認得 anchor preset '{spec}'。可用的：bottom-left bottom-center " +
+                        "bottom-right middle-left center middle-right top-left top-center top-right " +
+                        "stretch stretch-top stretch-bottom stretch-left stretch-right stretch-h " +
+                        "stretch-v，或直接寫 minX,minY,maxX,maxY");
+            }
         }
 
         internal static string Need(string[] args, int i, string verb, string what)

@@ -53,6 +53,13 @@ namespace MonoFSM.Core.Detection
         public Vector3 hitNormal => _isCustomHitPoint ? _hitNormal : -_detector.transform.forward;
     }
 
+    /// <summary>
+    ///     偵測端：每 tick 從子節點的 DetectionSource 收集重疊的 EffectDetectable，diff 出
+    ///     Enter/Stay/Exit，再交給子節點的 GeneralEffectDealer 對命中目標發 effect。
+    ///     SimulateOrder = -1000，排在同 MonoObj 的 FSM／Condition 之前。
+    ///     掛上 ManualEffectDetectAction 後改為手動模式：Simulate 完全不判，只在 action 執行時
+    ///     跑一次 DetectUpdateCheck()（latch 一旦在 ISceneAwake 設上就不會解除）。
+    /// </summary>
     [DisallowMultipleComponent]
 
     public class EffectDetector
@@ -170,7 +177,8 @@ namespace MonoFSM.Core.Detection
         bool IUpdateSimulate.IsUpdating => isActiveAndEnabled || _thisFrameDetectedObjects.Count > 0;
 
         //把目前還在重疊的全部走正規 exit 流程送出去，冪等（沒東西就直接返回）
-        private void ClearAllDetections(string reason)
+        //public: 手動模式的 ManualEffectDetectAction 要能在 EffectExitNode 上對稱地收尾
+        public void ClearAllDetections(string reason)
         {
             _isResumeGraceTick = false; //真的清掉就沒有凍結可言
             _isResetGraceTick = false;
@@ -546,7 +554,9 @@ namespace MonoFSM.Core.Detection
             hitData.hitNormal = detectData.hitNormal;
             hitData.hitPoint = detectData.hitPoint;
             dealer.OnHitEnter(hitData, detectData);
-            receiver.OnEffectHitEnter(hitData, detectData);
+            //passive dealer：只記帳（_receivers / _hittingEntities / BestMatch 都照常），不真的打到對面
+            if (!dealer.IsPassive)
+                receiver.OnEffectHitEnter(hitData, detectData);
         }
 
         //重疊期間每幀觸發：重用 enter 時的 hitData，只刷新 hitPoint/hitNormal（不 new、不需 pool）
@@ -570,6 +580,11 @@ namespace MonoFSM.Core.Detection
                 return;
             }
 
+            //passive dealer 沒跑過 receiver.OnEffectHitEnter，receiver 端不會有 hitData 可重用，
+            //stay 整段跳過（dealer 的 stay 節點也不跑）。命中帳本由 enter/exit 維護，不受影響。
+            if (dealer.IsPassive)
+                return;
+
             if (!receiver.TryGetHitDataFor(dealer, out var hitData))
                 return;
 
@@ -592,8 +607,10 @@ namespace MonoFSM.Core.Detection
             //優先重用 enter 時的 hitData，找不到才 new（例：ForceDirectEffectHit 已先移除）
             if (!receiver.TryGetHitDataFor(dealer, out var hitData))
                 hitData = receiver.GenerateEffectHitData(dealer, detectData.detectedObject);
+            //dealer.OnHitExit 一定要跑：_receivers / _hittingEntities 的移除在那裡
             dealer.OnHitExit(hitData);
-            receiver.OnEffectHitExit(hitData);
+            if (!dealer.IsPassive)
+                receiver.OnEffectHitExit(hitData);
         }
 
         public void AfterUpdate() { }

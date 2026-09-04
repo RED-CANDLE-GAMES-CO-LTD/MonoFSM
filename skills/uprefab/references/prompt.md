@@ -22,7 +22,55 @@ case 格式 `key|文案|spec;spec`：
 | `prompt:<token>=<名稱或路徑>` | 加一個 `InputPromptTokenBinding`。token 可省（預設 `key`）；值吃 `InputPromptUIData` 的檔名或完整路徑 |
 
 其他選項：`--locale`（預設 `zh-TW`）、`--table`（預設 `GameplayUI`）、
-`--prune`（刪掉不在 case 清單裡的既有 value source）、`-f`（從檔案讀 case）。
+`--prune`（刪掉不在 case 清單裡的既有 value source）、`-f`（從檔案讀 case）、
+`--case-replace-conditions` / `--case-replace-tokens`（清空既有子節點重建，見下）。
+
+## 對「既有」的 value source 補條件 / 補 token
+
+最常見的用法是「文案留空、只想多補一顆條件」。直接對既有節點下同一個 key 的 case 即可：
+
+```bash
+up prompt "$P" --var "…/[Getter] d_ Prompt" \
+  --case "coal_need_shovel||if:…/[Getter] d_HasShovel=false"
+```
+
+條件是**只補不刪**：
+
+- `if:` 指的條件已存在（同一顆 VarBool + 同 `targetValue`）→ 不重建，印 `條件已存在，不重建`
+- 已存在但 `if:` 沒提到的 condition 節點 → **一律保留**，印 `與既有 N 顆並存（AND）`
+- 這一輪沒給 `if:` → 既有條件保留，印 `沒給 if:，保留既有 N 顆條件`
+
+真的要清空重建才給 `--case-replace-conditions`，它會把移除的節點印成
+`[node] ⚠ 已移除既有條件: [If] d_CanInteractCurrentTarget == False`。
+
+> 2026-09-03 修掉的資料破壞：舊版是「沒給 `if:` 就清空既有條件、給了 `if:` 就搶第一顆
+> 既有條件改寫」，於是人工掛好的 `[If] d_CanInteractCurrentTarget == False` 被靜默換掉。
+> 而且回傳的 `[值]` 驗證照樣通過 —— 少一條 AND 條件時字串一樣組得出來，
+> 只有事後人工盤點才看得到。所以現在只補不刪，刪一定印。
+> 注意「條件已存在」只認 `VarBoolCompareCondition`；`ConditionRef` 這種 proxy 一律當作不同的，
+> 寧可多一顆重複條件（AND 起來不改結果）也不動人家的節點。
+
+`prompt:` 的 token binding 同一套原則：
+
+- 同一個 token 名已存在 → 只更新 `_promptData`，換資產會印 `token X 換資產：A → B`，沒換印 `已存在，不重建`
+- 沒有同名的 → 新增一顆，**不動任何既有 binding**
+- 這一輪沒給 `prompt:` → 完全不動
+- `--case-replace-tokens` 才清空，且只清 `InputPromptTokenBinding` ——
+  `SmartStringTokenBinding` 這種手工組的清掉沒人補得回來，只會印一行提醒它們沒被清
+
+> 兩個 replace 旗標刻意分開：conditions 和 tokens 是無關的兩棵子樹，
+> 合成一個旗標會讓「我要重建條件」順手把 token binding 清光 —— 那正是這次在修的 bug 類型。
+>
+> 舊版 `EnsureToken` 的 hijack 是 `FirstOrDefault(名字對得上) ?? FirstOrDefault()` ——
+> 那個 fallback 會在 token 名對不上時搶第一顆既有 binding 改寫，把別人的 `{grabKey}`
+> 直接變成 `{throwKey}`。
+
+**條件的掃描範圍以 `ConditionGroup` 為準**：它是
+`[AutoChildren(DepthOneOnly = true, _isSelfInclude = false)] AbstractConditionBehaviour[]`，
+也就是**直接子節點、任何 condition 子型別、AND 語意**。所以 `up prompt`
+的計數／警告／`--case-replace-conditions` 都認所有 condition 型別（含 `ConditionRef`），
+孫層一律不算。等價比對才縮回只對 `VarBoolCompareCondition` 做。
+只掛 `ConditionRef` 的 source 以前會被誤判成「無條件」而報一條假的 `[warn]`，現在不會。
 
 **在 variant 上加 case 會插到最前面** —— base 繼承來的 value source 排在後面，
 新加的節點會變成第 0 個，於是無條件的新 case 蓋掉 base 有條件的那些。

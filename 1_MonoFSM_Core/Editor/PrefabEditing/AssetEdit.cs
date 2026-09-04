@@ -73,14 +73,21 @@ namespace MonoFSM.Editor.PrefabEditing
             {
                 var asset = LoadAsset(assetPath);
                 var so = new SerializedObject(asset);
-                var prop = EditResolve.Prop(so, fieldPath, asset);
-                var before = EditResolve.Preview(prop);
-                EditResolve.ApplyValue(prop, value, fieldPath);
-                so.ApplyModifiedProperties();
-                EditorUtility.SetDirty(asset);
-                AssetDatabase.SaveAssets();
-                return $"{assetPath}.{fieldPath}: {before} -> {EditResolve.Preview(prop)}";
+                var log = DoSet(so, asset, fieldPath, value);
+                Commit(so, asset);
+                return $"{assetPath}.{log}";
             });
+        }
+
+        // 單次呼叫與 Batch 共用同一份實作 —— 兩套會走鐘（`up asset set` 已被打 158 次，
+        // batch 若是另一套語意，「單次試通了就寫進批次」這個工作流會在 batch 裡失敗）。
+        private static string DoSet(SerializedObject so, Object asset, string fieldPath,
+            string value)
+        {
+            var prop = EditResolve.Prop(so, fieldPath, asset);
+            var before = EditResolve.Preview(prop);
+            EditResolve.ApplyValue(prop, value ?? "", fieldPath);
+            return $"{fieldPath}: {before} -> {EditResolve.Preview(prop)}";
         }
 
         /// <summary>
@@ -93,16 +100,21 @@ namespace MonoFSM.Editor.PrefabEditing
             {
                 var asset = LoadAsset(assetPath);
                 var so = new SerializedObject(asset);
-                var prop = EditResolve.Prop(so, fieldPath, asset);
-                if (prop.propertyType != SerializedPropertyType.ObjectReference)
-                    throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用；請改用 SetField");
-
-                prop.objectReferenceValue = AssetRef.Resolve(targetAssetPath, asset, fieldPath);
-                so.ApplyModifiedProperties();
-                EditorUtility.SetDirty(asset);
-                AssetDatabase.SaveAssets();
-                return $"{assetPath}.{fieldPath} -> res:{targetAssetPath}";
+                var log = DoRef(so, asset, fieldPath, targetAssetPath);
+                Commit(so, asset);
+                return $"{assetPath}.{log}";
             });
+        }
+
+        private static string DoRef(SerializedObject so, Object asset, string fieldPath,
+            string targetAssetPath)
+        {
+            var prop = EditResolve.Prop(so, fieldPath, asset);
+            if (prop.propertyType != SerializedPropertyType.ObjectReference)
+                throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用；請改用 SetField");
+
+            prop.objectReferenceValue = AssetRef.Resolve(targetAssetPath, asset, fieldPath);
+            return $"{fieldPath} -> res:{targetAssetPath}";
         }
 
         /// <summary>
@@ -120,46 +132,51 @@ namespace MonoFSM.Editor.PrefabEditing
             {
                 var asset = LoadAsset(assetPath);
                 var so = new SerializedObject(asset);
-                var prop = EditResolve.Prop(so, fieldPath, asset);
-                // 注意：SerializedProperty.isArray 對 string 也回 true（舊版序列化 API 把
-                // string 當 char[] 存），不排除的話會把陣列元素插進字串的位元組裡，
-                // 存出一份壞掉的 UTF-8。真正的陣列/List 才做。
-                if (!prop.isArray || prop.propertyType == SerializedPropertyType.String)
-                    throw new Abort(
-                        $"'{fieldPath}' 是 {prop.propertyType}，不是陣列/List，不能 AddArrayElement");
-
-                var index = prop.arraySize;
-                prop.arraySize++;
-                var element = prop.GetArrayElementAtIndex(index);
-                var isManagedRef =
-                    element.propertyType == SerializedPropertyType.ManagedReference;
-                var created = "";
-
-                if (!string.IsNullOrEmpty(typeName))
-                {
-                    if (!isManagedRef)
-                        throw new Abort(
-                            $"'{fieldPath}' 不是 [SerializeReference] 陣列（元素是 " +
-                            $"{element.propertyType}），不吃 typeName；直接用 set / set-ref 填欄位");
-
-                    var baseType = EditResolve.ManagedRefFieldType(element)
-                                   ?? throw new Abort(
-                                       $"解析不出 '{fieldPath}' 的 SerializeReference 宣告型別");
-                    var type = EditResolve.ManagedRefType(baseType, typeName);
-                    element.managedReferenceValue = System.Activator.CreateInstance(type);
-                    created = $"  <{type.FullName}>";
-                }
-                else if (isManagedRef)
-                {
-                    // 不擋（呼叫端可能真的要一個 null 佔位），但要講清楚它現在是 null
-                    created = "  <null；[SerializeReference] 陣列請加 typeName 指定實作型別>";
-                }
-
-                so.ApplyModifiedProperties();
-                EditorUtility.SetDirty(asset);
-                AssetDatabase.SaveAssets();
-                return $"{assetPath}.{fieldPath}[{index}]  新增（現有 {prop.arraySize} 筆）{created}";
+                var log = DoAddElement(so, asset, fieldPath, typeName);
+                Commit(so, asset);
+                return $"{assetPath}.{log}";
             });
+        }
+
+        private static string DoAddElement(SerializedObject so, Object asset, string fieldPath,
+            string typeName)
+        {
+            var prop = EditResolve.Prop(so, fieldPath, asset);
+            // 注意：SerializedProperty.isArray 對 string 也回 true（舊版序列化 API 把
+            // string 當 char[] 存），不排除的話會把陣列元素插進字串的位元組裡，
+            // 存出一份壞掉的 UTF-8。真正的陣列/List 才做。
+            if (!prop.isArray || prop.propertyType == SerializedPropertyType.String)
+                throw new Abort(
+                    $"'{fieldPath}' 是 {prop.propertyType}，不是陣列/List，不能 AddArrayElement");
+
+            var index = prop.arraySize;
+            prop.arraySize++;
+            var element = prop.GetArrayElementAtIndex(index);
+            var isManagedRef =
+                element.propertyType == SerializedPropertyType.ManagedReference;
+            var created = "";
+
+            if (!string.IsNullOrEmpty(typeName))
+            {
+                if (!isManagedRef)
+                    throw new Abort(
+                        $"'{fieldPath}' 不是 [SerializeReference] 陣列（元素是 " +
+                        $"{element.propertyType}），不吃 typeName；直接用 set / set-ref 填欄位");
+
+                var baseType = EditResolve.ManagedRefFieldType(element)
+                               ?? throw new Abort(
+                                   $"解析不出 '{fieldPath}' 的 SerializeReference 宣告型別");
+                var type = EditResolve.ManagedRefType(baseType, typeName);
+                element.managedReferenceValue = System.Activator.CreateInstance(type);
+                created = $"  <{type.FullName}>";
+            }
+            else if (isManagedRef)
+            {
+                // 不擋（呼叫端可能真的要一個 null 佔位），但要講清楚它現在是 null
+                created = "  <null；[SerializeReference] 陣列請加 typeName 指定實作型別>";
+            }
+
+            return $"{fieldPath}[{index}]  新增（現有 {prop.arraySize} 筆）{created}";
         }
 
         /// <summary>
@@ -228,6 +245,75 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 return sb.ToString();
             });
+        }
+
+        /// <summary>
+        /// 一次跑多行欄位操作（DSL 與 `prefab do` 同款，見 EditBatch）。
+        ///
+        /// **原子性是這個 API 存在的唯一理由**，不是省 token：整批共用一個 SerializedObject，
+        /// 任何一行解析/執行失敗就直接回傳、**不呼叫 ApplyModifiedProperties**，asset 檔案
+        /// 完全沒被碰過。逐次 `up asset set` 的話，第三行打錯字會留下一筆半填的 registry
+        /// 資料 —— 那種東西 runtime 不會報錯，只會靜默少一筆。
+        ///
+        /// asset 沒有節點概念，所以每個 verb 的第一個參數就是 fieldPath：
+        /// <code>
+        /// set|&lt;field&gt;|&lt;value&gt;               設值
+        /// aref|&lt;field&gt;|&lt;assetPath&gt;           欄位指向另一個 asset
+        /// addel|&lt;field&gt;[|&lt;type&gt;]             陣列/List 尾端加元素（type 只給 [SerializeReference]）
+        /// </code>
+        /// 刻意**不支援 invoke**：那是反射呼叫方法直接改物件狀態，不 Apply 也已經發生，
+        /// 放進「全成功才生效」的批次裡只是假的原子性。要按 Odin Button 用 `up asset invoke`。
+        /// </summary>
+        public static string Batch(string assetPath, string ops)
+        {
+            Object asset;
+            try
+            {
+                asset = LoadAsset(assetPath);
+            }
+            catch (Abort abort)
+            {
+                return $"# 未修改：{abort.Message}";
+            }
+
+            var so = new SerializedObject(asset);
+            var log = EditBatch.Run(ops, (verb, a) => Dispatch(so, asset, verb, a), out var done);
+            // EditBatch 第一個失敗就停，這裡再把「已經改在 SerializedObject 上的前幾行」一起丟掉
+            if (log.Contains("# 未修改"))
+                return log + $"# 整批未套用：{assetPath} 完全沒有變更（SerializedObject 沒 Apply）。\n";
+
+            Commit(so, asset);
+            return log + $"# 套用 {done} 個操作並存檔：{assetPath}\n";
+        }
+
+        private static string Dispatch(SerializedObject so, Object asset, string verb, string[] a)
+        {
+            switch (verb)
+            {
+                case "set":
+                    return DoSet(so, asset, EditBatch.Need(a, 0, verb, "fieldPath"),
+                        EditBatch.At(a, 1));
+                case "aref":
+                    return DoRef(so, asset, EditBatch.Need(a, 0, verb, "fieldPath"),
+                        EditBatch.Need(a, 1, verb, "assetPath"));
+                case "addel":
+                    return DoAddElement(so, asset, EditBatch.Need(a, 0, verb, "fieldPath"),
+                        EditBatch.At(a, 1));
+                default:
+                    throw new Abort(
+                        $"`{verb}` 不是 asset batch 的操作。可用：set|field|value、" +
+                        "aref|field|assetPath、addel|field[|type]" +
+                        (verb == "invoke"
+                            ? "。invoke 不可回滾，不收進批次 —— 用 `up asset invoke`"
+                            : ""));
+            }
+        }
+
+        private static void Commit(SerializedObject so, Object asset)
+        {
+            so.ApplyModifiedProperties();
+            EditorUtility.SetDirty(asset);
+            AssetDatabase.SaveAssets();
         }
 
         // ---- 內部 ----

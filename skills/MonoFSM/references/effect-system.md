@@ -84,6 +84,60 @@ var hitData = receiver.GenerateEffectHitData(dealer, null);
 var best = dealer.BestMatchReceiver;
 ```
 
+## 在物件上取「誰在跟我互動」的 selector entity
+
+物件（receiver 端）要根據**互動者身上的值**改變行為或文字提示（例如「你手上沒螺絲起子」）時，
+**不要去取本機玩家**（`entity_PlayerBrain` + `d_CurrentPlayerEntity` 那條全域 tag 解析鏈是給
+GameplayUI 這種本機 UI 用的，物件 prefab 上用它在多人下語意就錯了）。正解是走 best match 的 hitEntity。
+
+資料流（receiver 端；dealer 端對稱，寫入的是對方 receiver 的 entity）：
+
+```
+GeneralEffectReceiver.OnEffectHitBestMatchEnter          Resolver/GeneralEffectReceiver.cs:180-184
+  → EffectResolver.BestMatchEnterHandle(data, data.GeneralDealer.BindEntity)
+                                                          Resolver/EffectResolver.cs:129-133
+      → _bestEnterNode._hittingEntity.SetValue(pairEntity)
+```
+
+（`MonoFSM/1_MonoFSM_Core/Runtime/EffectHit/` 底下。非 best match 的一般命中走
+`OnEffectHitEnter` → `_enterNode._hittingEntity`，`GeneralEffectReceiver.cs:108-112`。）
+
+節點結構範本：
+
+```
+[Receiver] Distance Select                <GeneralEffectReceiver>
+  [Event] EffectEnterBestMatchNode        <EffectEnterBestMatchNode _clearHittingEntityOnExit=?>
+    [Var] <effectType> bestMatch hitEntity  <VarEntity _isRuntimeOnly=true>   ← 名字由框架 Rename 自動產生
+      [Var] ….d_HandToolKind                <VarInt _varTag=d_HandToolKind>   ← 巢狀取互動者身上的 var
+```
+
+底下那顆巢狀 Var 就能被 `VarIntCompareCondition._varInt._var` / value source 直接引用
+（**不需要放在 VariableFolder 裡**，`[Var] Interact hitEntity.d_HandToolKind` 這種寫法就是這樣長的）。
+
+要點與踩過的坑：
+
+- `EffectResolver._bestEnterNode` 是 `[CompRef][AutoChildren(DepthOneOnly = true)]`
+  （`EffectResolver.cs:121`）→ **node 必須是 receiver / dealer 的直屬子節點**，
+  放深一層會靜默拿不到，而且沒有錯誤訊息。同理一顆 resolver 只吃**一顆** node。
+- `_hittingEntity` 是 `[Component] public VarEntity`（`AbstractEffectEnterNode.cs`），
+  可以指向別處的 VarEntity。所以**多個 receiver 要覆蓋同一個語意時，各自加一顆 node、
+  `_hittingEntity` 全指到同一顆 VarEntity**（例：`Selectable Prompt ModulePack` 的
+  `Distance Select` 與 `In Player Interact Range Detect 玩家互動範圍` 是 `Is BestMatched` 的 OR
+  兩條路，只接一顆會在另一條點亮時讀到 null）。
+- **共用同一顆 VarEntity 時 `_clearHittingEntityOnExit` 一律設 false**。清除是
+  `OnEffectHitBestMatchExit → _bestEnterNode.ClearHittingEntityIfNeeded()`
+  （`GeneralEffectReceiver.cs:186-193`），每顆 node 清的是**共用**的那顆 var ——
+  A 退出就把 B 還在用的值清掉。留殘值是安全的：每次 best match enter 都會覆寫，
+  而讀取端本來就用 `IsBestMatched`（`[Getter] Is BestMatched` / `IsBestMatchedReceiverCondition`）把關。
+- 專案**沒有** `d_Selector` / `d_CurrentSelector` 之類的 varTag，也**沒有** receiver→dealer 方向的
+  ValueSource；`up catalog getter` 只有反方向的 `GetBestMatchEntityFromDealer` /
+  `ListEntityFromEffectDealer`。`IsBestMatchedReceiverCondition` 只讀 `_receiver.IsBestMatched`（bool），
+  拿不到 entity。所以這條鏈只能自己接，不要再花時間找現成 getter。
+- 既有範例：`Assets/0_Gameplay/0_Network Modules/Plug/[Entity] Socket for Plug 插座 (Receiver).prefab`
+  的 `[Receiver] d_plug_Socketing/[Event] EffectEnterBestMatchNode/[Var] d_plug_Socketing hitEntity`
+  （同一顆 var 也被 `[Event] EffectEnterNode._hittingEntity` 共用）；
+  `Assets/0_Gameplay/0_Network Modules/[Part] 螺絲.prefab` 的螺絲起子提示分支。
+
 ## EffectHitTarget 共用 Enum
 
 當 Action 需要選擇對 Dealer 或 Receiver 操作時，使用共用的 `EffectHitTarget` enum：

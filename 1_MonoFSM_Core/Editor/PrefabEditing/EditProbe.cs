@@ -181,6 +181,51 @@ namespace MonoFSM.Editor.PrefabEditing
         }
 
         /// <summary>
+        /// 只列一個節點上掛了哪些 component（名稱）。
+        ///
+        /// 存在理由：`peek` 少給 `--comp` 時原本只回一行「要 --comp」，那趟 round trip 完全白跑
+        /// （usage log 裡有 19 次）。而下一步一定是「先看看這節點上有什麼」。
+        ///
+        /// **只取 GetType().Name，絕對不呼叫任何 property getter** —— 盲掃屬性會在 native 層
+        /// abort 掉整個 Editor（managed try/catch 攔不到，見 Peek 的註解與
+        /// reference_up_peek_property_getter_crash）。
+        /// </summary>
+        /// <param name="assetPath">prefab asset 路徑；留空 = 對當前 scene 的節點</param>
+        public static string ComponentNames(string assetPath, string nodePath)
+        {
+            try
+            {
+                Transform node;
+                string where;
+                if (string.IsNullOrEmpty(assetPath))
+                {
+                    node = EditResolve.NodeInRoots(EditResolve.RuntimeRoots(), nodePath);
+                    where = Application.isPlaying ? "PlayMode" : "EditMode";
+                }
+                else
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+                    if (asset == null) return $"# 找不到 prefab: {assetPath}";
+                    node = string.IsNullOrEmpty(nodePath)
+                        ? asset.transform
+                        : EditResolve.TryNode(asset.transform, nodePath);
+                    if (node == null)
+                        return EditResolve.DescribeChildren(asset.transform, nodePath);
+                    where = "asset";
+                }
+
+                var names = node.GetComponents<Component>()
+                    .Where(c => c != null).Select(c => c.GetType().Name).ToList();
+                return $"# {EditResolve.Describe(nodePath)} [{where}] 上的 component："
+                       + EditResolve.Join(names) + "\n# 挑一個接 --comp（欄位值才會 dump 出來）";
+            }
+            catch (EditResolve.EditAbort abort)
+            {
+                return $"# {abort.Message}";
+            }
+        }
+
+        /// <summary>
         /// 在 Unity 合併後的 prefab contents 裡定位節點。variant 繼承來的節點/component 也看得到；
         /// 路徑走 EditResolve 的 escape + 同名 sibling [n] 規則，可直接餵回 --node。
         /// </summary>
@@ -355,6 +400,16 @@ namespace MonoFSM.Editor.PrefabEditing
             var type = comp.GetType();
             var sb = new StringBuilder(string.IsNullOrEmpty(header) ? "" : header + "\n");
 
+            // override 標記：合併後的值看不出「是這顆自己改的還是繼承的」，而那正是改完
+            // prefab 之後最想確認的一件事。判準與 HierarchyTextExporter 共用（PrefabOverrideMark），
+            // isDefaultOverride 已排除，否則每顆 component 都是滿滿的星號。
+            var overrides = PrefabOverrideMark.TopLevelOverrides(comp);
+            var source = PrefabOverrideMark.SourceLabel(comp);
+            if (source != null)
+                sb.AppendLine(overrides.Count > 0
+                    ? $"  # * = 這顆自己 override 的欄位；其餘繼承自 {source}"
+                    : $"  # 沒有任何 override，整顆繼承自 {source}");
+
             List<string> names;
             if (!string.IsNullOrEmpty(members))
                 names = members.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
@@ -396,7 +451,8 @@ namespace MonoFSM.Editor.PrefabEditing
                     continue;
                 }
 
-                sb.AppendLine($"  {name} = {Show(value)}");
+                sb.AppendLine(
+                    $"  {name}{(PrefabOverrideMark.Contains(overrides, name) ? "*" : "")} = {Show(value)}");
             }
 
             if (listPropertiesWhenEmpty && string.IsNullOrEmpty(members))

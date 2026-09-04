@@ -23,7 +23,11 @@ public partial class GameData
     /// <summary>
     ///     對 source 建立一顆 variant asset，回傳新建的 variant（失敗回 null）。
     /// </summary>
-    public static GameData CreateVariantAsset(GameData source)
+    /// <param name="nameHint">
+    ///     指定新 asset 的檔名（不含副檔名），通常是呼叫端所在的 prefab 名。
+    ///     null / 空字串時用 "{base 名} Variant"。存放位置一律是 base asset 同資料夾。
+    /// </param>
+    public static GameData CreateVariantAsset(GameData source, string nameHint = null)
     {
         if (source == null)
         {
@@ -40,7 +44,10 @@ public partial class GameData
 
         var dir = System.IO.Path.GetDirectoryName(path);
         var fileName = System.IO.Path.GetFileNameWithoutExtension(path);
-        var newPath = AssetDatabase.GenerateUniqueAssetPath($"{dir}/{fileName} Variant.asset");
+        var newName = SanitizeFileName(nameHint);
+        if (string.IsNullOrEmpty(newName))
+            newName = $"{fileName} Variant";
+        var newPath = AssetDatabase.GenerateUniqueAssetPath($"{dir}/{newName}.asset");
 
         if (!AssetDatabase.CopyAsset(path, newPath))
         {
@@ -89,6 +96,24 @@ public partial class GameData
         AssetDatabase.SaveAssetIfDirty(variant);
         Debug.Log($"{VariantLogTag} 建立 {newPath}，base = {source.name}", variant);
         return variant;
+    }
+
+    /// <summary>
+    ///     把 nameHint 洗成合法檔名（濾掉 OS 不允許的字元），全空回 null 讓呼叫端 fallback。
+    /// </summary>
+    private static string SanitizeFileName(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+
+        var invalid = System.IO.Path.GetInvalidFileNameChars();
+        var sb = new System.Text.StringBuilder(raw.Length);
+        foreach (var c in raw.Trim())
+            if (System.Array.IndexOf(invalid, c) < 0)
+                sb.Append(c);
+
+        var result = sb.ToString().Trim();
+        return string.IsNullOrEmpty(result) ? null : result;
     }
 
     /// <summary>

@@ -74,6 +74,28 @@ up asset set "Assets/10_Flags/GameData/滅火器.asset" "_dataFunctions.Array.da
 傳 `--type` 會直接報錯（不會默默忽略）。**沒有 remove-element** —— 誤加了 null 元素，
 最省事是 `create --overwrite` 重建再重填。
 
+## `asset do` —— 一次改多個欄位（要的是原子性）
+
+```bash
+up asset do "Assets/…/X.asset" -f ops.txt      # 或直接帶位置參數 / 從 stdin
+up asset do "Assets/…/Registry.asset" "addel|_events" "aref|_events.Array.data[0]|Assets/…/Tag.asset"
+```
+
+三個 verb（asset 沒有節點概念，第一個參數直接是 fieldPath）：
+
+```
+set|<field>|<value>
+aref|<field>|<assetPath>
+addel|<field>[|<type>]        type 只給 [SerializeReference] 陣列
+```
+
+**任一行失敗就整批不套用**：整批共用一個 `SerializedObject`，失敗就不 `ApplyModifiedProperties`
+—— asset 檔案完全沒被碰過。這是它存在的理由：逐次 `asset set` 時第三行打錯字會留下一筆
+半填的 registry 資料，而那種東西 runtime 不會報錯，只會靜默少一筆。
+
+**不收 `invoke`**：那是反射呼叫方法直接改物件狀態，不 Apply 也已經發生，放進「全成功才生效」
+的批次裡只是假的原子性。要按 Odin Button 用 `up asset invoke`。
+
 ## 新建的 GameData 要重掃 `AllFlagCollection`
 
 `GameData.Price` / `bindPrefab` 這類 property 在 Play Mode 下只查 `_dataFunctionDict`，

@@ -6,6 +6,13 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.EffectHit.Resolver
 {
+    /// <summary>
+    ///     不經 detector、直接讓一組 dealer → receiver 發一次 effect（走 ForceDirectEffectHit，enter 完立刻 exit）。
+    ///     跟 EffectDetector 的差別：這裡不判重疊、不看距離，「誰打誰」是自己指定的，
+    ///     所以用在「偵測與施加要分開」的場合 —— 例如 passive dealer 平常只維護命中清單，
+    ///     玩家按下使用時才用這顆對清單裡的每個目標各發一次（配 ForEachEntityInListAction）。
+    ///     dealer / receiver 兩端都可以選 DirectReference 或 FromVarEntity（後者用 _effectType 去該 entity 上查）。
+    /// </summary>
     public class ForceTriggerEffectAction : AbstractStateAction
     {
         enum SourceMode { DirectReference, FromVarEntity }

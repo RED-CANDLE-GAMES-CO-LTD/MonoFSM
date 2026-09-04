@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import os
 import re
@@ -16,11 +17,40 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import indexer  # noqa: E402
+import memo  # noqa: E402
 import query  # noqa: E402
 import readcache  # noqa: E402
 import unity  # noqa: E402
 import usage  # noqa: E402
 from config import CONFIG_NAME, Config  # noqa: E402
+
+
+def _emit(text: str) -> None:
+    """印一段已經受 C# 端 charBudget 管的輸出。
+
+    刻意不用 print()：HardCap 會截到剛好 charBudget（結尾已經有換行），print() 再補一個
+    就變成 budget+1 —— 實測 35001/35000，害 usage 的「budget 超量」統計永遠歸不了零。
+    """
+    if text is None:
+        return
+    sys.stdout.write(text if text.endswith("\n") else text + "\n")
+
+
+# --max-chars 攔截時要附的「怎麼縮小」建議。截斷本身不夠 —— agent 看到「被截斷」
+# 而不知道下一步該打什麼，就會原封不動重打一次更貴的指令。
+CAP_HINTS = {
+    "find": "先看分佈用 --by-asset，或縮小 --comp / --name / --path。",
+    "overrides": "先看分佈用 --by-target（一份大場景逐欄位列出是幾十萬字元），"
+                 "再對單一 instance 用 -n 下鑽。",
+    "catalog": "加關鍵字或 -n 縮小；要單一型別的完整欄位用 --type <型別>。",
+    "cat": "加關鍵字或 -n 縮小；要單一型別的完整欄位用 --type <型別>。",
+    "prefab read": "用 --node 指定子樹下鑽，或降 --budget。",
+    "prefab locate": "縮小 --comp / --name，或降 -n。",
+    "scene ls": "用 --node 指定子樹，或加 --structure-only。",
+    "refs": "降 -n，或用 --comp 只看一顆 component。",
+    "logs": "降 -n，或 --type Error 只看錯誤。",
+    "fields": "改用 `up catalog --type <型別>` 只看語意與 tooltip。",
+}
 
 
 def find_root(start: str) -> str:
@@ -190,6 +220,16 @@ def cmd_find(args, root, cfg):
         _no_match([], bool(paths))
         return
 
+    # 命中被 limit 切掉時一定要講 —— 只印「50 match(es)」會被讀成「總共就這些」，
+    # 接著做的分析（「這個 component 只有這幾處用到」）就整個是錯的。
+    # **結論印在明細之前**：明細可能被 --max-chars 攔在中途，而表尾那句是唯一
+    # 會改變結論的資訊，截掉它換來的是一次錯誤結論的重查。
+    total = query.find_count(con, **where) if len(rows) >= args.limit else len(rows)
+    cut = total > len(rows)
+    if cut:
+        print(f"# {len(rows)} / 共 {total} match(es) —— 被 -n {args.limit} 切掉了。"
+              f"用 --by-asset 看分佈，或縮小條件{scope_note()}\n")
+
     resolved = _resolve_anchors(rows) if args.resolve else {}
 
     for apath, fid, npath, active, comps in rows:
@@ -207,14 +247,9 @@ def cmd_find(args, root, cfg):
             else:
                 print(f"    ✗ anchor 解不開：{payload}")
 
-    # 命中被 limit 切掉時一定要講 —— 只印「50 match(es)」會被讀成「總共就這些」，
-    # 接著做的分析（「這個 component 只有這幾處用到」）就整個是錯的
-    if len(rows) >= args.limit:
-        total = query.find_count(con, **where)
-        if total > len(rows):
-            print(f"\n{len(rows)} / 共 {total} match(es) —— 被 -n {args.limit} 切掉了。"
-                  f"用 --by-asset 看分佈，或縮小條件{scope_note()}")
-            return
+    if cut:
+        print(f"\n{len(rows)} / 共 {total} match(es)（同上：被 -n {args.limit} 切掉了）")
+        return
     print(f"\n{len(rows)} match(es){scope_note()}")
 
 
@@ -421,13 +456,18 @@ LOC = f"{unity.EDIT_NS}.LocEdit"
 ANCHOR = f"{unity.EDIT_NS}.EditAnchor"
 
 
-def _ops_text(args) -> str:
-    """批次操作的來源：--file、位置參數，或 stdin。"""
+def _ops_text(args, use_path: bool = True) -> str:
+    """批次操作的來源：--file、位置參數，或 stdin。
+
+    use_path=False 給 `asset do` —— 它的 `path` 是 assetPath 本身，被當成一行 op
+    就會變成一條看不懂的錯誤。
+    """
     if getattr(args, "file", None):
         with open(args.file, encoding="utf-8") as fh:
             return fh.read()
     # `scene do` 的第一個位置參數會被 `path`（new / open 用的）先吃掉，所以兩邊都撈
-    inline = [v for v in (getattr(args, "path", None), *getattr(args, "ops", ())) if v]
+    inline = [v for v in ((getattr(args, "path", None) if use_path else None),
+                          *getattr(args, "ops", ())) if v]
     if inline:
         return "\n".join(inline)
     if sys.stdin.isatty():
@@ -458,7 +498,7 @@ def cmd_scene(args, root, cfg):
     elif a == "save":
         print(unity.call(f"{SCENE}.Save"))
     elif a == "ls":
-        print(unity.call(f"{SCENE}.Export", args.node, args.depth, args.full,
+        _emit(unity.call(f"{SCENE}.Export", args.node, args.depth, args.full,
                          args.budget, args.structure_only))
     elif a == "count":
         print(unity.call(f"{SCENE}.Count", args.comp, args.name, args.sample))
@@ -475,7 +515,10 @@ def cmd_prefab(args, root, cfg):
         _prefab_read(args, root)
     elif args.action == "peek":
         if not args.comp:
-            raise SystemExit("peek 要 --comp <component 型別>")
+            # 原本只回一行「要 --comp」—— 那趟 Unity 來回完全白跑（usage log 19 次）。
+            # 下一步一定是「先看這節點上有什麼」，就順手回答掉。
+            print(unity.call(f"{PROBE}.ComponentNames", args.asset, args.node or ""))
+            return
         print(unity.call(f"{PROBE}.PeekAsset", args.asset, args.node, args.comp, args.members))
     elif args.action == "peek-batch":
         print(unity.call(f"{PROBE}.PeekAssetBatch", args.asset, _probe_text(args)))
@@ -499,12 +542,16 @@ def _prefab_read(args, root):
 
     只有 read 值得快取：它是唯一「純讀、輸出很肥、同一份東西會被反覆問」的 action。
     key 算不出來時（readcache 回 None）就退化成沒有快取的原本行為。
+
+    **預設開啟**（原本要顯式 `--cache`，實測 415 次只有 21 次命中 = 5%，因為沒人記得加）。
+    正確性靠 readcache 的 dep mtime + 匯出工具指紋，不是靠使用者記得加旗標；
+    真的怕（剛在 Inspector 改過還沒存檔）就 `--no-cache`。
     """
     full_expand = args.full
     params = {"asset": args.asset, "node": args.node, "depth": args.depth,
               "budget": args.budget, "fsm": args.fsm, "fsm_only": args.fsm_only,
               "structure_only": args.structure_only, "full": full_expand}
-    use_cache = args.cache and not args.no_cache
+    use_cache = not args.no_cache
     key = readcache.key_for(root, args.asset, params) if use_cache else None
 
     if key:
@@ -512,13 +559,24 @@ def _prefab_read(args, root):
         if cached is not None:
             usage.note("cache", "hit")
             print(readcache.HIT_NOTE)
-            print(cached)
+            _emit(cached)
+            return
+        # 第二層：同一支 prefab 已經有祖先節點的完整子樹在快取裡 → 本地裁出來
+        sliced = readcache.slice_for(root, args.asset, params)
+        if sliced is not None:
+            text, src = sliced
+            usage.note("cache", "slice")
+            print(f"# [cache] 本地切片：從已快取的 {src} 子樹裁出（該段沒有任何摺疊標記）。"
+                  "唯一與直接 read 的差別：指到這顆子樹外面的引用會是 `@../..` 相對路徑，"
+                  "而不是 `res:<asset>#Type` —— 資訊更多不是更少。要重問 Unity 加 --no-cache")
+            print(f"# subtree: {args.node}")
+            _emit(text)
+            # 存成這組參數自己的 key，下次就是第一層命中
+            readcache.store(root, key, text, args.asset, params)
             return
 
     if args.no_cache:
         usage.note("cache", "bypass")
-    elif not args.cache:
-        usage.note("cache", "off")
     elif not key:
         usage.note("cache", "unavailable")
     else:
@@ -526,9 +584,9 @@ def _prefab_read(args, root):
     text = unity.call(f"{READER}.Export", args.asset, args.node, args.depth,
                       full_expand, args.budget, args.fsm, args.fsm_only,
                       args.structure_only)
-    print(text)
+    _emit(text)
     if use_cache and key:
-        readcache.store(root, key, text)
+        readcache.store(root, key, text, args.asset, params)
 
 
 def cmd_asset(args, root, cfg):
@@ -547,6 +605,9 @@ def cmd_asset(args, root, cfg):
         print(unity.call(f"{ASSET}.Invoke", args.path, args.method))
     elif a == "fields":
         print(unity.call(f"{ASSET}.ListFields", args.path))
+    elif a == "do":
+        # 原子性：AssetEdit.Batch 任一行失敗就不 ApplyModifiedProperties，asset 不會半套
+        print(unity.call(f"{ASSET}.Batch", args.path, _ops_text(args, use_path=False)))
 
 
 def cmd_prompt(args, root, cfg):
@@ -555,16 +616,23 @@ def cmd_prompt(args, root, cfg):
     這件事本來要跨 Localization 條目、value source 節點、條件 / token 子節點、Auto 綁定與
     Rename 四個系統，每次臨時寫 execute-dynamic-code 都要重踩同一批雷（m_KeyId 是 long、
     節點名含 `/`、{token} 沒開 IsSmart 不會展開）。實作在 C# 的 PromptEdit。
+
+    條件與 token 都是「只補不刪」：對既有 source 下 case 不會動到人工掛好的 condition /
+    token binding。`if:` 指的條件已存在（同 VarBool + 同 targetValue）就不重建；
+    `prompt:` 的 token 名已存在就只更新資產、沒有同名的才新增。要清空重建才給
+    --case-replace-conditions / --case-replace-tokens，而且會把移除的節點名印進報告。
     """
     if getattr(args, "check", False):
         # 只驗不改：手工組的（ConditionRef / SmartStringTokenBinding）Apply 蓋不到，
         # 但驗收一樣要看「每顆 source 組出什麼」＋「Token 檢查有沒有 ✗」
-        print(unity.call(f"{PROMPT}.Check", args.asset, args.var_node, args.locale))
+        print(unity.call(f"{PROMPT}.Check", args.asset, args.var_node, args.locale,
+                         args.var_literal))
         return
     cases = "\n".join(args.case) if args.case else _cases_from_file(args)
     print(unity.call(
         f"{PROMPT}.Apply", args.asset, args.var_node, cases,
-        args.locale, args.table, args.prune))
+        args.locale, args.table, args.prune,
+        args.case_replace_conditions, args.case_replace_tokens, args.var_literal))
 
 
 def cmd_loc(args, root, cfg):
@@ -631,7 +699,12 @@ def _first_sentence(text: str, limit=100) -> str:
     return head
 
 
-def _print_catalog_row(row, verbose=False, show_path=False):
+def _print_catalog_row(row, verbose=False, show_path=False, compact=False):
+    """compact = 大量列的瀏覽模式：有 summary 的只留一行，路徑另外折到表尾。
+
+    欄位行佔了寬清單近半的字元，但對「⚠無說明」的列它是唯一的判斷依據，
+    所以砍的是有說明那些的欄位行，不是全部。
+    """
     cls, path, kind, bases, is_abs, is_obs, summary, has_doc, fields = row
     head = cls
     if is_abs:
@@ -640,14 +713,18 @@ def _print_catalog_row(row, verbose=False, show_path=False):
         head += " ⛔Obsolete"
     if summary:
         mark = "" if has_doc else " ~"  # ~ = 只有 // 註解，不是正式 doc
-        body = summary if verbose else _first_sentence(summary)
+        body = summary if verbose else _first_sentence(summary, 80 if compact else 100)
         print(f"{head} ─{mark} {body}")
+    elif compact and not show_path:
+        print(f"{head} ⚠無說明")  # 路徑折到表尾
     else:
         print(f"{head} ⚠無說明  {path}")
     if verbose:
         print(f"    <{bases}>  {path}")
     elif show_path and summary:
         print(f"    {path}")
+    if compact and summary:
+        return  # 欄位用 --type / -v 取，這裡省掉
     for line in _fmt_fields(fields, verbose):
         print(line)
 
@@ -691,10 +768,14 @@ def cmd_catalog(args, root, cfg):
     # 又多半是第三方 asset，要看得明確指定 `so`
     kinds = None if args.kind != "all" else FSM_KINDS
     kind = None if args.kind == "all" else args.kind
+    # 不帶關鍵字的寬清單是最大宗的 token 消耗源（單次上萬字元），
+    # 預設收斂成瀏覽用的精簡模式；-v / --path 代表使用者要細節，就不壓。
+    compact = not args.keyword and not args.verbose and not args.path
+    limit = args.limit if args.limit is not None else (200 if args.keyword else 60)
     total, rows = query.catalog_list(
         con, kind=kind, kinds=kinds, keyword=args.keyword, missing=args.missing,
         include_abstract=args.abstract, include_obsolete=args.obsolete,
-        limit=args.limit)
+        limit=limit)
     label = CATALOG_KINDS.get(kind, "FSM 節點型別")
     scope = f"{label}"
     if args.keyword:
@@ -704,7 +785,13 @@ def cmd_catalog(args, root, cfg):
     shown = f"，顯示 {len(rows)}" if len(rows) < total else ""
     print(f"# {scope}：{total} 個{shown}")
     for r in rows:
-        _print_catalog_row(r, verbose=args.verbose, show_path=args.path)
+        _print_catalog_row(r, verbose=args.verbose, show_path=args.path,
+                           compact=compact)
+    if compact:
+        n_missing = sum(1 for r in rows if not r[6])
+        if n_missing:
+            print(f"# {n_missing} 個缺說明，路徑用 `--missing --path` 看")
+        print("# 精簡模式：有說明的列已省略欄位，完整欄位用 `--type <型別>` 或 -v")
     if len(rows) < total:
         print(f"# … 還有 {total - len(rows)} 個，用 --limit 或加關鍵字縮小")
 
@@ -761,13 +848,16 @@ def cmd_obj(args, root, cfg):
     if args.locate:
         print(unity.call(f"{GID}.Locate", token, args.open, args.select))
         return
-    print(unity.call(
+    _emit(unity.call(
         f"{GID}.Peek", token, args.node, args.depth, args.full,
         args.budget, args.fsm, args.open, args.select, args.fsm_only,
         args.structure_only))
 
 
 def cmd_peek(args, root, cfg):
+    if not args.comp:
+        print(unity.call(f"{PROBE}.ComponentNames", "", args.node))
+        return
     print(unity.call(f"{PROBE}.Peek", args.node, args.comp, args.members))
 
 
@@ -785,9 +875,19 @@ def cmd_poke(args, root, cfg):
     print(unity.call(f"{PROBE}.Poke", args.node, args.comp, args.value))
 
 
+# logs 的兩道安全欄。`-n` 從 10 拉到 100（10 筆常常看不到真正的第一個錯），
+# 代價是輸出可能爆掉，所以同時加：單則訊息上限 + 整體字元上限 + 相同訊息摺疊。
+LOG_MSG_CLIP = 400
+LOG_BUDGET = 8000
+
+
 def cmd_logs(args, root, cfg):
     """Console 記錄的精簡版。原生 get-logs 每筆都帶一整份 JSON 欄位，
-    實際要看的是「哪一行炸了」——所以只印訊息與（選配）前幾行 stack。"""
+    實際要看的是「哪一行炸了」——所以只印訊息與（選配）前幾行 stack。
+
+    **相同訊息摺疊成 xN**：一個 FixedUpdate 裡的 error 會每幀重印，逐筆列出來是同一句話
+    幾十次（實測 6 次呼叫 162,625 字元）。要看的是「有幾種錯」，不是「印了幾次」。
+    """
     call = ["get-logs", "--max-count", str(args.limit)]
     if args.type != "All":
         call += ["--log-type", args.type]
@@ -796,11 +896,39 @@ def cmd_logs(args, root, cfg):
     data = unity.run(call)
     logs = data.get("Logs") or []
     print(f"# {data.get('TotalCount', len(logs))} 筆（顯示 {len(logs)}），type={args.type}")
+
+    groups = {}
+    order = []
     for entry in logs:
-        print(f"[{entry.get('Type')}] {entry.get('Message', '').strip()}")
-        if args.stack and entry.get("StackTrace"):
-            for line in str(entry["StackTrace"]).strip().splitlines()[: args.stack]:
-                print(f"    {line.strip()}")
+        msg = str(entry.get("Message") or "").strip()
+        key = (entry.get("Type"), msg[:200])
+        if key in groups:
+            groups[key]["n"] += 1
+            continue
+        groups[key] = {"n": 1, "msg": msg, "type": entry.get("Type"),
+                       "stack": entry.get("StackTrace")}
+        order.append(key)
+
+    spent = 0
+    for i, key in enumerate(order):
+        row = groups[key]
+        msg = row["msg"]
+        if len(msg) > LOG_MSG_CLIP:
+            msg = msg[:LOG_MSG_CLIP] + f"…（原長 {len(row['msg'])}）"
+        count = f" x{row['n']}" if row["n"] > 1 else ""
+        chunk = [f"[{row['type']}]{count} {msg}"]
+        if args.stack and row["stack"]:
+            for line in str(row["stack"]).strip().splitlines()[: args.stack]:
+                chunk.append(f"    {line.strip()}")
+        text = "\n".join(chunk)
+        if spent + len(text) > LOG_BUDGET:
+            print(f"# … 還有 {len(order) - i} 種訊息未列出（已到 {LOG_BUDGET} 字元）。"
+                  "降 -n、或 --type Error 只看錯誤")
+            break
+        print(text)
+        spent += len(text) + 1
+    if len(order) < len(logs):
+        print(f"# （{len(logs)} 筆摺成 {len(order)} 種）")
 
 
 def cmd_clear(args, root, cfg):
@@ -813,6 +941,260 @@ def cmd_play(args, root, cfg):
     print(json.dumps(data, ensure_ascii=False))
 
 
+# ---- 錯誤路徑（大小寫不敏感 → near-match → 精簡 --help）----
+#
+# 1,040 次呼叫裡 116 次（11.2%）第一行就是錯誤或 usage，而 argparse 預設的錯誤輸出是
+# 「一行訊息 + 一整份 usage」（實測 ~900 字元），那份 usage 幾乎沒有一次幫上忙 ——
+# 真正需要的是「你打的那個字最接近哪個合法值」。
+
+SCOPE_ACTIONS = ("list", "stats", "init")
+FIND_SCOPES = ("full", "all", "shallow")
+SCENE_ACTIONS = ("new", "copy", "open", "save", "ls", "count", "do")
+PREFAB_ACTIONS = ("read", "peek", "peek-batch", "locate", "do", "variant", "copy")
+CATALOG_KIND_CHOICES = ("action", "condition", "render", "handler", "getter",
+                        "var", "so", "all")
+LOG_TYPES = ("All", "Error", "Warning", "Log")
+PLAY_ACTIONS = ("play", "stop", "pause")
+
+
+def _ci(*choices):
+    """argparse `type=`：把 enum 參數做大小寫不敏感的正規化。
+
+    最便宜的一層修正 —— `up catalog Condition` 只差一個大寫就整條失敗，
+    而那是 agent 最自然的寫法（型別名在程式碼裡就是大寫開頭）。
+    認不出來的原樣回去，讓 choices 去報「最接近的是什麼」。
+    """
+    table = {str(c).lower(): c for c in choices}
+
+    def conv(raw):
+        return table.get(str(raw).lower(), raw)
+
+    conv.__name__ = "choice"
+    return conv
+
+
+# option 字串 → 有這個旗標的子指令，供 near-match 用
+_ALL_OPTS: dict = {}
+_CHOICE_ERR = re.compile(
+    r"argument ([^:]+): invalid choice: '(.*?)' \(choose from (.*)\)$", re.S)
+
+
+def _compact_error(prog: str, parser, message: str) -> str:
+    m = _CHOICE_ERR.match(message)
+    if m:
+        arg, bad, rest = m.groups()
+        choices = re.findall(r"'([^']*)'", rest)
+        near = difflib.get_close_matches(bad.lower(), [c.lower() for c in choices], 3, 0.4)
+        tail = (f"最接近：{', '.join(near)}" if near
+                else f"合法值：{', '.join(choices)}")
+        return f"{prog}: '{bad}' 不是合法的 {arg}。{tail}"
+
+    m = re.match(r"unrecognized arguments: (.*)$", message, re.S)
+    if m:
+        bad = m.group(1).split()
+        hints = []
+        for token in bad:
+            if not token.startswith("-"):
+                continue
+            for cand in difflib.get_close_matches(token, list(_ALL_OPTS), 2, 0.6):
+                owners = _ALL_OPTS[cand][:3]
+                hints.append(f"{cand}（{'/'.join(owners)}）")
+        return (f"{prog}: 不認得 {' '.join(bad)}"
+                + (f"。最接近：{'、'.join(hints)}" if hints
+                   else "。合法參數看 `up <子指令> --help`"))
+
+    m = re.match(r"the following arguments are required: (.*)$", message, re.S)
+    if m:
+        need = m.group(1)
+        return f"{prog}: 少了必填參數 {need}（用法看 `up {prog.split()[-1]} --help`）"
+
+    return f"{prog}: {message}"
+
+
+class _Parser(argparse.ArgumentParser):
+    """把 argparse 的錯誤出口換成「一行訊息 + near-match」，不印整份 usage。"""
+
+    def error(self, message):
+        sys.stderr.write("# " + _compact_error(self.prog, self, message) + "\n")
+        raise SystemExit(2)
+
+
+def _pos_token(action) -> str:
+    name = action.metavar or action.dest
+    if action.nargs == "?":
+        return f"[{name}]"
+    if action.nargs in ("*", "..."):
+        return f"[{name}…]"
+    if action.nargs == "+":
+        return f"<{name}…>"
+    return f"<{name}>"
+
+
+def _sub_help_lines(names, sp, one_liner) -> list:
+    """一個子指令壓成 1–3 行：名稱 + 必填參數 + enum 合法值 + 旗標名。
+
+    刻意保留 enum 合法值 —— 少列它會逼 agent 為了問「condition 還是 conditions」
+    再叫一次 --help，那比多印幾十個字元貴得多。砍掉的是每個旗標的說明文字。
+    """
+    head = names[0] + (f"|{'|'.join(names[1:])}" if len(names) > 1 else "")
+    pos, enums, flags = [], [], []
+    for a in sp._actions:
+        if a.dest == "help":
+            continue
+        if not a.option_strings:
+            pos.append(_pos_token(a))
+            if a.choices:
+                enums.append(f"{a.metavar or a.dest}={'|'.join(map(str, a.choices))}")
+        else:
+            opt = max(a.option_strings, key=len)
+            if a.choices:
+                enums.append(f"{opt}={'|'.join(map(str, a.choices))}")
+            else:
+                flags.append(opt)
+    out = [f"{head} {' '.join(pos)}".rstrip() + (f"   — {one_liner}" if one_liner else "")]
+    if enums:
+        out.append("    " + "  ".join(enums))
+    if flags:
+        out.append("    " + " ".join(flags))
+    # asset 是唯一的兩層子指令。不展開的話「asset <asset_action>」等於什麼都沒說，
+    # 逼人再叫一次 `up asset --help`（實測 5,312 字元）——那比在這裡多印十行貴。
+    for a in sp._actions:
+        if not isinstance(a, argparse._SubParsersAction):
+            continue
+        inner_help = {ca.dest: (ca.help or "") for ca in a._choices_actions}
+        for name, isp in a.choices.items():
+            ipos = [_pos_token(x) for x in isp._actions
+                    if not x.option_strings and x.dest != "help"]
+            iflags = [max(x.option_strings, key=len) for x in isp._actions
+                      if x.option_strings and x.dest != "help"]
+            line = f"      {names[0]} {name} {' '.join(ipos)}".rstrip()
+            if iflags:
+                line += " " + " ".join(iflags)
+            tip = inner_help.get(name, "")
+            out.append(line + (f"   — {tip}" if tip else ""))
+    return out
+
+
+def _compact_help(parser) -> str:
+    subs = None
+    for a in parser._actions:
+        if isinstance(a, argparse._SubParsersAction):
+            subs = a
+    if subs is None:
+        return argparse.ArgumentParser.format_help(parser)
+
+    helps = {ca.dest: (ca.help or "") for ca in subs._choices_actions}
+    groups, index = [], {}
+    for name, sp in subs.choices.items():
+        if id(sp) in index:
+            groups[index[id(sp)]][0].append(name)
+        else:
+            index[id(sp)] = len(groups)
+            groups.append(([name], sp))
+
+    out = [
+        "uprefab — Unity serialized data 的離線索引 / 查詢 / 編輯 CLI（慣例別名 up）。",
+        "全域：--root PATH ｜ --max-chars N（輸出攔截，0=不限）｜ --no-memo（關掉 60 秒同指令 memo）",
+        "enum 與子指令名大小寫不拘。`<>` 必填、`[]` 選填。每個子指令的完整說明用 "
+        "`up <子指令> --help`。",
+        "",
+    ]
+    for names, sp in groups:
+        out += _sub_help_lines(names, sp, helps.get(names[0], ""))
+    return "\n".join(out) + "\n"
+
+
+class _TopParser(_Parser):
+    def format_help(self):
+        return _compact_help(self)
+
+
+# 頂層帶值的旗標（正規化 argv 時要連值一起跳過）
+_VALUE_FLAGS = {"--root", "--max-chars"}
+_GLOBAL_FLAGS = {"--root", "--max-chars", "--no-memo"}
+
+
+def _hoist_globals(argv: list) -> list:
+    """把寫在子指令後面的全域旗標搬到最前面。
+
+    argparse 的全域 optional 只認「子指令之前」的位置，而
+    `up overrides X --no-memo` 是最自然的寫法 —— 不搬的話它會變成
+    「不認得 --no-memo」，那正是這一則在修的錯誤類型。
+    """
+    head, rest, i = [], [], 0
+    while i < len(argv):
+        tok = argv[i]
+        name = tok.split("=", 1)[0]
+        if name in _GLOBAL_FLAGS:
+            if "=" in tok or name not in _VALUE_FLAGS:
+                head.append(tok)
+                i += 1
+            else:
+                head += argv[i:i + 2]
+                i += 2
+            continue
+        rest.append(tok)
+        i += 1
+    return head + rest
+
+
+def _normalize_argv(argv: list, sub_names: dict, asset_names: dict) -> list:
+    """子指令名做大小寫不敏感比對。argparse 的 subparsers 沒有這個開關，只能先改 argv。"""
+    out = _hoist_globals(argv)
+    i = 0
+    while i < len(out):
+        tok = out[i]
+        if tok in _VALUE_FLAGS:
+            i += 2
+            continue
+        if tok.startswith("-") and tok != "-":
+            i += 1
+            continue
+        break
+    if i >= len(out):
+        return out
+    canon = sub_names.get(out[i].lower())
+    if canon:
+        out[i] = canon
+    if out[i] == "asset":
+        j = i + 1
+        while j < len(out) and out[j].startswith("-") and out[j] != "-":
+            j += 1
+        if j < len(out):
+            canon2 = asset_names.get(out[j].lower())
+            if canon2:
+                out[j] = canon2
+    return out
+
+
+def _index_options(parser) -> None:
+    for a in parser._actions:
+        for opt in a.option_strings:
+            _ALL_OPTS.setdefault(opt, ["全域"])
+        if isinstance(a, argparse._SubParsersAction):
+            for name, sp in a.choices.items():
+                for sa in sp._actions:
+                    for opt in sa.option_strings:
+                        owners = _ALL_OPTS.setdefault(opt, [])
+                        if name not in owners:
+                            owners.append(name)
+
+
+def _cap_for(args) -> int:
+    """實際生效的字元上限。0 = 不限。
+
+    `--budget 0`（Unity 端不限）現在只解除 C# 那一層 —— 要真的無上限得同時 `--max-chars 0`。
+    反過來說，明確給了大 budget 的人不該被全域上限攔住，所以 cap 至少放到 budget+2000。
+    """
+    cap = max(0, int(getattr(args, "max_chars", 0) or 0))
+    if cap == 0:
+        return 0
+    budget = getattr(args, "budget", None)
+    if isinstance(budget, int) and budget > 0:
+        cap = max(cap, budget + 2000)
+    return cap
+
+
 def _like(v: str | None) -> str | None:
     """沒帶萬用字元時自動包成 %v%，讓查詢預設是模糊比對。"""
     if v is None:
@@ -821,9 +1203,13 @@ def _like(v: str | None) -> str | None:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(prog="uprefab", description=__doc__)
+    p = _TopParser(prog="uprefab", description=__doc__)
     p.add_argument("--root", default=".", help="repo root（預設往上自動尋找）")
-    sub = p.add_subparsers(dest="cmd", required=True)
+    p.add_argument("--max-chars", type=int, default=30000,
+                   help="整趟輸出的 hard cap（第二道網，攔截時會附原長與縮小建議）；0 = 不限")
+    p.add_argument("--no-memo", action="store_true",
+                   help="關掉「同 argv 60 秒內直接回上次結果」的 memo")
+    sub = p.add_subparsers(dest="cmd", required=True, parser_class=_Parser)
 
     pi = sub.add_parser("index", help="建立/更新索引")
     pi.add_argument("--rebuild", action="store_true", help="忽略 mtime，全部重掃")
@@ -831,14 +1217,14 @@ def main() -> None:
     pi.set_defaults(fn=cmd_index)
 
     ps = sub.add_parser("scope", help="索引範圍管理")
-    ps.add_argument("action", choices=["list", "stats", "init"])
+    ps.add_argument("action", choices=SCOPE_ACTIONS, type=_ci(*SCOPE_ACTIONS))
     ps.set_defaults(fn=cmd_scope)
 
     pf = sub.add_parser("find", help="依 component / 名稱 / 路徑定位節點")
     pf.add_argument("--comp", help="component 型別（短名，模糊比對）")
     pf.add_argument("--name", help="GameObject 名稱")
     pf.add_argument("--path", help="資產路徑")
-    pf.add_argument("--scope", choices=["full", "all", "shallow"], default="full",
+    pf.add_argument("--scope", choices=FIND_SCOPES, type=_ci(*FIND_SCOPES), default="full",
                     help="索引 tier；預設 full（--scope all 才包含供 override 解析的 shallow）")
     pf.add_argument("-n", "--limit", type=int, default=50)
     pf.add_argument("--no-inherit", action="store_true",
@@ -872,8 +1258,7 @@ def main() -> None:
     # ---- 需要 Unity 開著 ----
 
     pc = sub.add_parser("scene", help="對當前開著的 scene 讀 / 寫（需要 Unity）")
-    pc.add_argument("action",
-                    choices=["new", "copy", "open", "save", "ls", "count", "do"])
+    pc.add_argument("action", choices=SCENE_ACTIONS, type=_ci(*SCENE_ACTIONS))
     pc.add_argument("path", nargs="?", help="new / copy / open 的 scene 路徑")
     pc.add_argument("--template", help="copy：來源模板 scene 路徑")
     pc.add_argument("--defaults", action="store_true", help="new：帶 Camera + Light")
@@ -892,8 +1277,7 @@ def main() -> None:
     pc.set_defaults(fn=cmd_scene)
 
     pp = sub.add_parser("prefab", help="對 prefab asset 讀 / 寫（需要 Unity）")
-    pp.add_argument("action", choices=["read", "peek", "peek-batch", "locate",
-                                       "do", "variant", "copy"])
+    pp.add_argument("action", choices=PREFAB_ACTIONS, type=_ci(*PREFAB_ACTIONS))
     pp.add_argument("asset", help="prefab asset path")
     pp.add_argument("--node", help="read / peek：子樹路徑（peek 留空 = root）")
     pp.add_argument("--comp", help="peek：component 型別")
@@ -912,9 +1296,9 @@ def main() -> None:
     pp.add_argument("--full", action="store_true", help="read：保留 Renderer/ParticleSystem/AudioSource/Light 與完整欄位、不摺疊已知子樹（預設會摺、會排除，省 token）")
     cache_group = pp.add_mutually_exclusive_group()
     cache_group.add_argument("--cache", action="store_true",
-                             help="read：明確啟用磁碟快取（預設不讀也不寫）")
+                             help="read：相容旗標；快取現在是預設開啟，不用加")
     cache_group.add_argument("--no-cache", action="store_true",
-                             help="read：相容旗標；完全不讀也不寫快取")
+                             help="read：完全不讀也不寫快取（剛在 Inspector 改過還沒存檔時用）")
     pp.add_argument("--out", help="variant / copy：新 prefab 的 asset path")
     pp.add_argument("--name", help="variant / copy：root 名稱（預設用檔名）")
     pp.add_argument("-n", "--limit", type=int, default=20,
@@ -958,6 +1342,17 @@ def main() -> None:
     paf = asub.add_parser("fields", help="列出 asset 上的 serialized 欄位（名稱 + 型別）")
     paf.add_argument("path", help="assetPath")
 
+    pad = asub.add_parser(
+        "do", help="一次跑多行欄位操作；任一行失敗就整批不套用（asset 完全不變）",
+        description="一行一個操作，`#` 是註解。asset 沒有節點概念，第一個參數就是 fieldPath：\n"
+                    "  set|<field>|<value>          設值\n"
+                    "  aref|<field>|<assetPath>     欄位指向另一個 asset\n"
+                    "  addel|<field>[|<type>]       陣列尾端加元素（type 只給 [SerializeReference]）\n"
+                    "不收 invoke —— 那是反射呼叫方法、失敗回不去，放進批次是假的原子性。")
+    pad.add_argument("path", help="assetPath")
+    pad.add_argument("-f", "--file", help="從檔案讀（- 以外的路徑）")
+    pad.add_argument("ops", nargs="*", help="直接帶操作（一個參數一行）")
+
     pa.set_defaults(fn=cmd_asset)
 
     pm = sub.add_parser(
@@ -969,13 +1364,24 @@ def main() -> None:
                     "順序就是 sibling 順序 —— 有條件的排前面、無條件的墊底。")
     pm.add_argument("asset", help="prefab asset path")
     pm.add_argument("--var", dest="var_node", required=True,
-                    help="VarString 節點路徑（value source 會掛在它底下）")
+                    help="VarString 節點路徑（value source 會掛在它底下）。"
+                         "逃逸規則同 prefab read/do：`\\/` = 名字裡的斜線、`\\n` = 換行、"
+                         "`\\\\` = 字面反斜線")
+    pm.add_argument("--var-literal", action="store_true",
+                    help="--var / if: 的路徑照字面比對，不做逃逸還原（名字裡有反斜線又懶得逃逸時用）。"
+                         "代價：名字含 `/` 的節點在這個模式下指不到")
     pm.add_argument("--case", action="append",
                     help="一條提示，可重複給；順序 = 挑選優先序")
     pm.add_argument("--locale", default="zh-TW", help="要寫文案的 locale（預設 zh-TW）")
     pm.add_argument("--table", default="GameplayUI", help="string table collection（預設 GameplayUI）")
     pm.add_argument("--prune", action="store_true",
                     help="刪掉不在 --case 清單裡的既有 value source")
+    pm.add_argument("--case-replace-conditions", action="store_true",
+                    help="清空 source 底下既有的 VarBoolCompareCondition 再照 `if:` 重建。"
+                         "預設是只補不刪（既有條件一律保留，if: 指的條件已存在就不動）")
+    pm.add_argument("--case-replace-tokens", action="store_true",
+                    help="清空 source 底下既有的 InputPromptTokenBinding 再照 `prompt:` 重建。"
+                         "預設是只補不刪（同名的更新資產、沒有同名的才新增）")
     pm.add_argument("-f", "--file", help="從檔案讀 case（一行一條）")
     pm.add_argument("--check", action="store_true",
                     help="只驗不改：印出每顆 value source 組出的字串與 Token 檢查報告")
@@ -1009,8 +1415,7 @@ def main() -> None:
         "catalog", aliases=["cat"],
         help="Action / Condition 等型別的用途與 serialized 欄位（離線）")
     pcat.add_argument("kind", nargs="?", default="action",
-                      choices=["action", "condition", "render", "handler",
-                               "getter", "var", "so", "all"],
+                      choices=CATALOG_KIND_CHOICES, type=_ci(*CATALOG_KIND_CHOICES),
                       help="預設 action")
     pcat.add_argument("keyword", nargs="?", help="過濾型別名或說明")
     pcat.add_argument("--type", help="只看某一個型別（完整欄位 + tooltip）")
@@ -1020,7 +1425,8 @@ def main() -> None:
                       help="連 [Obsolete] 的也列出（預設隱藏，別挑到廢棄的）")
     pcat.add_argument("--path", action="store_true", help="每一列都附檔案路徑")
     pcat.add_argument("-v", "--verbose", action="store_true", help="展開每個欄位與 tooltip")
-    pcat.add_argument("-n", "--limit", type=int, default=200)
+    pcat.add_argument("-n", "--limit", type=int, default=None,
+                      help="預設：有 keyword 200，無 keyword 60")
     pcat.set_defaults(fn=cmd_catalog)
 
     pt = sub.add_parser("types", help="名稱含關鍵字的 Component 型別（需要 Unity）")
@@ -1056,7 +1462,8 @@ def main() -> None:
 
     pk = sub.add_parser("peek", help="讀 scene 上某 component 的 runtime 值（需要 Unity）")
     pk.add_argument("node", help="節點路徑（第一段是 root object 名）")
-    pk.add_argument("comp", help="component 型別")
+    pk.add_argument("comp", nargs="?",
+                    help="component 型別；留空 = 只列這個節點上有哪些 component")
     pk.add_argument("--members", help="逗號分隔的欄位/屬性名；留空 = 所有 public 屬性")
     pk.set_defaults(fn=cmd_peek)
 
@@ -1073,9 +1480,10 @@ def main() -> None:
     pke.set_defaults(fn=cmd_poke)
 
     pl = sub.add_parser("logs", help="Console 記錄（精簡；需要 Unity）")
-    pl.add_argument("--type", default="Error",
-                    choices=["All", "Error", "Warning", "Log"])
-    pl.add_argument("-n", "--limit", type=int, default=10)
+    pl.add_argument("--type", default="Error", choices=LOG_TYPES,
+                    type=_ci(*LOG_TYPES))
+    pl.add_argument("-n", "--limit", type=int, default=100,
+                    help="抓最近幾筆（相同訊息會摺疊，所以 100 不等於 100 行）")
     pl.add_argument("--stack", type=int, nargs="?", const=6, default=0,
                     help="附前幾行 stack trace（預設 6）")
     pl.set_defaults(fn=cmd_logs)
@@ -1084,7 +1492,7 @@ def main() -> None:
     pcl.set_defaults(fn=cmd_clear)
 
     py = sub.add_parser("play", help="Play Mode 控制（需要 Unity）")
-    py.add_argument("action", choices=["play", "stop", "pause"])
+    py.add_argument("action", choices=PLAY_ACTIONS, type=_ci(*PLAY_ACTIONS))
     py.set_defaults(fn=cmd_play)
 
     pu = sub.add_parser("usage", help="使用記錄統計（哪一步最花時間）")
@@ -1094,19 +1502,40 @@ def main() -> None:
     pu.add_argument("--since", type=float, metavar="HOURS",
                     help="只統計最近幾小時，避免舊版行為掩蓋新資料")
 
-    args = p.parse_args()
+    _index_options(p)
+    asset_names = {k.lower(): k for k in asub.choices}
+    sub_names = {k.lower(): k for k in sub.choices}
+    argv = sys.argv[1:]
+    args = p.parse_args(_normalize_argv(argv, sub_names, asset_names))
     root = find_root(args.root)
     if args.cmd == "usage":
         usage.report(root, args.gap, args.top, args.since)
         return
 
-    tee = usage.Tee(sys.stdout) if usage.enabled() else None
-    if tee:
-        sys.stdout = tee
+    sub_cmd = usage._sub_cmd(args)
+    cap = _cap_for(args)
+    # memo：同 argv 60 秒內直接回上次結果。寫入類指令會 bump epoch 讓整批失效。
+    no_memo = args.no_memo or os.environ.get("UPREFAB_NO_MEMO") == "1"
+    memoizable = not no_memo and sub_cmd in memo.MEMOIZABLE
+    if sub_cmd not in memo.MEMOIZABLE and sub_cmd not in memo.NEUTRAL:
+        memo.bump(root)  # 寫入類：跑之前就失效，中途炸掉也不會留下可疑的 memo
+    replay = memo.load(root, argv) if memoizable else None
+
+    tee = usage.Tee(sys.stdout, cap, CAP_HINTS.get(sub_cmd, ""))
+    if memoizable:
+        tee.capture()
+    sys.stdout = tee
     t0 = time.time()
     status = "ok"
     try:
-        args.fn(args, root, Config.load(root))
+        if replay is not None:
+            usage.note("memo", "hit")
+            tee.replay(replay)
+        else:
+            if cap and getattr(args, "budget", None) == 0:
+                print(f"# --budget 0 只解除 Unity 端的上限；輸出仍會被 --max-chars "
+                      f"{cap:,} 攔截。真的要無上限請同時給 --max-chars 0")
+            args.fn(args, root, Config.load(root))
     except unity.UnityError as e:
         status = "unity-error"
         raise SystemExit(f"# Unity 呼叫失敗：{e}")
@@ -1117,10 +1546,12 @@ def main() -> None:
         status = "error"
         raise
     finally:
-        if tee:
-            sys.stdout = tee._real
-            usage.record(root, args, tee.chars,
-                         int((time.time() - t0) * 1000), status, tee.head)
+        tee.finish()
+        sys.stdout = tee._real
+        usage.record(root, args, tee.chars,
+                     int((time.time() - t0) * 1000), status, tee.head)
+        if memoizable and replay is None and status == "ok":
+            memo.store(root, argv, tee.text())
 
 
 if __name__ == "__main__":

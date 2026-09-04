@@ -18,13 +18,15 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `add\|<parent>\|<name>\|<comp,comp>` | 建節點並掛 component。parent 留空 = prefab root 下 / scene root 層 |
 | `prefab\|<prefabPath>\|<parent>\|<name>` | 放 prefab 實例（prefab / scene 都支援；prefab 端就是裝 nested prefab 模組）。name 留空 = 用 prefab 自己的名字 |
 | `comp\|<node>\|<comp,comp>` | 對既有節點加 component |
-| `set\|<node>\|<comp>\|<field>\|<value>` | 設值。float / int / bool / string / enum（傳名稱）/ Vector3（`"x,y,z"`）。long（`m_TableEntryReference.m_KeyId`）超出 int 範圍會自動走 `longValue` |
+| `set\|<node>\|<comp>\|<field>\|<value>` | 設值。float / int / bool / string / enum（傳名稱）/ Vector3（`"x,y,z"`）/ Vector2（`"x,y"`）/ Vector4（`"x,y,z,w"`）/ Quaternion（`"x,y,z,w"` 或 `"x,y,z"` 歐拉角）。long（`m_TableEntryReference.m_KeyId`）超出 int 範圍會自動走 `longValue` |
 | `ref\|<node>\|<comp>\|<field>\|<target>[\|<targetComp>]` | 指向另一個節點。targetComp 省略 = 用欄位宣告型別去找 |
 | `aref\|<node>\|<comp>\|<field>\|<assetPath>` | 指向 asset（prefab / SO）。prefab 會按欄位型別取 component。內建 primitive 用 `builtin:Cube` / `Quad` / `Sphere` / `Capsule` / `Cylinder` / `Plane` / `Default-Material` —— 它們住在 `Library/unity default resources`，`AssetDatabase` 讀不到 |
 | `addel\|<node>\|<comp>\|<field>` | 陣列 / List 欄位尾端加一個元素，回傳新 index；接著用 `set` / `aref` 補 `<field>.Array.data[<i>]`。**不能用 `set` 改 `.Array.size`**（ArraySize propertyType 走不進 ApplyValue） |
-| `pos\|<node>\|x,y,z` | 設 localPosition |
-| `scale\|<node>\|x,y,z` | 設 localScale（**只有 prefab**） |
-| `rot\|<node>\|x,y,z` | 設 localEulerAngles（**只有 prefab**） |
+| `revert\|<node>\|<comp>\|<fieldPath>` | 清掉單一 property override，讓值回到繼承自 base / nested prefab 的值（**只有 prefab**）。`<comp>` 留空 = GameObject 本身（`m_IsActive`）。**執行時機排在存檔前 callback 之後**，否則 callback 會把 override 寫回來。存檔後會驗「真的不再是 override」 |
+| `pos\|<node>\|x,y,z` | 設 localPosition（`<node>` 留空 = root）。**目標是 RectTransform 時會警告並指向 `rect`** —— Canvas relayout 會蓋掉 localPosition |
+| `rect\|<node>\|<ax,ay>\|<w,h>\|<anchor>\|<px,py>` | UI 專用（**只有 prefab**）：寫 anchoredPosition / sizeDelta / anchorMin+Max / pivot，每格都可留空 = 不動。anchor 吃 preset 名（`center` / `top-left` / `stretch` / `stretch-h`…）或 `minX,minY,maxX,maxY` |
+| `scale\|<node>\|x,y,z` | 設 localScale（**只有 prefab**；`<node>` 留空 = root） |
+| `rot\|<node>\|x,y,z` | 設 localEulerAngles（**只有 prefab**；`<node>` 留空 = root，複製出來的 prefab 要歸零殘留旋轉就靠這個） |
 | `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（含 nested prefab override 記錄與 reload 驗證；第二格必填） |
 | `idx\|<node>\|<siblingIndex>` | 調 sibling 順序。**child 順序＝優先序**（value source / condition 取第一個成立的），負數從尾端算（`-1` = 最後） |
 | `mv\|<node>\|<newParent>` | 換 parent（scene 與 prefab 都支援） |
@@ -36,7 +38,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `save` | 存 scene（**只有 scene**；prefab batch 結束自動存） |
 | `mark\|<label>[\|<node>]` | 給節點取個短名，之後用 `$label` 代換。不給 `<node>` = 標記上一個建立節點的操作 |
 
-**`add` / `comp` / `set` / `ref` / `aref` / `addel` / `delcomp` / `delmissing` 的 `<node>` 留空 = prefab root**
+**`add` / `comp` / `set` / `ref` / `aref` / `addel` / `revert` / `pos` / `rect` / `scale` / `rot` / `delcomp` / `delmissing` 的 `<node>` 留空 = prefab root**
 （`MonoEntity` / `MonoObj` / `NetworkObject` 都掛在 root 上）。scene 版沒有這個語意 ——
 scene 沒有唯一 root，第一段一定要是 root object 名稱。
 
@@ -105,7 +107,8 @@ auto|
 - `prefab do` 會檢查 `SaveAsPrefabAsset` 成功，並 reload 驗證可推導的 touched 欄位；至少
   `active` 一定驗證。`auto` 若無法完整推導，摘要會明講 unsupported，不會假裝已驗。
   `--quiet` 只壓縮成功 log，錯誤仍保留完整行號與下一步線索。
-- 要人工補驗時用預設不碰 cache 的 `prefab peek` / `prefab read`；不要為了「新鮮」加 `--cache`。
+- 要人工補驗時用 `prefab peek`（不經 cache）；`prefab read` 的 cache 預設開著，但 key 綁
+  prefab mtime，`prefab do` 存過檔就自動失效 —— 只有「在 Inspector 手改還沒存檔」需要 `--no-cache`。
 
 ## 同名節點用 `[n]` 指定第幾個
 

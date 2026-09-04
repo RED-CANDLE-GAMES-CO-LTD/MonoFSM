@@ -98,6 +98,13 @@ namespace MonoFSM.Variable
             }
         }
 
+        //FinalValue 是 Base + modifiers 現算出來的，網路權威值不能寫進 Field，要走覆寫通道
+        protected override bool IsNetworkValueComputed => true;
+
+        //modifier 來源改變不會對外發事件（只在有人讀 CurrentValue 時才 ForceCalValues），
+        //NetworkedVarSync 的 dirty gate 收不到通知，要跟 Getter 一樣每 tick 輪詢
+        public override bool IsNetworkPolled => true;
+
         public override float CurrentValue
         {
             get
@@ -108,6 +115,11 @@ namespace MonoFSM.Variable
                     return base.CurrentValue;
                 }
 
+
+                //非 SA 端收到的權威 FinalValue：modifier 來源（搬運質量、負重…）不一定都有同步，
+                //本地再算一次會跟權威值打架 → UI 抖動。有覆寫值就直接回，不算本地 modifier
+                if (IsNetOverridden)
+                    return NetOverrideValue;
 
                 //FIXME: bound還要管嗎？
                 // ModifiersDirtyCheck();
