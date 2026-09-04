@@ -35,6 +35,13 @@ namespace RCGInputAction
             [ValueDropdown("GetSpriteNameOptions", AppendNextDrawer = true)]
             public string _spriteName;
 
+            //這台裝置這顆鍵沒有圖時退而求其次顯示的文字（ex: "L1"、"F5"）。
+            //只在 _spriteName 是空的時候用得到，同一則提示的其他顆 icon 照常顯示。
+            //是按鍵名不是句子，所以不進 String Table
+            [TableColumnWidth(80, false)]
+            [Tooltip("這顆鍵沒有 icon 時改顯示的文字，ex: L1、F5。留空＝這顆就整個不顯示")]
+            public string _fallbackText;
+
             //單顆補償：圖案在 64px 格子裡偏矮/偏小時放大（ex: shift 的圖只有一般按鍵的一半高）。1 = 不調整。
             //最終大小 = registry 全域 × config 裝置級 × 這個值，數字不用手算，按 config 上的自動校正按鈕
             [TableColumnWidth(70, false)]
@@ -153,7 +160,13 @@ namespace RCGInputAction
             foreach (var entry in _tagEntryBuffer)
             {
                 if (string.IsNullOrEmpty(entry._spriteName))
-                    continue; //這顆還沒填 sprite 名稱，其他顆照樣顯示（缺哪顆在 Editor 的各機種對照表看得出來）
+                {
+                    //這顆沒有圖：有填 fallback 文字就退成文字，沒填就跳過讓其他顆照樣顯示
+                    //（缺哪顆在 Editor 的各機種對照表看得出來）
+                    if (!string.IsNullOrEmpty(entry._fallbackText))
+                        _tagBuilder.Append(entry._fallbackText);
+                    continue;
+                }
 
                 var scale = SanitizeScale(extraScale)
                             * SanitizeScale(_deviceIconScale)

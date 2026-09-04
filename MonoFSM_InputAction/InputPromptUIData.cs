@@ -34,9 +34,15 @@ namespace RCGInputAction
         //_input 與各個 _extraInputs 之間插的字（ex: "+"）；同一個 action 的多顆鍵之間不插
         public string _inputSeparator;
 
-        //找不到對照 icon 時的替代圖
+        //找不到對照 icon 時的替代圖（icon-only 場合用，走 GetIcon）
         [FormerlySerializedAs("placeHolderIcon")]
         public Sprite _placeHolderIcon;
+
+        //圖文混排場合的最後保底：整則提示一顆 icon 都組不出來時（表裡完全沒這顆鍵、registry 沒載到）
+        //改用這串文字，ex: "[互動鍵]"。單顆鍵缺圖請填 DeviceIconMapConfig entry 的 _fallbackText，
+        //那層比較精細，也能反映裝置差異
+        [Tooltip("整則提示都組不出 icon 時改顯示的文字，ex: [互動鍵]。留空＝token 會是空字串")]
+        public string _fallbackText;
 
         //icon-only 場合用（ex: InputPromptUILabel 純圖示顯示）；多顆鍵的提示這裡只會拿到第一顆
         public Sprite GetIcon()
@@ -63,7 +69,7 @@ namespace RCGInputAction
         {
             var finder = ResolveFinder();
             if (finder == null)
-                return null;
+                return NullIfEmpty(_fallbackText);
             var registry = finder as PromptIconRegistry; //只有 registry 查得了指定機種
 
             _spriteTagBuilder.Clear();
@@ -80,7 +86,15 @@ namespace RCGInputAction
                 _spriteTagBuilder.Append(tag);
             }
 
-            return _spriteTagBuilder.Length == 0 ? null : _spriteTagBuilder.ToString();
+            return _spriteTagBuilder.Length == 0
+                ? NullIfEmpty(_fallbackText)
+                : _spriteTagBuilder.ToString();
+        }
+
+        //沒填 fallback 就維持回 null，讓 Editor 預覽照樣顯示「表裡沒有 sprite tag 資料」
+        private static string NullIfEmpty(string text)
+        {
+            return string.IsNullOrEmpty(text) ? null : text;
         }
 
         private static readonly System.Text.StringBuilder _spriteTagBuilder = new();
@@ -97,16 +111,75 @@ namespace RCGInputAction
                     yield return extra;
         }
 
-        //Play Mode 由 HintSpriteFinderInstaller 注入；Editor 沒跑過 installer，就自己去專案裡找一份來 preview
+        //放在 Resources 底下的那份 registry，是 build 出去唯一保證會被打包、且不靠場景擺設的來源
+        private const string ResourcesRegistryName = "PromptIconRegistry";
+
+        //查詢順序：installer 注入 -> Resources 的那份 -> (Editor) 專案裡任一份。
+        //中間那條 Editor 也要走，不然「場景忘了放 installer」會被 EditorPreviewFinder 蓋掉、在編輯器完全測不出來
+        //（踩過：build 出去所有圖文提示的 <sprite> 全變空字串，Editor 卻一切正常）
         private static IHintSpriteFinder ResolveFinder()
         {
             if (_spriteFinder != null)
                 return _spriteFinder;
+
+            var fromResources = ResourcesFinder;
+            if (fromResources != null)
+                return fromResources;
+
 #if UNITY_EDITOR
-            return EditorPreviewFinder;
-#else
-            return null;
+            var editorFinder = EditorPreviewFinder;
+            if (editorFinder != null)
+            {
+                LogFinderProblemOnce(
+                    $"Resources 裡沒有 {ResourcesRegistryName}.asset，現在是靠 Editor 專用的全專案搜尋撐著；"
+                        + "build 出去會抓不到 icon，請把 PromptIconRegistry 放進任一 Resources 資料夾");
+                return editorFinder;
+            }
 #endif
+            LogFinderProblemOnce(
+                "找不到 IHintSpriteFinder：場景沒放 HintSpriteFinderInstaller，"
+                    + $"Resources/{ResourcesRegistryName} 也不存在，所有圖文提示的 <sprite> 會是空字串");
+            return null;
+        }
+
+        private static PromptIconRegistry _resourcesFinder;
+        private static bool _resourcesFinderLoadAttempted;
+
+        //ResolveFinder 是每幀被問的（HasValueChanged -> GetSpriteTag），所以載到就記住、載不到也不重試
+        private static PromptIconRegistry ResourcesFinder
+        {
+            get
+            {
+                if (_resourcesFinder != null)
+                    return _resourcesFinder;
+                if (_resourcesFinderLoadAttempted)
+                    return null;
+
+                _resourcesFinderLoadAttempted = true;
+                _resourcesFinder = Resources.Load<PromptIconRegistry>(ResourcesRegistryName);
+                return _resourcesFinder;
+            }
+        }
+
+        private static bool _finderProblemLogged;
+
+        //每幀都會走到，同一個問題只印一次
+        private static void LogFinderProblemOnce(string message)
+        {
+            if (_finderProblemLogged)
+                return;
+            _finderProblemLogged = true;
+            Debug.LogError($"[InputPromptUIData] {message}");
+        }
+
+        //關掉 domain reload 時 static 會跨 Play Mode 殘留，錯誤變成只有第一次 Play 印得出來
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics()
+        {
+            _spriteFinder = null;
+            _resourcesFinder = null;
+            _resourcesFinderLoadAttempted = false;
+            _finderProblemLogged = false;
         }
 
 #if UNITY_EDITOR
