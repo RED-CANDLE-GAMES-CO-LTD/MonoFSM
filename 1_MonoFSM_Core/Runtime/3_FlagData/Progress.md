@@ -6,3 +6,11 @@
 - GameData Variant 一鍵生成：新增 `GameData.Variant.cs`（`CreateVariantAsset`／`CreateVariantAndSelect`，CopyAsset 整份複製後清空 `_configs`/`_objConfigs`/`_bindPrefab`、`_baseConfig` 指回 base、Manual 型重寫 SaveID）；三個入口＝GameData Inspector 按鈕、VarGameData「從 _defaultValue 建立 Variant」按鈕、Assets 右鍵 `Editor/FlagData/GameDataVariantMenu`。
 - GameData Config Override 介面改版：新增 `GameData.ConfigOverview.cs`（editor-only partial，把自己 + `_baseConfig` 疊層合併成一張 TableList，一列一 tag，顯示來源／Base 值／生效值，改值即 override、附 Override↔還原按鈕；原始 `_configs`/`_objConfigs` 收進「原始 config 陣列」foldout）；`GameDataConfigInjector` 加「注入對照表」（tag × folder 內 Var 的四態：會被注入／本地值優先(skip)／缺 Var／只有本地值，可直接 toggle skipTags）；`AbstractMonoVariable` 加 editor-only 提示：VarFloat / VarMonoObj 若 tag 命中綁定 GameData 的 config，inspector 出警示 InfoBox 並提供「加入 skipTags」按鈕。
 - `CreateVariantAsset` 加 `nameHint`：VarGameData 按鈕建 variant 時檔名用「所在 prefab 名」而非 `{base} Variant`（一顆 prefab 通常只綁一份 data，用 prefab 名比較好找；撞名交給 `GenerateUniqueAssetPath`）。存放位置仍固定在 base 同資料夾，這樣同一支 data 的 variant 才不會散落各處。prefab 名的取法要三段 fallback：Prefab Stage 的 `assetPath`（不能用 `contentsRoot.name`，可能被改過）→ scene 上 `GetNearestPrefabInstanceRoot` 的來源 asset → 純 scene 物件退回 `transform.root.name`。
+
+## GameDataListConfig.Items 的 main thread 守衛
+`Items` getter 在 `_baseConfig != null` 時會摸 `Application.isPlaying`，但載場景時
+`VarList<T>.OnAfterDeserialize` → `VarListData.SourceList` → 這裡是跑在 loading thread 的，
+直接丟 `UnityException: get_isPlaying can only be called from the main thread`。
+改成先過 `UnityMainThread.IsMainThread`（新增於 `Runtime/Utilities/UnityMainThread.cs`），
+非主執行緒就跳過「每次重算」而走 `_mergedCache`，資料仍然正確（真正在 Editor 改資料時
+`OnValidate` 會清 cache）。刻意不做的：不把 isPlaying 換成別的 Unity API —— 那些一樣是 main thread only。

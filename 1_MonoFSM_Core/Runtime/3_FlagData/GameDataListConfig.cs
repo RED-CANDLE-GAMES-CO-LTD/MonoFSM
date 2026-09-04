@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using _1_MonoFSM_Core.Runtime.Utilities;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -43,8 +44,11 @@ public class GameDataListConfig : ScriptableObject
             if (_baseConfig == null)
                 return _items;
 #if UNITY_EDITOR
-            //Editor 非 play 時資料隨時被改（含改到 base 那顆），每次重算才不會拿到舊的
-            if (!Application.isPlaying)
+            //Editor 非 play 時資料隨時被改（含改到 base 那顆），每次重算才不會拿到舊的。
+            //IsMainThread 是必要的守衛：載場景時 field initializer / OnAfterDeserialize 跑在 loading
+            //thread（例如 VarListData.SourceList → 這裡），碰 Application.isPlaying 會丟 UnityException。
+            //非主執行緒就跳過重算，直接用下面的快取路徑。
+            if (UnityMainThread.IsMainThread && !Application.isPlaying)
                 RebuildMerged();
 #endif
             if (_mergedCache == null)
