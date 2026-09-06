@@ -75,8 +75,16 @@ Editor 除了 asset 連結，還會產「指某個 scene 節點」的連結（`G
 [[Render] VerletRope](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-43f0…9184-4270686736619546228-1351641103)
 ```
 
-**不要拿它去 `up guid`** —— 那串 32 位 hex 是「物件所在的 scene」的 guid，不是節點。
-連結本身也不含節點路徑，所以在 `up obj` 之前，拿到這種連結等於什麼都沒拿到。
+兩種連結別搞混：
+
+| 連結 | 指的是 | 用 |
+|---|---|---|
+| `?asset_guid=<32hex>` | 一個 asset | `up guid` |
+| `?globalId=GlobalObjectId_V1-2-<sceneGuid>-<objId>-<prefabId>` | scene 上的**某個節點** | `up obj`（別名 `up gid`） |
+
+**不要拿 `globalId` 去 `up guid`** —— 那串 32 位 hex 是「物件所在的 scene」的 guid，不是節點，
+查出來只會得到 scene 路徑，答不出使用者問的那個物件。連結本身也不含節點路徑，
+所以在 `up obj` 之前，拿到這種連結等於什麼都沒拿到。
 
 ```bash
 up obj "[名稱](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-…)"  # 匯出它的子樹

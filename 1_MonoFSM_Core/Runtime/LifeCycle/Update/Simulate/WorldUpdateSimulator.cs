@@ -32,6 +32,22 @@ namespace MonoFSM.Core.Simulate
         bool TryBroadcastReset(bool isHardReset);
     }
 
+    /// <summary>
+    ///     Level reset **全部跑完之後**的回呼（checkpoint 還原這類「要蓋掉 reset 結果」的補寫掛這裡）。
+    ///
+    ///     為什麼不用 <see cref="IResetStart" />：IResetStart 與 StateMachineLogic.ResetStart()
+    ///     （RestoreState(0)）同一階段，彼此沒有順序保證 —— 補寫的值可能在 FSM 回到 init 之前就寫下去，
+    ///     然後被 state 的 OnStateEnter 蓋掉。這層保證跑在 ResetLevelRestore + ResetLevelStart 都結束之後。
+    ///
+    ///     用靜態註冊而不是 <c>GetComponents</c>（ILevelResetSpawnHandler 的做法）：那個做法要求 handler
+    ///     必須跟 simulator 同一顆 GameObject，也就是綁死在 DontDestroyOnLoad 的 NetworkRunner 上；
+    ///     checkpoint 快照是「一局」的資料，應該隨 gameplay 場景生滅，不能跟著 runner 活到大廳去。
+    /// </summary>
+    public interface IAfterLevelReset
+    {
+        void OnAfterLevelReset(bool isHardReset);
+    }
+
     public static class WorldUpdateSimulatorExtensions
     {
         public static MonoObj Spawn(
@@ -800,6 +816,44 @@ namespace MonoFSM.Core.Simulate
             _resetBroadcasters.Remove(broadcaster);
         }
 
+        // ===================== Level Reset 完成後回呼（IAfterLevelReset 註冊） =====================
+
+        private static readonly List<IAfterLevelReset> _afterLevelResetHandlers = new();
+
+        public static void RegisterAfterLevelReset(IAfterLevelReset handler)
+        {
+            if (handler != null && !_afterLevelResetHandlers.Contains(handler))
+                _afterLevelResetHandlers.Add(handler);
+        }
+
+        public static void UnregisterAfterLevelReset(IAfterLevelReset handler)
+        {
+            _afterLevelResetHandlers.Remove(handler);
+        }
+
+        /// <summary>
+        ///     reset 序列（Restore + Start）全部跑完後通知一輪。
+        ///     <see cref="ResetLevel" />（網路廣播路徑）與 <see cref="ManualResetLevelLocal" />（單機 fallback）
+        ///     兩條路徑都會走到 reset，所以兩處尾端都要叫一次；只補一處會讓沒連線時的 reset 漏掉補寫。
+        /// </summary>
+        private static void NotifyAfterLevelReset(bool isHardReset)
+        {
+            for (var i = 0; i < _afterLevelResetHandlers.Count; i++)
+            {
+                var handler = _afterLevelResetHandlers[i];
+                if (handler is UnityEngine.Object o && o == null) continue; //已被 Destroy 的殘留註冊
+                try
+                {
+                    handler.OnAfterLevelReset(isHardReset);
+                }
+                catch (System.Exception e)
+                {
+                    //單顆壞掉不能拖垮整批（對齊 ResetLevelRestore 的做法）
+                    Debug.LogException(e);
+                }
+            }
+        }
+
         /// <summary>
         ///     優先挑 SA 端的 broadcaster 直接 bump（multi-peer 下 host/client 兩顆都註冊著，
         ///     挑 SA 那顆可以省一趟 RPC，也讓同 frame 的重複請求在同一顆上被 tick 去重）。
@@ -908,6 +962,9 @@ namespace MonoFSM.Core.Simulate
                 foreach (var simulator in simulators)
                     //這樣就可以reset了
                     simulator.ResetLevelStart();
+
+                //Restore + Start 都跑完才輪到補寫（checkpoint 還原），詳見 IAfterLevelReset
+                NotifyAfterLevelReset(isHardReset);
             }
         }
 
@@ -922,6 +979,8 @@ namespace MonoFSM.Core.Simulate
                 resetHandler.OnBeforeLevelReset();
             ResetLevelRestore(isHardReset);
             ResetLevelStart();
+            //Restore + Start 都跑完才輪到補寫（checkpoint 還原），詳見 IAfterLevelReset
+            NotifyAfterLevelReset(isHardReset);
         }
 
         public void BeforeRender()

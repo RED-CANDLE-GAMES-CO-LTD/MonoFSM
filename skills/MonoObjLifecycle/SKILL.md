@@ -1,6 +1,6 @@
 ---
 name: MonoObjLifecycle
-description: MonoObj 更新生命週期系統的使用指南。當需要：(1) 了解 WorldUpdateSimulator 的更新迴圈架構 (2) 實作 Simulate、Render 等每幀更新邏輯 (3) 新增 IUpdateSimulate、IBeforeSimulate、IAfterSimulate、IRenderUpdate 實作 (4) 理解 MonoObj 註冊/反註冊流程 (5) 理解 local FixedUpdate/LateUpdate 與 Fusion FixedUpdateNetwork/Render 時機 (6) 拆分 simulation/render culling 時使用此 skill。
+description: MonoObj 更新生命週期系統的使用指南。當需要：(1) 了解 WorldUpdateSimulator 的更新迴圈架構 (2) 實作 Simulate、Render 等每幀更新邏輯 (3) 新增 IUpdateSimulate、IBeforeSimulate、IAfterSimulate、IRenderUpdate 實作 (4) 理解 MonoObj 註冊/反註冊流程 (5) 理解 local FixedUpdate/LateUpdate 與 Fusion FixedUpdateNetwork/Render 時機 (6) 拆分 simulation/render culling (7) 一次性初始化該用 ISceneAwake / ISceneStart、或初始化沒被呼叫 / GetVar 拿到 null 的時序問題時使用此 skill。
 ---
 
 # MonoObj Lifecycle
@@ -25,6 +25,48 @@ LocalSimulatorRunner.LateUpdate 尾段 / FusionSimulatorRunner.AfterRender
 每顆註冊的 `MonoObj` 都是獨立 scope。`[AutoChildren(StopAtType = typeof(MonoObj))]`
 不會跨進 nested MonoObj；nested MonoObj 會自己註冊並被 WorldUpdateSimulator 呼叫，不是由 root
 遞迴代跑。
+
+## 初始化時序：ISceneAwake / ISceneStart
+
+一次性初始化不要寫在 Unity 的 `Awake()` / `Start()`，改用這兩個介面（都在 global namespace，
+定義於 `MonoFSM/1_MonoFSM_Core/Runtime/Entity/IResetter.cs`）：
+
+| 介面 | 方法 | 時機 |
+|---|---|---|
+| `ISceneAwake` | `EnterSceneAwake()` | 由 `WorldUpdateSimulator.WorldInit()` 分派，早於 ISceneStart |
+| `ISceneStart` | `EnterSceneStart()` | WorldInit 後段，此時 `MonoDict` 等系統已 prepared |
+
+WorldInit 的觸發點：單機是 `LocalSimulatorRunner.Start()`；Fusion 是
+`FusionSimulatorRunner.OnSceneLoadDone()`（幾乎鐵定晚於一般 Unity `Start()`）。
+
+### 坑 1：ISceneAwake 只由 MonoObj 對自己子樹分派
+
+`MonoObj`（`MonoFSM/1_MonoFSM_Core/Runtime/LifeCycle/Update/MonoObj.cs`）是對自己的
+`GetComponentsInChildren<ISceneAwake>` 分派；`SceneLifecycleManager.HandleGameLevelAwake(level)`
+同樣只掃指定 level 物件的子樹。
+
+→ 直接在 scene 建一顆**裸 root GameObject** 掛 `ISceneAwake` 元件，**`EnterSceneAwake()` 永遠不會被呼叫，
+而且完全沒有錯誤訊息**。症狀是「元件欄位都填好了但初始化沒發生」（例如 static 注入仍是 null）。
+
+做法：這類「場景放一顆就好」的 installer 要掛在某個帶 `MonoObj` 的節點子樹下（本專案用
+`FusionFPS Core/GameCore`）。除錯時先檢查它要寫的目標值是否真的被設，再往上確認 parent 有沒有 MonoObj。
+
+`MonoObj._sceneStarts` 是 `[AutoChildren]` 的 interface array，runtime 由 AutoAttributeManager 重抓，
+改完不需要重存 prefab（除非該 prefab 有 `PrefabSerializeCache`）。
+
+### 坑 2：在 Start() 裡呼叫 GetVar 會靜默拿到 null
+
+`MonoDict.Get(key)`（`MonoFSM/1_MonoFSM_Core/Runtime/0_Pattern/MonoDict.cs`）在
+`_isPrepared == false && Application.isPlaying` 時只印一行 `GetFrom {key} Dict, Not prepared` 就回 `default`。
+`_isPrepared` 要等 `MonoDict.EnterSceneAwake()`，也就是 WorldInit 之後才成立。
+
+→ 任何在 Unity `Start()` 裡呼叫 `entity.GetVar(tag)` / `VariableFolder.GetVariable(...)` 的程式碼都不保證拿得到東西。
+危險的是常見的過濾寫法 `RemoveAll(e => e.GetVar(tag) == null)`：整份清單被清空，又只 cache 一次不會重抓 ——
+Console 只留一行 error，遊戲端是靜默空資料，很難聯想到時序問題。
+
+做法：「一次性抓取 + 快取」的 component 一律實作 `ISceneStart.EnterSceneStart()`，不要用 `Start()`
+（`AbstractDescriptionBehaviour.Start()` 本身就標了 `//FIXME: 不該用這個？`）。前提同樣是該 component 要在有
+`MonoObj` 的子樹下（見坑 1）。
 
 ## 更新介面
 

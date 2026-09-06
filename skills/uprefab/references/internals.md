@@ -58,6 +58,37 @@
 - **`scene` 系列作用在「當前開著的 active scene」**，不是路徑參數。先 `scene open` / `scene copy`。
 - **Play Mode 中不能開 / 建 scene**（會直接 abort，不會半途壞掉）。
 
+## 反射 / SerializedProperty 的地雷（改工具本身前必讀）
+
+### 不准盲掃 property getter —— 那是 native crash，`try/catch` 攔不到
+
+`up peek <node> <Comp>` 不帶 `--members` 曾經會列舉所有 public property 並逐一
+`GetValue`。Unity component 上有些 getter 會在 **native 層** abort 或把 stack 爆掉：
+Editor.log 只留下 mono stack dump（`GetMethodsByName_native` / `Delegate.CreateDelegate`），
+**managed `try/catch (Exception)` 完全攔不到**，整個 Editor 直接閃退（同一個呼叫試三次炸三次）。
+
+2026-08-24 已修（`EditProbe.Dump`）：`--members` 留空改成印 serialize 欄位（不呼叫任何
+getter），尾巴附上可查的屬性名清單；要屬性值就 `--members` 點名。`[Obsolete]` 屬性直接跳過。
+
+**通則**：反射掃 Unity 型別的 property 一律要 opt-in，不能預設全掃（`--deep` 攤開巢狀
+類別時也只走 serialize 欄位，同一個理由）。看到 Editor 閃退 + Editor.log 有 mono stack
+dump，不要去加 `try/catch` —— 正確修法是「不要呼叫它」。
+
+### `SerializedProperty.isArray` 對 `string` 也回 `true`
+
+string 底層以 char array 序列化，所以照字面判斷會把它當一般陣列。對字串做
+`InsertArrayElementAtIndex` / `arraySize++` 會**靜默寫壞 UTF-8 內容**，不拋錯也沒有警告。
+
+任何走 `SerializedProperty` 的陣列操作都要多一道排除：
+
+```csharp
+if (!prop.isArray || prop.propertyType == SerializedPropertyType.String)
+    // 不是可操作的陣列
+```
+
+`AssetEdit.AddArrayElement` 有這道防護（2026-07-29 加，就是先踩到才發現），
+使用者面的說明在 [asset.md](asset.md)。
+
 ## 模組
 
 ```
@@ -80,6 +111,7 @@ MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/
                             SetAssetRef / AddArrayElement / ListFields）
   EditProbe.cs              Types / Fields / Peek
   EditRefs.cs               引用反查（PrefabRefs / SceneRefs）
+  EditGid.cs                GlobalObjectId 連結 → scene 節點（`obj` / `gid`）
   EditAnchor.cs             離線 anchor（資產#fileID）→ 合併後可下鑽的路徑（find --resolve）
   AssetRef.cs               asset path → 該塞進 ObjectReference 的物件
 MonoFSM-Pro/Editor/PromptEdit.cs                                       localized 文字提示

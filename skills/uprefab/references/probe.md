@@ -16,6 +16,35 @@ up peek "資源生成器 FSM/Timer" VarFloatCountDownTimer --members "IsTimerUp,
 **不知道該給哪顆 component 時把 comp / `--comp` 留空** —— 會列出該節點上掛了哪些
 component 的名稱（只取型別名，不呼叫任何 property getter）。
 
+**路徑第一段是 prefab 名時**（`up peek "PPlayer/CharacterModules/…"`）不會再只回
+「scene 的 root 有（26 個）…」害你以為節點不存在 —— 它會認出那是 prefab，
+直接把 asset 路徑與該用的 `up prefab peek …` 指令印出來。prefab 不用開 stage 就讀得到。
+
+### 巢狀 `[Serializable]` 類別：點路徑與 `--deep`
+
+`IgnoreColliderFilter` / `TargetPositionResolver` 這種純資料類別直接印只會得到型別名
+（等於什麼都沒查到）。兩種讀法：
+
+```bash
+# 1. 點路徑：只要那一格，輸出最小。可帶 [n] 走陣列/List 元素
+up prefab peek "Assets/…/PPlayer.prefab" --node "…/[Raycast] RaycastCache[4]" \
+    --comp RaycastCache --members "_ignoreFilter._ignoreSelfEntity,_ignoreFilter._selfEntities[0]"
+
+# 2. --deep：把巢狀類別整個攤開（不帶數字 = 2 層），先探勘用
+up prefab peek "Assets/…/PPlayer.prefab" --node "…" --comp RaycastCache \
+    --members _ignoreFilter --deep
+#   _ignoreFilter = {_ignoreEntities=[], _ignoreSelfEntity=True, _selfEntities=[PPlayer <MonoEntity>]}
+```
+
+`--deep` 也吃 `prefab peek-batch` 與 `prefab locate --members`。規則：
+
+- 預設 `--deep 0`（維持舊的淺層輸出），不帶數字 = 2 層，超過就只印型別名
+- 陣列 / List 的元素也會攤開，但最多列 6 個，其餘印 `… 還有 N 個未列出`
+- **攤開時只走 serialize 欄位，不呼叫任何 property getter**（盲掃 getter 會讓 Editor
+  在 native 層閃退）。要看屬性就顯式寫進 `--members`，一次一兩個
+- 點路徑上的每一段都是顯式點名的，所以中間段允許是 property；`*`（override 標記）
+  只對不含點的直接欄位標，巢狀段不標（override 記的是 top-level property path）
+
 ## `prefab peek` —— 只讀 prefab 上一顆 component 的欄位
 
 ```bash
@@ -152,7 +181,11 @@ override 的目標雖在 `mods` 表裡，卻被格式化成 `→{fileID: …}` �
 variant 階層斷裂。`SerializedObject` 看到的是**合併後真值**，一趟就回可讀路徑。
 實測同一個目標：離線 grep + SQLite 探測數輪只湊出 4 筆，`refs` 一次給出 14 筆。
 
-範圍限「同一顆 prefab / 當前 scene 之內」。跨資產的全庫粗查才是離線索引的活（`up find`）。
+掃的是 `SerializedObject.NextVisible(true)`，**會走進巢狀欄位**，所以 VarWrapper /
+ValueProvider 那種間接引用（`_targetValue._var`）天生就涵蓋，不用另外想辦法。
+
+範圍限「同一顆 prefab / 當前 scene 之內」。跨資產的全庫粗查才是離線索引的活（`up find`）——
+目標是 asset 時（「哪些 prefab 引用這個 SO」）離線 `refs.to_guid` 就夠。
 
 ## `scene count` —— 數場上的物件
 

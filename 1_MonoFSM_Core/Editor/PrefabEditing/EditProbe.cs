@@ -128,7 +128,8 @@ namespace MonoFSM.Editor.PrefabEditing
         /// （Editor.log 留下 mono stack dump，managed try/catch 攔不到）—— 一次 peek 就閃退整個
         /// Editor。屬性要查得顯式寫進 members，範圍縮到一個，炸了也知道是誰。
         /// </summary>
-        public static string Peek(string nodePath, string componentType, string members = null)
+        public static string Peek(string nodePath, string componentType, string members = null,
+            int deep = 0)
         {
             Transform node;
             Component comp;
@@ -139,12 +140,12 @@ namespace MonoFSM.Editor.PrefabEditing
             }
             catch (EditResolve.EditAbort abort)
             {
-                return $"# {abort.Message}";
+                return Abort(abort, nodePath);
             }
 
             return Dump(comp,
                 $"{nodePath}.{comp.GetType().Name}  [{(Application.isPlaying ? "PlayMode" : "EditMode")}]",
-                members, serializedByDefault: true, listPropertiesWhenEmpty: true);
+                members, serializedByDefault: true, listPropertiesWhenEmpty: true, deep: deep);
         }
 
         /// <summary>
@@ -156,7 +157,8 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 上沒跑過任何 runtime 邏輯，屬性大半是空的或會炸）。
         /// </summary>
         public static string PeekAsset(
-            string assetPath, string nodePath, string componentType, string members = null)
+            string assetPath, string nodePath, string componentType, string members = null,
+            int deep = 0)
         {
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
             if (asset == null) return $"# 找不到 prefab: {assetPath}";
@@ -177,7 +179,7 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             return Dump(comp, $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}  [asset]",
-                members, serializedByDefault: true);
+                members, serializedByDefault: true, deep: deep);
         }
 
         /// <summary>
@@ -221,7 +223,7 @@ namespace MonoFSM.Editor.PrefabEditing
             }
             catch (EditResolve.EditAbort abort)
             {
-                return $"# {abort.Message}";
+                return Abort(abort, string.IsNullOrEmpty(assetPath) ? nodePath : null);
             }
         }
 
@@ -235,7 +237,7 @@ namespace MonoFSM.Editor.PrefabEditing
         /// <param name="limit">最多顯示幾個節點；total / cut 仍回報完整命中數</param>
         public static string LocateAsset(
             string assetPath, string componentType = null, string nameContains = null,
-            string members = null, int limit = 20)
+            string members = null, int limit = 20, int deep = 0)
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(assetPath) == null)
                 return $"# 找不到 prefab: {assetPath}";
@@ -288,7 +290,8 @@ namespace MonoFSM.Editor.PrefabEditing
                     {
                         sb.AppendLine($"  <{hit.comp.GetType().Name}>");
                         if (!string.IsNullOrEmpty(members))
-                            sb.Append(Dump(hit.comp, "", members, serializedByDefault: true));
+                            sb.Append(Dump(hit.comp, "", members, serializedByDefault: true,
+                                deep: deep));
                     }
                     else
                     {
@@ -315,7 +318,7 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 一次載入 prefab 後執行多筆 peek。probes 每行 `node|component|members`；node 留空 = root，
         /// members 留空 = 所有 serialized 欄位。每筆各自攔錯，前一筆失敗不會吃掉後面的結果。
         /// </summary>
-        public static string PeekAssetBatch(string assetPath, string probes)
+        public static string PeekAssetBatch(string assetPath, string probes, int deep = 0)
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(assetPath) == null)
                 return $"# 找不到 prefab: {assetPath}";
@@ -362,7 +365,7 @@ namespace MonoFSM.Editor.PrefabEditing
                         var comp = EditResolve.Comp(node, nodePath, componentType);
                         sb.Append(Dump(comp,
                             $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}  [asset]",
-                            members, serializedByDefault: true));
+                            members, serializedByDefault: true, deep: deep));
                     }
                     catch (EditResolve.EditAbort abort)
                     {
@@ -390,13 +393,17 @@ namespace MonoFSM.Editor.PrefabEditing
         /// <summary>
         /// 印出 component 上指定成員的值。members 留空時：serializedByDefault = 走反射看
         /// serialize 欄位（asset 用），否則列 public 屬性（runtime 用）。
+        ///
+        /// members 的每一項可以是**點路徑**（`_ignoreFilter._ignoreSelfEntity`、
+        /// `_entries[0]._family`）—— 巢狀 `[Serializable]` 純資料類別在這專案很常見
+        /// （IgnoreColliderFilter / TargetPositionResolver），沒有點路徑就只印得到型別名。
+        /// deep &gt; 0 則把巢狀 `[Serializable]` 類別攤開 deep 層（只走 serialize 欄位，
+        /// **不呼叫任何 property getter**）。
         /// </summary>
         private static string Dump(
             Component comp, string header, string members, bool serializedByDefault,
-            bool listPropertiesWhenEmpty = false)
+            bool listPropertiesWhenEmpty = false, int deep = 0)
         {
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
-                                       BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
             var type = comp.GetType();
             var sb = new StringBuilder(string.IsNullOrEmpty(header) ? "" : header + "\n");
 
@@ -418,41 +425,19 @@ namespace MonoFSM.Editor.PrefabEditing
 
             foreach (var name in names)
             {
-                object value = null;
-                var found = false;
-                for (var t = type; t != null && !found; t = t.BaseType)
+                if (!TryResolvePath(comp, name, out var value, out var reason))
                 {
-                    var f = t.GetField(name, flags | BindingFlags.DeclaredOnly);
-                    if (f != null)
-                    {
-                        value = f.GetValue(comp);
-                        found = true;
-                        break;
-                    }
-
-                    var p = t.GetProperty(name, flags | BindingFlags.DeclaredOnly);
-                    if (p == null || !p.CanRead) continue;
-                    // 有些 getter 呼叫下去會 native abort，managed catch 攔不到 —— 見 ProbeMineField
-                    if (ProbeMineField.IsMine(p))
-                    {
-                        sb.AppendLine($"  {name} = # 跳過（已知會讓 Editor 閃退，或 [Obsolete]）");
-                        found = true;
-                        continue;
-                    }
-
-                    value = ProbeMineField.ReadGuarded(p, comp);
-                    found = true;
-                }
-
-                if (!found)
-                {
-                    if (!string.IsNullOrEmpty(members))
-                        sb.AppendLine($"  {name} = # 找不到這個欄位/屬性");
+                    // 沒點名時（dump 全部欄位）不該為了讀不到的東西吵，只有顯式問了才回報
+                    if (!string.IsNullOrEmpty(members)) sb.AppendLine($"  {name} = {reason}");
                     continue;
                 }
 
-                sb.AppendLine(
-                    $"  {name}{(PrefabOverrideMark.Contains(overrides, name) ? "*" : "")} = {Show(value)}");
+                // `*` 只對「直接欄位」有意義 —— override 記錄的是 top level property path，
+                // 巢狀段標星會讓人誤以為那一格自己被 override 了
+                var star = name.IndexOf('.') < 0 && PrefabOverrideMark.Contains(overrides, name)
+                    ? "*"
+                    : "";
+                sb.AppendLine($"  {name}{star} = {Show(value, deep)}");
             }
 
             if (listPropertiesWhenEmpty && string.IsNullOrEmpty(members))
@@ -593,11 +578,212 @@ namespace MonoFSM.Editor.PrefabEditing
             return $"{nodePath}.{type.Name}.Value: {Show(before)} -> {Show(after)}";
         }
 
-        private static string Show(object v)
+        private const BindingFlags MemberFlags = BindingFlags.Instance | BindingFlags.Public |
+                                                 BindingFlags.NonPublic |
+                                                 BindingFlags.FlattenHierarchy;
+
+        /// <summary>
+        /// 解析一段成員路徑：`_ignoreSelfEntity`、`_ignoreFilter._ignoreSelfEntity`、
+        /// `_selfEntities[0]._note`。每一段都是**使用者顯式點名的**，所以允許讀 property
+        /// （仍過 <see cref="ProbeMineField"/>）；盲掃 property 的是 deep 展開那條路，那裡只走欄位。
+        /// </summary>
+        /// <param name="reason">失敗時的 `# …` 說明，直接印在欄位值的位置</param>
+        private static bool TryResolvePath(object target, string path, out object value,
+            out string reason)
+        {
+            value = null;
+            reason = null;
+            var segs = (path ?? "").Split('.');
+            object cursor = target;
+            for (var i = 0; i < segs.Length; i++)
+            {
+                if (IsNullish(cursor))
+                {
+                    reason = $"# '{string.Join(".", segs.Take(i))}' 是 null，後面走不下去";
+                    return false;
+                }
+
+                var seg = segs[i].Trim();
+                if (seg.Length == 0)
+                {
+                    reason = "# 路徑有空白段（是不是多打了一個點？）";
+                    return false;
+                }
+
+                var index = -1;
+                var open = seg.IndexOf('[');
+                if (open > 0 && seg.EndsWith("]") &&
+                    int.TryParse(seg.Substring(open + 1, seg.Length - open - 2), out var parsed))
+                {
+                    index = parsed;
+                    seg = seg.Substring(0, open);
+                }
+
+                if (!TryReadMember(cursor, seg, out cursor, out reason)) return false;
+                if (index >= 0 && !TryIndex(cursor, index, seg, out cursor, out reason)) return false;
+            }
+
+            value = cursor;
+            return true;
+        }
+
+        /// <summary>一段成員名：先找欄位，再找可讀的 property（走 ProbeMineField 保護）。</summary>
+        private static bool TryReadMember(object target, string name, out object value,
+            out string reason)
+        {
+            value = null;
+            reason = null;
+            var owner = target.GetType();
+            for (var t = owner; t != null && t != typeof(object); t = t.BaseType)
+            {
+                var f = t.GetField(name, MemberFlags | BindingFlags.DeclaredOnly);
+                if (f != null)
+                {
+                    value = f.GetValue(target);
+                    return true;
+                }
+
+                var prop = t.GetProperty(name, MemberFlags | BindingFlags.DeclaredOnly);
+                if (prop == null || !prop.CanRead || prop.GetIndexParameters().Length > 0) continue;
+                // 有些 getter 呼叫下去會 native abort，managed catch 攔不到 —— 見 ProbeMineField
+                if (ProbeMineField.IsMine(prop))
+                {
+                    reason = "# 跳過（已知會讓 Editor 閃退，或 [Obsolete]）";
+                    return false;
+                }
+
+                value = ProbeMineField.ReadGuarded(prop, target);
+                return true;
+            }
+
+            reason = $"# 找不到這個欄位/屬性（{owner.Name} 上沒有 '{name}'）";
+            return false;
+        }
+
+        /// <summary>路徑裡的 `[n]`。IList 直接取，其他 IEnumerable 走一遍。</summary>
+        private static bool TryIndex(object collection, int index, string seg, out object item,
+            out string reason)
+        {
+            item = null;
+            reason = null;
+            if (collection is IList list)
+            {
+                if (index < 0 || index >= list.Count)
+                {
+                    reason = $"# {seg}[{index}] 超出範圍（count={list.Count}）";
+                    return false;
+                }
+
+                item = list[index];
+                return true;
+            }
+
+            if (collection is IEnumerable en && !(collection is string))
+            {
+                var i = 0;
+                foreach (var o in en)
+                {
+                    if (i++ != index) continue;
+                    item = o;
+                    return true;
+                }
+
+                reason = $"# {seg}[{index}] 超出範圍（count={i}）";
+                return false;
+            }
+
+            reason = $"# {seg} 不是陣列/List，不能用 [{index}]";
+            return false;
+        }
+
+        /// <summary>Unity 的「假 null」不是 C# null（未指派 / 已 destroy），要用 Unity 的 == 判。</summary>
+        private static bool IsNullish(object v) =>
+            v == null || (v is UnityEngine.Object uo && uo == null);
+
+        /// <summary>
+        /// 巢狀 `[Serializable]` 純資料類別（IgnoreColliderFilter / TargetPositionResolver 這種）。
+        /// UnityEngine.Object 不算 —— 那是引用，印名字就夠了，展開下去會爬到整個場景。
+        /// </summary>
+        private static bool IsNestedSerializable(Type t) =>
+            t.IsClass && t != typeof(string) &&
+            !typeof(UnityEngine.Object).IsAssignableFrom(t) &&
+            t.GetCustomAttribute<SerializableAttribute>(false) != null;
+
+        /// <summary>型別上所有 serialize 欄位（含繼承），deep 展開只看這些、不碰 property。</summary>
+        private static List<FieldInfo> SerializedFieldsOf(Type type)
+        {
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
+                                       BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
+            var list = new List<FieldInfo>();
+            var seen = new HashSet<string>();
+            for (var t = type; t != null && t != typeof(object); t = t.BaseType)
+                foreach (var f in t.GetFields(flags))
+                    if (IsSerialized(f) && seen.Add(f.Name))
+                        list.Add(f);
+            return list;
+        }
+
+        /// <summary>EditAbort 的統一出口：路徑第一段其實是 prefab 名時順便給出正確指令。</summary>
+        private static string Abort(EditResolve.EditAbort abort, string nodePath)
+        {
+            var hint = nodePath == null ? null : PrefabPathHint(nodePath);
+            return hint == null ? $"# {abort.Message}" : $"# {abort.Message}\n{hint}";
+        }
+
+        /// <summary>
+        /// 路徑第一段是某顆 prefab 的檔名時的指引。
+        ///
+        /// 為什麼需要：`up peek "PPlayer/…"` 原本只回「找不到 root object 'PPlayer'。scene 的 root
+        /// 有（26 個）…」—— 下一隻 agent 會直接判定節點不存在，而其實那是 prefab 路徑，
+        /// 用 `up prefab peek` 根本不用開 stage 就讀得到。
+        /// </summary>
+        private static string PrefabPathHint(string nodePath)
+        {
+            if (string.IsNullOrEmpty(nodePath)) return null;
+            var slash = EditResolve.IndexOfUnescapedSlash(nodePath);
+            var head = EditResolve.Unescape(slash < 0 ? nodePath : nodePath.Substring(0, slash));
+            var rest = slash < 0 ? "" : nodePath.Substring(slash + 1);
+
+            // root 也吃 `名稱[n]`，比對 prefab 檔名前先把後綴拿掉
+            var bracket = head.LastIndexOf('[');
+            if (bracket > 0 && head.EndsWith("]") &&
+                int.TryParse(head.Substring(bracket + 1, head.Length - bracket - 2), out _))
+                head = head.Substring(0, bracket);
+            if (head.Length == 0) return null;
+
+            List<string> paths;
+            try
+            {
+                paths = AssetDatabase.FindAssets($"\"{head}\" t:Prefab")
+                    .Select(AssetDatabase.GUIDToAssetPath)
+                    .Where(a => !string.IsNullOrEmpty(a) &&
+                                System.IO.Path.GetFileNameWithoutExtension(a) == head)
+                    .Distinct().Take(3).ToList();
+            }
+            catch (Exception)
+            {
+                return null; // 名稱含 search filter 的特殊字元；沒有提示總比炸掉好
+            }
+
+            if (paths.Count == 0) return null;
+
+            var sb = new StringBuilder(
+                $"# 但 '{head}' 是 prefab 的名字 —— 這條路徑看起來是 prefab 內部節點，不是 scene 上的物件：\n");
+            foreach (var a in paths) sb.AppendLine($"#   {a}");
+            sb.AppendLine("# prefab 不用開 stage 也讀得到，改用（node 不含 prefab 名那一段）：");
+            sb.Append($"#   up prefab peek \"{paths[0]}\" --node \"{rest}\" --comp <Component> --members <欄位>");
+            return sb.ToString();
+        }
+
+        /// <summary>陣列 / List 最多印幾個元素，其餘只回報數量 —— deep 展開時很容易爆量。</summary>
+        private const int ListPreview = 6;
+
+        /// <param name="classDepth">還能把巢狀 [Serializable] 類別攤開幾層；0 = 維持舊行為</param>
+        private static string Show(object v, int classDepth = 0)
         {
             try
             {
-                return Show(v, 0);
+                return ShowAt(v, 0, classDepth);
             }
             catch (Exception e)
             {
@@ -606,7 +792,7 @@ namespace MonoFSM.Editor.PrefabEditing
             }
         }
 
-        private static string Show(object v, int depth)
+        private static string ShowAt(object v, int depth, int classDepth)
         {
             switch (v)
             {
@@ -620,9 +806,12 @@ namespace MonoFSM.Editor.PrefabEditing
                     return o == null ? $"null <{o.GetType().Name}>" : $"{o.name} <{o.GetType().Name}>";
                 case IEnumerable e when !(v is string):
                 {
-                    var items = e.Cast<object>().Take(6).Select(x => Show(x, depth + 1)).ToList();
-                    var total = e.Cast<object>().Count();
-                    return $"[{string.Join(", ", items)}{(total > 6 ? $", … +{total - 6}" : "")}]";
+                    // 集合本身不算一層 class 巢狀，所以 classDepth 原樣傳下去：
+                    // List<SomeSerializable> 的元素要跟直接欄位一樣看得到內容
+                    var all = e.Cast<object>().ToList();
+                    var items = all.Take(ListPreview).Select(x => ShowAt(x, depth + 1, classDepth));
+                    var cut = all.Count - ListPreview;
+                    return $"[{string.Join(", ", items)}{(cut > 0 ? $", … 還有 {cut} 個未列出" : "")}]";
                 }
                 // 沒 override ToString 的 struct（CharacterMovement.MovingPlatform 這種
                 // 純資料容器）預設只印出型別名，等於什麼都沒查到。攤開欄位才有意義；
@@ -633,7 +822,17 @@ namespace MonoFSM.Editor.PrefabEditing
                     var fields = vt.GetType().GetFields(BindingFlags.Instance |
                                                         BindingFlags.Public | BindingFlags.NonPublic);
                     return "{" + string.Join(", ",
-                        fields.Select(f => $"{f.Name}={Show(f.GetValue(vt), depth + 1)}")) + "}";
+                        fields.Select(f => $"{f.Name}={ShowAt(f.GetValue(vt), depth + 1, classDepth)}")) + "}";
+                }
+                // 巢狀 [Serializable] 類別：預設只會印出型別名（等於什麼都沒查到），
+                // --deep 才攤開。**只走 serialize 欄位，不呼叫任何 property getter** ——
+                // 盲掃 getter 會在 native 層 abort 掉整個 Editor（見 Peek 的註解）。
+                case object nested when classDepth > 0 && IsNestedSerializable(nested.GetType()):
+                {
+                    var fields = SerializedFieldsOf(nested.GetType());
+                    if (fields.Count == 0) return nested.ToString();
+                    return "{" + string.Join(", ", fields.Select(
+                        f => $"{f.Name}={ShowAt(f.GetValue(nested), depth + 1, classDepth - 1)}")) + "}";
                 }
                 default: return v.ToString();
             }

@@ -44,6 +44,56 @@ scene 沒有唯一 root，第一段一定要是 root object 名稱。
 
 節點名含 `/` 或換行時的逃逸規則見 [naming.md](naming.md)。
 
+## `swap-script` —— C# 重構之後把舊型別的資料搬到新型別（離線）
+
+```bash
+up prefab swap-script "<prefab>" --from OldType --to NewType --drop _oldOnlyField --dry-run
+```
+
+用在「欄位被搬到另一支 C# 型別、名字沒變」的重構收尾：直接改 YAML 裡的 `m_Script` guid，
+**同名 serialized 欄位原樣被新型別吃下去**，不同名的留在檔裡讓 Unity 下次存檔丟掉
+（想當場清掉就 `--drop`）。
+
+**為什麼不能用 `comp` + `set` 手搬**：舊型別的 C# 一旦刪掉那些欄位，值就變成孤兒 ——
+Unity 載入時直接丟棄，`up prefab peek` 只會回「型別上沒有這個欄位」。值只還活在檔案文字裡，
+任何走 Unity API 的搬移都會搬到空值。
+
+- `--dry-run` 同時是**讀孤兒欄位的唯一手段**（會把每個 document 的原始 `欄位: 值` 印出來）
+- `--fileid <id>`（可重複）只換指定的幾顆；留空 = 這份檔案裡全部
+- 只處理**自有 document**。variant 上繼承節點的型別由 base 決定，換不了 —— 命中 0 筆時
+  第一個嫌疑就是這個，要去 base 改
+- 改完是純文字改檔：Unity 端要 reimport（切回 Editor / Ctrl+R）才看得到，
+  離線索引要 `up index`。備份放 `Temp/uprefab-swapscript-backup/`
+
+### ⚠ Unity 開著這個專案時**不要**離線改：值會不可逆地消失
+
+離線改的是磁碟文字，Editor 記憶體裡還是舊的那份。使用者（或任何自動存檔）之後存一次
+這支 prefab，Unity 就用 **pre-swap 的記憶體整份覆寫**檔案 —— 而且因為 C# 上已經沒有那些
+欄位，序列化時**直接不寫出來**。結果不是「改動被還原」，是**四個欄位的值從檔案裡永久消失**，
+`.bak` 之外救不回來。這在本專案實際發生過一次（Boss 可拆卸神像廟 prefab，8 顆全滅）。
+
+所以 CLI 現在會**偵測 `Temp/UnityLockfile` 並拒絕寫入**。三個選項由上而下優先：
+
+1. **改走 Unity 端寫入**（Editor 開著時的正解）—— 記憶體與磁碟一致，之後怎麼存都不會丟：
+   ```bash
+   up prefab swap-script "<prefab>" --from Old --to New --dry-run   # 先把舊值讀出來
+   up prefab do "<prefab>" 'comp|<node>|New' 'ref|<node>|New|_f|<target>' \
+                           'set|<node>|New|_i|0' 'auto|<node>' 'delcomp|<node>|Old'
+   ```
+2. 關掉 Unity Editor 再跑 `swap-script`。
+3. `--force` 硬跑，然後**立刻**切回 Editor 按 Ctrl+R reimport，中間絕對不要在 Editor
+   裡動或存這支 prefab。
+
+`--dry-run` 不受限制（純讀），而且它是**讀舊值的唯一手段** —— 選項 1 的第一步就靠它。
+
+這條規則**不只適用於 `swap-script`，而是所有離線改 prefab / scene YAML 文字的手段**（含
+手寫 sed / python）。只要 Editor 記憶體裡有那份資產的舊狀態，它存一次檔就整份覆寫磁碟；
+而 C# 上已不存在的欄位在重新序列化時會**直接不被寫出來** —— 結果不是「被改回舊值」，
+是「值不見了」，`SerializedObject` / `prefab peek` / `prefab locate` 一律看不到孤兒欄位。
+
+**離線索引與 Unity 端不一致時，一律以 Unity 端（`prefab locate` / `peek`）為準** ——
+`up find` 讀的是可能已過期的索引，會給出假訊號。
+
 ## `$` 代換 —— 不要把同一條長路徑寫兩次
 
 MonoFSM 的節點路徑動輒六十個字元（`[StateFolder] StateFolder/[State] idle/[Event]
@@ -131,6 +181,28 @@ MonoFSM 大量欄位靠 Auto 系列 attribute 填 —— `TransitionBehaviour._c
 順手綁的，用 API 建節點不經過 Inspector，**不補這步會存出一份「看起來對、欄位全是 null」
 的資料**，而且只有進 Play Mode 才會發現。
 
+### variant 上的繼承節點照樣用 `auto`，不要預防性改寫法
+
+曾經流傳一條「在 variant 上對繼承自 base 的既有節點改欄位，`auto` 不會寫進
+`m_Modifications`、改動靜默遺失」的說法 —— **2026-08-24 實測推翻，重現不出來**：
+
+- 在 variant 的繼承節點上純反射寫欄位 + `SaveAsPrefabAsset`（**不**呼叫
+  `RecordPrefabInstancePropertyModifications`），YAML 照樣長出 `propertyPath` override。
+  Unity 存 prefab contents 時是真的做 diff。
+- 陣列從空長到 1 筆也一樣（base `_conditions: []` → variant 加一個 `[If]`，
+  `Array.size: 1` 與 `data[0]` 都正確寫入）。
+- 甚至不用跑 `auto`：只下 `if|`，存檔前的 `OnBeforePrefabSave` callback 就會把繼承節點的
+  `_conditions` 補上。
+
+所以**不要為了 variant 預防性改用 `addel` + `ref`**，直接 `auto`，寫完照常 `peek` 驗一次。
+真的遇到欄位是空的，先看 `auto` 的輸出（`[Auto*] 欄位綁上 N、沒綁上 M`）分辨是「綁上了
+沒存進去」還是「根本沒綁上」，再往兩個方向查：目標 component 是否來自**巢狀 prefab**
+（override 規則與 variant base 不同）、或 `[Auto*]` 本來就合法地綁不到（型別／層級不符）。
+
+`auto` 不是 Python 端做的 —— `up` 只把字串轉發給 Unity，實作在
+`MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/EditResolve.cs::RunAuto`，
+真正寫欄位的是 `AutoAttributeManager` 的反射。
+
 ## `[AutoChildren]` 的子節點是「整個 GameObject」共用的
 
 condition / value source 這類靠 `[AutoChildren(DepthOneOnly)]` 撈的欄位，看的是**掛載節點的
@@ -213,3 +285,30 @@ up prefab copy "Assets/…/Lightning Attack Module 落雷攻擊.prefab" \
 up scene copy --template "Assets/1_Prototype/Module Test/Network FSM Template.unity" \
     "Assets/…/我的測試.unity"
 ```
+
+## variant 的 parent 不能「抽換」，只能重建（而且會斷外部引用）
+
+想把一顆 variant 改成繼承另一份 base prefab 時，兩條看起來合理的路都是死路：
+
+- **改 `SerializedObject` 沒用。** `m_SourcePrefab` 寫在 .prefab 的
+  `--- !u!1001 PrefabInstance` document 上，不在 root GameObject 上 ——
+  `new SerializedObject(prefabAsset).FindProperty("m_SourcePrefab")` 一定回 `null`，
+  `AssetDatabase.SaveAssets()` 也存不回 prefab 內容。寫成 Editor 工具會**靜默無作用**。
+- **硬改 YAML 的 guid 也不行。** override 的 `target: {fileID, guid}` 裡的 fileID 是
+  「該物件在 parent 檔案中的 fileID」；對**未被中間層覆寫的繼承物件**，這個值由 Unity 依
+  `base 物件 fileID + PrefabInstance id` 動態算出，**不寫進 YAML**，外部無從重算或對照。
+  實測某顆 prefab 的 93 條 override 只有 8 條能對到新 parent，其餘全丟。
+
+**唯一可行的做法是重建**（覆蓋同路徑可保留原 .meta guid，不斷檔案級引用）：
+preview scene 裡 `PrefabUtility.InstantiatePrefab(新 parent, previewScene)` → 補回原本的
+自有節點 → `PrefabUtility.SaveAsPrefabAsset(instance, 原路徑)`。對 prefab instance 存檔才會
+產生 variant；`LoadPrefabContents` 那條路存出來是普通 prefab，不行。
+
+**必然的副作用：所有指向繼承節點的外部引用都會變 null。** 引用是 `{guid, fileID}` 兩層，
+guid 只保證「同一個檔案」，沒有「指向 prefab 整體」的寫法（`100100000` 只用於
+`m_SourcePrefab`）。一般欄位引用 variant 時寫的是 root 或 root 上 component 的 fileID，
+而 variant 的 root 是繼承節點、fileID 是動態值 —— 重建後對不上（pool prewarm、SpawnMarker
+這類指向 root 的最容易中）。動手前先用 guid 反查出引用點清單。
+
+推論：要讓別的 prefab 引用 variant 內部的東西，指「variant **自有新增**的節點」
+（fileID 實寫在 YAML）比指繼承節點耐操。

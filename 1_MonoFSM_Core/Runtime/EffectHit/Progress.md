@@ -14,3 +14,10 @@
   * 為什麼不用 `ManualEffectDetectAction`：那條把 detector 整顆切成手動（latch 一設不解除），Simulate 完全不判 → 「範圍內現在有沒有目標」根本沒有持續狀態可讀，做不出常駐的互動提示。passive 是「照常偵測、延後施加」，語意上才是對的那一刀。
   * 也不用 EffectZone 繞：zone 是純 pull、沒有 enter/exit，且要在每個可被觸發的物件上另外掛一顆 zone 並自己維護半徑，判定幾何和真正的 trigger 不一致（提示亮了卻按不動）。passive dealer 天生共用同一顆 collider。
   * `CanHitReceiver` 不看「是否已在 detected list」，所以 passive dealer 拿去 `ForceDirectEffectHit` 不會被自己的偵測狀態擋掉。
+
+## IgnoreColliderFilter 去掉 owner 注入（2026-09-05）
+`_owner` / `Init(Component)` / `EditorRefreshPreview` 全砍掉，self entity 改成 `[AutoParent] MonoEntity[] _selfEntities`，
+持有者只要在欄位上加 `[AutoNested]`。理由：owner 只是為了 runtime `GetComponentsInParent`，而 Auto 在 edit time 就能填好並
+序列化 —— 順帶讓 Inspector 不用另做一份 preview 鏡像欄位、edit time 也看得到會忽略誰。
+collider set 改 lazy build（`_isBuilt`），所以持有者連 `EnterSceneAwake` 樣板都不用寫。
+**刻意不拆成獨立 component**：三個使用端都是各自私有的設定、沒有共享需求，拆了只是多一顆節點加一條會斷的 reference。

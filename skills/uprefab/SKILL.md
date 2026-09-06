@@ -32,6 +32,7 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | scene 上的階層 | `scene ls`（hard `--budget`，`0` 才不限） | ✅ | [read.md](references/read.md) |
 | 貼了 **scene 物件連結**（`globalId=GlobalObjectId_V1-…`） | `obj` | ✅ | [read.md](references/read.md) |
 | **改** prefab / scene 結構、開/複製/存 scene、建 variant | `prefab do` / `scene do` / `scene copy` / `prefab variant` | ✅ | [edit.md](references/edit.md) |
+| C# 重構後**把舊型別的序列化資料搬到新型別**（`peek` 看不到的孤兒欄位） | `prefab swap-script` | ❌ | [edit.md](references/edit.md) |
 | **路徑失效、名字跟上次讀到的不一樣**、節點名含 `/` 或換行 | —— | | [naming.md](references/naming.md) |
 | **建 / 改 ScriptableObject asset**（registry / config 類） | `asset create` / `set` / `set-ref` / `add-element` | ✅ | [asset.md](references/asset.md) |
 | 一個 asset 要改多個欄位（要原子性） | `asset do <asset> -f ops.txt`（任一行失敗就整批不套用） | ✅ | [asset.md](references/asset.md) |
@@ -90,14 +91,14 @@ reference 裡，真的要改的時候一定會讀到）：
 |---|---|
 | [offline-index.md](references/offline-index.md) | `index` / `find`（含 `--resolve`）/ `guid` / `overrides` / `scope`、`.uprefab.json` 設定、中文名稱 escape |
 | [read.md](references/read.md) | `prefab read` / `scene ls` 參數與 `--budget` 分層下鑽、`obj`（GlobalObjectId 連結） |
-| [edit.md](references/edit.md) | 批次 DSL 全部操作、`$` 代換、FSM 複合操作、`[n]` 後綴、失敗語意、`auto` 與 AutoChildren 陷阱、存檔 callback、variant / 模板 |
+| [edit.md](references/edit.md) | 批次 DSL 全部操作、`$` 代換、FSM 複合操作、`[n]` 後綴、失敗語意、`auto` 與 AutoChildren 陷阱、存檔 callback、variant / 模板、**離線改 YAML 為何會丟值**、**variant 的 parent 只能重建** |
 | [naming.md](references/naming.md) | 自動命名：為什麼路徑會過期、三道防線、`\/` 與 `\n` 逃逸 |
 | [asset.md](references/asset.md) | ScriptableObject asset 的 create / set / set-ref / add-element / fields |
 | [prompt.md](references/prompt.md) | localized 文字提示：case 格式、優先序、自帶驗證輸出 |
 | [catalog.md](references/catalog.md) | `catalog`：Action / Condition 目錄、`--type` 細查、`--missing` 待補清單、`/// summary` 撰寫規範 |
 | [probe.md](references/probe.md) | `types` / `fields` / `peek` / `refs` / `scene count` 與 Play Mode 驗證流程 |
 | [example-fsm.md](references/example-fsm.md) | 完整實例：從零組「定時生資源」FSM 並在 Play Mode 驗證速率 |
-| [internals.md](references/internals.md) | 設計取捨（為何不用離線讀內容 / 為何拆掉 cache）、已知限制、模組結構 —— **改 uprefab 本身前先讀** |
+| [internals.md](references/internals.md) | 設計取捨（為何不用離線讀內容 / 為何拆掉 cache）、已知限制、反射與 SerializedProperty 地雷（getter native crash、string.isArray）、模組結構 —— **改 uprefab 本身前先讀** |
 
 格式規則（node 行、component 區塊、值格式化、摺疊摘要）的真相來源是
 `monofsm:hierarchy-text-exporter` skill，這裡不重複。

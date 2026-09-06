@@ -114,6 +114,37 @@ public List<MonoEntity> GetHittingEntities() => _hittingEntities;
 > 重點：`_receivers.Remove` 必須在檢查 `entityStillActive` **之前**執行，
 > 這樣才能正確判斷「exit 之後還有沒有其他 receiver」。
 
+## 序列化 array 欄位不會是 null（`??=` lazy init 必定失效）
+
+MonoBehaviour 的 array 欄位，只要元素型別是 Unity 序列化器認得的（`Material[]`、`Transform[]`、`int[]`…），
+**即使是 private 且沒有 `[SerializeField]`**，從 scene / prefab 反序列化建立 component 時也會被 native
+初始化成**長度 0 的陣列，而不是 null**。
+
+```csharp
+// ❌ 永遠不執行，_cache 一直是 new Material[0]，之後 _cache[i] 越界
+private Material[] _cache;
+_cache ??= _renderer.materials;
+
+// ✅
+if (_cache == null || _cache.Length == 0)
+    _cache = _renderer.materials;
+```
+
+判別要點：
+
+- `AddComponent` 建出來的是 **null**（沒經過反序列化），所以在 Editor 裡手動測**測不出來**——只有從
+  scene / prefab 載入的實例會中。
+- 巢狀陣列如 `Material[][]` Unity 不支援序列化，那種欄位**是** null，不受影響
+  （實測 286 個 `RendererCollection` 的 `Material[][]` 全為 null）。
+- 實例：`MonoFSM/1_MonoFSM_Core/Runtime/Action/MaterialActions/EnableKeywordAction.cs`（2026-07-30 修正）——
+  `DisableKeyword("_EMISSION")` 從來沒真的執行過，表現成「node 設定明明是 Disable，material 卻一直亮著」。
+
+**搭配的第二個坑**：把「已套用」旗標寫在實際套用**之前**，套用失敗後旗標仍成立，early-return 會讓它永遠不再重試。
+旗標一律在成功之後才寫。
+
+> 查 runtime 私有欄位要用 reflection 走 uloop execute-dynamic-code，不要看 Inspector：URP 的 `BaseShaderGUI`
+> 每次繪製會依 `_EmissionColor` 把 `_EMISSION` keyword 重新打開，觀察行為會改變被觀察物。
+
 ## 時間與 DeltaTime
 
 **不要用 `Time.time`、`Time.deltaTime`、`Time.fixedDeltaTime`**，應使用 `WorldUpdateSimulator` 的靜態屬性：
@@ -165,3 +196,39 @@ var rb = source.GetComponentInParent<Rigidbody>();
 // ✅ 用 GetCompCache
 var rb = source.GetCompCache<Rigidbody>();
 ```
+## 除錯資訊放 Inspector，不要用 Debug.Log
+
+Jerryee 的除錯慣例是**邊跑邊看 Inspector 的即時值**。`Debug.Log` 會洗版、只看得到過去某個
+瞬間，而且每帧字串串接會產生 GC。改成把「當下狀態」用私有欄位顯示出來：
+
+```csharp
+[FoldoutGroup("Debug")]
+[ShowInInspector, Sirenix.OdinInspector.ReadOnly]
+private NameplateState _state;
+
+[FoldoutGroup("Debug")]
+[ShowInInspector, Sirenix.OdinInspector.ReadOnly]
+private PPlayer _lastPlayer;   // 最後一次收到的輸入
+```
+
+> 有 `using Fusion;` 時 `ReadOnly` 會和 `Fusion.ReadOnlyAttribute` 撞名，
+> 必須寫全名 `Sirenix.OdinInspector.ReadOnly`。
+
+### 每一條 early return 都要先寫 fail reason
+
+**不能只是「把東西關掉就走」** —— 靜默關閉的分支在 runtime 完全無法分辨是哪一關擋掉的。
+開一顆 `enum` 涵蓋正常態（`Shown` / `Running`）＋**每一個**擋掉的理由，enum 成員各自寫
+`/// <summary>` 說明是哪一關：
+
+```csharp
+if (_player == null)
+{
+    _state = NameplateState.NoPlayer;   // 先寫理由
+    return;                             // 再 return
+}
+```
+
+一併留「最後一次收到的輸入」欄位（entity / 名字 / 數值），才分得出是資料錯還是流程錯。
+class 的 `<summary>` 補一行「除錯：看 Inspector Debug 群組的 `_state`」。
+
+範例：`Assets/0_Gameplay/Appearance/PlayerNameplateBinder.cs` 的 `NameplateState`。

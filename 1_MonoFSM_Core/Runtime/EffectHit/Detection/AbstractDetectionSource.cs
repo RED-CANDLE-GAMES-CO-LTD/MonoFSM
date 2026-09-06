@@ -69,6 +69,7 @@ namespace MonoFSM.Core.Detection
         // --- 忽略命中 ---
 
         [Title("忽略命中")]
+        [AutoNested]
         [SerializeField]
         private IgnoreColliderFilter _ignoreFilter = new();
 
@@ -82,15 +83,7 @@ namespace MonoFSM.Core.Detection
 
         public virtual void EnterSceneAwake()
         {
-            _ignoreFilter.Init(this);
         }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            _ignoreFilter.EditorRefreshPreview(this);
-        }
-#endif
 
         private void OnDisable()
         {

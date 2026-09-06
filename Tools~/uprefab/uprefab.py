@@ -18,10 +18,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import indexer  # noqa: E402
 import memo  # noqa: E402
+import progress  # noqa: E402
 import query  # noqa: E402
 import readcache  # noqa: E402
+import swapscript  # noqa: E402
 import unity  # noqa: E402
 import usage  # noqa: E402
+import verifyskills  # noqa: E402
 from config import CONFIG_NAME, Config  # noqa: E402
 
 
@@ -50,6 +53,8 @@ CAP_HINTS = {
     "refs": "降 -n，或用 --comp 只看一顆 component。",
     "logs": "降 -n，或 --type Error 只看錯誤。",
     "fields": "改用 `up catalog --type <型別>` 只看語意與 tooltip。",
+    "progress": "降 -n，或先用 --list 掃標題再用 --at 展開指定條。",
+    "verify-skills": "降 -n，或用 --path 限縮到單一 skill 資料夾。",
 }
 
 
@@ -506,7 +511,114 @@ def cmd_scene(args, root, cfg):
         print(unity.call(f"{SCENE}.Batch", _ops_text(args)))
 
 
+
+# ---- asset 路徑預解析 ----
+# usage log 裡有 68 次「asset 路徑猜錯 → Unity 回一行 `# 找不到 prefab: X`、零候選」的白跑輪，
+# 其中 32 次 basename 在離線 assets 表裡唯一命中。這層在打 Unity 之前先用索引把路徑修好，
+# 或至少把候選列出來，讓下一次呼叫就是對的。
+
+_PKG_MAP = None
+
+
+def _pkg_map(root: str) -> dict:
+    """Packages/manifest.json 的 `file:../<dir>` 條目 → {repo 相對資料夾: package 名}。
+    索引存的是 repo 相對路徑（MonoFSM-Pro/…），Unity 只認 Packages/<name>/…，兩邊要能互換。"""
+    global _PKG_MAP
+    if _PKG_MAP is not None:
+        return _PKG_MAP
+    _PKG_MAP = {}
+    manifest = os.path.join(root, "Packages", "manifest.json")
+    try:
+        with open(manifest, encoding="utf-8") as fh:
+            deps = json.load(fh).get("dependencies", {})
+        for name, src in deps.items():
+            m = re.match(r"file:\.\./([^/]+(?:/[^/]+)*)/?$", str(src))
+            if m and not src.endswith(".tgz"):
+                _PKG_MAP[m.group(1)] = name
+    except (OSError, ValueError):
+        pass
+    return _PKG_MAP
+
+
+def _to_unity_path(root: str, path: str) -> str:
+    for rel, name in _pkg_map(root).items():
+        if path.startswith(rel + "/"):
+            return f"Packages/{name}/" + path[len(rel) + 1:]
+    return path
+
+
+def _to_disk_path(root: str, path: str) -> str:
+    for rel, name in _pkg_map(root).items():
+        prefix = f"Packages/{name}/"
+        if path.startswith(prefix):
+            return rel + "/" + path[len(prefix):]
+    return path
+
+
+def _resolve_asset(root: str, path: str) -> str:
+    """回傳可以直接餵給 Unity 的 asset 路徑；修不好就印候選並結束（不打 Unity）。
+
+    順序：磁碟上有（含 repo 相對 ⇄ Packages/ 互換）→ 原樣或換成 Unity 路徑；
+    沒有 → 索引 basename 唯一命中就代入；多筆列候選；只有相近名也列候選；
+    完全沒有就留一行說明，仍交給 Unity 判（索引範圍見 .uprefab.json，剛建的檔可能還沒 index）。
+    """
+    if not path:
+        return path
+    disk = _to_disk_path(root, path)
+    if os.path.exists(os.path.join(root, disk)) or os.path.exists(disk):
+        unity_path = _to_unity_path(root, disk)
+        if unity_path != path:
+            print(f"# 已改用 {unity_path}（{path} 是 repo 相對路徑，Unity 只認 Packages/ 路徑）")
+        return unity_path
+
+    try:
+        con = indexer.connect(root)
+        all_paths = [r[0] for r in con.execute("SELECT path FROM assets")]
+    except Exception:
+        return path
+    base = os.path.basename(path.rstrip("/"))
+    stem, ext = os.path.splitext(base)
+    # 這些指令只吃 prefab；同名的 .asset / .unity 代進去只會換到另一個「找不到」
+    # （實測：GameplayUI.prefab 被換成 Localization/GameplayUI.asset），所以只認 .prefab
+    want_ext = ".prefab"
+
+    def _base(p):
+        return os.path.basename(p)
+
+    all_paths = [p for p in all_paths if p.lower().endswith(want_ext)]
+    exact = [p for p in all_paths
+             if os.path.splitext(_base(p))[0].lower() == stem.lower()]
+
+    if len(exact) == 1:
+        real = _to_unity_path(root, exact[0])
+        print(f"# 已改用 {real}（原路徑不存在：{path}）")
+        return real
+    if len(exact) > 1:
+        print(f"# 找不到 {path}，索引裡有 {len(exact)} 個同名資產，挑一個把路徑換掉重跑：")
+        for p in exact[:10]:
+            print(f"#   {_to_unity_path(root, p)}")
+        raise SystemExit(2)
+
+    stems = {}
+    for p in all_paths:
+        stems.setdefault(os.path.splitext(_base(p))[0].lower(), p)
+    near = difflib.get_close_matches(stem.lower(), list(stems), 6, 0.6)
+    if near:
+        print(f"# 找不到 {path}，索引裡也沒有叫 '{base}' 的資產。名字相近的（挑一個換掉路徑重跑）：")
+        for k in near:
+            print(f"#   {_to_unity_path(root, stems[k])}")
+        print("# 都不是的話：up find --path '<名稱片段>' 或 up guid '<名稱片段>'（剛改過檔名先 up index）")
+        raise SystemExit(2)
+
+    print(f"# 注意：磁碟上沒有 {path}，索引裡也沒有叫 '{base}' 的資產"
+          "（索引範圍見 .uprefab.json；剛新建的檔先 up index）。"
+          "若下面 Unity 也找不到，用 up find --path '<名稱片段>' 或 up guid '<名稱片段>' 找正確路徑")
+    return path
+
+
 def cmd_prefab(args, root, cfg):
+    if args.action != "swap-script":  # swap-script 離線讀磁碟，要的是 repo 相對路徑
+        args.asset = _resolve_asset(root, args.asset)
     if args.action == "variant":
         print(unity.call(f"{PREFAB}.CreateVariant", args.asset, args.out, args.name))
     elif args.action == "copy":
@@ -519,22 +631,107 @@ def cmd_prefab(args, root, cfg):
             # 下一步一定是「先看這節點上有什麼」，就順手回答掉。
             print(unity.call(f"{PROBE}.ComponentNames", args.asset, args.node or ""))
             return
-        print(unity.call(f"{PROBE}.PeekAsset", args.asset, args.node, args.comp, args.members))
+        print(unity.call(f"{PROBE}.PeekAsset", args.asset, args.node, args.comp,
+                         args.members, args.deep))
     elif args.action == "peek-batch":
-        print(unity.call(f"{PROBE}.PeekAssetBatch", args.asset, _probe_text(args)))
+        print(unity.call(f"{PROBE}.PeekAssetBatch", args.asset, _probe_text(args), args.deep))
     elif args.action == "locate":
         if not args.comp and not args.name:
             raise SystemExit("locate 至少要 --comp <component> 或 --name <節點名稱>")
         out = unity.call(f"{PROBE}.LocateAsset", args.asset, args.comp,
-                         args.name, args.members, args.limit)
+                         args.name, args.members, args.limit, args.deep)
         print(out)
         # locate 走 LoadPrefabContents，看到的是合併後的真值 —— 明講這件事，
         # 免得 total=0 被拿去跟離線 find 的 (no match) 混為一談
         if "# total=0" in (out or ""):
             print("# total=0 是合併後的結果（已含 variant 繼承與 nested prefab 節點），"
                   "在這個 prefab 內可視為定論")
+        elif not args.members and re.search(r"# total=[1-9]", out or ""):
+            # usage log：locate → 同節點再 peek 有 50 對，而 405 次 locate 只有 17 次帶 --members
+            print("# 要看欄位值直接在這條 locate 加 --members <欄位,欄位>（例：--members _note,CurrentValue），"
+                  "一次拿完所有命中，不用再逐個 peek")
     elif args.action == "do":
         print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet))
+    elif args.action == "swap-script":
+        _prefab_swap_script(args, root)
+
+
+def _prefab_swap_script(args, root):
+    """離線把某型別的 MonoBehaviour 換成另一個型別，同名 serialized 欄位原樣保留。
+
+    走文字層而不是 Unity，是因為「C# 已經把欄位搬走」之後那些值在 Unity 端看不見了
+    （載入時就被丟掉），只剩檔案裡還有 —— 細節見 swapscript.py 的模組註解。
+    """
+    if not args.src_type or not args.dst_type:
+        raise SystemExit("swap-script 需要 --from <舊型別> --to <新型別>")
+    path = os.path.join(root, args.asset) if not os.path.isabs(args.asset) else args.asset
+    if not os.path.exists(path):
+        raise SystemExit(f"找不到檔案：{args.asset}")
+
+    con = indexer.connect(root)
+    def one(name):
+        rows = swapscript.lookup_script(con, name)
+        if not rows:
+            raise SystemExit(f"scripts 表裡沒有型別 {name}（先跑 up index）")
+        if len(rows) > 1:
+            paths = ", ".join(r[2] for r in rows)
+            raise SystemExit(f"型別名 {name} 有多支同名 script：{paths}")
+        return rows[0]
+
+    from_guid, _, from_path = one(args.src_type)
+    to_guid, to_ns, to_path = one(args.dst_type)
+    to_full = f"{to_ns}.{args.dst_type}" if to_ns else args.dst_type
+    editor_id = f"{args.assembly}::{to_full}"
+
+    # ---- 前置檢查：Unity 開著這個專案時，離線改文字會被它的記憶體整份蓋掉 ----
+    # 實際踩過：swap 完成後使用者在 Editor 存了一次這支 prefab，Unity 用 pre-swap 的
+    # 記憶體覆寫檔案，而且因為 C# 上已經沒有那些欄位，序列化時直接不寫出來 = 值永久消失。
+    lockfile = os.path.join(root, "Temp", "UnityLockfile")
+    if os.path.exists(lockfile) and not args.dry_run and not args.force:
+        raise SystemExit(
+            "拒絕執行：Unity Editor 正開著這個專案（Temp/UnityLockfile 存在）。\n"
+            "  離線改的是磁碟文字，Editor 記憶體裡還是舊的 —— 它下次存這支 prefab 就會整份覆寫，\n"
+            "  而且 C# 上已刪掉的欄位會被序列化直接丟棄，值就永久沒了（實際發生過）。\n"
+            "  三個選項，由上而下優先：\n"
+            "  1) 改走 Unity 端寫入：`up prefab do <asset> 'comp|<node>|<新型別>' 'ref|…' 'set|…' "
+            "'delcomp|<node>|<舊型別>'`\n"
+            "     —— 記憶體與磁碟一致，之後怎麼存都不會丟。舊值先用 `--dry-run` 讀出來。\n"
+            "  2) 關掉 Unity Editor 再跑這條指令。\n"
+            "  3) 真的要在 Editor 開著時硬跑：加 --force，然後**立刻**切回 Editor 按 Ctrl+R "
+            "reimport，\n"
+            "     中間絕對不要在 Editor 裡動或存這支 prefab。")
+
+    only = set(int(x) for x in args.fileid) if args.fileid else None
+    drop = tuple(x.strip() for x in (args.drop or "").split(",") if x.strip())
+
+    backup_dir = os.path.join(root, "Temp", "uprefab-swapscript-backup")
+    hits = swapscript.swap(path, from_guid, to_guid, editor_id,
+                           only_fileids=only, drop_fields=drop,
+                           dry_run=args.dry_run, backup_dir=backup_dir)
+    tag = "[dry-run] " if args.dry_run else ""
+    print(f"# {tag}swap-script {args.src_type} → {args.dst_type}  ({args.asset})")
+    if not hits:
+        print("# 0 個 document 命中。可能原因："
+              "(a) 這個型別在這份檔案裡是繼承來的（override 住在 m_Modifications，換不了，要去 base 改）"
+              " (b) --from 型別名打錯 (c) --fileid 過濾掉了")
+        return
+    for did, go_id, go_name, kept, raw in hits:
+        print(f"  &{did}  GameObject &{go_id} {go_name}")
+        if args.dry_run:
+            # dry-run 順便當「讀孤兒欄位」用 —— C# 已經刪掉的欄位 Unity 端看不到，
+            # 值只剩檔案裡有，這是唯一讀得到的地方
+            for ln in raw:
+                print(f"      {ln}")
+        else:
+            print(f"      保留欄位: {', '.join(kept) if kept else '(無)'}")
+    if drop:
+        print(f"# 已刪除欄位: {', '.join(drop)}")
+    if not args.dry_run:
+        print(f"# {len(hits)} 個 document 已改寫，備份在 Temp/uprefab-swapscript-backup/")
+        print("# ⚠ 立刻切回 Unity 按 Ctrl+R reimport —— 在那之前不要在 Editor 裡存這支 prefab，"
+              "否則會被舊記憶體整份覆寫、值永久消失")
+        print("# 下一步：Unity 端 reimport（切回 Editor 或 Ctrl+R）後用 "
+              "`up prefab peek ... --comp {} --members ...` 驗值".format(args.dst_type))
 
 
 def _prefab_read(args, root):
@@ -654,6 +851,7 @@ def cmd_refs(args, root, cfg):
     """引用反查。走 Unity 而不是離線 refs 表 —— 理由見 EditRefs 的類別註解：
     這個專案大量引用是 prefab override，離線 refs 表收不到。"""
     if args.asset:
+        args.asset = _resolve_asset(root, args.asset)
         print(unity.call(
             f"{REFS}.PrefabRefs", args.asset, args.node, args.comp, args.out, args.limit))
     else:
@@ -826,7 +1024,23 @@ def cmd_fields(args, root, cfg):
                 tip = f" — {f['tip']}" if f["tip"] else ""
                 print(f"#   {auto}{f['name']}{tip}")
         print()
-    print(unity.call(f"{PROBE}.Fields", args.type, not args.own))
+    out = unity.call(f"{PROBE}.Fields", args.type, not args.own)
+    print(out)
+    if (out or "").startswith("# 找不到"):
+        # Unity 端只給「名稱含這段」的候選，打錯字（VarFlaot）時一個都撈不到；
+        # 這裡用離線 catalog / scripts 表補 near-match，省掉再開一輪 `up types` 猜
+        try:
+            names = {r[0] for r in con.execute("SELECT class FROM catalog")}
+            names |= {r[0] for r in con.execute("SELECT class FROM scripts")}
+        except Exception:
+            names = set()
+        lower = {n.lower(): n for n in names if n}
+        near = difflib.get_close_matches(args.type.lower(), list(lower), 5, 0.6)
+        if near:
+            print(f"# 最接近：{', '.join(lower[n] for n in near)} —— 挑一個重跑 up fields <型別>")
+        else:
+            print("# 離線索引裡也沒有相近的名字。用 up types <關鍵字> 查型別名，"
+                  "或 up catalog <kind> <關鍵字> 找用途相符的")
 
 
 def cmd_obj(args, root, cfg):
@@ -858,7 +1072,7 @@ def cmd_peek(args, root, cfg):
     if not args.comp:
         print(unity.call(f"{PROBE}.ComponentNames", "", args.node))
         return
-    print(unity.call(f"{PROBE}.Peek", args.node, args.comp, args.members))
+    print(unity.call(f"{PROBE}.Peek", args.node, args.comp, args.members, args.deep))
 
 
 def cmd_effect_trace(args, root, cfg):
@@ -950,7 +1164,8 @@ def cmd_play(args, root, cfg):
 SCOPE_ACTIONS = ("list", "stats", "init")
 FIND_SCOPES = ("full", "all", "shallow")
 SCENE_ACTIONS = ("new", "copy", "open", "save", "ls", "count", "do")
-PREFAB_ACTIONS = ("read", "peek", "peek-batch", "locate", "do", "variant", "copy")
+PREFAB_ACTIONS = ("read", "peek", "peek-batch", "locate", "do", "variant", "copy",
+                  "swap-script")
 CATALOG_KIND_CHOICES = ("action", "condition", "render", "handler", "getter",
                         "var", "so", "all")
 LOG_TYPES = ("All", "Error", "Warning", "Log")
@@ -1282,7 +1497,11 @@ def main() -> None:
     pp.add_argument("--node", help="read / peek：子樹路徑（peek 留空 = root）")
     pp.add_argument("--comp", help="peek：component 型別")
     pp.add_argument("--members",
-                    help="peek：逗號分隔的欄位名；留空 = 這顆 component 的所有 serialize 欄位")
+                    help="peek：逗號分隔的欄位名，支援點路徑（_ignoreFilter._ignoreSelfEntity、"
+                         "_entries[0]._family）；留空 = 這顆 component 的所有 serialize 欄位")
+    pp.add_argument("--deep", nargs="?", type=int, const=2, default=0, metavar="N",
+                    help="peek / peek-batch / locate：把巢狀 [Serializable] 類別攤開 N 層"
+                         "（不帶數字 = 2）。預設 0 = 只印型別名（輸出小）")
     pp.add_argument("--depth", type=int, default=-1,
                     help="read：最多往下幾層；仍受 --budget hard cap")
     pp.add_argument("--budget", type=int, default=20000,
@@ -1306,6 +1525,24 @@ def main() -> None:
     pp.add_argument("-f", "--file", help="do：批次操作；peek-batch：probe 清單（- = stdin）")
     pp.add_argument("--quiet", action="store_true",
                     help="do：成功只回摘要、callback、save/verify；錯誤仍完整")
+    pp.add_argument("--from", dest="src_type",
+                    help="swap-script：舊的 C# 型別名（class name，不含 namespace）")
+    pp.add_argument("--to", dest="dst_type",
+                    help="swap-script：新的 C# 型別名。同名 serialized 欄位會原樣保留")
+    pp.add_argument("--fileid", action="append", metavar="ID",
+                    help="swap-script：只換這幾個 MonoBehaviour document（可重複）；"
+                         "留空 = 這份檔案裡全部")
+    pp.add_argument("--drop", metavar="f1,f2",
+                    help="swap-script：順手刪掉這幾個新型別沒有的欄位（不刪也行，"
+                         "Unity 下次存檔會自己丟）")
+    pp.add_argument("--assembly", default="Assembly-CSharp",
+                    help="swap-script：寫進 m_EditorClassIdentifier 的 assembly 名")
+    pp.add_argument("--dry-run", action="store_true",
+                    help="swap-script：只列會被改到哪幾個 document 與它們的原始欄位值，不動檔案"
+                         "（這也是讀「C# 已刪掉的孤兒欄位」的唯一手段）")
+    pp.add_argument("--force", action="store_true",
+                    help="swap-script：Unity Editor 開著這個專案時仍然硬寫（預設拒絕，"
+                         "因為 Editor 一存檔就會整份覆寫且值不可逆地消失）")
     pp.add_argument("ops", nargs="*", help="do：直接帶操作（一個參數一行）")
     pp.set_defaults(fn=cmd_prefab)
 
@@ -1464,7 +1701,11 @@ def main() -> None:
     pk.add_argument("node", help="節點路徑（第一段是 root object 名）")
     pk.add_argument("comp", nargs="?",
                     help="component 型別；留空 = 只列這個節點上有哪些 component")
-    pk.add_argument("--members", help="逗號分隔的欄位/屬性名；留空 = 所有 public 屬性")
+    pk.add_argument("--members",
+                    help="逗號分隔的欄位/屬性名，支援點路徑（_ignoreFilter._ignoreSelfEntity、"
+                         "_entries[0]._family）；留空 = serialize 欄位 + 可查的屬性名清單")
+    pk.add_argument("--deep", nargs="?", type=int, const=2, default=0, metavar="N",
+                    help="把巢狀 [Serializable] 類別攤開 N 層（不帶數字 = 2）。預設 0 = 只印型別名")
     pk.set_defaults(fn=cmd_peek)
 
     et = sub.add_parser("effect-trace",
@@ -1494,6 +1735,47 @@ def main() -> None:
     py = sub.add_parser("play", help="Play Mode 控制（需要 Unity）")
     py.add_argument("action", choices=PLAY_ACTIONS, type=_ci(*PLAY_ACTIONS))
     py.set_defaults(fn=cmd_play)
+
+    pgp = sub.add_parser(
+        "progress", aliases=["prog"],
+        help="讀 GameProgress.md / 模組 Progress.md 的最新條目（離線）",
+        description="這些檔是 append-only 的流水帳，最新在最下面。預設回最後 5 條完整條目 —— "
+                    "取代 `tail -c N`（那會切在句子中間）。"
+                    "條目邊界 = col 0 的 `- ` 或 `## `。")
+    pgp.add_argument("keyword", nargs="?",
+                     help="只回內文含這段的條目（預設只列標題，加 --full 展開）")
+    pgp.add_argument("-n", "--limit", type=int, default=5, help="最近幾條（預設 5）")
+    pgp.add_argument("--at", type=int, nargs="+", metavar="N",
+                     help="展開指定編號的條目（編號從 --list 拿）")
+    pgp.add_argument("--list", action="store_true", help="只列標題，一條一行")
+    pgp.add_argument("--full", action="store_true", help="展開全部命中的條目，不受 -n 限制")
+    pgp.add_argument("--since", metavar="YYYY-MM-DD",
+                     help="只看日期 >= 這天的條目（沒寫日期的條目一律不算命中）")
+    pgp.add_argument("--module", nargs="?", const="", metavar="KW",
+                     help="改讀模組 Progress.md（KW 模糊比對路徑；不給 KW = 列出所有）")
+    pgp.add_argument("-f", "--file", help="直接指定 progress 檔路徑（含封存檔）")
+    pgp.add_argument("--stat", action="store_true", help="條數 / 大小 / 日期範圍")
+    pgp.add_argument("--archive", type=int, metavar="N",
+                     help="把最舊的 N 條搬到 <檔名>-Archive.md（會改檔）")
+    pgp.set_defaults(fn=progress.cmd)
+
+    pvs = sub.add_parser(
+        "verify-skills", aliases=["vs"],
+        help="檢查 skill / agent / CLAUDE.md 引用的型別、欄位、路徑是否還存在（離線）",
+        description="只驗機械可查的部分。第一次跑完用 --baseline 把既有雜訊寫進 "
+                    ".uprefab-skillignore，之後只顯示新漂移。"
+                    "語意層的過期改用 --changed 挑出該重讀的段落。")
+    pvs.add_argument("--path", metavar="KW", help="只掃路徑含這段的文件")
+    pvs.add_argument("--changed", nargs="?", const="1.week", metavar="SINCE",
+                     help="改成 diff-driven：列出提到「近期改過的 .cs」的 skill 段落"
+                          "（預設 1.week，吃 git --since 的格式）")
+    pvs.add_argument("--loose", action="store_true",
+                     help="連「查不到又沒有相近型別」的 token 也列（預設只報疑似改名的，"
+                          "因為散文裡的 PascalCase 大多不是專案型別）")
+    pvs.add_argument("--baseline", action="store_true",
+                     help="把目前所有型別／欄位誤判寫進 .uprefab-skillignore（路徑類不寫）")
+    pvs.add_argument("-n", "--limit", type=int, default=12, help="每份文件最多印幾條")
+    pvs.set_defaults(fn=verifyskills.cmd)
 
     pu = sub.add_parser("usage", help="使用記錄統計（哪一步最花時間）")
     pu.add_argument("--gap", type=int, default=900,

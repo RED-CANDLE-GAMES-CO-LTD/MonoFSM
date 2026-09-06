@@ -184,6 +184,32 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 
 **使用範例**：燃煤器 Dealer 偵測到煤炭 Receiver，`ReceiverToDealer` + `Add` 把煤炭的燃燒值加到燃煤器的 Fuel。
 
+## 新增 EffectDetector：放現成 nested prefab，不要手刻
+
+要在 prefab / scene 上新增一個 EffectDetector 時，放這顆現成的 nested prefab：
+
+`MonoFSM/0_MonoFSM_Example_Module/[Detector] Trigger.prefab`（guid `cfc3ca4b9e2e5480a8563ebe7e8036b6`）
+
+它已備妥 EffectDetector + TriggerDetectorSource + Collider + kinematic Rigidbody 的正確組合。
+放進去之後只要調 Collider 大小、加 Dealer、接引用。功能 component 不要掛在這顆 detector 節點身上，另外開節點
+（一個 GameObject 一顆功能 component）。
+
+### 為什麼一定要那顆 kinematic Rigidbody
+
+`TriggerDetectorSource`（`MonoFSM/1_MonoFSM_Core/Runtime/Detection/TriggerDetectorSource.cs`）用
+`OnTriggerStay` 收集 collider，而 Unity 的 trigger 事件在**兩邊都是 static collider 時完全不觸發**。
+所以在靜態物件上手刻 `[Detector] X` 去打另一個靜態物件的 `EffectDetectable` 時，dealer 的
+`HasReceiverOverlap` 永遠是 false，且**不會有任何錯誤訊息**。
+
+修法：在 `[DetectionSource] TriggerDetectorSource` 節點加 `Rigidbody`，`m_IsKinematic=true`、`m_UseGravity=false`。
+`TriggerDetectorSource` 本身就有 `[Auto] Rigidbody _optionalRigidbody` 欄位，這是預期用法
+（專案裡 `Hook Socket (Kinematic` 的命名就是這個原因）。既有 detector 大多掛在已經有 Rigidbody 的節點下
+（例如神像的 `Context/Animator`），所以照抄結構時特別容易漏掉這件事。
+
+**除錯捷徑**：讀目標 `EffectDetectable` 的 `_debugDetectors` 欄位
+（`up scene ls --node "<路徑>/EffectDetectable Root" --depth 1`），它列出「當下有偵測到我的所有 detector」。
+自己新建的 detector 不在裡面 → 就是這個問題，不用再往 effectType / 條件 / culling 方向猜。
+
 ---
 
 ## 注意事項
@@ -202,7 +228,7 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 
 | # | 段 | 看什麼 | 常見死因 |
 |---|---|---|---|
-| 1 | detector 偵測到 detectable | `EffectDetectable._debugDetectors` 有沒有那顆 detector | detectable 那側缺 kinematic Rigidbody（static-static trigger 不觸發）、collider 沒開 trigger、layer collision matrix 關著 |
+| 1 | detector 偵測到 detectable | `EffectDetectable._debugDetectors` 有沒有那顆 detector | detector / detectable **兩側都是 static collider**（缺 kinematic Rigidbody，trigger 完全不觸發，見「新增 EffectDetector」）、collider 沒開 trigger、layer collision matrix 關著 |
 | 2 | receiver 登記進 detectable 的 dict | `EffectDetectable.GetKeys` 含不含這個 effectType | receiver 不在 `EffectDetectable` 子樹下、`_effectType` 沒填 |
 | 3 | dealer 有效 | `dealer.IsValid`、`_failReason` | dealer 底下的 `[If]` condition 不成立 |
 | 4 | dealer ↔ receiver 配對 | `dealer.HasReceiverOverlap` / `receiver.HasDealerOverlap` | 兩邊 `_effectType` 不是同一顆 asset；dealer 掛在偵測範圍不夠的 detector 下 |

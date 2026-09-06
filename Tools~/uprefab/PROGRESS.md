@@ -1162,3 +1162,151 @@ nested prefab 本體上」。現在至少不是靜默成功。
 - `Serialized` 的 `ObjectReference` 仍是 post-save capture。同類假陽性風險已知但沒觸發
   （`ref|` 走 SerializedObject，會正確產生 override），不為它把 identity 快照搬到 op 當下。
 - 沒有為巢狀限制加預先 Abort，理由見上。
+
+## `peek` 的巢狀 `[Serializable]` 與 prefab 路徑誤導（2026-09-05）
+
+**問題**：`RaycastCache._ignoreFilter`（`IgnoreColliderFilter`，`[Serializable]` 純資料類別）
+`peek` 出來只有型別名 —— `Show()` 原本只對「沒 override ToString 的 **struct**」攤開，
+reference type 一律落到 `v.ToString()`。結果「PPlayer 的 RaycastCache[2]/[4] 有沒有開
+`_ignoreSelfEntity`」靜態完全答不出來，只能請人開 Inspector 用眼睛看。
+這類巢狀資料類別在專案裡不只一個（`TargetPositionResolver` 也是）。
+
+**做法**（`EditProbe.cs`）：
+- `--members` 的每一項改走 `TryResolvePath`，支援 `a._b._c` 與 `_arr[0]._x`。
+  每一段都是使用者**顯式點名**的，所以允許讀 property（仍過 `ProbeMineField`）。
+- `--deep N`（不帶數字 = 2）：`Show` 拆成 `Show(v, classDepth)` + `ShowAt(v, depth, classDepth)`，
+  多一個 `case object nested when classDepth > 0 && IsNestedSerializable(...)`。
+  **攤開只走 serialize 欄位、絕不呼叫 property getter** —— 盲掃 getter 會在 native 層
+  abort 掉整個 Editor（managed try/catch 攔不到，見 `ProbeMineField`）。
+- 集合本身不算一層巢狀（`classDepth` 原樣往下傳），否則 `List<SomeSerializable>` 的元素
+  永遠比直接欄位少看一層。元素上限 6，超過印 `… 還有 N 個未列出`。
+- 預設仍是 `--deep 0`（舊的淺層行為）。這是刻意的：巢狀攤開對「已經知道要看哪一格」的
+  情境是純浪費，點路徑才是常態用法，`--deep` 只是探勘用。
+
+**刻意不做**：`*`（override 標記）不標在巢狀段上。`PrefabOverrideMark` 記的是 top-level
+property path，巢狀段標星會讓人誤以為那一格自己被 override 了。
+
+**prefab 路徑誤導**：`up peek "PPlayer/…"` 原本只回「找不到 root object 'PPlayer'。scene 的
+root 有（26 個）…」，下一隻 agent 會直接判定節點不存在。現在 `Peek` / `ComponentNames`
+的 `EditAbort` 統一走 `Abort(abort, nodePath)`，第一段用 `AssetDatabase.FindAssets`
+（檔名要完全相等，不吃 substring）確認是 prefab 名時，附上 asset 路徑與可直接複製的
+`up prefab peek … --node <去掉第一段的路徑>`。找不到就回 null，不影響原訊息。
+
+**驗收**：PPlayer 的 6 顆 `[Raycast] RaycastCache` 只有 `[4]`（note: muzzle ray，
+`_hasHitVar=[Var] Has Muzzle AimHit`）`_ignoreSelfEntity=True`，其餘 5 顆都是 False。
+
+## `prefab swap-script`：C# 重構後搬序列化資料（離線）
+
+起因：拆件系統把四個欄位從 `DismantlePartAction` 搬到新的 `DismantlePartConfig`。
+編譯過了，但 15 顆既有 component 的值全變成孤兒 —— **Unity 載入 MonoBehaviour 時會直接
+丟掉型別上不存在的欄位**，所以 `SerializedObject` / `up prefab peek` 一律回
+「型別上沒有這個欄位」。用 Unity API 做「AddComponent 新型別 + 搬值」必然搬到空值；
+連「用 SerializedProperty 改 m_Script」也救不回來，因為記憶體裡的物件早就沒那些值了。
+
+值只還活在**檔案文字**裡，所以這條路只能離線走：改 `m_Script` 的 guid + 
+`m_EditorClassIdentifier`，同名欄位被新型別原樣吃下去。
+
+刻意不做的事：
+- **不解析新型別有哪些欄位**（離線做 C# 欄位解析太脆）。多餘欄位就留著，Unity 下次
+  存檔會自己丟；要當場清掉才用 `--drop`。
+- **不處理 variant 的繼承節點**。那種 override 住在 `m_Modifications`、型別由 base 決定，
+  文字層換不了。命中 0 筆時輸出會明講這件事，免得下一隻 agent 以為型別名打錯。
+- 備份放 `Temp/uprefab-swapscript-backup/` 而不是原地 `.bak` —— `.bak` 放在 `Assets/`
+  底下會被 Unity 當未知資產 import 並生 `.meta`。
+
+順帶的副產品：`--dry-run` 會把每個 document 的原始 `欄位: 值` 印出來，這是**讀孤兒欄位
+的唯一手段**（`peek` 走 Unity 永遠看不到）。重構收尾時「舊值到底是什麼」就靠它。
+
+### 事後補課：Editor 開著時離線改 = 值不可逆消失（已加前置檢查擋掉）
+
+swap-script 上線第一天就踩到：8 顆換完之後，使用者在 Unity 裡改了同一支 prefab 並存檔。
+Unity 用 **pre-swap 的記憶體整份覆寫**磁碟，而且因為 C# 上已經沒有那四個欄位，
+序列化時直接不寫出來 —— **不是還原成舊值，是值從檔案裡永久消失**。
+`up find` 當下還回報「8 顆 config 都在」，那是離線索引過期造成的假訊號；
+Unity 端 `locate` 回 total=0 才是真的。兩邊不一致時**以 Unity 為準**。
+
+修法刻意選在**工具層**而不是文件層：`swap-script` 現在偵測 `Temp/UnityLockfile`
+（Editor 開著該專案就會有），有就**直接拒絕寫入**並印出三個選項，
+第一順位是「改走 `up prefab do` 的 comp/ref/set/delcomp」—— Unity 端寫入，
+記憶體與磁碟一致，之後怎麼存都不會丟。`--force` 保留給真的知道自己在幹嘛的情況。
+`--dry-run` 不受限制，因為它是選項 1 的前置（讀舊值的唯一手段）。
+
+副作用之一值得記著：走 Unity 端重放時，`AbstractDescriptionBehaviour.Rename()`
+會在存檔時依 `Description` 改節點名（本例 `[Action] 拆零件 N` → `拆件 N: …`）。
+用 fileID 的引用（`GrabForceAggregator._grabAnchors`）不受影響，但寫死節點路徑的計畫會過期。
+
+## asset 路徑預解析、`fields` near-match、`locate` 表尾提示（2026-09-06）
+
+三條都來自同一份 usage log 診斷（5,457 次呼叫）：真正逼出多輪的不是「一顆一顆序列發」
+（同指令連續呼叫 60–75% 早就是同一個 Bash call 用 `;` 串的，本來就 1 輪），而是**工具回一行
+錯誤卻不給下一步**，agent 只能再猜一輪。
+
+### `_resolve_asset`（`uprefab.py`，掛在 `cmd_prefab` 與 `cmd_refs` 打 Unity 之前）
+
+- 為什麼：usage log 有 68 次「asset 路徑猜錯 → Unity 回 `# 找不到 prefab: X`、零候選」的白跑輪，
+  其中 32 次 basename 在離線 `assets` 表唯一命中、11 次多筆。每次都是一趟 Unity + 一整個 API 回合。
+- 順序：磁碟上有 → 原樣（含 repo 相對 ⇄ `Packages/<name>/` 互換，對照 `Packages/manifest.json`
+  的 `file:../<dir>` 條目）；沒有 → 索引 basename **唯一**命中就代入並印 `# 已改用 …`；多筆或只有
+  相近名（difflib ≥0.6）→ 列候選、**exit 2 不打 Unity**；完全沒有 → 印一行說明後仍交給 Unity 判
+  （索引範圍受 `.uprefab.json` 限制，剛新建的檔可能還沒 index，不能把索引的 0 當定論）。
+- 刻意只認 `.prefab`：第一版 stem 比對不看副檔名，`GameplayUI.prefab` 被換成
+  `Localization/GameplayUI.asset`，等於把一個「找不到」換成另一個。這幾條指令本來就只吃 prefab。
+- 刻意不掛 `swap-script`：它離線讀磁碟，要的是 repo 相對路徑，換成 `Packages/` 反而會壞。
+- 驗證時踩到 60 秒 argv memo：改完程式立刻重跑同一條指令會拿到舊輸出，測新分支要加 `--no-memo`。
+
+### `cmd_fields` 找不到型別時補 `最接近：…`
+
+Unity 端 `ResolveTypeFromPool` 只給「名稱含這段」的候選，打錯字（`VarFlaot`）一個都撈不到，
+usage log 有 17 次迷你輸出。改成 Unity 回 `# 找不到` 時用離線 `catalog` + `scripts` 表跑 difflib，
+沒有相近名就指向 `up types` / `up catalog`。成功路徑輸出不變。
+
+### `prefab locate` total>0 且沒帶 `--members` 時加一行提示
+
+`locate --members` 早就存在，但 405 次 locate 只有 17 次帶它，locate → 同節點再 peek 有 50 對。
+只補一行 `#` 提示，不自動帶欄位（那會讓每次 locate 都多吐內容，違反「多吐一點不是免費的」）。
+
+### 已評估、刻意不做（同一輪診斷）
+
+- `fields` / `peek` / `refs` variadic：輪數上沒得省（見開頭），`fields` 只能省共用 base 段約 40% 字元，
+  排在後面；`peek` 該補的是 `peek-batch` 的 inline 位置參數，不是 variadic。
+- `peek` 自動附 parent chain / variant 來源 / VariableTag 引用：variant 來源表頭已有，其餘沒有對應的
+  追問模式可省，716 次 peek 每次多 200–400 字元是純成本。
+
+## up progress / up verify-skills（進度紀錄與 skill 漂移）
+
+兩支都是離線、都掛在 `memo.NEUTRAL`（讀的是 markdown 不是索引，memo 沒意義）。
+
+**分工的前提**：Progress.md 記「當時為什麼這樣改」，是歷史事實，**永不 decay、不該回頭改**；
+skill 記「現況是什麼」，是狀態快照，**必然 decay、一定要維護**。兩者的維護模型相反，
+先前把它們當同一件事在管，才會抓不到整理節奏。
+
+### up progress
+取代 `tail -c 4000 GameProgress.md`。`tail` 三個問題：切在句子中間、「檔案末端」不等於
+「最近寫的」、magic number 要 agent 自己記得。條目邊界（col 0 的 `- ` 或 `## `）變成一級概念後
+`-n 5` 就是五條完整紀錄。
+
+**刻意不切週檔**：條目速率不等速（一週 0～15 條），切週會讓「某件事在哪一週」變成搜尋問題，
+比單檔更慢。要縮檔就 `--archive N` 照條數搬到 `<stem>-Archive.md`，封存檔不進預設讀取。
+日期是選配 —— 沒寫日期時順序就是時間序，`--since` 只對有日期的條目生效。
+
+### up verify-skills
+只驗機械可查的三件事：路徑、型別、`Type._field` 欄位。
+
+**誤判控制是這支能不能用的關鍵**。第一版全報，1201 筆 —— 散文 backtick 裡的 PascalCase
+大多是 JSON 欄位名／C# API／enum 值，不是專案型別，信號完全被淹掉。現在的判準：
+
+- **型別只報「查不到但有很像的」**（相似度 ≥ 0.82）。`NetworkedGameplayInputState` 不存在而
+  `NetworkInputState` 存在 → 幾乎一定是改過名的舊引用，正是要抓的；`KeyDown` 連像的都沒有
+  → 它本來就不是專案型別。其餘用 `--loose` 看。降到 159 筆。
+- **路徑三關**：repo 根相對 → 文件自身資料夾相對（`references/x.md` 指的是旁邊那份）→
+  檔名反查索引。第三關同時解掉「簡寫路徑不該被誤報」與「資產搬家要直接講出新位置」
+  （印「實際在：…」而不是只說不存在）。降到 120 筆。
+- 沒有副檔名又接不到實體路徑的一律放過 —— 那多半是 prefab 內的節點路徑（`Modules/`、
+  `CharacterModules/Character FSM/`），不是檔案。`<>` 佔位與 `*` glob 同理跳過。
+- 剩下的既有雜訊走 linter 慣例：`--baseline` 寫進 `.uprefab-skillignore`（路徑類不寫入，
+  那些是真失效），之後只顯示新漂移。
+
+`--changed [SINCE]` 是另一種模式，也是每週真正該跑的那支：用 git 找近期動過的 .cs，
+反查哪些 skill 段落提到它們，給出「這幾行附近要重讀」的清單。語意層的過期機械查不到，
+但用 diff 當 trigger 可以把重讀範圍從 145KB 縮到幾十行。**定期全域盤點沒有價值**
+（95% 會回報「沒變」），trigger 要是 diff 不是時間。

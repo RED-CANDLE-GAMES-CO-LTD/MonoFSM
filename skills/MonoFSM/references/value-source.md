@@ -192,11 +192,47 @@ protected override void OnActionExecuteImplement()
 |------|-------------------|------|
 | `VarTransform` | `Value != null` | Transform 引用存在 |
 | `VarEntity` | `Value != null` | Entity 引用存在 |
-| `VarVector3` | `!IsNull` | 有特殊 nullable 機制 |
+| `VarVector3` / `VarQuaternion` | `!IsNull` | 有特殊 nullable 機制，getter 型的語意見下 |
 | `VarFloat` | `CurrentValue != 0f` | 非零即有值 |
 | `VarBool` | always `true` | 永遠有值 |
 
 **使用時機**：在 runtime 判斷 Var 是否有有效值，常見於 TargetPositionResolver 的優先順序判斷。
+
+### Getter 型 Var 的 IsNull / IsValueExist（2026-08-22 已在框架修正）
+
+`AbstractFieldVariable._isNull` 只在 `SetValue()` 成功寫入時清成 false、`ClearValue()` 設回 true。
+Getter 型 Var（`_valueSources` 有接東西，Inspector 標題顯示 `Getter`）的值每次讀取現算、永遠不走 `SetValue`，
+所以 `_isNull` 會停在 serialized 的初值。
+
+**現況（2026-08-22 起）**：`AbstractFieldVariable.IsNull => !HasValueSource && _isNull` ——
+有 valueSource 時一律不視為 null，「算不算有值」歸 source 負責。連帶 `VarVector3` / `VarQuaternion` 的
+`IsValueExist`（都是 `!IsNull`）對 getter 型會正確回 true；這兩個是 `IsNull` 的唯一消費者。
+
+修正前的症狀（看到舊行為可對照）：`if (!_var.IsValueExist) return;` 這種防禦寫法接上 getter 型 Var 會 100% 早退，
+沒有任何錯誤訊息，看起來像「Var 沒接上」。實際是被 `VerletRope` 的起點錨點踩到的。
+
+runtime 成本可忽略：`HasValueSource` → `AutoReferenceFieldEditor` 在 `Application.isPlaying` 直接 return，
+`ValueResolver.HasValueProvider` 只看 array 長度，無 GC。
+
+---
+
+## runtime 才被寫入的 Var 必須勾 `_isRuntimeOnly`
+
+任何「只在 runtime 被寫入」的 Var 節點（最典型是 `SpawnAction._spawnedEntityVar` 指向的 `VarEntity`），
+**必須把 `_isRuntimeOnly` 設成 true**。
+
+沒設的話 `SetValue` 會被 `GenericObjectVariable` 擋掉，Console 只印一行**沒有物件可點**的
+`Cannot set value of a non-runtime-only variable` —— 看不出是哪顆 var；而下游讀到的永遠是 null
+（例如 `DespawnEntityAction._despawnEntity` 變成 no-op，清場整條靜默失效）。
+
+用 uprefab 設：
+
+```bash
+up prefab do "$P" "set|[VarFolder] VariableFolder/[Var] Spawned 1|VarEntity|_isRuntimeOnly|true"
+```
+
+`GenericObjectVariable.cs` 的判定是 `HasProxySource || _isRuntimeOnly` 才允許寫入 —— proxy var
+（`HasParentVarEntity`）不受此限，因為它寫回 parent entity 的真身。
 
 ---
 

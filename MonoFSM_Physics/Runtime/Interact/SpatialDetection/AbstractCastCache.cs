@@ -121,6 +121,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         public bool _manualUpdateMode;
 
         [Title("忽略命中")]
+        [AutoNested]
         [SerializeField]
         private IgnoreColliderFilter _ignoreFilter = new();
 
@@ -143,16 +144,7 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
         {
             _cachedHits.SimValue = new List<RaycastHit>();
             _cachedHits.RenderValue = new List<RaycastHit>();
-
-            _ignoreFilter.Init(this);
         }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            _ignoreFilter.EditorRefreshPreview(this);
-        }
-#endif
 
         public void BeforeSimulate(float deltaTime)
         {

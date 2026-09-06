@@ -80,6 +80,27 @@ namespace MonoValueProvider
         }
 
         /// <summary>
+        ///     目前生效的來源 runtime 上「真的有值」嗎。
+        ///     純查詢，**不改動 GetTargetPosition 的既有優先序行為**（那條路上很多呼叫端靠
+        ///     「沒值就回 fallback」運作，改成早退會炸一票）。
+        ///     VarVector3 走 IsValueExist：proxy 型（掛在 VarEntity 底下）在 entity 還沒解到時會回 false，
+        ///     這是「持有者還沒 spawn」與「值剛好是 (0,0,0)」唯一分得開的地方 —— 不要拿 Vector3.zero 比對。
+        /// </summary>
+        public bool IsTargetValueReady
+        {
+            get
+            {
+                if (_targetPosVar != null)
+                    return _targetPosVar.IsValueExist;
+                if (HasTransformValue)
+                    return true;
+                if (HasEntityValue)
+                    return TransformOfEntity.GetEntityTransform(_targetEntityVar) != null;
+                return HasDirectTransform;
+            }
+        }
+
+        /// <summary>
         /// 依優先順序解析目標位置：VarVector3 > VarTransform > VarEntity > Transform
         /// </summary>
         public Vector3 GetTargetPosition(Vector3 fallback) //fallback很鳥
