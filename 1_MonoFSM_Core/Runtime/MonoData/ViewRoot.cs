@@ -155,13 +155,32 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         [ShowInPlayMode] bool _mountHandledPhysics;
         [ShowInPlayMode] bool _mountDisabledColliders;
 
+        // === 關卡初始 mount baseline ===
+        // 只有勾了 MountViewRootAction._isResetBaselineMount 的 mount 才會記（插槽/台座這種「關卡擺好的姿態」）。
+        // 為什麼不自動把「第一次 MountTo」當 baseline：抓取、Dock、投擲吸附全走同一條 MountTo，
+        // 玩家先抓起來再放回去也會是第一次，自動判斷會把玩家的操作記成關卡初始狀態。
+        // baseline 跨 reset 有效，ResetStateRestore / ClearFollowTarget / Unmount 都不會清掉它。
+        [ShowInInspector] bool _hasResetBaselineMount;
+        [ShowInInspector] ViewRoot _resetBaselineTarget;
+        [ShowInInspector] Transform _resetBaselineMountPoint;
+        Vector3 _resetBaselineMountPosition;
+        Quaternion _resetBaselineMountRotation;
+        bool _resetBaselineHandlePhysics;
+        bool _resetBaselineDisableColliders;
+
+        /// <summary>
+        /// 有沒有記到關卡初始 mount（reset 時要主動掛回去，不依賴 EffectDetector 重新產生 Enter）
+        /// </summary>
+        public bool HasResetBaselineMount => _hasResetBaselineMount;
+
 
         /// <summary>
         /// Mount 的唯一入口（SA 端）：物理副作用 + collider + 跟隨狀態集中在這，
         /// NetworkedViewRoot 每 tick 讀取結果同步給其他端。
         /// </summary>
         public void MountTo(ViewRoot target, Vector3 mountPosition, Quaternion mountRotation,
-            Transform mountPointTarget, bool handlePhysics, bool disableColliders)
+            Transform mountPointTarget, bool handlePhysics, bool disableColliders,
+            bool isResetBaselineMount = false)
         {
             if (handlePhysics && _bindRb != null)
             {
@@ -187,7 +206,53 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
                                deltaRot * (Root.position - _mountPivotTransform.position);
             }
 
+            if (isResetBaselineMount)
+            {
+                //記「算完 pivot 之後真正套上去的 Root pose」，還原時 mount point 還在就以它的即時 pose 為準，
+                //不在了（被 despawn / 關掉）才退回這組錄下來的值。
+                _hasResetBaselineMount = true;
+                _resetBaselineTarget = target;
+                _resetBaselineMountPoint = mountPointTarget;
+                _resetBaselineMountPosition = mountPosition;
+                _resetBaselineMountRotation = mountRotation;
+                _resetBaselineHandlePhysics = handlePhysics;
+                _resetBaselineDisableColliders = disableColliders;
+            }
+
             SetFollowTarget(target, rootPosition, rootRotation, mountPointTarget);
+        }
+
+        /// <summary>
+        /// 把 mount 狀態掛回關卡初始 baseline（reset 用）。
+        /// 不靠插槽的 EffectDetector 重新 Enter，所以 reset 當下就回到正確姿態，
+        /// 不會有「先跳回 authored pose、幾個 tick 後才被吸回插槽」的閃動。
+        /// </summary>
+        void RestoreResetBaselineMount()
+        {
+            if (_resetBaselineTarget == null)
+            {
+                Debug.LogError(
+                    $"[ViewRoot] '{name}' 有 reset baseline 但 target 已經不存在，改成清掉 mount。", this);
+                _mountHandledPhysics = false;
+                ClearFollowTarget();
+                return;
+            }
+
+            var mountPosition = _resetBaselineMountPosition;
+            var mountRotation = _resetBaselineMountRotation;
+            if (_resetBaselineMountPoint != null)
+            {
+                mountPosition = _resetBaselineMountPoint.position;
+                mountRotation = _resetBaselineMountPoint.rotation;
+            }
+
+            Debug.Log(
+                $"[ViewRoot] ResetStateRestore restore baseline mount '{name}' -> '{_resetBaselineTarget.name}' " +
+                $"pos:{mountPosition} tick:{WorldUpdateSimulator.CurrentTick}",
+                this);
+
+            MountTo(_resetBaselineTarget, mountPosition, mountRotation, _resetBaselineMountPoint,
+                _resetBaselineHandlePhysics, _resetBaselineDisableColliders);
         }
 
         /// <summary>
@@ -350,6 +415,18 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         }
 
+        //MountTo 會動 Rigidbody 的 kinematic，那是 SA 端的職責（proxy 的 kinematic 歸 NetworkRigidbody 管），
+        //所以 baseline 還原只在 SA 端做；proxy 走 ClearFollowTarget 再由 NetworkedViewRoot 套 SA 的狀態。
+        //沒有網路層（純單機）時 MonoObj 會退回 _shouldSimulateFlag，這裡也視為有權限。
+        bool IsMountAuthority
+        {
+            get
+            {
+                var bindObj = BindEntity?.BindObj;
+                return bindObj == null || bindObj.HasStateAuthority;
+            }
+        }
+
         public void ResetStateRestore(bool isHardReset)
         {
             _lastUnmountTick = -1;
@@ -369,9 +446,17 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
                 _followViewRotOffset = _baselineViewRotOffset;
                 MountVersion++;
             }
+            else if (_hasResetBaselineMount && IsMountAuthority)
+            {
+                // 關卡初始 mount（插槽/台座）→ 主動掛回 baseline。
+                // 這條的「原位」是 mount point 決定的，不是 authored transform，
+                // 光靠 LocalTransformResetter 會停在 authored pose（神像案例差 0.21m / 35.7°）。
+                RestoreResetBaselineMount();
+            }
             else
             {
-                // 純動態 mount（SceneStart 沒 attach）→ 清掉，位置/物理交給 LocalTransformResetter 還原
+                // 純動態 mount（抓取 / Dock / 沒有 baseline）→ 清掉，位置/物理交給 LocalTransformResetter 還原。
+                // proxy 端也走這條：清掉之後由 NetworkedViewRoot 把 SA 的 mount 狀態套回來。
                 _mountHandledPhysics = false;
                 Debug.Log(
                     $"[ViewRoot] ResetStateRestore clear dynamic mount '{name}' tick:{WorldUpdateSimulator.CurrentTick}",

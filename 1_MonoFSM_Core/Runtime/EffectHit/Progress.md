@@ -21,3 +21,19 @@
 序列化 —— 順帶讓 Inspector 不用另做一份 preview 鏡像欄位、edit time 也看得到會忽略誰。
 collider set 改 lazy build（`_isBuilt`），所以持有者連 `EnterSceneAwake` 樣板都不用寫。
 **刻意不拆成獨立 component**：三個使用端都是各自私有的設定、沒有共享需求，拆了只是多一顆節點加一條會斷的 reference。
+
+- Culling 凍結補到 dealer 的「讀值路徑」：第 6 條把 detector 端改成凍結語意（cull 時不清 overlap、不發
+exit），但外部**查詢**命中狀態的那條路徑漏了。`GeneralEffectDealer.HasReceiverOverlap` 第一行是
+`!isActiveAndEnabled` 就早退，而 culling handler 是直接 `SetActive(false)` 整個 LogicRoot 子樹 —— dealer
+的 GO 跟著 inactive，於是 detector 那邊帳本明明凍著，`IsDealerHitAnyReceiverCondition` 讀到的卻是「沒打
+到」。結果就是進出 culling 一次，值翻面兩次，下游 latch 全部重新判定（實例：鑽頭的 `d_NavMeshBlocking`
+掛在會被 near culling 關掉的 LogicRoot 底下，玩家一走遠再回來就重跑一次撞擊判定）。
+  現在只有「真的被關掉」（despawn／企劃手動 disable）才算無效，被 culling handle 關掉就沿用凍結期間的
+overlap 值。區分方式刻意沿用 `EffectDetector.OnDisable` 的 `MonoObj.IsCulledByHandle`，兩處語意才不會分
+岔 —— 「暫停模擬」和「東西不見了」必須是同一個判斷來源。
+  **`EffectResolver.IsValid` 刻意不動**：它是 `isActiveAndEnabled && _conditions.IsAllValid()`，不含任何
+culling 概念。凍結是「dealer 自己的帳本可不可以信」的問題，不是「這顆 resolver 現在有效嗎」的問題，混進
+`IsValid` 會讓所有 effect 判定都吃到凍結語意（cull 中的東西還會被打到）。所以只在 dealer 的查詢入口處
+理，原本那行說 `IsValid` 已含 `IsCulling` 的註解是錯的，一併改掉。
+  診斷不用 log：查詢結果落在 `_overlapQueryState`（editor-only 賦值，`[Conditional]`），因為這是每幀被
+getter 讀的路徑，字串或 log 都付不起。

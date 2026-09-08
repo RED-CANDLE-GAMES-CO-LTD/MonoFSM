@@ -241,10 +241,12 @@ namespace MonoFSM.Core.Runtime.Interact.SpatialDetection
 #if UNITY_EDITOR
             if (RuntimeDebugSetting.IsDebugMode)
             {
-                var debugCollider = actualCount > 0 ? _castResultsBuffer[0].collider : null;
-                _debugHistoryObjs.Enqueue(debugCollider);
-                if (_debugHistoryObjs.Count > 10)
-                    _debugHistoryObjs.Dequeue();
+                if (actualCount > 0 && _castResultsBuffer[0].collider != null)
+                {
+                    _debugHistoryObjs.Enqueue(_castResultsBuffer[0].collider);
+                    if (_debugHistoryObjs.Count > 10)
+                        _debugHistoryObjs.Dequeue();
+                }
             }
 
 #endif

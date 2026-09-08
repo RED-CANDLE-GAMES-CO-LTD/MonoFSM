@@ -33,6 +33,14 @@ namespace MonoFSM.Core.LifeCycle
         //關掉 source 底下所有 collider（撿起後完全沒有物理性質），Unmount 時自動還原
         [SerializeField] private bool _disableColliders;
 
+        /// <summary>
+        /// 勾起來代表「這次 mount 是關卡初始姿態」：ViewRoot 會記成 reset baseline，
+        /// level reset 後主動掛回這個 mount point，不必等插槽的 EffectDetector 重新產生 Enter。
+        /// 用在插槽 / 台座 / 固定架這種「物件本來就擺在上面」的地方。
+        /// 抓取、Dock、投擲吸附這類玩家操作出來的 mount 不要勾（會把玩家的操作記成關卡初始狀態）。
+        /// </summary>
+        [SerializeField] private bool _isResetBaselineMount;
+
         private bool HasMountPointVar => _mountPointVar != null && _mountPointVar.HasValue;
         private Transform MountPoint => HasMountPointVar ? _mountPointVar.Value : _mountPoint;
 
@@ -104,7 +112,7 @@ namespace MonoFSM.Core.LifeCycle
 
             // 物理/collider 副作用集中在 ViewRoot.MountTo，連線同步由 NetworkedViewRoot 讀取結果
             source.ViewRoot.MountTo(target.ViewRoot, mountPoint.position, mountPoint.rotation,
-                mountPoint, _handlePhysics, _disableColliders);
+                mountPoint, _handlePhysics, _disableColliders, _isResetBaselineMount);
 
             Debug.Log(
                 $"[MountViewRoot] Mounted {source.name} to {target.name} at {mountPoint.position} " +
