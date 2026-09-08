@@ -11,6 +11,8 @@ namespace MonoFSM.Core.Detection
     ///     以 MonoEntity 為單位指定，執行期攤平成 collider set，每次命中只做 O(1) 查表。
     ///     用法：欄位宣告成 [AutoNested][SerializeField] IgnoreColliderFilter，命中時用 IsIgnored(collider) 過濾。
     ///     不需要任何 Init：self entity 由 [AutoParent] 在 edit time 填好並序列化，collider set 首次查詢時才建。
+    ///     這裡只做 entity 粒度：layer 粒度的收窄不要加在這裡，trigger 用 Collider 自己的
+    ///     excludeLayers / includeLayers（物理層級就不派送，更省），cast / overlap 用它們的 query mask。
     /// </summary>
     [Serializable]
     [InlineProperty]

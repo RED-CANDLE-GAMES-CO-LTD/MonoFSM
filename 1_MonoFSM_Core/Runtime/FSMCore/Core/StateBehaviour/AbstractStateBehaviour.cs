@@ -129,14 +129,18 @@ namespace MonoFSM.Core
                 return false;
             if (_canEnterNode == null)
                 return true;
-            var result = _canEnterNode.FinalResult;
-            if (result)
-            {
-                this.Log("Can Enter State: ", Name);
-            }
-
-            return result;
+            //不要在這裡 this.Log(..., Name)：Name 是 gameObject.name，Unity 的 name getter 每次呼叫
+            //都會 marshal 出一條新 string，而參數在 [Conditional] 檢查之外先被求值，
+            //等於每 tick（每個問「我能不能進這個 state」的人）都吃一次 GC。要看結果用 Inspector 的
+            //_lastCanEnterResult / condition 自己的 _resultHistory。
+            _lastCanEnterResult = _canEnterNode.FinalResult;
+            return _lastCanEnterResult;
         }
+
+        //除錯用：最後一次 CanEnterState 的判定結果（取代原本每 tick 的 Log）
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private bool _lastCanEnterResult;
 
         protected virtual bool CanExitState(TState nextState)
         {

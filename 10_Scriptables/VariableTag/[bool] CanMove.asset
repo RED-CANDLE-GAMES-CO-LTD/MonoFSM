@@ -17,10 +17,10 @@ MonoBehaviour:
   Note: 
   _variableType:
     _baseFilterTypeName: 
-    _typeFullName: MonoFSM.Variable.VarBool
+    _typeFullName: MonoFSM.Runtime.Vote.VarVote
     _assemblyName: MonoFSM.Core.Runtime
-    typeName: MonoFSM.Variable.VarBool, MonoFSM.Core.Runtime, Version=0.0.0.0, Culture=neutral,
-      PublicKeyToken=null
+    typeName: MonoFSM.Runtime.Vote.VarVote, MonoFSM.Core.Runtime, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
   _valueFilterType:
     _baseFilterTypeName: 
     _typeFullName: System.Boolean

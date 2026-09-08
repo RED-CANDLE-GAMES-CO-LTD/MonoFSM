@@ -534,6 +534,12 @@ public partial class GameData
     [PreviewInInspector]
     public virtual string Title => titleStr.ToString();
 
+    //TitleLocalized 是 UI 的每幀讀取路徑（TextValueBinder → SmartStringTokenBinding.HasValueChanged
+    //→ GameDataFieldStringValueSource），而 GetLocalizedString() 每次呼叫都會配一條新字串。
+    //譯文只在換語言時才會變，所以在這裡快取，用 SelectedLocale 當失效條件。
+    [NonSerialized] private string _titleLocalizedCache;
+    [NonSerialized] private UnityEngine.Localization.Locale _titleLocalizedCacheLocale;
+
     //給 VarString 的 value source 用（GameDataFieldStringValueSource 選這個 property）
     //沒設 _titleLocalized 就退回舊的 Title，既有 asset 行為不變
     [PreviewInInspector]
@@ -549,7 +555,18 @@ public partial class GameData
                 return Title;
             }
 
-            return _titleLocalized.GetLocalizedString();
+#if UNITY_EDITOR
+            //非 Play 時不快取：inspector 預覽要跟著 table 的編輯即時更新
+            if (!Application.isPlaying)
+                return _titleLocalized.GetLocalizedString();
+#endif
+            var locale = UnityEngine.Localization.Settings.LocalizationSettings.SelectedLocale;
+            if (_titleLocalizedCache != null && ReferenceEquals(locale, _titleLocalizedCacheLocale))
+                return _titleLocalizedCache;
+
+            _titleLocalizedCache = _titleLocalized.GetLocalizedString();
+            _titleLocalizedCacheLocale = locale;
+            return _titleLocalizedCache;
         }
     }
 

@@ -113,13 +113,46 @@ namespace MonoFSM_InputAction
 
         void IBeforeSimulate.BeforeSimulate(float deltaTime)
         {
-            CacheLocalInput(); //hmm這是錯的喔
+            OnBeforeSimulate(deltaTime);
+        }
+
+        /// <summary>
+        /// local 版本在 BeforeSimulate 這個時機 cache 就夠了。
+        /// Fusion 版本 override 成 no-op —— 它的 input 來源是 FusionInputProcessor 的 _fixedInput，
+        /// 而 FusionSimulatorRunner(order -500).BeforeTick 早於 FusionInputProcessor(order -10).BeforeTick，
+        /// 在這裡 cache 會讀到上一個 tick 的 _fixedInput，邊緣偵測（WasPressed/WasReleased）恆為 false。
+        /// 改由 processor 更新完 _fixedInput 後主動推。
+        /// </summary>
+        protected virtual void OnBeforeSimulate(float deltaTime)
+        {
+            CacheLocalInput();
         }
 
         /// <summary>
         /// 從 Unity InputAction 讀取並 cache local input 狀態。
         /// 子類可 override 以跳過（例如 Fusion proxy 不需要 cache local input）。
         /// </summary>
+        /// <summary>
+        /// 依 _cachedWasPressed / _cachedWasReleased 更新 press 計時欄位。
+        /// 三顆欄位是 private，子類 override CacheLocalInput 時必須呼叫這支才不會讓
+        /// PressTime / LastPressDuration 永遠是 0。
+        /// </summary>
+        protected void UpdatePressTiming()
+        {
+            var currentTime = ((IInputActionImplementation)this).GetCurrentTime();
+            if (_cachedWasPressed)
+            {
+                _pressStartTime = currentTime;
+                _lastPressedTime = currentTime;
+            }
+            else if (_cachedWasReleased)
+            {
+                if (_pressStartTime >= 0f)
+                    _lastPressDuration = currentTime - _pressStartTime;
+                _pressStartTime = -1f;
+            }
+        }
+
         protected virtual void CacheLocalInput()
         {
             // Cache raw input state
@@ -137,18 +170,7 @@ namespace MonoFSM_InputAction
             _cachedVec2 = ((IInputActionImplementation)this).FetchVec2Value;
 
             // 時間追蹤
-            var currentTime = ((IInputActionImplementation)this).GetCurrentTime();
-            if (_cachedWasPressed)
-            {
-                _pressStartTime = currentTime;
-                _lastPressedTime = currentTime;
-            }
-            else if (_cachedWasReleased)
-            {
-                if (_pressStartTime >= 0f)
-                    _lastPressDuration = currentTime - _pressStartTime;
-                _pressStartTime = -1f;
-            }
+            UpdatePressTiming();
 
             _previousIsPressed = rawIsPressed;
 

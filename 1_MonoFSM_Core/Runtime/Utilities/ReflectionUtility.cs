@@ -922,7 +922,10 @@ namespace MonoFSM.Core.Utilities
                         );
                     }
 
-                    currentObj = getter(currentObj); // 可能拿到陣列
+                    //value 就是同一次 getter 的結果，不要再呼叫一次：
+                    //路徑末端常是「每次現算」的 property（例如 GameData.TitleLocalized 會組 localized 字串），
+                    //呼叫兩次等於每幀多配一份垃圾
+                    currentObj = value; // 可能拿到陣列
                 }
 
                 // 如果是陣列，取得指定index的element value

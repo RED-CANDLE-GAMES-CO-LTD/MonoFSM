@@ -14,3 +14,12 @@
 改成先過 `UnityMainThread.IsMainThread`（新增於 `Runtime/Utilities/UnityMainThread.cs`），
 非主執行緒就跳過「每次重算」而走 `_mergedCache`，資料仍然正確（真正在 Editor 改資料時
 `OnValidate` 會清 cache）。刻意不做的：不把 isPlaying 換成別的 Unity API —— 那些一樣是 main thread only。
+
+## GameData.TitleLocalized 每幀 GC（2026-09-08）
+`TitleLocalized` 原本每次 get 都呼叫 `LocalizedString.GetLocalizedString()`，而它每次都會配一條新字串。
+這條 property 不是偶爾讀一次：UI 走 `TextValueBinder.LateUpdate → HasValueChangedByType → VarString
+→ LocalizedStringValueSource.NeedsRebuild → SmartStringTokenBinding.HasValueChanged
+→ GameDataFieldStringValueSource → 反射取 TitleLocalized`，等於每幀讀。
+改成用 `LocalizationSettings.SelectedLocale` 當失效條件快取（譯文只在換語言時變）。
+非 Play 時刻意不快取，inspector 預覽要跟著 table 編輯即時更新。
+`Title`（`titleStr.ToString()`）沒動，但同樣是每次現算，之後若有人把它接到每幀路徑上要一起處理。
