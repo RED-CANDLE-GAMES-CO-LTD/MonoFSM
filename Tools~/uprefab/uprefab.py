@@ -288,7 +288,65 @@ def _resolve_anchors(rows) -> dict:
 # Unity 的 asset guid：32 位小寫 hex。也接受直接貼 Editor webhook 連結
 # （http://localhost:8888/webhook?asset_guid=<guid>），從中抽出 guid。
 GUID_RE = re.compile(r"[0-9a-f]{32}")
-GID_RE = re.compile(r"GlobalObjectId_V1-\d+-[0-9a-fA-F]{32}-\d+-\d+")
+GID_RE = re.compile(
+    r"GlobalObjectId_V1-(\d+)-([0-9a-fA-F]{32})-(\d+)-(\d+)")
+
+def _gid_offline(root: str, token: str):
+    """不開 Unity 就把 GlobalObjectId 連結解成節點。回 dict，解不出來回 None。
+
+    為什麼有這條路：`targetObjectId` 對「原生在該資產裡」的物件就是 YAML 的 fileID，
+    離線索引裡就查得到。Unity 那條路要物件所在的 scene / prefab stage **正開著**
+    才解得開（Unity 的限制），實務上最常拿到連結的時機恰好是它沒開著 ——
+    那時整條連結等於廢的，這裡就是補這個洞。
+
+    `targetPrefabId != 0` 表示物件在某個 prefab instance 內部，這時 fileID 屬於
+    **來源 prefab**、要再套 instance 的 override 才是真值 —— 離線不猜，回 None 交給 Unity。
+    """
+    m = GID_RE.search(token or "")
+    if not m:
+        return None
+    ident, guid, file_id, prefab_id = m.groups()
+    if int(prefab_id) != 0:
+        return None
+    con = indexer.connect(root)
+    row = query.node_by_file_id(con, guid.lower(), int(file_id))
+    if not row:
+        return None
+    asset_path, node_path, name, is_active, comps, rooted = row
+    return {
+        "gid": m.group(0), "ident": int(ident), "guid": guid.lower(),
+        "file_id": int(file_id), "asset": asset_path, "node": node_path,
+        "name": name, "active": bool(is_active), "comps": comps,
+        "rooted": rooted,
+    }
+
+
+def _gid_offline_text(off: dict) -> str:
+    """離線解析的輸出。節點路徑可能是局部的（上層是 stripped instance 時接不回去），
+    所以 anchor（`<資產>#<fileID>`）一定要一起印 —— 那個永遠精確，也能直接餵 up find。
+    """
+    is_prefab = off["asset"].endswith(".prefab")
+    lines = [
+        f"# gid: {off['gid']}",
+        "# 這是離線索引解出來的（Unity 沒開 / 物件所在的 scene・prefab stage 沒開著）",
+        f"# owner: {'prefab' if is_prefab else 'scene'} {off['asset']}",
+        f"# anchor: {query.anchor(off['asset'], off['file_id'])}",
+        f"{off['node'] or off['name']}",
+        f"  <{off['comps']}>" if off["comps"] else "  <(無 component 記錄)>",
+    ]
+    if not off["active"]:
+        lines[-1] += "  ~inactive"
+    if not off["rooted"]:
+        # 局部路徑餵 --node 一定解不開，所以這種情況只給 up find（離線、必中）
+        lines.append("# ↑ 這條路徑是局部的（上層是 prefab instance，離線接不回 root）")
+        lines.append(f"# 接著用：up find --path '{off['asset']}' --name '{off['name']}'")
+    elif is_prefab:
+        lines.append(f"# 接著用：up prefab read '{off['asset']}' --node '{off['node']}'")
+    else:
+        lines.append(f"# 接著用：up scene open '{off['asset']}' 之後 "
+                     f"up scene ls --node '{off['node']}'")
+    return "\n".join(lines) + "\n"
+
 
 # 掃 .meta 的 fallback 要跳過的目錄（Library 裡有大量重複的 meta 快取）
 META_SKIP_DIRS = {"Library", "Temp", "Obj", "obj", "Build", "Builds", ".git", "node_modules"}
@@ -1059,13 +1117,25 @@ def cmd_obj(args, root, cfg):
             "#   [[Render] VerletRope](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-<guid>-<id>-0)\n"
             "# 的連結（markdown、裸 URL、只有 id 都吃）")
 
-    if args.locate:
-        print(unity.call(f"{GID}.Locate", token, args.open, args.select))
+    # Unity 是主路：EditGid 對 prefab 直接掃 imported asset 比對 local fileID，不需要
+    # 開 Prefab Stage，一次就把內容匯出。離線索引只在 Unity 根本沒開時當備援，
+    # 只能回位置（欄位內容本來就得問 Unity）。
+    try:
+        if args.locate:
+            out = unity.call(f"{GID}.Locate", token, args.open, args.select)
+        else:
+            out = unity.call(
+                f"{GID}.Peek", token, args.node, args.depth, args.full,
+                args.budget, args.fsm, args.open, args.select, args.fsm_only,
+                args.structure_only)
+    except unity.UnityError as e:
+        off = _gid_offline(root, token)
+        if not off:
+            raise
+        print(f"# Unity 沒回應（{e}）—— 只能用離線索引定位，欄位內容要等 Unity 開著", file=sys.stderr)
+        _emit(_gid_offline_text(off))
         return
-    _emit(unity.call(
-        f"{GID}.Peek", token, args.node, args.depth, args.full,
-        args.budget, args.fsm, args.open, args.select, args.fsm_only,
-        args.structure_only))
+    _emit(out)
 
 
 def cmd_peek(args, root, cfg):
@@ -1208,12 +1278,30 @@ def _compact_error(prog: str, parser, message: str) -> str:
     if m:
         bad = m.group(1).split()
         hints = []
+        exact = []
         for token in bad:
             if not token.startswith("-"):
+                continue
+            if token in _ALL_OPTS:
+                # 參數名對、子指令錯。原本印「不認得 --node。最接近：--node（scene/prefab/refs）」
+                # —— 字面上自相矛盾，agent 實測去懷疑全形字元／引號，多打兩次 --help 才發現
+                # 是 `up peek` 該換 `up prefab peek`。這種情況要直接說「這個子指令沒有它，
+                # 它屬於哪些子指令」。
+                owners = [o for o in _ALL_OPTS[token] if o != "全域"][:4]
+                exact.append(f"{token} 不是 `{prog}` 的參數，它屬於：{'、'.join(owners)}")
                 continue
             for cand in difflib.get_close_matches(token, list(_ALL_OPTS), 2, 0.6):
                 owners = _ALL_OPTS[cand][:3]
                 hints.append(f"{cand}（{'/'.join(owners)}）")
+        if exact:
+            # unrecognized arguments 是頂層 parser 丟的，prog 只會是 "uprefab"，
+            # 子指令名要從 argv 撈（第一個不是 - 開頭的 token）
+            sub = next((a for a in sys.argv[1:] if not a.startswith("-")), None) or prog
+            msg = f"{prog} {sub}: " + "；".join(exact).replace(f"`{prog}`", f"`{sub}`")
+            if sub == "peek":
+                msg += ("。`up peek` 讀的是 scene 上的 runtime 值（node 是 positional）；"
+                        "讀 prefab asset 的欄位用 `up prefab peek <asset> --node <路徑> --comp <型別> --deep`")
+            return msg
         return (f"{prog}: 不認得 {' '.join(bad)}"
                 + (f"。最接近：{'、'.join(hints)}" if hints
                    else "。合法參數看 `up <子指令> --help`"))
@@ -1415,6 +1503,26 @@ def _like(v: str | None) -> str | None:
     if v is None:
         return None
     return v if "%" in v else f"%{v}%"
+
+
+def _guard_gid_args(args) -> None:
+    """GlobalObjectId 連結貼給了不吃連結的子指令 —— 直接說該打什麼，不要讓它跑下去。
+
+    為什麼要攔：那些子指令會把連結當節點路徑 / 型別名 / 資產路徑用，出來的是
+    「找不到 root object 'http:'」這種假錯誤，而 `up overrides` 更糟 ——
+    靜靜回一句 `(no overrides)`，看起來像結論，其實一個字都沒查到。
+    只有 `up obj`（吃連結本體）與 `up guid`（只取其中的資產 guid）例外。
+    """
+    if args.cmd in ("obj", "gid", "guid"):  # gid 是 obj 的 alias，argparse 存的是使用者打的那個
+        return
+    for key, val in vars(args).items():
+        if isinstance(val, str) and GID_RE.search(val):
+            raise SystemExit(
+                f"# `up {args.cmd}` 的 {key} 收到的是 GlobalObjectId 連結，"
+                "這個子指令吃的不是連結。\n"
+                "# 先把連結解成節點（會一併印出接著該下哪一條指令）：\n"
+                "#   up obj --locate '<連結>'\n"
+                "# 或直接看它的內容：up obj '<連結>'")
 
 
 def main() -> None:
@@ -1677,7 +1785,7 @@ def main() -> None:
     pd.set_defaults(fn=cmd_fields)
 
     pob = sub.add_parser("obj", aliases=["gid"],
-                         help="貼一條 GlobalObjectId 連結，匯出它指的 scene 物件（需要 Unity）")
+                         help="貼一條 GlobalObjectId 連結，匯出它指的物件（prefab 裡的不用開 Prefab Stage；scene 的要 scene 開著）")
     pob.add_argument("token",
                      help="含 GlobalObjectId 的文字：markdown 連結 / URL / 裸 id；`-` = 讀 stdin")
     pob.add_argument("--node", help="從命中的物件再往下鑽的相對路徑")
@@ -1790,6 +1898,7 @@ def main() -> None:
     argv = sys.argv[1:]
     args = p.parse_args(_normalize_argv(argv, sub_names, asset_names))
     root = find_root(args.root)
+    _guard_gid_args(args)
     if args.cmd == "usage":
         usage.report(root, args.gap, args.top, args.since)
         return

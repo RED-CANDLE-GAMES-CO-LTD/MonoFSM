@@ -253,10 +253,10 @@ namespace MonoFSM.Variable
                     if (targetVar == null)
                     {
                         _valueDebugStatus = "Target variable not found in ParentVarEntity";
-                        Debug.LogError(
-                            $"{name}'s ParentVarEntity has no var: '{_varTag}' folder:{_parentVarEntity.Value}",
-                            _parentVarEntity.Value
-                        );
+                        // Debug.LogError(
+                        //     $"{name}'s ParentVarEntity has no var: '{_varTag}' folder:{_parentVarEntity.Value}",
+                        //     _parentVarEntity.Value
+                        // );
                         // Debug.Break();
                         return null;
                     }

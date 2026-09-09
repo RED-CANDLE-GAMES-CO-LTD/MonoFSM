@@ -37,3 +37,89 @@ culling 概念。凍結是「dealer 自己的帳本可不可以信」的問題�
 理，原本那行說 `IsValid` 已含 `IsCulling` 的註解是錯的，一併改掉。
   診斷不用 log：查詢結果落在 `_overlapQueryState`（editor-only 賦值，`[Conditional]`），因為這是每幀被
 getter 讀的路徑，字串或 log 都付不起。
+
+- 凍結補完第二道閘門，並劃清「查詢」與「能不能被打到」的界線：第 7 條只治了 dealer 自己 GO inactive
+那一層，`HasReceiverOverlap` 迴圈裡還有第二道 `receiver.IsValid`，而 `EffectResolver.IsValid` 一樣不看
+culling —— 所以值照樣翻面。**只治一側是無效的**：dealer 與 receiver 由同一組 culling observer 驅動
+（同一個 group key、同一個距離 band、radius 都是 3），空間上相鄰的兩顆必然同時被關掉，鑽頭 vs Large
+Rotten Trunk 就是這個關係，兩邊的 receiver / dealer 都掛在各自母 prefab 的 `LogicRoot` 底下、都在
+`Near Logic Activate` 的關閉清單裡。
+  切法是新增 `EffectResolver.IsValidOrFrozenByCulling`（＋`IsSuspendedByCulling`，寫法沿用
+`EffectDetectable` 那顆），`IsValid` 一個字都不動。界線是：**「查詢命中狀態」用前者，「能不能被打到」
+用後者**。`CanHitReceiver` 刻意留在後者 —— 被 cull 的物件不該收到 effect，這是一開始就定下的語意，把凍結
+混進 `IsValid` 會直接違反它。cull 期間仍可安全評估 conditions，因為 `ConditionHelper.IsAllValid` 對
+inactive 的 condition 是跳過不計、不是判 false。
+  `HasDealerOverlap` / `IsBestMatched` 是同一個病灶的對稱面，一起改；三處的 fail reason 收在共用的
+`EffectResolver.OverlapQueryState`（editor-only 賦值），receiver 兩個入口各記一份，否則每幀互相蓋掉。
+  **順帶記一件很容易誤判的事**：這套 culling 完全是 client-local —— pivot 是 `PPlayer` 上的
+`CullingGroupProxy`（距離參考點就是 player 自己，bands 10/30/50、near 門檻 2），而且同一台機器上每個
+player 實例（含 remote proxy）都是 contributing observer，任一玩家夠近就不 cull。所以「host 正常、client
+會重新觸發」這種現象**不是**網路同步或 authority 問題，只是那台機器上剛好沒有玩家在範圍內。查這類 bug
+不要先往 Fusion 那邊找（AOI 也沒開在這些物件上）。
+  **已知未解、需 runtime 判定**：resume 那一刻 `EffectDetector` 只給一 tick 寬限
+（`_isResumeGraceTick`），而 `TriggerDetectorSource` 要等物理重新餵 `OnTriggerStay`。若一 tick 不夠，除了
+讀值翻面之外還會多一次真正的 exit→enter 重放，那是獨立成因，本次沒有處理，也推不出來，要實機看。
+
+- 凍結的「結束時機」才是這一系列問題的結構性根源：第 8 條把凍結期間的讀值治好了，但一離開凍結馬上又壞。
+`_isResumeGraceTick` 原本在每次 `DetectUpdateCheck()` 結尾**無條件**清掉（註解寫「寬限只有一個
+tick」），而一個 tick 不夠 —— resume 那一 tick 物理還沒帶著剛 enable 的 collider 跑過，帳本是空的；grace
+被消耗後，下一 tick 的缺席就被判成離開，於是送出**真 exit**。這不只是 getter 翻面：
+`dealer.OnHitExit` 會清 `_receivers`、跑 `_exitNode.EventHandle()`、`_hittingEntities.Remove`、
+在 `_receivers` 歸零時 `ClearHittingEntityIfNeeded()`，下游 enter/exit 節點上的 action 整輪重放。症狀就是
+玩家一走近，state 瞬間 idle 再回 stop。
+  **所以不能在 condition 或 VarBool 層擋一帧** —— 那只遮得住讀到的值，遮不住事件與 var 寫入這一半。修必須
+落在「exit 到底要不要送出」這一層。
+  現在 grace 改成有條件消耗：帳本有東西（物理確實餵過）才正常消耗；resim tick 一律續命；而 bounded 的退出
+條件是「物理時間已經前進過」。**刻意不用 tick 數或 frame 數**：`DetectUpdateCheck` 由
+`FixedUpdateNetwork` 驅動，resim 時一個 frame 跑多個 tick、物理只步進有限次（本檔 `SimulateOrder` 上方
+早就有註解講這個坑，只是當時沒拿它保護 grace），tick 數會超前物理，拿來當條件等於換一種猜法。只有物理時鐘
+跟 `OnTriggerStay` 的來源同步。觀測的 fixedTime 要等 resume 後**第一個** detect tick 才記，不能在
+`OnCullingEnter` 記 —— cull 可能持續好幾秒，那時記下的值早就被超過，條件會在 resume 第一 tick 就成立、
+等於沒改。
+  真 despawn／手動 disable 那條路不受影響：`ClearAllDetections` / `ResetStateRestore` 照舊直接清 grace
+並送出 exit，這次只是順手把 fixedTime 的觀測 latch 一起歸零（despawn→respawn 復用同一顆時，殘留的觀測會
+讓 bounded 條件套用到上一輪的時間）。
+  **值得寫給下一隻 agent 的結構性問題**：`MonoObj.CullingStateCheck()` 只在**進入** cull 的邊緣廣播
+（`if (!isCulling) return;`，註解寫「變回可見不用特別做事」），框架**沒有 resume 通知**。所以凍結的結束
+條件永遠是「GO 變 active」這個零緩衝的瞬時判斷，而 culling handler 是直接 `SetActive` 整棵子樹 —— 任何
+「靠物理／靠外部每帧餵資料」的機制在 resume 邊緣都會有一段空窗。之後再遇到類似的 resume 抖動，先想「這個
+機制的資料來源在 resume 後幾個 step 才會回來」，而不是去找網路同步。
+  **已知未做**：(a) 選項 2 —— 把「資料新不新鮮」下沉到 `AbstractDetectionSource`（加
+`HasFreshPhysicsData`，ray/overlap 類 source 天生 fresh、不需要 grace），比現在在 detector 用時鐘推論精準，
+但要動 3 支檔案；(b) `Condition/IsEffectDealerOrReceiverCondition.cs:91`（`CheckMode.IsValidNow`）是第
+8 條那組同病灶的第四處，仍在用 `IsValid`，cull 期間一樣會翻面。
+
+- 「缺席」不等於「離開」：exit 判定改成證據型。第 9 條處理的是「**自己** resume 後物理還沒餵資料」，
+但**對側** resume 是對稱的同一個窗口，而且完全沒有機制蓋住 —— `IsSuspendedByCulling` 是零緩衝的瞬時值，
+對側 handle 一 `SetActive(true)` 它就翻 false。
+  **核心時序（這一整串問題的關鍵，務必先看懂再改這段程式）**：culling handler 的
+`SetActive(true)` 由 CullingGroup 的 callback 觸發，跑在 render 階段、FUN 之外；而 detector 的
+`Simulate` 排在 `RunnerSimulatePhysics` **之前**（order -500 vs 0，見本檔上方 `SimulateOrder` 的註解）。
+所以對側 collider 剛 enable 的那個 tick，detector 讀到的 `OnTriggerStay` 是**上一個 physics step** 的
+結果 —— 那個 step 裡對側還 inactive，缺席是必然的、不代表離開。**任何「對側剛從 inactive 變 active」的
+情境，第一個 tick 的缺席都不能當離開。**
+  修法（D1）：凍結過的條目，exit 只能由「對側已 active 且又缺席第二次」觸發。記帳放在 `DetectData`
+這顆 struct 的兩顆 bool（`WasFrozenByCulling` / `SeenActiveButAbsent`），零 GC；**清除點天然正確** ——
+物理重新偵測到時收集迴圈是 `new DetectData(...)` 整顆覆蓋，旗標自動歸零，不需要顯式清除也就漏不掉。
+只有凍結過的條目走這條，從未被 cull 的正常 enter/exit 一 tick 都不延後。
+  **為什麼是證據型而不是時鐘型**：前一版（第 9 條）用 `Time.fixedTime` 有沒有前進當退出條件，那是在
+假設 Simulate 與物理的先後順序，而 resim 一個 frame 跑多個 tick 又讓假設失效。更慘的是那個實作本身有
+bug：主條件寫成 `_thisFrameDetectedObjects.Count > 0`，判斷點卻在 `ProcessDetectionChanges` 之後，而
+carry 分支寫入的就是那個容器 —— **carry 自己把條件餵飽，`ConsumedByPhysics` 那格從頭到尾在說謊**。
+教訓：診斷欄位（和判斷條件）如果讀的是會被同一段流程改寫的容器，它就只會告訴你你想聽的話。時間條件
+整組已刪除，`_isResumeGraceTick` 保留但回到**無條件消耗** —— 它只需負責自己 resume 的那第一個 tick，
+跨 tick 的責任由 D1 接手；grace 期間 carry 出去的條目會被標成凍結序列，D1 才有依據。
+  **第三條 exit 出口**：`CheckDealerStateChanges` / `HandleDealerStateChanges` 用 `dealer` 的有效性做
+latch，變無效就從 `ProcessDealerStateChangesForDetectable` 直接送 exit。這條跑在
+`ProcessDetectionChanges` **之前**，不看 grace 也不看 `IsSuspendedByCulling`，**D1 蓋不到它** ——
+所以那兩處 latch 改用 `IsValidOrFrozenByCulling`（第 8 條那顆）。注意
+`TriggerEnterForDealerAndDetectable` 的 gate 仍是 `IsValid`：那問的是「能不能真的被打到」，cull 中的
+物件不該收到 effect，這條界線從第 8 條起就沒變。
+  界線複查（都還分得開）：真 Destroy 走 `detectable == null` → `PurgeDestroyedReceivers`；企劃手動
+disable 時 culling handle 仍 active → `IsSuspendedByCulling` 為 false、`WasFrozenByCulling` 也是
+false → 走正常 exit，不延後。
+  **已知未做**：(a) 選項 2 —— 把「資料新不新鮮」下沉到 `AbstractDetectionSource`（`HasFreshPhysicsData`，
+ray/overlap 類 source 天生 fresh、不需要任何寬限）；(b)
+`Condition/IsEffectDealerOrReceiverCondition.cs:91`（`CheckMode.IsValidNow`）仍用 `IsValid`，是第 8 條
+那組同病灶的第四處，cull 期間一樣會翻面。
+- 2026-09-09 `BaseEffectDetectTarget` 加 `_detectableOverride`：`_detectable` 是 `[AutoParent]`，只往上找，而 `AutoAttributeManager` 的 `SetValue` 無條件覆寫（含 null），手填 `_detectable` 在 pool 生成 / 存檔時會被洗掉。拆件模組把 anchor collider 生成在宿主 view 底下（不在模組子樹裡），要打進模組的 receiver 只能靠這顆顯式 override。`Detectable` property 優先回 override，兩顆都 null 才算錯。

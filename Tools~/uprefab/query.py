@@ -280,6 +280,64 @@ def guid_by_path(con: sqlite3.Connection, path_like: str, limit=20):
     ).fetchall()
 
 
+def node_by_file_id(con: sqlite3.Connection, guid: str, file_id: int):
+    """(資產 guid, GameObject fileID) → (資產路徑, 節點路徑, 節點名, is_active, comps)。
+
+    存在理由：GlobalObjectId 的 targetObjectId 對「原生在該資產裡」的物件就是 YAML 的
+    fileID，所以 gid 這種連結其實**不需要 Unity 也解得開** —— 索引裡就有。
+    Unity 那條路要物件所在的 scene / prefab stage 正開著，離線這條沒有這個前提。
+
+    節點路徑可能是局部的（parent 是 stripped instance 節點時，離線接不回上層），
+    所以呼叫端該一起印 anchor（`<資產>#<fileID>`）—— 那個永遠精確。
+    """
+    row = con.execute(
+        "SELECT a.path, n.asset_id, n.path, n.name, n.is_active, n.parent_file_id "
+        "FROM assets a JOIN nodes n ON n.asset_id = a.id "
+        "WHERE a.guid=? AND n.file_id=?", (guid, file_id)
+    ).fetchone()
+    if not row:
+        return None
+    asset_path, asset_id, node_path, name, is_active, parent = row
+    comps = con.execute(
+        "SELECT group_concat(type, ' ') FROM comps WHERE asset_id=? AND go_file_id=?",
+        (asset_id, file_id),
+    ).fetchone()
+    return (asset_path, node_path, name, is_active,
+            (comps[0] if comps else None) or "",
+            _is_rooted(con, asset_id, asset_path, name, parent))
+
+
+def _is_rooted(con: sqlite3.Connection, asset_id: int, asset_path: str,
+               name: str, parent_file_id, hops=64) -> bool:
+    """節點路徑是不是真的從 root 起算 —— 決定呼叫端該建議 `--node` 還是 `up find`。
+
+    為什麼不能只看「鏈走到 parent_file_id 0」：nodes 的 parent 是回填的，
+    m_Father 指到 stripped instance transform（nested prefab 的接點）時查不到來源，
+    就一律填 0。實測 PPlayer.prefab 有 346 個 parent=0 的節點，真正的 root 只有一個。
+    所以 prefab 這側再加一道：鏈的頂端必須是「檔名同名的那顆」（Unity 建 prefab 的預設，
+    也是唯一離線判得出 root 的線索）；scene 沒有這個問題，parent=0 就真的是 scene root。
+    """
+    top = name
+    cur = parent_file_id
+    for _ in range(hops):
+        if not cur:
+            break
+        row = con.execute(
+            "SELECT name, parent_file_id FROM nodes WHERE asset_id=? AND file_id=?",
+            (asset_id, cur),
+        ).fetchone()
+        if row is None:  # 鏈斷在索引不到的節點
+            return False
+        top, cur = row[0], row[1]
+    else:
+        return False
+
+    if not asset_path.endswith(".prefab"):
+        return True
+    stem = asset_path.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+    return top == stem
+
+
 def anchor(asset_path: str, file_id: int) -> str:
     return f"{asset_path}#{file_id}"
 

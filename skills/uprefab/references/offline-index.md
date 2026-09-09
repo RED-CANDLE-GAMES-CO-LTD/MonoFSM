@@ -135,7 +135,9 @@ up guid "TestKCC Gravity 拔神像.unity"                            # 反向：
 約 5 秒 —— 所以 `.cs` 的 guid 也查得到。
 
 連結裡是 `globalId=`（不是 `asset_guid=`）時它會提醒你轉去 `up obj` —— 那種連結指的是
-scene 上的某個節點，見 [read.md](read.md) 的 `obj`。
+scene 或 prefab 裡的某個節點，見 [read.md](read.md) 的 `obj`。索引也是 `up obj` 的離線後路：
+`nodes` 表存了每個節點的 fileID，而連結裡的 `<objId>` 對「原生在該資產裡」的物件就是那個
+fileID，所以 Unity 沒開也解得出「在哪個資產、哪個節點」。
 
 ## `usage` —— 量測「調查一件事花了多少來回」
 

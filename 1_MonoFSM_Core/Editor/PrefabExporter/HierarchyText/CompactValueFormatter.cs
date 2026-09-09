@@ -229,6 +229,13 @@ namespace MonoFSM.Editor
                     return "@" + rel;
                 }
 
+                // 同一棵 hierarchy（同一支 prefab asset / 同一個 scene）但在匯出子樹之外：
+                // 仍印相對路徑。原本這裡掉到下面的 AssetDatabase.GetAssetPath 分支，
+                // 對 prefab asset 內的節點會印成 `res:<自己這支 prefab>`——只說「指向 PPlayer.prefab」
+                // 卻不說指向哪個節點，讀 --node 單一葉節點時 _targetVar 等於白印。
+                if (ctx.Current != null && targetTr.root == ctx.Current.root)
+                    return "@" + UnityTypeFormatter.GetRelativePath(ctx.Current, targetTr);
+
                 var assetPath = AssetDatabase.GetAssetPath(obj);
                 if (!string.IsNullOrEmpty(assetPath))
                     return "res:" + StripAssetsPrefix(assetPath);

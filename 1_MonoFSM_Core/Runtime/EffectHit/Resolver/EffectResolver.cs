@@ -149,6 +149,49 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         //FIXME: 關掉的就不算嗎 hmmm
         [PreviewInInspector] public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid();
 
+        //被 culling handle 暫停（不含 despawn／手動關掉）。寫法同 EffectDetectable.IsSuspendedByCulling，
+        //也同 EffectDetector.OnDisable 的判斷 —— 「暫停模擬」和「東西不見了」必須是同一個來源。
+        public bool IsSuspendedByCulling => _parentObj != null && _parentObj.IsCulledByHandle;
+
+        /// <summary>
+        ///     查詢命中狀態（overlap 帳本可不可以信）用的 IsValid：被 culling handle 關掉時不算無效。
+        ///     culling handler 是直接 SetActive(false) 整棵 LogicRoot，resolver 的 GO 跟著 inactive，
+        ///     detector 端明明凍結了 overlap（不清、不發 exit），拿 IsValid 過濾就會讀到「沒打到」，
+        ///     進出 culling 一次值就翻面兩次。cull 期間仍然評估 _conditions 是安全的：
+        ///     ConditionHelper.IsAllValid 對 activeSelf == false 的 condition 是 continue（跳過不計），
+        ///     不是 return false。
+        ///     刻意不把這個語意併進 IsValid：IsValid 回答的是「這顆 resolver 現在有效嗎（能不能被打到）」，
+        ///     cull 中的東西不該被打到；這顆回答的是「帳本可不可以信」。兩者混在一起會讓被 cull 的物件
+        ///     還能收到 effect。所以 CanHitReceiver 之類的判定路徑一律留用 IsValid。
+        /// </summary>
+        public bool IsValidOrFrozenByCulling =>
+            IsSuspendedByCulling ? _conditions.IsAllValid() : IsValid;
+
+        /// <summary>
+        ///     overlap 查詢入口（dealer 的 HasReceiverOverlap、receiver 的 HasDealerOverlap /
+        ///     IsBestMatched）的結果與擋掉理由。每條 return 前都要寫，不要有靜默分支。
+        ///     這些 getter 每幀被 condition 讀，所以只在 editor 賦值、不用 log 也不串字串。
+        /// </summary>
+        public enum OverlapQueryState
+        {
+            NotQueried,
+
+            //自己被關掉且不是 culling 造成的（despawn／手動 disable）→ 判定無效
+            InactiveNotCulling,
+
+            //帳本是空的，真的沒打到
+            NoOverlapRecord,
+
+            //帳本有東西但全部失效（對側被真的關掉／condition 不成立）
+            AllOverlapsInvalid,
+
+            //正常命中
+            Overlapping,
+
+            //自己或對側被 culling handle 關掉，沿用凍結期間的 overlap 值
+            FrozenByCulling,
+        }
+
         public IActor Owner => GetComponentInParent<IActor>();
         public override string ValueInfo => IsValid ? "Valid" : "Off";
         public override bool IsDrawingValueInfo => Application.isPlaying && isActiveAndEnabled;

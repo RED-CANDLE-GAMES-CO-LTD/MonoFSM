@@ -17,8 +17,14 @@ namespace MonoFSM.Editor.PrefabEditing
     /// 任何辦法反推出 `up scene ls --node` 要填什麼。這裡把「連結 → 物件 → 文字」補上，
     /// 所以貼一條連結就等於指定了一個節點。
     ///
-    /// GlobalObjectId 只在**物件所在的 scene 開著**時才解得開（Unity 的限制，不是這裡的）。
-    /// 解不開時不是回一句失敗，而是把 guid 翻成 scene 路徑告訴呼叫端要先開哪個 scene。
+    /// Unity 原生的 <see cref="GlobalObjectId.GlobalObjectIdentifierToObjectSlow"/> 只認
+    /// **已載入 scene** 裡的物件 —— Prefab Stage 裡的不算、沒開著的 prefab 更不算。
+    /// 但 prefab 連結的 targetObjectId 就是 imported asset 裡的 local fileID，
+    /// 所以這裡對 .prefab 自己走 <see cref="ResolveInPrefab"/>：先掃開著的 stage
+    /// （比對 GetGlobalObjectIdSlow，精確含 nested），再掃 AssetDatabase 載進來的
+    /// prefab asset（比對 TryGetGUIDAndLocalFileIdentifier）。**不需要開 Prefab Stage**，
+    /// 貼一條連結一次就拿到內容。scene 物件仍受 Unity 限制：解不開時把 guid 翻成
+    /// scene 路徑告訴呼叫端要先開哪個 scene。
     /// </summary>
     public static class EditGid
     {
@@ -59,16 +65,10 @@ namespace MonoFSM.Editor.PrefabEditing
                     $"# GlobalObjectId 格式對但 Unity 解析失敗：{gidStr}", charBudget);
 
             var assetPath = AssetDatabase.GUIDToAssetPath(match.Groups[2].Value);
-            var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-
+            var obj = Resolve(gid, assetPath, openScene, out var note);
             if (obj == null)
-            {
-                if (TryOpenOwnerScene(assetPath, openScene, out var note))
-                    obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                if (obj == null)
-                    return PrefabTextReader.HardCap(
-                        Unresolved(gid, gidStr, assetPath, note), charBudget);
-            }
+                return PrefabTextReader.HardCap(
+                    Unresolved(gid, gidStr, assetPath, note), charBudget);
 
             if (select)
             {
@@ -86,6 +86,7 @@ namespace MonoFSM.Editor.PrefabEditing
             header.AppendLine($"# node: {HierarchyPath(go.transform)}");
             if (obj is Component comp)
                 header.AppendLine($"# 連結指的是 component: {comp.GetType().Name}");
+            header.Append(NextCommand(go, assetPath, exported: true));
 
             var root = go.transform;
             if (!string.IsNullOrEmpty(subPath))
@@ -114,13 +115,8 @@ namespace MonoFSM.Editor.PrefabEditing
                 return $"# 解析失敗：{gidStr}";
 
             var assetPath = AssetDatabase.GUIDToAssetPath(match.Groups[2].Value);
-            var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-            if (obj == null)
-            {
-                if (TryOpenOwnerScene(assetPath, openScene, out var note))
-                    obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
-                if (obj == null) return Unresolved(gid, gidStr, assetPath, note);
-            }
+            var obj = Resolve(gid, assetPath, openScene, out var note);
+            if (obj == null) return Unresolved(gid, gidStr, assetPath, note);
 
             if (select)
             {
@@ -136,7 +132,106 @@ namespace MonoFSM.Editor.PrefabEditing
             return $"# owner: {Owner(go, assetPath)}\n" +
                    $"{HierarchyPath(go.transform)}\n" +
                    $"  <{comps}>\n" +
-                   $"  (+{Descendants(go.transform)} nodes){(go.activeSelf ? "" : "  ~inactive")}";
+                   $"  (+{Descendants(go.transform)} nodes){(go.activeSelf ? "" : "  ~inactive")}\n" +
+                   NextCommand(go, assetPath);
+        }
+
+        /// <summary>
+        /// 連結 → Object 的唯一入口。順序：Unity 原生（已載入 scene）→ prefab 自己掃
+        /// → scene 才考慮開檔。prefab 一律不開 stage：imported asset 就足夠匹配。
+        /// </summary>
+        private static Object Resolve(
+            GlobalObjectId gid, string assetPath, bool openScene, out string note)
+        {
+            note = null;
+            var obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
+            if (obj != null) return obj;
+            if (string.IsNullOrEmpty(assetPath))
+            {
+                note = "guid 對不到任何資產（不在這個 repo？已刪除？）";
+                return null;
+            }
+
+            if (assetPath.EndsWith(".prefab"))
+            {
+                // --open 對 prefab 的意義是「順便把 stage 打開」，不是解析的前提
+                if (openScene) TryOpenPrefabStage(assetPath, true, out note);
+                return ResolveInPrefab(gid, assetPath, out note);
+            }
+
+            if (TryOpenOwnerScene(assetPath, openScene, out note))
+                obj = GlobalObjectId.GlobalObjectIdentifierToObjectSlow(gid);
+            return obj;
+        }
+
+        /// <summary>
+        /// prefab 裡的物件不靠 Unity 原生解析。兩條路：
+        /// (1) 該 prefab 的 Stage 正開著 → 對 stage 裡每個 GameObject / Component 算
+        ///     GetGlobalObjectIdSlow 比對，和 BugReportUtility 產連結時算的是同一個函式，
+        ///     所以連 nested prefab instance 內的物件（targetPrefabId != 0）都精確命中。
+        /// (2) 沒開 → 載 imported asset，比對 TryGetGUIDAndLocalFileIdentifier 的 local id。
+        ///     原生物件 local id == targetObjectId；nested instance 內的物件則要
+        ///     instance handle 的 id == targetPrefabId 且 source 端物件 id == targetObjectId。
+        /// 回的是 asset 物件（不在任何 scene 裡），PrefabTextReader 匯出時和
+        /// `up prefab read` 走的是同一顆，輸出格式一致。
+        /// </summary>
+        private static Object ResolveInPrefab(GlobalObjectId gid, string assetPath, out string note)
+        {
+            note = null;
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null && stage.assetPath == assetPath && stage.prefabContentsRoot != null)
+            {
+                foreach (var o in AllObjects(stage.prefabContentsRoot))
+                    if (SameGid(GlobalObjectId.GetGlobalObjectIdSlow(o), gid)) return o;
+            }
+
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+            if (asset == null)
+            {
+                note = $"載不進 {assetPath}（不是 prefab？）";
+                return null;
+            }
+
+            var wantObj = unchecked((long)gid.targetObjectId);
+            var wantPrefab = unchecked((long)gid.targetPrefabId);
+            foreach (var o in AllObjects(asset))
+            {
+                if (wantPrefab == 0)
+                {
+                    if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(o, out _, out long localId)
+                        && localId == wantObj) return o;
+                    continue;
+                }
+
+                var handle = PrefabUtility.GetPrefabInstanceHandle(o);
+                if (handle == null) continue;
+                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(handle, out _, out long hid)
+                    || hid != wantPrefab) continue;
+                var src = PrefabUtility.GetCorrespondingObjectFromSource(o);
+                if (src != null
+                    && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(src, out _, out long sid)
+                    && sid == wantObj) return o;
+            }
+
+            note = $"{assetPath} 裡沒有 fileID={wantObj}" +
+                   (wantPrefab != 0 ? $"（instance {wantPrefab}）" : "") +
+                   " 的物件 —— 已被刪除、搬到別的 prefab，或連結是舊的";
+            return null;
+        }
+
+        private static bool SameGid(GlobalObjectId a, GlobalObjectId b) =>
+            a.identifierType == b.identifierType && a.assetGUID == b.assetGUID
+            && a.targetObjectId == b.targetObjectId && a.targetPrefabId == b.targetPrefabId;
+
+        /// <summary>子樹裡所有 GameObject 與 Component（含 inactive）；missing script 跳過。</summary>
+        private static System.Collections.Generic.IEnumerable<Object> AllObjects(GameObject root)
+        {
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
+            {
+                yield return t.gameObject;
+                foreach (var c in t.GetComponents<Component>())
+                    if (c != null) yield return c;
+            }
         }
 
         /// <summary>
@@ -157,12 +252,51 @@ namespace MonoFSM.Editor.PrefabEditing
         }
 
         /// <summary>從 scene root 起算的完整路徑，可以直接餵給 up scene ls --node。</summary>
-        private static string HierarchyPath(Transform t)
+        private static string HierarchyPath(Transform t) => HierarchyPath(t, false);
+
+        /// <param name="skipRoot">切掉最上層那一段 —— prefab 側的 `--node` 是不含 root 的相對路徑</param>
+        private static string HierarchyPath(Transform t, bool skipRoot)
         {
             var parts = new System.Collections.Generic.List<string>();
             for (var cur = t; cur != null; cur = cur.parent) parts.Add(cur.name);
             parts.Reverse();
+            if (skipRoot && parts.Count > 0) parts.RemoveAt(0);
             return string.Join("/", parts);
+        }
+
+        /// <summary>
+        /// 「拿到這條連結之後該下哪一條指令」——連結本身只是個 id，
+        /// 呼叫端真正要的是能接著跑的東西，而 scene 與 prefab 兩側的 `--node` 語意不同
+        /// （scene 含 root object 名、prefab 不含 root），少印這一行就等於要對方自己猜一次。
+        /// 路徑用單引號包，直接複製到 shell 就能跑。
+        /// </summary>
+        /// <param name="exported">Peek 已把欄位印在下方 —— 這時「接著用」不能再指向 read
+        /// （agent 實測會以為 read 才是拿欄位的正解、再多打一次），改成列「下鑽」與
+        /// 「單顆 component 完整值」兩條真正的後續路。</param>
+        private static string NextCommand(GameObject go, string assetPath, bool exported = false)
+        {
+            var scenePath = go.scene.IsValid() ? go.scene.path : null;
+            var isPrefab = !go.scene.IsValid()
+                           || (!string.IsNullOrEmpty(scenePath) && scenePath.EndsWith(".prefab"));
+            if (isPrefab)
+            {
+                var owner = !string.IsNullOrEmpty(scenePath) && scenePath.EndsWith(".prefab")
+                    ? scenePath
+                    : assetPath;
+                if (string.IsNullOrEmpty(owner)) return "";
+                var rel = HierarchyPath(go.transform, true);
+                var nodeArg = string.IsNullOrEmpty(rel) ? "" : $" --node '{rel}'";
+                if (exported)
+                    return $"# 欄位已在下方（葉節點含預設值）。下鑽子節點：up prefab read '{owner}' --node '{rel}/<子節點>'；" +
+                           $"單顆 component 完整值：up prefab peek '{owner}'{nodeArg} --comp <型別> --deep\n";
+                return $"# 接著用：up prefab read '{owner}'{nodeArg}\n";
+            }
+
+            var scenePathArg = HierarchyPath(go.transform);
+            if (exported)
+                return $"# 欄位已在下方。下鑽：up scene ls --node '{scenePathArg}/<子節點>'；" +
+                       $"runtime 值：up peek '{scenePathArg}' <型別>\n";
+            return $"# 接著用：up scene ls --node '{scenePathArg}'\n";
         }
 
         private static int Descendants(Transform t)
@@ -196,6 +330,35 @@ namespace MonoFSM.Editor.PrefabEditing
             return sb.ToString();
         }
 
+        /// <summary>
+        /// 只在 --open 時被呼叫：解析本身不需要 stage（見 ResolveInPrefab），這裡純粹是
+        /// 使用者想順便在 Editor 裡打開那個 prefab。dirty 的 stage 不換，理由同 scene。
+        /// </summary>
+        private static bool TryOpenPrefabStage(string assetPath, bool allowOpen, out string note)
+        {
+            note = null;
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null && stage.assetPath == assetPath) return true;
+            if (!allowOpen) return false;
+
+            if (stage != null && stage.scene.isDirty)
+            {
+                note = $"目前開著的 prefab 編輯模式有未存檔的改動（{stage.assetPath}），" +
+                       "不自動換；先存檔或自己開";
+                return false;
+            }
+
+            var opened = PrefabStageUtility.OpenPrefab(assetPath);
+            if (opened == null)
+            {
+                note = $"開不起來 {assetPath}（檔案不存在或不是 prefab？）";
+                return false;
+            }
+
+            note = $"已開啟 prefab 編輯模式 {assetPath}";
+            return true;
+        }
+
         private static string AssetSummary(Object obj, string gidStr)
         {
             var path = AssetDatabase.GetAssetPath(obj);
@@ -207,16 +370,20 @@ namespace MonoFSM.Editor.PrefabEditing
         }
 
         /// <summary>
-        /// scene 物件只有那個 scene 開著才解得開。要不要幫忙開是呼叫端的決定 ——
-        /// 換 scene 會丟掉未存檔的編輯，所以 dirty 的時候一律拒絕，不猜使用者想不想留。
+        /// 物件只有它所在的容器開著才解得開。要不要幫忙開是呼叫端的決定 ——
+        /// 換 scene / 換 prefab stage 會丟掉未存檔的編輯，所以 dirty 的時候一律拒絕，
+        /// 不猜使用者想不想留。
         /// </summary>
         private static bool TryOpenOwnerScene(string assetPath, bool allowOpen, out string note)
         {
             note = null;
             if (string.IsNullOrEmpty(assetPath)) return false;
+            // .prefab 在 Resolve 就被 ResolveInPrefab 接走了，不會走到這；留著防呆
+            if (assetPath.EndsWith(".prefab"))
+                return TryOpenPrefabStage(assetPath, allowOpen, out note);
             if (!assetPath.EndsWith(".unity"))
             {
-                note = "來源不是 scene；物件可能已從那份資產裡刪掉了";
+                note = "來源既不是 scene 也不是 prefab；物件可能已從那份資產裡刪掉了";
                 return false;
             }
 

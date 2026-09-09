@@ -108,10 +108,6 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return _receivers.Contains(receiver);
         }
 
-        //被 culling handle 連帶關掉（handle 是自己或 parent）＝「暫停模擬」，不是「東西離開」。
-        //判斷方式與 EffectDetector.OnDisable 一致，兩處語意才不會分岔。
-        private bool IsSuspendedByCulling => _parentObj != null && _parentObj.IsCulledByHandle;
-
         //比照 receiver.HasDealerOverlap：對側被 cull 時 detector 走凍結（不發 exit），
         //_receivers 會留著，光看 count 會誤判成還在打
         //凍結語意必須在這裡自己處理：EffectResolver.IsValid 只有 isActiveAndEnabled &&
@@ -120,6 +116,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         //detector 端明明凍結了 overlap，讀值端卻翻面，進出 culling 就變成重新判定
         //（實例：鑽頭的 d_NavMeshBlocking 掛在被 cull 的 LogicRoot 底下）。
         //所以只有「真的被關掉」（despawn／企劃手動關）才算無效，被 cull 就維持凍結值。
+        //迴圈的過濾同理要用 IsValidOrFrozenByCulling 而不是 IsValid：dealer 和 receiver 通常由
+        //同一組 culling observer 驅動（同 group key、同 band），走遠時必然一起被關掉，
+        //只治自己這一側，第二道閘門照樣讓值翻面。
         public bool HasReceiverOverlap
         {
             get
@@ -131,43 +130,25 @@ namespace MonoFSM.Runtime.Interact.EffectHit
                 }
 
                 foreach (var receiver in _receivers)
-                    if (receiver != null && receiver.IsValid)
+                    if (receiver != null && receiver.IsValidOrFrozenByCulling)
                     {
+                        //對側也在同一組 culling observer 底下，走遠時兩邊會一起被關掉，
+                        //所以「凍結中」要看兩側任一
                         SetOverlapQueryState(
-                            isActiveAndEnabled
-                                ? OverlapQueryState.Overlapping
-                                : OverlapQueryState.FrozenByCulling
+                            IsSuspendedByCulling || receiver.IsSuspendedByCulling
+                                ? OverlapQueryState.FrozenByCulling
+                                : OverlapQueryState.Overlapping
                         );
                         return true;
                     }
 
                 SetOverlapQueryState(
                     _receivers.Count > 0
-                        ? OverlapQueryState.AllReceiversInvalid
-                        : OverlapQueryState.NoReceiver
+                        ? OverlapQueryState.AllOverlapsInvalid
+                        : OverlapQueryState.NoOverlapRecord
                 );
                 return false;
             }
-        }
-
-        public enum OverlapQueryState
-        {
-            NotQueried,
-
-            //自己被關掉且不是 culling 造成的（despawn／手動 disable）→ 判定無效
-            InactiveNotCulling,
-
-            //帳本是空的，真的沒打到
-            NoReceiver,
-
-            //帳本有東西但全部失效（對側被關掉／condition 不成立）
-            AllReceiversInvalid,
-
-            //正常命中
-            Overlapping,
-
-            //自己被 culling handle 關掉，沿用凍結期間的 overlap 值
-            FrozenByCulling,
         }
 
         //每幀被 getter 讀，build 不要付這個代價（enum 賦值本身不 GC，但也沒有必要留在 build）

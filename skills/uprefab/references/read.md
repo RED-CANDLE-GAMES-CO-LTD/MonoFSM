@@ -107,19 +107,31 @@ GameObject_2/燈泡開關組_1/safe light bulb 燈泡/…/[Render] VerletRope
   (+0 nodes)
 ```
 
-第二行就是 `up scene ls --node` / `up refs --node` 要的路徑。
+第二行就是 `up scene ls --node` / `up refs --node` 要的路徑，最後一行直接給你可貼的下一條指令
+（scene 與 prefab 兩側的 `--node` 語意不同 —— scene 含 root object 名、prefab 不含，
+所以那一行才存在）。
 
-**GlobalObjectId 只在物件所在的 scene 開著時解得開**（Unity 的限制）。解不開時它會把 guid
-翻成 scene 路徑告訴你要開哪個：
+**連結指的物件也可能在 prefab 裡**（Editor 開著 Prefab Stage 時產的連結就是這種）。
+**不需要開 Prefab Stage**：EditGid 對 `.prefab` 直接載 imported asset、用 local fileID 比對
+（stage 開著時改比對 `GetGlobalObjectIdSlow`，nested instance 內的也精確命中），
+所以 `up obj "<連結>"` **一個呼叫就拿到節點路徑 + 欄位內容**，不要先 `--locate` 再 `prefab read`。
+輸出 `# owner: prefab <路徑>`；`--open` 只是順便把 stage 打開給人看，不是解析前提。
 
-```
-# 解不開這個 GlobalObjectId：GlobalObjectId_V1-2-43f0…-4270686737434300027-0
-# identifierType=2 → scene object
-# 來源資產：Assets/_Recovery/0_下山逃脫_July_lake.unity
-# 物件所在的 scene 沒開著。先 up scene open "Assets/…"，或這次加 --open
-```
+Unity 整個沒開時才退到離線索引（只能定位、不能給欄位；`targetPrefabId != 0` 或路徑接不回
+root 時會自己講並改建議 `up find`）。
 
-`--open` 會幫你開，但**有未存檔的 scene 時一律拒絕**（換 scene 會丟掉編輯，不猜使用者
-想不想留）。若 scene 已經開著卻還是解不開，那就是**連結過期** —— 物件被刪掉、或被打包進
-prefab 了（打包後 `targetPrefabId` 會從 `0` 變成 instance 的 id，舊連結的 id 對不上）。
-這時請使用者重新產一條。
+**連結標籤本身就帶完整路徑**（BugReportUtility 產的：`PPlayer / [Switch Simulate] Switch (FirstMatch)/[Case] SwitchCase/…`，
+prefab 側不含 root、scene 側含 root，格式對齊 `--node`），所以光看貼上來的文字就知道節點在哪，
+`up obj` 那一次呼叫是拿內容，不是拿位置。
+
+`--open` 對 scene 與 prefab 都有效，但**有未存檔的 scene / Prefab Stage 時一律拒絕**
+（換掉會丟掉編輯，不猜使用者想不想留）。若容器已經開著卻還是解不開，那就是**連結過期**
+—— 物件被刪掉、或被打包進 prefab 了（打包後 `targetPrefabId` 會從 `0` 變成 instance 的 id，
+舊連結的 id 對不上）。這時請使用者重新產一條。
+
+**連結只有 `up obj` 吃。** 貼給 `up peek` / `up refs` / `up overrides` / `up find` 會被
+攔下來並告訴你該打什麼（以前 `up overrides` 會靜靜回一句 `(no overrides)`，看起來像結論）。
+`up guid` 是例外 —— 它只取連結裡那個資產 guid。
+
+`up obj --locate` 印的完整路徑含 root object 名（`PPlayer/CharacterModules/…`），
+貼回 `up prefab read --node` 也不會錯：第一段等於 prefab root 名時會自動切掉。

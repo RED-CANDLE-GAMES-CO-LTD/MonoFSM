@@ -139,23 +139,64 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         }
 
         //除了數量，還要濾掉已經失效的 dealer：對方被 cull 時 detector 走「凍結」（不發 exit），
-        //_dealers 會刻意留著（resume 後才不會重放 enter），這裡的 IsValid 過濾（含 IsCulling）
-        //就是 cull 期間殘留查詢的正規防線
+        //_dealers 會刻意留著（resume 後才不會重放 enter），所以這裡必須自己過濾。
+        //注意 IsValid（EffectResolver）只有 isActiveAndEnabled && _conditions.IsAllValid()，
+        //完全不看 culling —— culling handler 是 SetActive(false) 整棵 LogicRoot，拿 IsValid 過濾
+        //會把「凍結中」誤判成「沒打到」，進出 culling 一次值就翻面兩次。
+        //查詢路徑一律用 IsValidOrFrozenByCulling，能不能被打到的判定才用 IsValid。
         public bool HasDealerOverlap
         {
             get
             {
-                if (!isActiveAndEnabled)
+                if (!isActiveAndEnabled && !IsSuspendedByCulling)
+                {
+                    SetOverlapQueryState(OverlapQueryState.InactiveNotCulling);
                     return false;
+                }
+
                 foreach (var kvp in _dealers)
                 {
                     var dealer = kvp.Key;
-                    if (dealer != null && dealer.IsValid)
+                    if (dealer != null && dealer.IsValidOrFrozenByCulling)
+                    {
+                        SetOverlapQueryState(
+                            IsSuspendedByCulling || dealer.IsSuspendedByCulling
+                                ? OverlapQueryState.FrozenByCulling
+                                : OverlapQueryState.Overlapping
+                        );
                         return true;
+                    }
                 }
 
+                SetOverlapQueryState(
+                    _dealers.Count > 0
+                        ? OverlapQueryState.AllOverlapsInvalid
+                        : OverlapQueryState.NoOverlapRecord
+                );
                 return false;
             }
+        }
+
+        //每幀被 getter 讀，build 不要付這個代價（HasDealerOverlap 用）
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private OverlapQueryState _dealerOverlapQueryState;
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        private void SetOverlapQueryState(OverlapQueryState state)
+        {
+            _dealerOverlapQueryState = state;
+        }
+
+        //IsBestMatched 用，跟 HasDealerOverlap 分開記，否則兩個入口每幀互相蓋掉
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private OverlapQueryState _bestMatchQueryState;
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        private void SetBestMatchQueryState(OverlapQueryState state)
+        {
+            _bestMatchQueryState = state;
         }
 
         //FIXME: 會殘留...
@@ -173,12 +214,28 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             get
             {
-                if (!isActiveAndEnabled)
+                if (!isActiveAndEnabled && !IsSuspendedByCulling)
+                {
+                    SetBestMatchQueryState(OverlapQueryState.InactiveNotCulling);
                     return false;
-                foreach (var dealer in _bestMatchDealers)
-                    if (dealer != null && dealer.IsValid)
-                        return true;
+                }
 
+                foreach (var dealer in _bestMatchDealers)
+                    if (dealer != null && dealer.IsValidOrFrozenByCulling)
+                    {
+                        SetBestMatchQueryState(
+                            IsSuspendedByCulling || dealer.IsSuspendedByCulling
+                                ? OverlapQueryState.FrozenByCulling
+                                : OverlapQueryState.Overlapping
+                        );
+                        return true;
+                    }
+
+                SetBestMatchQueryState(
+                    _bestMatchDealers.Count > 0
+                        ? OverlapQueryState.AllOverlapsInvalid
+                        : OverlapQueryState.NoOverlapRecord
+                );
                 return false;
             }
         }

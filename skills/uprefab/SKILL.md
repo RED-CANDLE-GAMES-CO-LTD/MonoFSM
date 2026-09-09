@@ -30,7 +30,7 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | prefab override 稽核、索引範圍調整 | `overrides` / `scope stats` | ❌ | [offline-index.md](references/offline-index.md) |
 | prefab 階層、子樹 component 欄位細節、FSM 架構 | `prefab read`（hard `--budget` / `--fsm-only` / `--structure-only`） | ✅ | [read.md](references/read.md) |
 | scene 上的階層 | `scene ls`（hard `--budget`，`0` 才不限） | ✅ | [read.md](references/read.md) |
-| 貼了 **scene 物件連結**（`globalId=GlobalObjectId_V1-…`） | `obj` | ✅ | [read.md](references/read.md) |
+| 貼了 **物件連結**（`globalId=GlobalObjectId_V1-…`；scene 或 prefab 裡的節點都算） | `obj` | prefab 裡的不用開 Stage，一次就出內容；Unity 沒開才退離線索引 | [read.md](references/read.md) |
 | **改** prefab / scene 結構、開/複製/存 scene、建 variant | `prefab do` / `scene do` / `scene copy` / `prefab variant` | ✅ | [edit.md](references/edit.md) |
 | C# 重構後**把舊型別的序列化資料搬到新型別**（`peek` 看不到的孤兒欄位） | `prefab swap-script` | ❌ | [edit.md](references/edit.md) |
 | **路徑失效、名字跟上次讀到的不一樣**、節點名含 `/` 或換行 | —— | | [naming.md](references/naming.md) |

@@ -39,3 +39,32 @@
 - `EditResolve` 的路徑逃逸補「字面反斜線」，`PromptEdit` 改成轉呼 `EditResolve`
   （asmdef reference + `InternalsVisibleTo`，刻意不把 `EditResolve` 改 public）。
   見 PROGRESS「`prompt --var` 定位名字含字面 \n 的節點」
+
+## GlobalObjectId 連結：prefab 裡的物件也要解得開（2026-09-09）
+
+拿到 `globalId=` 連結最常見的時機恰好是它指的容器**沒開著** —— 那時 `EditGid` 只回一句
+「來源不是 scene；物件可能已從那份資產裡刪掉了」。那句話是錯的（物件好好地在 prefab 裡，
+只是 Prefab Stage 沒開），照它去查會整條線走歪，所以這批的重點是把錯誤訊息換成能執行的下一步。
+
+- `TryOpenOwnerScene` 分出 `TryOpenPrefabStage`：`.prefab` 走 `PrefabStageUtility.OpenPrefab`
+  （`--open` 才開，Stage dirty 一律拒絕），沒帶 `--open` 時 note 直接給兩條路 ——
+  加 `--open`，或走離線 `up find`。刻意在 note 裡就講離線那條，不然下一步只剩「開 Editor」。
+- `Locate` / `Peek` 尾端加 `NextCommand`：印出能直接貼的下一條指令。存在理由是
+  **scene 與 prefab 兩側 `--node` 語意不同** —— scene 含 root object 名、prefab 不含，
+  少印這行就等於要對方自己猜一次（實測猜錯：貼 `PPlayer/…` 給 `prefab read` 回「找不到子樹」）。
+- `EditResolve.TryNode` 加 `TryDropRootName`：正常解析失敗、且第一段等於 root 名時切掉再解一次。
+  那條路徑是給人複製的，在這裡罰一次沒有任何好處；只在失敗後才補，不影響真的有同名子節點的情況。
+- 2026-09-09 `EditGid` 加 `Resolve` / `ResolveInPrefab`：`GlobalObjectIdentifierToObjectSlow` 不認
+  Prefab Stage 裡的物件（實測 stage 開著也回 null），更不認沒開的 prefab。prefab 連結的 `targetObjectId`
+  就是 imported asset 的 local fileID，所以改成自己掃：stage 開著比對 `GetGlobalObjectIdSlow`
+  （含 nested），否則 `AssetDatabase.LoadAssetAtPath` 後比對 `TryGetGUIDAndLocalFileIdentifier`。
+  結果是 **貼連結一次呼叫就拿到內容、不用開 stage**；`--open` 降為「順便開給人看」。
+  Python 端原本 Unity 解不開會把離線索引結果接在失敗訊息後面印，兩段互相矛盾，改成 Unity 是主路、
+  離線只在 Unity 沒回應時當備援（它本來就只能定位、不能給欄位）。
+- 2026-09-09 派 agent 實測「貼 gid 連結 → 讀欄位」花了 7 次呼叫，6 次是被輸出帶偏，三個根因全修在工具層：
+  (1) 葉節點匯出省略預設值 → `_boundType=Max`/`_percentage=0` 消失，agent 以為欄位不存在。`PrefabTextReader.Options`
+  改成 root 無子節點時 `_excludeDefaults=false`（有子樹才是省 token 的地方）。
+  (2) 同一支 prefab 但在匯出子樹外的引用印成 `res:<自己這支 prefab>`，看不出指到哪個節點。
+  `CompactValueFormatter.FormatObjectRefCore` 加「同 root 就印相對路徑」。
+  (3) `EditGid.Peek` 尾端「接著用 prefab read」讓 agent 以為 read 才是拿欄位的正解；欄位已印時改列「下鑽 / 單顆 component」兩條真正的後續路。
+  Python 端 `up peek --node` 的錯誤訊息「不認得 --node。最接近：--node」自相矛盾，改成明說「屬於哪些子指令」並指向 `up prefab peek`。

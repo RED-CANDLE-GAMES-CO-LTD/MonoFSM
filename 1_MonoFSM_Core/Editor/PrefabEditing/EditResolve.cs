@@ -70,8 +70,25 @@ namespace MonoFSM.Editor.PrefabEditing
             if (string.IsNullOrEmpty(path)) return root;
             // 名稱本身含 `/` 的節點（`=> Localized: GameplayUI/grab` 這種自動命名很常見）
             // 要寫成 `\/`，這時不能走 Transform.Find 的快路徑，它只認真正的階層分隔。
-            if (HasEscapedSlash(path)) return FindByIndexedPath(root, path);
-            return root.Find(path) ?? FindByIndexedPath(root, path);
+            if (HasEscapedSlash(path))
+                return FindByIndexedPath(root, path) ?? TryDropRootName(root, path);
+            return root.Find(path) ?? FindByIndexedPath(root, path) ?? TryDropRootName(root, path);
+        }
+
+        /// <summary>
+        /// 容錯：路徑第一段就是 root 自己的名字，把它切掉再解一次。
+        ///
+        /// 存在理由：`up gid --locate` / hierarchy 複製出來的路徑是「從 root 起算、含 root」
+        /// （`PPlayer/CharacterModules/…`），但 prefab 這側的 `--node` 收的是不含 root 的
+        /// 相對路徑。那條路徑就是給人原樣貼回來的，在這裡罰一次沒有任何好處，
+        /// 所以正常解析失敗時才補這一手（不會影響真的有同名子節點的情況）。
+        /// </summary>
+        private static Transform TryDropRootName(Transform root, string path)
+        {
+            var cut = IndexOfUnescapedSlash(path);
+            if (cut <= 0) return null;
+            if (Unescape(path.Substring(0, cut)) != root.name) return null;
+            return TryNode(root, path.Substring(cut + 1));
         }
 
         // 只要出現反斜線就一定要走逃逸解析（Transform.Find 只認字面比對）。

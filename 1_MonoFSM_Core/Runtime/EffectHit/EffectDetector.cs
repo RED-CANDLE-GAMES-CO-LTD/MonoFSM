@@ -30,6 +30,40 @@ namespace MonoFSM.Core.Detection
             _isCustomHitPoint = false; //預設不是自定義hitPoint
             _hitPoint = Vector3.zero; //預設hitPoint為零
             _hitNormal = Vector3.zero; //預設hitNormal為零
+            _wasFrozenByCulling = false;
+            _seenActiveButAbsent = false;
+        }
+
+        //--- culling 凍結的記帳（見 EffectDetector.ProcessDetectionChanges 的 exit diff）---
+        //刻意放在 DetectData 這顆 struct 裡而不是 detector 上的 Dictionary：
+        //  1. 零 GC、跟著條目走，不用另外管生命週期。
+        //  2. **清除點天然正確**：物理重新偵測到這個 detectable 時，收集迴圈是
+        //     `new DetectData(...)` 整顆覆蓋 _thisFrameDetectedObjects[detectable]，
+        //     兩顆旗標自動回到 false，不需要任何顯式清除程式碼（也就漏不掉）。
+        //     carry 分支則是複製舊值再 Mark，所以凍結序列期間旗標會延續。
+        private bool _wasFrozenByCulling;
+        private bool _seenActiveButAbsent;
+
+        /// <summary>這個條目曾經因為 culling（自己或對側）被 carry 過，不是一路正常偵測到現在的。</summary>
+        public bool WasFrozenByCulling => _wasFrozenByCulling;
+
+        /// <summary>凍結序列中已經觀測到一次「對側已 active 卻缺席」。</summary>
+        public bool SeenActiveButAbsent => _seenActiveButAbsent;
+
+        public void MarkFrozenByCulling()
+        {
+            _wasFrozenByCulling = true;
+        }
+
+        public void MarkSeenActiveButAbsent()
+        {
+            _seenActiveButAbsent = true;
+        }
+
+        //對側還在 cull，下次它回來要重新給一次「第一個 tick 不算離開」的機會
+        public void ClearSeenActiveButAbsent()
+        {
+            _seenActiveButAbsent = false;
         }
 
         public void SetCustomHitPoint(Vector3 point)
@@ -71,7 +105,9 @@ namespace MonoFSM.Core.Detection
         // public int SimulateOrder => -1000; // ray cache要更早嗎？
         //culling = 「暫停模擬」不是「東西離開」：凍結 overlap（不清、不發 exit、latch 不動），
         //resume 後第一次 DetectUpdateCheck 還在的走 Stay（不重放 Enter）、離開的補 Exit。
-        //cull 期間的殘留查詢由 IsValid 擋（EffectResolver.IsValid 已含 _parentObj.IsCulling）
+        //cull 期間的殘留查詢由 resolver 端的 IsValidOrFrozenByCulling 處理：EffectResolver.IsValid
+        //只有 isActiveAndEnabled && _conditions.IsAllValid()、不看 culling，直接拿它過濾會把
+        //「凍結中」誤判成「沒打到」
         public void OnCullingEnter()
         {
             if (_thisFrameDetectedObjects.Count == 0)
@@ -79,15 +115,81 @@ namespace MonoFSM.Core.Detection
             //TriggerDetectorSource 靠物理 OnTriggerStay 餵資料，resume 那一 tick 物理還沒跑、
             //current 會是空的，缺席不能算離開（下一 tick 才是權威 diff）
             _isResumeGraceTick = true;
+            SetResumeGraceState(ResumeGraceState.EnteredGrace);
             Debug.Log(
                 $"[EffectDetector] Culling 凍結 overlap:{_thisFrameDetectedObjects.Count}",
                 this
             );
         }
 
-        //凍結（culling）後第一個 Simulate tick 不把「缺席」判成離開，見 OnCullingEnter
+        //凍結（culling）後不把「缺席」判成離開，直到物理確實重新回報過，見 DetectUpdateCheck 結尾
         [ShowInDebugMode]
         private bool _isResumeGraceTick;
+
+        /// <summary>
+        ///     culling resume 寬限（_isResumeGraceTick）這一 tick 是續命還是解除、理由是什麼。
+        ///     每條分支都要寫，不要靜默。每幀路徑，所以只在 editor 賦值、不用 log。
+        /// </summary>
+        public enum ResumeGraceState
+        {
+            NotInGrace,
+
+            //剛進凍結，還沒跑過 resume 後的 detect tick
+            EnteredGrace,
+
+            //resume 後第一個 detect tick 跑完就消耗掉
+            Consumed,
+
+            //ClearAllDetections / ResetStateRestore 把整批重疊清掉了，沒有凍結可言
+            ClearedByDetections,
+        }
+
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private ResumeGraceState _resumeGraceState;
+
+        /// <summary>
+        ///     exit diff 對「上一 tick 有、這一 tick 缺席」的條目做了什麼決定。每條分支都要寫。
+        ///     每幀路徑，所以只在 editor 賦值、不用 log。
+        /// </summary>
+        public enum ExitDecision
+        {
+            None,
+
+            //對側被 Destroy 了，走 PurgeDestroyedReceivers 靜默清
+            PurgedDestroyed,
+
+            //對側還被 culling 關著 → carry，不算離開
+            CarriedSuspendedByCulling,
+
+            //自己剛 resume、物理還沒餵資料 → carry
+            CarriedResumeGrace,
+
+            //D1：凍結過的條目第一次「對側已 active 卻缺席」→ 記帳並 carry，再給一個 tick
+            CarriedFirstActiveAbsence,
+
+            //D1：連續第二次仍 active 且仍缺席 → 認定真的離開
+            ExitedAfterSecondAbsence,
+
+            //從未被 cull 的條目正常離開（沒有任何延後）
+            ExitedNormally,
+        }
+
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private ExitDecision _lastExitDecision;
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        private void SetExitDecision(ExitDecision decision)
+        {
+            _lastExitDecision = decision;
+        }
+
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        private void SetResumeGraceState(ResumeGraceState state)
+        {
+            _resumeGraceState = state;
+        }
 
         //reset 後第一個 detect tick 整批丟棄，見 ResetStateRestore
         [ShowInDebugMode]
@@ -181,6 +283,8 @@ namespace MonoFSM.Core.Detection
         public void ClearAllDetections(string reason)
         {
             _isResumeGraceTick = false; //真的清掉就沒有凍結可言
+            //despawn→respawn 復用同一顆時，殘留的觀測會讓 bounded 條件用到上一輪的 fixedTime
+            SetResumeGraceState(ResumeGraceState.ClearedByDetections);
             _isResetGraceTick = false;
             _dealerLastStates.Clear(); //latch 歸零，重新 enable 後才會補放 enter
             if (_thisFrameDetectedObjects.Count == 0)
@@ -464,7 +568,18 @@ namespace MonoFSM.Core.Detection
             // 5. 比較前後差異，觸發 Enter/Exit 事件
             ProcessDetectionChanges(_lastDetectedObjects, _thisFrameDetectedObjects);
 
-            _isResumeGraceTick = false; //寬限只有一個 tick，之後 diff 恢復權威
+            //grace 只負責「自己 resume 的那第一個 tick」，所以在這裡無條件消耗就夠了。
+            //跨多個 tick 的責任已經交給 exit diff 的證據型規則（見 ProcessDetectionChanges）：
+            //carry 出去的條目會被 MarkFrozenByCulling，之後「對側 active 卻缺席」還要再撐一個
+            //tick 才放行 —— 那條規則不依賴任何時鐘，也不需要 grace 續命。
+            //曾經在這裡加過「帳本有東西才消耗」的條件，那是錯的：判斷點在
+            //ProcessDetectionChanges 之後，而 carry 分支寫入的就是 _thisFrameDetectedObjects，
+            //carry 自己會把條件餵飽（診斷欄位讀到會被自己修改的容器，就只會說謊）。
+            if (_isResumeGraceTick)
+            {
+                _isResumeGraceTick = false;
+                SetResumeGraceState(ResumeGraceState.Consumed);
+            }
         }
 
         private void HandleDealerStateChanges()
@@ -475,7 +590,11 @@ namespace MonoFSM.Core.Detection
 
             foreach (var dealer in _dealers)
             {
-                var currentState = dealer.IsValid;
+                //凍結容忍：dealer 被 culling handle 關掉不算「變無效」，否則這條 latch 會從
+                //ProcessDealerStateChangesForDetectable 送出 exit —— 那條路跑在
+                //ProcessDetectionChanges 之前，不看 grace 也不看 IsSuspendedByCulling，
+                //D1 蓋不到它。能不能真的被打到仍然用 IsValid（見 TriggerEnterForDealerAndDetectable）。
+                var currentState = dealer.IsValidOrFrozenByCulling;
                 var lastState = _dealerLastStates.GetValueOrDefault(dealer, false);
                 if (currentState != lastState)
                     dealerStateChanges[dealer] = (lastState, currentState);
@@ -653,18 +772,63 @@ namespace MonoFSM.Core.Detection
                 {
                     foreach (var dealer in _dealers)
                         dealer.PurgeDestroyedReceivers();
+                    SetExitDecision(ExitDecision.PurgedDestroyed);
                     continue;
                 }
 
-                //resume 第一個 tick 物理還沒餵資料，缺席不算離開；
-                //對側被 culling 凍結也不算離開 —— carry 進 current，回來時走 Stay 不重放 Enter
-                if (_isResumeGraceTick || detectable.IsSuspendedByCulling)
+                //對側還被 culling 關著：不算離開，carry 進 current（回來時走 Stay 不重放 Enter）。
+                //同時記下「這個條目是凍結序列，不是一路正常偵測到現在的」，下面 D1 要用；
+                //而「已見 active 卻缺席」要歸零 —— 對側還沒回來，下次回來要重新給一次機會。
+                if (detectable.IsSuspendedByCulling)
                 {
-                    currentDetected[detectable] = prevDetectEntry.Value;
+                    var carried = prevDetectEntry.Value;
+                    carried.MarkFrozenByCulling();
+                    carried.ClearSeenActiveButAbsent();
+                    currentDetected[detectable] = carried;
+                    SetExitDecision(ExitDecision.CarriedSuspendedByCulling);
+                    continue;
+                }
+
+                //自己剛 resume 的第一個 tick，物理還沒餵資料，缺席不算離開。
+                //一樣標記凍結序列：對側可能跟自己同一個 observer、同一帧一起回來（那就走不到
+                //上面那條分支），沒標的話下面 D1 沒有依據，第二 tick 就會誤放 exit。
+                if (_isResumeGraceTick)
+                {
+                    var carried = prevDetectEntry.Value;
+                    carried.MarkFrozenByCulling();
+                    currentDetected[detectable] = carried;
+                    SetExitDecision(ExitDecision.CarriedResumeGrace);
+                    continue;
+                }
+
+                //D1：凍結過的條目，「缺席」要有物理背書才算離開。
+                //本 detector 的 Simulate 排在 RunnerSimulatePhysics 之前（見本檔上方 SimulateOrder
+                //的註解），所以這個 tick 讀到的 OnTriggerStay 是**上一個 physics step** 的結果 ——
+                //對側的 collider 是在上一個 step 之後才被 culling handler SetActive(true) 的
+                //（CullingGroup 的 callback 跑在 render 階段、FUN 之外），那個 step 裡它還 inactive，
+                //缺席是必然的、不代表離開。所以第一次觀測到「對側已 active 卻缺席」只記帳、仍然
+                //carry；要連續第二個 tick 還是 active 且還是缺席，才認定真的離開。
+                //刻意不用時鐘（fixedTime / tick 數）：那要假設 Simulate 與物理的先後順序，
+                //resim 一個 frame 多個 tick 又會讓假設失效。這裡用的是「物理實際回報過」這個證據。
+                //只影響凍結過的條目（WasFrozenByCulling）——從未被 cull 的條目走下面的正常 exit，
+                //一 tick 都不會延後。
+                if (prevDetectEntry.Value.WasFrozenByCulling
+                    && !prevDetectEntry.Value.SeenActiveButAbsent
+                    && detectable.gameObject.activeInHierarchy)
+                {
+                    var carried = prevDetectEntry.Value;
+                    carried.MarkSeenActiveButAbsent();
+                    currentDetected[detectable] = carried;
+                    SetExitDecision(ExitDecision.CarriedFirstActiveAbsence);
                     continue;
                 }
 
                 // Debug.Log($"Detectable exited: {detectable.name}", this);
+                SetExitDecision(
+                    prevDetectEntry.Value.WasFrozenByCulling
+                        ? ExitDecision.ExitedAfterSecondAbsence
+                        : ExitDecision.ExitedNormally
+                );
                 TriggerExitEventsForDetectable(detectable, prevDetectEntry.Value);
 #if UNITY_EDITOR
                 detectable._debugDetectors.Remove(this);
@@ -720,7 +884,11 @@ namespace MonoFSM.Core.Detection
 
             foreach (var dealer in _dealers)
             {
-                var currentState = dealer.IsValid;
+                //凍結容忍：dealer 被 culling handle 關掉不算「變無效」，否則這條 latch 會從
+                //ProcessDealerStateChangesForDetectable 送出 exit —— 那條路跑在
+                //ProcessDetectionChanges 之前，不看 grace 也不看 IsSuspendedByCulling，
+                //D1 蓋不到它。能不能真的被打到仍然用 IsValid（見 TriggerEnterForDealerAndDetectable）。
+                var currentState = dealer.IsValidOrFrozenByCulling;
                 var lastState = _dealerLastStates.GetValueOrDefault(dealer, false);
 
                 if (currentState != lastState)
@@ -772,6 +940,7 @@ namespace MonoFSM.Core.Detection
             _lastDetectedObjects.Clear();
             _thisFrameDetectedObjects.Clear();
             _isResumeGraceTick = false;
+            SetResumeGraceState(ResumeGraceState.ClearedByDetections);
             //物理還沒用還原後的位置重跑，這個 tick 的重疊資料要整批丟棄（見 DetectUpdateCheck）
             _isResetGraceTick = true;
             //dealer 有效性的 latch 也要歸零，否則「reset 前有效、reset 後仍有效」會被判成沒變化，

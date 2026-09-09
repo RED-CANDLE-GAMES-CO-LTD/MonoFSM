@@ -1310,3 +1310,24 @@ skill 記「現況是什麼」，是狀態快照，**必然 decay、一定要維
 反查哪些 skill 段落提到它們，給出「這幾行附近要重讀」的清單。語意層的過期機械查不到，
 但用 diff 當 trigger 可以把重讀範圍從 145KB 縮到幾十行。**定期全域盤點沒有價值**
 （95% 會回報「沒變」），trigger 要是 diff 不是時間。
+
+## `up obj` 的離線後路 + 連結貼錯子指令的攔截（2026-09-09）
+
+`up obj` 原本 100% 靠 Unity，而 GlobalObjectId 只在物件所在的 scene / Prefab Stage
+開著時解得開 —— 等於「最需要它的時候它不能用」。實際上連結的 `<objId>` 對
+「原生在該資產裡」的物件就是 YAML 的 fileID，索引裡的 `nodes` 表本來就有，**根本不需要 Unity**。
+
+- `query.node_by_file_id(guid, file_id)`：(guid, fileID) → 資產、節點路徑、component 清單。
+  `up obj` 只在 Unity 呼叫失敗、或 Unity 回 `# 解不開` 時才接上這半 —— Unity 那邊拿得到
+  完整路徑，資訊更多，不該為了省 350ms 降級。
+- 輸出一定帶 `# anchor: <資產>#<fileID>`：離線的 `nodes.path` 是走回填的 parent 鏈長出來的，
+  `m_Father` 指到 nested prefab 的 stripped transform 時鏈就斷，結果是個**局部路徑** ——
+  長得跟完整路徑一樣但餵 `--node` 必失敗。anchor 永遠精確。
+- 判「路徑是否真的從 root 起算」不能只看鏈走到 `parent_file_id=0`：回填時查不到 parent 就填 0，
+  實測 PPlayer.prefab 有 346 個 parent=0 的節點而真 root 只有一個。prefab 側再加一道
+  「鏈頂必須是檔名同名的那顆」（Unity 建 prefab 的預設，也是唯一離線判得出 root 的線索）；
+  不成立就明講路徑是局部的並改建議 `up find --name`。
+- `_guard_gid_args`：連結貼給不吃連結的子指令時直接攔下並說該打什麼。以前
+  `up peek '<連結>'` 回「找不到 root object 'http:'」（假錯誤），`up overrides '<連結>'`
+  更糟 —— 靜靜回一句 `(no overrides)`，看起來像結論。例外只有 `up obj` 與 `up guid`
+  （後者只取連結裡的資產 guid）。

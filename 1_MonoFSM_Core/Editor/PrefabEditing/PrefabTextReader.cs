@@ -140,7 +140,7 @@ namespace MonoFSM.Editor.PrefabEditing
         private static string Once(
             GameObject root, bool fullExpand, int depth, bool structureOnly)
         {
-            var options = Options(fullExpand, structureOnly);
+            var options = Options(root, fullExpand, structureOnly);
             options._maxDepth = depth;
             return HierarchyTextExporter.Export(root, options);
         }
@@ -156,7 +156,7 @@ namespace MonoFSM.Editor.PrefabEditing
             StringBuilder header, string fsm)
         {
             const int maxProbe = 40;
-            var options = Options(fullExpand, structureOnly);
+            var options = Options(root, fullExpand, structureOnly);
 
             string best = null;
             var bestDepth = 0;
@@ -255,11 +255,17 @@ namespace MonoFSM.Editor.PrefabEditing
             return text.Substring(0, charBudget - hint.Length) + hint;
         }
 
-        private static HierarchyExportOptions Options(bool fullExpand, bool structureOnly)
+        private static HierarchyExportOptions Options(
+            GameObject root, bool fullExpand, bool structureOnly)
         {
             var options = fullExpand
                 ? HierarchyExportOptions.FullExpand
                 : HierarchyExportOptions.Default;
+            // 使用者點名一顆葉節點（--node 指到底、或 gid 連結指到 Action / Condition）時，
+            // 要的就是它的欄位；這時省略預設值省不到什麼 token，卻讓 `_boundType=Max`、
+            // `_percentage=0` 這種「剛好等於預設」的值消失，agent 會以為欄位不存在而多打
+            // 一次 prefab peek。有子樹時維持省略（那才是省 token 的地方）。
+            if (root != null && root.transform.childCount == 0) options._excludeDefaults = false;
             if (!fullExpand) options._excludeComponents.AddRange(VisualComponents);
             // includeComponents 非空時只允許匹配型別；這個 sentinel 不可能是 Component 型別，
             // 因而只保留節點、Transform、inactive/prefab flags 與 note。
