@@ -8,10 +8,27 @@ using UnityEngine.Rendering;
 
 namespace MonoFSM.ParticleSystemActions
 {
+    /// <summary>
+    /// 用 MaterialPropertyBlock 覆寫 renderer 某個 material slot 的一顆 shader property，不會把 material instance 化。
+    /// 掛在 RenderLoop 下；`_restoreSharedMaterial` 為 true 時改成清掉該 slot 的 block，讓 renderer 讀回 shared material
+    /// （Play 中直接調 material asset 就看得到）。例：燈泡關燈 = `_EmissionColor` 覆寫成黑、亮著時 restore。
+    /// </summary>
     public class SetMaterialPropertyBlockAction : AbstractRenderBehaviour
     {
         public override string Description =>
-            $"Set [{_propertyName}] ({_propertyType}) on [{(_rendererCollection != null ? _rendererCollection.name : _renderer != null ? _renderer.name : "null")}]";
+            $"MPB [{_propertyName}] = {ValueText} on [{TargetName}]{(_restoreSharedMaterial._var == null && _restoreSharedMaterial.Value == false ? "" : $" (restore when {_restoreSharedMaterial.Description})")}";
+
+        private string TargetName => _rendererCollection != null ? _rendererCollection.name :
+            _renderer != null ? _renderer.name : "null";
+
+        private string ValueText => _propertyType switch
+        {
+            PropertyType.Float => _floatValue.Description,
+            PropertyType.Color => $"#{ColorUtility.ToHtmlStringRGBA(_colorValue)}",
+            PropertyType.Int => _intValue.Description,
+            PropertyType.Bool => _boolValue.Description,
+            _ => "?"
+        };
 
         public enum PropertyType
         {
@@ -51,8 +68,16 @@ namespace MonoFSM.ParticleSystemActions
         [SerializeField] [ShowIf(nameof(_propertyType), PropertyType.Bool)]
         private VarBoolWrapper _boolValue;
 
+        [Tooltip("true = 清掉此 material slot 的 property block，renderer 讀回 shared material（Play 中調 asset 即時可見）；" +
+                 "false = 照常用 block 覆寫。注意 restore 會把同一 slot 上其他 Action 設的 block 值一起清掉")]
+        [SerializeField]
+        private VarBoolWrapper _restoreSharedMaterial = new(false);
+
         private MaterialPropertyBlock _mpb;
         private int _propertyId;
+
+        //上一幀是否處於 restore 狀態；null = 剛進狀態，強制套用一次
+        private bool? _lastRestored;
 
 #if UNITY_EDITOR
         private IEnumerable<ValueDropdownItem<string>> GetPropertyNames()
@@ -101,11 +126,28 @@ namespace MonoFSM.ParticleSystemActions
         [Button("Preview")]
         public override void OnEnterRenderImplement()
         {
+            _lastRestored = null;
+            Apply();
+        }
+
+        public override void OnRenderImplement()
+        {
+            Apply();
+        }
+
+        private void Apply()
+        {
             if (_mpb == null)
             {
                 _mpb = new MaterialPropertyBlock();
                 _propertyId = Shader.PropertyToID(_propertyName);
             }
+
+            var restore = _restoreSharedMaterial.Value;
+            //restore 是一次性的清除，維持在 restore 狀態時不用每幀重清；覆寫值可能綁 Var，每幀重套
+            if (restore && _lastRestored == true)
+                return;
+            _lastRestored = restore;
 
             if (_rendererCollection != null)
             {
@@ -115,23 +157,20 @@ namespace MonoFSM.ParticleSystemActions
                 foreach (var r in renderers)
                 {
                     if (r == null) continue;
-                    ApplyPropertyBlock(r);
+                    ApplyTo(r, restore);
                 }
             }
 
             if (_renderer != null)
-            {
-                ApplyPropertyBlock(_renderer);
-            }
-            // else
-            // {
-            //     Debug.LogWarning("SetMaterialPropertyBlockAction: No Renderer or RendererCollection assigned", this);
-            // }
+                ApplyTo(_renderer, restore);
         }
 
-        public override void OnRenderImplement()
+        private void ApplyTo(Renderer renderer, bool restore)
         {
-            OnEnterRenderImplement();
+            if (restore)
+                renderer.SetPropertyBlock(null, _materialIndex);
+            else
+                ApplyPropertyBlock(renderer);
         }
 
         private void ApplyPropertyBlock(Renderer renderer)

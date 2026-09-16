@@ -544,6 +544,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var before = EditResolve.Preview(prop);
                     EditResolve.ApplyValue(prop, EditBatch.At(a, 3) ?? "", fieldPath);
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    touches.RemoveAll(t => t.IsSameSerializedField(comp, fieldPath)); // 同批重寫同欄位：最後一次寫入才是 expected
                     touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}: " +
                            $"{before} -> {EditResolve.Preview(prop)}";
@@ -567,6 +568,7 @@ namespace MonoFSM.Editor.PrefabEditing
                         EditBatch.At(a, 4));
                     prop.objectReferenceValue = targetComp;
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    touches.RemoveAll(t => t.IsSameSerializedField(comp, fieldPath)); // 同批重寫同欄位：最後一次寫入才是 expected
                     touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> " +
                            $"{EditResolve.Describe(targetPath)}.{targetComp.GetType().Name}";
@@ -585,6 +587,7 @@ namespace MonoFSM.Editor.PrefabEditing
                         throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用");
                     prop.objectReferenceValue = AssetRef.Resolve(target, comp, fieldPath);
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    touches.RemoveAll(t => t.IsSameSerializedField(comp, fieldPath)); // 同批重寫同欄位：最後一次寫入才是 expected
                     touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> res:{target}";
                 }
@@ -599,6 +602,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var prop = EditResolve.Prop(so, fieldPath, comp);
                     var index = EditResolve.AddArrayElement(prop, fieldPath);
                     so.ApplyModifiedPropertiesWithoutUndo();
+                    touches.RemoveAll(t => t.IsSameSerializedField(comp, fieldPath)); // 同批重寫同欄位：最後一次寫入才是 expected
                     touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}[{index}] " +
                            $"新增（現有 {prop.arraySize} 筆）";
@@ -975,6 +979,14 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 return touch;
             }
+
+            /// <summary>
+            /// 同一批 ops 對同一顆 component 的同一欄位寫第二次時（典型是 addel 連加多筆），
+            /// 前一筆 touch 在寫入當下 pin 住的 expected（array-size:1）已經過期，會在 reload
+            /// 驗證時報假失敗。呼叫端用這個把舊的剔掉，只留最後一次寫入。
+            /// </summary>
+            internal bool IsSameSerializedField(Component component, string fieldPath) =>
+                _kind == VerifyKind.Serialized && _component == component && _fieldPath == fieldPath;
 
             /// <summary>revert| 用：期望值固定是「存檔後重讀，這個欄位不再是 override」。</summary>
             internal static VerifyTouch OverrideCleared(
