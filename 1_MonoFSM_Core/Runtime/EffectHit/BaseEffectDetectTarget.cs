@@ -4,6 +4,17 @@ using UnityEngine;
 
 namespace MonoFSM.Runtime.Interact.EffectHit
 {
+    /// <summary>
+    /// 「這顆 collider 是誰的命中點」的標記：detector 偵測到的每一顆 collider 都要有一顆，
+    /// 它負責把 collider 對應回邏輯上的 <see cref="EffectDetectable" />（receiver 的字典）。
+    /// 命中時這顆會被塞進 <c>GeneralEffectHitData._receiverSourceObj</c>，
+    /// 所以「一顆 Detectable 底下有多個部位」的玩法要靠它反查「打到哪一顆」
+    /// （例：拆件系統的 DismantlePartTakeBreakAction）。
+    /// 預設用 [AutoParent] 往上找 Detectable；跨 hierarchy 的情況用 <see cref="_detectableOverride" />。
+    /// 注意：EffectDetector 的「本幀偵測到的東西」是以 Detectable 為 key 的字典，
+    /// 同一顆 Detectable 底下有多顆 detect target 同時重疊時只會留最後一顆（沒有排序），
+    /// 要精確區分「選中哪一顆」就不能共用同一顆 Detectable。
+    /// </summary>
     //FIXME: HitData裡應該放的是這個？這樣才可以拿到細節？
     //概念類似HitBoxTarget
     public abstract class BaseEffectDetectTarget : AbstractDescriptionBehaviour //實作

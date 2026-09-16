@@ -79,7 +79,14 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
                     .SetValue(
                         entity); //TODO: 這裡是碰撞到的物件，還是碰撞到的物件的 parent entity？要不要改成兩個變數分別存？（或 collision 直接丟出去讓 handler 自己決定要不要從裡面取？）
                 //FIXME: gen effectHitData?
-                _abstractEventHandler._hitEntity?.SetValue(entity);
+                if (_abstractEventHandler != null)
+                    _abstractEventHandler._hitEntity?.SetValue(entity);
+                else
+                {
+                    Debug.LogError("[CollisionEventListener] Collision events are not implemented.",
+                        this);
+                }
+
             }
 
             //可能打到地板喔

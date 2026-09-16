@@ -53,15 +53,12 @@ up scene ls --node "資源生成器 FSM/[StateFolder] StateFolder" --depth 2 --b
 **路徑打錯不會白跑** —— 它會沿路徑走到最後一個通的節點，把那層的子節點連同
 `(+N nodes)` 列出來，照著修就好。MonoFSM 的節點名常帶 `[Tag] ` 前綴，很容易猜錯。
 
-## read cache 預設開啟
+## read 沒有快取；常查的 prefab 要進 skill
 
-key 綁「依賴 prefab（含 variant base / nested）的 mtime+size」與「決定輸出格式的 exporter
-C# 檔內容」，所以 prefab 一被存檔、exporter 一被改就自動失效。第二層是**本地切片**：
-要 `--node A/B/C` 而快取裡已有 A 的完整子樹時直接裁出來，不打 Unity（只裁 node，
-`--depth` / `--fsm` 一律回 Unity；子樹裡有任何摺疊標記就放棄）。
-
-`--no-cache` = 完全不讀不寫，剛在 Inspector 改過還沒存檔時用。`--cache` 留著當相容旗標
-（現在是預設，不用加），兩者不能同時給。
+read **沒有磁碟快取**（2026-09-11 移除；`--cache` / `--no-cache` 留成 no-op）。實測 393 次讀取有
+349 組不同參數，精確 key 幾乎不會重複命中，而且命中與否吐回 context 的字元一樣多。
+取而代之的是 read 結尾的 `# [hot] …` 提示與 `up usage hot`：近 7 天被 ≥3 段調查碰過、但
+skill 沒提到（或提到了 prefab 但常查子樹沒入口）的 prefab 會被點名，該把入口寫進 skill。
 
 另外有一層 60 秒的 argv memo（跨子指令）：同一條指令原封不動重打會直接回上次結果，
 期間跑過任何寫入類指令就整批失效。要繞過用全域 `--no-memo`。

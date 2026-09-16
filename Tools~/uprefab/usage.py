@@ -243,18 +243,6 @@ def report(root: str, gap_sec: int = 900, top: int = 8,
               f"| {sum(d['ms']) // max(d['n'], 1)} | {_percentile(d['ms'], .95)} "
               f"| {d['miss']} |")
 
-    # hit ratio 不把 bypass/unavailable/off 算進分母。slice = 本地從較大子樹裁出來的，
-    # 一樣沒打 Unity，所以算在 hit 那邊。
-    cache_rows = [r for r in rows if r.get("cmd") == "prefab read" and r.get("cache")]
-    cache_counts = {}
-    for r in cache_rows:
-        cache_counts[r["cache"]] = cache_counts.get(r["cache"], 0) + 1
-    hits = cache_counts.get("hit", 0) + cache_counts.get("slice", 0)
-    attempts = hits + cache_counts.get("miss", 0)
-    print("\n## prefab read cache")
-    print(f"hit ratio: {hits}/{attempts} "
-          f"({hits * 100 // max(attempts, 1)}%)；狀態 {cache_counts or '(無)'}")
-
     # argv memo（跨指令）：同一條指令在 60 秒內被原封不動重打
     memo_hits = sum(1 for r in rows if r.get("memo") == "hit")
     print(f"## argv memo 命中 {memo_hits} 次"

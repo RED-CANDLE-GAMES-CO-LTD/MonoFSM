@@ -33,6 +33,13 @@
 的 exporter C# 檔指紋，刻意不含 `uprefab.py` / `readcache.py`），未存的 Inspector 狀態則靠
 `--no-cache` 逃生口。細節與踩過的順序陷阱見 `MonoFSM/Tools~/uprefab/PROGRESS.md` 的
 「`readcache` 翻預設 + 收窄 TOOL_FILES + 加一層 60 秒 argv memo」。
+
+2026-09-11 **整顆移除** `readcache.py`：預設開啟一週後再量，393 次 read 只有 18 hit + 2 slice，
+原因不是 key 壞而是 349 組參數互不相同（agent 每次換 `--node` / `--depth` / `--budget`），
+切片層在大 prefab 上又因摺疊標記永遠放棄；命中省的只是 Unity 一趟（中位 0.27 s），token 零省。
+「同一支 prefab 被反覆讀」改由 `hot.py` 處理：`up usage hot` 對 usage log 按 prefab 聚合段調查數
+與常查子樹（前三層），對照 `.claude/skills` / `MonoFSM/skills` 文字判斷有沒有入口，`prefab read`
+結尾對當下 prefab 印一行 `# [hot]`。argv memo（`memo.py`，60 秒）保留。
 省 token 的主路仍是 hard `--budget`、`--node`、`--structure-only`、`--fsm-only` 與欄位級 peek。
 
 ## 已知限制

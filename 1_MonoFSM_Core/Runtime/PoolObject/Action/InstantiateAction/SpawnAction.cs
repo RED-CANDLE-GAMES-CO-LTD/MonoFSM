@@ -284,7 +284,12 @@ namespace MonoFSM.Core.LifeCycle
 
     public interface ISpawnProcessor //想找一個static的對象來生成物件 (但不能真的static，multi peer的話)
     {
-        MonoObj Spawn(MonoObj obj, Vector3 position, Quaternion rotation);
+        /// <summary>
+        ///     player = 誰噴的。除了 WorldUpdateSimulator 記到 PoolObject.lastPlayer 之外，網路端還會用它決定
+        ///     input authority（FusionSpawnProcessor 檢查 player 有沒有實作 IFusionSpawnInputAuthority）。
+        /// </summary>
+        MonoObj Spawn(MonoObj obj, Vector3 position, Quaternion rotation,
+            IPoolObjectPlayer player = null);
         public void Despawn(MonoObj obj);
     }
 

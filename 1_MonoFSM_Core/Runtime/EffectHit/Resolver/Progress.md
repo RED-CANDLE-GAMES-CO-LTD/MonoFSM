@@ -40,3 +40,10 @@
   每次判定都會進的熱路徑，log 只留給「引用沒指」「forward 是 0」這種一次性設定錯誤，且用
   bool latch 保證只吼一次。`_debugPassFrame` 用 `Time.frameCount` 判斷是不是新的一輪計分，
   才能在 Inspector 上顯示「這一輪誰贏」而不是「歷史最高分」。
+
+- `BoolVarFilteredBestMatchScorer`（2026-09-15）：繼承 Default，先用 `_boolVarTag` 讀 receiver entity 的 VarBool，
+  不等於 `_expectedValue` 就回 `float.MinValue` 讓 `FindBestMatch` 跳過。**這是上面「scorer 只排序不排除」的刻意例外**，
+  理由：排除條件需要「每 tick 對每個候選 receiver 重判」，現有兩條路都做不到 ——
+  `EffectHitConditionWrapper` 只在 enter 那一刻判一次（物件先進範圍再被玩家抓起會漏），receiver 端 `[If]` 又長在被抓物件
+  的共用 prefab 上（加 d_IsGrabbed == true 會讓玩家抓不到沒被抓的東西）。Inspector 有 `_lastReceiver` / `_lastResult`
+  enum 顯示每個候選被剔除的理由，所以「候選有東西但 best match 是 null」查得出來。首用：飛行怪 steal 的 [Dealer] Gravity Grab。

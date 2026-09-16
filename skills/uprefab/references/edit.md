@@ -30,6 +30,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（含 nested prefab override 記錄與 reload 驗證；第二格必填） |
 | `idx\|<node>\|<siblingIndex>` | 調 sibling 順序。**child 順序＝優先序**（value source / condition 取第一個成立的），負數從尾端算（`-1` = 最後） |
 | `mv\|<node>\|<newParent>` | 換 parent（scene 與 prefab 都支援） |
+| `copyfrom\|<srcPrefab>\|<srcNode>\|<dstParent>[\|<newName>]` | **跨 prefab** 複製整棵子樹（只有 prefab）。nested 實例會被重建成真實例（override 保留），指向子樹外的引用依 hierarchy 相對路徑重映射到目的 prefab 的同路徑節點。見下面「跨 prefab 搬子樹」 |
 | `rename\|<node>\|<newName>` | 改節點名（`<node>` 留空 = root）。**只對沒掛 `AbstractDescriptionBehaviour` 的節點有意義**，其餘存檔後會被自動命名蓋掉，見 [naming.md](naming.md) |
 | `auto\|<node>` | **重跑 `[Auto*]` 綁定 —— 結構改完一定要下這行**，見下面 |
 | `del\|<node>` | 刪節點 |
@@ -43,6 +44,45 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 scene 沒有唯一 root，第一段一定要是 root object 名稱。
 
 節點名含 `/` 或換行時的逃逸規則見 [naming.md](naming.md)。
+
+## 跨 prefab 搬子樹：`copyfrom`
+
+把一支 prefab 拆成 base + variant（或把模組從 A 搬到 B）時用。典型流程：
+
+```bash
+# 1. 先做一份「拆之前」的快照當來源。
+#    ⚠ 快照的**檔名**要跟目的 prefab 的 root 名稱一樣（見下面的命名陷阱），所以放在別的資料夾
+up prefab copy "<原檔>" --out "Assets/…/_snap/<目的 root 名>.prefab"
+up prefab do   "Assets/…/_snap/<目的 root 名>.prefab" "auto|"   # 讓自動命名節點跟著新 root 名字改掉
+
+# 2. 目的 prefab 先 `auto|` 存一次，讓它的自動命名節點也定下來，路徑才對得上
+up prefab do "<目的 prefab>" "auto|"
+
+# 3. 搬
+up prefab do "<目的 prefab>" \
+  "copyfrom|Assets/…/_snap/X.prefab|<srcNode>|<dstParent>" … "auto|"
+```
+
+要點：
+
+- **`Object.Instantiate` 會扯斷 nested prefab 連結**（2026-09-15 實測），所以 `copyfrom`
+  對「來源是 prefab 實例 root」的節點一律 `InstantiatePrefab` + `SetPropertyModifications`
+  重建。複製完一定要 `up prefab read` 確認還有 `(prefab:res:…)` 後綴。
+- **實例上「額外加的 GameObject / Component」不會被複製**（它們不在 PropertyModifications 裡），
+  有的話 log 會明講，要自己補。
+- **兩棵互指的子樹**（拆件模組 ↔ 部件視覺）不管先搬哪一棵，第一輪都有一邊指不到；
+  整批 ops 跑完會自動再解一次（log 的 `# copyfrom 延後解引用`），所以**互指的子樹要放在同一批 ops 裡**。
+- 仍解不掉的引用會逐條印出「哪個欄位 → 來源的哪條路徑」，用 `ref` 手補。
+
+### 命名陷阱：自動命名節點跟著 **asset 檔名**走
+
+掛 `AbstractDescriptionBehaviour` 的節點（`[Anim] <root 名>`、`[Follow] [Anim] <root 名>`）
+在存檔前 callback 會被改成「root 名稱」，而 **root 名稱又會被存檔改回 asset 檔名**
+（`rename||X` 對 root 下去存完還是檔名）。所以：
+
+- 改 prefab 檔名 = 改 root 名 = 改 `[Anim] …` 節點名，三件事連動，不用手動 rename。
+- `copyfrom` 的路徑重映射是走**字面路徑**比對，來源與目的的 `[Anim] …` 名字不一樣就對不上。
+  快照檔名取成目的 prefab 的 root 名，再各跑一次 `auto|`，是最省事的對齊方式。
 
 ## `swap-script` —— C# 重構之後把舊型別的資料搬到新型別（離線）
 
@@ -157,8 +197,7 @@ auto|
 - `prefab do` 會檢查 `SaveAsPrefabAsset` 成功，並 reload 驗證可推導的 touched 欄位；至少
   `active` 一定驗證。`auto` 若無法完整推導，摘要會明講 unsupported，不會假裝已驗。
   `--quiet` 只壓縮成功 log，錯誤仍保留完整行號與下一步線索。
-- 要人工補驗時用 `prefab peek`（不經 cache）；`prefab read` 的 cache 預設開著，但 key 綁
-  prefab mtime，`prefab do` 存過檔就自動失效 —— 只有「在 Inspector 手改還沒存檔」需要 `--no-cache`。
+- 要人工補驗時用 `prefab peek`；`prefab read` 已無磁碟快取（2026-09-11 移除），存檔後直接 read 即是現況。
 
 ## 同名節點用 `[n]` 指定第幾個
 
@@ -198,6 +237,13 @@ MonoFSM 大量欄位靠 Auto 系列 attribute 填 —— `TransitionBehaviour._c
 真的遇到欄位是空的，先看 `auto` 的輸出（`[Auto*] 欄位綁上 N、沒綁上 M`）分辨是「綁上了
 沒存進去」還是「根本沒綁上」，再往兩個方向查：目標 component 是否來自**巢狀 prefab**
 （override 規則與 variant base 不同）、或 `[Auto*]` 本來就合法地綁不到（型別／層級不符）。
+
+**巢狀 prefab 實例上的例外（2026-09-15 實測）**：steal 飛行怪 variant 上，`[State] Chase/[Transition] => RunAway`
+這類「住在 nested prefab 實例（CharacterModules）裡、又繼承自 base」的 TransitionBehaviour，加了 `[If]` 子節點後跑
+`auto|CharacterModules/Character FSM`，log 印「綁上 N、沒綁上 0」但存檔後 `_conditions` 仍是 base 的舊值（沒長出
+array override）。改用 `addel` + `ref|…|_conditions.Array.data[i]|…` 就寫得進去；同一批操作在模組**源** prefab 上
+`auto` 完全正常。所以上面的「不要預防性改寫法」只對 variant 直接繼承的節點成立；**目標在 nested 實例裡時，`auto` 完
+一定 `locate --members _conditions` 驗，空的就補 `addel`+`ref`**。工具側待辦見 AgentToolTODO.md。
 
 `auto` 不是 Python 端做的 —— `up` 只把字串轉發給 Unity，實作在
 `MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/EditResolve.cs::RunAuto`，

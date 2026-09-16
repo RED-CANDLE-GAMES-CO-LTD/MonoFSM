@@ -17,8 +17,9 @@ namespace HierarchyFavorites.Editor
             // 清除上次 domain reload 殘留的 overlay 視窗（compile 中斷時會留下）
             HierarchyFavoritesOverlayBase.CleanupOrphanWindows();
 
-            EditorApplication.update += Tick;
-            EditorApplication.modifierKeysChanged += OnModifierKeysChanged;
+            // 暫時關閉 Alt 長按叫出 overlay 的快捷鍵（使用者暫時用不到）
+            // EditorApplication.update += Tick;
+            // EditorApplication.modifierKeysChanged += OnModifierKeysChanged;
             // AssemblyReloadEvents.beforeAssemblyReload += OnBeforeReload;
         }
 

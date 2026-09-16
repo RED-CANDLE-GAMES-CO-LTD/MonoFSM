@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Scripts.Input
 {
+    /// <summary>
+    /// 讀一顆 MonoInputAction 的按鍵狀態當條件：_inputActionType 選 WasPressed（按下那一幀）／
+    /// IsPressed（按住中）／WasReleased（放開那一幀）／IsInBufferTime（still in buffer，可被 ConsumePress 消費）。
+    /// input 來源可直接指 MonoInputAction，或透過 VarInputAction／VarMonoInput 間接取得。
+    /// 註：ConsumePress 只影響 IsInBufferTime，不會讓 WasPressed / WasReleased 失效。
+    /// </summary>
     //FIXME: move不能用這個
     public class InputActionWasPressedCondition : AbstractConditionBehaviour
     {

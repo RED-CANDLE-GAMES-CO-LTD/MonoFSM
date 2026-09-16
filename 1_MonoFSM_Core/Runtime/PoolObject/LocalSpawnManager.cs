@@ -19,7 +19,8 @@ namespace MonoFSM.Runtime
         //     return PoolManager.Instance.BorrowOrInstantiate(obj, position, rotation);
         // }
 
-        public MonoObj Spawn(MonoObj obj, Vector3 position, Quaternion rotation)
+        public MonoObj Spawn(MonoObj obj, Vector3 position, Quaternion rotation,
+            IPoolObjectPlayer player = null) //local 沒有 authority 概念，player 只由 simulator 記 lastPlayer
         {
             //FIXME: 還要做updateSimulator的註冊？
             var newObj = _worldUpdateSimulator.Pool.BorrowOrInstantiate(obj, position, rotation);

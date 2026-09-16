@@ -543,7 +543,8 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 回傳的是數字與少量樣本，不是整棵 hierarchy。
         /// </summary>
         /// <param name="componentType">型別名（含子類）；留空 = 數 GameObject</param>
-        /// <param name="nameContains">名稱包含這段才算（模糊比對）；留空 = 不限</param>
+        /// <param name="nameContains">名稱篩選：含 * / ? 當 glob 整段比對，否則當 substring
+        /// （都忽略大小寫）；留空 = 不限</param>
         /// <param name="sample">附幾筆樣本路徑（預設 0 = 不附）</param>
         public static string Count(string componentType = null, string nameContains = null, int sample = 0)
         {
@@ -575,9 +576,10 @@ namespace MonoFSM.Editor.PrefabEditing
                 }
 
                 if (!string.IsNullOrEmpty(nameContains))
-                    hits = hits.Where(g =>
-                        g.name.IndexOf(nameContains, StringComparison.OrdinalIgnoreCase) >= 0)
-                        .ToList();
+                {
+                    var nameOk = EditResolve.NameMatcher(nameContains);
+                    hits = hits.Where(g => nameOk(g.name)).ToList();
+                }
 
                 var active = hits.Count(g => g.activeInHierarchy);
                 // 借出中 / 回池中的比例是「生成是否正常」的關鍵訊號，所以 active 分開報

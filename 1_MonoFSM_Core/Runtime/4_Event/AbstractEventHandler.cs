@@ -266,6 +266,13 @@ namespace MonoFSM.Core
 
         [AutoNested]
         [SerializeField] private ConditionGroup _conditionFolder;
+
+        /// <summary>
+        /// 給「繞過 EventHandleImplement、直接呼 EnterRenderInvoke」的外部轉發者
+        /// （例如 InvokeEffectHitEventHandlerAction 的 render 路徑）自己補上這道 gate 用，
+        /// 否則 condition 不成立時 render 表現照樣會播、只有 action 被擋掉。
+        /// </summary>
+        public bool IsConditionValid => _conditionFolder.IsValid;
         public void ResetStateRestore(bool isHardReset)
         {
             _lastSimulateEventTime = -1;

@@ -119,6 +119,15 @@ def _path_check(root: str, here: str, tok: str, bases: dict) -> tuple[bool, str]
     t = tok.rstrip("/")
     if os.path.exists(os.path.join(root, t)) or os.path.exists(os.path.join(here, t)):
         return True, ""
+    if t.startswith("Packages/"):
+        # 文件照 Unity 寫 `Packages/com.monofsm.core/…`（up prefab read 也只認這種），
+        # 實體在 repo 是 `MonoFSM/…`；用 manifest 的 file: 對應換回來再查一次，
+        # 不然每條合法的 Packages/ 路徑都會被報「不存在」（2026-09-15 module-assembly.md 兩條誤報）
+        import uprefab
+        for repo_dir, pkg in uprefab._pkg_map(root).items():
+            prefix = f"Packages/{pkg}/"
+            if t.startswith(prefix) and os.path.exists(os.path.join(root, repo_dir, t[len(prefix):])):
+                return True, ""
     base = os.path.basename(t)
     if not base.endswith(ASSET_EXTS + (".cs",)):
         # 沒有副檔名又接不到實體路徑的，多半是 prefab 內的節點路徑（`Modules/`、
@@ -152,7 +161,10 @@ def _candidates(text: str):
             if "/" in tok and any(c in tok for c in "<>*?"):
                 continue  # `Packages/<package-id>/`、`Module Test/*.unity` 是佔位／glob
             if "/" in tok and (tok.endswith(PATH_EXTS) or tok.endswith("/")):
-                yield i, "path", (tok, tok)
+                # `up prefab copy Packages/x/y.prefab` 這種整條指令包在反引號裡：
+                # 要驗的是最後那個路徑參數，不是整串（否則永遠「不存在」）
+                path_tok = tok.rsplit(None, 1)[-1] if " " in tok else tok
+                yield i, "path", (path_tok, tok)
             elif _MEMBER_RE.match(tok):
                 yield i, "member", (tok, tok)
             else:

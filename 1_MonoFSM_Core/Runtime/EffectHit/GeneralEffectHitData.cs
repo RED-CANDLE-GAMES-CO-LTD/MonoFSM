@@ -20,6 +20,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         Vector3 HitNormal { get; }
     }
 
+    /// <summary>
+    /// 一次 effect 命中的完整資料包：誰打的（dealer / Source）、打到誰（receiver / Target）、
+    /// 打在哪（hitPoint / hitNormal / hitDirection），以及**被打到的那顆 detect target**
+    /// （<see cref="_receiverSourceObj" />）—— 一顆 Detectable 底下有多個部位時要靠它反查是哪一顆。
+    /// 由 <c>GeneralEffectReceiver.GenerateEffectHitData</c> 產生（目前每次命中都 new，尚未 pool），
+    /// 往下傳給 EffectEnterNode / AbstractArgEventHandler 底下的 action。
+    /// 只有走 detector 的路徑會填 _receiverSourceObj；ForceDirectEffectHit / condition fail 的路徑是 null。
+    /// </summary>
     //TODO: 要用Struct還是用 Class? 好像是為了要pass下去
     [Serializable] //沒用？
     public class GeneralEffectHitData : IEffectHitData, IRenderHitData

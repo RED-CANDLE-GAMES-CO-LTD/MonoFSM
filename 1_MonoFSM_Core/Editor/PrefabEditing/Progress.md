@@ -68,3 +68,5 @@
   `CompactValueFormatter.FormatObjectRefCore` 加「同 root 就印相對路徑」。
   (3) `EditGid.Peek` 尾端「接著用 prefab read」讓 agent 以為 read 才是拿欄位的正解；欄位已印時改列「下鑽 / 單顆 component」兩條真正的後續路。
   Python 端 `up peek --node` 的錯誤訊息「不認得 --node。最接近：--node」自相矛盾，改成明說「屬於哪些子指令」並指向 `up prefab peek`。
+
+- 2026-09-15 右鍵 Dump 對 reference 欄位多印 `= ValueInfo`（`IHierarchyValueInfo`，與 hierarchy 右欄同源：Var → CurrentValue、Condition → FinalResult、Getter → 取值）。起因是右鍵沒辦法像 CLI 用點路徑穿過 reference；先做成「被引用的 Component 各展一層」，太吵，改成只印這一個值。用 `s_refValueInfo` 旗標只在右鍵路徑開，CLI `peek` 留空「不呼叫任何 getter」的約定不動。右鍵版本同時把巢狀 [Serializable] 攤 2 層（`MenuDeep`）。

@@ -1331,3 +1331,106 @@ skill 記「現況是什麼」，是狀態快照，**必然 decay、一定要維
   `up peek '<連結>'` 回「找不到 root object 'http:'」（假錯誤），`up overrides '<連結>'`
   更糟 —— 靜靜回一句 `(no overrides)`，看起來像結論。例外只有 `up obj` 與 `up guid`
   （後者只取連結裡的資產 guid）。
+
+## `up session`：翻舊 session 只留對話（2026-09-10）
+
+- 動機是量測：三份 550–670KB 的 transcript，user/assistant 純文字只佔 0–2%（2–17KB），其餘是
+  tool_use input / tool_result / attachment / meta。`claude --resume` 全有全無（replay 100k+ tokens）；
+  派 agent 讀全份也一樣吃那 100k 再加自己的 system prompt，**比 resume 還貴** —— 派 agent 是隔離，
+  不是節省。過濾後直讀主線只要幾 k tokens，所以「只留對話」要變成預設，不是選項。
+- 預設輸出保留 tool_use 一行摘要（tool 名 + description，< 100 字元）：那是敘事骨架
+  （查了 X → 讀了 Y → 改了 Z），沒它看不出結論怎麼來的；tool_result 才是原料，藏在 `--full`。
+- jsonl 的坑：assistant 行的 `"type"` 鍵排在 `message` **之後**（行尾），靠前綴篩會漏掉全部 assistant；
+  改成 `{"parentUuid"` 開頭的行整行解析（單份 < 1MB，便宜）。meta 行（ai-title / attachment /
+  queue-operation）不以 parentUuid 開頭，順手就濾掉。list 掃 344 份 250MB 用前綴篩 + 尾端 64KB 抓結束
+  時間，實測 < 0.1s（OS cache 熱時），所以**不建索引**。
+- 「使用者親手打的字」判準：`origin.kind == human`；沒 origin 的舊格式靠內容排除 task-notification /
+  skill 展開 / `<local-command-` / `<command-name>`。`<system-reminder>` 區塊一律剝掉。
+- 標題優先用 Claude Code 自己寫的 `ai-title`（每輪都會重寫一次，取最後一個），沒有才拿首句 prompt。
+- subagent transcript 在 `<sid>/subagents/agent-*.jsonl` + `.meta.json`（agentType / description），
+  `--agent` 用同一套過濾讀；agent 沒 user turn 時補一個假 turn 承接 assistant 內容。
+- `--files` 只認 Edit / Write / NotebookEdit 的 file_path 與 Bash 裡寫入類的 `up prefab|scene|asset do/set…`
+  + `>` 重導向；uprefab 寫入指令的路徑抽取是 regex 猜的，會漏，夠用就好。
+
+
+## locate / count 的 --name 吃 glob（2026-09-10）
+- 症狀：`up prefab locate <asset> --name "*VarFolder*"` total=0，但節點 `[VarFolder] VariableFolder`
+  明明存在。原因不是 `[ ]` 被當字元類別（當時的猜測），而是 C# 端**根本沒做 glob**，
+  `IndexOf` 拿整串 `*VarFolder*` 當字面 substring 去找，星號永遠找不到。
+- 解法：`EditResolve.NameMatcher(pattern)` 回一個 predicate —— pattern 含 `*` / `?` 才轉 regex 做
+  整段比對（其餘字元一律 `Regex.Escape`，所以 `[VarFolder]` 是字面值），否則維持 substring。
+  兩種都 IgnoreCase。`EditProbe.LocateAsset` 與 `SceneEdit.Count` 共用。
+- 回 predicate 而不是 `NameMatch(name, pattern)`，是為了讓呼叫端在掃節點的迴圈外只組一次 Regex。
+- 另外在 python 端補：locate 打到 total=0 且有帶 `--name` 時，印一行「只給片段就好 / 或用 glob」，
+  讓下一隻 agent 自己修正用法，不用回頭翻文件。
+
+## 2026-09-11 移除 readcache，改成 `up usage hot` + read 尾端 `[hot]` 提示
+
+- agent 回報「cache 命中率 0%（2/244）」→ 實查不是 key 壞：同參數時會中（PPlayer depth=0 連讀 7 次 6 中），
+  是 393 次 read 有 349 組不同參數，精確 key 天生接不住；slice 層要祖先子樹無摺疊，大 prefab 永遠不成立；
+  40 次 unavailable 是 `Packages/` 路徑在 `_rel` 找不到檔（`_resolve_asset` 有的 `_to_disk_path` 沒沿用）。
+- 決定整顆拆而不是修：hit 與 miss 回到 context 的字元一樣多，省的只有 Unity 一趟（中位 0.27 s）；
+  代價是每次 miss 先付掃 3 層依賴 YAML 的 key 計算、14 KB 切片邏輯、`CACHE_FORMAT_VERSION` 要人記得 bump、
+  以及 Inspector 未存檔讀到舊資料的風險。一週省 6 秒不值這些。
+- 真正的浪費是「同一支 prefab 被十幾段調查反覆從 root 摸」，那是 skill 缺入口，不是快取問題。
+  `hot.py`：按 prefab stem 聚合段調查數 / read 數 / 前三層 `--node`，對照 skill 目錄文字；
+  兩種缺口分開報 ——「skill 完全沒提到」與「提到了 prefab 但常查子樹的節點名沒出現」（PPlayer 就是後者：
+  skill 有 PPlayer，但 Character FSM/Context 被讀 30 次、StateFolder[0] 22 次）。
+- 提示放在 `prefab read` 結尾而不是只做 `up usage hot`：工具層自我糾正，不靠 agent 記得去跑統計。
+  hint 只 parse log 尾 600 KB，每次 read 多花約幾十 ms。
+- `--cache` / `--no-cache` 留成 no-op（`--cache` 直接 SUPPRESS），舊 prompt 不會噴 argparse 錯誤。
+
+---
+
+## `copyfrom` —— 跨 prefab 複製子樹（2026-09-15）
+
+**為什麼要有**：把一支長太大的 prefab 拆成 base + variant 時，要把「變體專屬」的子樹從
+拆之前的快照搬進新 variant。`mv` 只能在同一份 prefab 內搬，DSL 完全沒有跨檔的手段；
+只能人工在 Editor 裡拖，拖完引用對不對沒人知道。
+
+實作在 `MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/EditCopy.cs`，
+op 是 `copyfrom|<srcPrefabPath>|<srcNode>|<dstParent>[|<newName>]`。
+
+### 實測結論：`Object.Instantiate` 會扯斷 nested prefab 連結
+
+原本的設計假設是「Instantiate 深拷貝，nested 實例連結會跟著」。**實測是錯的**：
+對 `LoadPrefabContents` 出來的 contents 裡的 nested 實例 root 做 `Object.Instantiate`，
+複製出來的是一坨普通 GameObject —— `up prefab read` 不再有 `(prefab:res:…)` 後綴，
+`PrefabUtility.IsAnyPrefabInstanceRoot` 回 false，override 全部變成本體資料。
+（驗證方式：拿飛行打雷 prefab 複製三份 scratch，搬 `[Module] 拆件 Dismantle Parts` /
+`細胞 Cell Part View` / `Lightning Attack 落雷攻擊 玩家` 三棵，讀回來看後綴。）
+
+所以最後的做法是**混合**：
+
+1. 整棵 `Object.Instantiate` —— plain 節點的 component 值、階層順序讓 Unity 處理。
+2. 由上而下走一次來源子樹，把每個 `IsAnyPrefabInstanceRoot` 的節點**就地換成**
+   `PrefabUtility.InstantiatePrefab(asset)` + `SetPropertyModifications(來源的 mods)`
+   重建的真實例（同 sibling index / 名稱 / TRS / activeSelf）。換完不再往內鑽，內層由 asset 自己帶。
+   - 子樹 **root 自己**是實例時會被銷毀換掉，後面所有步驟都要改用新的 transform，
+     否則整批噴 `MissingReferenceException`（第一版就踩到）。
+   - 實例上「額外加的 GameObject / Component」不在 PropertyModifications 裡，**複製不到**，
+     所以用 `GetAddedGameObjects` / `GetAddedComponents` / `GetRemovedComponents` 盤點後印警告。
+3. 建 src→copy 的物件對照表（第 2 步換完才建，才對得到新實例上的 component）。
+4. 掃複製出來的每顆 component 的 `SerializedObject`，重映射所有 ObjectReference：
+   子樹內走對照表（第 2 步的就地替換讓 Instantiate 原本的內部 remap 失效），
+   子樹外走「以來源 hierarchy 相對路徑到目的 prefab 找同路徑節點 + 同型別同順位 component」。
+   `m_PrefabInstance` / `m_CorrespondingSourceObject` / `m_Father` 這類內建連結欄位一律跳過，
+   Transform 整顆不碰。
+
+### 為什麼要有「延後解引用」
+
+拆件模組指向部件視覺（`_parts` / `_grabAnchors`），部件視覺又指回模組
+（`DismantlePartConfig._groupRef`、`TriggerDetectableTarget._detectableOverride`）。
+**不管先搬哪一棵，第一輪都有一邊指不到。** 所以解不掉的不是當場放棄，而是排進 `Deferred`，
+等整批 ops 跑完、來源 contents 卸載**之前**再解一次（`FlushPending`，由 `PrefabEdit.Batch` 呼叫）。
+推論：互指的子樹必須放在同一批 ops 裡。
+
+### 命名陷阱（路徑重映射是字面比對，名字不一樣就對不上）
+
+掛 `AbstractDescriptionBehaviour` 的節點（`[Anim] <root 名>`）在存檔前 callback 會跟著
+root 名稱改，而 root 名稱又會被存檔改回 **asset 檔名**（`rename||X` 存完還是檔名）。
+所以快照要「取成目的 prefab 的 root 名稱當檔名、放在別的資料夾」，兩邊各跑一次 `auto|`
+把自動命名定下來，路徑才對得上。
+
+意外的好處：改 prefab 檔名 = 改 root 名 = 改 `[Anim] …` 節點名，三件事連動，不用手動 rename。
+- 2026-09-15 `verify-skills` 兩個誤報修掉：(1) 文件照 Unity 寫的 `Packages/com.monofsm.core/…` 路徑用 manifest 的 file: 對應換回 repo 目錄再查（`_pkg_map`），不然 up prefab read 只認 Packages/ 寫法、verifier 卻只認 repo 相對，兩支工具互相打臉；(2) 反引號裡包整條指令（`up prefab copy <path>`）時只驗最後一個路徑參數。另 `up find <裸字>` 改成直接印 `--comp/--name/--path` 用法，不再只說「不認得」。

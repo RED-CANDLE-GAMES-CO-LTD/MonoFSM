@@ -11,6 +11,7 @@ namespace MonoFSM.Editor.PrefabEditing
     ///
     /// 兩個版本：只有 serialize 欄位的（安全、常用），跟連 public 屬性值一起撈的（會呼叫
     /// getter，有 <see cref="ProbeMineField"/> 的麵包屑保護，炸過一次的以後自動跳過）。
+    /// 兩者對 reference 欄位都多印 `= ValueInfo`（Var 的 CurrentValue / Condition 的 FinalResult）。
     /// </summary>
     internal static class ComponentDumpMenu
     {

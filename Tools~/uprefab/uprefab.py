@@ -17,10 +17,11 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import indexer  # noqa: E402
+import hot  # noqa: E402
 import memo  # noqa: E402
 import progress  # noqa: E402
+import session  # noqa: E402
 import query  # noqa: E402
-import readcache  # noqa: E402
 import swapscript  # noqa: E402
 import unity  # noqa: E402
 import usage  # noqa: E402
@@ -55,6 +56,7 @@ CAP_HINTS = {
     "fields": "改用 `up catalog --type <型別>` 只看語意與 tooltip。",
     "progress": "降 -n，或先用 --list 掃標題再用 --at 展開指定條。",
     "verify-skills": "降 -n，或用 --path 限縮到單一 skill 資料夾。",
+    "session": "降 -n、加 --grep，或拿掉 --full（原料肥就該派 agent 讀，不要進主線）。",
 }
 
 
@@ -704,6 +706,9 @@ def cmd_prefab(args, root, cfg):
         if "# total=0" in (out or ""):
             print("# total=0 是合併後的結果（已含 variant 繼承與 nested prefab 節點），"
                   "在這個 prefab 內可視為定論")
+            if args.name:
+                print(f"# --name 只給片段就好（substring），或用 glob：'*{args.name.strip('*')}*'；"
+                      "整段比對時 [ ] 等符號都是字面值不用跳脫")
         elif not args.members and re.search(r"# total=[1-9]", out or ""):
             # usage log：locate → 同節點再 peek 有 50 對，而 405 次 locate 只有 17 次帶 --members
             print("# 要看欄位值直接在這條 locate 加 --members <欄位,欄位>（例：--members _note,CurrentValue），"
@@ -793,55 +798,22 @@ def _prefab_swap_script(args, root):
 
 
 def _prefab_read(args, root):
-    """prefab read 的唯一出入口 —— 中間夾一層以檔案 mtime 為 key 的磁碟快取。
+    """prefab read 的唯一出入口。
 
-    只有 read 值得快取：它是唯一「純讀、輸出很肥、同一份東西會被反覆問」的 action。
-    key 算不出來時（readcache 回 None）就退化成沒有快取的原本行為。
-
-    **預設開啟**（原本要顯式 `--cache`，實測 415 次只有 21 次命中 = 5%，因為沒人記得加）。
-    正確性靠 readcache 的 dep mtime + 匯出工具指紋，不是靠使用者記得加旗標；
-    真的怕（剛在 Inspector 改過還沒存檔）就 `--no-cache`。
+    2026-09-11 拆掉了磁碟快取（readcache）：實測 393 次讀取有 349 組不同參數，
+    精確比對的 key 幾乎不會重複命中；而且 hit 與 miss 吐給 agent 的內容一模一樣，
+    省的只是 Unity 一趟來回（中位 0.27 s），token 一個都沒省。「同一支 prefab 被
+    反覆讀」的解法在 skill 層（`up usage hot`），不在快取層。`--cache` / `--no-cache`
+    留成 no-op 免得舊 prompt 噴 argparse 錯誤。
     """
-    full_expand = args.full
-    params = {"asset": args.asset, "node": args.node, "depth": args.depth,
-              "budget": args.budget, "fsm": args.fsm, "fsm_only": args.fsm_only,
-              "structure_only": args.structure_only, "full": full_expand}
-    use_cache = not args.no_cache
-    key = readcache.key_for(root, args.asset, params) if use_cache else None
-
-    if key:
-        cached = readcache.load(root, key)
-        if cached is not None:
-            usage.note("cache", "hit")
-            print(readcache.HIT_NOTE)
-            _emit(cached)
-            return
-        # 第二層：同一支 prefab 已經有祖先節點的完整子樹在快取裡 → 本地裁出來
-        sliced = readcache.slice_for(root, args.asset, params)
-        if sliced is not None:
-            text, src = sliced
-            usage.note("cache", "slice")
-            print(f"# [cache] 本地切片：從已快取的 {src} 子樹裁出（該段沒有任何摺疊標記）。"
-                  "唯一與直接 read 的差別：指到這顆子樹外面的引用會是 `@../..` 相對路徑，"
-                  "而不是 `res:<asset>#Type` —— 資訊更多不是更少。要重問 Unity 加 --no-cache")
-            print(f"# subtree: {args.node}")
-            _emit(text)
-            # 存成這組參數自己的 key，下次就是第一層命中
-            readcache.store(root, key, text, args.asset, params)
-            return
-
-    if args.no_cache:
-        usage.note("cache", "bypass")
-    elif not key:
-        usage.note("cache", "unavailable")
-    else:
-        usage.note("cache", "miss")
     text = unity.call(f"{READER}.Export", args.asset, args.node, args.depth,
-                      full_expand, args.budget, args.fsm, args.fsm_only,
+                      args.full, args.budget, args.fsm, args.fsm_only,
                       args.structure_only)
     _emit(text)
-    if use_cache and key:
-        readcache.store(root, key, text, args.asset, params)
+    # 常被查卻沒進 skill 的 prefab，在這裡直接提醒 —— 不靠 agent 記得去跑 `up usage hot`
+    tip = hot.hint(root, args.asset)
+    if tip:
+        print(tip)
 
 
 def cmd_asset(args, root, cfg):
@@ -1302,6 +1274,15 @@ def _compact_error(prog: str, parser, message: str) -> str:
                 msg += ("。`up peek` 讀的是 scene 上的 runtime 值（node 是 positional）；"
                         "讀 prefab asset 的欄位用 `up prefab peek <asset> --node <路徑> --comp <型別> --deep`")
             return msg
+        bare = [t for t in bad if not t.startswith("-")]
+        sub = next((a for a in sys.argv[1:] if not a.startswith("-")), None)
+        if bare and sub == "find":
+            # `up find VerletRope` 這種裸字：find 沒有 positional，agent 實測連續三次撞牆
+            # 才去翻 --help。直接把三個 selector 的用法印出來。
+            return (f"{prog} find: 沒有 positional 參數，'{bare[0]}' 要指定是哪一種："
+                    f"component 型別 → `up find --comp {bare[0]}`；"
+                    f"GameObject 名稱 → `--name`；資產路徑片段 → `--path`"
+                    f"（加 `--by-asset` 只看分佈）")
         return (f"{prog}: 不認得 {' '.join(bad)}"
                 + (f"。最接近：{'、'.join(hints)}" if hints
                    else "。合法參數看 `up <子指令> --help`"))
@@ -1593,7 +1574,8 @@ def main() -> None:
                     help="ls：只列結構與 component 名，不列 serialized 欄位")
     pc.add_argument("--full", action="store_true", help="ls：保留 Renderer/ParticleSystem/AudioSource/Light 與完整欄位、不摺疊已知子樹（預設會摺、會排除，省 token）")
     pc.add_argument("--comp", help="count：component 型別（含子類）")
-    pc.add_argument("--name", help="count：名稱含這段")
+    pc.add_argument("--name",
+                    help="count：名稱篩選，含 * / ? 當 glob 整段比對，否則當 substring")
     pc.add_argument("--sample", type=int, default=0, help="count：附幾筆樣本路徑")
     pc.add_argument("-f", "--file", help="do：從檔案讀批次操作")
     pc.add_argument("ops", nargs="*", help="do：直接帶操作（一個參數一行）")
@@ -1622,12 +1604,13 @@ def main() -> None:
                     help="read：只列結構與 component 名，不列 serialized 欄位")
     pp.add_argument("--full", action="store_true", help="read：保留 Renderer/ParticleSystem/AudioSource/Light 與完整欄位、不摺疊已知子樹（預設會摺、會排除，省 token）")
     cache_group = pp.add_mutually_exclusive_group()
-    cache_group.add_argument("--cache", action="store_true",
-                             help="read：相容旗標；快取現在是預設開啟，不用加")
+    cache_group.add_argument("--cache", action="store_true", help=argparse.SUPPRESS)
     cache_group.add_argument("--no-cache", action="store_true",
-                             help="read：完全不讀也不寫快取（剛在 Inspector 改過還沒存檔時用）")
+                             help="read：相容旗標（快取已於 2026-09-11 移除，無作用）")
     pp.add_argument("--out", help="variant / copy：新 prefab 的 asset path")
-    pp.add_argument("--name", help="variant / copy：root 名稱（預設用檔名）")
+    pp.add_argument("--name",
+                    help="locate：節點名篩選，含 * / ? 當 glob 整段比對，否則當 substring"
+                         "（都忽略大小寫）；variant / copy：新 root 名稱（預設用檔名）")
     pp.add_argument("-n", "--limit", type=int, default=20,
                     help="locate：命中筆數上限")
     pp.add_argument("-f", "--file", help="do：批次操作；peek-batch：probe 清單（- = stdin）")
@@ -1885,7 +1868,35 @@ def main() -> None:
     pvs.add_argument("-n", "--limit", type=int, default=12, help="每份文件最多印幾條")
     pvs.set_defaults(fn=verifyskills.cmd)
 
-    pu = sub.add_parser("usage", help="使用記錄統計（哪一步最花時間）")
+    pse = sub.add_parser(
+        "session", aliases=["sess"],
+        help="翻舊 Claude Code session transcript，只留對話（離線）",
+        description="transcript 裡對話文字只佔 0–2%%，其餘是 tool 進出。這支預設只吐 "
+                    "user / assistant 文字 + tool 一行摘要，幾 k tokens 就能翻完一份 —— "
+                    "取代 `claude --resume`（全有全無）與派 agent 讀全份（比 resume 還貴）。")
+    pse.add_argument("target", nargs="?",
+                     help="session uuid 前綴；不給或給 `list` = 列出 session")
+    pse.add_argument("-n", "--limit", type=int, default=10,
+                     help="list：列幾個（預設 10）；讀：最後幾輪（預設 10）")
+    pse.add_argument("--date", metavar="YYYY-MM-DD", help="list：只列那天有活動的 session")
+    pse.add_argument("-k", "--keyword", help="list：標題／首句含這段")
+    pse.add_argument("--grep", metavar="KW", help="讀：只印含這段的輪次（不受 -n 限制）")
+    pse.add_argument("--files", action="store_true",
+                     help="讀：只列 Edit / Write / 寫入類 up 指令動過的路徑")
+    pse.add_argument("--full", action="store_true",
+                     help="讀：含 tool_use input 與 tool_result（每塊截到 --clip×3）")
+    pse.add_argument("--agent", nargs="?", const="", metavar="ID",
+                     help="讀該 session 派出的 subagent transcript（不給 ID = 列出）")
+    pse.add_argument("--clip", type=int, default=100, help="tool 摘要每行字元數（預設 100）")
+    pse.set_defaults(fn=session.cmd)
+
+    pu = sub.add_parser("usage", help="使用記錄統計（哪一步最花時間）；`usage hot` 列常查卻沒進 skill 的 prefab")
+    pu.add_argument("what", nargs="?", choices=["hot"],
+                    help="hot：近幾天被多段調查反覆碰的 prefab，對照 skill 有沒有提到")
+    pu.add_argument("--days", type=float, default=hot.DEFAULT_DAYS,
+                    help="hot：往回看幾天（預設 7）")
+    pu.add_argument("--min-sessions", type=int, default=hot.DEFAULT_MIN_SESSIONS,
+                    help="hot：至少幾段調查碰過才算熱（預設 3）")
     pu.add_argument("--gap", type=int, default=900,
                     help="間隔超過幾秒視為新的一段調查（預設 900）")
     pu.add_argument("--top", type=int, default=8)
@@ -1900,7 +1911,10 @@ def main() -> None:
     root = find_root(args.root)
     _guard_gid_args(args)
     if args.cmd == "usage":
-        usage.report(root, args.gap, args.top, args.since)
+        if args.what == "hot":
+            hot.report(root, args.days, args.top, args.min_sessions, args.gap)
+        else:
+            usage.report(root, args.gap, args.top, args.since)
         return
 
     sub_cmd = usage._sub_cmd(args)

@@ -232,7 +232,8 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 路徑走 EditResolve 的 escape + 同名 sibling [n] 規則，可直接餵回 --node。
         /// </summary>
         /// <param name="componentType">component 短名或 FullName；留空 = 不用 component 篩選</param>
-        /// <param name="nameContains">節點名包含（忽略大小寫）；留空 = 不用名稱篩選</param>
+        /// <param name="nameContains">節點名篩選（忽略大小寫）：含 * / ? 當 glob 整段比對，
+        /// 否則當 substring；留空 = 不篩選</param>
         /// <param name="members">有指定 component 時，順便 dump 這些逗號分隔的欄位/屬性</param>
         /// <param name="limit">最多顯示幾個節點；total / cut 仍回報完整命中數</param>
         public static string LocateAsset(
@@ -262,11 +263,10 @@ namespace MonoFSM.Editor.PrefabEditing
                 // 看不到完整繼承階層；這裡要的是 Unity 合併後真值。
                 root = PrefabUtility.LoadPrefabContents(assetPath);
                 var hits = new List<(Transform node, Component comp)>();
+                var nameOk = EditResolve.NameMatcher(nameContains);
                 foreach (var node in root.GetComponentsInChildren<Transform>(true))
                 {
-                    if (!string.IsNullOrEmpty(nameContains) &&
-                        node.name.IndexOf(nameContains, StringComparison.OrdinalIgnoreCase) < 0)
-                        continue;
+                    if (!nameOk(node.name)) continue;
 
                     var comp = wanted == null ? null : node.GetComponent(wanted);
                     if (wanted != null && comp == null) continue;
@@ -452,6 +452,11 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 給 Inspector 右鍵選單用（`ComponentDumpMenu`）—— 使用者想一次撈完整狀態貼出來，
         /// 而 `up peek` 走 CLI 是刻意保守的（留空不掃屬性）。這裡掃，但每個屬性都走
         /// <see cref="ProbeMineField"/> 的麵包屑保護，炸過一次就永久跳過。
+        ///
+        /// reference 欄位多印一段 `= ValueInfo`（<see cref="IHierarchyValueInfo"/>，與 hierarchy
+        /// 右側那欄同一來源：Var → CurrentValue、Condition → FinalResult、Getter → 取值）。
+        /// 右鍵沒辦法像 CLI 用點路徑穿過 reference，而看引用的 Var / Condition 時九成只想知道
+        /// 這一個值；把整顆展開試過，太吵（2026-09-15）。
         /// </summary>
         public static string DumpAll(Component comp, bool includeProperties)
         {
@@ -463,18 +468,52 @@ namespace MonoFSM.Editor.PrefabEditing
             var sb = new StringBuilder();
             if (crash != null) sb.AppendLine(crash);
 
-            sb.Append(Dump(comp, header, null, serializedByDefault: true));
-
-            if (!includeProperties) return sb.ToString();
-
-            var props = PropertyNames(type);
-            if (props.Count > 0)
+            s_refValueInfo = true;
+            try
             {
-                sb.AppendLine("  # --- 屬性 ---");
-                sb.Append(Dump(comp, "", string.Join(",", props), serializedByDefault: false));
-            }
+                sb.Append(Dump(comp, header, null, serializedByDefault: true, deep: MenuDeep));
 
-            return sb.ToString();
+                if (!includeProperties) return sb.ToString();
+
+                var props = PropertyNames(type);
+                if (props.Count > 0)
+                {
+                    sb.AppendLine("  # --- 屬性 ---");
+                    sb.Append(Dump(comp, "", string.Join(",", props), serializedByDefault: false,
+                        deep: MenuDeep));
+                }
+
+                return sb.ToString();
+            }
+            finally
+            {
+                s_refValueInfo = false;
+            }
+        }
+
+        /// <summary>右鍵選單版本攤開巢狀 [Serializable] 類別的層數（CLI 預設 0，這裡沒得下 --deep）。</summary>
+        private const int MenuDeep = 2;
+
+        /// <summary>
+        /// 開著時 <see cref="ShowAt"/> 對 reference 多印 `= ValueInfo`。只有右鍵 dump 開，
+        /// CLI 不開 —— ValueInfo 是 getter，CLI 那邊「留空不呼叫任何 getter」的約定不動。
+        /// </summary>
+        private static bool s_refValueInfo;
+
+        /// <summary>reference 後面接的值摘要；沒有可講的就回空字串。</summary>
+        private static string RefValueInfo(UnityEngine.Object o)
+        {
+            if (!s_refValueInfo || !(o is MonoFSM.EditorExtension.IHierarchyValueInfo info)) return "";
+            try
+            {
+                var v = info.ValueInfo;
+                if (string.IsNullOrEmpty(v)) return "";
+                return " = " + (v.Length > 60 ? v.Substring(0, 60) + "…" : v);
+            }
+            catch (Exception e)
+            {
+                return $" = <throw {e.GetType().Name}>";
+            }
         }
 
         /// <summary>hierarchy 路徑，dump 出來的內容要能看出是誰。</summary>
@@ -803,7 +842,9 @@ namespace MonoFSM.Editor.PrefabEditing
                 // （UnassignedReference）跟已 destroy 的物件都會在讀 .name 時丟 exception。
                 // 要用 Unity 自己的 == 才判得出來。
                 case UnityEngine.Object o:
-                    return o == null ? $"null <{o.GetType().Name}>" : $"{o.name} <{o.GetType().Name}>";
+                    return o == null
+                        ? $"null <{o.GetType().Name}>"
+                        : $"{o.name} <{o.GetType().Name}>{RefValueInfo(o)}";
                 case IEnumerable e when !(v is string):
                 {
                     // 集合本身不算一層 class 巢狀，所以 classDepth 原樣傳下去：

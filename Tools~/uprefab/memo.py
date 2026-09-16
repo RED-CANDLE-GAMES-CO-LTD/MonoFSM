@@ -1,6 +1,6 @@
 """同 argv 的極短期 memo —— 擋掉「同一條指令連打兩次」。
 
-readcache 只能救 `prefab read`，而 usage log 顯示重複的是各種指令：同一條 `find` /
+（readcache 磁碟快取已於 2026-09-11 移除，這層 argv memo 仍保留。）usage log 顯示重複的是各種指令：同一條 `find` /
 `refs` / `catalog` 在幾十秒內被原封不動重打（換 agent、續派、重新確認）。
 那些查詢在 60 秒內幾乎不可能有不同答案，但每次都要一趟 Unity 或一輪 sqlite。
 
@@ -34,7 +34,7 @@ MEMOIZABLE = {
 # 讀但不 memo（答案會自己變），也不會讓別人的 memo 失效
 NEUTRAL = {"peek", "logs", "effect-trace", "usage", "clear",
            # 讀的是 markdown 檔不是索引，memo 沒意義；--archive 會寫檔但不動資產
-           "progress", "prog", "verify-skills", "vs"}
+           "progress", "prog", "verify-skills", "vs", "session", "sess"}
 
 
 def _dir(root: str) -> str:

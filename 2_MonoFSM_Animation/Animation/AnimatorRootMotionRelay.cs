@@ -3,6 +3,10 @@ using MonoFSM.Variable.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+/// <summary>
+/// 掛在 Animator 同一節點，攔 OnAnimatorMove 把 animator.deltaPosition / deltaRotation 轉給父鏈上的 IRootMotionReceiver
+/// （例如 RigidbodyRootMotionCustomReceiver）。OnAnimatorMove 是 render frame 頻率，接收端會累積到下一個 simulate tick 才套用。
+/// </summary>
 public class AnimatorRootMotionRelay
     : MonoBehaviour,
         IOverrideHierarchyIcon,

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -995,6 +996,27 @@ namespace MonoFSM.Editor.PrefabEditing
         {
             var list = items as IList<string> ?? items.ToList();
             return list.Count == 0 ? "(無)" : string.Join(", ", list);
+        }
+
+        /// <summary>
+        /// 節點名的比對器（忽略大小寫）：pattern 含 * / ? 就當 glob 整段比對，否則當 substring。
+        /// 之所以要吃 glob，是因為呼叫端習慣寫 --name "*Foo*"，純 substring 會把星號當普通字元
+        /// 真的去找 → 明明有節點卻 total=0（2026-09-10 修）。glob 以外的字元全部 Regex.Escape，
+        /// 節點名常見的 [VarFolder] 才不會被當成字元類別。
+        /// 回傳 predicate 而不是每次比對現組 Regex，是為了讓呼叫端在迴圈外建一次。
+        /// </summary>
+        internal static Func<string, bool> NameMatcher(string pattern)
+        {
+            if (string.IsNullOrEmpty(pattern)) return _ => true;
+            if (pattern.IndexOf('*') < 0 && pattern.IndexOf('?') < 0)
+                return n => n != null &&
+                            n.IndexOf(pattern, StringComparison.OrdinalIgnoreCase) >= 0;
+
+            var body = string.Concat(pattern.Select(c =>
+                c == '*' ? ".*" : c == '?' ? "." : Regex.Escape(c.ToString())));
+            var regex = new Regex("^" + body + "$",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            return n => n != null && regex.IsMatch(n);
         }
     }
 }

@@ -6,6 +6,10 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Variable.Providers
 {
+    /// <summary>
+    ///     從一份 VarListEntity 裡挑出離來源位置（VarVector3 / Transform / 自己）最近的那顆 MonoEntity。
+    ///     清單是別人餵的，所以只做距離比較，不自己找目標。
+    /// </summary>
     public class GetNearestItemOfVector3 : AbstractEntitySource
     {
         [Tooltip("量距離的來源位置，優先於 _sourceTransform")]

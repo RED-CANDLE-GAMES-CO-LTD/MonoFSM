@@ -280,13 +280,20 @@ namespace MonoFSM.Editor.PrefabEditing
                 // 有任何一行失敗就整批不存檔 —— 半套的 FSM 比沒改更難收拾
                 if (log.Contains("# 未修改")) return log + "# 整批未存檔。";
 
+                // copyfrom：兩棵互指的子樹第一輪必然解不到引用，整批跑完再解一次。
+                // 一定要排在 UnloadAll 之前（來源物件還在才算得出路徑）。
+                var copyLog = EditCopy.FlushPending(root.transform);
+                // 來源 contents 一定要在存檔前卸載：殘留的跨 contents 引用
+                // 若被序列化出去會變成指向另一個 preview scene 的壞引用。
+                EditCopy.UnloadAll();
+
                 var callbackLog = RunBeforeSaveCallbacks(root);
                 // revert 一定要排在 callback 之後：OnBeforePrefabSave 會重跑 [Auto*] 之類的
                 // 填值邏輯，在 callback 之前清掉的 override 會被它原封不動寫回來。
                 var revertLog = ApplyReverts(root.transform, reverts, touches);
                 var saved = PrefabUtility.SaveAsPrefabAsset(root, assetPath, out var saveOk);
                 if (!saveOk || saved == null)
-                    return log + callbackLog + revertLog + $"# 存檔失敗：{assetPath}\n";
+                    return log + copyLog + callbackLog + revertLog + $"# 存檔失敗：{assetPath}\n";
 
                 // SaveAsPrefabAsset 會替新物件分配 local file ID。一定要在 save 後、unload 前
                 // 快照，才能把內部 object reference 也轉成可跨 reload 比對的穩定 identity。
@@ -298,13 +305,15 @@ namespace MonoFSM.Editor.PrefabEditing
                 var report = VerifyReloaded(assetPath, touches);
                 // quiet 只壓成功輸出；驗證錯誤要把原始逐行操作一起帶回，才知道是哪一步寫的。
                 var prefix = quiet && report.Failures.Count == 0 &&
-                             !callbackLog.Contains("個失敗") && !revertLog.Contains("失敗")
+                             !callbackLog.Contains("個失敗") && !revertLog.Contains("失敗") &&
+                             !copyLog.Contains("解不掉")
                     ? $"# 操作：{done} 個 OK\n"
                     : log;
-                return prefix + callbackLog + revertLog + "# 存檔：OK\n" + report.Format();
+                return prefix + copyLog + callbackLog + revertLog + "# 存檔：OK\n" + report.Format();
             }
             finally
             {
+                EditCopy.UnloadAll();
                 if (root != null) PrefabUtility.UnloadPrefabContents(root);
             }
         }
@@ -761,6 +770,17 @@ namespace MonoFSM.Editor.PrefabEditing
                     node.SetParent(parent, false);
                     return $"{nodePath} -> {newParentPath}/{node.name}";
                 }
+                case "copyfrom":
+                {
+                    var srcPath = EditBatch.Need(a, 0, verb, "srcPrefabPath");
+                    var srcNode = EditBatch.Need(a, 1, verb, "srcNode");
+                    var dstParent = EditBatch.At(a, 2);
+                    var newName = EditBatch.At(a, 3);
+                    var log = EditCopy.CopyFrom(
+                        root, srcPath, srcNode, dstParent, newName, out var copied);
+                    EditBatch.Touch(copied);
+                    return log;
+                }
                 case "auto":
                 {
                     var node = EditResolve.Node(root, EditBatch.At(a, 0));
@@ -823,7 +843,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var ctx = new EditFsm.Ctx { Node = p => EditResolve.Node(root, p) };
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel revert pos rect scale rot active idx mv auto rename del delcomp delmissing mark " +
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel revert pos rect scale rot active idx mv copyfrom auto rename del delcomp delmissing mark " +
                         EditFsm.Verbs + "（save 只有 SceneEdit 有）");
                 }
             }

@@ -44,6 +44,11 @@ up prefab peek "Assets/…/PPlayer.prefab" --node "…" --comp RaycastCache \
   在 native 層閃退）。要看屬性就顯式寫進 `--members`，一次一兩個
 - 點路徑上的每一段都是顯式點名的，所以中間段允許是 property；`*`（override 標記）
   只對不含點的直接欄位標，巢狀段不標（override 記的是 top-level property path）
+- **reference 欄位（`UnityEngine.Object`）只印 `名字 <型別>`，`--deep` 也不會展開它**（引用鏈會
+  爬到整個場景）。要看被引用那顆的內容，用點路徑穿過去：`--members "_varFloat.CurrentValue"`、
+  `"_target._defaultValue"`。Inspector 右鍵的兩個 `Dump … → 剪貼簿` 則會在 reference 後面
+  接 `= ValueInfo`（Var 的 CurrentValue / Condition 的 FinalResult / Getter 的取值），
+  九成情境要的就是那一個值；CLI 不這樣做是因為 ValueInfo 是 getter
 
 ## `prefab peek` —— 只讀 prefab 上一顆 component 的欄位
 

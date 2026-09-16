@@ -142,9 +142,22 @@ namespace MonoFSM.Core
         [Sirenix.OdinInspector.ReadOnly]
         private bool _lastCanEnterResult;
 
+        //除錯用：最後一次 CanExitState 的判定結果（CanExitNode 為 null 時不會更新）
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private bool _lastCanExitResult;
+
+        /// <summary>
+        /// 子節點掛 <see cref="CanExitNode"/> 時，其條件不成立就不准轉出去（transition 與 TryActivateState 兩條路都會問）。
+        /// 沒掛就一律放行。子類 override 時記得呼叫 base 才保得住這個閘門。
+        /// </summary>
         protected virtual bool CanExitState(TState nextState)
         {
-            return true;
+            if (_canExitNode == null)
+                return true;
+            //同 CanEnterState：不要在這裡 Log，Name getter 每次都會 marshal 新 string 造成 GC
+            _lastCanExitResult = _canExitNode.FinalResult;
+            return _lastCanExitResult;
         }
 
         protected virtual void OnEnterState() { }

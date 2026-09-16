@@ -50,6 +50,7 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | **EffectReceiver 沒觸發**，要一次看完整條鏈卡在哪 | `effect-trace` | ✅ | [probe.md](references/probe.md) |
 | 按 asset 上的 Odin `[Button]`（無參數方法） | `asset invoke` | ✅ | [asset.md](references/asset.md) |
 | 想知道「調查為什麼慢」的實際數據 | `usage` | ❌ | [offline-index.md](references/offline-index.md) |
+| **翻舊 Claude Code session**（上次那輪查到什麼、改了哪些檔）| `session`（列表）→ `session <前綴>`（只留對話）→ `--files` / `--agent` / `--grep`；**不要 `--resume`、不要派 agent 讀全份** | ❌ | `up session --help` |
 
 一句話版本：**使用者貼連結走 `guid`（asset）/ `obj`（scene 物件），定位走 `find`（預設 full；
 要 shallow 才 `--scope all`，要接著下鑽就加 `--resolve`），讀 prefab 結構走 `prefab read`
@@ -76,9 +77,10 @@ reference 裡，真的要改的時候一定會讀到）：
   gameplay 多兩個數量級；表尾若提示有 shallow 命中，真的需要時才加 `--scope all`。
 - **read 的 `--budget` 是 hierarchy + FSM hard cap，`--depth` 不能繞過。** `--budget 0` 才是
   明確允許無上限（但仍受全域 `--max-chars` 攔截，要真的無上限得同時 `--max-chars 0`）；
-  只看狀態機用 `--fsm-only`，只導航用 `--structure-only`。**磁碟 cache 現在預設開啟**
-  （key 綁 prefab 依賴 mtime + exporter 版本；還會從已快取的祖先子樹本地切片）——
-  剛在 Inspector 改過還沒存檔時才加 `--no-cache`。
+  只看狀態機用 `--fsm-only`，只導航用 `--structure-only`。read 沒有磁碟快取（2026-09-11
+  拆掉：同參數幾乎不重複、且不省 token）；**read 結尾若印 `# [hot] …`，代表這支 prefab 近一週
+  被多段調查反覆讀但 skill 沒有入口 —— 讀完要把入口路徑與用到的子樹補進 alishan-code-map**，
+  全表看 `up usage hot`。
 - **挑 component 之前先 `up catalog`，不要 grep 或 Read .cs** —— 近 400 個 Action /
   Condition / Getter 的用途與欄位一次列完（離線、0.1s）。讀到 `⚠無說明` 而你為了工作
   實際去讀了那份原始碼，**順手補一段 `/// <summary>` 再走**，見 [catalog.md](references/catalog.md)。
