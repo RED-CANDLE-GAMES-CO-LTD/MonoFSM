@@ -196,29 +196,65 @@ namespace HierarchyFavorites.Editor
         }
 
         // ---- Descriptions ----
-        // 撈 root 底下全部 AbstractDescriptionBehaviour（涵蓋 States/Actions/Variables 等所有子類），
+        // 撈 root 底下全部 GameObject 節點（不只有 AbstractDescriptionBehaviour 的），
+        // 讓這個 tab 變成「整棵樹都搜得到」；有 description 的節點把 note 串上去，
+        // 沒有的 TypeName 顯示第一個非 Transform 的 component 型別（純資料夾節點就空白）。
         // 分組比照 Variables/Effects：最近的 MonoModulePack 祖先，找不到用 prefab root
         public static List<VariableGroup> GetDescriptionGroups()
         {
             var result = new List<VariableGroup>();
             var groups = new Dictionary<Transform, VariableGroup>();
+            var descBuffer = new List<AbstractDescriptionBehaviour>();
+            var compBuffer = new List<Component>();
 
             foreach (var root in GetActiveRoots())
             {
-                var descriptions = root.GetComponentsInChildren<AbstractDescriptionBehaviour>(true);
-                foreach (var desc in descriptions)
+                // GetComponentsInChildren<Transform> 是 hierarchy 深度優先順序，和 Hierarchy 視窗一致
+                var transforms = root.GetComponentsInChildren<Transform>(true);
+                foreach (var t in transforms)
                 {
-                    if (desc == null) continue;
+                    if (t == null) continue;
 
-                    var groupTransform = GetGroupTransform(root, desc.transform);
+                    var groupTransform = GetGroupTransform(root, t);
                     var group = GetOrAddGroup(result, groups, groupTransform, groupTransform.name);
+
+                    // 同一 GameObject 上多個 description 的 note / 型別串起來
+                    t.GetComponents(descBuffer);
+                    string note = null;
+                    List<string> typeNames = null;
+                    foreach (var desc in descBuffer)
+                    {
+                        if (desc == null) continue;
+                        typeNames ??= new List<string>();
+                        var typeName = desc.GetType().Name;
+                        if (!typeNames.Contains(typeName)) typeNames.Add(typeName);
+                        var n = desc.Note;
+                        if (string.IsNullOrEmpty(n)) continue;
+                        note = string.IsNullOrEmpty(note) ? n : note + " / " + n;
+                    }
+
+                    var typeNameText = string.Empty;
+                    if (typeNames != null)
+                        typeNameText = string.Join(", ", typeNames);
+                    else
+                    {
+                        // 沒 description：拿第一個非 Transform component 當型別提示
+                        t.GetComponents(compBuffer);
+                        foreach (var c in compBuffer)
+                        {
+                            if (c == null || c is Transform) continue;
+                            typeNameText = c.GetType().Name;
+                            break;
+                        }
+                    }
+
                     group.Items.Add(new VariableEntry
                     {
-                        Target = desc.transform,
-                        Label = desc.gameObject.name,
-                        TypeName = desc.GetType().Name,
+                        Target = t,
+                        Label = t.gameObject.name,
+                        TypeName = typeNameText,
                         TagName = string.Empty,
-                        Note = desc.Note,
+                        Note = note,
                     });
                 }
             }

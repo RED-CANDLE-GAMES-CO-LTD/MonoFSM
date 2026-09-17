@@ -31,7 +31,7 @@ namespace HierarchyFavorites.Editor
 
         // ---- 收集結果快取 ----
         // 收集只跟 hierarchy / tab 有關，跟搜尋字串無關。打字時重用快取，
-        // 避免每個字都做一次 GetComponentsInChildren 全掃（Descriptions tab 動輒上千個 component）。
+        // 避免每個字都做一次 GetComponentsInChildren 全掃（Descriptions tab 是整棵樹的全部節點，動輒上千個）。
         // Build() 才會失效：selection / prefab stage / tab 切換都會走 Build。
         private static readonly Dictionary<HierarchyFavoritesSettings.ContentMode, List<VariableGroup>>
             _variableGroupCache = new();
@@ -330,7 +330,7 @@ namespace HierarchyFavorites.Editor
                     emptyText = "No MonoStateBehaviour (or matching search) found.";
                     break;
                 case HierarchyFavoritesSettings.ContentMode.Descriptions:
-                    emptyText = "No AbstractDescriptionBehaviour (or matching search) found.";
+                    emptyText = "No GameObject (or matching search) found.";
                     break;
                 default:
                     emptyText = "No variable (or matching search) found.";
