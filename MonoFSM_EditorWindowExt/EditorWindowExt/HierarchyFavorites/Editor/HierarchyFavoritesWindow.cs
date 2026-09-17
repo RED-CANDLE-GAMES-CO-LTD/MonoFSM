@@ -11,7 +11,7 @@ namespace HierarchyFavorites.Editor
     public class HierarchyFavoritesWindow : EditorWindow
     {
         //&1 = Alt+1
-        [MenuItem("Tools/Hierarchy Favorites/Open Window &F")]
+        [MenuItem("Tools/MonoFSM/Open Hierarchy Favorites 最愛 &F")]
         private static void Open()
         {
             var window = GetWindow<HierarchyFavoritesWindow>("Favorites");
@@ -19,11 +19,11 @@ namespace HierarchyFavorites.Editor
             Debug.Log("[HierarchyFavorites] Open dockable window (Alt+1)", window);
         }
 
-        [MenuItem("Tools/Hierarchy Favorites/Open Window &Tab")]
-        private static void Tab()
-        {
-            Debug.Log("[HierarchyFavorites] Tab");
-        }
+        // [MenuItem("Tools/Hierarchy Favorites/Open Window &Tab")]
+        // private static void Tab()
+        // {
+        //     Debug.Log("[HierarchyFavorites] Tab");
+        // }
 
         private void OnEnable()
         {

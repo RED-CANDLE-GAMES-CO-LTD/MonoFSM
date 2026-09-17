@@ -16,7 +16,9 @@ namespace CommandPalette
         ScriptableObjects,
         Scenes,
         MenuItems,
-        Windows
+        Windows,
+        Cheats,
+        EditorCheats
     }
 
     /// <summary>
@@ -156,14 +158,17 @@ namespace CommandPalette
         public string menuPath;
         public string displayName;
         public string category;
+        public string shortcut;
         public bool isValidated;
         public bool isEnabled;
 
-        public MenuItemCacheData(string menuPath, string displayName, string category, bool isValidated, bool isEnabled)
+        public MenuItemCacheData(string menuPath, string displayName, string category, string shortcut,
+            bool isValidated, bool isEnabled)
         {
             this.menuPath = menuPath;
             this.displayName = displayName;
             this.category = category;
+            this.shortcut = shortcut;
             this.isValidated = isValidated;
             this.isEnabled = isEnabled;
         }
@@ -178,14 +183,20 @@ namespace CommandPalette
         public string menuPath;
         public string displayName;
         public string category;
+
+        /// <summary>從 menuPath 尾端的 %#&amp;_ 語法轉出來的可讀快捷鍵（例 ⌘⇧L），沒有就是空字串</summary>
+        public string shortcut;
+
         public bool isValidated;
         public bool isEnabled;
-        
-        public MenuItemEntry(string menuPath, string displayName, string category, bool isValidated = true, bool isEnabled = true)
+
+        public MenuItemEntry(string menuPath, string displayName, string category, string shortcut = "",
+            bool isValidated = true, bool isEnabled = true)
         {
             this.menuPath = menuPath;
             this.displayName = displayName;
             this.category = category;
+            this.shortcut = shortcut;
             this.isValidated = isValidated;
             this.isEnabled = isEnabled;
         }
@@ -195,6 +206,7 @@ namespace CommandPalette
             this.menuPath = cacheData.menuPath;
             this.displayName = cacheData.displayName;
             this.category = cacheData.category;
+            this.shortcut = cacheData.shortcut;
             this.isValidated = cacheData.isValidated;
             this.isEnabled = cacheData.isEnabled;
         }

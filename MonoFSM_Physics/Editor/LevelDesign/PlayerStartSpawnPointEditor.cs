@@ -1,5 +1,11 @@
 using System.Linq;
+using _1_MonoFSM_Core.Runtime.MonoData;
 using _1_MonoFSM_Core.Runtime.Utilities;
+#if FUSION2
+using Fusion;
+using Fusion.Addons.KCC;
+using GamePlay;
+#endif
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -179,9 +185,14 @@ public static class StartPointSelector
     // [MenuItem("RCGMaker/SpawnPoint/Select SpawnPoint  _`", false, 0)]
     private static void DoSelectSpawnPoint()
     {
-        //FIXME:Application.isplaying才跑這個？
+        //PlayMode 中 SpawnPoint 已經沒用了（玩家早就生出來），改成選玩家身上的 ViewRoot，
+        //直接看得到 runtime 的 view 掛在誰底下、位置在哪。不呼叫 FocusOnScene 免得把焦點從 Game 視窗搶走。
         if (Application.isPlaying)
+        {
+            SelectPlayerViewRoot();
             return;
+        }
+
         FocusOnScene();
         // Debug.Log("DoSelectSpawnPoint: 1" + EditorWindow.focusedWindow);
         var spawnPoint = GetCurrentSpawnPoint();
@@ -201,6 +212,59 @@ public static class StartPointSelector
         {
             Selection.activeGameObject = GameObject.Find("SpawnPoint");
         }
+    }
+
+    //PlayMode 用：選到當前玩家底下的 ViewRoot（MenuItem 快捷鍵與 SceneView 的 ` 都走這裡）
+    public static void SelectPlayerViewRoot()
+    {
+        var player = GetPlayMoodePlayerRoot();
+        if (player == null)
+        {
+            Debug.LogWarning("[SpawnPoint] 取不到當前玩家（Runner 沒有 LocalPlayer object，playerRef 也沒有 RunTimeInstance）");
+            return;
+        }
+
+        var viewRoots = player.GetComponentsInChildren<ViewRoot>(true);
+        if (viewRoots.Length == 0)
+        {
+            Debug.LogWarning($"[SpawnPoint] {player.name} 底下找不到 ViewRoot，改選玩家本體", player);
+            Selection.activeGameObject = player;
+            return;
+        }
+
+        //多顆時優先取名字就叫 ViewRoot 的那顆（角色模型的 view root）
+        var viewRoot = viewRoots[0];
+        foreach (var candidate in viewRoots)
+            if (candidate.name == "ViewRoot")
+            {
+                viewRoot = candidate;
+                break;
+            }
+
+        Selection.activeGameObject = viewRoot.gameObject;
+        Debug.Log(
+            $"[SpawnPoint] PlayMode：選取 {player.name} 的 ViewRoot {viewRoot.name}（{viewRoot.transform.position}，共 {viewRoots.Length} 顆）",
+            viewRoot);
+    }
+
+    //PlayMode 的「當前玩家」：Fusion 是 spawn 出來的，playerRef.RunTimeInstance 不會被填，
+    //所以走 LocalPlayer → FusionPlayerObject._playerBrain → CurrentCharacterEntity（跟 SpectateTargetCycleAction 同一條路徑）
+    private static GameObject GetPlayMoodePlayerRoot()
+    {
+#if FUSION2
+        var runner = Object.FindFirstObjectByType<NetworkRunner>();
+        if (runner != null && runner.TryGetPlayerObject(runner.LocalPlayer, out var playerObj) && playerObj != null)
+        {
+            var fusionPlayer = playerObj.GetComponent<FusionPlayerObject>();
+            var brain = fusionPlayer != null ? fusionPlayer._playerBrain : null;
+            var characterEntity = brain != null ? brain.GetSchema<PlayerBrainDataSchema>()?.CurrentCharacterEntity : null;
+            //角色還沒生出來時退回 player object 本身（brain 那層）
+            return characterEntity != null ? characterEntity.gameObject : playerObj.gameObject;
+        }
+#endif
+        //非 Fusion / 場景直接擺玩家的舊路徑
+        var spawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
+        return spawnPoint != null && spawnPoint.playerRef != null ? spawnPoint.playerRef.RunTimeInstance : null;
     }
 
     [MenuItem("RCGMaker/SpawnPoint/Switch to Next SpawnPoint  #_`", false, 1)]
@@ -298,7 +362,7 @@ public class PlayerStartSpawnPointEditor
             // Check for specific keycodes
             if (Event.current.keyCode == KeyCode.BackQuote)
             {
-                // 如果同時按下Shift，則切換到下一個SpawnPoint
+                // 如果同時按下Shift，則切換到下一個SpawnPoint（PlayMode 也保留這個功能）
                 if (Event.current.shift)
                 {
                     var nextSpawnPoint = StartPointSelector.SwitchToNextSpawnPoint();
@@ -310,6 +374,12 @@ public class PlayerStartSpawnPointEditor
                             $"Switched to SpawnPoint: {nextSpawnPoint.name} (Current Index: {StartPointSelector.GetCurrentSpawnPointIndex()})"
                         );
                     }
+                }
+                else if (Application.isPlaying)
+                {
+                    //PlayMode 中移動 SpawnPoint 沒意義（玩家早就生出來了），改成選玩家身上的 ViewRoot，
+                    //直接看得到 runtime 的 view 掛在誰底下、位置在哪。SceneView 的按鍵會先於 MenuItem 快捷鍵吃掉 `。
+                    StartPointSelector.SelectPlayerViewRoot();
                 }
                 else
                 {

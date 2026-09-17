@@ -71,3 +71,16 @@
 
 - 2026-09-15 右鍵 Dump 對 reference 欄位多印 `= ValueInfo`（`IHierarchyValueInfo`，與 hierarchy 右欄同源：Var → CurrentValue、Condition → FinalResult、Getter → 取值）。起因是右鍵沒辦法像 CLI 用點路徑穿過 reference；先做成「被引用的 Component 各展一層」，太吵，改成只印這一個值。用 `s_refValueInfo` 旗標只在右鍵路徑開，CLI `peek` 留空「不呼叫任何 getter」的約定不動。右鍵版本同時把巢狀 [Serializable] 攤 2 層（`MenuDeep`）。
 - reload 驗證的 `VerifyTouch.Serialized` 會在寫入當下 pin expected；同一批對同一欄位寫第二次（典型：`addel` 連加多筆）時，前一筆的 `array-size:1` 已過期卻仍拿來比對，報假失敗且附上誤導的「nested prefab override」提示。現在 set / ref / aref / addel 加 touch 前先 `RemoveAll(IsSameSerializedField)`，只留最後一次寫入（2026-09-16）
+
+## 2026-09-17 `set` 支援 AnimationCurve
+
+`AnimationCurveSetFloatValueSource._curve`、profile SO 的曲線欄位這類 AnimationCurve 過去沒有
+寫入入口，整條「CLI 接線」流程會斷在「請人手動去 Inspector 畫一條」。`EditResolve.ApplyValue`
+補上 `SerializedPropertyType.AnimationCurve`，語法 `[linear:|ease:|smooth:|flat:]t,v;t,v;…`。
+
+- 預設是 `ease:`（Keyframe 切線 0）而不是 `linear:`：value source 的曲線幾乎都要 smoothstep，
+  兩個關鍵幀 + 切線 0 就是最常見的形狀，讓最短的寫法直接給出可用結果。
+- `linear:` 用手算斜率而不是 `AnimationUtility.SetKeyTangentMode`，避免 tangentMode 的
+  版本差異，存出來的 inSlope/outSlope 是明確的數值。
+- 存檔後的 reload 驗證還沒支援 AnimationCurve（會印 unsupported），要確認值有進去目前只能
+  `peek`（只顯示型別名）或直接看 YAML 的 `m_Curve`。

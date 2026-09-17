@@ -75,6 +75,24 @@ namespace MonoFSM.Core
             return _firedTick[k] == tick;
         }
 
+        /// <summary>
+        ///     不經過鍵盤直接把這顆鍵標成「已按下」，讓下一個 simulate tick 的 <see cref="WasPressed" /> 回 true。
+        ///     Command Palette 觸發 cheat 時走這裡，跟真的按鍵共用同一條消費路徑。
+        /// </summary>
+        public static void Inject(Key key)
+        {
+            var k = (int)key;
+            if (_latched == null || k <= 0 || k >= KeyCount)
+            {
+                Debug.LogWarning($"[CheatKeyLatch] Inject 失敗，key={key}（還沒進 Play Mode？）");
+                return;
+            }
+
+            _watched[k] = true;
+            _latched[k] = true;
+            _firedTick[k] = NotFired; //還沒被任何 tick 消費過
+        }
+
         internal static void Poll()
         {
             if (_watched == null)

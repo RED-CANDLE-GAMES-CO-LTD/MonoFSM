@@ -50,6 +50,46 @@ namespace MonoFSM.Core
             Key.Digit6, Key.Digit7, Key.Digit8, Key.Digit9
         };
 
+        //登錄給 CheatRegistry（Command Palette 列表 / 觸發用）。實際按鍵判定仍留在 Simulate，
+        //因為它有 tick 語意（一個 render frame 可能跑 0 或多個 tick），不要改走 registry 輪詢
+        private readonly List<CheatEntry> _cheatEntries = new(10);
+
+        private void OnEnable()
+        {
+            if (_cheatEntries.Count > 0)
+                return;
+
+            const string source = nameof(CheatTeleportPoints);
+            for (var i = 0; i < _digitKeys.Length; i++)
+            {
+                var index = i; //閉包要抓自己的 index
+                _cheatEntries.Add(CheatRegistry.Register(_digitKeys[i], CheatModifier.Alt,
+                    $"傳送到第 {index + 1} 個傳送點", source, () => TeleportToIndex(index),
+                    forbiddenModifiers: CheatModifier.Shift,
+                    descriptionGetter: () => DescribePoint(index), owner: gameObject));
+            }
+
+            _cheatEntries.Add(CheatRegistry.Register(Key.T, CheatModifier.Alt, "傳送到下一個傳送點",
+                source, TeleportToNext, forbiddenModifiers: CheatModifier.Shift,
+                owner: gameObject));
+        }
+
+        private void OnDisable()
+        {
+            for (var i = 0; i < _cheatEntries.Count; i++)
+                CheatRegistry.Unregister(_cheatEntries[i]);
+            _cheatEntries.Clear();
+        }
+
+        //只有 Inspector / Palette 顯示時才會呼叫，場上傳送點是執行期才決定的
+        private string DescribePoint(int index)
+        {
+            var points = Points;
+            if (index < 0 || index >= points.Count)
+                return $"傳送到第 {index + 1} 個傳送點（場上沒有）";
+            return $"傳送到 {points[index].name}";
+        }
+
         public void Simulate(float deltaTime)
         {
             var keyboard = Keyboard.current;

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MonoFSM.Core;
 
 namespace CommandPalette
 {
@@ -170,6 +171,84 @@ namespace CommandPalette
                 .ThenBy(r => r.Item.displayName)
                 .Take(maxResults)
                 .ToList();
+        }
+
+        /// <summary>
+        /// 搜尋執行期 cheat（CheatRegistry）列表
+        /// </summary>
+        public static List<SearchResult<CheatEntry>> Search(string query, IEnumerable<CheatEntry> cheats,
+            int maxResults = 100, SearchSortMode sortMode = SearchSortMode.ScoreBased)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return cheats
+                    .OrderBy(c => c.Description)
+                    .Take(maxResults)
+                    .Select(c => new SearchResult<CheatEntry>(c, 1.0f))
+                    .ToList();
+            }
+
+            var queryLower = query.Trim().ToLower();
+            var tokens = SplitTokens(queryLower);
+
+            if (sortMode == SearchSortMode.Alphabetical)
+            {
+                return cheats
+                    .Where(c => MatchesAllTokens(tokens, c.Description?.ToLower() ?? "",
+                        c._source?.ToLower() ?? ""))
+                    .OrderBy(c => c.Description)
+                    .Take(maxResults)
+                    .Select(c => new SearchResult<CheatEntry>(c, 1.0f))
+                    .ToList();
+            }
+
+            var results = new List<SearchResult<CheatEntry>>();
+            foreach (var cheat in cheats)
+            {
+                var result = CalculateCheatScore(queryLower, cheat);
+                if (result != null && result.Score > 0)
+                    results.Add(result);
+            }
+
+            return results
+                .OrderByDescending(r => r.Score)
+                .ThenBy(r => r.Item.Description)
+                .Take(maxResults)
+                .ToList();
+        }
+
+        private static SearchResult<CheatEntry> CalculateCheatScore(string query, CheatEntry cheat)
+        {
+            var descLower = cheat.Description?.ToLower() ?? "";
+            var sourceLower = cheat._source?.ToLower() ?? "";
+            var shortcutLower = cheat.ShortcutText?.ToLower() ?? "";
+            var tokens = SplitTokens(query);
+
+            if (descLower == query || shortcutLower == query)
+                return new SearchResult<CheatEntry>(cheat, 1.0f, "name");
+
+            if (descLower.StartsWith(query) || shortcutLower.StartsWith(query))
+                return new SearchResult<CheatEntry>(cheat, 0.9f, "name");
+
+            if (descLower.Contains(query))
+                return new SearchResult<CheatEntry>(cheat, 0.8f, "name");
+
+            var tokenScore = ScoreAllTokens(tokens, descLower);
+            if (tokenScore > 0)
+                return new SearchResult<CheatEntry>(cheat, tokenScore, "tokens");
+
+            var cjkScore = ScoreCjkSubsequence(query, descLower);
+            if (cjkScore > 0)
+                return new SearchResult<CheatEntry>(cheat, cjkScore, "cjk");
+
+            if (sourceLower.Contains(query))
+                return new SearchResult<CheatEntry>(cheat, 0.6f, "source");
+
+            var fuzzyScore = CalculateFuzzyScore(query, descLower);
+            if (fuzzyScore > 0.3f)
+                return new SearchResult<CheatEntry>(cheat, fuzzyScore * 0.5f, "fuzzy");
+
+            return null;
         }
 
         private static SearchResult<AssetEntry> CalculateAssetScore(string query, AssetEntry asset)

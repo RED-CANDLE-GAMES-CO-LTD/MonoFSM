@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace HierarchyFavorites.Editor
 {
@@ -68,5 +69,47 @@ namespace HierarchyFavorites.Editor
 
             return groups;
         }
+
+#if UNITY_EDITOR
+        /// <summary>
+        /// Scene tab 資料來源：掃所有已載入 scene 的 root，收 _isSceneCollect 的 Marker，依 GroupName 合併。
+        /// 不走 RootResolver（不依賴 selection / prefab stage）。
+        /// </summary>
+        public static List<FavoriteGroup> GetSceneCollectGroups()
+        {
+            var groups = new List<FavoriteGroup>();
+            var groupByName = new Dictionary<string, FavoriteGroup>();
+            var buffer = new List<HierarchyFavoriteMarker>();
+
+            for (var i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (!scene.isLoaded) continue;
+                foreach (var rootGo in scene.GetRootGameObjects())
+                {
+                    rootGo.GetComponentsInChildren(true, buffer);
+                    foreach (var marker in buffer)
+                    {
+                        if (marker == null || !marker.IsSceneCollect) continue;
+                        var name = string.IsNullOrEmpty(marker.GroupName) ? scene.name : marker.GroupName;
+                        if (!groupByName.TryGetValue(name, out var group))
+                        {
+                            group = new FavoriteGroup { Name = name };
+                            groupByName[name] = group;
+                            groups.Add(group);
+                        }
+                        group.Items.Add(new FavoriteItem
+                        {
+                            Target = marker.transform,
+                            Label = marker.Label,
+                            Tint = marker.Tint,
+                        });
+                    }
+                }
+            }
+
+            return groups;
+        }
+#endif
     }
 }

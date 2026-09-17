@@ -162,7 +162,10 @@ namespace CommandPalette
                 var stopwatch = Stopwatch.StartNew();
 
                 // 收集多個選單的MenuItem
-                string[] menuCategories = { "Tools", "Window", "GameObject" };
+                //RCGMaker / MonoFSM / RCGs 是專案自己的頂層選單（cheat 多半掛在那），
+                //不加進來的話 Command Palette 的 EDITOR CHEATS 只撈得到 Tools/ 底下的
+                string[] menuCategories =
+                    { "Tools", "Window", "GameObject", "RCGMaker", "MonoFSM", "RCGs" };
 
                 foreach (var menuCategory in menuCategories)
                 {
@@ -179,12 +182,17 @@ namespace CommandPalette
                             // 解析MenuItem資訊
                             var displayName = GetDisplayNameFromMenuPath(menuPath);
                             var category = GetCategoryFromMenuPath(menuPath);
+                            //Menu.GetMenuItems 給的 path 已經被 Unity 去掉熱鍵尾碼，所以熱鍵要從
+                            //[MenuItem] attribute 原文反查；查不到才退回解析 path 尾端
+                            var shortcut = ShortcutByMenuPath.TryGetValue(menuPath, out var mapped)
+                                ? mapped
+                                : ParseShortcutFromMenuPath(menuPath);
 
                             // 驗證MenuItem是否可執行
                             var isValidated = ValidateMenuItem(menuPath);
 
                             menuItems.Add(
-                                new MenuItemEntry(menuPath, displayName, category, isValidated)
+                                new MenuItemEntry(menuPath, displayName, category, shortcut, isValidated)
                             );
                         }
                     }
@@ -201,6 +209,67 @@ namespace CommandPalette
             }
 
             return menuItems;
+        }
+
+        //[MenuItem] 原文 path（已去熱鍵）→ 可讀熱鍵字串。第一次用到才掃，之後沿用
+        private static Dictionary<string, string> _shortcutByMenuPath;
+
+        private static Dictionary<string, string> ShortcutByMenuPath
+        {
+            get
+            {
+                if (_shortcutByMenuPath == null)
+                    BuildShortcutMap();
+                return _shortcutByMenuPath;
+            }
+        }
+
+        private static void BuildShortcutMap()
+        {
+            _shortcutByMenuPath = new Dictionary<string, string>();
+
+            var menuItemField = typeof(MenuItem).GetField("menuItem");
+            var validateField = typeof(MenuItem).GetField("validate");
+            if (menuItemField == null)
+            {
+                Debug.LogWarning("[CommandPalette] 取不到 MenuItem.menuItem 欄位，熱鍵顯示會退回解析選單路徑");
+                return;
+            }
+
+            foreach (var method in TypeCache.GetMethodsWithAttribute<MenuItem>())
+            foreach (var attr in method.GetCustomAttributes(typeof(MenuItem), false))
+            {
+                if (validateField != null && validateField.GetValue(attr) is true)
+                    continue;
+
+                if (menuItemField.GetValue(attr) is not string raw || string.IsNullOrEmpty(raw))
+                    continue;
+
+                var shortcut = ParseShortcutFromMenuPath(raw);
+                if (string.IsNullOrEmpty(shortcut))
+                    continue;
+
+                _shortcutByMenuPath[StripShortcutSuffix(raw)] = shortcut;
+            }
+        }
+
+        /// <summary>
+        /// 去掉 MenuItem 路徑尾端的熱鍵語法（"Tools/Foo %t" → "Tools/Foo"）
+        /// </summary>
+        public static string StripShortcutSuffix(string menuPath)
+        {
+            if (string.IsNullOrEmpty(menuPath))
+                return "";
+
+            var spaceIndex = menuPath.LastIndexOf(' ');
+            if (spaceIndex <= 0 || spaceIndex >= menuPath.Length - 1)
+                return menuPath;
+
+            var token = menuPath.Substring(spaceIndex + 1);
+            if (token[0] != '%' && token[0] != '#' && token[0] != '&' && token[0] != '_')
+                return menuPath;
+
+            return menuPath.Substring(0, spaceIndex);
         }
 
         /// <summary>
@@ -230,6 +299,43 @@ namespace CommandPalette
             // 取得最後一段作為顯示名稱
             var lastSlash = cleanPath.LastIndexOf('/');
             return lastSlash >= 0 ? cleanPath.Substring(lastSlash + 1) : cleanPath;
+        }
+
+        /// <summary>
+        /// 從 MenuItem 路徑尾端的熱鍵語法轉成 macOS 可讀字串（%=⌘ #=⇧ &amp;=⌥ _=無 modifier）。
+        /// 沒有熱鍵就回空字串。
+        /// </summary>
+        public static string ParseShortcutFromMenuPath(string menuPath)
+        {
+            if (string.IsNullOrEmpty(menuPath))
+                return "";
+
+            var spaceIndex = menuPath.LastIndexOf(' ');
+            if (spaceIndex <= 0 || spaceIndex >= menuPath.Length - 1)
+                return "";
+
+            var token = menuPath.Substring(spaceIndex + 1);
+            //熱鍵語法一定由 % # & _ 開頭，否則只是名字裡的空白
+            if (token[0] != '%' && token[0] != '#' && token[0] != '&' && token[0] != '_')
+                return "";
+
+            var modifiers = "";
+            var keyStart = 0;
+            for (; keyStart < token.Length; keyStart++)
+            {
+                var c = token[keyStart];
+                if (c == '%') modifiers += "⌘";
+                else if (c == '#') modifiers += "⇧";
+                else if (c == '&') modifiers += "⌥";
+                else if (c == '_') { } //_ 只代表「沒有 modifier」
+                else break;
+            }
+
+            var key = token.Substring(keyStart);
+            if (string.IsNullOrEmpty(key))
+                return "";
+
+            return modifiers + (key.Length == 1 ? key.ToUpper() : key.ToUpper());
         }
 
         /// <summary>
@@ -298,6 +404,7 @@ namespace CommandPalette
                             item.menuPath,
                             item.displayName,
                             item.category,
+                            item.shortcut,
                             item.isValidated,
                             item.isEnabled
                         ))

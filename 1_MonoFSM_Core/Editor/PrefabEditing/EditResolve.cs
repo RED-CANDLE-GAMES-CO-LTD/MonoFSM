@@ -721,6 +721,9 @@ namespace MonoFSM.Editor.PrefabEditing
                 case SerializedPropertyType.LayerMask:
                     prop.intValue = ToLayerMask(value, fieldPath);
                     break;
+                case SerializedPropertyType.AnimationCurve:
+                    prop.animationCurveValue = ToAnimationCurve(value, fieldPath);
+                    break;
                 default:
                     throw Abort(
                         $"'{fieldPath}' 的型別是 {prop.propertyType}，SetField 不支援" +
@@ -811,6 +814,77 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             throw Abort($"'{fieldPath}' 是 Vector4，值請傳 \"x,y,z,w\" 或 Vector4");
+        }
+
+        /// <summary>
+        ///     AnimationCurve：吃 <c>"t,v;t,v;…"</c> 的關鍵幀列表，可加前綴指定切線
+        ///     （<c>ease:</c> 兩端切線 0 = smoothstep，預設；<c>linear:</c> 折線；
+        ///     <c>smooth:</c> 自動平滑；<c>flat:</c> 全部水平 = 階梯感）。
+        ///     例：<c>linear:0,0;1,1</c>、<c>ease:0,50;1,-10</c>。
+        ///     存在的理由：AnimationCurve 是 value source / profile 的常見欄位，
+        ///     沒有寫入入口就只能請人手動在 Inspector 畫，整條接線流程會斷在這裡。
+        /// </summary>
+        private static AnimationCurve ToAnimationCurve(object value, string fieldPath)
+        {
+            if (value is AnimationCurve curveValue) return curveValue;
+            var s = value?.ToString()?.Trim() ?? "";
+            var mode = "ease";
+            var colon = s.IndexOf(':');
+            if (colon > 0)
+            {
+                var head = s.Substring(0, colon).Trim().ToLowerInvariant();
+                if (head == "linear" || head == "ease" || head == "smooth" || head == "flat")
+                {
+                    mode = head;
+                    s = s.Substring(colon + 1);
+                }
+            }
+
+            var pairs = s.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            if (pairs.Length == 0)
+                throw Abort($"'{fieldPath}' 是 AnimationCurve，值請傳 \"[linear:|ease:|smooth:|flat:]t,v;t,v;…\"");
+
+            var keys = new Keyframe[pairs.Length];
+            for (var i = 0; i < pairs.Length; i++)
+            {
+                var xy = pairs[i].Split(',');
+                if (xy.Length != 2 ||
+                    !float.TryParse(xy[0].Trim(), out var t) ||
+                    !float.TryParse(xy[1].Trim(), out var v))
+                    throw Abort(
+                        $"'{fieldPath}' 的第 {i + 1} 個關鍵幀 '{pairs[i]}' 不是 \"時間,值\"");
+                keys[i] = new Keyframe(t, v);
+            }
+
+            var curve = new AnimationCurve(keys);
+            if (mode == "linear")
+                for (var i = 0; i < keys.Length; i++)
+                {
+                    var key = curve[i];
+                    if (i > 0)
+                    {
+                        var dt = key.time - curve[i - 1].time;
+                        key.inTangent = Mathf.Approximately(dt, 0f)
+                            ? 0f
+                            : (key.value - curve[i - 1].value) / dt;
+                    }
+
+                    if (i < keys.Length - 1)
+                    {
+                        var dt = curve[i + 1].time - key.time;
+                        key.outTangent = Mathf.Approximately(dt, 0f)
+                            ? 0f
+                            : (curve[i + 1].value - key.value) / dt;
+                    }
+
+                    curve.MoveKey(i, key);
+                }
+            else if (mode == "smooth")
+                for (var i = 0; i < keys.Length; i++)
+                    curve.SmoothTangents(i, 0f);
+            //ease / flat：Keyframe 預設切線就是 0，不用再動
+
+            return curve;
         }
 
         private static Vector2 ToVector2(object value, string fieldPath)

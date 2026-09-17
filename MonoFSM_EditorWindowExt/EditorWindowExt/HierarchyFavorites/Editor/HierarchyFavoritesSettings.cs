@@ -17,7 +17,8 @@ namespace HierarchyFavorites.Editor
             Variables = 1,
             Effects = 2,
             States = 3,
-            Descriptions = 4,
+            All = 4, // 原名 Descriptions：整棵樹的全部節點
+            Scene = 5, // 整個 scene 裡 _isSceneCollect 的 HierarchyFavoriteMarker
         }
 
         private const string PrefKey = "HierarchyFavorites.OverlayMode";
@@ -31,7 +32,7 @@ namespace HierarchyFavorites.Editor
 
         public static ContentMode Content
         {
-            get => (ContentMode)EditorPrefs.GetInt(ContentPrefKey, (int)ContentMode.Descriptions);
+            get => (ContentMode)EditorPrefs.GetInt(ContentPrefKey, (int)ContentMode.All);
             set => EditorPrefs.SetInt(ContentPrefKey, (int)value);
         }
 

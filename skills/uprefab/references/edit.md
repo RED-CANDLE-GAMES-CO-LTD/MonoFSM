@@ -18,7 +18,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `add\|<parent>\|<name>\|<comp,comp>` | 建節點並掛 component。parent 留空 = prefab root 下 / scene root 層 |
 | `prefab\|<prefabPath>\|<parent>\|<name>` | 放 prefab 實例（prefab / scene 都支援；prefab 端就是裝 nested prefab 模組）。name 留空 = 用 prefab 自己的名字 |
 | `comp\|<node>\|<comp,comp>` | 對既有節點加 component |
-| `set\|<node>\|<comp>\|<field>\|<value>` | 設值。float / int / bool / string / enum（傳名稱）/ Vector3（`"x,y,z"`）/ Vector2（`"x,y"`）/ Vector4（`"x,y,z,w"`）/ Quaternion（`"x,y,z,w"` 或 `"x,y,z"` 歐拉角）。long（`m_TableEntryReference.m_KeyId`）超出 int 範圍會自動走 `longValue` |
+| `set\|<node>\|<comp>\|<field>\|<value>` | 設值。float / int / bool / string / enum（傳名稱）/ Vector3（`"x,y,z"`）/ Vector2（`"x,y"`）/ Vector4（`"x,y,z,w"`）/ Quaternion（`"x,y,z,w"` 或 `"x,y,z"` 歐拉角）/ Color / LayerMask / **AnimationCurve**（`"[linear:\|ease:\|smooth:\|flat:]t,v;t,v;…"`，預設 `ease:` = 兩端切線 0 的 smoothstep）。long（`m_TableEntryReference.m_KeyId`）超出 int 範圍會自動走 `longValue` |
 | `ref\|<node>\|<comp>\|<field>\|<target>[\|<targetComp>]` | 指向另一個節點。targetComp 省略 = 用欄位宣告型別去找 |
 | `aref\|<node>\|<comp>\|<field>\|<assetPath>` | 指向 asset（prefab / SO）。prefab 會按欄位型別取 component。內建 primitive 用 `builtin:Cube` / `Quad` / `Sphere` / `Capsule` / `Cylinder` / `Plane` / `Default-Material` —— 它們住在 `Library/unity default resources`，`AssetDatabase` 讀不到 |
 | `addel\|<node>\|<comp>\|<field>` | 陣列 / List 欄位尾端加一個元素，回傳新 index；接著用 `set` / `aref` 補 `<field>.Array.data[<i>]`。**不能用 `set` 改 `.Array.size`**（ArraySize propertyType 走不進 ApplyValue） |

@@ -13,9 +13,13 @@ namespace HierarchyFavorites
         [SerializeField] private string _label = "";
         [SerializeField] private Color _tint = Color.white;
 
+        // 勾起來的 marker 會出現在 Scene tab：不看目前 selection / prefab stage，掃所有已載入 scene
+        [SerializeField] private bool _isSceneCollect;
+
         public string GroupName => _groupName;
         public string Label => string.IsNullOrEmpty(_label) ? gameObject.name : _label;
         public Color Tint => _tint;
+        public bool IsSceneCollect => _isSceneCollect;
 #endif
     }
 }

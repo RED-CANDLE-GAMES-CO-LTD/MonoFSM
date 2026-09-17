@@ -31,17 +31,19 @@ namespace HierarchyFavorites.Editor
 
         // ---- 收集結果快取 ----
         // 收集只跟 hierarchy / tab 有關，跟搜尋字串無關。打字時重用快取，
-        // 避免每個字都做一次 GetComponentsInChildren 全掃（Descriptions tab 是整棵樹的全部節點，動輒上千個）。
+        // 避免每個字都做一次 GetComponentsInChildren 全掃（All tab 是整棵樹的全部節點，動輒上千個）。
         // Build() 才會失效：selection / prefab stage / tab 切換都會走 Build。
         private static readonly Dictionary<HierarchyFavoritesSettings.ContentMode, List<VariableGroup>>
             _variableGroupCache = new();
 
         private static List<FavoriteGroup> _favoriteGroupCache;
+        private static List<FavoriteGroup> _sceneGroupCache;
 
         private static void InvalidateCollectCache()
         {
             _variableGroupCache.Clear();
             _favoriteGroupCache = null;
+            _sceneGroupCache = null;
         }
 
         /// <summary>重建整個內容（title / tabs / search / groups）到 root 上。</summary>
@@ -123,11 +125,12 @@ namespace HierarchyFavorites.Editor
 
         private static readonly HierarchyFavoritesSettings.ContentMode[] TabOrder =
         {
-            HierarchyFavoritesSettings.ContentMode.Descriptions,
+            HierarchyFavoritesSettings.ContentMode.All,
             HierarchyFavoritesSettings.ContentMode.Variables,
             HierarchyFavoritesSettings.ContentMode.Effects,
             HierarchyFavoritesSettings.ContentMode.States,
             HierarchyFavoritesSettings.ContentMode.Favorites,
+            HierarchyFavoritesSettings.ContentMode.Scene,
         };
 
         private static void BindHotkeys(VisualElement root, Action onRebuild)
@@ -207,7 +210,7 @@ namespace HierarchyFavorites.Editor
         {
             var row = new VisualElement { name = "hf-tabs" };
             row.AddToClassList("hf-tab-row");
-            row.Add(MakeTab("Descriptions", HierarchyFavoritesSettings.ContentMode.Descriptions,
+            row.Add(MakeTab("All", HierarchyFavoritesSettings.ContentMode.All,
                 contentMode, onRebuild));
             row.Add(MakeTab("Variables", HierarchyFavoritesSettings.ContentMode.Variables,
                 contentMode, onRebuild));
@@ -216,6 +219,8 @@ namespace HierarchyFavorites.Editor
             row.Add(MakeTab("States", HierarchyFavoritesSettings.ContentMode.States, contentMode,
                 onRebuild));
             row.Add(MakeTab("Favorites", HierarchyFavoritesSettings.ContentMode.Favorites,
+                contentMode, onRebuild));
+            row.Add(MakeTab("Scene", HierarchyFavoritesSettings.ContentMode.Scene,
                 contentMode, onRebuild));
             return row;
         }
@@ -244,17 +249,29 @@ namespace HierarchyFavorites.Editor
         private static void RefillContent(VisualElement entriesContainer, Label emptyHint,
             HierarchyFavoritesSettings.ContentMode contentMode)
         {
-            if (contentMode == HierarchyFavoritesSettings.ContentMode.Favorites)
-                BuildFavoritesContent(entriesContainer, emptyHint);
-            else
-                RefillList(entriesContainer, emptyHint, contentMode);
+            switch (contentMode)
+            {
+                case HierarchyFavoritesSettings.ContentMode.Favorites:
+                    BuildFavoritesContent(entriesContainer, emptyHint,
+                        _favoriteGroupCache ??= HierarchyFavoritesCollector.GetActiveGroups(),
+                        "No HierarchyFavoritesHolder in current scene / prefab.");
+                    break;
+                case HierarchyFavoritesSettings.ContentMode.Scene:
+                    BuildFavoritesContent(entriesContainer, emptyHint,
+                        _sceneGroupCache ??= HierarchyFavoritesCollector.GetSceneCollectGroups(),
+                        "No HierarchyFavoriteMarker with _isSceneCollect in loaded scenes.");
+                    break;
+                default:
+                    RefillList(entriesContainer, emptyHint, contentMode);
+                    break;
+            }
         }
 
-        // ---- Favorites ----
-        private static void BuildFavoritesContent(VisualElement entriesContainer, Label emptyHint)
+        // ---- Favorites / Scene 共用（FavoriteGroup 清單，只差資料來源與空提示）----
+        private static void BuildFavoritesContent(VisualElement entriesContainer, Label emptyHint,
+            List<FavoriteGroup> groups, string emptyText)
         {
             entriesContainer.Clear();
-            var groups = _favoriteGroupCache ??= HierarchyFavoritesCollector.GetActiveGroups();
             var search = _variableSearch ?? string.Empty;
 
             int visibleEntryCount = 0;
@@ -270,7 +287,7 @@ namespace HierarchyFavorites.Editor
             if (emptyHint != null)
             {
                 emptyHint.text = string.IsNullOrEmpty(search)
-                    ? "No HierarchyFavoritesHolder in current scene / prefab."
+                    ? emptyText
                     : "No favorite matching search.";
                 emptyHint.style.display =
                     visibleEntryCount == 0 ? DisplayStyle.Flex : DisplayStyle.None;
@@ -329,7 +346,7 @@ namespace HierarchyFavorites.Editor
                 case HierarchyFavoritesSettings.ContentMode.States:
                     emptyText = "No MonoStateBehaviour (or matching search) found.";
                     break;
-                case HierarchyFavoritesSettings.ContentMode.Descriptions:
+                case HierarchyFavoritesSettings.ContentMode.All:
                     emptyText = "No GameObject (or matching search) found.";
                     break;
                 default:
@@ -345,7 +362,7 @@ namespace HierarchyFavorites.Editor
                     VariableFolderCollector.GetEffectGroups(),
                 HierarchyFavoritesSettings.ContentMode.States =>
                     VariableFolderCollector.GetStateGroups(),
-                HierarchyFavoritesSettings.ContentMode.Descriptions =>
+                HierarchyFavoritesSettings.ContentMode.All =>
                     VariableFolderCollector.GetDescriptionGroups(),
                 _ => VariableFolderCollector.GetActiveGroups(),
             };

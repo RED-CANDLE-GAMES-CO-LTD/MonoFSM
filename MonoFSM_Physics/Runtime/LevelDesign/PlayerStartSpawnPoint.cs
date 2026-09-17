@@ -241,16 +241,61 @@ public class PlayerStartSpawnPoint
             return;
         _lastTeleportToSpawnFrame = Time.frameCount;
 
+        TeleportPlayerToCurrentSpawnPoint();
+    }
+
+    /// <summary>
+    ///     把玩家瞬移回目前選取的 SpawnPoint 位置（Cmd/Ctrl+Alt+R 與 Command Palette 共用這條）。
+    /// </summary>
+    public static void TeleportPlayerToCurrentSpawnPoint()
+    {
         var current = GetCurrentSpawnPoint();
         if (current == null)
         {
-            Debug.LogWarning("[SpawnPoint] Cmd/Ctrl+Alt+R 瞬移：場上找不到 PlayerStartSpawnPoint", this);
+            Debug.LogWarning("[SpawnPoint] Cmd/Ctrl+Alt+R 瞬移：場上找不到 PlayerStartSpawnPoint");
             return;
         }
 
         var pos = current.PlayTestSpawnPosition;
         Debug.Log($"[SpawnPoint] Cmd/Ctrl+Alt+R reset 關卡並瞬移玩家回 SpawnPoint 位置 {pos}", current);
         current.ProcessTeleport(pos);
+    }
+
+    //場上多個 SpawnPoint 共用同一筆 registry 登錄（熱鍵行為本來就是全場一次）
+    private static CheatEntry _teleportCheatEntry;
+    private static int _teleportCheatRefCount;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetCheatStatics()
+    {
+        _teleportCheatEntry = null;
+        _teleportCheatRefCount = 0;
+    }
+
+    private void OnEnable()
+    {
+        if (!_enableTeleportToSpawnCheat)
+            return;
+
+        _teleportCheatRefCount++;
+        _teleportCheatEntry ??= CheatRegistry.Register(Key.R,
+            CheatModifier.Ctrl | CheatModifier.Alt,
+            "Reset 關卡並把玩家瞬移回 SpawnPoint", nameof(PlayerStartSpawnPoint),
+            TeleportPlayerToCurrentSpawnPoint, owner: gameObject);
+    }
+
+    private void OnDisable()
+    {
+        if (!_enableTeleportToSpawnCheat)
+            return;
+
+        _teleportCheatRefCount--;
+        if (_teleportCheatRefCount > 0)
+            return;
+
+        CheatRegistry.Unregister(_teleportCheatEntry);
+        _teleportCheatEntry = null;
+        _teleportCheatRefCount = 0;
     }
 
     //Ctrl/Cmd + C：把玩家當下位置寫進剪貼簿，格式跟貼上端(TryParsePosFromLink)相容

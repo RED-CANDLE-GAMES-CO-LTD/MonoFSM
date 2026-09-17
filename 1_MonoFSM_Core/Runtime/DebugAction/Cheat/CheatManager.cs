@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Localization;
@@ -9,45 +11,115 @@ namespace MonoFSM.Core
 {
     public class CheatManager : AbstractDescriptionBehaviour
     {
+        //自己登錄的那幾筆（CheatKeyCheck 只輪詢這些；其他系統的 cheat 由它們自己判定，避免重複觸發）
+        private readonly List<CheatEntry> _ownEntries = new(8);
+
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        [ListDrawerSettings(IsReadOnly = true)]
+        [PropertyTooltip("目前登錄在 CheatRegistry 的所有 cheat（含其他系統登錄的）")]
+        private List<string> CheatEntries => CheatRegistry.GetDebugLines();
+
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        [ListDrawerSettings(IsReadOnly = true)]
+        [PropertyTooltip("同一組 key + modifier 被不同來源登錄超過一筆")]
+        private List<string> CheatConflicts => CheatRegistry.GetConflictLines();
+
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private CheatManagerStatus _status = CheatManagerStatus.NotRunYet;
+
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private bool _isTimeScaleBoosting;
+
+        public enum CheatManagerStatus
+        {
+            NotRunYet,
+            Polling,
+            NoKeyboard,
+        }
+
+        private void EnsureRegistered()
+        {
+            if (_ownEntries.Count > 0)
+                return;
+
+            const string source = nameof(CheatManager);
+
+            //Cmd/Ctrl + R：soft reset。Cmd + Alt + R 也走這裡（額外的瞬移由 PlayerStartSpawnPoint 自己攔 Alt），
+            //所以只把 Shift 列為 forbidden
+            _ownEntries.Add(CheatRegistry.Register(Key.R, CheatModifier.Ctrl, "Soft reset 關卡", source,
+                SoftResetLevel, forbiddenModifiers: CheatModifier.Shift, owner: gameObject));
+
+            _ownEntries.Add(CheatRegistry.Register(Key.R, CheatModifier.Ctrl | CheatModifier.Shift,
+                "Hard reset 關卡", source, HardResetLevel, owner: gameObject));
+
+            //原本是 else if：按著 Ctrl/Cmd 時 F5 不生效
+            _ownEntries.Add(CheatRegistry.Register(Key.F5, CheatModifier.None, "Soft reset 關卡", source,
+                SoftResetLevel, forbiddenModifiers: CheatModifier.Ctrl, owner: gameObject));
+
+            _ownEntries.Add(CheatRegistry.Register(Key.Digit9, CheatModifier.None, "循環切換語言", source,
+                CycleLocale, owner: gameObject));
+
+            //按住型：只登錄給 Palette / Inspector 看，實際判定在 UpdateTimeScaleHold
+            _ownEntries.Add(CheatRegistry.Register(Key.Digit0, CheatModifier.None,
+                "按住 0 或滑鼠中鍵：TimeScale = 5", source, null, true, owner: gameObject));
+        }
+
+        private void UnregisterAll()
+        {
+            for (var i = 0; i < _ownEntries.Count; i++)
+                CheatRegistry.Unregister(_ownEntries[i]);
+            _ownEntries.Clear();
+        }
+
+        private void OnDisable()
+        {
+            UnregisterAll();
+        }
+
+        private static void SoftResetLevel()
+        {
+            WorldUpdateSimulator.ManualResetLevel();
+        }
+
+        private static void HardResetLevel()
+        {
+            WorldUpdateSimulator.ManualResetLevel(true);
+        }
+
         public void CheatKeyCheck()
         {
+            EnsureRegistered();
 
-            if (Keyboard.current[Key.LeftMeta].isPressed ||
-                Keyboard.current[Key.LeftCtrl].isPressed)
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
             {
-                //重置關卡
-                if (
-                    Keyboard.current[Key.R].wasPressedThisFrame)
-                {
-                    //Cmd/Ctrl + Alt + R 走的也是這裡的 soft reset，額外的「瞬移玩家回 SpawnPoint」
-                    //由 PlayerStartSpawnPoint 自己攔 Alt 處理（asmdef 不能反向依賴 Physics）
-                    if (
-                        Keyboard.current[Key.LeftShift].isPressed)
-                        WorldUpdateSimulator.ManualResetLevel(true);
-                    else
-                    {
-                        WorldUpdateSimulator.ManualResetLevel();
-                    }
-                }
-                // 在這裡執行作弊行為，例如增加分數、解鎖功能等
-            }
-            else if (Keyboard.current[Key.F5].wasPressedThisFrame)
-            {
-                WorldUpdateSimulator.ManualResetLevel();
+                _status = CheatManagerStatus.NoKeyboard;
+                return;
             }
 
-            //切換語言（循環）
-            if (Keyboard.current.digit9Key.wasPressedThisFrame)
-                CycleLocale();
+            _status = CheatManagerStatus.Polling;
 
-            if (Keyboard.current.digit0Key.IsPressed() || Mouse.current.middleButton.isPressed)
+            for (var i = 0; i < _ownEntries.Count; i++)
             {
-                WorldUpdateSimulator.TimeScale = 5f;
-                Debug.Log(" WorldUpdateSimulator.TimeScale = 5f;");
+                var entry = _ownEntries[i];
+                if (!CheatRegistry.IsTriggered(entry, keyboard))
+                    continue;
+                entry._invoke?.Invoke();
             }
 
-            else
-                WorldUpdateSimulator.TimeScale = 1f;
+            UpdateTimeScaleHold(keyboard);
+        }
+
+        private void UpdateTimeScaleHold(Keyboard keyboard)
+        {
+            var isBoosting = keyboard.digit0Key.isPressed ||
+                             (Mouse.current != null && Mouse.current.middleButton.isPressed);
+            _isTimeScaleBoosting = isBoosting;
+            WorldUpdateSimulator.TimeScale = isBoosting ? 5f : 1f;
         }
 
         private static void CycleLocale()
