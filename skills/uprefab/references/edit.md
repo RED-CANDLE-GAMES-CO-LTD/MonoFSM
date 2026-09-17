@@ -241,7 +241,7 @@ MonoFSM 大量欄位靠 Auto 系列 attribute 填 —— `TransitionBehaviour._c
 **巢狀 prefab 實例上的例外（2026-09-15 實測）**：steal 飛行怪 variant 上，`[State] Chase/[Transition] => RunAway`
 這類「住在 nested prefab 實例（CharacterModules）裡、又繼承自 base」的 TransitionBehaviour，加了 `[If]` 子節點後跑
 `auto|CharacterModules/Character FSM`，log 印「綁上 N、沒綁上 0」但存檔後 `_conditions` 仍是 base 的舊值（沒長出
-array override）。改用 `addel` + `ref|…|_conditions.Array.data[i]|…` 就寫得進去；同一批操作在模組**源** prefab 上
+array override）。改用 `addel` + `ref|…|TransitionBehaviour|_conditions.Array.data[i]|<target>|<CondType>` 就寫得進去（陣列元素推不出宣告型別，**targetComp 必填**，漏了會回「找不到欄位的宣告型別」）；同一批操作在模組**源** prefab 上
 `auto` 完全正常。所以上面的「不要預防性改寫法」只對 variant 直接繼承的節點成立；**目標在 nested 實例裡時，`auto` 完
 一定 `locate --members _conditions` 驗，空的就補 `addel`+`ref`**。工具側待辦見 AgentToolTODO.md。
 

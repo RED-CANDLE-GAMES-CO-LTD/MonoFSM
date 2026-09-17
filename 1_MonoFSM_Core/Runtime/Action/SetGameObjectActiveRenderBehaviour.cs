@@ -5,6 +5,12 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.Action
 {
+    /// <summary>
+    /// 每個 render frame 把 _target（與 _addTargets 裡的每一顆）SetActive 成 _active 的值。
+    /// 因為是每幀覆寫而不是進場觸發一次，配上 _conditionGroup 就等於「狀態閘門」：
+    /// 一顆設 true、一顆設反向條件設 false，物件就會跟著狀態自動開關，pool 回收再生也不用另外還原。
+    /// _isToggle 勾起來改成每幀反轉（給閃爍用），此時 _active 被忽略。
+    /// </summary>
     public class SetGameObjectActiveRenderBehaviour : AbstractRenderBehaviour
     {
         public GameObject _target;

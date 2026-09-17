@@ -7,6 +7,12 @@ using UnityEngine;
 namespace MonoFSM.Core
 {
 
+    /// <summary>
+    /// 「_targetState 是不是它自己那台 FSM 的當前狀態」。跨 FSM 也成立 —— 問的是 _targetState.Owner
+    /// 的當前狀態，不是掛著這顆 condition 的那台。要「不在該狀態」就勾 FinalResultInverted。
+    /// 常見用途：把 Render / Action 閘在某個狀態底下（AbstractRenderBehaviour 的 _conditionGroup
+    /// 會自動收直接子節點的 condition，所以掛成子節點就會生效）。
+    /// </summary>
     public class IsStateCondition : AbstractConditionBehaviour
     {
         [ConditionPreset("Is State", Category = "State", Priority = 100, ColorHex = "#FFB347")]
