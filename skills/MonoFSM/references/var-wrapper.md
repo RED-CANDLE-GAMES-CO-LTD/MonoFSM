@@ -43,7 +43,11 @@ _count.SetValue(_count.Value + 1, this);   // 寫：已綁更新 Var，未綁更
 
 ## 要點
 
+- **Action / Condition 的數值參數欄位一律宣告成 Wrapper**，不要並排寫 `float _x` + `VarFloat _xVar`
+  再自己 `_xVar != null ? _xVar.Value : _x` ——那是 Wrapper 本來就在做的事，兩顆欄位還會讓
+  Inspector 同時出現兩個入口、序列化資料分岔
 - 取值一律用 `.Value`，不要假設它是裸 `int`/`float`
+- 組 `Description` 時 wrapper 的 `ToString()` 已會回「Var 名稱或常數」，可直接 `$"{_duration}s"`
 - `Description` override 時直接用 wrapper 的 `.Description`，或讀 `.Value` 組字串
 - 範例：`IntMathAction.cs`、`VarIntCompareCondition.cs`（`1_MonoFSM_Core/Runtime/Action/VariableAction/`、`1_Conditions/`）
 

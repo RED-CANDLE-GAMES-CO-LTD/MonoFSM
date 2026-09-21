@@ -79,12 +79,12 @@ namespace MonoFSM.Core.Runtime.Action.ComponentPropertyAction
                     return;
                 }
 
+                //走 RendererCollection 的基底 layer：限時 override（SetRendererLayerOverrideAction）期間
+                //只更新基底、不落地，避免抓取／探測兩套 layer 互相蓋掉又還原成錯的值
                 if (_cacheOriginalLayer && _cacheVar != null)
-                    _cacheVar.SetValue(renderers[0].gameObject.layer, this);
+                    _cacheVar.SetValue(_rendererCollection.BaseLayer, this);
 
-                foreach (var r in renderers)
-                    if (r != null)
-                        r.gameObject.layer = newLayer;
+                _rendererCollection.SetLayer(newLayer);
                 return;
             }
 

@@ -122,7 +122,7 @@ private ICurrentEntityOwner Owner
 
 ## VarWrapper 系列（可綁 Var 或填常數的欄位）
 
-`VarFloatWrapper` / `VarIntWrapper` 等 `[Serializable]` 包裝類，讓欄位在 Inspector 二選一：綁一個 `Var` 引用，或直接填常數。取值一律用 `.Value`，宣告預設值用 `new(...)`（如 `private VarIntWrapper _index = new(-1)`），namespace 為 `MonoFSM.Variable`。詳見 [references/var-wrapper.md](references/var-wrapper.md)。
+`VarFloatWrapper` / `VarIntWrapper` 等 `[Serializable]` 包裝類，讓欄位在 Inspector 二選一：綁一個 `Var` 引用，或直接填常數。取值一律用 `.Value`，宣告預設值用 `new(...)`（如 `private VarIntWrapper _index = new(-1)`），namespace 為 `MonoFSM.Variable`。**數值參數欄位一律用 Wrapper，不要並排寫 `float _x` + `VarFloat _xVar`**。詳見 [references/var-wrapper.md](references/var-wrapper.md)。
 
 ## C# 效能模式
 

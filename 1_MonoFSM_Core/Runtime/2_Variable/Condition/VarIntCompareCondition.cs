@@ -1,5 +1,10 @@
 namespace MonoFSM.Variable.Condition
 {
+    /// <summary>
+    /// 比較一顆 VarInt 跟另一個整數（可以是另一顆 VarInt，也可以是直接填的常數）。
+    /// 要用「數量／次數／kind 編號」當閘門時掛這顆，兩邊都用 VarIntWrapper：
+    /// 填了 <c>_var</c> 就讀那顆變數，留空就讀 <c>_tempValue</c> 常數。
+    /// </summary>
     public class VarIntCompareCondition : AbstractConditionBehaviour
     {
         protected override bool IsValid =>

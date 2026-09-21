@@ -166,6 +166,12 @@ public static class GameDataUtility
 #endif
 }
 
+/// <summary>
+/// 一筆「遊戲內容資料」的 ScriptableObject：道具／車廂／裝備等的 identity 來源。
+/// 一級欄位放的是每筆資料最多只有一個、且屬於身分認定的東西（<c>_bindPrefab</c> 本體 prefab、
+/// <c>_viewPrefab</c> 展示外觀），其餘可變的參數走 config 表（見 GameData.Config.cs）。
+/// 欄位留空時會沿 <c>BaseConfig</c> 往上繼承，所以同系列的資料可以只填差異的那幾格。
+/// </summary>
 [CreateAssetMenu(fileName = "Descriptable", menuName = "ScriptableObjects/Descriptable", order = 1)]
 [Searchable]
 [FormerlyNamedAs("DescriptableData")]
@@ -418,7 +424,19 @@ public partial class GameData
     //留 null 有兩種語意：(1) 有 _baseConfig 就繼承 base 的 (2) 沒有 base 就是這個 GameData 不可生成（例：車廂類型）
     [PrefabFilter] [SerializeField] private MonoObj _bindPrefab;
 
+    //純視覺：架子／櫥窗上「看得到但還不能互動」的那顆。不繼承 BaseConfig，沒填就是沒有展示外觀
+    //（不像 _bindPrefab 那樣有 fallback —— 展示品拿錯 prefab 會在場上看到多餘的物理物件）
+    [Tooltip("純外觀用的展示 prefab（架子／櫥窗擺的那顆），本體走 _bindPrefab")]
+    [SerializeField]
+    private GameObject _viewPrefab;
+
     [PreviewInInspector] public virtual MonoObj bindPrefab => GetBindPrefabInternal(0);
+
+    /// <summary>
+    /// 純外觀用的展示 prefab（工具架、櫥窗上擺著的那顆）。**不是**可互動的本體 —— 本體走
+    /// <see cref="bindPrefab" />。沒填就回 null，呼叫端自己決定要不要退回 bindPrefab 的視覺。
+    /// </summary>
+    [PreviewInInspector] public GameObject viewPrefab => _viewPrefab;
 
     //疊層查詢，防循環比照 GameData.Config.cs 的 MaxConfigDepth
     private MonoObj GetBindPrefabInternal(int depth)
