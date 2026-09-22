@@ -10,7 +10,7 @@ namespace MonoFSM.Core
     public class StateTimeUpCondition : AbstractConditionBehaviour
     {
         public override string Description =>
-            $"{targetState.name} State Time Up: >= {time}";
+            $"{targetState.name} State Time Up: >= {(_timeVar != null ? _timeVar.name : _time.ToString())}";
 
         [PreviewInInspector]
         [AutoParent] private GeneralState _parentState;

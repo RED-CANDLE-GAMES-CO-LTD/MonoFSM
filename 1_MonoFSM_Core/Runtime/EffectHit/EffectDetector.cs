@@ -414,7 +414,14 @@ namespace MonoFSM.Core.Detection
         //         }
 
         //需要debug是誰改的嗎？
+        [InfoBox("此 detector 被 ManualEffectDetectAction 接管中：不自動每 tick 判，只在該 action 執行時判一次",
+            InfoMessageType.Warning, nameof(IsManualDetectActive))]
         public ManualEffectDetectAction _manualEffectDetectAction; //被Action控走的話，就不自己update了
+
+        //action 的節點被關掉（state 沒進、或 GameObject disable）就不算接管，detector 要回去自己判，
+        //不然節點一關就永遠沒人幫它判，enter/exit 全部停掉
+        public bool IsManualDetectActive =>
+            _manualEffectDetectAction != null && _manualEffectDetectAction.isActiveAndEnabled;
 
         //不能搬到 BeforeSimulate phase：FusionSimulatorRunner 是 IBeforeTick，一律跑在所有
         //FixedUpdateNetwork（含 RunnerSimulatePhysics 的物理步進）之前，而 TriggerDetectorSource
@@ -427,7 +434,7 @@ namespace MonoFSM.Core.Detection
         public void Simulate(float deltaTime)
         {
             _lastSimulateTime = Time.time;
-            if (_manualEffectDetectAction != null) //交給 action 控，不自己判
+            if (IsManualDetectActive) //交給 action 控，不自己判
                 return;
 
             //condition 失效／自己被關掉時，不能只是 return，要把還在重疊的補送 exit

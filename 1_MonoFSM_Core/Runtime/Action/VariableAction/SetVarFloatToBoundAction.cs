@@ -6,6 +6,12 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action.VariableAction
 {
+    /// <summary>
+    ///     把 _targetVar 這顆 VarFloat 一次設到它自己的上下界：Min / Max，
+    ///     或依 _percentage 設成 Min + (Max-Min) * p、以及在當前值上增減 (Max-Min) * p。
+    ///     「修好就補滿血」「耗盡就歸零」這種一次性歸位用這顆，不要用 SetVarFloatConstAction 寫死數字（Max 一改就失準）。
+    ///     Min/Max 會沿 varRef 轉發，所以 _targetVar 指到跨 entity 的 proxy Var 也算得對。
+    /// </summary>
     [QuickCreate]
     public class SetVarFloatToBoundAction : AbstractStateAction
     {

@@ -5,6 +5,12 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Formula
 {
+    /// <summary>
+    ///     數 _entities 這串 entity 裡，有幾顆的 _boolVarTag 這個 VarBool 是 true。
+    ///     _outputMode = Count 回個數、Ratio 回 (true 數 / 總數)（總數 0 時回 0）。
+    ///     disable / inactive 的 entity 不算在內，Inspector 上的 DebugTrueEntities 可以看目前哪幾顆成立。
+    ///     典型用法：搭 FindEntitiesWithVar 撈出一組裝置，數「幾個正在起火 / 幾個壞掉」當傷害速率或爆炸判斷的來源。
+    /// </summary>
     public class CountTrueOfEntitiesValueSource : AbstractEntityBoolVarSource<float>
     {
         public enum OutputMode

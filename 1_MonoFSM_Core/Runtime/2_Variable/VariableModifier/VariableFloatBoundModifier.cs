@@ -63,10 +63,13 @@ namespace MonoFSM.Variable
         private VarFloat _maxValue;
 
         [ShowInInspector]
-        public float MinValue => _minValueWrapper._var != null ? _minValueWrapper.Value : 0;
+        public float MinValue =>
+            _minValueWrapper.Value; //_minValueWrapper._var != null ? _minValueWrapper.Value : 0;
 
         [ShowInInspector]
-        public float MaxValue => _maxValueWrapper._var != null ? _maxValueWrapper.Value : Mathf.Infinity;
+        public float MaxValue =>
+            _maxValueWrapper
+                .Value; //_maxValueWrapper._var != null ? _maxValueWrapper.Value : Mathf.Infinity;
 
         public float Percentage => (_monoVar.CurrentValue - MinValue) / (MaxValue - MinValue);
 

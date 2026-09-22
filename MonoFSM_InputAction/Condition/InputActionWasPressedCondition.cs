@@ -14,7 +14,7 @@ namespace Fusion.Addons.KCC.ECM2.Examples.Networking.Fusion_v2.Characters.Script
     public class InputActionWasPressedCondition : AbstractConditionBehaviour
     {
         public override string Description =>
-            $"{inputAction?.name ?? _monoInput?.name} {_inputActionType}";
+            $"{inputAction?.name ?? _monoInput?.name ?? _inputActionVar?.name} {_inputActionType}";
 
         public enum InputActionType
         {

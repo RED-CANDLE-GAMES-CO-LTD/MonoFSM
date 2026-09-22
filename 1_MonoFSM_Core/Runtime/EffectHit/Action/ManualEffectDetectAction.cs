@@ -13,6 +13,8 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.Action
     ///     必須成對掛：EffectEnterNode 放一顆 _isClearDetection=false 的開判，
     ///     EffectExitNode 放一顆 _isClearDetection=true 的收乾淨；只掛前者的話重疊狀態會殘留，
     ///     exit 永遠不發、第二次執行只會走 Stay 而不是 Enter。
+    ///     這顆所在的節點被關掉時（state 沒進 / GameObject disable），detector 會自動放手回去跑原本的
+    ///     自動判定，見 EffectDetector.IsManualDetectActive。
     /// </summary>
     public class ManualEffectDetectAction : AbstractStateAction, ISceneAwake
     {

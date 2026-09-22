@@ -31,6 +31,11 @@ namespace _1_MonoFSM_Core.Runtime.Action
             else
                 value = _active.Value;
 
+            if (_target == null)
+            {
+                Debug.LogError("_target is null", this);
+                return;
+            }
             _target.SetActive(value);
             foreach (var go in _addTargets)
             {

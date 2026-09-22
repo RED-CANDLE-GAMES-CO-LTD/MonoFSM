@@ -399,7 +399,7 @@ namespace MonoFSM.Runtime
             var result = _effectDetectable.Get(effectType);
             // {
             if (result == null && RuntimeDebugSetting.IsDebugMode)
-                Debug.LogError($"Receiver \"{effectType}\" not found in {name}", this);
+                Debug.LogWarning($"Receiver \"{effectType}\" not found in {name}", this);
             // return null;
             // }
 

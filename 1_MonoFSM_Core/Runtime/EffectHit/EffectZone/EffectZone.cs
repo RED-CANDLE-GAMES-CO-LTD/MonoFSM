@@ -1,4 +1,5 @@
 using MonoFSM.Core.Attributes;
+using MonoFSM.Foundation;
 using MonoFSM.Runtime;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable;
@@ -29,7 +30,7 @@ namespace Gameplay.EffectZone
     /// 要接事件的（進入區域時播特效）留給 EffectHit；只要問「現在算不算在範圍內」的用這個。
     /// </summary>
     [DisallowMultipleComponent]
-    public class EffectZone : MonoBehaviour
+    public class EffectZone : AbstractDescriptionBehaviour
     {
         [Required]
         [SOConfig("GeneralEffectType")]
@@ -60,12 +61,12 @@ namespace Gameplay.EffectZone
         private Transform _centerOverride;
 
         [Tooltip("這個區域現在有沒有在運作，留空 = 永遠運作（ex: 指向廟的 d_HasPower 有電）")]
-        [DropDownRef]
+        [DropDownRef(_isOptional = true)]
         [SerializeField]
         private VarBool _isActiveVar;
 
         [Tooltip("這個區域提供的數值（ex: 供電量、輻射強度），留空則用下面的固定值")]
-        [DropDownRef]
+        [DropDownRef(_isOptional = true)]
         [SerializeField]
         private VarFloat _valueVar;
 
