@@ -26,8 +26,12 @@ namespace MonoFSM.FSM
         Transform transform { get; }
     }
 
+    /// <summary>
+    /// 驅動同一個 MonoEntity 範圍內所有 MonoFSMOwner 的 tick / restore 入口。
+    /// owner 清單存 prefab 時自動從 parent MonoEntity 撈（CollectOwners），nested MonoEntity 底下的歸它們自己的 Logic 管。
+    /// </summary>
     [DisallowMultipleComponent]
-    public class StateMachineLogic : MonoBehaviour, IResetStart
+    public class StateMachineLogic : MonoBehaviour, IResetStart, IBeforePrefabSaveCallbackReceiver
     {
         [AutoParent]
         private MonoEntity _parentEntity;
@@ -144,7 +148,63 @@ namespace MonoFSM.FSM
             _manualUpdateMode = manualUpdate;
         }
 
-        [SerializeField] MonoFSMOwner[] _owners;
+        /// <summary>
+        /// 這顆 Logic 要驅動的 owner。存 prefab 時由 CollectOwners 重算，不用手填。
+        /// </summary>
+        [SerializeField]
+        [Tooltip("存 prefab 時自動從 parent MonoEntity 撈；nested MonoEntity 底下、或節點被關掉的不算")]
+        MonoFSMOwner[] _owners;
+
+        /// <summary>
+        /// 從 parent MonoEntity 範圍內撈出所有該由這顆 Logic 驅動的 MonoFSMOwner。
+        /// 規則跟 MonoEntity.BindModulePackFolders 一致：
+        /// 1. owner 最近的 MonoEntity 必須是 parent entity（nested entity 有自己的 Logic）
+        /// 2. owner 到 entity 之間任何節點 activeSelf == false 就跳過（關掉的 module 當註解）
+        /// 只認 MonoFSMOwner，不看 StateFolder —— 掛 _bindingRoot 併進宿主的 StateFolder 沒有 owner，自然排除。
+        /// Logic 可能是 owner 的兄弟節點（PPlayer 的 NetworkFSM Controller），所以起點是 entity 不是自己。
+        /// 找不到 MonoEntity 時退回從自己往下撈。
+        /// </summary>
+        [Button]
+        public void CollectOwners()
+        {
+            var entity = _parentEntity != null
+                ? _parentEntity
+                : GetComponentInParent<MonoEntity>(true);
+            if (entity == null)
+            {
+                _owners = GetComponentsInChildren<MonoFSMOwner>(true);
+                return;
+            }
+
+            var candidates = entity.GetComponentsInChildren<MonoFSMOwner>(true);
+            var result = ListPool.Get<MonoFSMOwner>(candidates.Length);
+            var entityTr = entity.transform;
+            foreach (var owner in candidates)
+            {
+                if (owner == null) continue;
+                //nested entity 底下的歸它自己的 Logic 管
+                if (owner.GetComponentInParent<MonoEntity>(true) != entity) continue;
+                //owner 到 entity 之間有節點被關掉 → 當註解跳過（含 owner 節點本身，不含 entity 節點）
+                if (HasInactiveNodeBelow(owner.transform, entityTr)) continue;
+                result.Add(owner);
+            }
+
+            _owners = result.ToArray();
+            ListPool.Return(result);
+        }
+
+        private static bool HasInactiveNodeBelow(Transform from, Transform stopAt)
+        {
+            for (var t = from; t != null && t != stopAt; t = t.parent)
+                if (!t.gameObject.activeSelf)
+                    return true;
+            return false;
+        }
+
+        public void OnBeforePrefabSave()
+        {
+            CollectOwners();
+        }
 
         //FIXME: 到處亂叫，不爽, InitializeLogic & CollectStateMachines
         public void CollectStateMachines()
@@ -168,12 +228,10 @@ namespace MonoFSM.FSM
             if (_statePool != null)
                 _statePool.Clear();
 
-            // Get IStateMachineOwner components from children of this GameObject.
-            // var owners = GetComponentsInChildren<IStateMachineOwner>(true);
-            // 剛 AddComponent 出來、還沒經過 Inspector 的 StateMachineLogic 這裡是 null
-            // （其他用到 _owners 的地方都有 null check，只有這行漏了）
+            // 正常情況 _owners 在存 prefab 時就填好了（OnBeforePrefabSave → CollectOwners）。
+            // 剛 AddComponent、或 scene 上直接擺的 FSM 沒存過 prefab 時才會是空的，runtime 補撈一次。
             if (_owners == null || _owners.Length == 0)
-                _owners = GetComponentsInChildren<MonoFSMOwner>(true);
+                CollectOwners();
             var owners = _owners;
             // Assuming ListPool is a static utility class available.
             // If not, replace with: var tempMachines = new List<IStateMachine>(32);

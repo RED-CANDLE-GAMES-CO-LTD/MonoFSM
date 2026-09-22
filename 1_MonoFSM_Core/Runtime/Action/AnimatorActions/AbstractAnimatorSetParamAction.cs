@@ -133,6 +133,14 @@ namespace MonoFSM.Animation
                 return false;
             }
 
+            if (ResolvedAnimator.isActiveAndEnabled == false)
+            {
+                _errorMessage = $"Animator reference is not active and is disabled";
+                _hasParameter = false;
+                return false;
+            }
+
+
             foreach (var param in ResolvedAnimator.parameters)
             {
                 if (param.name == _parameterName)
