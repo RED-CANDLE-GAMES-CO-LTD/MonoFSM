@@ -29,7 +29,16 @@
    `del` / `set`），**通過的候選必須恰好一個**，兩個以上就不猜、照原本的方式列出該層子節點。
    所以看到列候選而不是自動對應，表示這次差異大到不該猜 —— 照抄候選就好。
 
-## 路徑逃逸：`/` 寫成 `\/`、換行寫成 `\n`、字面反斜線寫成 `\\`
+## 路徑逃逸：`/` 寫成 `\/`、`|` 寫成 `\|`、換行寫成 `\n`、字面反斜線寫成 `\\`
+
+ops 的欄位分隔是 `|`，而自動命名會生出**名字裡就有 `|`** 的節點（`DistanceValueSource` 的
+Description 是 `|a - b|`，`FloatMathValueSource` 還會把兩邊串起來）。在 `up prefab do` /
+`scene do` 的路徑裡一律寫成 `\|`（`--node` 是單一參數、不切欄位，照原樣寫就好）：
+
+```bash
+up prefab do "$P" 'ref|$MIN|FloatMathValueSource|_var1._var|[VarFolder] VariableFolder/[Getter] \|d_tailCarEntity - Global: d_Character 大颱風\||VarFloat'
+```
+
 
 自動命名會把 `Table/key` 與譯文塞進名字（`=> Localized: GameplayUI/grab`），而
 `Transform.Find` 把 `/` 一律當階層分隔 —— 不逃逸就永遠指不到那個節點，而且錯誤訊息看起來

@@ -22,6 +22,7 @@ import json
 import os
 import re
 import subprocess
+import unicodedata
 
 IGNORE_FILE = ".uprefab-skillignore"
 DEFAULT_ROOTS = [".claude/skills", ".claude/agents", "MonoFSM/skills", "CLAUDE.md"]
@@ -104,10 +105,35 @@ def _basenames(con) -> dict[str, list[str]]:
     拿 repo root 接一定找不到；改以檔名反查，順便能在資產搬家時指出新位置。"""
     out: dict[str, list[str]] = {}
     for (path,) in con.execute("SELECT path FROM assets"):
+        path = _nfc(path)
         out.setdefault(os.path.basename(path), []).append(path)
     for (path,) in con.execute("SELECT path FROM scripts WHERE path IS NOT NULL"):
+        path = _nfc(path)
         out.setdefault(os.path.basename(path), []).append(path)
     return out
+
+
+def _nfc(s: str) -> str:
+    # 檔案系統 / git 吐出來的中文檔名有可能是 NFD，文件裡打的是 NFC；兩邊統一再比
+    return unicodedata.normalize("NFC", s)
+
+
+def _path_variants(tok: str) -> list[str]:
+    """反引號內容可能是「純路徑（本身含空白）」或「整條指令＋路徑參數」，分不出來就都試。
+
+    2026-09-23 修：以前只要有空白就取最後一個字，`Assets/0_Gameplay/Train Station FSM.prefab`
+    被切成 `FSM.prefab`，專案裡幾乎每條帶空白的中文 prefab 路徑都被誤報「不存在」。
+    順序：原樣 → 從第一個含 `/` 的字開始（去掉 `up prefab read` 這類指令頭）→ 最後一個字。"""
+    out = [tok]
+    words = tok.split()
+    for i, w in enumerate(words):
+        if "/" in w:
+            if i:
+                out.append(" ".join(words[i:]))
+            break
+    if len(words) > 1:
+        out.append(words[-1])
+    return list(dict.fromkeys(out))
 
 
 def _path_check(root: str, here: str, tok: str, bases: dict) -> tuple[bool, str]:
@@ -116,7 +142,7 @@ def _path_check(root: str, here: str, tok: str, bases: dict) -> tuple[bool, str]
     最後一關同時解掉兩件事：文件裡的簡寫路徑不該被誤報，以及資產真的搬家時
     要直接把新路徑講出來，而不是只說「不存在」讓下一隻 agent 自己去找。
     """
-    t = tok.rstrip("/")
+    t = _nfc(tok.rstrip("/"))
     if os.path.exists(os.path.join(root, t)) or os.path.exists(os.path.join(here, t)):
         return True, ""
     if t.startswith("Packages/"):
@@ -135,10 +161,56 @@ def _path_check(root: str, here: str, tok: str, bases: dict) -> tuple[bool, str]
         return True, ""
     hit = bases.get(base)
     if hit:
-        return (True, "") if len(hit) > 1 or t.endswith(hit[0]) else \
-               (False, f"（實際在：{hit[0]}）")
+        # 文件常寫簡寫路徑（`Physics Object/Fan/x.prefab`），要看的是「實際路徑以它結尾」；
+        # `MonoFSM/…/MonoEntity.cs` 這種中段省略的，省略號當萬用字元
+        if len(hit) > 1 or hit[0].endswith(t):
+            return True, ""
+        if "…" in t or "..." in t:
+            pat = ".*".join(re.escape(x) for x in re.split(r"…|\.\.\.", t)) + "$"
+            if re.search(pat, hit[0]):
+                return True, ""
+        return False, f"（實際在：{hit[0]}）"
     near = difflib.get_close_matches(base, list(bases), n=1, cutoff=0.8)
     return False, (f"（相近檔名：{near[0]}）" if near else "")
+
+
+def _src_chain(con, root: str):
+    """回傳 has_member(cls, fld)：沿繼承鏈讀 .cs 原始碼找這個成員有沒有宣告。
+
+    catalog.fields 只收 serialized 欄位，`AbstractMonoVariable._valueSources` 這種
+    [NonSerialized] / private 快取欄位查不到就被報「欄位不存在」—— 但它是真的在的
+    （2026-09-23）。查不到 serialized 時再回原始碼確認，分成「非 serialized」跟「真的沒有」。"""
+    info: dict[str, tuple[str, list[str]]] = {}
+    for c, path, bases in con.execute("SELECT class, path, bases FROM catalog"):
+        info[c] = (path, [b.strip().split("<")[0] for b in (bases or "").split(",") if b.strip()])
+    for c, path in con.execute("SELECT class, path FROM scripts WHERE path IS NOT NULL"):
+        info.setdefault(c, (path, []))
+    cache: dict[str, str] = {}
+
+    def src(path: str) -> str:
+        if path not in cache:
+            try:
+                with open(os.path.join(root, path), encoding="utf-8", errors="ignore") as fh:
+                    cache[path] = fh.read()
+            except OSError:
+                cache[path] = ""
+        return cache[path]
+
+    def has_member(cls: str, fld: str) -> bool:
+        decl = re.compile(rf"[\w>\]?]\s+{re.escape(fld)}\s*(=|;|\{{|=>)")
+        seen, todo = set(), [cls]
+        while todo:
+            c = todo.pop()
+            if c in seen or c not in info:
+                continue
+            seen.add(c)
+            path, bases = info[c]
+            if path and decl.search(src(path)):
+                return True
+            todo += bases
+        return False
+
+    return has_member
 
 
 def _near(tok: str, pool, n=2) -> list[str]:
@@ -161,10 +233,8 @@ def _candidates(text: str):
             if "/" in tok and any(c in tok for c in "<>*?"):
                 continue  # `Packages/<package-id>/`、`Module Test/*.unity` 是佔位／glob
             if "/" in tok and (tok.endswith(PATH_EXTS) or tok.endswith("/")):
-                # `up prefab copy Packages/x/y.prefab` 這種整條指令包在反引號裡：
-                # 要驗的是最後那個路徑參數，不是整串（否則永遠「不存在」）
-                path_tok = tok.rsplit(None, 1)[-1] if " " in tok else tok
-                yield i, "path", (path_tok, tok)
+                # 可能是整條指令包在反引號裡，也可能是本身帶空白的路徑 —— 交給 _path_variants
+                yield i, "path", (tok, tok)
             elif _MEMBER_RE.match(tok):
                 yield i, "member", (tok, tok)
             else:
@@ -191,7 +261,9 @@ def cmd(args, root, cfg):
         raise SystemExit(f"# 沒有要掃的文件（--path '{args.path}' 沒命中）\n"
                          f"# 預設掃：{'、'.join(DEFAULT_ROOTS)}")
 
+    has_member = _src_chain(con, root)
     pool = list(names.values())
+    nonser: list[tuple[str, int, str]] = []   # 原始碼有、但不是 serialized 的欄位
     bad: dict[str, list[tuple]] = {}
     checked = 0
     weak = 0   # 查不到又沒有相近型別的 —— 多半根本不是專案型別，--loose 才列
@@ -204,7 +276,12 @@ def cmd(args, root, cfg):
                 continue
             if kind == "path":
                 checked += 1
-                ok, why = _path_check(root, here, tok, bases)
+                why = ""
+                for cand in _path_variants(tok):
+                    ok, w = _path_check(root, here, cand, bases)
+                    if ok:
+                        break
+                    why = why or w
                 if not ok:
                     bad.setdefault(rel, []).append((line, "路徑不存在", shown, why))
             elif kind == "member":
@@ -215,7 +292,9 @@ def cmd(args, root, cfg):
                 if not fs or not fld.startswith("_"):
                     continue  # 只驗序列化欄位（專案慣例以底線開頭），屬性/方法放過
                 checked += 1
-                if fld not in fs:
+                if fld not in fs and has_member(names[cls.lower()], fld):
+                    nonser.append((rel, line, shown))
+                elif fld not in fs:
                     bad.setdefault(rel, []).append(
                         (line, "欄位不存在", shown, _hint(_near(fld, fs))))
             else:
@@ -246,6 +325,13 @@ def cmd(args, root, cfg):
 
     tail = f"，另有 {weak} 個查不到但沒有相近型別的（--loose 看）" if weak else ""
     print(f"# 掃 {len(files)} 份文件、{checked} 個引用，{total} 個失效{tail}")
+    if nonser:
+        # 不算失效：成員還在，只是 up fields 看不到（寫 skill 時要知道 prefab 上改不到它）
+        print(f"# 另有 {len(nonser)} 個是原始碼有、但非 serialized 的欄位（不算失效"
+              f"{'' if args.loose else '，--loose 列出'}）")
+        if args.loose:
+            for rel, line, tok in nonser:
+                print(f"  {rel}:{line}  非 serialized  {tok}")
     if not total:
         print("# 乾淨。語意層的過期用 `up verify-skills --changed` 挑要重讀的段落")
         return

@@ -156,6 +156,14 @@ namespace MonoFSM.FSM
         MonoFSMOwner[] _owners;
 
         /// <summary>
+        /// 自動規則撈不到、但還是要由這顆 Logic 驅動的 owner（例如擺在 entity 範圍外、或 nested entity 底下）。
+        /// CollectOwners 會把它們併進 _owners，重複的只算一次。
+        /// </summary>
+        [SerializeField]
+        [Tooltip("手動指定的 owner，CollectOwners 時併進 _owners（重複的會去掉）")]
+        MonoFSMOwner[] _manualOwners;
+
+        /// <summary>
         /// 從 parent MonoEntity 範圍內撈出所有該由這顆 Logic 驅動的 MonoFSMOwner。
         /// 規則跟 MonoEntity.BindModulePackFolders 一致：
         /// 1. owner 最近的 MonoEntity 必須是 parent entity（nested entity 有自己的 Logic）
@@ -170,24 +178,32 @@ namespace MonoFSM.FSM
             var entity = _parentEntity != null
                 ? _parentEntity
                 : GetComponentInParent<MonoEntity>(true);
+            MonoFSMOwner[] candidates;
+            var result = ListPool.Get<MonoFSMOwner>(16);
             if (entity == null)
             {
-                _owners = GetComponentsInChildren<MonoFSMOwner>(true);
-                return;
+                candidates = GetComponentsInChildren<MonoFSMOwner>(true);
+                result.AddRange(candidates);
+            }
+            else
+            {
+                candidates = entity.GetComponentsInChildren<MonoFSMOwner>(true);
+                var entityTr = entity.transform;
+                foreach (var owner in candidates)
+                {
+                    if (owner == null) continue;
+                    //nested entity 底下的歸它自己的 Logic 管
+                    if (owner.GetComponentInParent<MonoEntity>(true) != entity) continue;
+                    //owner 到 entity 之間有節點被關掉 → 當註解跳過（含 owner 節點本身，不含 entity 節點）
+                    if (HasInactiveNodeBelow(owner.transform, entityTr)) continue;
+                    result.Add(owner);
+                }
             }
 
-            var candidates = entity.GetComponentsInChildren<MonoFSMOwner>(true);
-            var result = ListPool.Get<MonoFSMOwner>(candidates.Length);
-            var entityTr = entity.transform;
-            foreach (var owner in candidates)
-            {
-                if (owner == null) continue;
-                //nested entity 底下的歸它自己的 Logic 管
-                if (owner.GetComponentInParent<MonoEntity>(true) != entity) continue;
-                //owner 到 entity 之間有節點被關掉 → 當註解跳過（含 owner 節點本身，不含 entity 節點）
-                if (HasInactiveNodeBelow(owner.transform, entityTr)) continue;
-                result.Add(owner);
-            }
+            if (_manualOwners != null)
+                foreach (var owner in _manualOwners)
+                    if (owner != null && !result.Contains(owner))
+                        result.Add(owner);
 
             _owners = result.ToArray();
             ListPool.Return(result);

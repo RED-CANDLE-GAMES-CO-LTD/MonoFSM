@@ -1281,6 +1281,12 @@ namespace MonoFSM.Editor.PrefabEditing
                     return Vector(prop.vector3Value);
                 case SerializedPropertyType.Vector4:
                     return $"v4:{prop.vector4Value.ToString("R", CultureInfo.InvariantCulture)}";
+                case SerializedPropertyType.Vector2Int:
+                    return $"v2i:{prop.vector2IntValue}";
+                case SerializedPropertyType.Vector3Int:
+                    return $"v3i:{prop.vector3IntValue}";
+                case SerializedPropertyType.RectInt:
+                    return $"recti:{prop.rectIntValue}";
                 case SerializedPropertyType.Quaternion:
                     return Quaternion(prop.quaternionValue);
                 case SerializedPropertyType.Color:

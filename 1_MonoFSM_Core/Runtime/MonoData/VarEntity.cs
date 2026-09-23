@@ -16,6 +16,18 @@ namespace MonoFSM.Runtime.Variable
     //最常用的Variable? MonoDescriptable下也會有MonoDescriptable
     //FIXME: 回到pool後，reference要清掉？還是是detector的責任？
 
+    /// <summary>
+    ///     指向一顆 <see cref="MonoEntity" /> 的變數，是所有「跨物件取值」的入口：
+    ///     把 VarEntity 當 parent，底下掛 VarFloat / VarBool 等子 var（只填 _varTag），
+    ///     子 var 就會去那顆 entity 的 VariableFolder 撈同 tag 的 var。
+    ///     值的來源有三條，順序是 **子節點 value source（GlobalEntitySource / VarEntityRef …）
+    ///     → parent VarEntity proxy（靠自己的 _varTag）→ _defaultValue**，
+    ///     見 <c>GenericUnityObjectVariable.GetValueInternal</c>。
+    ///     ⚠ 只要子節點掛了任何一顆 value source，_defaultValue 那條 fallback 就吃不到了 ——
+    ///     「由程式在 runtime 用 SetOverrideDefaultValue 塞值」的 VarEntity（例如 GameCore 的
+    ///     <c>[Var] playerBrain</c> 由 FusionPlayerObject 塞本機 brain）**底下不能有 value source**。
+    ///     <see cref="_monoEntityTag" /> 只是限定型別與自動命名用，**不會自己去解值**。
+    /// </summary>
     [FormerlyNamedAs("VarBlackboard")]
     public class VarEntity : GenericUnityObjectVariable<MonoEntity>
     {

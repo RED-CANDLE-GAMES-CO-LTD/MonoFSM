@@ -6,6 +6,11 @@ using UnityEngine;
 
 namespace MonoFSM.Runtime.ObjectPool
 {
+    /// <summary>
+    /// 回收一顆（或一整份 list 裡的）entity：呼叫 <c>entity.BindObj.Despawn()</c>。
+    /// 注意回收的是 entity 所屬的 MonoObj，不是 entity 節點本身 —— entity 若是某個組合 prefab 裡的子 entity
+    /// （例：路邊發電鴿和底座 的鴿子），會連同整個組合一起消失。_despawnEntityList 有填時優先走 list。
+    /// </summary>
     public class DespawnEntityAction : AbstractStateAction
     {
         public VarEntity _despawnEntity;

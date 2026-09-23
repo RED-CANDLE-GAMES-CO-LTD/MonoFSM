@@ -36,6 +36,15 @@ namespace MonoFSM.Runtime
         public MonoEntity ParentEntity { get; }
     }
 
+    /// <summary>
+    ///     遊戲世界裡「一個東西」的身分節點：帶一顆 <see cref="MonoEntityTag" />（DefaultTag），
+    ///     底下的 VariableFolder 就是它的資料，別人靠 tag 找到它、再用 VariableTag 取它的 var。
+    ///     註冊：往上找最近的 <see cref="MonoEntityBinder" />（自己的 sub-scope 或世界的）把自己
+    ///     以 tag 當 key 加進去。⚠ binder 是 **tag → 單一 entity** 的 dict，**同 tag 撞了是先到先贏、
+    ///     後面的靜默被丟掉**（<c>MonoDict.Add</c>），要篩掉不該註冊的（例如網路上別人的 proxy）
+    ///     得自己掛一顆 <see cref="IMonoAddToBinderChecker" />。所以每個玩家各一顆的東西
+    ///     （PlayerBrain / Character）**不要**用 GlobalEntitySource 去抓「本機那顆」。
+    /// </summary>
     //FIXME: 必定需要MonoObj?
     // [SelectionBase]
     // [RequireComponent(typeof(MonoObj))]

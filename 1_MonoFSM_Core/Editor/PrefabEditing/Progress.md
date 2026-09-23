@@ -84,3 +84,11 @@
   版本差異，存出來的 inSlope/outSlope 是明確的數值。
 - 存檔後的 reload 驗證還沒支援 AnimationCurve（會印 unsupported），要確認值有進去目前只能
   `peek`（只顯示型別名）或直接看 YAML 的 `m_Curve`。
+
+- 2026-09-22 ops 的欄位分隔支援 `\|` 逃逸（`EditBatch.SplitFields`）。原因：自動命名會生出
+  名字裡就有 `|` 的節點 —— `DistanceValueSource.Description` 是 `|a - b|`，`FloatMathValueSource`
+  再把兩邊串成 `|a - b| min |c - d|`。在那之前這種節點**在 ops 裡完全指不到**，而且失敗方式很毒：
+  `line.Split('|')` 直接把路徑切斷，`mark` 這種不驗路徑的操作還會靜默記下半截字串
+  （實測 `mark|D1|…/[Getter] \|a - b\|` 記成 `…/[Getter] \`），錯要等到後面 `ref` 才爆。
+  只解 `\|` 一種，其餘反斜線（路徑的 `\/`、`\\n`）原樣往下游丟，不然會跟既有的路徑逃逸打架。
+- 2026-09-23 `ApplyValue` / `Preview` / `Snapshot` 補 Vector2Int / Vector3Int / RectInt（逗號分隔整數）。之前設 `AmbientLightningRender._countRange` 撞 default 分支只能靠 C# 預設值。

@@ -70,6 +70,43 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 跟 <see cref="Run(string,Apply)"/> 相同，另外回報實際成功執行的操作數。
         /// PrefabEdit 的 quiet 模式用這個數字取代逐行成功 log；錯誤時仍保留完整逐行輸出。
         /// </summary>
+        /// <summary>
+        ///     切欄位，但 `\|` 當成字面上的 `|`。
+        ///     為什麼要：自動命名會生出含 `|` 的節點名（DistanceValueSource 的 Description 是
+        ///     `|a - b|`、FloatMathValueSource 也會帶進去），不逃逸的話那些節點在 ops 裡永遠指不到
+        ///     —— 而且失敗方式很難查（路徑被切斷，看起來像「這層明明就有」）。
+        ///     只解 `\|` 一種，其餘反斜線（路徑的 `\/`、`\\n`）原樣留給下游的路徑解析。
+        /// </summary>
+        private static string[] SplitFields(string line)
+        {
+            if (line.IndexOf('|') < 0) return new[] { line };
+
+            var parts = new List<string>();
+            var cur = new StringBuilder();
+            for (var i = 0; i < line.Length; i++)
+            {
+                var c = line[i];
+                if (c == '\\' && i + 1 < line.Length && line[i + 1] == '|')
+                {
+                    cur.Append('|');
+                    i++;
+                    continue;
+                }
+
+                if (c == '|')
+                {
+                    parts.Add(cur.ToString());
+                    cur.Clear();
+                    continue;
+                }
+
+                cur.Append(c);
+            }
+
+            parts.Add(cur.ToString());
+            return parts.ToArray();
+        }
+
         internal static string Run(string ops, Apply apply, out int done)
         {
             done = 0;
@@ -86,7 +123,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 var line = lines[i].Trim();
                 if (line.Length == 0 || line.StartsWith("#")) continue;
 
-                var parts = line.Split('|');
+                var parts = SplitFields(line);
                 var verb = parts[0].Trim().ToLowerInvariant();
                 var args = new string[parts.Length - 1];
 

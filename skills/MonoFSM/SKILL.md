@@ -142,7 +142,7 @@ private ICurrentEntityOwner Owner
 | [references/fsm-traversal.md](references/fsm-traversal.md) | 寫 Editor 工具要程式化走訪 FSM 階層（匯出、視覺化、批次修改）時 |
 | [references/components.md](references/components.md) | 想知道有哪些現成的 State / Action / Condition / Timer 等組件可以直接用，不用自己寫時 |
 | [references/effect-system.md](references/effect-system.md) | 處理 EffectDealer / EffectReceiver 互動（誰能對誰造成效果、偵測、判定）時；也含「物件上要取互動者（selector）entity」的組法、新增 EffectDetector 該放哪顆 nested prefab 與 kinematic Rigidbody 的坑 |
-| [references/value-source.md](references/value-source.md) | 要做每幀計算並提供值的 `AbstractValueSource<T>`，或需要理解 Variable 的 `IsValueExist` / getter 型 `IsNull` 語意、runtime 寫入的 Var 要勾 `_isRuntimeOnly`、或 Var 底下要掛多顆 condition（**是 OR 不是 AND**，要 AND 得包 `CompositeCondition`）時 |
+| [references/value-source.md](references/value-source.md) | 要做每幀計算並提供值的 `AbstractValueSource<T>`，或需要理解 Variable 的 `IsValueExist` / getter 型 `IsNull` 語意、runtime 寫入的 Var 要勾 `_isRuntimeOnly`、或 Var 底下要掛多顆 condition（**只看第一顆 active 的，不是 OR**，要 AND 得包 `CompositeCondition`）時 |
 | [references/var-wrapper.md](references/var-wrapper.md) | 欄位要讓使用者在「綁一個 Var」與「直接填常數」之間二選一（`VarFloatWrapper` 等）時 |
 | [references/csharp-patterns.md](references/csharp-patterns.md) | 寫每幀執行的程式碼、需要避免 GC 配置時；也含序列化 array 欄位不會是 null 導致 `??=` lazy init 失效的坑 |
 | [references/serialization-migration.md](references/serialization-migration.md) | 要改已序列化欄位的型別又不想掉 prefab reference 時 |

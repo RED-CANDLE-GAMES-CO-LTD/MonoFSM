@@ -6,6 +6,10 @@ using UnityEngine;
 
 namespace _1_MonoFSM_Core.Runtime.Action.AnimatorActions
 {
+    /// <summary>
+    /// 每個 render frame 呼叫底下 [Render] 節點的 OnRender()。不吃 ShouldSimulte，各端（含 proxy）都會跑；
+    /// 沒有 state 範圍，要自己用 _conditionFolder 把關。
+    /// </summary>
     //FIXME: 乾淨的AbstractDescriptor就好？
     public class RenderLoopHandler : AbstractEventHandler, IRenderUpdate
     {

@@ -34,18 +34,21 @@
 
 ---
 
-## Var 底下掛多顆 condition 是 OR 不是 AND
+## Var 底下掛多顆 condition 只看第一顆 active 的（不是 OR 也不是 AND）
 
 `AbstractMonoVariable._valueSources` 是 `[AutoChildren(DepthOneOnly)] IValueProvider[]`，取值走
 `ValueResolver.GetActiveValueSource`（`0_Foundation/AbstractValueSource.cs:62`）—— **回傳第一個 `IsValid` 的 source，
-sibling 順序就是優先序**。`AbstractConditionBehaviour` 本身就是 `IValueProvider<bool>`，所以一顆 VarBool 直接放兩顆 `[If]`
-是「A 成立就回 true，B 不會被問」：
+sibling 順序就是優先序**。`AbstractConditionBehaviour` 本身就是 `IValueProvider<bool>`，但沒有 override `IsValid`，
+走介面預設 `isActiveAndEnabled`（`IValueProvider.cs:16`）—— 只要 active 就算 valid。所以一顆 VarBool 直接放兩顆 `[If]`
+是「A 的結果直接就是答案，A 是 false 也不會去問 B」：
 
 ```
 [Getter] 我的旗標 <VarBool>
-  [If] A          ← 各自是一顆 source → OR
-  [If] B
+  [If] A          ← 第一顆 active → 永遠由它決定
+  [If] B          ← 死的
 ```
+
+nested 繼承來的 `[If]` 要讓位：把它設 inactive，再在後面放新的條件（2026-09-23 發電鴿籃子車廂 `d_CanInteract` 就這樣做）。
 
 要 AND 一定包一層 `CompositeCondition`（存檔後節點會被 rename 成 `[if AND] …`）：
 
@@ -57,7 +60,7 @@ sibling 順序就是優先序**。`AbstractConditionBehaviour` 本身就是 `IVa
 ```
 
 - 非 Play Mode 時 `GetActiveValueSource` 直接回 `sources[0]`，**Inspector 看起來是對的，只有 Play 才錯**。
-- OR 只發生在「多顆 source 之間」。掛在同一顆 source（`LocalizedStringValueSource`、`[Case]`、Action、Handler…）底下的多個 `[If]`
+- 「第一顆 active 決定」只發生在「多顆 source 之間」。掛在同一顆 source（`LocalizedStringValueSource`、`[Case]`、Action、Handler…）底下的多個 `[If]`
   走 `ConditionHelper.IsAllValid()`（`1_Conditions/Interface/ConditionHelper.cs:11`）→ **AND**，不用包。
 - 2026-09-21 鑽頭鴿子供電的 `[Getter] 運轉中`（toggle on AND 有電）就是靠 CompositeCondition 包的。
 

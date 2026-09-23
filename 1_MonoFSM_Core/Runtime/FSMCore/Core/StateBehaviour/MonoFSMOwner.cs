@@ -8,7 +8,7 @@ using UnityEngine;
 namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
 {
     /// <summary>
-    /// FIXME: 好像可以和 StateFolder 合併成一個 MonoBehaviour
+    /// FIXME: 好像可以和 StateFolder 合併成一個 MonoBehaviour 但module的statefolder是獨立的？
     /// </summary>
     //想要HFSM?
     public class MonoFSMOwner : MonoBehaviour, IStateMachineOwner

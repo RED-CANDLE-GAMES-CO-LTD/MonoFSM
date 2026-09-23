@@ -65,6 +65,39 @@ namespace MonoFSM.Editor.PrefabEditing
             return cursor;
         }
 
+        /// <summary>
+        /// 關掉同層容錯（FuzzySegment）的精確解析。找不到時再用容錯跑一次，
+        /// 對得到就把那條路徑放進 suggestion 讓呼叫端印「你可能想要 X」，但**不回傳它**。
+        ///
+        /// 存在理由：容錯對 read / do 還算划算（改名後少跑一次 read），但對「往節點底下
+        /// 長東西」的指令，對錯節點就是把資料塞進別顆 —— 2026-09-21 `up prompt --var`
+        /// 把火車受損文案插進 `d_StaminaLowHint`，只留一行 note 根本沒人看到。
+        /// </summary>
+        internal static Transform TryNodeExact(Transform root, string path, bool literal,
+            out string suggestion)
+        {
+            suggestion = null;
+            Transform node;
+            _fuzzyDisabled = true;
+            try
+            {
+                node = literal ? TryNodeLiteral(root, path) : TryNode(root, path);
+            }
+            finally
+            {
+                _fuzzyDisabled = false;
+            }
+
+            if (node != null) return node;
+
+            var guess = literal ? TryNodeLiteral(root, path) : TryNode(root, path);
+            DrainNotes(); // 猜的那次留下的「自動對應」note 不算數，別讓呼叫端以為有套用
+            if (guess != null) suggestion = PathOf(root, guess);
+            return null;
+        }
+
+        private static bool _fuzzyDisabled;
+
         /// <summary>找不到回 null 的版本（讀取端用，讀不到不是錯誤，只是要換個訊息）。</summary>
         internal static Transform TryNode(Transform root, string path)
         {
@@ -236,6 +269,7 @@ namespace MonoFSM.Editor.PrefabEditing
         /// </summary>
         private static Transform FuzzySegment(Transform cursor, string seg)
         {
+            if (_fuzzyDisabled) return null;
             // 有 `[n]` 後綴的本來就是「同名的第幾個」，名字對不上時談不上唯一候選
             if (string.IsNullOrEmpty(seg) || TrySplitIndexSuffix(seg, out _, out _)) return null;
 
@@ -710,6 +744,24 @@ namespace MonoFSM.Editor.PrefabEditing
                 case SerializedPropertyType.Vector4:
                     prop.vector4Value = ToVector4(value, fieldPath);
                     break;
+                case SerializedPropertyType.Vector2Int:
+                {
+                    var v = ToInts(value, 2, "Vector2Int", "\"x,y\"", fieldPath);
+                    prop.vector2IntValue = new Vector2Int(v[0], v[1]);
+                    break;
+                }
+                case SerializedPropertyType.Vector3Int:
+                {
+                    var v = ToInts(value, 3, "Vector3Int", "\"x,y,z\"", fieldPath);
+                    prop.vector3IntValue = new Vector3Int(v[0], v[1], v[2]);
+                    break;
+                }
+                case SerializedPropertyType.RectInt:
+                {
+                    var v = ToInts(value, 4, "RectInt", "\"x,y,width,height\"", fieldPath);
+                    prop.rectIntValue = new RectInt(v[0], v[1], v[2], v[3]);
+                    break;
+                }
                 case SerializedPropertyType.Quaternion:
                     // 吃 "x,y,z,w"（原始四元數）或 "x,y,z"（歐拉角，會轉成四元數）。
                     // Transform.m_LocalRotation 走這裡；歐拉角入口是給人看的，`rot` 也是同一套。
@@ -755,6 +807,27 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             return mask;
+        }
+
+        /// <summary>
+        /// Vector2Int / Vector3Int / RectInt 共用：吃逗號分隔的整數字串。
+        /// 2026-09-23 補：設 AmbientLightningRender._countRange（Vector2Int）時直接撞 default 分支。
+        /// </summary>
+        private static int[] ToInts(object value, int count, string typeName, string format,
+            string fieldPath)
+        {
+            var parts = (value?.ToString() ?? "").Split(',');
+            if (parts.Length == count)
+            {
+                var result = new int[count];
+                var ok = true;
+                for (var i = 0; i < count; i++)
+                    if (!int.TryParse(parts[i].Trim(), out result[i]))
+                        ok = false;
+                if (ok) return result;
+            }
+
+            throw Abort($"'{fieldPath}' 是 {typeName}，值請傳 {format}（整數）");
         }
 
         private static Vector3 ToVector3(object value, string fieldPath)
@@ -951,6 +1024,9 @@ namespace MonoFSM.Editor.PrefabEditing
                 case SerializedPropertyType.Vector3: return prop.vector3Value.ToString("0.##");
                 case SerializedPropertyType.Vector2: return prop.vector2Value.ToString("0.##");
                 case SerializedPropertyType.Vector4: return prop.vector4Value.ToString("0.##");
+                case SerializedPropertyType.Vector2Int: return prop.vector2IntValue.ToString();
+                case SerializedPropertyType.Vector3Int: return prop.vector3IntValue.ToString();
+                case SerializedPropertyType.RectInt: return prop.rectIntValue.ToString();
                 case SerializedPropertyType.Quaternion:
                     // 序列化的是四元數，但人看的是歐拉角 —— 兩個都印，才對得上 `rot` 的輸入
                     return $"{prop.quaternionValue.eulerAngles.ToString("0.##")} (euler)";

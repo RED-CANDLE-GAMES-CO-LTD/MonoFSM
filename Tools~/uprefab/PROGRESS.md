@@ -1434,3 +1434,10 @@ root 名稱改，而 root 名稱又會被存檔改回 **asset 檔名**（`rename
 
 意外的好處：改 prefab 檔名 = 改 root 名 = 改 `[Anim] …` 節點名，三件事連動，不用手動 rename。
 - 2026-09-15 `verify-skills` 兩個誤報修掉：(1) 文件照 Unity 寫的 `Packages/com.monofsm.core/…` 路徑用 manifest 的 file: 對應換回 repo 目錄再查（`_pkg_map`），不然 up prefab read 只認 Packages/ 寫法、verifier 卻只認 repo 相對，兩支工具互相打臉；(2) 反引號裡包整條指令（`up prefab copy <path>`）時只驗最後一個路徑參數。另 `up find <裸字>` 改成直接印 `--comp/--name/--path` 用法，不再只說「不認得」。
+
+## `prompt` 不吃同層容錯（2026-09-23）
+- 2026-09-21 `up prompt --var` 打錯路徑，`FuzzySegment` 把它對到同層的 `d_StaminaLowHint`，火車受損文案就插進去了；只有報告尾端一行 `#` note，沒人看到。
+- 新增 `EditResolve.TryNodeExact(root, path, literal, out suggestion)`：先關掉 fuzzy 解一次，找不到再開 fuzzy 猜一次，猜到的只放進 suggestion（`PathOf` 產生、可以原樣貼回），**不回傳節點**。PromptEdit 的 `--var` 和 `if:` 全部改走它，錯誤訊息是「找不到節點 X，沒有套用。你可能想要：`Y`」。
+- 故意不動 `prefab read / do` 的容錯：那邊的理由（自動命名改名後少跑一次 read）還成立，而且 do 會印 note。prompt 不一樣，它是往節點底下長 value source / 條件，對錯節點 = 資料寫進別顆。之後其他「往節點底下長東西」的指令要一樣處理就叫 `TryNodeExact`。
+- 2026-09-23 `verify-skills` 路徑誤報：以前反引號裡只要有空白就當成「整條指令」只取最後一個字，專案裡帶空白的 prefab 路徑（幾乎全部中文命名的）都被切爛；另外簡寫路徑比對 `t.endswith(hit)` 方向寫反，才會印出「實際在：」接一模一樣的路徑。改成原樣 → 去掉指令頭 → 最後一個字依序試，任一過就算過；`…/` 中段省略當萬用字元。TODO 原本猜是 NFC/NFD，實際不是，但還是順手把兩邊都 normalize 成 NFC。
+- 2026-09-23 `verify-skills` 欄位檢查：catalog.fields 只有 serialized 欄位，`[NonSerialized]` / private 快取欄位會被報「欄位不存在」。查不到時沿 catalog.bases 繼承鏈讀 .cs 找宣告，找到就歸「非 serialized」另外計數、不算失效（`--loose` 列出）—— skill 裡提這些欄位是合法的，只是 prefab 上改不到。
