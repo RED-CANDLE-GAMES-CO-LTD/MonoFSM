@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -422,10 +423,14 @@ namespace MonoFSM.Editor.PrefabEditing
                 names = members.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList();
             else
                 names = SerializedNames(type);
+            // Unity 內建 component（MeshRenderer…）的欄位在 native 端，反射一個都看不到
+            if (names.Count == 0 && string.IsNullOrEmpty(members) && !(comp is MonoBehaviour))
+                names = NativeSerializedNames(comp);
 
             foreach (var name in names)
             {
-                if (!TryResolvePath(comp, name, out var value, out var reason))
+                if (!TryResolvePath(comp, name, out var value, out var reason) &&
+                    !TryReadSerialized(comp, name, out value))
                 {
                     // 沒點名時（dump 全部欄位）不該為了讀不到的東西吵，只有顯式問了才回報
                     if (!string.IsNullOrEmpty(members)) sb.AppendLine($"  {name} = {reason}");
@@ -664,6 +669,70 @@ namespace MonoFSM.Editor.PrefabEditing
 
             value = cursor;
             return true;
+        }
+
+        /// <summary>
+        /// 反射讀不到時的退路：走 SerializedObject 讀 native serialized 欄位。
+        /// Unity 內建 component 的 `m_Materials` 這類欄位 C# 端沒有對應 field，只有 property
+        /// （`sharedMaterials`），但 `up prefab do aref` 寫的是 serialized path —— 讀寫要對得起來（2026-09-23）。
+        /// `m_Materials`、`m_Materials[0]`、`m_Materials.Array.data[0]` 三種寫法都收。
+        /// </summary>
+        private static bool TryReadSerialized(Component comp, string path, out object value)
+        {
+            value = null;
+            if (comp == null || string.IsNullOrEmpty(path)) return false;
+            var propPath = Regex.Replace(path.Trim(), @"(?<!\.Array\.data)\[(\d+)\]", ".Array.data[$1]");
+            using var so = new SerializedObject(comp);
+            var sp = so.FindProperty(propPath);
+            if (sp == null) return false;
+            value = ReadSerializedValue(sp);
+            return true;
+        }
+
+        private static object ReadSerializedValue(SerializedProperty sp)
+        {
+            if (sp.isArray && sp.propertyType != SerializedPropertyType.String)
+            {
+                var list = new List<object>(sp.arraySize);
+                for (var i = 0; i < sp.arraySize; i++)
+                    list.Add(ReadSerializedValue(sp.GetArrayElementAtIndex(i)));
+                return list;
+            }
+
+            switch (sp.propertyType)
+            {
+                case SerializedPropertyType.ObjectReference:
+                    return sp.objectReferenceValue;
+                case SerializedPropertyType.Enum:
+                    var i = sp.enumValueIndex;
+                    return i >= 0 && i < sp.enumDisplayNames.Length ? sp.enumDisplayNames[i] : sp.intValue;
+                case SerializedPropertyType.LayerMask:
+                    return sp.intValue;
+            }
+
+            try
+            {
+                return sp.boxedValue;
+            }
+            catch (Exception)
+            {
+                return $"<{sp.propertyType} {sp.type}>";
+            }
+        }
+
+        /// <summary>native component 的頂層可見 serialized 欄位名（不含 m_Script）。</summary>
+        private static List<string> NativeSerializedNames(Component comp)
+        {
+            var names = new List<string>();
+            using var so = new SerializedObject(comp);
+            var it = so.GetIterator();
+            if (!it.NextVisible(true)) return names;
+            do
+            {
+                if (it.propertyPath != "m_Script") names.Add(it.propertyPath);
+            } while (it.NextVisible(false));
+
+            return names;
         }
 
         /// <summary>一段成員名：先找欄位，再找可讀的 property（走 ProbeMineField 保護）。</summary>

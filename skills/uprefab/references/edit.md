@@ -194,8 +194,10 @@ auto|
 - **錯誤訊息會給下一步的線索**：路徑錯 → 列出走到哪、那層有哪些子節點；型別打錯 → 列出
   名稱相近的候選；欄位名錯 → 列出可用欄位；**巢狀路徑錯 → 列出走得通的那一層底下有什麼**
   （`_timeMax._constValue` → 「走到 `_timeMax`（VarFloatWrapper），這層底下有 `_tempValue: float`」）。
-- `prefab do` 會檢查 `SaveAsPrefabAsset` 成功，並 reload 驗證可推導的 touched 欄位；至少
-  `active` 一定驗證。`auto` 若無法完整推導，摘要會明講 unsupported，不會假裝已驗。
+- `prefab do` 會檢查 `SaveAsPrefabAsset` 成功，並 reload 驗證 touched 欄位（`auto` 驗它真的改到的
+  [Auto*] 欄位）；另外比對這批沒寫的既有 override / added 節點，被蓋掉印 `# ⚠ 連帶損失`。
+- **目標 prefab 正開在 Prefab Mode 時 `do` 會拒絕**（stage 之後存檔或退出按 Discard 會把改動整份蓋回）。
+  請使用者存檔並關掉 stage 再跑；`--force` 可硬寫，但 stage 有未存改動時不要用。
   `--quiet` 只壓縮成功 log，錯誤仍保留完整行號與下一步線索。
 - 要人工補驗時用 `prefab peek`；`prefab read` 已無磁碟快取（2026-09-11 移除），存檔後直接 read 即是現況。
 
@@ -233,8 +235,10 @@ MonoFSM 大量欄位靠 Auto 系列 attribute 填 —— `TransitionBehaviour._c
 - 甚至不用跑 `auto`：只下 `if|`，存檔前的 `OnBeforePrefabSave` callback 就會把繼承節點的
   `_conditions` 補上。
 
-所以**不要為了 variant 預防性改用 `addel` + `ref`**，直接 `auto`，寫完照常 `peek` 驗一次。
-真的遇到欄位是空的，先看 `auto` 的輸出（`[Auto*] 欄位綁上 N、沒綁上 M`）分辨是「綁上了
+所以**不要為了 variant 預防性改用 `addel` + `ref`**，直接 `auto`。
+`auto` 現在會自己驗（2026-09-23）：log 多一行「實際改到 N 個 [Auto*] 欄位」，存檔後逐欄 reload 比對，
+沒寫進去會進「驗證失敗明細」並指向 `addel`+`ref`；這批沒碰的既有 override / added 節點被蓋掉會印 `# ⚠ 連帶損失`。
+看到這兩種才需要手動補。真的遇到欄位是空的，先看 `auto` 的輸出（`[Auto*] 欄位綁上 N、沒綁上 M`）分辨是「綁上了
 沒存進去」還是「根本沒綁上」，再往兩個方向查：目標 component 是否來自**巢狀 prefab**
 （override 規則與 variant base 不同）、或 `[Auto*]` 本來就合法地綁不到（型別／層級不符）。
 
@@ -242,8 +246,8 @@ MonoFSM 大量欄位靠 Auto 系列 attribute 填 —— `TransitionBehaviour._c
 這類「住在 nested prefab 實例（CharacterModules）裡、又繼承自 base」的 TransitionBehaviour，加了 `[If]` 子節點後跑
 `auto|CharacterModules/Character FSM`，log 印「綁上 N、沒綁上 0」但存檔後 `_conditions` 仍是 base 的舊值（沒長出
 array override）。改用 `addel` + `ref|…|TransitionBehaviour|_conditions.Array.data[i]|<target>|<CondType>` 就寫得進去（陣列元素推不出宣告型別，**targetComp 必填**，漏了會回「找不到欄位的宣告型別」）；同一批操作在模組**源** prefab 上
-`auto` 完全正常。所以上面的「不要預防性改寫法」只對 variant 直接繼承的節點成立；**目標在 nested 實例裡時，`auto` 完
-一定 `locate --members _conditions` 驗，空的就補 `addel`+`ref`**。工具側待辦見 AgentToolTODO.md。
+`auto` 完全正常。這個現象在自建 fixture（variant ⊃ nested ⊃ nested）上**重現不出來**，根因未明；現在 `auto` 的
+reload 驗證會直接抓到，驗證失敗再補 `addel`+`ref` 就好，不用預防性手動 locate。
 
 `auto` 不是 Python 端做的 —— `up` 只把字串轉發給 Unity，實作在
 `MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/EditResolve.cs::RunAuto`，

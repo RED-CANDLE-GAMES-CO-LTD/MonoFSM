@@ -252,7 +252,12 @@ namespace MonoFSM.Editor
                     {
                         if (!isOverride) continue;
                     }
-                    else if (opt._excludeDefaults && !isOverride && ComponentDefaultCache.IsDefaultValue(prop, type))
+                    // true 的 bool 一律印：讀的人會把「缺席」當 false，C# 初始值 `= true` 的欄位
+                    // （SetRigidbodyKinematicAction._isKinematic）被濾掉就會被讀反（2026-09-09）。
+                    // 預設 false 照樣省略，缺席 = false 這個讀法才成立。
+                    else if (opt._excludeDefaults && !isOverride &&
+                             !(prop.propertyType == SerializedPropertyType.Boolean && prop.boolValue) &&
+                             ComponentDefaultCache.IsDefaultValue(prop, type))
                     {
                         continue;
                     }

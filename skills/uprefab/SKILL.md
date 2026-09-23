@@ -39,6 +39,8 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | **加 / 改互動文字提示**（localized、按狀態切換） | `prompt` | ✅ | [prompt.md](references/prompt.md) |
 | **只要 localization 條目**（文案持有者是 SO 不是節點） | `loc` | ✅ | [prompt.md](references/prompt.md) |
 | 某個節點被誰指到 / 它指向誰 | `refs` | ✅ | [probe.md](references/probe.md) |
+| **asset 層級**被誰引用（fbx / otf / .asset / material，不是節點），要列到「哪個節點的 Component.欄位」 | `asset-refs`（全庫掃一次十幾秒） | ✅ | `up asset-refs --help` |
+| build 太肥、某顆 asset **為什麼會進 build**、怎麼斷開 | `why-in-build`（從 build scene / Resources / Preloaded / Addressables 找最短鏈，最後一跳列到欄位，並列出 build 內其他直接 referrer） | ✅ | `up why-in-build --help` |
 | **組 FSM 時要挑 Action / Condition**（有哪些可用、各自幹嘛、欄位填什麼） | `catalog` | ❌ | [catalog.md](references/catalog.md) |
 | 某個型別叫什麼、有哪些欄位 | `types` / `fields`（Component）、`asset fields`（SO） | ✅ | [probe.md](references/probe.md) |
 | 場上有幾個某某物件、某個 component 現在的值 | `scene count` / `peek` | ✅ | [probe.md](references/probe.md) |
@@ -64,8 +66,8 @@ reference 裡，真的要改的時候一定會讀到）：
 
 - **所有需要 Unity 的操作都有 CLI 入口 —— 不要直接寫 `uloop execute-dynamic-code`**，
   它每次回傳 15 行 JSON envelope（Logs / SecurityLevel / Diagnostics…），CLI 只回結果那一行。
-- **離線索引還是唯一的跨資產定位手段** —— Unity 端沒有全專案搜尋（`refs` 只掃單一
-  prefab / scene，`types` 只查型別名），所以「這個 component 在哪些檔案裡」只有 `find`
+- **離線索引還是「節點 / component」跨資產定位的唯一手段** —— Unity 端沒有全專案節點搜尋（`refs` 只掃單一
+  prefab / scene，`types` 只查型別名；`asset-refs` 是 asset 對 asset 的依賴，不看 component 型別），所以「這個 component 在哪些檔案裡」只有 `find`
   答得出來，而且快兩個數量級（find 0.1s vs Unity 一次來回含 domain reload 十幾秒）。
   離線的就只有 `index` / `scope` / `find` / `guid` / `overrides` / `catalog` 這幾條。
 - **離線索引只回答「在哪個檔案」，內容一律走 Unity 匯出。** 離線 YAML 讀不到 variant

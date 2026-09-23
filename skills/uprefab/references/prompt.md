@@ -148,7 +148,9 @@ prompt 這邊特有的一個：`m_KeyId` 是 long，用 `SerializedProperty.intV
 ```bash
 up loc ev_amulet_blocked "護身符擋下了落雷！"          # 預設 table=GameplayUI locale=zh-TW
 up loc ev_hit_by_bolt "{player} 被落雷擊中" --table GameplayUI
-up loc ev_amulet_blocked                              # 文案留空 = 只讀出既有的
+up loc ev_amulet_blocked                              # 文案留空 = 只讀；查不到回「找不到」+ 近似 key，不會建
+# key 不要帶 table 前綴（輸出的 `GameplayUI/xxx` 是顯示格式）；帶了已存在的 `<table>/` 會自動拆開並提示
+up loc ev_amulet_blocked --refs                       # 誰引用這個 key（prefab / SO / 全部 scene，含沒開的）
 up loc eff_normal $'\n能源效率 正常' --locale zh-TW --smart   # 沒有 token 但要當 Smart String 分支
 ```
 

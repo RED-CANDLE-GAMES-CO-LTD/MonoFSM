@@ -32,7 +32,7 @@ MEMOIZABLE = {
     "scene ls", "scene count", "obj", "gid", "asset fields", "scope",
 }
 # 讀但不 memo（答案會自己變），也不會讓別人的 memo 失效
-NEUTRAL = {"peek", "logs", "effect-trace", "usage", "clear",
+NEUTRAL = {"peek", "logs", "asset-refs", "why-in-build", "effect-trace", "usage", "clear",
            # 讀的是 markdown 檔不是索引，memo 沒意義；--archive 會寫檔但不動資產
            "progress", "prog", "verify-skills", "vs", "session", "sess"}
 

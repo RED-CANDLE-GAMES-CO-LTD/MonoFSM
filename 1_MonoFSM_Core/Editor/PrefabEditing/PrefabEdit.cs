@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using MonoFSM.Core;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Abort = MonoFSM.Editor.PrefabEditing.EditResolve.EditAbort;
 
@@ -265,12 +266,38 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 一次跑多行操作。quiet=true 時，成功只回 compact summary；任何操作、存檔或
         /// reload 驗證失敗仍回完整逐行 log，不能為了省輸出藏掉修正線索。
         /// </summary>
-        public static string Batch(string assetPath, string ops, bool quiet)
+        public static string Batch(string assetPath, string ops, bool quiet) =>
+            Batch(assetPath, ops, quiet, false);
+
+        /// <summary>
+        /// force=false 時，若這支 prefab 正開在 Prefab Mode 就拒絕寫入。
+        ///
+        /// 為什麼：do 走 LoadPrefabContents + SaveAsPrefabAsset，跟 stage 是兩份獨立的 contents。
+        /// stage 乾淨時 Unity 會自己從磁碟 reload（實測 OK）；但 stage 有未存改動時，
+        /// 使用者退出按 Discard / 或 stage 之後被存檔，都會用 stage 那份舊內容整份蓋回，
+        /// do 的改動無聲消失（2026-09-16 實際發生）。拒絕比事後警告可靠 —— 事後 agent 已經回報完成了。
+        /// </summary>
+        public static string Batch(string assetPath, string ops, bool quiet, bool force)
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(assetPath) == null)
                 return $"# 找不到 prefab: {assetPath}";
 
+            var stageNote = "";
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null && stage.assetPath == assetPath)
+            {
+                var dirty = stage.scene.isDirty ? "（stage 有未存的改動）" : "";
+                if (!force)
+                    return $"# 未修改：這支 prefab 正開在 Prefab Mode{dirty}。" +
+                           "stage 跟 do 是兩份內容，之後 stage 一存檔或退出按 Discard 就會把這次改動整份蓋掉。" +
+                           "請使用者先在 Editor 存檔並關掉 Prefab Mode 再跑，或加 --force 硬寫" +
+                           "（stage 有未存改動時不要 --force，那份舊內容遲早會蓋回來）。\n";
+                stageNote = $"# ⚠ --force：這支 prefab 正開在 Prefab Mode{dirty}，" +
+                            "stage 之後被存檔或退出按 Discard 會蓋掉這次改動\n";
+            }
+
             var root = PrefabUtility.LoadPrefabContents(assetPath);
+            var guard = OverrideGuard.Take(root);
             var touches = new List<VerifyTouch>();
             var reverts = new List<PendingRevert>();
             try
@@ -291,25 +318,34 @@ namespace MonoFSM.Editor.PrefabEditing
                 // revert 一定要排在 callback 之後：OnBeforePrefabSave 會重跑 [Auto*] 之類的
                 // 填值邏輯，在 callback 之前清掉的 override 會被它原封不動寫回來。
                 var revertLog = ApplyReverts(root.transform, reverts, touches);
+                // auto 的 expected 以「存檔前一刻」的 in-memory 值為準：callback 可能又重綁過，
+                // 而存檔後再取會被「沒成為 override 的寫入」洗回 base 值（驗證就失去意義）。
+                foreach (var touch in touches) touch.RepinBeforeSave();
                 var saved = PrefabUtility.SaveAsPrefabAsset(root, assetPath, out var saveOk);
                 if (!saveOk || saved == null)
                     return log + copyLog + callbackLog + revertLog + $"# 存檔失敗：{assetPath}\n";
 
                 // SaveAsPrefabAsset 會替新物件分配 local file ID。一定要在 save 後、unload 前
                 // 快照，才能把內部 object reference 也轉成可跨 reload 比對的穩定 identity。
-                foreach (var touch in touches) touch.Capture(root.transform);
+                foreach (var touch in touches)
+                {
+                    touch.Capture(root.transform);
+                    touch.ExcludeFrom(guard);
+                }
+                guard.Capture(root.transform);
 
                 PrefabUtility.UnloadPrefabContents(root);
                 root = null;
 
-                var report = VerifyReloaded(assetPath, touches);
+                var report = VerifyReloaded(assetPath, touches, guard);
                 // quiet 只壓成功輸出；驗證錯誤要把原始逐行操作一起帶回，才知道是哪一步寫的。
-                var prefix = quiet && report.Failures.Count == 0 &&
+                var prefix = quiet && report.Failures.Count == 0 && report.Collateral.Count == 0 &&
                              !callbackLog.Contains("個失敗") && !revertLog.Contains("失敗") &&
                              !copyLog.Contains("解不掉")
                     ? $"# 操作：{done} 個 OK\n"
                     : log;
-                return prefix + copyLog + callbackLog + revertLog + "# 存檔：OK\n" + report.Format();
+                return stageNote + prefix + copyLog + callbackLog + revertLog + "# 存檔：OK\n" +
+                       report.Format();
             }
             finally
             {
@@ -788,12 +824,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 case "auto":
                 {
                     var node = EditResolve.Node(root, EditBatch.At(a, 0));
-                    var result = EditResolve.RunAuto(node);
-                    // Auto 可能碰任意 [Auto*] 欄位，目前沒有可枚舉「實際改了哪些欄位」的
-                    // API。明確列 unsupported，避免把 reload 成功誤報成完整驗證。
-                    touches.Add(VerifyTouch.Unsupported(node, verb,
-                        "auto 會改任意 [Auto*] 欄位，無法完整枚舉"));
-                    return result;
+                    return RunAutoVerified(node, verb, touches);
                 }
                 case "rename":
                 {
@@ -853,6 +884,122 @@ namespace MonoFSM.Editor.PrefabEditing
             }
         }
 
+        /// <summary>
+        /// auto| 的實作：RunAuto 前後各快照一次每顆 MonoBehaviour 的 [Auto*] 欄位，真的被改到的
+        /// 欄位才加 VerifyTouch（存檔後逐一比對），並對 prefab instance 上的 component 補
+        /// RecordPrefabInstancePropertyModifications。
+        ///
+        /// 為什麼：AutoAttributeManager 是反射寫欄位，不經 SerializedObject。以前這裡只記一筆
+        /// unsupported，於是「auto 印綁上 N、存檔後卻是 base 舊值」（2026-09-15 nested 實例的
+        /// [AutoChildren] _conditions）會默默印 OK。現在能驗了；沒寫進去會列出欄位並指向
+        /// addel + ref 的替代寫法。Record 那一步是保險：variant / 兩層 nested 的 fixture 上
+        /// 不補也寫得進去（SaveAsPrefabAsset 本來就會 diff），但 Unity 文件要求反射改 instance
+        /// 要 Record，補了沒有副作用。
+        /// </summary>
+        private static string RunAutoVerified(Transform node, string verb, List<VerifyTouch> touches)
+        {
+            var before = new List<(MonoBehaviour mb, string field, List<object> leaves)>();
+            foreach (var mb in node.GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (mb == null) continue;
+                var fields = AutoAttributeManager.GetFieldsWithAutoAndBuildCache(mb);
+                if (fields == null) continue;
+                SerializedObject so = null;
+                foreach (var field in fields)
+                {
+                    so ??= new SerializedObject(mb);
+                    var prop = so.FindProperty(field.Name);
+                    if (prop == null) continue; // 沒 serialize 的 runtime cache 欄位，存檔無關
+                    before.Add((mb, field.Name, Leaves(prop)));
+                }
+            }
+
+            var result = EditResolve.RunAuto(node);
+
+            var changed = 0;
+            var recorded = 0;
+            var recordedSet = new HashSet<MonoBehaviour>();
+            foreach (var (mb, field, old) in before)
+            {
+                if (mb == null) continue;
+                var now = Leaves(new SerializedObject(mb).FindProperty(field));
+                if (SameLeaves(old, now)) continue;
+                changed++;
+                if (PrefabUtility.IsPartOfPrefabInstance(mb) && recordedSet.Add(mb))
+                {
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(mb);
+                    recorded++;
+                }
+
+                touches.RemoveAll(t => t.IsSameSerializedField(mb, field));
+                touches.Add(VerifyTouch.AutoField(mb, field, now, verb));
+            }
+
+            return result + $"\n  實際改到 {changed} 個 [Auto*] 欄位（{recorded} 顆 component 在 prefab instance 上，" +
+                   "已補 RecordPrefabInstancePropertyModifications），存檔後逐欄驗證";
+        }
+
+        private const string RefNull = "ref:null";
+
+        /// <summary>
+        /// 把一個欄位（含陣列 / 巢狀 class）攤成 leaf 值序列；object reference 保留物件本身，
+        /// 等存檔後（local file ID 定下來、自動命名跑完）才轉成可跨 reload 比對的字串。
+        /// </summary>
+        private static List<object> Leaves(SerializedProperty prop)
+        {
+            var list = new List<object>();
+            if (prop == null) return list;
+            var it = prop.Copy();
+            var end = prop.Copy().GetEndProperty();
+            var enter = true;
+            do
+            {
+                if (SerializedProperty.EqualContents(it, end)) break;
+                if (it.propertyType == SerializedPropertyType.ObjectReference)
+                    list.Add(it.objectReferenceValue != null ? it.objectReferenceValue : RefNull);
+                else if (it.propertyType == SerializedPropertyType.ArraySize)
+                    list.Add("size:" + it.intValue);
+                else if (it.propertyType != SerializedPropertyType.Generic)
+                    list.Add(Snapshot(it, null));
+                // 只往 Generic（陣列 / 巢狀 class）裡走；ObjectReference 底下有 m_FileID /
+                // m_PathID 這種每次 reload 都不同的 int，走進去就永遠比不相等
+                enter = it.propertyType == SerializedPropertyType.Generic;
+            } while (it.Next(enter));
+
+            return list;
+        }
+
+        private static bool SameLeaves(List<object> a, List<object> b)
+        {
+            if (a.Count != b.Count) return false;
+            for (var i = 0; i < a.Count; i++)
+            {
+                if (a[i] is UnityEngine.Object || b[i] is UnityEngine.Object)
+                {
+                    if (!ReferenceEquals(a[i], b[i])) return false;
+                }
+                else if (!Equals(a[i], b[i])) return false;
+            }
+
+            return true;
+        }
+
+        private static string LeafString(List<object> leaves, Transform root)
+        {
+            var sb = new StringBuilder();
+            foreach (var leaf in leaves)
+            {
+                if (sb.Length > 0) sb.Append(", ");
+                sb.Append(leaf is UnityEngine.Object o ? Reference(o, root) : leaf as string);
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>給 OverrideGuard 用：跟逐欄驗證同一套物件引用 identity。</summary>
+        internal static string ReferenceKey(UnityEngine.Object value, Transform root) =>
+            Reference(value, root);
+
         // ---- 共用 session ----
 
         private static string Edit(string assetPath, Func<Transform, string> body)
@@ -904,6 +1051,7 @@ namespace MonoFSM.Editor.PrefabEditing
         private enum VerifyKind
         {
             Serialized,
+            AutoField,
             ActiveSelf,
             LocalPosition,
             LocalScale,
@@ -929,6 +1077,7 @@ namespace MonoFSM.Editor.PrefabEditing
             private string _componentType;
             private string _expected;
             private string _captureError;
+            private List<object> _pinnedLeaves;
 
             /// <summary>
             /// 存檔後重讀時順便回報的 override 狀態；null = 這顆物件不在任何 prefab instance
@@ -986,7 +1135,49 @@ namespace MonoFSM.Editor.PrefabEditing
             /// 驗證時報假失敗。呼叫端用這個把舊的剔掉，只留最後一次寫入。
             /// </summary>
             internal bool IsSameSerializedField(Component component, string fieldPath) =>
-                _kind == VerifyKind.Serialized && _component == component && _fieldPath == fieldPath;
+                (_kind == VerifyKind.Serialized || _kind == VerifyKind.AutoField) &&
+                _component == component && _fieldPath == fieldPath;
+
+            /// <summary>auto| 真的改到的 [Auto*] 欄位；leaves 是 auto 跑完當下的值。</summary>
+            internal static VerifyTouch AutoField(
+                MonoBehaviour mb, string fieldName, List<object> leaves, string verb) =>
+                new(VerifyKind.AutoField, mb, mb.transform, fieldName, verb, null)
+                    { _pinnedLeaves = leaves };
+
+            /// <summary>
+            /// 存檔前一刻重取 auto 欄位的 in-memory 值（callback 可能又改過）。
+            /// component 被後續操作刪掉就留給 Capture() 報。
+            /// </summary>
+            internal void RepinBeforeSave()
+            {
+                if (_kind != VerifyKind.AutoField || _component == null) return;
+                var prop = new SerializedObject(_component).FindProperty(_fieldPath);
+                if (prop != null) _pinnedLeaves = Leaves(prop);
+            }
+
+            /// <summary>告訴 OverrideGuard「這個欄位是這批故意寫的」，別當成連帶損失。</summary>
+            internal void ExcludeFrom(OverrideGuard guard)
+            {
+                switch (_kind)
+                {
+                    case VerifyKind.Serialized:
+                    case VerifyKind.AutoField:
+                    case VerifyKind.NotOverride:
+                        if (_component != null) guard.Exclude(_component, _fieldPath);
+                        else if (_node != null) guard.Exclude(_node.gameObject, _fieldPath);
+                        break;
+                    case VerifyKind.Unsupported:
+                        break;
+                    default:
+                        if (_node != null)
+                        {
+                            guard.Exclude(_node, null);
+                            guard.Exclude(_node.gameObject, null);
+                        }
+
+                        break;
+                }
+            }
 
             /// <summary>revert| 用：期望值固定是「存檔後重讀，這個欄位不再是 override」。</summary>
             internal static VerifyTouch OverrideCleared(
@@ -1027,7 +1218,7 @@ namespace MonoFSM.Editor.PrefabEditing
             internal string UnsupportedReason => _captureError ?? _unsupportedReason;
             internal string Label => _kind switch
             {
-                VerifyKind.Serialized =>
+                VerifyKind.Serialized or VerifyKind.AutoField =>
                     $"{EditResolve.Describe(_nodePath)}.{ShortType(_componentType)}.{_fieldPath}",
                 VerifyKind.NotOverride =>
                     $"{EditResolve.Describe(_nodePath)}." +
@@ -1076,6 +1267,16 @@ namespace MonoFSM.Editor.PrefabEditing
                                 _captureError = $"{_verb} 欄位型別 {prop.propertyType} 尚未支援 reload 驗證";
                             break;
                         }
+                        case VerifyKind.AutoField:
+                            if (_component == null)
+                            {
+                                _captureError = $"{_verb} 的 component 被後續操作刪除，無法驗證";
+                                return;
+                            }
+
+                            _componentType = _component.GetType().FullName;
+                            _expected = LeafString(_pinnedLeaves, root);
+                            break;
                         case VerifyKind.NotOverride:
                             _componentType = _component == null ? null : _component.GetType().FullName;
                             _expected = "override:false";
@@ -1116,6 +1317,18 @@ namespace MonoFSM.Editor.PrefabEditing
                             actual = Snapshot(prop, reloadedRoot);
                             NoteOverride(comp, prop);
                             break;
+                        }
+                        case VerifyKind.AutoField:
+                        {
+                            var comp = EditResolve.Comp(node, _nodePath, _componentType);
+                            var prop = new SerializedObject(comp).FindProperty(_fieldPath);
+                            actual = LeafString(Leaves(prop), reloadedRoot);
+                            NoteOverride(comp, prop);
+                            if (actual == _expected) return null;
+                            return $"{Label}：auto 綁上了但存檔後不是綁上的值" +
+                                   $"\n#     expected [{Clip(_expected)}]\n#     reload   [{Clip(actual)}]" +
+                                   "\n#   （反射寫入沒成為外層 prefab 的 override。改用 `addel` + " +
+                                   "`ref|…|<field>.Array.data[i]|<target>|<CondType>` 明確寫，或到 nested prefab 本體上跑 auto）";
                         }
                         case VerifyKind.NotOverride:
                         {
@@ -1173,6 +1386,9 @@ namespace MonoFSM.Editor.PrefabEditing
                           "多半是寫入沒生效或值剛好等於 base）";
             }
 
+            private static string Clip(string s) =>
+                s == null ? "null" : s.Length <= 240 ? s : s.Substring(0, 237) + "...";
+
             private static string ShortType(string fullName)
             {
                 if (string.IsNullOrEmpty(fullName)) return "component";
@@ -1199,10 +1415,11 @@ namespace MonoFSM.Editor.PrefabEditing
             internal readonly List<string> Failures = new();
             internal readonly List<string> UnsupportedReasons = new();
             internal readonly List<string> OverrideNotes = new();
+            internal List<string> Collateral = new();
 
             internal string Format()
             {
-                var text = $"# 驗證（set/ref/aref/addel/revert/active/transform）：" +
+                var text = $"# 驗證（set/ref/aref/addel/revert/active/transform/auto）：" +
                            $"{Verified} 個 OK，{Failures.Count} 個失敗，{Unsupported} 個 unsupported";
                 if (UnsupportedReasons.Count > 0)
                     text += $"（{string.Join("；", UnsupportedReasons.Distinct())}）";
@@ -1212,11 +1429,21 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (OverrideNotes.Count > 0)
                     text += "# override 狀態（存檔後重讀）：\n" +
                             string.Join("\n", OverrideNotes.Distinct().Select(n => "# - " + n)) + "\n";
+                if (Collateral.Count > 0)
+                {
+                    const int cap = 12;
+                    text += $"# ⚠ 連帶損失：這批沒寫的 {Collateral.Count} 筆既有 override / added 節點，存檔後不見或被蓋回 base" +
+                            "（驗證 OK 不代表沒事；這批若有 del / delcomp / mv 到相關節點可忽略對應行）：\n" +
+                            string.Join("\n", Collateral.Take(cap).Select(n => "# - " + n)) + "\n" +
+                            (Collateral.Count > cap ? $"# - …另外 {Collateral.Count - cap} 筆\n" : "");
+                }
+
                 return text;
             }
         }
 
-        private static VerifyReport VerifyReloaded(string assetPath, List<VerifyTouch> touches)
+        private static VerifyReport VerifyReloaded(
+            string assetPath, List<VerifyTouch> touches, OverrideGuard guard)
         {
             var report = new VerifyReport();
             foreach (var touch in touches)
@@ -1245,6 +1472,8 @@ namespace MonoFSM.Editor.PrefabEditing
                     else report.Failures.Add(failure);
                     if (touch.OverrideNote != null) report.OverrideNotes.Add(touch.OverrideNote);
                 }
+
+                if (guard != null) report.Collateral = guard.Compare(reloaded.transform);
             }
             catch (Exception e)
             {

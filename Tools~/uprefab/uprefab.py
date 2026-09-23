@@ -515,6 +515,7 @@ PROBE = f"{unity.EDIT_NS}.EditProbe"
 TRACE = f"{unity.EDIT_NS}.EffectTrace"
 READER = f"{unity.EDIT_NS}.PrefabTextReader"
 REFS = f"{unity.EDIT_NS}.EditRefs"
+ASSETDEPS = f"{unity.EDIT_NS}.AssetDeps"
 GID = f"{unity.EDIT_NS}.EditGid"
 PROMPT = f"{unity.EDIT_NS}.PromptEdit"
 LOC = f"{unity.EDIT_NS}.LocEdit"
@@ -714,7 +715,12 @@ def cmd_prefab(args, root, cfg):
             print("# 要看欄位值直接在這條 locate 加 --members <欄位,欄位>（例：--members _note,CurrentValue），"
                   "一次拿完所有命中，不用再逐個 peek")
     elif args.action == "do":
-        print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet))
+        # --force 只在有帶時才多傳一個參數：沒帶就走舊的 3 參數 overload，
+        # C# 端還沒 compile 到新 overload 時不會連一般的 do 都壞掉
+        if args.force:
+            print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet, True))
+        else:
+            print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet))
     elif args.action == "swap-script":
         _prefab_swap_script(args, root)
 
@@ -864,8 +870,42 @@ def cmd_prompt(args, root, cfg):
 
 def cmd_loc(args, root, cfg):
     """直接讀寫 string table 條目（文案的持有者是 SO 而不是節點時用）。"""
+    if getattr(args, "refs", False):
+        return _loc_refs(args, root)
     print(unity.call(f"{LOC}.Set", args.table, args.key, args.text, args.locale,
                      bool(getattr(args, "smart", False))))
+
+
+def _loc_refs(args, root):
+    """誰引用這個 loc key。兩段式：
+    1. Unity 解 key（前綴自動拆 / 近似候選，跟唯讀查詢同一套）→ 拿到 key id 與 table guid
+    2. 離線文字預篩：`git grep -l -F` 在 Assets 的 .prefab/.unity/.asset 找 id 字串（含 override 的
+       `value: <id>`），只把候選丟回 Unity 用 SerializedObject 確認並解成節點路徑。
+    離線索引沒存 LocalizedString 的值（m_TableCollectionName 是 `GUID:` 字串不是 object ref，
+    refs 表收不到），所以這裡用檔案文字預篩；結果一律由 Unity 端確認，不會把文字命中直接當答案。"""
+    import subprocess
+    res = unity.call(f"{LOC}.ResolveKey", args.table, args.key)
+    first, _, rest = res.partition("\n")
+    if not first.startswith("OK\t"):
+        print(res.rstrip("\n"))
+        return
+    _, table, key, kid, tguid = first.split("\t")
+    if rest.strip():
+        print(rest.rstrip("\n"))
+    t0 = time.time()
+    pats = ["-e", kid, "-e", f"m_Key: {key}"]
+    proc = subprocess.run(
+        ["git", "grep", "-l", "-F", "--untracked", *pats, "--",
+         "Assets/*.prefab", "Assets/*.unity", "Assets/*.asset", ":!Assets/Localization/*"],
+        cwd=root, capture_output=True, text=True)
+    if proc.returncode not in (0, 1):
+        raise SystemExit(f"# git grep 失敗：{proc.stderr.strip()}")
+    cands = [c for c in proc.stdout.splitlines() if c]
+    grep_ms = int((time.time() - t0) * 1000)
+    print(f"# 範圍：Assets/ 下全部 .prefab / .asset / .unity（含沒開的 scene，排除 Assets/Localization/）；"
+          f"文字預篩 {grep_ms} ms → {len(cands)} 個候選")
+    print(unity.call(f"{LOC}.Refs", table, key, int(kid), tguid, "\n".join(cands)).rstrip("\n"))
+    print("# 只列寫下這個值的那一層；繼承它的 variant / nested instance 不另外列")
 
 
 def _cases_from_file(args) -> str:
@@ -881,11 +921,40 @@ def cmd_refs(args, root, cfg):
     """引用反查。走 Unity 而不是離線 refs 表 —— 理由見 EditRefs 的類別註解：
     這個專案大量引用是 prefab override，離線 refs 表收不到。"""
     if args.asset:
+        ext = os.path.splitext(args.asset)[1].lower()
+        if ext and ext not in (".prefab", ".unity"):
+            raise SystemExit(
+                f"# up refs 只查 prefab / scene 裡的節點，{args.asset} 不是。\n"
+                f"# 你可能想要：up asset-refs '{args.asset}'（誰引用這顆 asset）"
+                f" 或 up why-in-build '{args.asset}'（它為什麼進 build）")
         args.asset = _resolve_asset(root, args.asset)
         print(unity.call(
             f"{REFS}.PrefabRefs", args.asset, args.node, args.comp, args.out, args.limit))
     else:
         print(unity.call(f"{REFS}.SceneRefs", args.node, args.comp, args.out, args.limit))
+
+
+def _asset_token(root: str, token: str) -> str:
+    """asset-refs / why-in-build 的輸入：guid / webhook 連結 → guid；路徑 → Unity 路徑。
+    存不存在交給 Unity 判（fbx / otf 這類不在離線索引範圍內）。"""
+    if GID_RE.search(token):
+        raise SystemExit("# 這是 scene 物件連結（globalId），不是 asset。要看節點用：up obj '<連結>'")
+    m = GUID_RE.search(token.lower())
+    if m and not os.path.splitext(token)[1]:
+        return m.group(0)
+    return _to_unity_path(root, token)
+
+
+def cmd_asset_refs(args, root, cfg):
+    """asset 層級反查：整個 Assets/ + Packages/ 裡誰直接引用它，scene / prefab 再列到欄位。"""
+    print(unity.call(f"{ASSETDEPS}.AssetRefs", _asset_token(root, args.token),
+                     args.limit, bool(args.all)).rstrip("\n"))
+
+
+def cmd_why_in_build(args, root, cfg):
+    """從 build root（scene / Resources / Preloaded / Addressables）BFS 找到它的最短鏈。"""
+    print(unity.call(f"{ASSETDEPS}.WhyInBuild", _asset_token(root, args.token),
+                     args.limit, bool(args.all)).rstrip("\n"))
 
 
 FSM_KINDS = ("action", "condition", "render", "handler", "getter", "var")
@@ -1633,7 +1702,8 @@ def main() -> None:
                          "（這也是讀「C# 已刪掉的孤兒欄位」的唯一手段）")
     pp.add_argument("--force", action="store_true",
                     help="swap-script：Unity Editor 開著這個專案時仍然硬寫（預設拒絕，"
-                         "因為 Editor 一存檔就會整份覆寫且值不可逆地消失）")
+                         "因為 Editor 一存檔就會整份覆寫且值不可逆地消失）；"
+                         "do：目標 prefab 正開在 Prefab Mode 時仍然寫（預設拒絕，stage 之後存檔 / Discard 會蓋掉）")
     pp.add_argument("ops", nargs="*", help="do：直接帶操作（一個參數一行）")
     pp.set_defaults(fn=cmd_prefab)
 
@@ -1720,12 +1790,15 @@ def main() -> None:
         help="讀寫 string table 條目（需要 Unity）",
         description="文案持有者不是節點而是 ScriptableObject 時用這個（節點的走 up prompt）。"
                     "文案留空 = 只讀不寫。含 { 會自動開 IsSmart。")
-    pl.add_argument("key", help="string table 的 key，不存在就建")
+    pl.add_argument("key", help="string table 的 key（不要帶 table 前綴；帶了已存在的 `<table>/` 會自動拆開）。"
+                                     "給文案時不存在就建；唯讀查不到只回「找不到」+ 近似 key，不會建")
     pl.add_argument("text", nargs="?", default="", help="文案；留空 = 只讀出既有的")
     pl.add_argument("--locale", default="zh-TW", help="locale（預設 zh-TW）")
     pl.add_argument("--table", default="GameplayUI", help="string table collection（預設 GameplayUI）")
     pl.add_argument("--smart", action="store_true",
                     help="強制開 IsSmart（文案沒有 { 但同一組模板要靠 Smart String 串接時用）")
+    pl.add_argument("--refs", action="store_true",
+                    help="唯讀：列出引用這個 key 的 prefab / SO / scene（asset + 節點 + component.欄位）")
     pl.set_defaults(fn=cmd_loc)
 
     pr = sub.add_parser("refs", help="誰指向這個節點 / 它指向誰（需要 Unity）")
@@ -1738,6 +1811,25 @@ def main() -> None:
                     help="反向：列出目標指向誰（預設是誰指向目標）")
     pr.add_argument("-n", "--limit", type=int, default=60)
     pr.set_defaults(fn=cmd_refs)
+
+    par = sub.add_parser(
+        "asset-refs", help="asset 層級反查：誰直接引用這顆 asset，列到欄位（需要 Unity）",
+        description="範圍是整個 Assets/ + Packages/。scene / prefab referrer 會列出節點 [Component.propertyPath]，"
+                    "prefab override 會標出來。scene 沒開時非 Play Mode 會暫時 additive 開啟查完關掉。")
+    par.add_argument("token", help="asset 路徑 / guid / webhook 連結（跟 up guid 一樣）")
+    par.add_argument("-n", "--limit", type=int, default=20, help="referrer 只列前幾個（預設 20）")
+    par.add_argument("--all", action="store_true", help="referrer 全部列出")
+    par.set_defaults(fn=cmd_asset_refs)
+
+    pwb = sub.add_parser(
+        "why-in-build", help="這顆 asset 為什麼進 build：從 build root 的最短引用鏈（需要 Unity）",
+        description="root = Active Build Profile（沒 override 就用 EditorBuildSettings）enabled 的 scene"
+                    " + Resources + PlayerSettings Preloaded + Addressables。最後一跳列到欄位，"
+                    "另外列出 build 內其他直接 referrer（全部斷掉才會出 build）。")
+    pwb.add_argument("token", help="asset 路徑 / guid / webhook 連結（跟 up guid 一樣）")
+    pwb.add_argument("-n", "--limit", type=int, default=10, help="其他直接 referrer 只列前幾個（預設 10）")
+    pwb.add_argument("--all", action="store_true", help="其他直接 referrer 全部列出")
+    pwb.set_defaults(fn=cmd_why_in_build)
 
     pcat = sub.add_parser(
         "catalog", aliases=["cat"],
