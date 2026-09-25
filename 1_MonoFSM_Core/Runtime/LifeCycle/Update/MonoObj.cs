@@ -983,6 +983,6 @@ namespace MonoFSMCore.Runtime.LifeCycle
         public bool IsDrawingValueInfo => Application.isPlaying;
 
         [PreviewInInspector] [AutoChildren] private CullingPivot _cullingPivot;
-        public Transform Pivot => _cullingPivot.transform;
+        public Transform Pivot => _cullingPivot?.transform ?? transform; //fixme: 沒放？
     }
 }

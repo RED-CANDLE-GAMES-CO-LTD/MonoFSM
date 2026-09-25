@@ -5,11 +5,12 @@
 ### Node 行
 
 ```
-[縮排2空格][flags]Name [transform] [<components>] [(prefab:res:路徑)] [   # note]
+[縮排2空格][flags]Name [transform] [layer] [<components>] [(prefab:res:路徑)] [   # note]
 ```
 
 - **flags**：`~` = inactive GameObject、`+` = prefab instance 新增的 GameObject（`IsAddedGameObjectOverride`）
 - **transform**：只輸出非 identity 的 local transform；`p=(x,y,z)`、`r=(x,y,z)`（localEulerAngles）、`s=0.5`（等比例縮寫）或 `s=(x,y,z)`；數字整數不帶小數點，float 最多 3 位小數（`0.###`）
+- **layer**：`layer=<名字>`，只在 GameObject layer 不是 Default 時印；掛 `TriggerDetectorSource`（含子類）卻不在 `Detector` layer 時一律印並加 `⚠應在Detector`（連 Default 也印）。邏輯在 `PrefabEditing/EditLayer.NodeTag`，`up prefab read` 另外會在 header 列出整棵子樹的違規與修正指令
 - root 是 prefab asset 時，第一行輸出 `# prefab: res:路徑`；node 本身是巢狀 prefab instance root 時，行尾附 `(prefab:res:路徑)`（`IsAnyPrefabInstanceRoot` + `GetPrefabAssetPathOfNearestInstanceRoot`）
 - **note**（`NoteText.NodeSuffix`）：節點上 component 的 `_note`（`AbstractDescriptionBehaviour` / `AbstractSOConfig`）或 `Note` 的舊 `note` 欄位，攤成單行掛在行尾當註解。節點名多半自動命名（`[Action] Stamina 電力 += 2`），看得出做什麼、看不出為什麼，why 只寫在 note 裡。同節點多個 component 各有 note 時標出型別：`# Note: xxx | HpHandler: yyy`。長度上限 `_maxNoteLength`。
   - `_note` / `note` 因此**不再出現在 component 欄位堆裡**（避免被 `_maxFieldCharsPerComponent` 截掉，那是掃階層時最該一眼看到的東西）

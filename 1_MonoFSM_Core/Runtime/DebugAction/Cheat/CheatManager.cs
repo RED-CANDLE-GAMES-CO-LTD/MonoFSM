@@ -9,6 +9,11 @@ using UnityEngine.Localization.Settings;
 
 namespace MonoFSM.Core
 {
+    /// <summary>
+    /// 全域 cheat 快捷鍵（soft/hard reset、切語言、按住 0 加速）的登錄與輪詢者。
+    /// 自己的 entry 登錄進 static CheatRegistry，也只輪詢自己那幾筆；其他系統的 cheat 各自登錄、各自判定，
+    /// Inspector 上可以看到 registry 全表與按鍵衝突。
+    /// </summary>
     public class CheatManager : AbstractDescriptionBehaviour
     {
         //自己登錄的那幾筆（CheatKeyCheck 只輪詢這些；其他系統的 cheat 由它們自己判定，避免重複觸發）

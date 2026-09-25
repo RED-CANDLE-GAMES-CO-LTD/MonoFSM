@@ -45,12 +45,14 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | 某個型別叫什麼、有哪些欄位 | `types` / `fields`（Component）、`asset fields`（SO） | ✅ | [probe.md](references/probe.md) |
 | 場上有幾個某某物件、某個 component 現在的值 | `scene count` / `peek` | ✅ | [probe.md](references/probe.md) |
 | **prefab 上某顆 component 的某幾個欄位**（「這條 ref 接上了沒」） | `prefab peek`（**不要用 `read`**，貴 50 倍） | ✅ | [probe.md](references/probe.md) |
+| **模型多大、擺在哪、哪一頭朝哪**（換 placeholder 要對齊舊的大小、判斷燈頭 / 槍口方向） | `prefab bounds`（renderer AABB + 沿長軸粗細分佈）；**不要自己解析 FBX**，importer 軸向轉換離線證明不了 | ✅ | `up prefab --help` |
 | 已知 prefab 內找合併後的 component / 節點路徑 | `prefab locate --comp/--name` | ✅ | [probe.md](references/probe.md) |
 | 同一 prefab 一次查多顆 component 欄位 | `prefab peek-batch -f probes.txt` | ✅ | [probe.md](references/probe.md) |
 | 命中/override 有幾千筆，想先知道集中在哪 | `find --by-asset` / `overrides --by-target` | ❌ | [offline-index.md](references/offline-index.md) |
 | **Play Mode 下改一個 Var 的值**（自動測試撥旗標 / 給錢） | `poke` | ✅ | [probe.md](references/probe.md) |
 | **EffectReceiver 沒觸發**，要一次看完整條鏈卡在哪 | `effect-trace` | ✅ | [probe.md](references/probe.md) |
 | 按 asset 上的 Odin `[Button]`（無參數方法） | `asset invoke` | ✅ | [asset.md](references/asset.md) |
+| **執行 Editor 選單項目**（`Tools/…` 之類的 MenuItem；不要為了按選單臨時寫 execute-dynamic-code） | `menu "<menu path>"`（找不到會列出最接近的 path，exit 1） | ✅ | `up menu --help` |
 | 想知道「調查為什麼慢」的實際數據 | `usage` | ❌ | [offline-index.md](references/offline-index.md) |
 | **翻舊 Claude Code session**（上次那輪查到什麼、改了哪些檔）| `session`（列表）→ `session <前綴>`（只留對話）→ `--files` / `--agent` / `--grep`；**不要 `--resume`、不要派 agent 讀全份** | ❌ | `up session --help` |
 

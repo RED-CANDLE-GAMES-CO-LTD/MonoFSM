@@ -9,8 +9,48 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Detection
 {
+    /// <summary>
+    /// 用 trigger collider（同節點上的 isTrigger Collider）收集重疊物件的偵測來源，掛在 EffectDetector 底下。
+    /// GameObject 固定放在 <see cref="DetectorLayer"/>（collision matrix 照它配）：Editor 下 Reset / OnValidate
+    /// 發現不是就自動改掉；runtime 不改，資料要在 prefab 上就是對的。
+    /// </summary>
     public class TriggerDetectorSource : AbstractDetectionSource
     {
+        public override bool RequiresDetectorLayer => true;
+
+        [ShowInInspector]
+        [PropertyOrder(-100)]
+        [LabelText("Layer")]
+        [InfoBox("layer 固定為 Detector，由 TriggerDetectorSource 管理（Editor 下自動修正）")]
+        private string LayerName => LayerMask.LayerToName(gameObject.layer);
+
+#if UNITY_EDITOR
+        private void Reset()
+        {
+            EnforceDetectorLayer();
+        }
+
+        private void OnValidate()
+        {
+            if (Application.isPlaying) return;
+            if (!DetectorLayer.Exists || gameObject.layer == DetectorLayer.Index) return;
+            // OnValidate 當下改 GameObject 屬性可能噴「SendMessage cannot be called during ... OnValidate」，
+            // 延到下一個 editor tick 再改
+            EditorApplication.delayCall += EnforceDetectorLayer;
+        }
+
+        private void EnforceDetectorLayer()
+        {
+            if (this == null || Application.isPlaying) return;
+            if (!DetectorLayer.Exists || gameObject.layer == DetectorLayer.Index) return;
+            gameObject.layer = DetectorLayer.Index;
+            EditorUtility.SetDirty(gameObject);
+            // nested / variant 上直接寫 property 不會自己記 override
+            if (PrefabUtility.IsPartOfPrefabInstance(gameObject))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(gameObject);
+        }
+#endif
+
         // protected override void Awake()
         // {
         //     base.Awake();

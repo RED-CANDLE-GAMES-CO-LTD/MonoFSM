@@ -28,7 +28,7 @@ MAX_STORE = 400_000  # 比這更肥就不存，memo 不該變成第二份磁碟�
 # 這些子指令（`_sub_cmd` 的字串）memo 得起來
 MEMOIZABLE = {
     "find", "guid", "overrides", "catalog", "cat", "types", "fields", "refs",
-    "prefab read", "prefab peek", "prefab peek-batch", "prefab locate",
+    "prefab read", "prefab peek", "prefab peek-batch", "prefab locate", "prefab bounds",
     "scene ls", "scene count", "obj", "gid", "asset fields", "scope",
 }
 # 讀但不 memo（答案會自己變），也不會讓別人的 memo 失效

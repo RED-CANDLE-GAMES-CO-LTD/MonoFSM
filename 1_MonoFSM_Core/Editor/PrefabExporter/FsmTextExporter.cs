@@ -151,12 +151,19 @@ namespace MonoFSM.Editor
             // Actions：收集所有 action container 子樹下的 behaviour（不只 AbstractStateAction，
             // 也包含 AnimatorPlayAction 這類 render behaviour），但要濾掉 condition / transition / state
             var actions = new List<AbstractDescriptionBehaviour>();
+            // 掛在 action 底下的 transition（例：AnimatorPlayAction 播完才轉）也是這個 state 的出口，
+            // 以前被濾掉，dump 看起來像 state 沒出口
+            var nestedTransitions = new List<TransitionBehaviour>();
             foreach (var c in actionContainers)
             {
                 foreach (var b in c.GetComponentsInChildren<AbstractDescriptionBehaviour>(true))
                 {
                     if (b is AbstractConditionBehaviour) continue;
-                    if (b is TransitionBehaviour) continue;
+                    if (b is TransitionBehaviour nested)
+                    {
+                        nestedTransitions.Add(nested);
+                        continue;
+                    }
                     if (b is MonoStateBehaviour) continue;
                     actions.Add(b);
                 }
@@ -176,13 +183,22 @@ namespace MonoFSM.Editor
             foreach (var tr in transitions)
                 ExportTransition(tr, sb);
 
+            foreach (var tr in nestedTransitions)
+            {
+                var owner = tr.transform.parent != null
+                    ? tr.transform.parent.GetComponent<AbstractDescriptionBehaviour>()
+                    : null;
+                var via = owner != null ? $"  (掛在 {SafeDescription(owner)} ({owner.GetType().Name}) 底下)" : "";
+                ExportTransition(tr, sb, via);
+            }
+
             sb.AppendLine();
         }
 
-        private static void ExportTransition(TransitionBehaviour tr, StringBuilder sb)
+        private static void ExportTransition(TransitionBehaviour tr, StringBuilder sb, string via = "")
         {
             var targetName = tr._target != null ? CleanName(tr._target.name) : "?";
-            sb.AppendLine($"  → {targetName}{NoteSuffix(tr)}");
+            sb.AppendLine($"  → {targetName}{via}{NoteSuffix(tr)}");
 
             // direct child conditions
             foreach (Transform child in tr.transform)

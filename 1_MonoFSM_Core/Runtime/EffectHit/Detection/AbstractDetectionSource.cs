@@ -47,6 +47,12 @@ namespace MonoFSM.Core.Detection
     {
         protected override string DescriptionTag => "DetectionSource";
 
+        /// <summary>
+        /// 這種偵測器的 GameObject 必須放在 <see cref="DetectorLayer"/> 上（trigger 型才需要；
+        /// cast / overlap 打到什麼由 query mask 決定，跟自己的 layer 無關）。uprefab 的 layer 檢查讀這個。
+        /// </summary>
+        public virtual bool RequiresDetectorLayer => false;
+
         [Required]
         [AutoParent]
         EffectDetector _detector;

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 9145525090555590232}
   - component: {fileID: 782036504129346565}
   m_Layer: 0
-  m_Name: EffectExitNode
+  m_Name: '[Event] EffectExitNode'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,6 +45,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa82abf85eb6445da5e22aebfe5e620e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _note: 
+  _forceExecuteWithoutStateAuthority: 0
+  _stateAuthorityOnly: 0
+  _lastSkipReason: 
+  _lastSkipTime: -1
 --- !u!1 &676279546157762329
 GameObject:
   m_ObjectHideFlags: 0
@@ -57,8 +62,8 @@ GameObject:
   - component: {fileID: 736810512147825488}
   - component: {fileID: 9156732956244507402}
   - component: {fileID: 4576803927056422031}
-  m_Layer: 6
-  m_Name: TriggerDetector
+  m_Layer: 9
+  m_Name: '[DetectionSource] TriggerDetectorSource'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -91,7 +96,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7eb67c483d4c4d629abd2b71e070f59e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _detector: {fileID: 582903972152825161}
+  _note: 
+  _ignoreFilter:
+    _ignoreEntities: []
+    _ignoreSelfEntity: 0
+    _selfEntities:
+    - {fileID: 4091840350772318085}
 --- !u!65 &9156732956244507402
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -120,10 +130,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 676279546157762329}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -151,7 +161,7 @@ GameObject:
   - component: {fileID: 1500663377271240927}
   - component: {fileID: 582903972152825161}
   m_Layer: 6
-  m_Name: Detector
+  m_Name: '[Detector] Detector'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -186,6 +196,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e87349a89f8f4018ae67f58fda6a64dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _note: 
+  _designName: 
+  _manualEffectDetectAction: {fileID: 0}
 --- !u!1 &2206596375895933591
 GameObject:
   m_ObjectHideFlags: 0
@@ -197,7 +210,7 @@ GameObject:
   - component: {fileID: 7476121144834224073}
   - component: {fileID: 5361006889539750205}
   m_Layer: 6
-  m_Name: EffectEnterNode
+  m_Name: '[Event] EffectEnterNode'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -231,6 +244,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e706c50c724392be5b38e2319bc997, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _note: 
+  _forceExecuteWithoutStateAuthority: 0
+  _stateAuthorityOnly: 0
+  _lastSkipReason: 
+  _lastSkipTime: -1
+  _hittingEntity: {fileID: 0}
+  _clearHittingEntityOnExit: 0
 --- !u!1 &4305044175087598023
 GameObject:
   m_ObjectHideFlags: 0
@@ -242,7 +262,7 @@ GameObject:
   - component: {fileID: 7361096404514210392}
   - component: {fileID: 1386817791425027854}
   m_Layer: 0
-  m_Name: '[Action] [VarBool] KeyInsert = False'
+  m_Name: '[Action] [Var] KeyInsert = False'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -275,8 +295,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 030c08acca9c148b09523a3baade3587, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _note: 
+  _delayActionModifier: {fileID: 0}
   _target: {fileID: 8171926728028313285}
-  TargetValue: 0
+  _sourceValue: 0
+  _sourceVar: {fileID: 0}
 --- !u!1 &5996852784334266387
 GameObject:
   m_ObjectHideFlags: 0
@@ -323,7 +346,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 788128e4eeab4d919bfc3a6cec2e5567, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _note: 
   _effectType: {fileID: 11400000, guid: 4752ae1f42fb5468885b3f38fd605da4, type: 2}
+  _singleEntityPerEnable: 0
+  _isPassive: 0
+  _defaultValue:
+    _tempValue: 0
+    _bindTag: {fileID: 0}
+    _var: {fileID: 0}
 --- !u!1 &6518870942738570549
 GameObject:
   m_ObjectHideFlags: 0
@@ -335,7 +365,7 @@ GameObject:
   - component: {fileID: 318120905759304022}
   - component: {fileID: 6380662963668590841}
   m_Layer: 6
-  m_Name: '[Action] [VarBool] KeyInsert = True'
+  m_Name: '[Action] [Var] KeyInsert = True'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -368,8 +398,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 030c08acca9c148b09523a3baade3587, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _note: 
+  _delayActionModifier: {fileID: 0}
   _target: {fileID: 8171926728028313285}
-  TargetValue: 1
+  _sourceValue: 1
+  _sourceVar: {fileID: 0}
 --- !u!1001 &5920694603879821682
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -378,21 +411,37 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1515659955582258558, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: m_Name
+      value: '[Play]  Animator: Released L:0'
+      objectReference: {fileID: 0}
     - target: {fileID: 1837376100998390288, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
       propertyPath: stateName
       value: Pressed
       objectReference: {fileID: 0}
+    - target: {fileID: 1837376100998390288, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: _cachedClipLength
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1868625950003090165, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
       propertyPath: m_Name
-      value: '[VarBool] KeyInsert'
+      value: '[Var] KeyInsert'
       objectReference: {fileID: 0}
     - target: {fileID: 2073344895994122136, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
       propertyPath: m_Name
-      value: '[Condition] [VarBool] KeyInsert == False'
+      value: '[If] KeyInsert (General FSM Variant - LockedButton) == False'
       objectReference: {fileID: 0}
     - target: {fileID: 3098253848837944633, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
       propertyPath: m_Name
-      value: '[Condition] [VarBool] KeyInsert == True'
+      value: '[If] KeyInsert (General FSM Variant - LockedButton) == True'
+      objectReference: {fileID: 0}
+    - target: {fileID: 3447751826967725206, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: m_Name
+      value: '[If] Anim Done'
+      objectReference: {fileID: 0}
+    - target: {fileID: 4542028523724939270, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: m_Name
+      value: '[If] Anim Done'
       objectReference: {fileID: 0}
     - target: {fileID: 4689480585818600862, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
       propertyPath: m_LocalPosition.x
@@ -434,9 +483,41 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5887736486837081504, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: _owners.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5887736486837081504, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: '_owners.Array.data[0]'
+      value: 
+      objectReference: {fileID: 323447559167486491}
+    - target: {fileID: 6163216589968056768, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: _conditions.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6163216589968056768, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: '_conditions.Array.data[0]'
+      value: 
+      objectReference: {fileID: 9010252470697135676}
+    - target: {fileID: 6458180607872043704, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: m_Name
+      value: => ParentEntitySource
+      objectReference: {fileID: 0}
+    - target: {fileID: 6907858440721713197, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: m_Name
+      value: '[Play]  Animator: Releasing L:0'
+      objectReference: {fileID: 0}
+    - target: {fileID: 7040883137383129288, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: _action
+      value: 
+      objectReference: {fileID: 2091810985861702420}
     - target: {fileID: 7158276710569958573, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
       propertyPath: m_Name
-      value: '[Condition] [VarBool] KeyInsert == False'
+      value: '[If] KeyInsert (General FSM Variant - LockedButton) == False'
+      objectReference: {fileID: 0}
+    - target: {fileID: 8012067244525809657, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: m_Name
+      value: '[Play]  Animator: Pressing L:0'
       objectReference: {fileID: 0}
     - target: {fileID: 8304467091716040094, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
       propertyPath: m_Controller
@@ -446,9 +527,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: General FSM Variant - LockedButton
       objectReference: {fileID: 0}
+    - target: {fileID: 8861359440233024907, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: _action
+      value: 
+      objectReference: {fileID: 5113339211551643344}
     - target: {fileID: 8979544879896874678, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
       propertyPath: m_Name
-      value: '[Condition] [VarBool] KeyInsert == True'
+      value: '[If] KeyInsert (General FSM Variant - LockedButton) == True'
+      objectReference: {fileID: 0}
+    - target: {fileID: 9193252819947133936, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+      propertyPath: m_Name
+      value: '[Play]  Animator: Pressed L:0'
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -458,11 +547,55 @@ PrefabInstance:
       addedObject: {fileID: 1500663377271240927}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+--- !u!114 &323447559167486491 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6221605822060895081, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+  m_PrefabInstance: {fileID: 5920694603879821682}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea38b0e4a8b84009afda99607ca9e769, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2091810985861702420 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5705237594214748774, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+  m_PrefabInstance: {fileID: 5920694603879821682}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a019087ac59a24dc1bd8aff64729c641, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &2738071702245807302 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8634840758697665972, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
   m_PrefabInstance: {fileID: 5920694603879821682}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &4091840350772318085 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7702188087265263351, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+  m_PrefabInstance: {fileID: 5920694603879821682}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fdaea9a50c9419b9e6f82ed28c91b37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5113339211551643344 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1503272864605317026, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+  m_PrefabInstance: {fileID: 5920694603879821682}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a019087ac59a24dc1bd8aff64729c641, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &8171926728028313285 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2540606679766132663, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
@@ -472,5 +605,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a0c0febcd3eb0a243b407df35c92898b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &9010252470697135676 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3395802892851560270, guid: 46c1e968a52b24f4f915e407f2ee2622, type: 3}
+  m_PrefabInstance: {fileID: 5920694603879821682}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20652729ee734c8fb742043ee0610cab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

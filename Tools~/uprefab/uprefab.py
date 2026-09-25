@@ -238,13 +238,17 @@ def cmd_find(args, root, cfg):
               f"用 --by-asset 看分佈，或縮小條件{scope_note()}\n")
 
     resolved = _resolve_anchors(rows) if args.resolve else {}
+    # layer 只在不是 Default 時印；離線值是檔案自己寫的 m_Layer，variant / nested instance
+    # 的 m_Layer override 不在這裡（要真值走 `up prefab read`，Unity 端會印合併後的 layer）
+    lnames = query.layer_names(root)
 
-    for apath, fid, npath, active, comps in rows:
+    for apath, fid, npath, active, comps, layer in rows:
         flag = "" if active else "~"
         anchor = query.anchor(apath, fid)
         tag = layers.get(apath, "")
         print(anchor + (f"   {tag}" if tag else ""))
-        print(f"    {flag}{npath}  <{comps or ''}>")
+        ltag = query.layer_label(lnames, layer)
+        print(f"    {flag}{npath}  <{comps or ''}>" + (f"  {ltag}" if ltag else ""))
         if args.resolve:
             status, payload, how = resolved.get(
                 anchor, ("fail", "Unity 沒有回報這個 anchor", "")
@@ -267,7 +271,7 @@ def _resolve_anchors(rows) -> dict:
     `[n]`），不能直接餵給 `--node`。要合併後的真值就只能問 Unity。
     """
     lines = []
-    for apath, fid, npath, _active, _comps in rows:
+    for apath, fid, npath, _active, _comps, _layer in rows:
         name = (npath or "").rsplit("/", 1)[-1]
         lines.append(f"{query.anchor(apath, fid)}|{name}")
 
@@ -520,6 +524,7 @@ GID = f"{unity.EDIT_NS}.EditGid"
 PROMPT = f"{unity.EDIT_NS}.PromptEdit"
 LOC = f"{unity.EDIT_NS}.LocEdit"
 ANCHOR = f"{unity.EDIT_NS}.EditAnchor"
+MENU = f"{unity.EDIT_NS}.MenuEdit"
 
 
 def _ops_text(args, use_path: bool = True) -> str:
@@ -535,10 +540,26 @@ def _ops_text(args, use_path: bool = True) -> str:
     inline = [v for v in ((getattr(args, "path", None) if use_path else None),
                           *getattr(args, "ops", ())) if v]
     if inline:
-        return "\n".join(inline)
+        text = "\n".join(inline)
+        _guard_shell_expanded_marks(text)
+        return text
     if sys.stdin.isatty():
         raise SystemExit("沒有操作內容：用 -f <檔案>、直接帶參數，或從 stdin 餵進來")
     return sys.stdin.read()
+
+
+def _guard_shell_expanded_marks(text: str):
+    """inline ops 用雙引號包時，`$SF/...` 的 mark 代換會被 zsh 先展開成空字串，路徑變成 `/...`，
+    要到 Unity 端解節點才失敗、而且錯誤看不出原因。同一批有 `mark` 卻一個 `$` 都沒剩、
+    又有參數以 `/` 開頭，幾乎可以確定是被 shell 吃掉了，在打 Unity 前就擋下來。"""
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    if "$" in text or not any(l.split()[0] == "mark" for l in lines):
+        return
+    if any(re.search(r"(^|[\s|])/", l.split(None, 1)[1] if len(l.split()) > 1 else "")
+           for l in lines if l.split()[0] != "mark"):
+        raise SystemExit(
+            "# 這批有 `mark`，但沒有任何 `$label`、而且有參數以 `/` 開頭 —— `$label` 多半被 shell 展開成空字串了。\n"
+            "# 改用單引號包參數，或寫成 ops 檔（`cat > ops.txt <<'EOF'`）再用 `-f ops.txt` 跑")
 
 
 def _probe_text(args) -> str:
@@ -723,6 +744,26 @@ def cmd_prefab(args, root, cfg):
             print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet))
     elif args.action == "swap-script":
         _prefab_swap_script(args, root)
+    elif args.action == "bounds":
+        _prefab_bounds(args)
+
+
+BOUNDS = f"{unity.EDIT_NS}.EditBounds"
+
+
+def _prefab_bounds(args):
+    """節點底下 active renderer 的 AABB（prefab root 座標系）+ 沿最長軸的粗細分佈。
+
+    走 Unity 端算而不是離線解析 FBX：importer 的軸向轉換（X 反轉、Z-up、file scale）
+    只有匯入後的 mesh 才是真值，離線只能推、證明不了模型朝哪邊。
+    """
+    try:
+        print(unity.call(f"{BOUNDS}.Bounds", args.asset, args.node or "", args.segments))
+    except unity.UnityError as e:
+        if "EditBounds" in str(e):
+            raise SystemExit("# C# 端還沒編譯到 EditBounds（MonoFSM/1_MonoFSM_Core/Editor/"
+                             "PrefabEditing/EditBounds.cs）—— 在 Unity 編譯一次再跑") from None
+        raise
 
 
 def _prefab_swap_script(args, root):
@@ -1195,6 +1236,18 @@ def cmd_effect_trace(args, root, cfg):
     print(unity.call(f"{TRACE}.Trace", args.node, args.effect))
 
 
+def cmd_menu(args, root, cfg):
+    """執行一個 Editor MenuItem（EditorApplication.ExecuteMenuItem）。
+
+    讓 agent / 外部 CLI（例如 meshy 下載完自動包 prefab）跟人按選單走同一條路，
+    不用每次臨時寫 execute-dynamic-code。找不到時 C# 端會列出最接近的 menu path，exit 1。
+    """
+    out = unity.call(f"{MENU}.Execute", args.path)
+    print(out)
+    if out.startswith("FAIL"):
+        raise SystemExit(1)
+
+
 def cmd_poke(args, root, cfg):
     """Play Mode 下設一個 Var 的 runtime 值 —— peek 的寫入面，自動測試用。"""
     print(unity.call(f"{PROBE}.Poke", args.node, args.comp, args.value))
@@ -1276,7 +1329,7 @@ SCOPE_ACTIONS = ("list", "stats", "init")
 FIND_SCOPES = ("full", "all", "shallow")
 SCENE_ACTIONS = ("new", "copy", "open", "save", "ls", "count", "do")
 PREFAB_ACTIONS = ("read", "peek", "peek-batch", "locate", "do", "variant", "copy",
-                  "swap-script")
+                  "swap-script", "bounds")
 CATALOG_KIND_CHOICES = ("action", "condition", "render", "handler", "getter",
                         "var", "so", "all")
 LOG_TYPES = ("All", "Error", "Warning", "Log")
@@ -1653,7 +1706,7 @@ def main() -> None:
     pp = sub.add_parser("prefab", help="對 prefab asset 讀 / 寫（需要 Unity）")
     pp.add_argument("action", choices=PREFAB_ACTIONS, type=_ci(*PREFAB_ACTIONS))
     pp.add_argument("asset", help="prefab asset path")
-    pp.add_argument("--node", help="read / peek：子樹路徑（peek 留空 = root）")
+    pp.add_argument("--node", help="read / peek / bounds：子樹路徑（peek / bounds 留空 = root）")
     pp.add_argument("--comp", help="peek：component 型別")
     pp.add_argument("--members",
                     help="peek：逗號分隔的欄位名，支援點路徑（_ignoreFilter._ignoreSelfEntity、"
@@ -1704,6 +1757,8 @@ def main() -> None:
                     help="swap-script：Unity Editor 開著這個專案時仍然硬寫（預設拒絕，"
                          "因為 Editor 一存檔就會整份覆寫且值不可逆地消失）；"
                          "do：目標 prefab 正開在 Prefab Mode 時仍然寫（預設拒絕，stage 之後存檔 / Discard 會蓋掉）")
+    pp.add_argument("--segments", type=int, default=10,
+                    help="bounds：沿合計 AABB 最長軸把頂點切幾段、印每段最大半徑（判斷模型哪頭粗）；0 = 不印")
     pp.add_argument("ops", nargs="*", help="do：直接帶操作（一個參數一行）")
     pp.set_defaults(fn=cmd_prefab)
 
@@ -1896,6 +1951,10 @@ def main() -> None:
     et.add_argument("node", help="receiver 節點路徑，或它的任一祖先（會往下找 receiver）")
     et.add_argument("--effect", help="只看 effectType 名稱含這段的 receiver")
     et.set_defaults(fn=cmd_effect_trace)
+
+    pmn = sub.add_parser("menu", help="執行 Editor 選單項目（需要 Unity），例：up menu \"Tools/Meshy/包所有還沒包的 Prefab\"")
+    pmn.add_argument("path", help="menu path，例 Tools/Meshy/包所有還沒包的 Prefab；找不到會列出最接近的幾個")
+    pmn.set_defaults(fn=cmd_menu)
 
     pke = sub.add_parser("poke", help="Play Mode 下設某個 Var 的 runtime 值（需要 Unity）")
     pke.add_argument("node", help="節點路徑（第一段是 root object 名）")

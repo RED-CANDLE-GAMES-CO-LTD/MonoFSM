@@ -131,10 +131,50 @@ namespace MonoFSM.Editor.PrefabEditing
                 hierarchy = depth < 0 && charBudget > 0
                     ? Layered(root, fullExpand, structureOnly, charBudget, header, fsm)
                     : Once(root, fullExpand, depth, structureOnly);
+                AppendFlagLegend(header, hierarchy);
+                // 掃整棵子樹（不只顯示出來的那幾層）：摺疊起來的 detection source 放錯 layer 一樣會靜默打不到
+                var layerWarning = EditLayer.ViolationReport(root.transform);
+                if (layerWarning != null && header != null) header.Append(layerWarning);
             }
 
             var text = Compose(header, hierarchy, fsm);
             return HardCap(text, charBudget);
+        }
+
+        /// <summary>
+        /// 輸出裡有 `~` / `+` 行首旗標時補一行圖例。
+        /// 沒圖例的話 `~[If] v_IsDead == True` 會被讀成「有一顆生效的條件」——
+        /// 2026-09-25 就因此把一顆 inactive 的 receiver 條件誤判成 gate。
+        /// </summary>
+        private static void AppendFlagLegend(StringBuilder header, string hierarchy)
+        {
+            if (header == null || string.IsNullOrEmpty(hierarchy)) return;
+            var hasInactive = false;
+            var hasAdded = false;
+            var atLineStart = true;
+            for (var i = 0; i < hierarchy.Length; i++)
+            {
+                var c = hierarchy[i];
+                if (c == '\n') { atLineStart = true; continue; }
+                if (!atLineStart) continue;
+                if (c == ' ') continue;
+                // 旗標組合是 "~" / "+" / "~+"，後面緊接節點名
+                if (c == '~')
+                {
+                    hasInactive = true;
+                    if (i + 1 < hierarchy.Length && hierarchy[i + 1] == '+') hasAdded = true;
+                }
+                else if (c == '+') hasAdded = true;
+                atLineStart = false;
+                if (hasInactive && hasAdded) break;
+            }
+
+            if (!hasInactive && !hasAdded) return;
+            var sb = new StringBuilder("# 行首旗標：");
+            if (hasInactive) sb.Append("~ = GameObject activeSelf=false（不會跑；condition 不會判、等於不存在）");
+            if (hasInactive && hasAdded) sb.Append("；");
+            if (hasAdded) sb.Append("+ = variant / instance 上新增的 override 節點");
+            header.AppendLine(sb.ToString());
         }
 
         private static string Once(

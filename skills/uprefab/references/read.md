@@ -50,6 +50,16 @@ up scene ls --node "資源生成器 FSM/[StateFolder] StateFolder" --depth 2 --b
 [VarFolder] VariableFolder <VariableFolder> :: 131 vars: Stamina:VarFloat, … (+233 nodes)
 ```
 
+**layer 會印在節點行上**：不是 Default 的印 `layer=<名字>`；`TriggerDetectorSource` 不在 `Detector` layer
+會印 `layer=Default ⚠應在Detector`，而且 header 會列出**整棵子樹**（含摺疊起來的）所有違規節點的修正指令：
+
+```
+# ⚠ layer 慣例：1 顆 TriggerDetectorSource 不在 Detector layer（collision matrix 照 Detector 配，放錯可能靜默打不到）。修正：
+#   up prefab do "Assets/…/PPlayer.prefab" "layer|…/[Detector] Melee/[DetectionSource] TriggerDetectorSource|Detector"
+```
+
+`prefab peek` / `prefab locate` / 只列 component 名的 peek 也會在節點後面帶同一個 layer 標記。
+
 **路徑打錯不會白跑** —— 它會沿路徑走到最後一個通的節點，把那層的子節點連同
 `(+N nodes)` 列出來，照著修就好。MonoFSM 的節點名常帶 `[Tag] ` 前綴，很容易猜錯。
 

@@ -9,6 +9,11 @@ namespace MonoFSM.FSM
 {
     //FIXME: 會不小心沒有轉成networked版的？
     //Local版的？
+    /// <summary>
+    /// 非網路（local）版的 FSM controller：Simulate 時驅動同節點 StateMachineLogic 的每顆 StateMachine.FixedUpdate，
+    /// Update 時跑 Render。_enableLogging 只在 Awake 同步一次到 StateMachineLogic.EnableLogging。
+    /// 網路 prefab 用 NetworkStateMachineController。
+    /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(StateMachineLogic))] // Ensure StateMachineLogic is present
     public class MonoStateMachineController : MonoBehaviour, IStateMachineController,

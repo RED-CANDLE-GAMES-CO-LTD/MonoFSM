@@ -156,7 +156,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 Dirty();
                 var full = string.IsNullOrEmpty(parentPath) ? name : $"{parentPath}/{name}";
                 EditBatch.Touch(full);
-                return $"建立 {full}  <{string.Join(", ", added)}>";
+                return $"建立 {full}  <{string.Join(", ", added)}>" + LayerLintSuffix(go.transform);
             });
         }
 
@@ -287,7 +287,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 }
 
                 Dirty();
-                return $"{nodePath} += <{EditResolve.Join(added)}>";
+                return $"{nodePath} += <{EditResolve.Join(added)}>" + LayerLintSuffix(node);
             });
         }
 
@@ -358,6 +358,31 @@ namespace MonoFSM.Editor.PrefabEditing
                 Dirty();
                 return $"{nodePath}.activeSelf = {active}";
             });
+        }
+
+        /// <summary>
+        /// 設 GameObject layer（吃 layer 名字；children = true 連整棵子樹）。
+        /// 設完若違反「detection source 一律 Detector layer」慣例，回傳值附警告與修正指令。
+        /// </summary>
+        public static string SetLayer(string nodePath, string layerName, bool children = false)
+        {
+            return Guard(() =>
+            {
+                var node = EditResolve.NodeInRoots(Roots(Active()), nodePath);
+                var layer = EditLayer.Resolve(layerName, "layer");
+                var before = EditLayer.Name(node.gameObject.layer);
+                var targets = EditLayer.Apply(node, layer, children);
+                Dirty();
+                var scope = targets.Count > 1 ? $"（連子樹共 {targets.Count} 個節點）" : "";
+                return $"{nodePath}.layer: {before} -> {EditLayer.Name(layer)}{scope}" + LayerLintSuffix(node);
+            });
+        }
+
+        /// <summary>scene 沒有 do 存檔後驗證那一段，改成改到節點的當下就檢查子樹的 Detector layer 慣例。</summary>
+        private static string LayerLintSuffix(Transform node)
+        {
+            var list = EditLayer.FindViolations(node);
+            return list.Count == 0 ? "" : "\n" + EditLayer.FormatWarning(list, list.Count, null, 6, "").TrimEnd('\n');
         }
 
         public static string Move(string nodePath, string newParentPath)
@@ -457,6 +482,10 @@ namespace MonoFSM.Editor.PrefabEditing
                 case "active":
                     return SetActive(EditBatch.Need(a, 0, verb, "nodePath"),
                         EditBatch.Bool(a, 1, verb));
+                case "layer":
+                    return SetLayer(EditBatch.Need(a, 0, verb, "nodePath"),
+                        EditBatch.Need(a, 1, verb, "layerName"),
+                        EditLayer.IsChildrenFlag(EditBatch.At(a, 2)));
                 case "mv":
                     return Move(EditBatch.Need(a, 0, verb, "nodePath"), EditBatch.At(a, 1));
                 case "idx":
@@ -482,7 +511,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
                         "不認得的操作 '" + verb +
-                        "'。可用的：add prefab comp set ref aref addel pos active mv idx auto del delcomp save mark " +
+                        "'。可用的：add prefab comp set ref aref addel pos active layer mv idx auto del delcomp save mark " +
                         EditFsm.Verbs);
                 }
             }

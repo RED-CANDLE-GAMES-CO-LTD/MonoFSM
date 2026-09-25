@@ -89,18 +89,51 @@ def find(con: sqlite3.Connection, comp=None, name=None, path=None, limit=50,
        `(asset_id, go_file_id)` 的 index，每次都是該 asset 內的線性掃）。
     """
     where, args = _find_where(comp, name, path, scope, paths)
-    sql = ("SELECT a.path, n.asset_id, n.file_id, n.path, n.is_active " + where +
+    sql = ("SELECT a.path, n.asset_id, n.file_id, n.path, n.is_active, n.layer " + where +
            " ORDER BY a.path, n.path LIMIT ?")
     rows = con.execute(sql, args + [limit]).fetchall()
 
     out = []
-    for apath, asset_id, fid, npath, active in rows:
+    for apath, asset_id, fid, npath, active, layer in rows:
         comps = con.execute(
             "SELECT group_concat(type, ' ') FROM comps WHERE asset_id=? AND go_file_id=?",
             (asset_id, fid),
         ).fetchone()[0]
-        out.append((apath, fid, npath, active, comps))
+        out.append((apath, fid, npath, active, comps, layer or 0))
     return out
+
+
+def layer_names(root: str) -> list[str]:
+    """ProjectSettings/TagManager.asset 的 `layers:` 清單 → index 對應名字（沒名字的是空字串）。
+
+    離線索引的 nodes.layer 只存 m_Layer 數字；印給人看要轉成名字才有意義。
+    讀不到檔就回空 list，呼叫端退回印數字。
+    """
+    import os
+    path = os.path.join(root, "ProjectSettings", "TagManager.asset")
+    names: list[str] = []
+    try:
+        with open(path, encoding="utf-8") as f:
+            inside = False
+            for line in f:
+                if line.startswith("  layers:"):
+                    inside = True
+                    continue
+                if inside:
+                    if not line.startswith("  - ") and line.strip() != "-":
+                        break
+                    names.append(line.strip()[1:].strip())
+    except OSError:
+        return []
+    return names
+
+
+def layer_label(names: list[str], layer: int) -> str:
+    """0（Default）回空字串 —— find 只在 layer 不是 Default 時才印，省輸出。"""
+    if not layer:
+        return ""
+    name = names[layer] if 0 <= layer < len(names) and names[layer] else str(layer)
+    return f"layer={name}"
 
 
 # ── prefab 繼承鏈（variant base / nested prefab）─────────────────────

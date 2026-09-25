@@ -28,6 +28,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `scale\|<node>\|x,y,z` | 設 localScale（**只有 prefab**；`<node>` 留空 = root） |
 | `rot\|<node>\|x,y,z` | 設 localEulerAngles（**只有 prefab**；`<node>` 留空 = root，複製出來的 prefab 要歸零殘留旋轉就靠這個） |
 | `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（含 nested prefab override 記錄與 reload 驗證；第二格必填） |
+| `layer\|<node>\|<layer 名字>[\|children]` | 設 GameObject.layer（prefab / scene 都支援；prefab 版 `<node>` 留空 = root）。吃 layer 名字（大小寫要一致，打錯會列出全部可用 layer），第三格 `children` = 連整棵子樹一起設。含 nested / variant override 記錄與 reload 驗證。**慣例：掛 `TriggerDetectorSource`（含子類）的節點一律 `Detector` layer**（cast / overlap 打什麼看 query mask，不檢查；TriggerDetectorSource 自己在 Editor 的 Reset / OnValidate 也會修正，但只有 prefab 被打開 / inspect 時才跑） —— `prefab do` 存檔後會對「這批新造成的」違規印 `# ⚠ layer 慣例：…` 加修正指令，既有的只報數量；`scene do` 在 add / comp / layer 當下檢查 |
 | `idx\|<node>\|<siblingIndex>` | 調 sibling 順序。**child 順序＝優先序**（value source / condition 取第一個成立的），負數從尾端算（`-1` = 最後） |
 | `mv\|<node>\|<newParent>` | 換 parent（scene 與 prefab 都支援） |
 | `copyfrom\|<srcPrefab>\|<srcNode>\|<dstParent>[\|<newName>]` | **跨 prefab** 複製整棵子樹（只有 prefab）。nested 實例會被重建成真實例（override 保留），指向子樹外的引用依 hierarchy 相對路徑重映射到目的 prefab 的同路徑節點。見下面「跨 prefab 搬子樹」 |

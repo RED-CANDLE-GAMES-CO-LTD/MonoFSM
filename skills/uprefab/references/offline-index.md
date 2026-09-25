@@ -30,6 +30,8 @@ up scope stats
 | `overrides <asset> [-n N] [--all] [--by-target]` | prefab override 稽核。`--by-target` 只回分佈 |
 | `scope list \| stats \| init` | `stats` 列出節點數最多的資產，用來決定還要濾掉什麼 |
 
+`find` 的節點行尾會帶 `layer=<名字>`（layer 不是 Default 時才印；數字→名字對照 `ProjectSettings/TagManager.asset`）。這是檔案自己 YAML 寫的 `m_Layer`：variant / nested instance 上的 layer override 不在離線索引裡，要合併後的真值走 `up prefab read`。
+
 anchor 格式 `Assets/.../PPlayer.prefab#272130150518276317`，`#` 後是 fileID，對改名穩定。
 
 `includeShallow` 的用途是讓 override target 能解析第三方來源，不是一般 gameplay 搜尋。

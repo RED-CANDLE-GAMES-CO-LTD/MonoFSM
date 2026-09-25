@@ -298,6 +298,8 @@ namespace MonoFSM.Editor.PrefabEditing
 
             var root = PrefabUtility.LoadPrefabContents(assetPath);
             var guard = OverrideGuard.Take(root);
+            // 存檔後只對「這批新造成的」layer 違規報警告；既有的只報數量，免得每次 do PPlayer 都洗一整片
+            var layerViolationsBefore = EditLayer.ViolationPaths(root.transform);
             var touches = new List<VerifyTouch>();
             var reverts = new List<PendingRevert>();
             try
@@ -337,7 +339,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 PrefabUtility.UnloadPrefabContents(root);
                 root = null;
 
-                var report = VerifyReloaded(assetPath, touches, guard);
+                var report = VerifyReloaded(assetPath, touches, guard, layerViolationsBefore);
                 // quiet 只壓成功輸出；驗證錯誤要把原始逐行操作一起帶回，才知道是哪一步寫的。
                 var prefix = quiet && report.Failures.Count == 0 && report.Collateral.Count == 0 &&
                              !callbackLog.Contains("個失敗") && !revertLog.Contains("失敗") &&
@@ -774,6 +776,19 @@ namespace MonoFSM.Editor.PrefabEditing
                     touches.Add(VerifyTouch.TransformValue(node, VerifyKind.ActiveSelf, verb));
                     return $"{EditResolve.Describe(nodePath)}.activeSelf = {active}";
                 }
+                case "layer":
+                {
+                    // layer|<node>|<layer 名字>[|children]：留空 node = root。children = 連整棵子樹一起設
+                    var nodePath = EditBatch.At(a, 0);
+                    var node = EditResolve.Node(root, nodePath);
+                    var layer = EditLayer.Resolve(EditBatch.Need(a, 1, verb, "layerName"), verb);
+                    var before = EditLayer.Name(node.gameObject.layer);
+                    var targets = EditLayer.Apply(node, layer, EditLayer.IsChildrenFlag(EditBatch.At(a, 2)));
+                    foreach (var go in targets)
+                        touches.Add(VerifyTouch.TransformValue(go.transform, VerifyKind.Layer, verb));
+                    var scope = targets.Count > 1 ? $"（連子樹共 {targets.Count} 個節點）" : "";
+                    return $"{EditResolve.Describe(nodePath)}.layer: {before} -> {EditLayer.Name(layer)}{scope}";
+                }
                 case "idx":
                 {
                     // sibling 順序在 MonoFSM 裡是語意的一部分：value source / condition 依 child
@@ -878,7 +893,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var ctx = new EditFsm.Ctx { Node = p => EditResolve.Node(root, p) };
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel revert pos rect scale rot active idx mv copyfrom auto rename del delcomp delmissing mark " +
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel revert pos rect scale rot active layer idx mv copyfrom auto rename del delcomp delmissing mark " +
                         EditFsm.Verbs + "（save 只有 SceneEdit 有）");
                 }
             }
@@ -1053,6 +1068,7 @@ namespace MonoFSM.Editor.PrefabEditing
             Serialized,
             AutoField,
             ActiveSelf,
+            Layer,
             LocalPosition,
             LocalScale,
             LocalEulerAngles,
@@ -1203,6 +1219,7 @@ namespace MonoFSM.Editor.PrefabEditing
             private static string TransformSnapshot(Transform node, VerifyKind kind) => kind switch
             {
                 VerifyKind.ActiveSelf => node.gameObject.activeSelf ? "true" : "false",
+                VerifyKind.Layer => EditLayer.Name(node.gameObject.layer),
                 VerifyKind.LocalPosition => Vector(node.localPosition),
                 VerifyKind.LocalScale => Vector(node.localScale),
                 // Transform 實際序列化的是 quaternion；Euler angle 有多種等價表示，
@@ -1282,6 +1299,7 @@ namespace MonoFSM.Editor.PrefabEditing
                             _expected = "override:false";
                             break;
                         case VerifyKind.ActiveSelf:
+                        case VerifyKind.Layer:
                         case VerifyKind.LocalPosition:
                         case VerifyKind.LocalScale:
                         case VerifyKind.LocalEulerAngles:
@@ -1346,6 +1364,11 @@ namespace MonoFSM.Editor.PrefabEditing
                             NoteOverride(node.gameObject,
                                 new SerializedObject(node.gameObject).FindProperty("m_IsActive"));
                             break;
+                        case VerifyKind.Layer:
+                            actual = EditLayer.Name(node.gameObject.layer);
+                            NoteOverride(node.gameObject,
+                                new SerializedObject(node.gameObject).FindProperty("m_Layer"));
+                            break;
                         case VerifyKind.LocalPosition:
                             actual = Vector(node.localPosition);
                             break;
@@ -1399,6 +1422,7 @@ namespace MonoFSM.Editor.PrefabEditing
             private static string KindName(VerifyKind kind) => kind switch
             {
                 VerifyKind.ActiveSelf => "activeSelf",
+                VerifyKind.Layer => "layer",
                 VerifyKind.LocalPosition => "localPosition",
                 VerifyKind.LocalScale => "localScale",
                 VerifyKind.LocalEulerAngles => "localEulerAngles",
@@ -1416,10 +1440,11 @@ namespace MonoFSM.Editor.PrefabEditing
             internal readonly List<string> UnsupportedReasons = new();
             internal readonly List<string> OverrideNotes = new();
             internal List<string> Collateral = new();
+            internal string LayerWarning;
 
             internal string Format()
             {
-                var text = $"# 驗證（set/ref/aref/addel/revert/active/transform/auto）：" +
+                var text = $"# 驗證（set/ref/aref/addel/revert/active/layer/transform/auto）：" +
                            $"{Verified} 個 OK，{Failures.Count} 個失敗，{Unsupported} 個 unsupported";
                 if (UnsupportedReasons.Count > 0)
                     text += $"（{string.Join("；", UnsupportedReasons.Distinct())}）";
@@ -1438,12 +1463,14 @@ namespace MonoFSM.Editor.PrefabEditing
                             (Collateral.Count > cap ? $"# - …另外 {Collateral.Count - cap} 筆\n" : "");
                 }
 
+                if (LayerWarning != null) text += LayerWarning;
                 return text;
             }
         }
 
         private static VerifyReport VerifyReloaded(
-            string assetPath, List<VerifyTouch> touches, OverrideGuard guard)
+            string assetPath, List<VerifyTouch> touches, OverrideGuard guard,
+            HashSet<string> layerViolationsBefore = null)
         {
             var report = new VerifyReport();
             foreach (var touch in touches)
@@ -1474,6 +1501,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 }
 
                 if (guard != null) report.Collateral = guard.Compare(reloaded.transform);
+                report.LayerWarning = LayerLint(assetPath, reloaded.transform, layerViolationsBefore);
             }
             catch (Exception e)
             {
@@ -1485,6 +1513,26 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             return report;
+        }
+
+        /// <summary>
+        /// Detector layer 慣例檢查（見 EditLayer）：存檔重讀後，這批「新出現」的違規節點逐條印修正指令，
+        /// 原本就違規的只印一行數量。沒有違規回 null。
+        /// </summary>
+        private static string LayerLint(string assetPath, Transform reloadedRoot, HashSet<string> before)
+        {
+            var now = EditLayer.FindViolations(reloadedRoot);
+            if (now.Count == 0) return null;
+            before ??= new HashSet<string>();
+            var fresh = now.Where(t => !before.Contains(EditResolve.PathOf(reloadedRoot, t) ?? t.name)).ToList();
+            var old = now.Count - fresh.Count;
+            var text = fresh.Count > 0
+                ? EditLayer.FormatWarning(fresh, fresh.Count, assetPath, 6, "（這批新增／改到的）")
+                : "";
+            if (old > 0)
+                text += $"# （這支 prefab 另有 {old} 顆既有的 TriggerDetectorSource 不在 {EditLayer.DetectorLayerName} layer，" +
+                        "`up prefab read` 開頭會列出修正指令）\n";
+            return text;
         }
 
         private static string Snapshot(SerializedProperty prop, Transform root)

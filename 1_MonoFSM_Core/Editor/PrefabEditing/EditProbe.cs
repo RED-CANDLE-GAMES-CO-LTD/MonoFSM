@@ -129,6 +129,13 @@ namespace MonoFSM.Editor.PrefabEditing
         /// （Editor.log 留下 mono stack dump，managed try/catch 攔不到）—— 一次 peek 就閃退整個
         /// Editor。屬性要查得顯式寫進 members，範圍縮到一個，炸了也知道是誰。
         /// </summary>
+        /// <summary>節點的 layer 標記（Default 且沒違反 Detector 慣例時是空字串），見 EditLayer.NodeTag。</summary>
+        private static string LayerSuffix(GameObject go)
+        {
+            var tag = EditLayer.NodeTag(go);
+            return tag == null ? "" : "  " + tag;
+        }
+
         public static string Peek(string nodePath, string componentType, string members = null,
             int deep = 0)
         {
@@ -145,7 +152,8 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             return Dump(comp,
-                $"{nodePath}.{comp.GetType().Name}  [{(Application.isPlaying ? "PlayMode" : "EditMode")}]",
+                $"{nodePath}.{comp.GetType().Name}  [{(Application.isPlaying ? "PlayMode" : "EditMode")}]" +
+                LayerSuffix(comp.gameObject),
                 members, serializedByDefault: true, listPropertiesWhenEmpty: true, deep: deep);
         }
 
@@ -179,7 +187,8 @@ namespace MonoFSM.Editor.PrefabEditing
                 return $"# {abort.Message}";
             }
 
-            return Dump(comp, $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}  [asset]",
+            return Dump(comp, $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}  [asset]" +
+                              LayerSuffix(comp.gameObject),
                 members, serializedByDefault: true, deep: deep);
         }
 
@@ -219,7 +228,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 var names = node.GetComponents<Component>()
                     .Where(c => c != null).Select(c => c.GetType().Name).ToList();
-                return $"# {EditResolve.Describe(nodePath)} [{where}] 上的 component："
+                return $"# {EditResolve.Describe(nodePath)} [{where}]{LayerSuffix(node.gameObject)} 上的 component："
                        + EditResolve.Join(names) + "\n# 挑一個接 --comp（欄位值才會 dump 出來）";
             }
             catch (EditResolve.EditAbort abort)
@@ -285,7 +294,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 foreach (var hit in hits.Take(shown))
                 {
                     var path = EditResolve.PathOf(root.transform, hit.node);
-                    sb.AppendLine(string.IsNullOrEmpty(path) ? "(root)" : path);
+                    sb.AppendLine((string.IsNullOrEmpty(path) ? "(root)" : path) + LayerSuffix(hit.node.gameObject));
 
                     if (hit.comp != null)
                     {

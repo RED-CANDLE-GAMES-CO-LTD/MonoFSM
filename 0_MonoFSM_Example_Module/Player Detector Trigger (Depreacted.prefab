@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5724567035740420590}
   - component: {fileID: 5945928797899814095}
   m_Layer: 0
-  m_Name: ' EffectEnterNode'
+  m_Name: '[Event] EffectEnterNode'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -46,7 +46,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _note: 
+  _forceExecuteWithoutStateAuthority: 0
+  _stateAuthorityOnly: 0
+  _lastSkipReason: 
+  _lastSkipTime: -1
   _hittingEntity: {fileID: 0}
+  _clearHittingEntityOnExit: 0
 --- !u!1 &1007480425006094322
 GameObject:
   m_ObjectHideFlags: 0
@@ -94,7 +99,8 @@ MonoBehaviour:
   _note: 
   _delayActionModifier: {fileID: 0}
   _target: {fileID: 0}
-  TargetValue: 0
+  _sourceValue: 0
+  _sourceVar: {fileID: 0}
 --- !u!1 &1264322080609581854
 GameObject:
   m_ObjectHideFlags: 0
@@ -106,7 +112,7 @@ GameObject:
   - component: {fileID: 1056858906320765754}
   - component: {fileID: 8406567234117672876}
   m_Layer: 0
-  m_Name: Player Detector
+  m_Name: "[Dealer] In Player Interact Range Detect \u73A9\u5BB6\u4E92\u52D5\u7BC4\u570D"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -143,6 +149,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _note: 
   _effectType: {fileID: 11400000, guid: 2795990079c9849ccb77b99d120be1db, type: 2}
+  _singleEntityPerEnable: 0
+  _isPassive: 0
+  _defaultValue:
+    _tempValue: 0
+    _bindTag: {fileID: 0}
+    _var: {fileID: 0}
 --- !u!1 &2642439091165249996
 GameObject:
   m_ObjectHideFlags: 0
@@ -154,7 +166,7 @@ GameObject:
   - component: {fileID: 1426551663444141760}
   - component: {fileID: 2922029020745187749}
   m_Layer: 0
-  m_Name: ' EffectExitNode'
+  m_Name: '[Event] EffectExitNode'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -189,6 +201,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _note: 
+  _forceExecuteWithoutStateAuthority: 0
+  _stateAuthorityOnly: 0
+  _lastSkipReason: 
+  _lastSkipTime: -1
 --- !u!1 &3744698031215929389
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,7 +252,8 @@ MonoBehaviour:
   _note: 
   _delayActionModifier: {fileID: 0}
   _target: {fileID: 0}
-  TargetValue: 1
+  _sourceValue: 1
+  _sourceVar: {fileID: 0}
 --- !u!1 &5776180804275836019
 GameObject:
   m_ObjectHideFlags: 0
@@ -325,6 +342,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5807005196674357399
 GameObject:
@@ -337,7 +355,7 @@ GameObject:
   - component: {fileID: 2897568678841292412}
   - component: {fileID: 3492560789353915584}
   - component: {fileID: 6897908958605213675}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Player Detector Trigger (Depreacted
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -395,5 +413,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _note: 
-  _detector: {fileID: 0}
-  _collider: {fileID: 3492560789353915584}
+  _ignoreFilter:
+    _ignoreEntities: []
+    _ignoreSelfEntity: 0
+    _selfEntities: []

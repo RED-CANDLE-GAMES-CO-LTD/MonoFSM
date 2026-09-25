@@ -129,6 +129,11 @@ namespace MonoFSM.Editor
             if (!string.IsNullOrEmpty(transformPart))
                 sb.Append(' ').Append(transformPart);
 
+            // layer 只在不是 Default、或違反 Detector 慣例時印（見 EditLayer）
+            var layerPart = PrefabEditing.EditLayer.NodeTag(go);
+            if (layerPart != null)
+                sb.Append(' ').Append(layerPart);
+
             var compsPart = BuildComponentsBlock(go, ctx);
             if (!string.IsNullOrEmpty(compsPart))
                 sb.Append(' ').Append(compsPart);
