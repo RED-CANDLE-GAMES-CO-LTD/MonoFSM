@@ -104,6 +104,24 @@ def cmd_index(args, root, cfg):
     )
 
 
+_REFRESHED = [False]
+
+
+def _refresh_index(root, cfg, why: str) -> bool:
+    """查不到 / 查到的檔案已經不在時，自動跑一次增量 index（實測 ~3 秒），回 True = 有跑。
+
+    只在 miss 時觸發、一個 process 最多一次。原本是印「索引過期？先跑 up index」叫 agent
+    自己跑 —— 改名 / 搬資料夾後 `up guid` 回舊路徑、`find --path` 0 筆，agent 要多繞兩輪。
+    """
+    if _REFRESHED[0]:
+        return False
+    _REFRESHED[0] = True
+    print(f"# {why} → 自動跑增量 index 後重查", file=sys.stderr)
+    stats = indexer.build(root, cfg, incremental=True)
+    print(f"#   indexed {stats['scanned']} assets in {stats['seconds']}s", file=sys.stderr)
+    return True
+
+
 def cmd_scope(args, root, cfg):
     con = indexer.connect(root)
     if args.action == "init":
@@ -142,7 +160,7 @@ INHERIT_TIP = (
 )
 
 
-def _inherit_expand(con, args):
+def _inherit_expand(con, args, root, cfg):
     """--path 指到 variant / 含 nested prefab 時，把 base 來源一起拉進查詢範圍。
 
     回 (paths, layers, notes)：
@@ -154,8 +172,11 @@ def _inherit_expand(con, args):
     if not args.path:
         return None, {}, notes
     direct = [row[0] for row in query.assets_matching(con, _like(args.path))]
+    if not direct and _refresh_index(root, cfg, f"--path '{args.path}' 在索引裡 0 筆"):
+        direct = [row[0] for row in query.assets_matching(con, _like(args.path))]
     if not direct:
-        notes.append(f"⚠ --path 沒有比對到任何已索引的資產（索引過期？先跑 up index）")
+        notes.append(f"⚠ --path 沒有比對到任何已索引的資產（已自動重跑增量 index，"
+                     f"還是沒有 → 路徑片段打錯，或不在索引範圍：`up scope list`）")
         return None, {}, notes
     if args.no_inherit:
         if query.has_instances(con, direct):
@@ -191,7 +212,7 @@ def _no_match(notes, expanded: bool) -> None:
 
 def cmd_find(args, root, cfg):
     con = indexer.connect(root)
-    paths, layers, notes = _inherit_expand(con, args)
+    paths, layers, notes = _inherit_expand(con, args, root, cfg)
     where = dict(comp=_like(args.comp), name=_like(args.name), path=_like(args.path),
                  scope=args.scope, paths=paths)
 
@@ -398,6 +419,10 @@ def cmd_guid(args, root, cfg):
         # guid → path
         guid = m.group(0)
         row = query.asset_by_guid(con, guid)
+        # 改名 / 搬家後索引還指著舊路徑：檔案不在就先補 index 再查，不要把死路徑交出去
+        if row and not os.path.exists(os.path.join(root, row[0])) and \
+                _refresh_index(root, cfg, f"索引裡的 {row[0]} 已經不在磁碟上"):
+            row = query.asset_by_guid(con, guid)
         if row:
             path, kind, tier = row
             print(path)
@@ -1384,7 +1409,11 @@ def _compact_error(prog: str, parser, message: str) -> str:
                 owners = [o for o in _ALL_OPTS[token] if o != "全域"][:4]
                 exact.append(f"{token} 不是 `{prog}` 的參數，它屬於：{'、'.join(owners)}")
                 continue
-            for cand in difflib.get_close_matches(token, list(_ALL_OPTS), 2, 0.6):
+            # allow_abbrev 關掉了，前綴吻合的完整旗標要排最前面（`--struct` → `--structure-only`），
+            # difflib 對這種「短前綴 vs 長全名」的相似度太低，常常根本不列
+            prefixed = [o for o in _ALL_OPTS if o.startswith(token)][:2]
+            near = difflib.get_close_matches(token, list(_ALL_OPTS), 2, 0.6)
+            for cand in prefixed + [c for c in near if c not in prefixed][:max(0, 2 - len(prefixed))]:
                 owners = _ALL_OPTS[cand][:3]
                 hints.append(f"{cand}（{'/'.join(owners)}）")
         if exact:
@@ -1398,12 +1427,17 @@ def _compact_error(prog: str, parser, message: str) -> str:
             return msg
         bare = [t for t in bad if not t.startswith("-")]
         sub = next((a for a in sys.argv[1:] if not a.startswith("-")), None)
-        if bare and sub == "find":
+        # 同時有打錯的旗標時先報旗標：`--inh 3` 的 3 是旗標的值，不是裸字
+        if bare and sub == "find" and not hints and not any(t.startswith("-") for t in bad):
             # `up find VerletRope` 這種裸字：find 沒有 positional，agent 實測連續三次撞牆
             # 才去翻 --help。直接把三個 selector 的用法印出來。
+            # 有帶 --path / --in 時把它接回建議指令，讓整行可以直接照抄重跑
+            argv = sys.argv[1:]
+            path_arg = next((f" --path '{argv[i + 1]}'" for i, a in enumerate(argv[:-1])
+                             if a in ("--path", "--in")), "")
             return (f"{prog} find: 沒有 positional 參數，'{bare[0]}' 要指定是哪一種："
-                    f"component 型別 → `up find --comp {bare[0]}`；"
-                    f"GameObject 名稱 → `--name`；資產路徑片段 → `--path`"
+                    f"component 型別 → `up find --comp {bare[0]}{path_arg}`；"
+                    f"GameObject 名稱 → `--name`；資產路徑片段 → `--path`（同 `--in`）"
                     f"（加 `--by-asset` 只看分佈）")
         return (f"{prog}: 不認得 {' '.join(bad)}"
                 + (f"。最接近：{'、'.join(hints)}" if hints
@@ -1418,7 +1452,16 @@ def _compact_error(prog: str, parser, message: str) -> str:
 
 
 class _Parser(argparse.ArgumentParser):
-    """把 argparse 的錯誤出口換成「一行訊息 + near-match」，不印整份 usage。"""
+    """把 argparse 的錯誤出口換成「一行訊息 + near-match」，不印整份 usage。
+
+    關掉 allow_abbrev：前綴縮寫會把猜錯的旗標默默吃成別的旗標 ——
+    `up find --in <asset>` 被當成 `--inherit-max <asset>`，噴的是「invalid int」，
+    完全看不出是旗標名錯了。關掉後猜錯一律走 unrecognized → near-match 提示。
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("allow_abbrev", False)
+        super().__init__(*args, **kwargs)
 
     def error(self, message):
         sys.stderr.write("# " + _compact_error(self.prog, self, message) + "\n")
@@ -1649,7 +1692,8 @@ def main() -> None:
     pf = sub.add_parser("find", help="依 component / 名稱 / 路徑定位節點")
     pf.add_argument("--comp", help="component 型別（短名，模糊比對）")
     pf.add_argument("--name", help="GameObject 名稱")
-    pf.add_argument("--path", help="資產路徑")
+    # --in：agent 想「在這顆資產裡找」時最自然的寫法（transcript 實測 10 次全是 find），直接收成別名
+    pf.add_argument("--path", "--in", dest="path", help="資產路徑（片段即可；--in 同義）")
     pf.add_argument("--scope", choices=FIND_SCOPES, type=_ci(*FIND_SCOPES), default="full",
                     help="索引 tier；預設 full（--scope all 才包含供 override 解析的 shallow）")
     pf.add_argument("-n", "--limit", type=int, default=50)
