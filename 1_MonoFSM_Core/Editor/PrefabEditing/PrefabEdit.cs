@@ -841,6 +841,51 @@ namespace MonoFSM.Editor.PrefabEditing
                     var node = EditResolve.Node(root, EditBatch.At(a, 0));
                     return RunAutoVerified(node, verb, touches);
                 }
+                case "invoke":
+                {
+                    // 按 component 上的 Odin [Button]（無參數方法）。跟 `up asset invoke` 不同，
+                    // 這裡可以收進批次：改的是 LoadPrefabContents 的記憶體副本，任一行失敗就整批不存檔，
+                    // 所以 invoke 的副作用會跟著一起被丟掉，原子性是真的
+                    var nodePath = EditBatch.At(a, 0);
+                    var compName = EditBatch.Need(a, 1, verb, "comp");
+                    var methodName = EditBatch.Need(a, 2, verb, "method");
+                    var node = EditResolve.Node(root, nodePath);
+                    var comp = node.GetComponent(EditResolve.CompType(compName));
+                    if (comp == null)
+                        throw new Abort($"{EditResolve.Describe(nodePath)} 上沒有 {compName}");
+
+                    const System.Reflection.BindingFlags flags =
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public |
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.FlattenHierarchy;
+                    var method = comp.GetType().GetMethod(methodName, flags, null, Type.EmptyTypes, null);
+                    if (method == null)
+                    {
+                        var candidates = comp.GetType()
+                            .GetMethods(System.Reflection.BindingFlags.Instance |
+                                        System.Reflection.BindingFlags.Public |
+                                        System.Reflection.BindingFlags.DeclaredOnly)
+                            .Where(m => m.GetParameters().Length == 0 && !m.IsSpecialName)
+                            .Select(m => m.Name).Distinct().Take(20).ToList();
+                        throw new Abort(
+                            $"{comp.GetType().Name} 上沒有無參數方法 '{methodName}'。有的：{EditResolve.Join(candidates)}");
+                    }
+
+                    object result;
+                    try
+                    {
+                        result = method.Invoke(comp, null);
+                    }
+                    catch (System.Reflection.TargetInvocationException e)
+                    {
+                        throw new Abort($"{comp.GetType().Name}.{methodName}() 丟例外：{e.InnerException?.Message ?? e.Message}");
+                    }
+
+                    // 有回傳值就印出來：button 被自己的檢查擋下時通常只寫 fail reason 不丟例外，
+                    // 沒印的話結構「沒變」跟「重跑結果一樣」分不出來
+                    var resultText = method.ReturnType == typeof(void) ? "" : $" → {result}";
+                    return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{methodName}() 已執行{resultText}" +
+                           "（方法內的改動不在逐欄驗證範圍，要看結果用 read / peek）";
+                }
                 case "rename":
                 {
                     // 留空 = root（複製模板後 root 名字還是舊的，這是最常見的用途）
@@ -893,7 +938,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var ctx = new EditFsm.Ctx { Node = p => EditResolve.Node(root, p) };
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel revert pos rect scale rot active layer idx mv copyfrom auto rename del delcomp delmissing mark " +
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel revert pos rect scale rot active layer idx mv copyfrom auto rename del delcomp delmissing invoke mark " +
                         EditFsm.Verbs + "（save 只有 SceneEdit 有）");
                 }
             }

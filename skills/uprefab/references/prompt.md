@@ -9,7 +9,7 @@ up prompt "Assets/…/base 插座開關 Socket FSM.prefab" \
   --var "Modules/Player Selectable ModulePack Variant/[VarFolder] VariableFolder/[Getter] d_ Select Text Prompt 文字提示" \
   --case "broken|壞掉了請維修|if:Modules/Fixable ModulePack/[VarFolder] VariableFolder/[Getter] d_IsBroken=true" \
   --case "socket_no_power|沒有電力，無法充電|if:[VarFolder] VariableFolder/[Getter] d_HasPower 有電=false" \
-  --case "socket_to_charge|{key} 充電 / 放置設備|prompt:key=RMB"
+  --case "socket_to_charge|{key} 充電 / 放置設備|prompt:key=RMB Grab"
 ```
 
 case 格式 `key|文案|spec;spec`：

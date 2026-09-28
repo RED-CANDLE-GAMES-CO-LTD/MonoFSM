@@ -220,3 +220,16 @@
 - 繼承：`AbstractValueSource<Vector2>`
 - 用途：從 NavMeshAgent 取得導航移動方向
 - 腳本路徑：`MonoFSM-Pro/Runtime/NavMeshPro/NavMeshAgentMoveValueSource.cs`
+
+## 依條件開關 GameObject（`GameObjectActivateRenderGroupCheck` + `ConditionActivateCheckTarget`）
+
+group check 每個 LateUpdate 對底下所有 target（`ConditionActivateCheckTarget`、各種 `AbstractUIValueBinder`）做 `SetActive(IsValid)`。兩個不看原始碼不會知道的坑：
+
+- **target 收集包含 inactive 的子孫**（`[AutoChildren]` 預設 `includeInactive = true`），而且每幀覆寫。
+  所以在 group check 底下的 target「設 inactive 來關掉」沒用，runtime 第一幀就被打開。
+  要讓它永遠不顯示，就讓它的 condition 永遠不成立（例如比對一個永遠對不上的 index）。
+- **`ConditionActivateCheckTarget` 的 ConditionGroup 只收直屬子節點的 `[If]`**（`DepthOneOnly`），
+  而且 condition 不看自己 active 與否。所以「開關整格」的 `[If]` 可以放在被開關的那格底下；
+  但 **`[If]` 讀的 var 必須在會被關掉的範圍外面**（例如 VarFolder 裡的 proxy var）——
+  getter 型的 var 在 inactive 時 `IsValid` 為 false（`AbstractGetter.IsValid` 含 `isActiveAndEnabled`），
+  讀格子內的 getter 會一關就永遠開不回來。

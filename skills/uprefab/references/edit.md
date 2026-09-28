@@ -37,6 +37,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `del\|<node>` | 刪節點 |
 | `delcomp\|<node>\|<comp,comp>` | 移除節點上的 component。不存在就跳過（語意是「確保它不在」）。prefab 版 `<node>` 留空 = root |
 | `delmissing\|<node>` | 移除該節點上所有 MissingScript；已刪 C# 型別後無法用 `delcomp` 時使用。prefab 版 `<node>` 留空 = root |
+| `invoke\|<node>\|<comp>\|<method>` | 呼叫 component 上的無參數方法（按 Odin `[Button]`，例：`SlotRowLayoutTool.RebuildSlots`），只有 prefab。跟 `up asset invoke` 不同，**可以收進批次**：改的是 LoadPrefabContents 的記憶體副本，任一行失敗整批不存檔。方法有回傳值會印在 log（`→ …`），tool 被自己的檢查擋下時靠這個分辨「擋下」跟「重跑結果一樣」；方法內的改動不在逐欄驗證範圍，結果用 read / peek 看 |
 | `save` | 存 scene（**只有 scene**；prefab batch 結束自動存） |
 | `mark\|<label>[\|<node>]` | 給節點取個短名，之後用 `$label` 代換。不給 `<node>` = 標記上一個建立節點的操作 |
 

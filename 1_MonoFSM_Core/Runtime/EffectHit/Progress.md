@@ -123,3 +123,4 @@ ray/overlap 類 source 天生 fresh、不需要任何寬限）；(b)
 `Condition/IsEffectDealerOrReceiverCondition.cs:91`（`CheckMode.IsValidNow`）仍用 `IsValid`，是第 8 條
 那組同病灶的第四處，cull 期間一樣會翻面。
 - 2026-09-09 `BaseEffectDetectTarget` 加 `_detectableOverride`：`_detectable` 是 `[AutoParent]`，只往上找，而 `AutoAttributeManager` 的 `SetValue` 無條件覆寫（含 null），手填 `_detectable` 在 pool 生成 / 存檔時會被洗掉。拆件模組把 anchor collider 生成在宿主 view 底下（不在模組子樹裡），要打進模組的 receiver 只能靠這顆顯式 override。`Detectable` property 優先回 override，兩顆都 null 才算錯。
+- 2026-09-28 `MonoObj.IsCulledByHandle` 加上 `IsActiveInSimulator &&`：物件在 simulation culling 狀態下被 despawn 時 handle 會停在 inactive，原本仍回 true，EffectDetector 的 exit 迴圈就把它當「凍結中」一直 carry，dealer 殘留一顆已回收的 hit（`hit any?` / `GetBestMatch` 永遠有值）。實例：發電鴿滑索，鴿子滑到終點（離玩家 >30m 被 cull）才 despawn，滑車回起點後以為還插著鴿子，一直空車出發。`EffectDetectable` / `EffectResolver.IsSuspendedByCulling` 和 `EffectDetector.OnDisable` 的註解本來就寫「不含 despawn」，這次是讓實作符合那個約定。

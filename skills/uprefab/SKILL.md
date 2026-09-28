@@ -52,6 +52,7 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | **Play Mode 下改一個 Var 的值**（自動測試撥旗標 / 給錢） | `poke` | ✅ | [probe.md](references/probe.md) |
 | **EffectReceiver 沒觸發**，要一次看完整條鏈卡在哪 | `effect-trace` | ✅ | [probe.md](references/probe.md) |
 | 按 asset 上的 Odin `[Button]`（無參數方法） | `asset invoke` | ✅ | [asset.md](references/asset.md) |
+| 按 **prefab 裡某顆 component** 上的 Odin `[Button]`（edit-time 排版 / 重建工具） | `prefab do` 的 `invoke\|<node>\|<comp>\|<method>` | ✅ | [edit.md](references/edit.md) |
 | **執行 Editor 選單項目**（`Tools/…` 之類的 MenuItem；不要為了按選單臨時寫 execute-dynamic-code） | `menu "<menu path>"`（找不到會列出最接近的 path，exit 1） | ✅ | `up menu --help` |
 | 想知道「調查為什麼慢」的實際數據 | `usage` | ❌ | [offline-index.md](references/offline-index.md) |
 | **翻舊 Claude Code session**（上次那輪查到什麼、改了哪些檔）| `session`（列表）→ `session <前綴>`（只留對話）→ `--files` / `--agent` / `--grep`；**不要 `--resume`、不要派 agent 讀全份** | ❌ | `up session --help` |

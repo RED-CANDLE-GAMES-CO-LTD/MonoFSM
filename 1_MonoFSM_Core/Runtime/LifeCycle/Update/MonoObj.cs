@@ -502,10 +502,13 @@ namespace MonoFSMCore.Runtime.LifeCycle
 
         //只看 culling handle（含 parent 鏈），不含 GO inactive（despawn／手動關掉）——
         //OnDisable 裡要分辨「被 cull 連帶關掉」vs「真的被關掉」只能用這個（IsCulling 兩者都 true）
+        //已 despawn（IsActiveInSimulator=false）一律不算被 cull：在 culling 狀態下被 despawn 時 handle 會停在
+        //inactive，不擋的話 EffectDetector 會把它當「凍結中」永遠 carry，dealer 殘留一顆已回收的 hit
         public bool IsCulledByHandle =>
+            IsActiveInSimulator && (
             _cullingHandle != null && !_cullingHandle.gameObject.activeSelf ||
             _simulationCullingHandle != null && !_simulationCullingHandle.gameObject.activeSelf ||
-            (!_isIgnoreParentObjCulling && HasParent && _parentObj.IsCulledByHandle);
+            (!_isIgnoreParentObjCulling && HasParent && _parentObj.IsCulledByHandle));
 
         //只收自己 scope（StopAtType）：nested MonoObj 自己也會被註冊、自己 latch。
         //這是 simulation culling 的收尾通知；render-only culling 不應凍結 gameplay overlap。
