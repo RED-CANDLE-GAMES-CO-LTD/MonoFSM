@@ -104,7 +104,7 @@ namespace MonoFSM.FSM
             }
 
 
-            ChangeState(stateId);
+            ChangeState(stateId, FsmTraceKind.Forced);
             return true;
         }
 
@@ -192,6 +192,11 @@ namespace MonoFSM.FSM
             _bitState = 0;
 
             _lastRenderStateId = _noneStateId;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            //Reset 不走 ChangeState，同步成 Reset 後的值，Render 才不會把它當成 ProxyRender
+            _traceSimStateId = _noneStateId;
+            _traceSimChangeTick = 0;
+#endif
 
             LogReset();
 
@@ -230,7 +235,7 @@ namespace MonoFSM.FSM
                 return;
 
             if (_activeStateId < 0)
-                ChangeState(_defaultStateId);
+                ChangeState(_defaultStateId, FsmTraceKind.Default);
 
             // Active state could be changed in state's fixed update
             // Do not update its child machines in that case
@@ -255,6 +260,19 @@ namespace MonoFSM.FSM
             )
             {
                 LogRenderStateChange();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                //本機 sim 有走 ChangeState 的已經記過了，這裡只記「state 是從外面寫進來的」（proxy / RestoreState）
+                if (FsmTrace.Enabled
+                    && (_traceSimStateId != _activeStateId || _traceSimChangeTick != _stateChangeTick))
+                    FsmTrace.RecordState(
+                        FsmTraceKind.ProxyRender,
+                        _stateChangeTick,
+                        _logic,
+                        _lastRenderStateId >= 0 ? _states[_lastRenderStateId] as UnityEngine.Object : null,
+                        ActiveState as UnityEngine.Object,
+                        null
+                    );
+#endif
 
                 if (_lastRenderStateId >= 0)
                 {
@@ -338,7 +356,14 @@ namespace MonoFSM.FSM
             return true;
         }
 
-        private void ChangeState(int stateId)
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        //最後一次本機 ChangeState 的結果：Render 拿來分辨 state 變化是不是本機 sim 造成的（不是 = ProxyRender）
+        //不管 FsmTrace 有沒有開都要寫，不然中途打開 trace 時第一次 Render 會多記一筆假的 ProxyRender
+        private int _traceSimStateId = _noneStateId;
+        private int _traceSimChangeTick = int.MinValue;
+#endif
+
+        private void ChangeState(int stateId, FsmTraceKind traceKind = FsmTraceKind.Transition)
         {
             if (stateId >= _stateCount)
                 throw new InvalidOperationException(
@@ -364,6 +389,12 @@ namespace MonoFSM.FSM
             // Debug.Log("activeStateId" + _activeStateId);
             // if (RuntimeDebugSetting.IsDebugMode)
                 LogStateChange();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (FsmTrace.Enabled)
+                TraceStateChange(traceKind);
+            _traceSimStateId = _activeStateId;
+            _traceSimChangeTick = _tickProvider.Tick;
+#endif
 
             Profiler.BeginSample("Exit State");
             if (_previousStateId >= 0)
@@ -407,6 +438,25 @@ namespace MonoFSM.FSM
         }
 
         // LOGGING
+
+        [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
+        private void TraceStateChange(FsmTraceKind kind)
+        {
+            var tick = _tickProvider.Tick;
+            //transition 記在 from state 上，tick 一樣才算這次是它觸發的（同 LogStateChange 的判斷方式）
+            UnityEngine.Object transition = null;
+            if (kind == FsmTraceKind.Transition && PreviousState is ILastTransitionRecord record)
+                transition = record.GetLastTransition(tick);
+            FsmTrace.RecordState(
+                kind,
+                tick,
+                _logic,
+                PreviousState as UnityEngine.Object,
+                ActiveState as UnityEngine.Object,
+                transition
+            );
+        }
 
         [Conditional("DEBUG")]
         private void LogStateChange()

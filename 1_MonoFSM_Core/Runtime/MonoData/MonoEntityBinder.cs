@@ -1,3 +1,4 @@
+using MonoDebugSetting;
 using MonoFSM.Core;
 using MonoFSM.Runtime.Mono;
 using MonoFSM.Runtime.Variable;
@@ -168,7 +169,8 @@ namespace MonoFSM.Runtime
             if (descriptable == null)
             {
                 //同一個 tag 只報一次，避免每 frame 評估 condition 時瘋狂洗版
-                if (Application.isPlaying && _loggedMissingTags.Add(tag))
+                if (Application.isPlaying && RuntimeDebugSetting.IsDebugMode &&
+                    _loggedMissingTags.Add(tag))
                     Debug.LogError(
                         $"No MonoDescriptable found with tag: {tag} (MonoBehaviour: {mono?.name}, Binder: {binder?.name})",
                         mono

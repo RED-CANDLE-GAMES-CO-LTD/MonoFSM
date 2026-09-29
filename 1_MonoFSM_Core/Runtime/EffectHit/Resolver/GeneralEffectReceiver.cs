@@ -3,6 +3,7 @@ using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Detection;
 using MonoFSM.Core.EffectHit;
+using MonoFSM.FSM;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -80,13 +81,17 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             return data;
         }
 
-        public void ForceDirectEffectHit(
+        /// <summary>
+        /// 不經 detector 直接打一發（enter 完馬上 exit）。回傳 CanHitReceiver 有沒有過，
+        /// 沒過的原因看 dealer.FailReason（Editor）或 FsmTrace 的 HitBlocked。
+        /// </summary>
+        public bool ForceDirectEffectHit(
             GeneralEffectDealer dealer,
             BaseEffectDetectTarget receiverSourceObj
         )
         {
             if (!dealer.CanHitReceiver(this))
-                return;
+                return false;
 
             // Debug.Log("ForceDirectEffectHit", this);
             var hitData = GenerateEffectHitData(dealer, receiverSourceObj);
@@ -95,6 +100,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             //然後要馬上離開？
             dealer.OnHitExit(hitData);
             OnEffectHitExit(hitData);
+            return true;
         }
 
         //收到事件後，叫下面的action做事
@@ -112,6 +118,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         {
             // Debug.Log("OnEffectHitEnter", this);
             this.Log("OnHitEnter");
+            if (FsmTrace.Enabled)
+                FsmTrace.RecordHit(FsmTraceKind.HitEnter, data.GeneralDealer, this);
             _currentHitData = data;
             RecordEffectEnter();
             var dealerEntity = _currentHitData.GeneralDealer.BindEntity;
@@ -260,6 +268,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         public void OnEffectHitExit(GeneralEffectHitData data)
         {
             this.Log("OnHitExit");
+            if (FsmTrace.Enabled)
+                FsmTrace.RecordHit(FsmTraceKind.HitExit, data.GeneralDealer, this);
             //離開 overlap 一定也不再是 best match（best match exit 若沒送到就靠這裡收尾）
             _dealers.Remove(data.Dealer as GeneralEffectDealer);
             _bestMatchDealers.Remove(data.Dealer as GeneralEffectDealer);

@@ -96,6 +96,33 @@ private ICurrentEntityOwner Owner
 
 只有條件確實取決於「從哪個來源 State 離開」時，才放在該來源的 Transition。
 
+## Transition 評估順序（AbstractStateBehaviour.IMonoState.OnFixedUpdate）
+
+1. 目前 state 底下的 transition 照 **sibling 順序**跑，第一條成立就 `TryActivateState` 並 return。
+2. 自己的都沒過，才問 `StateFolder.AllAnyStates` 的 transition；AnyState 指向目前 state 的那條會跳過。
+3. 一條 transition 要過：condition 全部 AND（`IsAllValid`）+ source（自己或 AnyState）的 CanExit + target 的 CanEnter；
+   接著 `TryActivateState` 再問一次**目前 state** 的 CanExit（含 priority）+ target CanEnter，target 也不能是目前 state。
+4. 條件過了但 TryActivateState 被擋，**不會記任何東西**：看 `FsmTrace.CaptureSnapshot` 的 `canExit` / `canEnter` 欄。
+
+## 除錯：FsmTrace（state 切換 / effect 命中 / Var 改值的時間軸）
+
+- 開關：Unity 主 toolbar 的 `Trace: On/Off <筆數>`（旁邊 `Trace ▾` 有 Clear / Dump），或 `up menu "Tools/MonoFSM/FSM Trace/Enabled"`。
+  Dump 寫到 `Library/FsmTrace/<name>.txt`，用 `up fsm-trace [--entity KW] [--last N]` 讀。
+- 不用玩家走過去互動：`up hit <receiver 節點>`（Play Mode，自動用本機玩家同 effectType 的 dealer）→ Dump → `up fsm-trace`。
+  完整的自動測試步驟、trace 判讀表和陷阱，看 uprefab skill 的 `references/probe.md`「互動自動測試」。
+- kind：`Transition`（`via` 是哪條 transition；`(direct TryActivateState)` = 不是 transition 觸發）/ `Forced` / `Default` /
+  `ProxyRender` / `HitEnter` / `HitExit` / `HitBlocked <原因> failCond=#i` / `VarChange <var>: 舊 -> 新 by <writer>` /
+  `EventSkipped <原因> <handler>`（EventHandler 被叫到但 action 沒跑：Culling / NotSimulating / ConditionInvalid / NotStateAuthority；
+  gameObject inactive 不記、靜態讀 prefab 看 `~`；同原因連續擋只記第一次）。「有 HitEnter 卻沒 VarChange」先找緊接在後的 EventSkipped。
+- `VarChange` 預設只記掛 `NetworkedVarTag` 的 Var，而且 Vector3 這類沒欄位存值的型別不記；非 networked 的、或要看 Vector3 的，
+  程式裡呼叫 `FsmTrace.WatchVar(var)`（反過來太吵用 `UnwatchVar`）。
+- 「為什麼沒轉出去」不會每 tick 記，要拍快照：`FsmTrace.CaptureSnapshot(entity)`（或 `Dump(name, entity)` 會附在檔尾）。
+- 逐顆看 condition 結果的標準寫法：`ConditionHelper.FirstFailedIndex(conditions)`（第一顆 false 的 index，-1 = 全過）/
+  `EvaluateAt(conditions, i)`，跟 `IsAllValid` 同一套跳過規則。不要自己再寫一份迴圈。
+- 從 tick 外面（Editor 工具、scenario runner）要改 gameplay 狀態，排進 `TickActionQueue.Enqueue(ITickAction)`，
+  下一個非 resim tick 在 `WorldUpdateSimulator.Simulate` 裡執行；`ExecuteInTick` 回 false 就延到下一個 tick。直接在 Editor update 裡改，
+  Fusion 下 networked Var 會被 resim 蓋掉。
+
 ## 命名規範
 
 - `SerializeField` 和 `public field` 以底線開頭：`_myField`

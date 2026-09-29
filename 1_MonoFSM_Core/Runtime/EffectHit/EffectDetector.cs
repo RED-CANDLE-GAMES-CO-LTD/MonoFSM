@@ -5,6 +5,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Simulate;
 using MonoFSM.CustomAttributes;
 using MonoFSM.Foundation;
+using MonoFSM.FSM;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
@@ -654,6 +655,10 @@ namespace MonoFSM.Core.Detection
             if (!dealer.IsValid)
             {
                 dealer.SetFailReason("Dealer is not valid || condition not pass");
+                //dealer 無效時還沒找 receiver，receiver 欄位放 detectable
+                if (FsmTrace.Enabled)
+                    FsmTrace.RecordHit(FsmTraceKind.HitBlocked, dealer, detectable,
+                        FsmTraceBlockReason.DealerInvalid, dealer.FirstFailedConditionIndex);
                 return;
             }
 

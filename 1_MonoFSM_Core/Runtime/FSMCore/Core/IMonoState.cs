@@ -9,6 +9,12 @@ namespace MonoFSM.FSM
     public interface ILastTransitionRecord
     {
         string GetLastTransitionInfo(int currentTick);
+
+        /// <summary>
+        /// FsmTrace 用：currentTick 跟最後一次通過條件的 tick 一樣才回那顆 transition，否則回 null
+        /// （= 這次 state change 不是 transition 觸發的）。不組字串。
+        /// </summary>
+        UnityEngine.Object GetLastTransition(int currentTick);
     }
 
     public unsafe interface IMonoState

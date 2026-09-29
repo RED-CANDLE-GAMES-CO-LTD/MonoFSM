@@ -120,7 +120,7 @@ Unity 沒開時只有 `--resolve` 那半失敗（stderr 一行），離線的部
 [TestKCC Gravity 拔神像](http://localhost:8888/webhook?asset_guid=66750e1a364434c63b2d3fd15d471000)
 ```
 
-其他指令都吃資產路徑，所以先轉一次：
+其他指令都吃資產路徑，所以先轉一次（`find` / `refs` / `overrides` / `prefab` 例外：直接給 guid 或 `--guid <guid>` 會自動轉成路徑）：
 
 ```bash
 up guid 66750e1a364434c63b2d3fd15d471000

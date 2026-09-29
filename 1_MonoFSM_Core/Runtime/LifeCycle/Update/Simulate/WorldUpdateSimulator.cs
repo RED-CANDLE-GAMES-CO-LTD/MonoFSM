@@ -592,6 +592,23 @@ namespace MonoFSM.Core.Simulate
         // [PreviewInInspector] private IUpdateSimulate[] PreviewSimulators => _simulators.ToArray();
         [PreviewInInspector]
         private MonoObj[] PreviewMonoObjects => _monoObjectSet.ToArray();
+
+        //FsmTrace 狀態（開關與 Dump 在 Tools/MonoFSM/FSM Trace 選單，讀檔用 `up fsm-trace`）
+        [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("FsmTrace")]
+        private bool FsmTraceEnabled => MonoFSM.FSM.FsmTrace.Enabled;
+
+        [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("FsmTrace")]
+        [LabelText("FsmTrace Count (上限 4096)")]
+        private int FsmTraceCount => MonoFSM.FSM.FsmTrace.Count;
+
+        [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("FsmTrace")]
+        private int FsmTraceTotalWritten => MonoFSM.FSM.FsmTrace.TotalWritten;
+
+        [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("FsmTrace")]
+        private int TickActionPending => TickActionQueue.PendingCount;
+
+        [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("FsmTrace")]
+        private int TickActionLastDrainTick => TickActionQueue.LastDrainTick;
 #endif
 
         [ShowInInspector]
@@ -692,6 +709,11 @@ namespace MonoFSM.Core.Simulate
                 _currentUpdatingObjs.Add(obj);
 
             CurrentPhase = SimPhase.Simulate;
+
+            //tick 外排進來的一次性工作（up hit / scenario runner），在 MonoObj.Simulate 之前跑；
+            //resim 不跑，不然同一個 hit 會被重播。多個 simulator 時由第一個跑到這裡的消耗掉
+            if (!IsResimulation && TickActionQueue.PendingCount > 0)
+                TickActionQueue.Drain(CurrentTick);
 
             //FIXME: isProxy? 要ㄇ 跳過模擬，或是regiester要兩階段
             foreach (var monoObject in _currentUpdatingObjs)

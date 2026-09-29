@@ -89,6 +89,26 @@ namespace MonoFSM.Editor.PrefabEditing
 
         private static string Key(PropertyInfo p) => $"{p.DeclaringType?.FullName}.{p.Name}";
 
+        /// <summary>
+        /// Edit Mode 下 getter 會「偷改物件」的屬性：Renderer.material(s) 會 new 一顆材質 instance 蓋掉
+        /// sharedMaterials（scene 存檔就把 instance 內嵌進去），MeshFilter.mesh / Collider.material 同理。
+        /// 值是該改讀的替代屬性。
+        /// </summary>
+        private static readonly Dictionary<string, string> EditModeMutators = new()
+        {
+            ["UnityEngine.Renderer.material"] = "sharedMaterial",
+            ["UnityEngine.Renderer.materials"] = "sharedMaterials",
+            ["UnityEngine.MeshFilter.mesh"] = "sharedMesh",
+            ["UnityEngine.Collider.material"] = "sharedMaterial",
+        };
+
+        /// <summary>Edit Mode 下讀了會改到物件的屬性，alt = 該改讀哪個。</summary>
+        public static bool MutatesInEditMode(PropertyInfo p, out string alt)
+        {
+            alt = null;
+            return !Application.isPlaying && EditModeMutators.TryGetValue(Key(p), out alt);
+        }
+
         /// <summary>已知會炸的屬性，或本來就不該碰的（Obsolete）。</summary>
         public static bool IsMine(PropertyInfo p) =>
             p.GetCustomAttribute<ObsoleteAttribute>() != null || Blacklist().Contains(Key(p));

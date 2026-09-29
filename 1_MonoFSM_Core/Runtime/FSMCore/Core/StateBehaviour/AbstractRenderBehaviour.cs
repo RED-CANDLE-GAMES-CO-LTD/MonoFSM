@@ -74,7 +74,8 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
             OnRenderImplement();
         }
 
-        public void EnterSceneStart()
+        //子類要一次性初始化（快取 view、產生 local 外觀）就 override，不要再重新宣告 ISceneStart + new
+        public virtual void EnterSceneStart()
         {
             //初始化要先跑一下？
             // OnEnterRender();

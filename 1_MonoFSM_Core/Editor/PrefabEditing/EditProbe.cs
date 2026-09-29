@@ -229,7 +229,9 @@ namespace MonoFSM.Editor.PrefabEditing
                 var names = node.GetComponents<Component>()
                     .Where(c => c != null).Select(c => c.GetType().Name).ToList();
                 return $"# {EditResolve.Describe(nodePath)} [{where}]{LayerSuffix(node.gameObject)} 上的 component："
-                       + EditResolve.Join(names) + "\n# 挑一個接 --comp（欄位值才會 dump 出來）";
+                       + EditResolve.Join(names) + (string.IsNullOrEmpty(assetPath)
+                           ? "\n# 挑一個接在 node 後面：up peek <node> <Comp>（欄位值才會 dump 出來）"
+                           : "\n# 挑一個接 --comp（欄位值才會 dump 出來）");
             }
             catch (EditResolve.EditAbort abort)
             {
@@ -766,6 +768,12 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (ProbeMineField.IsMine(prop))
                 {
                     reason = "# 跳過（已知會讓 Editor 閃退，或 [Obsolete]）";
+                    return false;
+                }
+
+                if (ProbeMineField.MutatesInEditMode(prop, out var alt))
+                {
+                    reason = $"# 跳過（Edit Mode 讀 {name} 會複製一份 instance 蓋到物件上），改讀 {alt}";
                     return false;
                 }
 

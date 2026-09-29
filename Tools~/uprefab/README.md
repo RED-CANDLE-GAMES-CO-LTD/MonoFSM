@@ -12,7 +12,7 @@
 | **asset**（`asset create` / `asset set` / `asset set-ref` / `asset add-element` / `asset fields`） | 建立/編輯獨立的 ScriptableObject asset（registry / config 類資料） | ✅ |
 | **prompt**（`prompt`） | 幫 VarString 掛一組有條件的 localized 文字提示（含 Localization 條目、token、Auto 綁定、回傳自帶驗證） | ✅ |
 | **驗證**（`scene count` / `logs` / `play`） | Play Mode 下數物件、看錯誤 | ✅ |
-| **診斷**（`effect-trace`） | EffectReceiver 沒觸發：一次攤開 detector → dealer → receiver → enterNode gate | ✅ |
+| **診斷**（`debug-effect-trace`） | EffectReceiver 沒觸發：一次攤開 detector → dealer → receiver → enterNode gate | ✅ |
 
 離線索引與內容分工的原因：離線 YAML 讀不到 variant 繼承來的東西（Unity 只在本檔有引用時
 才寫 stripped 佔位，那些節點的真值只存在 base prefab），所以**定位可以離線，內容一律回 Unity 撈**。
@@ -43,7 +43,7 @@ up scene do "add||Spawner|MonoEntity,MonoObj" "auto|Spawner" "save"
 up prefab do "Assets/…/FSM.prefab" --quiet "state|[StateFolder] StateFolder|spawn" \
     "act|$|enter|Spawn|SpawnAction"          # FSM 複合操作 + `$` 代換上一個節點
 up scene count --name 測試資源 --sample 3
-up effect-trace "Zone Arrive Trigger 找到火車 Variant"      # receiver 沒觸發，卡在哪一段（Play Mode）
+up debug-effect-trace "Zone Arrive Trigger 找到火車 Variant"      # receiver 沒觸發，卡在哪一段（Play Mode）
 
 up asset create PromptIconRegistry "Assets/…/測試 Registry.asset"   # 建 ScriptableObject asset
 up asset add-element "Assets/…/測試 Registry.asset" _entries        # 陣列尾端加一筆

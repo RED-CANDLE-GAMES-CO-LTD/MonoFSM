@@ -9,7 +9,7 @@
 
 不 memo 的：
 - 寫入類（`prefab do` / `asset set` / `scene do` / `prompt` / `poke` / `play` …）
-- runtime 讀取（`peek` / `logs` / `effect-trace`）—— 那些的答案本來就每秒都在變，
+- runtime 讀取（`peek` / `logs` / `debug-effect-trace`）—— 那些的答案本來就每秒都在變，
   60 秒的 memo 會讓「改完再確認」看到改前的值。
 """
 
@@ -32,9 +32,15 @@ MEMOIZABLE = {
     "scene ls", "scene count", "obj", "gid", "asset fields", "scope",
 }
 # 讀但不 memo（答案會自己變），也不會讓別人的 memo 失效
-NEUTRAL = {"peek", "logs", "asset-refs", "why-in-build", "effect-trace", "usage", "clear",
+NEUTRAL = {"peek", "logs", "asset-refs", "why-in-build", "debug-effect-trace", "usage", "clear",
+           # 改名 stub（只印訊息）
+           "effect-trace", "trace",
            # 讀的是 markdown 檔不是索引，memo 沒意義；--archive 會寫檔但不動資產
-           "progress", "prog", "verify-skills", "vs", "session", "sess"}
+           "progress", "prog", "verify-skills", "vs", "session", "sess",
+           # dump 檔隨時被 Unity 覆寫，memo 會拿到舊內容
+           "fsm-trace",
+           # 離線讀單一 asset 檔，便宜；檔案隨時被 Unity 改，不 memo
+           "anim", "mat", "controller"}
 
 
 def _dir(root: str) -> str:

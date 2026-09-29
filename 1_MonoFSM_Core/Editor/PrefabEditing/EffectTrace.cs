@@ -50,7 +50,7 @@ namespace MonoFSM.Editor.PrefabEditing
                        (effectTypeFilter != null ? $"（effectType 含 '{effectTypeFilter}'）" : "");
 
             var sb = new StringBuilder(
-                $"# effect-trace [{(Application.isPlaying ? "PlayMode" : "EditMode")}]" +
+                $"# debug-effect-trace [{(Application.isPlaying ? "PlayMode" : "EditMode")}]" +
                 (Application.isPlaying ? "" : " —— 沒在 Play Mode，runtime 欄位都會是初始值") + "\n");
 
             foreach (var receiver in receivers)

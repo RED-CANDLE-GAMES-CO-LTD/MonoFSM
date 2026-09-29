@@ -62,6 +62,9 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
             return _conditions.IsAllValid();
         }
 
+        /// <summary>這條 transition 的 condition 群（AND），給 FsmTrace.CaptureSnapshot 逐顆列結果用。</summary>
+        public AbstractConditionBehaviour[] Conditions => _conditions;
+
 #if UNITY_EDITOR
         // public Color BackgroundColor => new(1.0f, 0f, 0f, 0.3f);
         public string IconName => "CollabMoved Icon";

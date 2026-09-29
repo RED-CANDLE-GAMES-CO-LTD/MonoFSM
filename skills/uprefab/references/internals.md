@@ -64,6 +64,7 @@
   `set` 的錯誤訊息會列出那一層有什麼，繞得過去。
 - **`scene` 系列作用在「當前開著的 active scene」**，不是路徑參數。先 `scene open` / `scene copy`。
 - **Play Mode 中不能開 / 建 scene**（會直接 abort，不會半途壞掉）。
+- **`scene copy` / `open` / `new` 會先存所有 dirty 的已開 scene 再切**（Single 模式，輸出第一行列出存了哪些）；有 dirty 的 Untitled scene 會擋下來、不切。
 
 ## 反射 / SerializedProperty 的地雷（改工具本身前必讀）
 
@@ -101,11 +102,15 @@ if (!prop.isArray || prop.propertyType == SerializedPropertyType.String)
 ```
 MonoFSM/Tools~/uprefab/
   uyaml.py     Unity YAML streaming document scanner（不用通用 YAML parser）
+  assetyaml.py 單一小 asset（.mat / .controller / .anim）讀成 dict/list 樹 + 批次 guid → 路徑
+               （索引沒收 shader / 貼圖 / clip，掃 .meta 的結果記在 .uprefab-cache/guidmap.json）。
+               給 anim / mat / controller 用，不要拿去讀 scene
+  anim.py / mat.py / controller.py   `up anim [--values]` / `up mat` / `up controller`（全離線）
   scripts.py   .cs.meta → guid/class/namespace 對照表
   config.py    .uprefab.json 讀取與路徑比對
   indexer.py   SQLite schema 與索引建置
   query.py     find / overrides / scope stats / guid ⇄ path
-  unity.py     uloop 橋接：只回 Result，Domain Reload 時自己等再重試
+  unity.py     uloop 橋接：只回 Result，Domain Reload / 別的 session 在跑時自己等再重試（執行中被收掉只重跑 READ_ONLY 入口，新唯讀入口要補進去）
   uprefab.py   CLI 進入點
 
 MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/

@@ -27,6 +27,9 @@ namespace _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour
         [SerializeField]
         private TransitionBehaviour _sourceTransition;
 
+        /// <summary>借條件的來源 transition；FsmTrace.CaptureSnapshot 從它拿 condition 群。</summary>
+        public TransitionBehaviour SourceTransition => _sourceTransition;
+
         protected override void Awake()
         {
             if (_sourceTransition == null)

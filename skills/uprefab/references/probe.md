@@ -124,11 +124,25 @@ up poke "…/[Var] Global: d_TeamStatus.d_Money" VarFloat 100
 **別連續快速呼叫** —— 每個 `up` 都要等 Unity 回應，一行 shell 塞五六個 peek/poke
 會有幾個靜默回空字串。看到空輸出先單獨重跑那一個，通常就有值了。
 
-## `effect-trace` —— EffectReceiver 為什麼沒觸發
+## `hit` —— Play Mode 下對 receiver 打一發 effect（不用玩家走過去）
 
 ```bash
-up effect-trace "Zone Arrive Trigger 找到火車 Variant"          # 節點或它的任一祖先都行
-up effect-trace "…/Detectable Root" --effect "Zone Arrive"      # 同節點多個 receiver 時篩
+up hit "發財車 FaCai Truck/…/[Receiver] Interact"            # dealer 自動找本機玩家同 effectType 的
+up hit "…/某 entity 根" --effect Interact                     # 給祖先時用 effectType 名篩
+up hit "…/[Receiver] Interact" --dealer "FusionFPS Core/Player1 [Local]/…/[Dealer] Interact"
+```
+
+- 走 `receiver.ForceDirectEffectHit(dealer, null)`，跟 `PlayerInteractState` 同一條：`CanHitReceiver` → receiver `IsValid`（含 `d_CanInteract` 這類 `[If]`）→ EnterNode。**跳過的只有**玩家端的選取（Interact Range Detect / CurrentInteractable）跟 PlayerInteractState 的 CanEnter。
+- Unity 端不直接呼叫，排進 `TickActionQueue`，下一個非 resim tick 在 `WorldUpdateSimulator.Simulate` 裡跑（tick 外寫 networked Var 會被 resim 蓋掉）；CLI 輪詢結果最多 `--wait` 秒（預設 2），印執行 tick、`canHit`、dealer 的 `FailReason`。`canHit=False` exit 1；逾時 = simulator 沒在跑。
+- receiver / dealer 不是剛好一顆 active 就 abort，把候選路徑 + effectType 列出來。
+- **目標 MonoObj 沒在模擬時打到會「有 HitEnter、沒效果」**：EventHandler 遇到 `IsCulling` / `!ShouldSimulate` 會靜默跳過 EnterNode 的 action（開場 CullingEventTarget 還沒判定 near 時就是這樣）。`hit` 執行前會檢查 `activeInHierarchy` / `IsActiveInSimulator` / `IsSimulationCulling` / `ShouldSimulate`，沒過就延到下一個 tick，最多 `--max-defer N`（預設 120），CLI 印 `deferred=k（原因）`，逾時印 `TIMEOUT` exit 1。所以剛 `up play play` 就打也沒關係，不用先等 `init -> idle`。
+- 要看結果時間軸：先 `up menu "Tools/MonoFSM/FSM Trace/Enabled"`，打完 `up menu "Tools/MonoFSM/FSM Trace/Dump All"` → `up fsm-trace --entity <關鍵字>`（HitEnter / HitBlocked / VarChange）。
+
+## `debug-effect-trace` —— EffectReceiver 為什麼沒觸發
+
+```bash
+up debug-effect-trace "Zone Arrive Trigger 找到火車 Variant"          # 節點或它的任一祖先都行
+up debug-effect-trace "…/Detectable Root" --effect "Zone Arrive"      # 同節點多個 receiver 時篩
 ```
 
 **這條鏈有六段，每一段都可能靜靜地 return**（detector 偵測 → detectable dict 登記 →
@@ -212,7 +226,7 @@ scene 底下。數字和預期不符時，第一個要問的是「東西在哪�
 
 ```bash
 up clear                                   # 清 Console，免得撈到舊的 error
-up play play
+up play play                               # 等到 tick 在跑 + --settle 秒（預設 1）才 return
 sleep 8
 up scene count --name 測試資源
 up logs --type Error -n 4 --stack 4        # 精簡版 Console（原生 get-logs 太肥）
@@ -220,3 +234,51 @@ up play stop
 ```
 
 分段取樣就能驗速率：每 4 秒 +4 顆 = 1 顆/秒，對得上 `_timeMax = 1`。
+
+**`up play play` 會等 Play Mode 穩定才 return**：(1) isPlaying 且 domain reload / 編譯完成 (2) WorldUpdateSimulator
+就緒、`WorldUpdateSimulator.CurrentTick` / `.SimulationTime` 真的在前進 (3) 再多等 `--settle` 秒（預設 1，開場 culling 判定之類）。
+成功印 `Playing, tick=N, settled=1.0s`；超過 `--timeout`（預設 30）exit 1 並說卡在第幾步。輪詢走 Unity 端
+`EditPlay.PlayStatus`（每次只回一行快照，不佔 main thread）。所以 play 之後不用再自己 `sleep` 等初始化。
+
+**`up play play` 之後一定要 `up play stop`**：play 成功（`IsPlaying`）時 `unity.py` 會寫 `.claude/.agent-testing`（`<session>\t<時間>`），
+主 toolbar 的 Agent Activity 鈕會亮「🤖 Play 測試中」叫使用者別動 Editor；只有 `up play stop` 會清。
+忘了 stop 要等 10 分鐘沒碰 Unity 才過期（同 session 每次 up 碰 Unity 都會續命），使用者也能在
+`Tools/MonoFSM/Agent Activity` 手動清。所有碰 Unity 的 up 呼叫都會記在 `Library/AgentActivity/activity.jsonl`
+（`activity.py`；直接叫 `uloop` 的不會記）。
+
+## 互動自動測試：測物件端 FSM，不經過玩家
+
+使用者說「測 X 的互動」時的預設做法。**只測物件端**：不移動玩家、不模擬按鍵。玩家端的問題（選目標、interact state 進不去）要另外處理。
+
+```bash
+up menu "Tools/MonoFSM/FSM Trace/Clear"           # Enabled 存 SessionState，關著就先跑 ".../Enabled" 打開
+up peek "<目標 Var 節點>"                           # 打之前的值（Edit Mode 讀到的是 serialized 值）
+up play play                                      # 會等到穩定才 return，不用 sleep
+up hit "<目標>/…/[Receiver] Interact"              # 看到 DONE canHit=True 才算打出去
+up peek "<目標 Var 節點>"                           # 打之後
+up hit …                                          # toggle 類物件要再打一次，確認會翻回來
+up menu "Tools/MonoFSM/FSM Trace/Dump All"
+up fsm-trace --entity "<目標名的獨特片段>" --no-snapshot
+up play stop                                      # 成功或失敗都一定要 stop
+```
+
+**開始前先查靜態資料**：先用 `up obj` / `up prefab read --fsm` 讀懂「打了之後應該發生什麼」，也就是哪顆 machine 從哪個 state 轉到哪個 state、哪顆 Var 會變，再下判斷。
+- 例：Toggle Device 按 E **不會切任何 state**，只跑 `[Receiver] Interact/[Event] EffectEnterNode` 底下的 action。這種物件要看 VarChange，不是看 Transition。
+
+**怎麼從 trace 判斷結果**
+
+| 看到的 | 意思 |
+|---|---|
+| `HitEnter` → `VarChange …: 舊 -> 新 by <action>` → `HitExit` | 成功。`by` 會寫出是哪顆 action 改的 |
+| `HitBlocked ReceiverInvalid failCond=#i <節點>` | receiver 的 `[If]` 擋掉了（例如 `d_CanInteract`）。回頭 peek 那顆 condition 指到的 Var |
+| `HitEnter` 之後沒有 VarChange，但緊接著有 `EventSkipped <原因>` | EnterNode 被跳過。Culling / NotSimulating：物件沒在模擬；ConditionInvalid：EventHandler 自己的條件沒過 |
+| 什麼都沒有（連 HitEnter 都沒有） | `hit` 沒打出去（看 CLI 的 DONE 行），或 EnterNode 節點本身 inactive —— **inactive 不進 trace**，靜態讀 prefab 時看 `~` 就知道 |
+| 預期的 Transition 沒出現 | 改用 `FsmTrace.Dump(name, entity)` 拍條件快照，看目前 state 的 outgoing transition 跟每顆 condition 的真假 |
+
+**陷阱**
+- `--entity` 是拿整行文字比對。同一個 scene 裡有名字相近的物件就會混進來，例如「引擎蓋」同時會撈到 `Interact Toggle Device 發財車引擎蓋` 跟 `Interact Device Trigger 發財車引擎蓋`，要用更獨特的片段。
+- VarChange 預設只記掛了 `NetworkedVarTag` 的 bool / int / float / object。要看的 Var 沒出現，不代表它沒變，直接 `peek` 確認。
+- 開場前一兩個 frame 的 tick 可能是上一輪的舊值（會看到 `f2 t152` 排在 `f3 t1` 前面），那幾筆的 tick 不要信。
+- 吃到 `Another execution is already in progress`：代表別的 session 正在用 Unity。等幾秒再單獨重跑那一條，不要改指令。
+- 要擺測試用的物件時，一律從 `TestKCC (複製我)_d.unity` 複製一份 scene（CLAUDE.md 規定），不要改使用者正在用的 scene。
+- 回報時附上：`hit` 的 DONE 行、peek 前後的值、trace 裡相關的那幾行（原樣貼）。

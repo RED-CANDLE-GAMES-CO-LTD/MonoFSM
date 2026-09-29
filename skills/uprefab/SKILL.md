@@ -46,11 +46,16 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | 場上有幾個某某物件、某個 component 現在的值 | `scene count` / `peek` | ✅ | [probe.md](references/probe.md) |
 | **prefab 上某顆 component 的某幾個欄位**（「這條 ref 接上了沒」） | `prefab peek`（**不要用 `read`**，貴 50 倍） | ✅ | [probe.md](references/probe.md) |
 | **模型多大、擺在哪、哪一頭朝哪**（換 placeholder 要對齊舊的大小、判斷燈頭 / 槍口方向） | `prefab bounds`（renderer AABB + 沿長軸粗細分佈）；**不要自己解析 FBX**，importer 軸向轉換離線證明不了 | ✅ | `up prefab --help` |
+| **AnimationClip 動到哪些節點 / 屬性 / 設成什麼值**（有沒有動 root / Collider / Rigidbody / enabled / active；m_IsActive 設 0 還是 1；換皮 variant 之後曲線是不是整批落空） | `anim <clip.anim> [--values] [--path KW] [--prefab <prefab>]`（離線；`--values` 加印 keyframe 時間→值，常數曲線印「全程 = v」；帶 `--prefab` 會對 Animator 底下合併後的節點，`✗` 對不到 / `~` 落在 inactive / `?` 節點上沒那顆 component）；**不要 grep .anim** | ❌（`--prefab` ✅） | `up anim --help` |
+| **材質的值**（shader、開著的 keyword、`_EmissionColor` 這類 property 值、貼圖路徑；Material Variant 合併 parent 鏈，`*` 標本檔 override） | `mat <path.mat> [--prop KW] [--local]`；`up asset fields` 對 .mat 會自動轉過來；**不要 grep .mat** | ❌ | `up mat --help` |
+| **AnimatorController 結構**（parameters / layer / state 的 motion·speed·WriteDefaults / transition 條件·exitTime）或 **overrideController 換了哪些 clip**（base + 原 clip → override clip + 用在哪個 layer/state） | `controller <path.controller \| .overrideController> [--layer KW]`；**不要 grep .controller** | ❌ | `up controller --help` |
 | 已知 prefab 內找合併後的 component / 節點路徑 | `prefab locate --comp/--name` | ✅ | [probe.md](references/probe.md) |
 | 同一 prefab 一次查多顆 component 欄位 | `prefab peek-batch -f probes.txt` | ✅ | [probe.md](references/probe.md) |
 | 命中/override 有幾千筆，想先知道集中在哪 | `find --by-asset` / `overrides --by-target` | ❌ | [offline-index.md](references/offline-index.md) |
 | **Play Mode 下改一個 Var 的值**（自動測試撥旗標 / 給錢） | `poke` | ✅ | [probe.md](references/probe.md) |
-| **EffectReceiver 沒觸發**，要一次看完整條鏈卡在哪 | `effect-trace` | ✅ | [probe.md](references/probe.md) |
+| **Play Mode 下對 receiver 打一發 effect**（不用玩家走過去互動） | `hit` | ✅ | [probe.md](references/probe.md) |
+| **「測 X 的互動」自動測試**（物件端 FSM，不經過玩家） | `play` → `hit` → `fsm-trace` → `peek` → `play stop` | ✅ | [probe.md「互動自動測試」](references/probe.md) |
+| **EffectReceiver 沒觸發**，要一次看完整條鏈卡在哪 | `debug-effect-trace` | ✅ | [probe.md](references/probe.md) |
 | 按 asset 上的 Odin `[Button]`（無參數方法） | `asset invoke` | ✅ | [asset.md](references/asset.md) |
 | 按 **prefab 裡某顆 component** 上的 Odin `[Button]`（edit-time 排版 / 重建工具） | `prefab do` 的 `invoke\|<node>\|<comp>\|<method>` | ✅ | [edit.md](references/edit.md) |
 | **執行 Editor 選單項目**（`Tools/…` 之類的 MenuItem；不要為了按選單臨時寫 execute-dynamic-code） | `menu "<menu path>"`（找不到會列出最接近的 path，exit 1） | ✅ | `up menu --help` |
@@ -72,8 +77,9 @@ reference 裡，真的要改的時候一定會讀到）：
 - **離線索引還是「節點 / component」跨資產定位的唯一手段** —— Unity 端沒有全專案節點搜尋（`refs` 只掃單一
   prefab / scene，`types` 只查型別名；`asset-refs` 是 asset 對 asset 的依賴，不看 component 型別），所以「這個 component 在哪些檔案裡」只有 `find`
   答得出來，而且快兩個數量級（find 0.1s vs Unity 一次來回含 domain reload 十幾秒）。
-  離線的就只有 `index` / `scope` / `find` / `guid` / `overrides` / `catalog` 這幾條。
-- **離線索引只回答「在哪個檔案」，內容一律走 Unity 匯出。** 離線 YAML 讀不到 variant
+  離線的就只有 `index` / `scope` / `find` / `guid` / `overrides` / `catalog` 這幾條（另外 `anim` / `mat` /
+  `controller` 離線直接讀單一 asset 的值 —— 這三種檔沒有 prefab 那種 stripped 繼承，Material Variant 由 `mat` 自己沿 parent 鏈合併）。
+- **離線索引只回答「在哪個檔案」，prefab / scene 的內容一律走 Unity 匯出。** 離線 YAML 讀不到 variant
   繼承來的東西（stripped 佔位 document 沒有名稱、component、真值），連 `find` 印的節點
   路徑都是局部的、不能直接餵給 `--node`（要完整路徑就 `--resolve`）。原因與實測數據見
   [internals.md](references/internals.md)。**`find` 也不會自己更新索引** —— 改過 prefab
@@ -103,7 +109,7 @@ reference 裡，真的要改的時候一定會讀到）：
 | [asset.md](references/asset.md) | ScriptableObject asset 的 create / set / set-ref / add-element / fields |
 | [prompt.md](references/prompt.md) | localized 文字提示：case 格式、優先序、自帶驗證輸出 |
 | [catalog.md](references/catalog.md) | `catalog`：Action / Condition 目錄、`--type` 細查、`--missing` 待補清單、`/// summary` 撰寫規範 |
-| [probe.md](references/probe.md) | `types` / `fields` / `peek` / `refs` / `scene count` 與 Play Mode 驗證流程 |
+| [probe.md](references/probe.md) | `types` / `fields` / `peek` / `refs` / `scene count` 與 Play Mode 驗證流程、**互動自動測試流程與 trace 判讀表** |
 | [example-fsm.md](references/example-fsm.md) | 完整實例：從零組「定時生資源」FSM 並在 Play Mode 驗證速率 |
 | [internals.md](references/internals.md) | 設計取捨（為何不用離線讀內容 / 為何拆掉 cache）、已知限制、反射與 SerializedProperty 地雷（getter native crash、string.isArray）、模組結構 —— **改 uprefab 本身前先讀** |
 

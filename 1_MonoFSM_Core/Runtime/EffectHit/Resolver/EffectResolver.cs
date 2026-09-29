@@ -5,6 +5,7 @@ using MonoFSM.Core.Attributes;
 using MonoFSM.Core.Detection;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Foundation;
+using MonoFSM.FSM;
 using MonoFSM.Runtime.Interact.EffectHit.Resolver;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
@@ -148,6 +149,16 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         //FIXME: 關掉的就不算嗎 hmmm
         [PreviewInInspector] public bool IsValid => isActiveAndEnabled && _conditions.IsAllValid();
+
+        /// <summary>
+        /// IsValid 為什麼是 false：-2（FsmTrace.InactiveFailIndex）= 自己沒 active；
+        /// 否則回 _conditions 第一顆失敗的 index，全部成立回 -1。只給 FsmTrace 在 Enabled 時算。
+        /// </summary>
+        public int FirstFailedConditionIndex =>
+            !isActiveAndEnabled ? FsmTrace.InactiveFailIndex : _conditions.FirstFailedIndex();
+
+        /// <summary>決定 IsValid 的 condition 群（深度一層），FsmTrace dump 用 index 反查節點名。</summary>
+        public AbstractConditionBehaviour[] ResolverConditions => _conditions;
 
         //被 culling handle 暫停（不含 despawn／手動關掉）。寫法同 EffectDetectable.IsSuspendedByCulling，
         //也同 EffectDetector.OnDisable 的判斷 —— 「暫停模擬」和「東西不見了」必須是同一個來源。

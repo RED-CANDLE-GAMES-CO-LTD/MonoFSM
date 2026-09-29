@@ -308,25 +308,23 @@ def _resolve_target_labels(con: sqlite3.Connection, progress) -> None:
 
     target 常常指向 variant 繼承來的 stripped 佔位物件，此時要沿
     m_CorrespondingSourceObject 往上一層來源 prefab 再查一次，直到查到
-    真正的 GameObject / component 為止。
+    真正的 GameObject / component 為止；nested 實例內部物件連佔位都沒有，用 fileID XOR 反推。
     """
     if progress:
         progress("resolve override targets …")
 
-    guid2asset = {g: a for g, a in con.execute(
-        "SELECT guid, id FROM assets WHERE guid IS NOT NULL")}
     targets = con.execute(
         "SELECT DISTINCT target_guid, target_file_id FROM mods"
         " WHERE target_guid IS NOT NULL"
     ).fetchall()
-
     guid2path = {g: p for g, p in con.execute(
         "SELECT guid, path FROM assets WHERE guid IS NOT NULL")}
 
+    resolver = _TargetResolver(con)
     out = []
     exact = 0
     for guid, fid in targets:
-        label = _label_for(con, guid2asset, guid, fid)
+        label = resolver.label(guid, fid)
         if label:
             exact += 1
         elif guid in guid2path:
@@ -339,37 +337,77 @@ def _resolve_target_labels(con: sqlite3.Connection, progress) -> None:
         progress(f"targets: {exact}/{len(out)} 解析到物件")
 
 
-def _label_for(con, guid2asset, guid, fid) -> str | None:
-    """沿 variant 鏈往上找，回傳具體物件的標籤；找不到回 None。
+_U64 = 0xFFFFFFFFFFFFFFFF
+_I63 = 0x7FFFFFFFFFFFFFFF
 
-    找不到的主因有二：物件被 scriptOnly 濾掉，或是多層 variant 的合成
-    fileID 在任何一個檔案裡都不存在（需要完整的 prefab 實例化演算法才能還原）。
-    """
-    for _ in range(MAX_STUB_HOPS):
-        aid = guid2asset.get(guid)
-        if aid is None:
+
+def _nested_file_id(instance_fid: int, source_fid: int) -> int:
+    """Unity 給 nested prefab 實例內物件的合成 fileID：(instance ^ source) & 0x7FFF…；
+    XOR 可逆，所以拿 target fileID 跟 instance fileID 再 XOR 一次就回到來源 prefab 裡的 fileID。"""
+    return ((instance_fid & _U64) ^ (source_fid & _U64)) & _I63
+
+
+class _TargetResolver:
+    """整批解析用：nodes / comps / stubs / instances 先全載進 dict（各 20 多萬筆，約 1 秒），
+    結果再 memo。逐筆 SQL 查的版本在 nested 反推要掃每個 instance，實測 91 秒。"""
+
+    def __init__(self, con: sqlite3.Connection):
+        self.guid2asset = {g: a for g, a in con.execute(
+            "SELECT guid, id FROM assets WHERE guid IS NOT NULL")}
+        self.asset2guid = {a: g for g, a in self.guid2asset.items()}
+        self.node_path = {(a, f): p for a, f, p in con.execute(
+            "SELECT asset_id, file_id, path FROM nodes")}
+        self.comp = {(a, f): (go, t) for a, f, go, t in con.execute(
+            "SELECT asset_id, file_id, go_file_id, type FROM comps")}
+        self.stub = {(a, f): (g, sf) for a, f, g, sf in con.execute(
+            "SELECT asset_id, file_id, src_guid, src_file_id FROM stubs")}
+        self.instances: dict[int, list[tuple[int, str, int]]] = {}
+        for a, f, g, p in con.execute(
+                "SELECT asset_id, file_id, source_guid, parent_file_id FROM instances"):
+            if g in self.guid2asset:
+                self.instances.setdefault(a, []).append((f, g, p))
+        self.memo: dict[tuple[str, int], str | None] = {}
+
+    def label(self, guid, fid, depth: int = 0) -> str | None:
+        """沿 variant 鏈往上找，回傳具體物件的標籤；找不到回 None（主因是物件被 scriptOnly 濾掉）。"""
+        key = (guid, fid)
+        if key not in self.memo:
+            self.memo[key] = None  # 先佔位，擋掉循環
+            self.memo[key] = self._label(guid, fid, depth)
+        return self.memo[key]
+
+    def _label(self, guid, fid, depth) -> str | None:
+        if depth > MAX_STUB_HOPS:
             return None
-        row = con.execute(
-            "SELECT path FROM nodes WHERE asset_id=? AND file_id=?", (aid, fid)
-        ).fetchone()
-        if row:
-            return row[0]
-        row = con.execute(
-            "SELECT n.path, c.type FROM comps c"
-            " LEFT JOIN nodes n ON n.asset_id=c.asset_id AND n.file_id=c.go_file_id"
-            " WHERE c.asset_id=? AND c.file_id=?",
-            (aid, fid),
-        ).fetchone()
-        if row:
-            return f"{row[0] or '?'} <{row[1]}>"
-        row = con.execute(
-            "SELECT src_guid, src_file_id FROM stubs WHERE asset_id=? AND file_id=?",
-            (aid, fid),
-        ).fetchone()
-        if not row or not row[0]:
-            return None
-        guid, fid = row  # 往來源 prefab 再跳一層
-    return None
+        for _ in range(MAX_STUB_HOPS):
+            aid = self.guid2asset.get(guid)
+            if aid is None:
+                return None
+            path = self.node_path.get((aid, fid))
+            if path:
+                return path
+            comp = self.comp.get((aid, fid))
+            if comp:
+                return f"{self.node_path.get((aid, comp[0])) or '?'} <{comp[1]}>"
+            stub = self.stub.get((aid, fid))
+            if not stub or not stub[0]:
+                return self._nested(aid, fid, depth)
+            guid, fid = stub  # 往來源 prefab 再跳一層
+        return None
+
+    def _nested(self, aid, fid, depth) -> str | None:
+        """target 是 aid 裡某個 nested prefab 實例的內部物件時，對每個 instance 反推來源 fileID 再查；
+        64-bit XOR 撞到別的真實 fileID 的機率可以忽略。"""
+        for inst_fid, src_guid, parent_tf in self.instances.get(aid, ()):
+            sub = self.label(src_guid, _nested_file_id(fid, inst_fid), depth + 1)
+            if not sub:
+                continue
+            # 實例掛在 aid 的哪個節點底下（parent 是 Transform fileID，常常本身也是 stripped）；variant 的 base 實例 parent=0
+            parent = self.label(self.asset2guid[aid], parent_tf, depth + 1) if parent_tf else None
+            if parent:
+                parent = parent.split(" <")[0]
+            return f"{parent}/{sub}" if parent else sub
+        return None
 
 
 def _build_script_table(con: sqlite3.Connection, root: str, progress) -> None:

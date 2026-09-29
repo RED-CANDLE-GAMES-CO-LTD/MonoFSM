@@ -209,6 +209,27 @@ namespace MonoFSMCore.Runtime.LifeCycle
             }
         }
 
+        /// <summary>
+        /// 這顆（或 parent 鏈上最近的）ISimulateAuthorityProvider 說自己有 InputAuthority —— 「本機玩家」的判斷方式。
+        /// 整條鏈都沒有 provider（單機 / 純 local）時回 false，要分辨請搭配 <see cref="HasAuthorityProvider"/>。
+        /// </summary>
+        [ShowInInspector]
+        public bool HasInputAuthority
+        {
+            get
+            {
+                if (_authorityProvider != null)
+                    return _authorityProvider.HasInputAuthority;
+                if (HasParent)
+                    return _parentObj.HasInputAuthority;
+                return false;
+            }
+        }
+
+        /// <summary>自己或 parent 鏈上有沒有網路層的 ISimulateAuthorityProvider（沒有 = 單機，authority 問不出來）。</summary>
+        public bool HasAuthorityProvider =>
+            _authorityProvider != null || (HasParent && _parentObj.HasAuthorityProvider);
+
         [PreviewInDebugMode]
         [AutoChildren]
         private ISceneAwake[] _sceneAwakes;

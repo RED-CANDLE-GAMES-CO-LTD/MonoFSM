@@ -60,6 +60,11 @@ namespace MonoFSM.Variable
 #if UNITY_EDITOR
         [CompRef] [AutoChildren] DebugWorldSpaceLabel _debugWorldSpaceLabel;
 #endif
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        //FsmTrace 要不要記這顆的 VarChange：0 = 還沒判斷、1 = networked 記、2 = 不記、3 = WatchVar 手動記。由 FsmTrace.ShouldTraceVar 第一次用到時
+        //看有沒有掛 NetworkedVarTag 決定，FsmTrace.WatchVar / UnwatchVar 手動改。不 serialize
+        [NonSerialized] internal byte _fsmTraceWatch;
+#endif
         //FIXME: 什麼case需要parentVarEntity? 忘記了XD
         // [ShowIf(nameof(_parentVarEntity))] //有才顯示就好, 或是debugMode?
 

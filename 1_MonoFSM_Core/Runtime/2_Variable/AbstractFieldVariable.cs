@@ -572,6 +572,9 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         // Profiler.EndSample();
 
         OnValueSet(oldValue, tempValue);
+        //所有 field 型 Var（本地寫入、SetValueFromNetwork、LocalPredicted）真的改值都會經過這裡
+        if (MonoFSM.FSM.FsmTrace.Enabled && MonoFSM.FSM.FsmTrace.ShouldTraceVar(this))
+            MonoFSM.FSM.FsmTrace.RecordVarChange(this, oldValue, tempValue, byWho);
 
         //什麼時候需要track? isTracking?
         // Profiler.BeginSample("TrackValue");

@@ -362,7 +362,25 @@ namespace MonoFSM.Editor.PrefabEditing
             {
                 var next = $"{cursor}/{parts[i]}";
                 if (!AssetDatabase.IsValidFolder(next))
-                    AssetDatabase.CreateFolder(cursor, parts[i]);
+                {
+                    // 磁碟上已經有、只是 Unity 還沒 import（例：agent 先 `mkdir -p` 再叫 up）→ 先 import。
+                    // 直接 CreateFolder 的話 Unity 會看到磁碟撞名，自動改建「<名字> 1」，
+                    // 而後面存檔還是寫進原本那個資料夾，留下一個空的「 1」資料夾（2026-09-29 廢鐵青蛙）
+                    if (System.IO.Directory.Exists(next))
+                    {
+                        AssetDatabase.ImportAsset(next, ImportAssetOptions.ForceSynchronousImport);
+                        if (!AssetDatabase.IsValidFolder(next)) AssetDatabase.Refresh();
+                        if (!AssetDatabase.IsValidFolder(next))
+                            throw new Abort($"資料夾 {next} 在磁碟上存在但 Unity 認不得（import 失敗），請在 Editor 按 Cmd+R 後重跑");
+                    }
+                    else
+                    {
+                        var guid = AssetDatabase.CreateFolder(cursor, parts[i]);
+                        var created = AssetDatabase.GUIDToAssetPath(guid);
+                        if (created != next)
+                            throw new Abort($"建資料夾 {next} 失敗，Unity 實際建成「{created}」—— 請刪掉那個多出來的資料夾後重跑");
+                    }
+                }
                 cursor = next;
             }
         }

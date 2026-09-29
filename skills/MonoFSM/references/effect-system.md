@@ -223,7 +223,8 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 
 ## 沒觸發時的診斷順序
 
-先跑 `up effect-trace "<receiver 節點或其祖先>"`（**Play Mode**），它把下面整條鏈一次攤開。
+要看「有沒有打到、被誰擋、打到後改了什麼」的時間軸，走 FsmTrace（見 SKILL.md「除錯：FsmTrace」）。
+要看當下整條鏈的狀態，跑 `up debug-effect-trace "<receiver 節點或其祖先>"`（**Play Mode**），它把下面整條鏈一次攤開。
 需要手動查時照這個順序，每一段都是**靜默 return**，沒有 log：
 
 | # | 段 | 看什麼 | 常見死因 |
@@ -235,9 +236,15 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 | 5 | **enterNode 的四道 gate** | `_lastSimulateEventTime`（-1 = 從沒跑過）、`_lastSkipReason` | 見下 |
 | 6 | action | action 自己的 condition | sibling 順序、前面的 action 改掉了條件 |
 
+- **receiver 自己的 `_conditions`（例 `[If] d_CanInteract`）不成立**時，dealer 的 `_failReason` 只會寫 `"Receiver is not valid"`，
+  **也不會觸發 receiver 的 `EffectHitFailNode`**（只有 ProxyDealer null / dealer 的 effect condition 失敗才會）。
+  要知道是哪一顆擋的，開 FsmTrace 看 `HitBlocked ReceiverInvalid … failCond=#i <節點名>`。
+- 第 5 段被擋時 receiver 的 HitEnter **照樣會記**（`OnEffectHitEnter` 先於 EventHandle），所以 trace 上是「有 HitEnter、沒有 VarChange」。
+  開場 CullingEventTarget 還沒判 near 前 MonoObj 在 simulation culling，這段時間打到的 action 全被跳過。
+
 第 5 段是 `AbstractEventHandler.EventHandleImplement`，四道 gate 依序是
-`_conditionFolder.IsValid` → `_parentObj.IsCulling` → `gameObject.activeSelf` →
-**`_parentObj.ShouldSimulte || _forceExecuteWithoutStateAuthority`**。
+`gameObject.activeSelf` → `_parentObj.IsCulling` → `_conditionFolder.IsValid` →（`_stateAuthorityOnly` 時）`HasStateAuthority` →
+**`_parentObj.ShouldSimulte || _forceExecuteWithoutStateAuthority`**（2026-09-29 對過原始碼）。
 被擋下時會寫進 `_lastSkipReason` / `_lastSkipTime`（Editor only，`up peek` 和 Inspector 都看得到），
 所以「事件有進來但 action 沒跑」直接讀這個欄位就有答案。
 

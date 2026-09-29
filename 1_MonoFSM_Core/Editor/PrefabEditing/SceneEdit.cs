@@ -29,7 +29,7 @@ namespace MonoFSM.Editor.PrefabEditing
         // ---- scene 生命週期 ----
 
         /// <summary>
-        /// 建一個新 scene 並存檔（會取代目前開著的 scene）。
+        /// 建一個新 scene 並存檔（會取代目前開著的 scene；切換前先存所有 dirty scene，見 SaveDirtyOpenScenes）。
         /// </summary>
         /// <param name="scenePath">例：Assets/Scenes/Test.unity</param>
         /// <param name="withDefaults">true = 帶 Main Camera + Directional Light</param>
@@ -42,6 +42,8 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (Application.isPlaying)
                     throw new Abort("Play Mode 中不能建 scene");
 
+                var saved = SaveDirtyOpenScenes();
+
                 var setup = withDefaults
                     ? NewSceneSetup.DefaultGameObjects
                     : NewSceneSetup.EmptyScene;
@@ -49,8 +51,8 @@ namespace MonoFSM.Editor.PrefabEditing
 
                 EnsureDirectory(scenePath);
                 if (!EditorSceneManager.SaveScene(scene, scenePath))
-                    throw new Abort($"存檔失敗：{scenePath}");
-                return $"建立 scene {scenePath}（{(withDefaults ? "含" : "不含")}預設物件）";
+                    throw new Abort($"{saved}存檔失敗：{scenePath}");
+                return $"{saved}建立 scene {scenePath}（{(withDefaults ? "含" : "不含")}預設物件）";
             });
         }
 
@@ -78,13 +80,16 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (AssetDatabase.LoadAssetAtPath<SceneAsset>(newScenePath) != null)
                     throw new Abort($"{newScenePath} 已存在，不覆蓋");
 
+                // 要在 CopyAsset 之前：Untitled 擋下來時不會留下一份複製到一半的 scene
+                var saved = SaveDirtyOpenScenes();
+
                 EnsureDirectory(newScenePath);
                 if (!AssetDatabase.CopyAsset(templatePath, newScenePath))
-                    throw new Abort($"複製失敗：{templatePath} -> {newScenePath}");
+                    throw new Abort($"{saved}複製失敗：{templatePath} -> {newScenePath}");
                 AssetDatabase.ImportAsset(newScenePath);
 
                 var scene = EditorSceneManager.OpenScene(newScenePath, OpenSceneMode.Single);
-                return $"複製 scene {newScenePath}\n" +
+                return $"{saved}複製 scene {newScenePath}\n" +
                        $"  模板: {templatePath}\n" +
                        $"  已開啟，{scene.rootCount} 個 root";
             });
@@ -98,8 +103,9 @@ namespace MonoFSM.Editor.PrefabEditing
                     throw new Abort("Play Mode 中不能開 scene");
                 if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null)
                     throw new Abort($"找不到 scene: {scenePath}");
+                var saved = SaveDirtyOpenScenes();
                 var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-                return $"開啟 {scene.path}（{scene.rootCount} 個 root）";
+                return $"{saved}開啟 {scene.path}（{scene.rootCount} 個 root）";
             });
         }
 
@@ -631,6 +637,40 @@ namespace MonoFSM.Editor.PrefabEditing
 
         // ---- 內部 ----
 
+        /// <summary>
+        /// 用 Single 模式切 scene 之前呼叫：把所有 dirty 的已開 scene 存起來，回傳一行「存了哪些」
+        /// （沒東西要存回空字串）。Single 模式會直接丟掉沒存的改動、Editor 不會問 ——
+        /// 2026-09-29 `up scene copy` 就差點把使用者開著的 scene 改動丟掉。
+        ///
+        /// 有 dirty 的 Untitled（沒路徑）scene 就整個 Abort、一個都不存：
+        /// 靜默存到某個自動路徑使用者找不到，丟掉又是資料遺失，只能交給人決定。
+        /// 故意不用 SaveCurrentModifiedScenesIfUserWantsTo —— 它會跳對話框卡住 CLI。
+        /// </summary>
+        private static string SaveDirtyOpenScenes()
+        {
+            var dirty = new List<Scene>();
+            for (var i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var s = SceneManager.GetSceneAt(i);
+                if (!s.IsValid() || !s.isLoaded || !s.isDirty) continue;
+                if (string.IsNullOrEmpty(s.path))
+                    throw new Abort(
+                        $"有未存檔的 Untitled scene（{(string.IsNullOrEmpty(s.name) ? "Untitled" : s.name)}），" +
+                        "它沒有路徑、不能自動存；切 scene 會把它丟掉。請在 Editor 裡先存（File > Save As）或手動關掉再重跑");
+                dirty.Add(s);
+            }
+            if (dirty.Count == 0) return "";
+
+            var names = new List<string>(dirty.Count);
+            foreach (var s in dirty)
+            {
+                if (!EditorSceneManager.SaveScene(s))
+                    throw new Abort($"切 scene 前存檔失敗：{s.path}（沒有切 scene）");
+                names.Add(s.path);
+            }
+            return $"切換前已存檔 {names.Count} 個 dirty scene：{string.Join("、", names)}\n";
+        }
+
         private static Scene Active()
         {
             var scene = SceneManager.GetActiveScene();
@@ -662,7 +702,25 @@ namespace MonoFSM.Editor.PrefabEditing
             {
                 var next = $"{cursor}/{parts[i]}";
                 if (!AssetDatabase.IsValidFolder(next))
-                    AssetDatabase.CreateFolder(cursor, parts[i]);
+                {
+                    // 磁碟上已經有、只是 Unity 還沒 import（例：agent 先 `mkdir -p` 再叫 up）→ 先 import。
+                    // 直接 CreateFolder 的話 Unity 會看到磁碟撞名，自動改建「<名字> 1」，
+                    // 而後面存檔還是寫進原本那個資料夾，留下一個空的「 1」資料夾（2026-09-29 廢鐵青蛙）
+                    if (System.IO.Directory.Exists(next))
+                    {
+                        AssetDatabase.ImportAsset(next, ImportAssetOptions.ForceSynchronousImport);
+                        if (!AssetDatabase.IsValidFolder(next)) AssetDatabase.Refresh();
+                        if (!AssetDatabase.IsValidFolder(next))
+                            throw new Abort($"資料夾 {next} 在磁碟上存在但 Unity 認不得（import 失敗），請在 Editor 按 Cmd+R 後重跑");
+                    }
+                    else
+                    {
+                        var guid = AssetDatabase.CreateFolder(cursor, parts[i]);
+                        var created = AssetDatabase.GUIDToAssetPath(guid);
+                        if (created != next)
+                            throw new Abort($"建資料夾 {next} 失敗，Unity 實際建成「{created}」—— 請刪掉那個多出來的資料夾後重跑");
+                    }
+                }
                 cursor = next;
             }
         }

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using MonoFSM.Core.Attributes;
 using MonoFSM.Core.DataProvider;
 using MonoFSM.Core.Detection;
+using MonoFSM.FSM;
 using MonoFSM.Runtime.Interact.EffectHit.Resolver;
 using MonoFSM.Variable;
 using MonoFSM.Variable.Attributes;
@@ -177,6 +178,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [ShowInDebugMode]
         private string _failReason = "No Fail Reason";
 
+        /// <summary>最後一次命中判定的結果字串（只有 Editor 會更新，build 固定是初始值）。</summary>
+        public string FailReason => _failReason;
+
         [Conditional("UNITY_EDITOR")]
         public void SetFailReason(string reason)
         {
@@ -185,6 +189,22 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 
         [PreviewInInspector] [Component] [AutoChildren(DepthOneOnly = true)]
         protected AbstractEffectHitCondition[] _effectConditions;
+
+        /// <summary>CanHitReceiver 逐顆問的 effect condition，FsmTrace dump 用 index 反查節點名。</summary>
+        public AbstractEffectHitCondition[] EffectConditions => _effectConditions;
+
+        //CanHitReceiver 每個 early return 旁邊的 trace；ReceiverInvalid 的 condition index 只在 trace 開著時才算
+        [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
+        private void TraceBlocked(FsmTraceBlockReason reason, GeneralEffectReceiver receiver,
+            int failConditionIndex = FsmTrace.NoFailIndex)
+        {
+            if (!FsmTrace.Enabled)
+                return;
+            if (reason == FsmTraceBlockReason.ReceiverInvalid && receiver != null)
+                failConditionIndex = receiver.FirstFailedConditionIndex;
+            FsmTrace.RecordHit(FsmTraceKind.HitBlocked, this, receiver, reason, failConditionIndex);
+        }
 
         public bool IsEffectConditionsAllValid(EffectResolver pairResolver)
         {
@@ -212,6 +232,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (receiver == null)
             {
                 SetFailReason("Receiver is null");
+                TraceBlocked(FsmTraceBlockReason.ReceiverNull, null);
                 return false;
             }
             var r = (GeneralEffectReceiver)receiver;
@@ -219,12 +240,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             if (_singleEntityPerEnable && _lockedEntity != null && r.BindEntity != _lockedEntity)
             {
                 SetFailReason("SingleEntityPerEnable: already locked to another entity");
+                TraceBlocked(FsmTraceBlockReason.SingleEntityLock, r);
                 return false;
             }
             if (r._effectType != _effectType)
             {
                 AddCandidateReceiver(receiver);
                 SetFailReason("EffectType mismatch");
+                TraceBlocked(FsmTraceBlockReason.TypeMismatch, r);
                 return false;
             }
 
@@ -232,6 +255,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             {
                 AddCandidateReceiver(receiver);
                 SetFailReason("Receiver is not valid");
+                TraceBlocked(FsmTraceBlockReason.ReceiverInvalid, r);
                 return false;
             }
 
@@ -240,6 +264,7 @@ namespace MonoFSM.Runtime.Interact.EffectHit
                 if (proxyDealer == null) //並沒有找到Proxy Dealer，失敗
                 {
                     SetFailReason("ProxyDealer is null");
+                    TraceBlocked(FsmTraceBlockReason.ProxyDealerNull, r);
                     var data = r.GenerateEffectHitData(this, null);
                     OnEffectHitConditionFail(data);
                     r.OnEffectHitConditionFail(data);
@@ -250,12 +275,14 @@ namespace MonoFSM.Runtime.Interact.EffectHit
             }
 
             if (_effectConditions != null)
-                foreach (var condition in _effectConditions)
+                for (var i = 0; i < _effectConditions.Length; i++)
                 {
+                    var condition = _effectConditions[i];
                     var result = condition.IsEffectShouldHit(r);
                     if (!result)
                     {
                         SetFailReason($"EffectCondition {condition.GetType().Name} failed");
+                        TraceBlocked(FsmTraceBlockReason.EffectConditionFailed, r, i);
                         var data = r.GenerateEffectHitData(this, null); //FIXME: fail的話就先傳null了？
                         OnEffectHitConditionFail(data);
                         r.OnEffectHitConditionFail(data);

@@ -378,10 +378,13 @@ namespace MonoFSM.Variable
                 return;
             }
 
-            if (value == Value) //一樣不處理
+            var oldValue = Value;
+            if (value == oldValue) //一樣不處理
                 return;
 
             _beforeSetProcessor?.BeforeSetValueCallback(value);
+            if (MonoFSM.FSM.FsmTrace.Enabled && MonoFSM.FSM.FsmTrace.ShouldTraceVar(this))
+                MonoFSM.FSM.FsmTrace.RecordVarChange(this, oldValue, value, byWho);
 
             _tempValue = value;
             RecordSetbyWhoDebug(byWho, _tempValue, reason);

@@ -134,18 +134,33 @@ namespace MonoFSM.Core
 
         [ShowInInspector] [PreviewInDebugMode] public float _lastSkipTime = -1f;
 
+        //FsmTrace 去重用：同一個原因連續擋只記第一次（OnStateUpdate 這種每 tick 叫的才不會洗掉 buffer）
+        [System.NonSerialized] private MonoFSM.FSM.FsmTraceSkipReason _lastTracedSkip;
+
         [Conditional("UNITY_EDITOR")]
-        private void MarkSkipped(string reason)
+        [Conditional("DEVELOPMENT_BUILD")]
+        private void MarkSkipped(string reason, MonoFSM.FSM.FsmTraceSkipReason traceReason)
         {
+#if UNITY_EDITOR
             _lastSkipReason = reason;
             _lastSkipTime = Time.time;
             this.Log(reason); //父層掛 DebugProvider 才會印
+#endif
+            if (traceReason != MonoFSM.FSM.FsmTraceSkipReason.None && MonoFSM.FSM.FsmTrace.Enabled && _lastTracedSkip != traceReason)
+            {
+                _lastTracedSkip = traceReason;
+                MonoFSM.FSM.FsmTrace.RecordEventSkipped(this, traceReason);
+            }
         }
 
         [Conditional("UNITY_EDITOR")]
+        [Conditional("DEVELOPMENT_BUILD")]
         private void ClearSkipReason()
         {
+#if UNITY_EDITOR
             _lastSkipReason = null;
+#endif
+            _lastTracedSkip = MonoFSM.FSM.FsmTraceSkipReason.None;
         }
 
         //FIXME: override怎麼處理？
@@ -153,24 +168,24 @@ namespace MonoFSM.Core
         {
             if (!gameObject.activeSelf)
             {
-                MarkSkipped("gameObject inactive");
+                MarkSkipped("gameObject inactive", MonoFSM.FSM.FsmTraceSkipReason.None); //不進 trace：inactive 節點是刻意關掉的，靜態讀 prefab 就看得到（~）
                 return;
             }
             if (_parentObj.IsCulling) //FIXME: 有需要分visual和logic culling?
             {
-                MarkSkipped("parentObj culling");
+                MarkSkipped("parentObj culling", MonoFSM.FSM.FsmTraceSkipReason.Culling);
                 return;
             }
 
             if (_conditionFolder.IsValid == false)
             {
-                MarkSkipped("condition invalid");
+                MarkSkipped("condition invalid", MonoFSM.FSM.FsmTraceSkipReason.ConditionInvalid);
                 return;
             }
 
             if (_stateAuthorityOnly && !_parentObj.HasStateAuthority)
             {
-                MarkSkipped("stateAuthorityOnly: not state authority");
+                MarkSkipped("stateAuthorityOnly: not state authority", MonoFSM.FSM.FsmTraceSkipReason.NotStateAuthority);
                 return;
             }
 
@@ -209,7 +224,7 @@ namespace MonoFSM.Core
             if (!ShouldSimulate)
             {
                 //最常見的坑：非網路的場景物件沒人 push ShouldSimulte，事件會靜靜地不執行
-                MarkSkipped("ShouldSimulate false (no state authority)");
+                MarkSkipped("ShouldSimulate false (no state authority)", MonoFSM.FSM.FsmTraceSkipReason.NotSimulating);
                 return;
             }
 

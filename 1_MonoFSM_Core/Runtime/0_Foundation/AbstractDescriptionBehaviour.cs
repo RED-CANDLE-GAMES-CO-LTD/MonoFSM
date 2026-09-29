@@ -226,9 +226,41 @@ namespace MonoFSM.Foundation
                         )
                 );
 
+            //陣列 / List 不驗：它們不是 UnityEngine.Object，`as Object` 永遠是 null → 一定誤報「is null」；
+            //而且 Unity serialize 的陣列載入後至少是空陣列，本來就不會是 null
+            requiredFields = FilterOutCollectionRequiredFields(type, requiredFields);
+
             cache[type] = requiredFields;
 
             return requiredFields;
+        }
+
+        private static FieldInfo[] FilterOutCollectionRequiredFields(Type type, FieldInfo[] requiredFields)
+        {
+            var collectionCount = 0;
+            for (var i = 0; i < requiredFields.Length; i++)
+                if (typeof(System.Collections.IList).IsAssignableFrom(requiredFields[i].FieldType))
+                    collectionCount++;
+            if (collectionCount == 0)
+                return requiredFields;
+
+            var kept = new List<FieldInfo>(requiredFields.Length - collectionCount);
+            for (var i = 0; i < requiredFields.Length; i++)
+            {
+                var f = requiredFields[i];
+                if (!typeof(System.Collections.IList).IsAssignableFrom(f.FieldType))
+                {
+                    kept.Add(f);
+                    continue;
+                }
+
+                //每個型別只在建快取時印一次
+                Debug.LogWarning(
+                    $"[Required] 掛在陣列 / List 欄位 {type.Name}.{f.Name} 上沒有作用，已略過：Unity serialize 的陣列載入後至少是空陣列，不會是 null。" +
+                    "要檢查「不能是空的 / 元素不能是 null」，請在 component 自己的 fail reason enum 裡檢查（例：CableCartQueueView 的 BadCartRefs），然後拿掉這個 [Required]。");
+            }
+
+            return kept.ToArray();
         }
 
         /// <summary>

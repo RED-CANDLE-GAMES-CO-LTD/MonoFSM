@@ -3,6 +3,10 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action.VariableAction
 {
+    /// <summary>
+    /// 把 _target 這顆 VarBool 反轉（true↔false）：按一下開、再按一下關的兩段式機關用，
+    /// 常掛在 Interact Device Trigger 的 [Event] ManualEvent 或 receiver 的 EffectEnterNode 底下。
+    /// </summary>
     public class ToggleBoolAction : AbstractStateAction
     {
         [SerializeField] [DropDownRef] public VarBool _target; //var?

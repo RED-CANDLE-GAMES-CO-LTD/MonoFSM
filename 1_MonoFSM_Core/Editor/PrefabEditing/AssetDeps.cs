@@ -51,9 +51,15 @@ namespace MonoFSM.Editor.PrefabEditing
             if (target == null) return err;
 
             var referrers = new List<string>();
+            var lfsSkipped = 0;
             foreach (var p in AssetDatabase.GetAllAssetPaths())
             {
                 if (p == target || !IsScannable(p)) continue;
+                if (IsLfsPointer(p))
+                {
+                    lfsSkipped++;
+                    continue;
+                }
                 if (System.Array.IndexOf(AssetDatabase.GetDependencies(p, false), target) >= 0)
                     referrers.Add(p);
             }
@@ -61,6 +67,8 @@ namespace MonoFSM.Editor.PrefabEditing
 
             var sb = new StringBuilder();
             sb.AppendLine($"# {target} 被 {referrers.Count} 個 asset 直接引用");
+            if (lfsSkipped > 0)
+                sb.AppendLine($"# 跳過 {lfsSkipped} 顆沒 pull 的 git LFS pointer（要掃它們先 `git lfs pull`）");
             if (referrers.Count == 0)
             {
                 sb.AppendLine("（沒有 asset 直接引用它；要看是不是 build root 用 `up why-in-build`）");
@@ -387,6 +395,26 @@ namespace MonoFSM.Editor.PrefabEditing
             if (ext.Length == 0 || LeafExt.Contains(ext)) return false; // 沒副檔名多半是資料夾
             return true;
         }
+
+        /// <summary>
+        /// 沒 pull 下來的 git LFS pointer（檔案內容只有 `version https://git-lfs...` 一百多 byte）。
+        /// Unity 會把它當壞檔，GetDependencies 碰到就噴「File may be corrupted」到 Console，所以掃描前先擋掉。
+        /// 只讀小於 1KB 的檔頭，一般 asset 只多一次 stat。Packages/ 要先轉實體路徑（file: 引用的 package 不在專案底下）。
+        /// </summary>
+        private static bool IsLfsPointer(string p)
+        {
+            var phys = FileUtil.GetPhysicalPath(p);
+            var fi = new System.IO.FileInfo(phys);
+            if (!fi.Exists || fi.Length > 1024) return false;
+            using var fs = fi.OpenRead();
+            var head = new byte[LfsHeader.Length];
+            if (fs.Read(head, 0, head.Length) != head.Length) return false;
+            for (var i = 0; i < head.Length; i++)
+                if (head[i] != LfsHeader[i]) return false;
+            return true;
+        }
+
+        private static readonly byte[] LfsHeader = Encoding.ASCII.GetBytes("version https://git-lfs");
 
         private static bool IsCode(string p) => p.EndsWith(".cs") || p.EndsWith(".dll");
 

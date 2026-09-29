@@ -17,10 +17,15 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import indexer  # noqa: E402
+import activity  # noqa: E402
+import anim  # noqa: E402
+import controller  # noqa: E402
+import mat  # noqa: E402
 import hot  # noqa: E402
 import memo  # noqa: E402
 import progress  # noqa: E402
 import session  # noqa: E402
+import trace as fsmtrace  # noqa: E402
 import query  # noqa: E402
 import swapscript  # noqa: E402
 import unity  # noqa: E402
@@ -402,6 +407,27 @@ def _grep_meta(root: str, guid: str) -> str | None:
     return None
 
 
+def _guid_to_path(root, cfg, guid: str, con=None):
+    """guid → (資產路徑, 附註)；查不到回 (None, None)。先查索引，miss 再掃 .meta。
+
+    `up guid` 跟「別的子指令收到 guid 時自動轉路徑」（_rewrite_guid_argv）共用這一段。
+    """
+    con = con or indexer.connect(root)
+    row = query.asset_by_guid(con, guid)
+    # 改名 / 搬家後索引還指著舊路徑：檔案不在就先補 index 再查，不要把死路徑交出去
+    if row and not os.path.exists(os.path.join(root, row[0])) and \
+            _refresh_index(root, cfg, f"索引裡的 {row[0]} 已經不在磁碟上"):
+        row = query.asset_by_guid(con, guid)
+    if row:
+        path, kind, tier = row
+        return path, f"kind={kind} tier={tier} guid={guid}"
+    print("# 索引裡沒有，掃 .meta…", file=sys.stderr)
+    path = _grep_meta(root, guid)
+    if path:
+        return path, "(索引範圍外，見 .uprefab.json)"
+    return None, None
+
+
 def cmd_guid(args, root, cfg):
     """guid ⇄ 資產路徑互查。token 可以是 guid、含 guid 的連結，或資產路徑。"""
     con = indexer.connect(root)
@@ -418,23 +444,11 @@ def cmd_guid(args, root, cfg):
     if m and not os.path.splitext(token)[1]:
         # guid → path
         guid = m.group(0)
-        row = query.asset_by_guid(con, guid)
-        # 改名 / 搬家後索引還指著舊路徑：檔案不在就先補 index 再查，不要把死路徑交出去
-        if row and not os.path.exists(os.path.join(root, row[0])) and \
-                _refresh_index(root, cfg, f"索引裡的 {row[0]} 已經不在磁碟上"):
-            row = query.asset_by_guid(con, guid)
-        if row:
-            path, kind, tier = row
-            print(path)
-            if args.verbose:
-                print(f"# kind={kind} tier={tier} guid={guid}", file=sys.stderr)
-            return
-        print("# 索引裡沒有，掃 .meta…", file=sys.stderr)
-        path = _grep_meta(root, guid)
+        path, info = _guid_to_path(root, cfg, guid, con)
         if path:
             print(path)
             if args.verbose:
-                print("# (索引範圍外，見 .uprefab.json)", file=sys.stderr)
+                print(f"# {info}", file=sys.stderr)
             return
         raise SystemExit(f"# 找不到 guid {guid}")
 
@@ -550,6 +564,8 @@ PROMPT = f"{unity.EDIT_NS}.PromptEdit"
 LOC = f"{unity.EDIT_NS}.LocEdit"
 ANCHOR = f"{unity.EDIT_NS}.EditAnchor"
 MENU = f"{unity.EDIT_NS}.MenuEdit"
+HIT = f"{unity.EDIT_NS}.EditHit"
+EDITPLAY = f"{unity.EDIT_NS}.EditPlay"
 
 
 def _ops_text(args, use_path: bool = True) -> str:
@@ -903,6 +919,24 @@ def cmd_asset(args, root, cfg):
     elif a == "invoke":
         print(unity.call(f"{ASSET}.Invoke", args.path, args.method))
     elif a == "fields":
+        # .mat / .controller / .anim 的「值」走離線指令；ListFields 只給欄位型別，還要開 Unity
+        ext = os.path.splitext(args.path)[1].lower()
+        redirect = {".mat": "mat", ".controller": "controller", ".overridecontroller": "controller",
+                    ".anim": "anim"}.get(ext)
+        if redirect:
+            print(f"# {ext} 的值 `up asset fields` 看不到，改跑 `up {redirect} \"{args.path}\""
+                  f"{' --values' if redirect == 'anim' else ''}`（離線）", file=sys.stderr)
+            if redirect == "anim":
+                args.clip, args.prefab, args.animator, args.limit = args.path, None, None, 60
+                args.values, args.path_kw, args.keys, args.budget = True, None, 6, 6000
+                anim.run(args, root, _resolve_asset)
+            elif redirect == "mat":
+                args.prop, args.local, args.budget = None, False, 6000
+                mat.run(args, root)
+            else:
+                args.layer, args.budget = None, 8000
+                controller.run(args, root)
+            return
         print(unity.call(f"{ASSET}.ListFields", args.path))
     elif a == "do":
         # 原子性：AssetEdit.Batch 任一行失敗就不 ApplyModifiedProperties，asset 不會半套
@@ -1261,6 +1295,51 @@ def cmd_effect_trace(args, root, cfg):
     print(unity.call(f"{TRACE}.Trace", args.node, args.effect))
 
 
+HIT_USAGE = (
+    "用法：up hit <receiver 節點> [--dealer <dealer 節點>] [--effect KW] [--max-defer N] [--wait 秒]\n"
+    "  receiver 節點  [Receiver] 節點本身最準；給祖先會往下找，剛好一顆 active 才打\n"
+    "  --dealer       不給 = 自動找本機玩家（InputAuthority）身上同 effectType 的 dealer\n"
+    "  --effect KW    receiver 不只一顆時用 effectType 名篩（先比完全一致，再比子字串）\n"
+    "  --max-defer N  receiver 的 MonoObj 還沒在模擬（culling / 沒 authority）時最多延後幾個 tick（預設 120）\n"
+    "  --wait 秒      輪詢執行結果的上限（預設 = max(2, max-defer/60+1)）\n"
+    "Play Mode 限定。排進 TickActionQueue，下一個 tick 內執行 ForceDirectEffectHit(dealer, null)；"
+    "要看命中 / 擋掉的時間軸先開 FsmTrace（up menu \"Tools/MonoFSM/FSM Trace/Enabled\"）再 up fsm-trace"
+)
+
+
+def cmd_hit(args, root, cfg):
+    """Play Mode 下對 receiver 打一發 effect：走 CanHitReceiver → IsValid → EnterNode，跟玩家互動同一條路。
+
+    Unity 端只排隊（在 tick 內執行才不會被 Fusion resim 蓋掉），這裡輪詢結果，不卡 Editor main thread。
+    """
+    out = unity.call(f"{HIT}.Hit", args.node, args.dealer, args.effect, args.max_defer)
+    if not out.startswith("OK"):
+        print(out)
+        raise SystemExit(1)
+    print("# " + out)
+    m = re.search(r"id=(\d+)", out)
+    wait = args.wait if args.wait is not None else max(2.0, args.max_defer / 60 + 1)
+    deadline = time.time() + max(0.1, wait)
+    last = ""
+    while time.time() < deadline:
+        last = unity.call(f"{HIT}.HitResult", int(m.group(1)))
+        if last.startswith("TIMEOUT"):
+            print(last)
+            raise SystemExit(f"# 延後 {args.max_defer} tick 還沒準備好，沒打（原因見上面）。"
+                             "要等更久加 --max-defer")
+        if last.startswith("DONE"):
+            print(last)
+            if "canHit=False" in last:
+                raise SystemExit(1)
+            return
+        if last.startswith("UNKNOWN"):
+            break
+        time.sleep(0.1)
+    raise SystemExit(f"# {wait:g} 秒內沒被執行（{last}）。可能原因：不在 Play Mode、"
+                     "simulator 沒在跑（WorldUpdateSimulator 還沒 IsReady / 暫停中）、Editor 失焦沒在更新。"
+                     "請求還在 queue 裡，simulator 一跑就會執行")
+
+
 def cmd_menu(args, root, cfg):
     """執行一個 Editor MenuItem（EditorApplication.ExecuteMenuItem）。
 
@@ -1295,7 +1374,7 @@ def cmd_logs(args, root, cfg):
     if args.type != "All":
         call += ["--log-type", args.type]
     if args.stack:
-        call += ["--include-stack-trace", "true"]
+        call += ["--include-stack-trace"]  # uloop 改成純 flag，帶值會 INVALID_ARGUMENT
     data = unity.run(call)
     logs = data.get("Logs") or []
     print(f"# {data.get('TotalCount', len(logs))} 筆（顯示 {len(logs)}），type={args.type}")
@@ -1339,9 +1418,84 @@ def cmd_clear(args, root, cfg):
     print("console 已清空")
 
 
+PLAY_USAGE = (
+    "用法：up play {play,stop,pause} [--settle 秒] [--timeout 秒]\n"
+    "  play       進 Play Mode，**等穩定才 return**：(1) isPlaying 且 domain reload / 編譯完成 "
+    "(2) WorldUpdateSimulator 就緒且 tick 真的在前進 (3) 再多等 --settle 秒（開場 culling 判定之類）\n"
+    "             成功印 `Playing, tick=N, settled=1.0s`；逾時 exit 1 並說卡在第幾步\n"
+    "  --settle   tick 開始跑之後再等幾秒（預設 1；0 = 不等）\n"
+    "  --timeout  三步合計上限秒數（預設 30）\n"
+    "  stop / pause  直接轉給 uloop control-play-mode，印原始 JSON\n"
+    "play 成功會寫 .claude/.agent-testing（toolbar 亮「Play 測試中」），stop 才清 —— 用完一定要 stop"
+)
+PLAY_POLL = 0.5
+PLAY_STEPS = {1: "等 isPlaying + domain reload 完成", 2: "等 WorldUpdateSimulator tick 開始前進",
+              3: "settle"}
+
+
+def _play_state(raw: str) -> dict:
+    out = {}
+    for kv in raw.split():
+        k, _, v = kv.partition("=")
+        try:
+            out[k] = float(v)
+        except ValueError:
+            out[k] = v
+    return out
+
+
 def cmd_play(args, root, cfg):
     data = unity.run(["control-play-mode", "--action", args.action])
-    print(json.dumps(data, ensure_ascii=False))
+    if args.action != "play":
+        print(json.dumps(data, ensure_ascii=False))
+        return
+    if not data.get("IsPlaying"):
+        print(json.dumps(data, ensure_ascii=False))
+        raise SystemExit("# Play Mode 沒進去（看上面的 BlockedBy* / CompileErrors）")
+    for key in ("Warning",):
+        if data.get(key):
+            print(f"# {data[key]}")
+
+    # 輪詢要拆成「play」和「查狀態」兩段：Unity 端每次只回一行快照，不在 main thread 上等。
+    # 輪詢本身不寫 activity log（一次 play 會問幾十次），外層記一筆整段的。
+    call_id = activity.begin("play-wait")
+    deadline = time.time() + args.timeout
+    step, first, st, t_tick = 1, None, {}, 0.0
+    try:
+        while True:
+            if time.time() > deadline:
+                raise SystemExit(f"# 逾時 {args.timeout:g}s：卡在第 {step} 步（{PLAY_STEPS[step]}）；"
+                                 f"最後狀態 {' '.join(f'{k}={v:g}' if isinstance(v, float) else f'{k}={v}' for k, v in st.items())}")
+            try:
+                st = _play_state(unity.call(f"{EDITPLAY}.PlayStatus", track=False))
+            except unity.UnityError:
+                # domain reload 中 uloop 本身已經會重試；還是失敗就當作還在第 1 步，下輪再問
+                time.sleep(PLAY_POLL)
+                continue
+            if not st.get("playing"):
+                if step > 1:
+                    raise SystemExit(f"# Play Mode 在第 {step} 步中途被停掉了（使用者按了 stop 或 compile 觸發退出）")
+            elif step == 1 and not (st.get("changing") or st.get("compiling") or st.get("updating")):
+                step = 2
+            if step == 2 and st.get("ready"):
+                cur = (st.get("tick"), st.get("time"))
+                if first is None:
+                    first = cur
+                elif cur != first:
+                    step, t_tick = 3, time.time()
+            if step == 3 and time.time() - t_tick >= args.settle:
+                break
+            time.sleep(PLAY_POLL)
+        st = _play_state(unity.call(f"{EDITPLAY}.PlayStatus", track=False))
+    except SystemExit as e:
+        activity.end(call_id, False, str(e.code))
+        raise
+    except BaseException as e:
+        activity.end(call_id, False, str(e))
+        raise
+    msg = f"Playing, tick={int(st.get('tick', -1))}, settled={args.settle:.1f}s"
+    activity.end(call_id, True, msg)
+    print(msg)
 
 
 # ---- 錯誤路徑（大小寫不敏感 → near-match → 精簡 --help）----
@@ -1379,6 +1533,22 @@ def _ci(*choices):
 
 # option 字串 → 有這個旗標的子指令，供 near-match 用
 _ALL_OPTS: dict = {}
+# 子指令 → 完整用法字串。參數打錯時整段印出來，agent 不用再多打一次 --help
+_SUB_USAGE: dict = {}
+# 改名過的子指令：舊名 → 新名。舊名保留成 stub，打了就印「已改名」exit 2，不默默消失
+_RENAMED = {"trace": "fsm-trace", "effect-trace": "debug-effect-trace"}
+
+
+def _renamed_msg(old: str) -> str:
+    new = _RENAMED[old]
+    msg = f"# `up {old}` 已改名成 `up {new}`，參數不變，改打 `up {new} ...`"
+    if new in _SUB_USAGE:
+        msg += "\n" + _SUB_USAGE[new]
+    return msg
+
+
+def cmd_renamed(args, root, cfg):
+    raise SystemExit(_renamed_msg(args.cmd))
 _CHOICE_ERR = re.compile(
     r"argument ([^:]+): invalid choice: '(.*?)' \(choose from (.*)\)$", re.S)
 
@@ -1396,6 +1566,15 @@ def _compact_error(prog: str, parser, message: str) -> str:
     m = re.match(r"unrecognized arguments: (.*)$", message, re.S)
     if m:
         bad = m.group(1).split()
+        renamed = next((a for a in sys.argv[1:] if not a.startswith("-")), None)
+        if renamed in _RENAMED:
+            return _renamed_msg(renamed)[2:]  # 外層會再補 "# "
+        if any(t.split("=", 1)[0] == "--guid" for t in bad):
+            # find / refs / overrides / prefab 已在 _rewrite_guid_argv 自動轉路徑；走到這裡是別的子指令
+            g = next((GUID_RE.search(t.lower()).group(0) for t in bad
+                      if GUID_RE.search(t.lower())), "<guid>")
+            return (f"{prog} {renamed}: 沒有 --guid 參數。你可能想要：up guid {g}"
+                    "（印出資產路徑，再把路徑餵給這個子指令）")
         hints = []
         exact = []
         for token in bad:
@@ -1439,6 +1618,8 @@ def _compact_error(prog: str, parser, message: str) -> str:
                     f"component 型別 → `up find --comp {bare[0]}{path_arg}`；"
                     f"GameObject 名稱 → `--name`；資產路徑片段 → `--path`（同 `--in`）"
                     f"（加 `--by-asset` 只看分佈）")
+        if sub in _SUB_USAGE:
+            return f"{prog} {sub}: 不認得 {' '.join(bad)}\n{_SUB_USAGE[sub]}"
         return (f"{prog}: 不認得 {' '.join(bad)}"
                 + (f"。最接近：{'、'.join(hints)}" if hints
                    else "。合法參數看 `up <子指令> --help`"))
@@ -1446,7 +1627,10 @@ def _compact_error(prog: str, parser, message: str) -> str:
     m = re.match(r"the following arguments are required: (.*)$", message, re.S)
     if m:
         need = m.group(1)
-        return f"{prog}: 少了必填參數 {need}（用法看 `up {prog.split()[-1]} --help`）"
+        sub = prog.split()[-1]
+        if sub in _SUB_USAGE:  # 有登記用法的子指令直接印出來，省一次 --help
+            return f"{prog}: 少了必填參數 {need}\n{_SUB_USAGE[sub]}"
+        return f"{prog}: 少了必填參數 {need}（用法看 `up {sub} --help`）"
 
     return f"{prog}: {message}"
 
@@ -1613,6 +1797,69 @@ def _normalize_argv(argv: list, sub_names: dict, asset_names: dict) -> list:
             canon2 = asset_names.get(out[j].lower())
             if canon2:
                 out[j] = canon2
+    return out
+
+
+# 吃「資產路徑」的子指令 → guid 要換成什麼形狀。None = 換成 positional 路徑本身
+_GUID_ASSET_SUBS = {"find": "--path", "refs": None, "overrides": None, "prefab": None}
+_HEX32 = re.compile(r"[0-9a-fA-F]{32}")
+
+
+def _rewrite_guid_argv(argv: list) -> list:
+    """find / refs / overrides / prefab 收到 `--guid <guid>` 或裸 32 hex 時，先解成資產路徑。
+
+    2026-09-29 實測：agent 拿 webhook 連結裡的 guid 打 `up find --guid <guid>`，
+    撞到「不認得 --guid。最接近：--rebuild、--quiet」—— 完全沒指到真正能用的 `up guid`。
+    這幾個子指令的資產參數本來就是路徑（模糊比對），guid 直接換掉就能照原意跑下去。
+    """
+    i = 0
+    while i < len(argv):
+        tok = argv[i]
+        if tok in _VALUE_FLAGS:
+            i += 2
+            continue
+        if tok.startswith("-") and tok != "-":
+            i += 1
+            continue
+        break
+    if i >= len(argv) or argv[i] not in _GUID_ASSET_SUBS:
+        return argv
+    sub, flag = argv[i], _GUID_ASSET_SUBS[argv[i]]
+    root = None
+    out, j = argv[:i + 1], i + 1
+
+    def resolve(g: str) -> str:
+        nonlocal root
+        if root is None:
+            k = argv.index("--root") if "--root" in argv[:i] else -1
+            root = find_root(argv[k + 1] if k >= 0 else ".")
+        path, _ = _guid_to_path(root, Config.load(root), g.lower())
+        if not path:
+            raise SystemExit(f"# up {sub} 收到 guid {g}，但索引跟 .meta 都查不到這顆資產。"
+                             f"確認一下 guid：up guid {g}")
+        print(f"# guid {g} → {path}（等同先跑 up guid {g}）", file=sys.stderr)
+        return path
+
+    while j < len(argv):
+        tok = argv[j]
+        if tok == "--guid" or tok.startswith("--guid="):
+            val = tok.split("=", 1)[1] if "=" in tok else (argv[j + 1] if j + 1 < len(argv) else "")
+            j += 1 if "=" in tok else 2
+            m = GUID_RE.search(val.lower())
+            if not m:
+                raise SystemExit(f"# up {sub} 沒有 --guid 參數；guid 轉路徑用 `up guid <guid>`")
+            path = resolve(m.group(0))
+            out += [flag, path] if flag else [path]
+            continue
+        if _HEX32.fullmatch(tok):
+            path = resolve(tok)
+            prev = out[-1] if len(out) > i + 1 else ""
+            # find 沒有 positional：裸 guid 要補上 --path；前面已經是 --path / --in 就只換值
+            out += [flag, path] if flag and prev not in ("--path", "--in") else [path]
+            j += 1
+            continue
+        out.append(tok)
+        j += 1
     return out
 
 
@@ -1990,8 +2237,9 @@ def main() -> None:
                     help="把巢狀 [Serializable] 類別攤開 N 層（不帶數字 = 2）。預設 0 = 只印型別名")
     pk.set_defaults(fn=cmd_peek)
 
-    et = sub.add_parser("effect-trace",
-                        help="診斷某個 EffectReceiver 為什麼沒觸發（需要 Unity，Play Mode 最有用）")
+    et = sub.add_parser("debug-effect-trace",
+                        help="診斷某個 EffectReceiver 為什麼沒觸發（需要 Unity，Play Mode 最有用；"
+                             "一般看命中時間軸用 fsm-trace）")
     et.add_argument("node", help="receiver 節點路徑，或它的任一祖先（會往下找 receiver）")
     et.add_argument("--effect", help="只看 effectType 名稱含這段的 receiver")
     et.set_defaults(fn=cmd_effect_trace)
@@ -1999,6 +2247,17 @@ def main() -> None:
     pmn = sub.add_parser("menu", help="執行 Editor 選單項目（需要 Unity），例：up menu \"Tools/Meshy/包所有還沒包的 Prefab\"")
     pmn.add_argument("path", help="menu path，例 Tools/Meshy/包所有還沒包的 Prefab；找不到會列出最接近的幾個")
     pmn.set_defaults(fn=cmd_menu)
+
+    phit = sub.add_parser("hit", help="Play Mode 下對 receiver 打一發 effect（tick 內 ForceDirectEffectHit，需要 Unity）",
+                          description=HIT_USAGE)
+    phit.add_argument("node", help="receiver 節點路徑（或它的祖先）")
+    phit.add_argument("--dealer", help="dealer 節點路徑；不給 = 本機玩家同 effectType 的 dealer")
+    phit.add_argument("--effect", help="用 effectType 名篩 receiver")
+    phit.add_argument("--max-defer", type=int, default=120,
+                      help="receiver 還沒在模擬時最多延後幾個 tick（預設 120）")
+    phit.add_argument("--wait", type=float, default=None, help="輪詢結果最多等幾秒（預設依 --max-defer）")
+    phit.set_defaults(fn=cmd_hit)
+    _SUB_USAGE["hit"] = HIT_USAGE
 
     pke = sub.add_parser("poke", help="Play Mode 下設某個 Var 的 runtime 值（需要 Unity）")
     pke.add_argument("node", help="節點路徑（第一段是 root object 名）")
@@ -2020,7 +2279,11 @@ def main() -> None:
 
     py = sub.add_parser("play", help="Play Mode 控制（需要 Unity）")
     py.add_argument("action", choices=PLAY_ACTIONS, type=_ci(*PLAY_ACTIONS))
+    py.add_argument("--settle", type=float, default=1.0,
+                    help="play：tick 開始前進之後再等幾秒才 return（預設 1）")
+    py.add_argument("--timeout", type=float, default=30.0, help="play：等穩定的總上限秒數（預設 30）")
     py.set_defaults(fn=cmd_play)
+    _SUB_USAGE["play"] = PLAY_USAGE
 
     pgp = sub.add_parser(
         "progress", aliases=["prog"],
@@ -2044,6 +2307,19 @@ def main() -> None:
     pgp.add_argument("--archive", type=int, metavar="N",
                      help="把最舊的 N 條搬到 <檔名>-Archive.md（會改檔）")
     pgp.set_defaults(fn=progress.cmd)
+
+    fsmtrace.register(sub)
+    _SUB_USAGE["fsm-trace"] = fsmtrace.USAGE
+    anim.register(sub, _resolve_asset)
+    _SUB_USAGE["anim"] = anim.USAGE
+    mat.register(sub)
+    _SUB_USAGE["mat"] = mat.USAGE
+    controller.register(sub)
+    _SUB_USAGE["controller"] = controller.USAGE
+    for old, new in _RENAMED.items():
+        ps = sub.add_parser(old, help=f"已改名成 {new}")
+        ps.add_argument("rest", nargs=argparse.REMAINDER)
+        ps.set_defaults(fn=cmd_renamed)
 
     pvs = sub.add_parser(
         "verify-skills", aliases=["vs"],
@@ -2102,7 +2378,7 @@ def main() -> None:
     asset_names = {k.lower(): k for k in asub.choices}
     sub_names = {k.lower(): k for k in sub.choices}
     argv = sys.argv[1:]
-    args = p.parse_args(_normalize_argv(argv, sub_names, asset_names))
+    args = p.parse_args(_rewrite_guid_argv(_normalize_argv(argv, sub_names, asset_names)))
     root = find_root(args.root)
     _guard_gid_args(args)
     if args.cmd == "usage":

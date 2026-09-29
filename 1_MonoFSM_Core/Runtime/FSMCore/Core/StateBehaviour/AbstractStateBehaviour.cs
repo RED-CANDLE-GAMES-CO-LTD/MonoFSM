@@ -258,6 +258,19 @@ namespace MonoFSM.Core
             return $"{_lastTransition.name} [{_lastTransition.GetType().Name}]";
         }
 
+        public Object GetLastTransition(int currentTick)
+        {
+            return _lastTransitionTick == currentTick ? _lastTransition : null;
+        }
+
+        // SNAPSHOT（FsmTrace.CaptureSnapshot 用，照 IMonoState.OnFixedUpdate 的評估順序讀）
+
+        /// <summary>自己底下的 transition，順序 = OnFixedUpdate 的評估順序（第一條成立就 return）。</summary>
+        public TransitionBehaviour<TState>[] Transitions => _transitions;
+
+        /// <summary>OnFixedUpdate 在自己的 transition 都沒過之後才問的 AnyState 群；沒有 StateFolder 回 null。</summary>
+        public List<AnyState> BindingAnyStates => _parentfolder == null ? null : bindingFolder.AllAnyStates;
+
         bool IMonoState.CanExitState(IMonoState nextState, bool isExplicitDeactivation)
         {
             // During explicit deactivation (e.g. when user specifically calls TryDeactivateState) priority is not checked

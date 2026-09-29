@@ -16,8 +16,13 @@ public enum Operator //FIXME: equality operator
 namespace MonoFSM.Variable.Condition
 {
     /// <summary>
-    /// 和FloatCompareCondition重複？還是這個要做成簡單版？ simple compare
-    /// fixme:  把Const拿掉
+    /// 拿一顆 VarFloat（_monoVariableFloat）跟常數 _targetValue 比（_op：==、!=、&gt;、&lt;、&gt;=、&lt;=）。
+    /// 勾 _compareWithVariable 就改成跟另一顆 VarFloat（_targetVariable）比，常數被忽略 ——
+    /// 門檻要跟別的 component 共用同一顆來源時用這個（例：發電鴿滑索的補位進度門檻）。
+    /// _monoVariableFloat 沒接回 false；_targetVariable 沒接當 0 比。
+    /// 專案裡已經沒有 FloatCompareCondition 這個型別了（舊註解提到的那顆）；
+    /// 要比「兩顆 float 的差」用 VarFloatDiffCompareCondition（(A - B) op C），這顆只比單一值。
+    /// fixme: 名字的 Const 已經名不副實（可以比變數），之後可以拿掉
     /// </summary>
     [QuickCreate(Priority = 90)] //Var 快速建立(Alt+V) 的置頂常用
     public class VarFloatCompareConstCondition : AbstractConditionBehaviour, ITransitionCheckInvoker
