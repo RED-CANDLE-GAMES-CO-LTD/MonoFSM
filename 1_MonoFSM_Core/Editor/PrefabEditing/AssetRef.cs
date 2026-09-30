@@ -24,6 +24,13 @@ namespace MonoFSM.Editor.PrefabEditing
                 return Builtin(assetPath.Substring(BuiltinPrefix.Length).Trim());
 
             var main = AssetDatabase.LoadMainAssetAtPath(assetPath);
+            //agent 剛在磁碟上寫好的新檔（.mat / .asset…），Editor Auto Refresh 關著或失焦時還沒 import，先補 import 再找
+            if (main == null && !string.IsNullOrEmpty(assetPath) && System.IO.File.Exists(assetPath))
+            {
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport);
+                main = AssetDatabase.LoadMainAssetAtPath(assetPath);
+            }
+
             if (main == null)
                 throw new Abort($"找不到 asset: {assetPath}");
 

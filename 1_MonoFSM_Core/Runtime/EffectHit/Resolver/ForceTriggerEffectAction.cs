@@ -1,3 +1,4 @@
+using MonoDebugSetting;
 using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Runtime.Variable;
@@ -65,7 +66,9 @@ namespace _1_MonoFSM_Core.Runtime.EffectHit.Resolver
             {
                 //不一定有嗎？
                 //install vs use
-                Debug.LogError($"[ForceTriggerEffect] dealer={dealer}, receiver={receiver}", this);
+                if (receiver == null && RuntimeDebugSetting.IsDebugMode)
+                    Debug.LogError($"[ForceTriggerEffect] dealer={dealer}, receiver={receiver}",
+                        this);
                 return;
             }
 

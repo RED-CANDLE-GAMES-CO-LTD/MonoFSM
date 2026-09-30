@@ -307,7 +307,7 @@ log 尾巴會出現 `# 存檔前 callback：920 個 OK`。專案幾乎每個 Mon
 
 **沒進的話不要自己 `addel` + `ref` 補** —— 接進 sync 陣列（含換成容量更大的
 `NetworkedVarSyncBool4Float4`）由 Jerryee 在 Editor 端處理，手動動陣列容易搞亂既有槽位配置。
-回報時說一句「這顆要接進 sync」就好。
+回報時說一句「這顆要接進 sync」就好。（2026-09-30 之前 variant 繼承來的 sync 會因為 `FetchScope` 沒 Record 而收不進去，已修；現在還沒進就是新 bug，要回報）
 
 ## nested prefab 實例：改動會存成外層的 override，不會污染源 prefab
 

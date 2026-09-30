@@ -33,7 +33,35 @@ namespace MonoFSM.Core.DataProvider
         [ShowInPlayMode]
         [Required]
         private MonoEntity SourceEntity =>
-            _overrideSourceEntity != null ? _overrideSourceEntity.Value : _parentEntity;
+            _overrideSourceEntity != null ? _overrideSourceEntity.Value : ResolvedParentEntity;
+
+        // 掛著這顆 source 的 Var（用來判斷「最近的 entity 拿到的其實是自己」）
+        [NonSerialized] private AbstractMonoVariable _ownerVar;
+        [NonSerialized] private MonoEntity _resolvedParentEntity;
+
+        // 最近的 entity 上同 _varTag 的 var 就是自己時（ex: 攻擊 module 自己也是 MonoEntity，
+        // module 的 Attack Enabled 想讀 host 神像的 Attack Enabled），自動往上跳到 ancestor entity，
+        // 直到找到「同 tag 但不是自己」的那顆。找不到就回最近的（Get 會走自我參照防護）。
+        private MonoEntity ResolvedParentEntity
+        {
+            get
+            {
+                if (_resolvedParentEntity != null) return _resolvedParentEntity;
+                if (_parentEntity == null || _varTag == null) return _parentEntity;
+                if (_ownerVar == null) _ownerVar = GetComponentInParent<AbstractMonoVariable>(true);
+
+                var entity = _parentEntity;
+                while (entity != null)
+                {
+                    var v = entity.GetVar(_varTag);
+                    if (v != null && v != _ownerVar)
+                        return _resolvedParentEntity = entity;
+                    var parent = entity.transform.parent;
+                    entity = parent != null ? parent.GetComponentInParent<MonoEntity>(true) : null;
+                }
+                return _parentEntity;
+            }
+        }
 
         // 自我參照/遞迴防護：用 [AutoParent] 抓來源時，來源 entity 內註冊在同 _varTag 下的
         // 很可能就是擁有這顆 source 的那顆 Var → GetValue 會再繞回這裡 → 無限遞迴 → SOE 閃退。

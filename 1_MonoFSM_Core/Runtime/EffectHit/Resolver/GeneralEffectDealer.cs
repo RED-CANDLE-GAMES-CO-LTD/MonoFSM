@@ -15,6 +15,8 @@ namespace MonoFSM.Runtime.Interact.EffectHit
 {
     public class ProxySource { }
 
+    //FIXME: 篩選掉同個owner下的判斷？
+//FIXME: 還是要可以帶一個變數會比較好 (或是一組變數？可以 remapping的？) 畢竟就算要 add force 之類的還是有可能會有多種力道之類的
     /// <summary>
     ///     效果的發送端：掛在 EffectDetector 的子節點上，由 detector 把重疊到的 EffectDetectable
     ///     配對成同 _effectType 的 GeneralEffectReceiver，再由這顆負責發 Enter/Stay/Exit。
@@ -22,8 +24,6 @@ namespace MonoFSM.Runtime.Interact.EffectHit
     ///     所以外部要問「現在打到誰」不用另外記狀態，直接讀 GetHittingEntities() / BestMatchReceiver。
     ///     _isPassive 開起來就只偵測不施加效果，效果改由 ForceTriggerEffectAction 主動發。
     /// </summary>
-    //FIXME: 篩選掉同個owner下的判斷？
-//FIXME: 還是要可以帶一個變數會比較好 (或是一組變數？可以 remapping的？) 畢竟就算要 add force 之類的還是有可能會有多種力道之類的
     public class GeneralEffectDealer : EffectResolver, IEffectDealer
     {
         public override string ValueInfo =>

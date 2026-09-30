@@ -68,6 +68,13 @@ namespace MonoFSM.Core
         /// </summary>
         public virtual bool IsSimulateEventHandler => true;
 
+        /// <summary>
+        /// 一次性初始化事件（OnResetStartHandler）覆寫為 true：parent MonoObj 被 simulation culling 時照樣觸發。
+        /// 開場 WorldInit 時玩家還沒生成、遠方物件一定是 cull 狀態，不跳過的話開場那發初始化永遠跑不到。
+        /// 其他 gate（inactive、condition、authority）照舊。
+        /// </summary>
+        protected virtual bool IgnoreCulling => false;
+
         [InfoBox("目前不是所有EntityProvider都是合法的喔")]
         [CompRef]
         [AutoChildren(DepthOneOnly = true)]
@@ -171,7 +178,7 @@ namespace MonoFSM.Core
                 MarkSkipped("gameObject inactive", MonoFSM.FSM.FsmTraceSkipReason.None); //不進 trace：inactive 節點是刻意關掉的，靜態讀 prefab 就看得到（~）
                 return;
             }
-            if (_parentObj.IsCulling) //FIXME: 有需要分visual和logic culling?
+            if (!IgnoreCulling && _parentObj.IsCulling) //FIXME: 有需要分visual和logic culling?
             {
                 MarkSkipped("parentObj culling", MonoFSM.FSM.FsmTraceSkipReason.Culling);
                 return;
