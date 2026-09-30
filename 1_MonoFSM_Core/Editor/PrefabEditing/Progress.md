@@ -109,3 +109,4 @@
 - 2026-09-29 PrefabEdit / SceneEdit / AssetEdit 的 `EnsureDirectory` 修「多出 `<資料夾> 1`」：agent 先 `mkdir -p` 再 `up prefab variant`，資料夾在磁碟上但 Unity 還沒 import → IsValidFolder=false → CreateFolder 撞到磁碟上的同名資料夾，Unity 自動改建「Enemy 廢鐵青蛙 1」，後面存檔還是寫進原本那個，留下一個空資料夾（廢鐵青蛙 variant 那次）。改成每層先看磁碟：已存在就 ImportAsset（不行再 Refresh），不存在才 CreateFolder，而且核對 CreateFolder 回傳的實際路徑，被改名就直接 Abort 並叫人刪掉多出來的。三份 helper 還是各自一份沒抽共用，因為抽成跨檔案的新成員 hot reload 做不到
 - `PrefabEdit` 的 `rename` 補上 `RecordPrefabInstancePropertyModifications`：改的是 nested prefab instance 上的節點時，m_Name 的 override 以前沒被記下來，存檔後名字會變回原本的（2026-09-29 StreetLamp 的 MPB action 改名踩到）
 - 2026-09-29 `aref` 指到剛寫到磁碟、Unity 還沒 import 的 asset（Auto Refresh 關著 / Editor 失焦）會報「找不到 asset」。`AssetRef.Resolve` 改成檔案存在就先 `ImportAsset` 再找，agent 自己產的 .mat 不用再請使用者按 Cmd+R。
+- 2026-09-30 新增 `MatEdit.SetParent`（`up mat set-parent`）：把 .mat 改成 Material Variant / 解除，前後快照合併後的值、跟 parent 一樣的 revert、不同的寫回成 override。設計理由與坑見 `MonoFSM/Tools~/uprefab/PROGRESS.md` 同日條目。

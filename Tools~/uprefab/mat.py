@@ -6,6 +6,8 @@
 - Material Variant（m_Parent 有值）的 .mat 只存「本檔 override 的屬性」，其他值在 parent
   那支 —— 所以預設沿 parent 鏈合併，`*` 標本檔改的；`--local` 只看本檔。
 - 三層都沒寫的屬性吃 shader Properties 的預設值，這支不讀 shader 原始碼（會印提示）。
+- `up mat set-parent` 是唯一的寫入：走 Unity（MatEdit.SetParent，Material.parent API），
+  不離線改 m_Parent —— 哪些值算 override 要 Unity 判斷，理由見 MatEdit.cs 的 summary。
 """
 
 from __future__ import annotations
@@ -20,8 +22,16 @@ USAGE = (
     "  --prop KW    只列名稱含 KW 的屬性（不分大小寫，例：--prop emission）\n"
     "  --local      Material Variant 只看本檔 override 的屬性（預設沿 parent 鏈合併）\n"
     "  --budget N   輸出字元上限（預設 6000，0 = 不限）\n"
-    "例：up mat Assets/0_Art/Env/Mat/BuildingSheet/LemonLight.mat --prop emission"
+    "例：up mat Assets/0_Art/Env/Mat/BuildingSheet/LemonLight.mat --prop emission\n"
+    "寫入（走 Unity）：up mat set-parent <child.mat...> --parent <parent.mat | none> [--create-from <src.mat>] [--force]\n"
+    "  把 child 改成 Material Variant（合併後的值不變：跟 parent 不同的自動變 override，改完逐項比對）\n"
+    "  --parent none   解除 variant（值攤回本檔）\n"
+    "  --create-from   parent 不存在時從 src 複製一份（新 guid）當 parent\n"
+    "  --force         shader 跟 parent 不同也硬設（預設跳過並警告）\n"
+    "例：up mat set-parent Assets/A/Char_*.mat --parent Assets/A/Char_Base.mat --create-from Assets/A/Char_cloth.mat"
 )
+
+EDIT = "MonoFSM.Editor.PrefabEditing.MatEdit"
 
 BUILTIN_SHADERS = {46: "Standard", 45: "Standard (Specular setup)", 10703: "Sprites/Default",
                    10720: "UI/Default", 10753: "Legacy Shaders/Diffuse"}
@@ -100,7 +110,58 @@ def _tex_parts(v) -> tuple[str | None, int, str]:
     return guid, fid, "  ".join(extra)
 
 
+def _repo_rel(root: str, abs_path: str) -> str:
+    return os.path.relpath(abs_path, root).replace(os.sep, "/")
+
+
+def _strict(root: str, arg: str, role: str, tail: str = "") -> str:
+    """寫入用：檔案要確實存在；不存在就列候選並結束（find_file 的「唯一候選自動套用」對寫入太危險）。"""
+    cand = ay.disk_path(root, arg)
+    if os.path.isfile(cand):
+        if not cand.lower().endswith(".mat"):
+            raise SystemExit(f"# {role} 要是 .mat：{arg}")
+        return _repo_rel(root, cand)
+    import contextlib
+    import io
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):  # 吞掉 find_file 的「改用唯一候選」
+            hit = ay.find_file(root, arg, (".mat",), "mat", USAGE.splitlines()[0])
+    except SystemExit as e:
+        raise SystemExit(f"# {role} 找不到：{arg}\n{e}{tail}") from None
+    raise SystemExit(f"# {role} 找不到：{arg}；你可能想要 {_repo_rel(root, hit)}（寫入不自動套用，確認後重跑）{tail}")
+
+
+def run_set_parent(args, root: str) -> None:
+    import unity  # 延遲 import：離線的 `up mat` 不需要 uloop
+
+    kids = list(getattr(args, "rest", None) or [])
+    if not kids:
+        raise SystemExit("# up mat set-parent 少了 child .mat\n" + USAGE)
+    if not args.parent:
+        raise SystemExit("# up mat set-parent 要給 --parent <parent.mat>（解除 variant 用 --parent none）\n" + USAGE)
+    # 寫入不猜路徑：唯一候選也不自動套用，印出來讓人確認再重跑
+    rels = [_strict(root, k, "child") for k in kids]
+    parent = args.parent.strip()
+    if parent.lower() != "none":
+        if not parent.lower().endswith(".mat"):
+            raise SystemExit(f"# --parent 要以 .mat 結尾（解除 variant 用 none）：{parent}")
+        cand = ay.disk_path(root, parent)
+        if os.path.isfile(cand):
+            parent = _repo_rel(root, cand)
+        elif not args.create_from:
+            _strict(root, parent, "--parent", "\n# parent 要新建就加 --create-from <src.mat>")
+    src = _strict(root, args.create_from, "--create-from") if args.create_from else None
+    try:
+        print(unity.call(f"{EDIT}.SetParent", "\n".join(rels), parent, src, bool(args.force)))
+    except unity.UnityError as e:
+        raise SystemExit(f"# Unity 端失敗：{e}") from None
+
+
 def run(args, root: str) -> None:
+    if args.path == "set-parent":
+        return run_set_parent(args, root)
+    if getattr(args, "rest", None):
+        raise SystemExit(f"# up mat 一次只讀一顆，多給了：{' '.join(args.rest)}（寫入才吃多顆：up mat set-parent …）")
     path = ay.find_file(root, args.path, (".mat",), "mat", USAGE)
     rel = os.path.relpath(path, root)
     body = _material_doc(path)
@@ -148,7 +209,9 @@ def run(args, root: str) -> None:
     print(f"# shader: {_shader_name(root, sfid, sguid, paths)}")
     _, own_parent = ay.ref(body.get("m_Parent"))
     if own_parent:
-        names = " → ".join(os.path.basename(p) for p, _ in chain[1:]) or "?"
+        names = " → ".join(os.path.basename(p) for p, _ in chain[1:])
+        if not names:  # --local 不走鏈，只把直屬 parent 的路徑解出來
+            names = ay.resolve_guids(root, [own_parent]).get(own_parent) or f"guid {own_parent}"
         print(f"# Material Variant，parent 鏈：{names}"
               + (f"  ⚠ 斷在 guid {broken}（找不到 parent .mat）" if broken else "")
               + ("" if not args.local else "（--local：只看本檔）"))
@@ -227,14 +290,28 @@ def run(args, root: str) -> None:
     budget.finish()
 
 
+def argparse_raw():
+    import argparse
+    return argparse.RawDescriptionHelpFormatter
+
+
+def argparse_suppress():
+    import argparse
+    return argparse.SUPPRESS
+
+
 def register(sub) -> None:
     pm = sub.add_parser(
         "mat", help="材質的 shader / keyword / 每個 property 的值（離線；Material Variant 會合併 parent 鏈）",
         description="讀 .mat 印 shader、開著的 keyword、Color / Float / Int / Texture 屬性值"
                     "（貼圖 guid 解成路徑）。Material Variant 預設沿 parent 鏈合併，* 標本檔 override。\n" + USAGE,
-        epilog=USAGE)
-    pm.add_argument("path", help=".mat 路徑（或檔名片段）")
+        epilog=USAGE, formatter_class=argparse_raw())
+    pm.add_argument("path", help=".mat 路徑（或檔名片段）；寫入用 `set-parent`")
+    pm.add_argument("rest", nargs="*", help=argparse_suppress())
     pm.add_argument("--prop", metavar="KW", help="只列名稱含 KW 的屬性")
     pm.add_argument("--local", action="store_true", help="variant 只看本檔 override 的屬性")
     pm.add_argument("--budget", type=int, default=6000, help="輸出字元上限（預設 6000，0 = 不限）")
+    pm.add_argument("--parent", metavar="MAT", help="set-parent：parent .mat（none = 解除 variant）")
+    pm.add_argument("--create-from", metavar="SRC", help="set-parent：parent 不存在時從 SRC 複製")
+    pm.add_argument("--force", action="store_true", help="set-parent：shader 不同也硬設")
     pm.set_defaults(fn=lambda args, root, cfg: run(args, root))

@@ -41,7 +41,28 @@ namespace MonoFSM.Core
               WorldUpdateSimulator.DeltaTime;
 
         [AutoParent] MonoFSMOwner _owner;
-        public MonoFSMOwner Owner => _owner;
+
+        /// <summary>
+        /// 這顆 state 所屬的 FSM owner。module pack 靠 StateFolder._bindingRoot 併進宿主 FSM 時
+        /// （例如 Hittable_Destroyable ModulePack），parent 鏈上沒有 owner，要改抓 binding root 上的；
+        /// 不然 IsStateCondition 問到的 Owner 是 null，永遠回 false。
+        /// </summary>
+        public MonoFSMOwner Owner
+        {
+            get
+            {
+                if (_owner != null)
+                    return _owner;
+                //edit mode 時 [AutoParent] 不一定填過，自己補
+                _owner = GetComponentInParent<MonoFSMOwner>(true);
+                if (_owner != null)
+                    return _owner;
+                var folder = _parentfolder != null ? _parentfolder : GetComponentInParent<StateFolder>(true);
+                if (folder != null && folder.bindingRootFolder != null)
+                    _owner = folder.bindingRootFolder.GetComponentInParent<MonoFSMOwner>(true);
+                return _owner;
+            }
+        }
 
         StateFolder bindingFolder => _parentfolder.bindingRootFolder
             ? _parentfolder.bindingRootFolder

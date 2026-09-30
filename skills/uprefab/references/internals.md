@@ -126,6 +126,7 @@ MonoFSM/1_MonoFSM_Core/Editor/PrefabEditing/
   EditGid.cs                GlobalObjectId 連結 → scene 節點（`obj` / `gid`）
   EditAnchor.cs             離線 anchor（資產#fileID）→ 合併後可下鑽的路徑（find --resolve）
   AssetRef.cs               asset path → 該塞進 ObjectReference 的物件
+  MatEdit.cs                `up mat set-parent`：Material.parent 設定 + 快照比對合併後的值
 MonoFSM-Pro/Editor/PromptEdit.cs                                       localized 文字提示
 Assets/0_Gameplay/Editor/PrefabTextReaderConfig.cs                     專案設定注入
 ```

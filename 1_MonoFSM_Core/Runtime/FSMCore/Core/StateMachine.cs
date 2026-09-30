@@ -478,14 +478,19 @@ namespace MonoFSM.FSM
             var activeStateName = ActiveState != null ? ActiveState.Name : "None";
             var previousStateName = PreviousState != null ? PreviousState.Name : "None";
             //從 previous state 上問「是走哪一條 transition 過來的」
-            var transitionInfo =
-                PreviousState is ILastTransitionRecord record
-                    ? record.GetLastTransitionInfo(_tickProvider?.Tick ?? WorldUpdateSimulator.CurrentTick)
-                    : "?";
+            var tick = _tickProvider?.Tick ?? WorldUpdateSimulator.CurrentTick;
+            var transitionInfo = "?";
+            UnityEngine.Object lastTransition = null;
+            if (PreviousState is ILastTransitionRecord record)
+            {
+                transitionInfo = record.GetLastTransitionInfo(tick);
+                lastTransition = record.GetLastTransition(tick);
+            }
 
+            //點 log 直接跳到觸發的 transition，拿不到才退回 FSM 本體
             Debug.Log(
                 $"{_logic.gameObject.name} - <color=#F04C4C>State Machine <b>{Name}</b>: Change State to <b>{activeStateName}</b></color> - Previous: {previousStateName}, via Transition: <b>{transitionInfo}</b>, Tick: {WorldUpdateSimulator.CurrentTick} IsResim{WorldUpdateSimulator.IsResimulation}",
-                _logic
+                lastTransition != null ? lastTransition : _logic
             );
         }
 

@@ -33,6 +33,9 @@ namespace MonoFSM.Core
 
         protected override bool HasError()
         {
+            //Owner 找不到時 IsValid 永遠 false，勾 FinalResultInverted 就變成永遠 true，要標紅
+            if (_targetState != null && _targetState.Owner == null)
+                return true;
             return base.HasError() && _targetState != null && _targetState.isActiveAndEnabled;
         }
     }

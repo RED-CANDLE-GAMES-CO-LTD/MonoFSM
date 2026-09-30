@@ -103,6 +103,23 @@ private ICurrentEntityOwner Owner
 3. 一條 transition 要過：condition 全部 AND（`IsAllValid`）+ source（自己或 AnyState）的 CanExit + target 的 CanEnter；
    接著 `TryActivateState` 再問一次**目前 state** 的 CanExit（含 priority）+ target CanEnter，target 也不能是目前 state。
 4. 條件過了但 TryActivateState 被擋，**不會記任何東西**：看 `FsmTrace.CaptureSnapshot` 的 `canExit` / `canEnter` 欄。
+5. 因為 2、3 兩道擋，AnyState 目標 state 的 CanEnter **不用自己加「!Is 自己」**。要擋的是「終點 state → 又回到這裡」，例如 Destroying 的 CanEnter 加 `!Is [State] Destroyed`。
+
+### 網路同步會繞過 transition 直接改 state
+
+- `StateMachine.Network.cs` 的 `ReadNetworkData`（IBeforeAllTicks）、`RestoreState`（resim / restore）、proxy 的 `Interpolate()`，
+  都會**直接覆寫 `_activeStateId` / `_stateChangeTick`**，不走 transition、CanEnter，也不會跑 OnExit。
+- `StateMachine.Render()` 只要看到 state id **或** changeTick 變了，就重跑 `OnEnterStateRender`。所以 client 上看到 enter 的視覺重播，
+  不一定是 sim 重進，可能只是 changeTick 被同步蓋過去。
+- 懷疑是這條路時，先開 FsmTrace 看 `Previous` 和 `IsResim` / `ProxyRender`。`IsResimFalse` 而且 Previous 是終點 state，就是 authority sim 自己轉的，
+  不是網路蓋的，回去查 CanEnter 的 condition。
+
+### 陷阱：module pack 的 state 靠 `_bindingRoot` 找 Owner
+
+- 靠 `StateFolder._bindingRoot` 併進宿主 FSM 的 module pack（例如 Hittable_Destroyable ModulePack），parent 鏈上沒有 MonoFSMOwner。
+  `AbstractStateBehaviour.Owner` 找不到的時候，會改抓 binding root 上的 owner（2026-10-01 補的）。
+- 補之前 Owner 是 null，`IsStateCondition` 永遠 false，勾 Inverted 就變成永遠 true。實際發生過：`!Is [State] Destroyed` 沒擋到，
+  造成 AnyState → Destroying → Destroyed 一直循環。現在 Owner 找不到的 IsStateCondition 會在 hierarchy 標紅。
 
 ## 除錯：FsmTrace（state 切換 / effect 命中 / Var 改值的時間軸）
 
