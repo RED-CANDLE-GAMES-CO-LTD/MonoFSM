@@ -218,7 +218,9 @@ namespace MonoFSM.Editor
                 var type = comp.GetType();
                 if (!ComponentAllowed(type, opt)) continue;
 
-                entries.Add(BuildComponentEntry(comp, ctx));
+                entries.Add(opt._componentNamesOnly
+                    ? ComponentPrefix(comp) + type.Name
+                    : BuildComponentEntry(comp, ctx));
             }
 
             if (entries.Count == 0) return "";
@@ -229,9 +231,7 @@ namespace MonoFSM.Editor
         {
             var opt = ctx.Options;
             var type = comp.GetType();
-            var prefix = "";
-            if (PrefabUtility.IsAddedComponentOverride(comp)) prefix += "+";
-            if (IsDisabled(comp)) prefix += "-";
+            var prefix = ComponentPrefix(comp);
 
             var fields = new List<string>();
             var so = new SerializedObject(comp);
@@ -303,6 +303,15 @@ namespace MonoFSM.Editor
 
             var body = fields.Count == 0 ? type.Name : $"{type.Name} {string.Join(" ", fields)}";
             return prefix + body;
+        }
+
+        // `+` = variant / instance 上新增的 component；`-` = component 被 disable
+        private static string ComponentPrefix(Component comp)
+        {
+            var added = PrefabUtility.IsAddedComponentOverride(comp);
+            var disabled = IsDisabled(comp);
+            if (added) return disabled ? "+-" : "+";
+            return disabled ? "-" : "";
         }
 
         private static bool IsDisabled(Component comp)

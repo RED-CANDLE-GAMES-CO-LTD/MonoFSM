@@ -307,9 +307,10 @@ namespace MonoFSM.Editor.PrefabEditing
             // 一次 prefab peek。有子樹時維持省略（那才是省 token 的地方）。
             if (root != null && root.transform.childCount == 0) options._excludeDefaults = false;
             if (!fullExpand) options._excludeComponents.AddRange(VisualComponents);
-            // includeComponents 非空時只允許匹配型別；這個 sentinel 不可能是 Component 型別，
-            // 因而只保留節點、Transform、inactive/prefab flags 與 note。
-            if (structureOnly) options._includeComponents.Add("__uprefab_structure_only__");
+            // structure-only = 節點、Transform、flags、note + component 型別名（不讀欄位）。
+            // 不能把 component 整個濾掉：剛 add 的 component（尤其沒欄位的標記型）會讀不到，
+            // agent 以為 add 失敗（2026-09-30 WireAttachPoint）。Transform / 視覺 component 照舊不印。
+            if (structureOnly) options._componentNamesOnly = true;
             // 匯出的根節點就是使用者點名的那個（prefab root 或 --node），它自己永不摺疊，
             // 不然「下鑽到某個 StateFolder」只會換回一行摘要，整趟 read 白花。只折後代。
             options._expandPaths.Add("");

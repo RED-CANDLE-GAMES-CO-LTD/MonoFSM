@@ -62,6 +62,34 @@ public class GameDataListConfig : ScriptableObject
     [LabelText("疊層後總數")]
     private int MergedCount => Items?.Count ?? 0;
 
+#if UNITY_EDITOR
+    //檢查疊層後的每一顆 GameData 有沒有 bindPrefab（含沿 BaseConfig 繼承來的），只在 Editor 算
+    [ShowInInspector]
+    [PropertyOrder(99)]
+    [LabelText("缺 bindPrefab 的 GameData")]
+    [InfoBox("全部都有 bindPrefab", InfoMessageType.Info, nameof(AllHaveBindPrefab))]
+    [InfoBox("$" + nameof(MissingBindPrefabMessage), InfoMessageType.Error, nameof(HasMissingBindPrefab))]
+    [Sirenix.OdinInspector.ReadOnly]
+    private List<GameData> MissingBindPrefab
+    {
+        get
+        {
+            var result = new List<GameData>();
+            var items = Items;
+            if (items == null)
+                return result;
+            for (var i = 0; i < items.Count; i++)
+                if (items[i] != null && items[i].bindPrefab == null)
+                    result.Add(items[i]);
+            return result;
+        }
+    }
+
+    private bool HasMissingBindPrefab => MissingBindPrefab.Count > 0;
+    private bool AllHaveBindPrefab => !HasMissingBindPrefab;
+    private string MissingBindPrefabMessage => $"有 {MissingBindPrefab.Count} 顆 GameData 沒有 bindPrefab";
+#endif
+
     private void OnEnable()
     {
         _mergedCache = null;

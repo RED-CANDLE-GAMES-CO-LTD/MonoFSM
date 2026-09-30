@@ -17,6 +17,10 @@ namespace MonoFSM.Editor
         public int _expandDepthOverride = -1;
         public List<string> _includeComponents = new(); // 空=全部；短名或 FullName，含子類
         public List<string> _excludeComponents = new();
+        // true = component 只印型別名（含 +/- 旗標），不讀 serialized 欄位。uprefab `--structure-only` 用。
+        // 以前 structure-only 靠在 _includeComponents 塞一個不存在的型別名把 component 全濾掉，
+        // 結果「剛 add 上去的 component」讀回來看不到，agent 以為 add 失敗（2026-09-30 WireAttachPoint）。
+        public bool _componentNamesOnly = false;
         public bool _showOverridesOnly = false;
         public bool _markOverrides = true;
         public bool _includeInactive = true; // false 時 inactive 子樹折成 "~Name (+N nodes)"

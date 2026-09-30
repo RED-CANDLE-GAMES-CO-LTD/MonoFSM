@@ -13,6 +13,7 @@
 | `_expandDepthOverride` | -1 | 保留欄位，目前未影響展開邏輯本身之外的行為 |
 | `_includeComponents` | [] | 空 = 全部；短名或 FullName，含子類（用 assignable 比對） |
 | `_excludeComponents` | [] | 同上，排除用 |
+| `_componentNamesOnly` | false | component 只印型別名（含 `+`/`-`），不讀欄位；uprefab `--structure-only` 用 |
 | `_showOverridesOnly` | false | 只列 prefab override 欄位，忽略 `_excludeDefaults` |
 | `_markOverrides` | true | override 欄位名後加 `*` |
 | `_includeInactive` | true | false 時 inactive 子樹摺成一行 |
