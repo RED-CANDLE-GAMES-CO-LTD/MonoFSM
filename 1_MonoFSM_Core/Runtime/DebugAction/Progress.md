@@ -12,3 +12,4 @@
 - `CheatEntry` 加 `_owner`（UnityEngine.Object，登錄者的 gameObject）：cheat 的來源字串只夠人看、不夠點，Editor 端要能 Selection + Ping 才查得到「這顆鍵到底掛在哪個節點」。owner 放在 entry 上而不是另做一張 editor 端的對照表，是因為只有登錄的當下才知道自己是誰（同一支 prefab 會有多個實例）。runtime 只存引用、不碰 Editor API
 
 - 2026-10-01 加 `PlayerLogHotkey`（Ctrl/Cmd+Shift+L）：複製 `Application.consoleLogPath` 到剪貼簿 + Finder/檔案總管選取。用 `RuntimeInitializeOnLoadMethod` 自己生成 DontDestroyOnLoad 物件，故意不靠 scene 擺放 —— 目的就是 build 出去給測試的人也一定按得到，不跟 CheatManager 綁在一起。
+- 2026-10-01 `PlayerLogHotkey` 加 Ctrl/Cmd+Shift+K 開 crash 資料夾。Windows 用 `Path.GetTempPath()` 組 `公司/產品/Crashes`，不寫死 AppData —— itch 啟動時會把 TEMP 換成 `.itch/temp`，跟著 TEMP 走才找得到；還沒 crash 過資料夾不存在就退一層開。
