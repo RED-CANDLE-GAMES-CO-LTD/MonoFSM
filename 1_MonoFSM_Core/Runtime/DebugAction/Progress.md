@@ -10,3 +10,5 @@
 - condition 走 ISceneAwake + OnEnable 雙保險登錄（idempotent）：關著的 state 子樹只有 MonoObj 的 ISceneAwake 分派得到，沒有 MonoObj 的場合才靠 OnEnable
 - `CheatTeleportPoints` 的 Simulate 按鍵判定維持原樣沒有改走 registry：它有 tick 語意（一個 render frame 可能跑 0 或多個 tick），改成 Update 輪詢會漏按或重複觸發
 - `CheatEntry` 加 `_owner`（UnityEngine.Object，登錄者的 gameObject）：cheat 的來源字串只夠人看、不夠點，Editor 端要能 Selection + Ping 才查得到「這顆鍵到底掛在哪個節點」。owner 放在 entry 上而不是另做一張 editor 端的對照表，是因為只有登錄的當下才知道自己是誰（同一支 prefab 會有多個實例）。runtime 只存引用、不碰 Editor API
+
+- 2026-10-01 加 `PlayerLogHotkey`（Ctrl/Cmd+Shift+L）：複製 `Application.consoleLogPath` 到剪貼簿 + Finder/檔案總管選取。用 `RuntimeInitializeOnLoadMethod` 自己生成 DontDestroyOnLoad 物件，故意不靠 scene 擺放 —— 目的就是 build 出去給測試的人也一定按得到，不跟 CheatManager 綁在一起。
