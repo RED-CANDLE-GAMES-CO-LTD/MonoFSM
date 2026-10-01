@@ -42,9 +42,9 @@ namespace MonoFSM_Physics.Runtime.Interact.SpatialDetection
 
             if (_minRelativeVelocity > 0 && collision.relativeVelocity.magnitude < _minRelativeVelocity)
             {
-                Debug.Log(
-                    $"[CollisionEventListener] relativeVelocity {collision.relativeVelocity.magnitude} < {_minRelativeVelocity}, skip",
-                    this);
+                // Debug.Log(
+                //     $"[CollisionEventListener] relativeVelocity {collision.relativeVelocity.magnitude} < {_minRelativeVelocity}, skip",
+                //     this);
                 return;
             }
             if (Time.time - _lastTriggerTime < _cooldownDuration)
