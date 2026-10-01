@@ -15,10 +15,10 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         [SOConfig("List")]
         [SerializeField] private GameDataListConfig _sourceConfig;
 
-        //警告只在 play 時印：Editor 序列化階段也會走到這裡，碰 Application.isPlaying 會丟 UnityException，
-        //所以用 _hasWarned 讓每顆變數最多吵一次。
         private bool _hasWarnedEmptyConfig;
 
+        //SourceList 會在 OnAfterDeserialize（序列化執行緒）被叫到，不能碰 .name / Debug.Log context，
+        //那時 _sourceConfig 也不保證已經 deserialize 好，Items 可能是空的 —— 所以這裡只回傳，不印警告。
         protected override List<GameData> SourceList
         {
             get
@@ -28,20 +28,24 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
                 var items = _sourceConfig.Items;
                 if (items == null || items.Count == 0)
-                {
-                    if (!_hasWarnedEmptyConfig)
-                    {
-                        _hasWarnedEmptyConfig = true;
-                        Debug.LogWarning(
-                            $"[VarListData] _sourceConfig ({_sourceConfig.name}) 的清單是空的，改用 prefab 上的 backing list",
-                            this);
-                    }
-
                     return base.SourceList;
-                }
 
                 return items;
             }
+        }
+
+        //空 config 的警告改在 runtime reset 印（主執行緒、config 已載入），每顆變數最多吵一次
+        public override void ResetStateRestore(bool IsHardReset)
+        {
+            if (!_hasWarnedEmptyConfig && _sourceConfig != null && (_sourceConfig.Items == null || _sourceConfig.Items.Count == 0))
+            {
+                _hasWarnedEmptyConfig = true;
+                Debug.LogWarning(
+                    $"[VarListData] _sourceConfig ({_sourceConfig.name}) 的清單是空的，改用 prefab 上的 backing list",
+                    this);
+            }
+
+            base.ResetStateRestore(IsHardReset);
         }
     }
 }

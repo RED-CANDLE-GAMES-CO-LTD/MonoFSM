@@ -10,3 +10,4 @@
 - 還原**不依賴 EffectDetector 重新產生 Enter**：detector reset 後要吃掉一個 grace tick（見 EffectDetector 的 `_isResetGraceTick`）才會補放 enter，靠它重掛會有「先跳回 authored pose、幾 tick 後才被吸回插槽」的閃動；baseline 自己掛回去就沒有這段。
 - baseline 還原只在 SA 端做（`IsMountAuthority` 走 `BindEntity.BindObj.HasStateAuthority`）：`MountTo` 會改 Rigidbody 的 kinematic，那是 SA 的職責，proxy 的 kinematic 歸 NetworkRigidbody 管。proxy 維持 `ClearFollowTarget()`，再由 `NetworkedViewRoot` 把 SA 的 mount 狀態套回來。
 - baseline 刻意跨 reset 保留（`ClearFollowTarget` / `Unmount` / `ResetStateRestore` 都不清），它記的是關卡初始狀態不是當下狀態。
+- `VarListData.SourceList` 不准印 log：`VarList.OnAfterDeserialize` → `EnsureActiveCollectionInitialized` 會叫到它，序列化階段碰 `_sourceConfig.name` 直接丟 `GetName is not allowed to be called during serialization`。而且那時 `_sourceConfig` 不保證 deserialize 好了，`Items` 空的是假警報。空 config 警告搬到 `ResetStateRestore`（runtime 主執行緒）印；deserialize 時建出來的集合不影響 runtime，reset 會從 `SourceList` 重灌。

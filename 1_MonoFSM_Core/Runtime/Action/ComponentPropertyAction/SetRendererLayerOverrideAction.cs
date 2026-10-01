@@ -37,8 +37,6 @@ namespace MonoFSM.Core.Runtime.Action.ComponentPropertyAction
         [Tooltip("override 維持秒數，可綁 VarFloat 或直接填常數")] [SerializeField]
         private VarFloatWrapper _duration = new(5f);
 
-        [AutoParent] private MonoObj _parentObj;
-
         [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] private FailReason _lastFailReason;
         [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] private RendererCollection _resolvedCollection;
         [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] private float _lastAppliedDuration;
