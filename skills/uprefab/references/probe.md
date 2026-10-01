@@ -20,6 +20,8 @@ component 的名稱（只取型別名，不呼叫任何 property getter）。
 「scene 的 root 有（26 個）…」害你以為節點不存在 —— 它會認出那是 prefab，
 直接把 asset 路徑與該用的 `up prefab peek …` 指令印出來。prefab 不用開 stage 就讀得到。
 
+**node 貼成資產路徑也行**：`up find` 第一行的 anchor（`Assets/….unity#<fileID>`）可以直接當 node，會叫 Unity 解成真路徑再 peek，並印「下次直接打：up peek "<節點路徑>" …」。目標 scene 不是 Editor 開著的那個時**不會讀、也不會自己切 scene**（`up scene open` 會自動存 dirty scene），只印開著的 / 目標各是哪個；anchor 是 prefab 的話印對應的 `up prefab peek … --node … --comp …`。
+
 ### 巢狀 `[Serializable]` 類別：點路徑與 `--deep`
 
 `IgnoreColliderFilter` / `TargetPositionResolver` 這種純資料類別直接印只會得到型別名

@@ -4,7 +4,7 @@ skill 記的是「現況快照」，必然 decay；Progress.md 記的是「當�
 永不 decay。所以要維護的只有前者。這支只做**機械可驗**的那一半：
 
   1. 路徑：文件裡提到的 `Assets/…prefab` / `.cs` 等是不是還在
-  2. 型別：backtick 裡的 PascalCase 是不是還存在於離線索引
+  2. 型別：backtick 裡的 PascalCase 是不是還存在於離線索引（.cs + DLL public 型別白名單，見 dlltypes.py）
   3. 欄位：`Type._field` 的欄位是不是還在該型別上
 
 語意過期（「這個 pattern 已經不建議用了」）機械查不到，那要靠 `--changed`：
@@ -213,6 +213,23 @@ def _src_chain(con, root: str):
     return has_member
 
 
+def _dll_names(con, root: str) -> set[str]:
+    """DLL（Fusion / Photon）裡的 public 型別名。只拿來判斷「存在」，不進相近建議的 pool ——
+    幾百個 DLL 型別混進 difflib 會把原本 weak 的散文詞拉成 strong，雜訊反而變多。
+    查詢前順手對齊（DLL 沒變只花一次 os.walk）；讀不了就退回舊檢查、印一行提示。"""
+    import dlltypes
+    try:
+        total, errors = dlltypes.refresh(con, root)
+    except Exception as e:  # noqa: BLE001
+        total, errors = 0, [f"{type(e).__name__}: {e}"]
+    if not total:
+        why = errors[0] if errors else "沒有讀到任何 DLL（看 .uprefab.json 的 dllTypes）"
+        print(f"# ⚠ DLL 型別白名單不可用，退回只用 .cs 索引，Fusion 等 DLL 型別可能被誤報：{why}")
+    elif errors:
+        print(f"# ⚠ {len(errors)} 顆 DLL 讀不了，裡面的型別可能被誤報：{errors[0]}")
+    return dlltypes.names(con)
+
+
 def _near(tok: str, pool, n=2) -> list[str]:
     return difflib.get_close_matches(tok, pool, n=n, cutoff=NEAR_SUGGEST)
 
@@ -261,6 +278,7 @@ def cmd(args, root, cfg):
         raise SystemExit(f"# 沒有要掃的文件（--path '{args.path}' 沒命中）\n"
                          f"# 預設掃：{'、'.join(DEFAULT_ROOTS)}")
 
+    dll_names = _dll_names(con, root)
     has_member = _src_chain(con, root)
     pool = list(names.values())
     nonser: list[tuple[str, int, str]] = []   # 原始碼有、但不是 serialized 的欄位
@@ -302,7 +320,7 @@ def cmd(args, root, cfg):
                 if len(tok) < 5 or sum(c.isupper() for c in tok) < 2:
                     continue
                 checked += 1
-                if tok.lower() in names:
+                if tok.lower() in names or tok in dll_names:
                     continue
                 hits = _near(tok, pool)
                 strong = hits and difflib.SequenceMatcher(

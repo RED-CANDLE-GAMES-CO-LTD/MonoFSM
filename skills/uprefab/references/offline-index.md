@@ -33,6 +33,7 @@ up scope stats
 `find` 的節點行尾會帶 `layer=<名字>`（layer 不是 Default 時才印；數字→名字對照 `ProjectSettings/TagManager.asset`）。這是檔案自己 YAML 寫的 `m_Layer`：variant / nested instance 上的 layer override 不在離線索引裡，要合併後的真值走 `up prefab read`。
 
 anchor 格式 `Assets/.../PPlayer.prefab#272130150518276317`，`#` 後是 fileID，對改名穩定。
+命中 ≤5 筆時每筆多印一行 `→ up peek "<anchor>" <Comp>`（scene）/ `→ up prefab locate ...` 或（有 `--resolve`）`→ up prefab peek ... --node ... --comp ...`（prefab），**照抄那行就好**。scene 那行一律是 anchor 版（`up peek "<asset>#<fileID>" <Comp>`），prefab 沒帶 `--resolve` 時給 `prefab locate` —— 節點路徑只以 Unity 為準，第二行的離線路徑是搜尋結果，**不要拿去當 node / `--node`**（nested instance 改名、同名 sibling 都看不到，會少層）。路徑可能少層時那行會印成 `…/<路徑>  <comps>  （離線，不是 --node）`；**看到 `…/` + （離線，不是 --node）就用 → 行或 `--resolve` 拿真路徑**（沒標的是鏈上全是本檔原生節點，路徑完整）。anchor 整行直接丟給 `up peek` 也行（會叫 Unity 解成真路徑；scene 不是 Editor 開著的那個就停下來說，不會自己切）。
 
 `includeShallow` 的用途是讓 override target 能解析第三方來源，不是一般 gameplay 搜尋。
 所以 `find` 預設只查 `full`；若表尾顯示「另有 N 筆 shallow 命中」，真的需要第三方 / Example
@@ -137,9 +138,8 @@ up guid "TestKCC Gravity 拔神像.unity"                            # 反向：
 約 5 秒 —— 所以 `.cs` 的 guid 也查得到。
 
 連結裡是 `globalId=`（不是 `asset_guid=`）時它會提醒你轉去 `up obj` —— 那種連結指的是
-scene 或 prefab 裡的某個節點，見 [read.md](read.md) 的 `obj`。索引也是 `up obj` 的離線後路：
-`nodes` 表存了每個節點的 fileID，而連結裡的 `<objId>` 對「原生在該資產裡」的物件就是那個
-fileID，所以 Unity 沒開也解得出「在哪個資產、哪個節點」。
+scene 或 prefab 裡的某個節點，見 [read.md](read.md) 的 `obj`。Unity 沒開時 `up obj` 只用索引把 guid
+換成資產路徑、印 fileID，**不推節點路徑**（離線的 parent 鏈看不到 nested instance 的改名，會少層）。
 
 ## `usage` —— 量測「調查一件事花了多少來回」
 

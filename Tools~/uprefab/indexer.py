@@ -6,9 +6,11 @@ import json
 import os
 import re
 import sqlite3
+import sys
 import time
 
 import catalog as catalog_mod
+import dlltypes
 import scripts as scripts_mod
 import uyaml
 from config import Config
@@ -155,6 +157,7 @@ def build(root: str, cfg: Config, incremental: bool = True, progress=None) -> di
 
     _build_script_table(con, root, progress)
     _build_catalog_table(con, root, progress)
+    _build_dll_types(con, root, progress)
     guid2class = {g: (c, n) for g, c, n in con.execute("SELECT guid, class, ns FROM scripts")}
 
     known = {p: (m, s) for p, m, s in con.execute("SELECT path, mtime, size FROM assets")}
@@ -418,6 +421,19 @@ def _build_script_table(con: sqlite3.Connection, root: str, progress) -> None:
     con.commit()
     if progress:
         progress(f"scripts: {len(rows)}")
+
+
+def _build_dll_types(con: sqlite3.Connection, root: str, progress) -> None:
+    """DLL public 型別白名單（verify-skills 用）。讀壞只提示，不擋 index。"""
+    try:
+        total, errors = dlltypes.refresh(con, root, progress)
+    except Exception as e:  # noqa: BLE001
+        total, errors = 0, [f"{type(e).__name__}: {e}"]
+    for err in errors:
+        print(f"# ⚠ DLL 型別白名單讀取失敗（verify-skills 會退回只用 .cs 索引）：{err}",
+              file=sys.stderr)
+    if progress:
+        progress(f"dll types: {total}")
 
 
 def _build_catalog_table(con: sqlite3.Connection, root: str, progress=None,

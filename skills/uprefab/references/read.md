@@ -124,8 +124,8 @@ GameObject_2/燈泡開關組_1/safe light bulb 燈泡/…/[Render] VerletRope
 所以 `up obj "<連結>"` **一個呼叫就拿到節點路徑 + 欄位內容**，不要先 `--locate` 再 `prefab read`。
 輸出 `# owner: prefab <路徑>`；`--open` 只是順便把 stage 打開給人看，不是解析前提。
 
-Unity 整個沒開時才退到離線索引（只能定位、不能給欄位；`targetPrefabId != 0` 或路徑接不回
-root 時會自己講並改建議 `up find`）。
+Unity 沒回應時 exit 1，只印資產路徑 + fileID（和可在 Unity 起來後重跑的 `up peek "<asset>#<fileID>"`），
+**不給節點路徑** —— 節點路徑只以 Unity 為準，離線索引認不出 nested instance 被改過的名字，推出來的路徑會少層。
 
 **連結標籤本身就帶完整路徑**（BugReportUtility 產的：`PPlayer / [Switch Simulate] Switch (FirstMatch)/[Case] SwitchCase/…`，
 prefab 側不含 root、scene 側含 root，格式對齊 `--node`），所以光看貼上來的文字就知道節點在哪，

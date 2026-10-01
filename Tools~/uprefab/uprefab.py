@@ -267,6 +267,10 @@ def cmd_find(args, root, cfg):
     # layer 只在不是 Default 時印；離線值是檔案自己寫的 m_Layer，variant / nested instance
     # 的 m_Layer override 不在這裡（要真值走 `up prefab read`，Unity 端會印合併後的 layer）
     lnames = query.layer_names(root)
+    # 筆數少時每筆附一行可直接複製的 peek 指令：anchor 那行不能直接餵 `up peek`，
+    # agent 實測會整行貼過去。筆數多時不印（每筆多一行，輸出量會明顯變大）
+    show_hint = len(rows) <= FIND_PEEK_HINT_MAX
+    aids: dict = {}
 
     for apath, fid, npath, active, comps, layer in rows:
         flag = "" if active else "~"
@@ -274,7 +278,12 @@ def cmd_find(args, root, cfg):
         tag = layers.get(apath, "")
         print(anchor + (f"   {tag}" if tag else ""))
         ltag = query.layer_label(lnames, layer)
-        print(f"    {flag}{npath}  <{comps or ''}>" + (f"  {ltag}" if ltag else ""))
+        # 路徑可能少層時標出來：這行是搜尋結果，不是定位用的（真路徑走 → 行或 --resolve）
+        if apath not in aids:
+            aids[apath] = query.asset_id_of(con, apath)
+        trunc = aids[apath] is not None and query.path_may_be_truncated(con, aids[apath], apath, fid)
+        print(f"    {flag}{'…/' if trunc else ''}{npath}  <{comps or ''}>" + (f"  {ltag}" if ltag else "")
+              + ("  （離線，不是 --node）" if trunc else ""))
         if args.resolve:
             status, payload, how = resolved.get(
                 anchor, ("fail", "Unity 沒有回報這個 anchor", "")
@@ -283,11 +292,43 @@ def cmd_find(args, root, cfg):
                 print(f"    --node {payload}" + (f"   [{how}]" if how else ""))
             else:
                 print(f"    ✗ anchor 解不開：{payload}")
+        if show_hint:
+            print("    → " + _find_peek_hint(apath, fid, npath, comps, args.comp,
+                                             resolved.get(anchor)))
 
     if cut:
         print(f"\n{len(rows)} / 共 {total} match(es)（同上：被 -n {args.limit} 切掉了）")
         return
     print(f"\n{len(rows)} match(es){scope_note()}")
+
+
+FIND_PEEK_HINT_MAX = 5
+
+
+def _pick_comp(comps: str | None, want: str | None) -> str | None:
+    """find 命中節點上，挑出 `--comp` 指的那顆型別名（沒帶 --comp 就不挑，peek 會列出全部）。"""
+    if not want or not comps:
+        return None
+    w = want.replace("%", "").lower()
+    types = comps.split()
+    return (next((t for t in types if t.lower() == w), None)
+            or next((t for t in types if w in t.lower()), None))
+
+
+def _find_peek_hint(apath, fid, npath, comps, want, resolved) -> str:
+    """一行可直接照抄的下一步指令。節點路徑只以 Unity 為準，離線不推：
+
+    - scene → `up peek "<anchor>" <Comp>`（peek 會叫 EditAnchor 解成真路徑，並印「下次直接打」）
+    - prefab → 有 --resolve 就給 `up prefab peek --node <Unity 解的路徑>`，沒有就給 `prefab locate`
+    第二行顯示的離線路徑是搜尋結果，不能拿來當 node（nested instance 改名、同名 sibling 都看不到）。
+    """
+    comp = _pick_comp(comps, want)
+    if apath.endswith(".prefab"):
+        if resolved and resolved[0] == "ok":
+            return _prefab_peek_cmd_text(apath, resolved[1], comp)
+        sel = f"--comp {comp}" if comp else f"--name '{(npath or '').rsplit('/', 1)[-1]}'"
+        return f"up prefab locate '{apath}' {sel}   （拿合併後的完整路徑；加 --members 可直接讀值）"
+    return _peek_cmd_text(query.anchor(apath, fid), comp)
 
 
 def _resolve_anchors(rows) -> dict:
@@ -323,60 +364,30 @@ GUID_RE = re.compile(r"[0-9a-f]{32}")
 GID_RE = re.compile(
     r"GlobalObjectId_V1-(\d+)-([0-9a-fA-F]{32})-(\d+)-(\d+)")
 
-def _gid_offline(root: str, token: str):
-    """不開 Unity 就把 GlobalObjectId 連結解成節點。回 dict，解不出來回 None。
+def _gid_unreachable_text(root: str, cfg, token: str, err) -> str:
+    """Unity 沒回應時 `up obj` 的輸出：只給離線查得到又確定的東西（資產路徑、fileID），
+    **不給節點路徑**。
 
-    為什麼有這條路：`targetObjectId` 對「原生在該資產裡」的物件就是 YAML 的 fileID，
-    離線索引裡就查得到。Unity 那條路要物件所在的 scene / prefab stage **正開著**
-    才解得開（Unity 的限制），實務上最常拿到連結的時機恰好是它沒開著 ——
-    那時整條連結等於廢的，這裡就是補這個洞。
-
-    `targetPrefabId != 0` 表示物件在某個 prefab instance 內部，這時 fileID 屬於
-    **來源 prefab**、要再套 instance 的 override 才是真值 —— 離線不猜，回 None 交給 Unity。
+    以前這裡用離線索引推節點路徑，但離線認不出 nested instance 被改過的名字
+    （實測 Base Character.prefab 的 `[Anim] Base Character` 被記成 `Base Character`，路徑少四層
+    還被當成從 root 起算），給一條錯的路徑比沒有更糟 —— 拿去 --node 會噴「找不到」，
+    看起來像節點不存在。節點路徑一律以 Unity（EditGid / EditAnchor）為準。
     """
     m = GID_RE.search(token or "")
+    lines = [f"# Unity 沒回應（{str(err).splitlines()[0] if str(err) else type(err).__name__}）"
+             "—— 節點路徑解不出來（只以 Unity 為準，離線不猜）"]
     if not m:
-        return None
-    ident, guid, file_id, prefab_id = m.groups()
-    if int(prefab_id) != 0:
-        return None
-    con = indexer.connect(root)
-    row = query.node_by_file_id(con, guid.lower(), int(file_id))
-    if not row:
-        return None
-    asset_path, node_path, name, is_active, comps, rooted = row
-    return {
-        "gid": m.group(0), "ident": int(ident), "guid": guid.lower(),
-        "file_id": int(file_id), "asset": asset_path, "node": node_path,
-        "name": name, "active": bool(is_active), "comps": comps,
-        "rooted": rooted,
-    }
-
-
-def _gid_offline_text(off: dict) -> str:
-    """離線解析的輸出。節點路徑可能是局部的（上層是 stripped instance 時接不回去），
-    所以 anchor（`<資產>#<fileID>`）一定要一起印 —— 那個永遠精確，也能直接餵 up find。
-    """
-    is_prefab = off["asset"].endswith(".prefab")
-    lines = [
-        f"# gid: {off['gid']}",
-        "# 這是離線索引解出來的（Unity 沒開 / 物件所在的 scene・prefab stage 沒開著）",
-        f"# owner: {'prefab' if is_prefab else 'scene'} {off['asset']}",
-        f"# anchor: {query.anchor(off['asset'], off['file_id'])}",
-        f"{off['node'] or off['name']}",
-        f"  <{off['comps']}>" if off["comps"] else "  <(無 component 記錄)>",
-    ]
-    if not off["active"]:
-        lines[-1] += "  ~inactive"
-    if not off["rooted"]:
-        # 局部路徑餵 --node 一定解不開，所以這種情況只給 up find（離線、必中）
-        lines.append("# ↑ 這條路徑是局部的（上層是 prefab instance，離線接不回 root）")
-        lines.append(f"# 接著用：up find --path '{off['asset']}' --name '{off['name']}'")
-    elif is_prefab:
-        lines.append(f"# 接著用：up prefab read '{off['asset']}' --node '{off['node']}'")
+        return "\n".join(lines) + "\n"
+    _ident, guid, file_id, prefab_id = m.groups()
+    asset, _note = _guid_to_path(root, cfg, guid.lower())
+    lines.append(f"# gid: {m.group(0)}")
+    lines.append(f"# 資產：{asset or f'(guid {guid.lower()} 查不到路徑)'}")
+    lines.append(f"# fileID：{file_id}" + (f"（在 prefab instance {prefab_id} 裡，fileID 屬於來源 prefab）"
+                                         if int(prefab_id) else ""))
+    if asset and not int(prefab_id):
+        lines.append(f"# Unity 起來後：up obj 同一條，或 up peek \"{query.anchor(asset, int(file_id))}\"")
     else:
-        lines.append(f"# 接著用：up scene open '{off['asset']}' 之後 "
-                     f"up scene ls --node '{off['node']}'")
+        lines.append("# Unity 起來後重跑同一條")
     return "\n".join(lines) + "\n"
 
 
@@ -1258,9 +1269,9 @@ def cmd_obj(args, root, cfg):
             "#   [[Render] VerletRope](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-<guid>-<id>-0)\n"
             "# 的連結（markdown、裸 URL、只有 id 都吃）")
 
-    # Unity 是主路：EditGid 對 prefab 直接掃 imported asset 比對 local fileID，不需要
-    # 開 Prefab Stage，一次就把內容匯出。離線索引只在 Unity 根本沒開時當備援，
-    # 只能回位置（欄位內容本來就得問 Unity）。
+    # 只走 Unity：EditGid 對 prefab 直接掃 imported asset 比對 local fileID，不需要
+    # 開 Prefab Stage，一次就把內容匯出。Unity 沒回應時只印資產路徑 + fileID，
+    # 不用離線索引推節點路徑（會錯，見 _gid_unreachable_text）。
     try:
         if args.locate:
             out = unity.call(f"{GID}.Locate", token, args.open, args.select)
@@ -1270,16 +1281,116 @@ def cmd_obj(args, root, cfg):
                 args.budget, args.fsm, args.open, args.select, args.fsm_only,
                 args.structure_only)
     except unity.UnityError as e:
-        off = _gid_offline(root, token)
-        if not off:
-            raise
-        print(f"# Unity 沒回應（{e}）—— 只能用離線索引定位，欄位內容要等 Unity 開著", file=sys.stderr)
-        _emit(_gid_offline_text(off))
-        return
+        print(_gid_unreachable_text(root, cfg, token, e), end="")
+        raise SystemExit(1)
     _emit(out)
 
 
+# `up peek` 的 node 被貼成資產路徑：find 印的 anchor `<asset>#<fileID>`，或 `<asset>/<節點路徑>`、
+# 單獨一個 `<asset>`。peek 本身只吃「root 名/節點路徑」（讀 Editor 開著的 scene），
+# 不攔的話會噴「找不到 root object 'Assets'」—— 看起來像節點不存在，其實是參數格式錯。
+PEEK_ASSET_RE = re.compile(r"^((?:Assets|Packages)/.+?\.(unity|prefab))(?:#(-?\d+)|/(.*))?$")
+_SM = "UnityEngine.SceneManagement.SceneManager"
+
+
+def _peek_cmd_text(node: str, comp: str | None) -> str:
+    return f'up peek "{node}"' + (f" {comp}" if comp else "")
+
+
+def _prefab_peek_cmd_text(asset: str, node: str | None, comp: str | None) -> str:
+    return (f"up prefab peek '{asset}'" + (f" --node '{node}'" if node else "")
+            + (f" --comp {comp}" if comp else " --comp <型別>"))
+
+
+def _peek_asset_path(args, root, asset: str, kind: str, fid, rest) -> None:
+    """node 參數是資產路徑時的處理：能解就照原意 peek，解不了就印出該打什麼。
+
+    anchor 一律交給 Unity 的 EditAnchor 解（合併後的真路徑），離線索引只拿節點名給它當
+    fallback，不推路徑（見 query.node_name 的理由）。
+
+    故意不做的事：scene 不是 Editor 開著的那個時**不自動切 scene** —— `up scene open`
+    會自動存 dirty scene（使用者可能正在編輯），讀錯 scene 又會給出看似正常的錯誤值。
+    所以只印「開著的是哪個 / 目標是哪個」，切不切讓呼叫端決定。
+    """
+    comp = args.comp
+    # 離線只拿節點「名字」給 EditAnchor 當最後一層 fallback（fileID 比不到時用名稱唯一比對），
+    # 路徑一律以 Unity 解出來的為準
+    name = query.node_name(indexer.connect(root), asset, fid) if fid is not None else None
+    anchor = query.anchor(asset, fid) if fid is not None else None
+    anchor_line = f"{anchor}|{name or ''}" if anchor else None
+
+    if kind == "prefab":
+        node, why = rest, ""  # rest: `Assets/x.prefab/<子路徑>` 的子路徑；None = 不知道
+        if anchor_line:
+            res = _resolve_anchors([(asset, fid, name or "", 1, "", 0)])
+            status, payload, _how = res.get(anchor,
+                                            ("fail", "Unity 沒有回報這個 anchor", ""))
+            node, why = (payload, "") if status == "ok" else (None, payload)
+        print(f"# `up peek` 讀的是 Editor 開著的 scene（node = root 名/節點路徑）；'{asset}' 是 prefab asset。")
+        if node is not None:  # "" = prefab root（不帶 --node）
+            print(f"# 你要的應該是：\n{_prefab_peek_cmd_text(asset, node, comp)}")
+        else:
+            if why:
+                print(f"# anchor 解不開：{why}")
+            sel = f"--comp {comp}" if comp else "--comp <型別> / --name <節點名>"
+            print(f"# 先拿完整路徑（加 --members 可以直接讀值）：up prefab locate '{asset}' {sel}")
+        raise SystemExit(1)
+
+    if not anchor_line and not rest:
+        print("# `up peek` 的 node 是 scene 裡的「root 名/節點路徑」，不是資產路徑。\n"
+              f"# 列 root：up scene ls；或 up find --comp {comp or '<型別>'} --in '{asset}'"
+              " 再照它印的 `→ up peek ...` 那行打\n"
+              f"# 注意：peek 只讀 Editor 開著的 scene，目標是 '{asset}'")
+        raise SystemExit(1)
+
+    def inner(node_expr: str) -> str:
+        if comp:
+            return (f"{PROBE}.Peek({node_expr}, {unity.lit(comp)}, {unity.lit(args.members)}, "
+                    f"{unity.lit(args.deep)})")
+        return f"{PROBE}.ComponentNames(\"\", {node_expr})"
+
+    # 一次來回：比對 scene → （anchor 時）EditAnchor 解路徑 → peek。scene 判斷跟 peek 自己的
+    # root 集合同一套：EditMode = active scene，Play Mode 多看 additive 載入的
+    code = (f"var __want = {unity.lit(asset)}; var __active = {_SM}.GetActiveScene().path; "
+            f"var __loaded = false; for (int __i = 0; __i < {_SM}.sceneCount; __i++) "
+            f"if ({_SM}.GetSceneAt(__i).path == __want) __loaded = true; "
+            f"if (__active != __want && !(UnityEngine.Application.isPlaying && __loaded)) "
+            f"return \"SCENE-MISMATCH\\t\" + __active; ")
+    if anchor_line:
+        code += (f"var __r = ({ANCHOR}.Resolve({unity.lit(anchor_line)}) ?? \"\").TrimEnd('\\r', '\\n'); "
+                 f"var __p = __r.Split('\\t'); "
+                 f"if (__p.Length < 3 || __p[1] != \"ok\") return \"ANCHOR-FAIL\\t\" + "
+                 f"(__p.Length >= 3 ? __p[2] : __r); "
+                 f"return \"NODE\\t\" + __p[2] + \"\\n\" + {inner('__p[2]')};")
+    else:
+        code += f"return \"NODE\\t\" + {unity.lit(rest)} + \"\\n\" + {inner(unity.lit(rest))};"
+    out = unity.csharp(code, method=f"{PROBE}.Peek" if comp else f"{PROBE}.ComponentNames")
+
+    if out.startswith("SCENE-MISMATCH\t"):
+        active = out.split("\t", 1)[1] or "(untitled / 沒存過的 scene)"
+        node_hint = rest or anchor
+        print(f"# 目標 scene：{asset}\n# Editor 開著的：{active}\n"
+              "# 不是同一個 scene，沒有讀（讀下去會是別的 scene 的資料）。"
+              "peek 不會自己切 scene（up scene open 會自動存 dirty scene），確認可以切之後：\n"
+              f"#   up scene open '{asset}'\n"
+              f"#   {_peek_cmd_text(node_hint, comp)}")
+        raise SystemExit(1)
+    if out.startswith("ANCHOR-FAIL\t"):
+        print(f"# anchor 解不開：{out.split(chr(9), 1)[1]}")
+        print(f"# 或重查完整路徑：up find --comp {comp or '<型別>'} --in '{asset}' --resolve")
+        raise SystemExit(1)
+    head, _, body = out.partition("\n")
+    node = head.split("\t", 1)[1] if head.startswith("NODE\t") else ""
+    print(f"# 下次直接打：{_peek_cmd_text(node, comp)}")
+    print(body if head.startswith("NODE\t") else out)
+
+
 def cmd_peek(args, root, cfg):
+    m = PEEK_ASSET_RE.match(args.node or "")
+    if m:
+        _peek_asset_path(args, root, m.group(1), m.group(2),
+                         int(m.group(3)) if m.group(3) else None, m.group(4))
+        return
     if not args.comp:
         print(unity.call(f"{PROBE}.ComponentNames", "", args.node))
         return
