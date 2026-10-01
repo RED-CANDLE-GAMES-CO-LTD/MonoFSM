@@ -707,57 +707,16 @@ namespace MonoFSM.Editor.PrefabEditing
                 {
                     // UI 專用：pos 寫的 localPosition 是 Canvas 佈局的**輸出**，anchoredPosition
                     // 才是輸入。四段參數都可留空 = 不動那一項。
+                    // 本體在 EditBatch.ApplyRect（scene 也用同一支）；這裡只補 prefab 才需要的
+                    // 存檔驗證與 override 記錄
                     var nodePath = EditBatch.At(a, 0);
                     var node = EditResolve.Node(root, nodePath);
-                    if (!(node is RectTransform rect))
-                        throw new Abort(
-                            $"'{EditResolve.Describe(nodePath)}' 上是 {node.GetType().Name} 不是 " +
-                            "RectTransform，`rect` 不適用；非 UI 節點請用 pos / scale / rot");
-
-                    var changed = new List<string>();
-                    var anchored = EditBatch.At(a, 1);
-                    if (!string.IsNullOrEmpty(anchored))
-                    {
-                        rect.anchoredPosition = EditBatch.Vec2(a, 1, verb, "anchoredPosition");
-                        touches.Add(VerifyTouch.Serialized(rect, "m_AnchoredPosition", verb));
-                        changed.Add($"anchoredPosition={rect.anchoredPosition}");
-                    }
-
-                    var size = EditBatch.At(a, 2);
-                    if (!string.IsNullOrEmpty(size))
-                    {
-                        rect.sizeDelta = EditBatch.Vec2(a, 2, verb, "sizeDelta");
-                        touches.Add(VerifyTouch.Serialized(rect, "m_SizeDelta", verb));
-                        changed.Add($"sizeDelta={rect.sizeDelta}");
-                    }
-
-                    var anchorSpec = EditBatch.At(a, 3);
-                    if (!string.IsNullOrEmpty(anchorSpec))
-                    {
-                        var (min, max) = EditBatch.AnchorPreset(anchorSpec, verb);
-                        rect.anchorMin = min;
-                        rect.anchorMax = max;
-                        touches.Add(VerifyTouch.Serialized(rect, "m_AnchorMin", verb));
-                        touches.Add(VerifyTouch.Serialized(rect, "m_AnchorMax", verb));
-                        changed.Add($"anchor={min}..{max}");
-                    }
-
-                    var pivot = EditBatch.At(a, 4);
-                    if (!string.IsNullOrEmpty(pivot))
-                    {
-                        rect.pivot = EditBatch.Vec2(a, 4, verb, "pivot");
-                        touches.Add(VerifyTouch.Serialized(rect, "m_Pivot", verb));
-                        changed.Add($"pivot={rect.pivot}");
-                    }
-
-                    if (changed.Count == 0)
-                        throw new Abort(
-                            "`rect` 至少要給一項：rect|<node>|<anchoredX,Y>|<sizeW,H>|" +
-                            "<anchor preset 或 minX,minY,maxX,maxY>|<pivotX,Y>");
+                    var props = new List<string>(4);
+                    var msg = EditBatch.ApplyRect(node, EditResolve.Describe(nodePath), a, verb, props);
+                    foreach (var p in props) touches.Add(VerifyTouch.Serialized(node, p, verb));
                     // rect 走的也是 property setter，同樣需要 record 才會留下 override
-                    RecordTransformWrite(rect);
-                    return $"{EditResolve.Describe(nodePath)}.RectTransform " +
-                           string.Join(" ", changed);
+                    RecordTransformWrite(node);
+                    return msg;
                 }
                 case "scale":
                 {
@@ -960,7 +919,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
                         $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel revert pos rect scale rot active layer idx mv copyfrom auto rename del delcomp delmissing invoke mark " +
-                        EditFsm.Verbs + "（save 只有 SceneEdit 有）");
+                        EditFsm.Verbs + "（save / dup 只有 scene do 有；prefab 裡要複製子樹用 copyfrom）");
                 }
             }
         }

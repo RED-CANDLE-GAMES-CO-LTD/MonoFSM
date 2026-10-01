@@ -351,8 +351,159 @@ namespace MonoFSM.Editor.PrefabEditing
                 var node = EditResolve.NodeInRoots(Roots(Active()), nodePath);
                 node.localPosition = new Vector3(x, y, z);
                 Dirty();
-                return $"{nodePath}.localPosition = {node.localPosition:0.##}";
+                var uiWarning = node is RectTransform
+                    ? "\n# 注意：這是 RectTransform，localPosition 會被 Canvas relayout 覆寫。" +
+                      "要改 UI 位置請用 `rect|<node>|<x,y>`（寫 anchoredPosition）"
+                    : "";
+                return $"{nodePath}.localPosition = {node.localPosition:0.##}" + uiWarning;
             });
+        }
+
+        /// <summary>
+        /// UI 節點的 anchoredPosition / sizeDelta / anchor / pivot。本體跟 prefab 共用
+        /// EditBatch.ApplyRect，這裡只負責 scene 端的 dirty（以及節點在 prefab 實例裡時記 override）。
+        /// </summary>
+        public static string SetRect(string nodePath, string[] args)
+        {
+            return Guard(() =>
+            {
+                var node = EditResolve.NodeInRoots(Roots(Active()), nodePath);
+                var msg = EditBatch.ApplyRect(node, nodePath, args, "rect", null);
+                EditorUtility.SetDirty(node);
+                if (PrefabUtility.IsPartOfPrefabInstance(node))
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(node);
+                Dirty();
+                EditBatch.Touch(nodePath);
+                return msg;
+            });
+        }
+
+        /// <summary>
+        /// 複製節點（整棵子樹）到同一個 parent、排在原節點後面一格、改名成 newName。
+        ///
+        /// 用 Object.Instantiate：子樹內部互指的 reference 會自動對到複本，指向子樹外的維持原樣
+        /// —— 「照抄一顆按鈕再改字」要的就是這個。但 Instantiate 會扯斷 prefab 連結，所以：
+        /// - 原節點本身是 prefab 實例 root → 改用 EditCopy.InstantiateLikeInstance（同一個來源
+        ///   asset + 套 PropertyModifications），實例上 added / removed 的東西帶不過去，會印警告。
+        ///   做不到就退回 Instantiate 並明講連結斷了。
+        /// - 原節點在某個 prefab 實例「裡面」、或子樹裡含 nested 實例 → 照樣 Instantiate，印警告。
+        /// 撞名直接擋（不像 add 那樣跳過）：跳過的話後面的 `$` / 路徑會默默改到舊節點。
+        /// </summary>
+        public static string Duplicate(string nodePath, string newName)
+        {
+            return Guard(() =>
+            {
+                var scene = Active();
+                var src = EditResolve.NodeInRoots(Roots(scene), nodePath);
+                if (string.IsNullOrWhiteSpace(newName))
+                    throw new Abort("`dup` 要給新名字：dup|<node>|<newName>");
+                if (newName.IndexOf('/') >= 0 || newName.IndexOf('\n') >= 0)
+                    throw new Abort($"`dup` 的 newName 不能含 `/` 或換行：'{newName}'");
+
+                var parent = src.parent;
+                var siblingClash = parent != null
+                    ? FindDirectChild(parent, newName) != null
+                    : Roots(scene).Any(g => g != null && g.name == newName);
+                if (siblingClash)
+                    throw new Abort(
+                        $"'{(parent != null ? PathOf(parent) : "(scene root)")}' 底下已經有叫 '{newName}' 的節點。" +
+                        "換個名字，或先 `del|<那個節點>` 再重跑（dup 不會跳過，免得後面的操作改到舊節點）");
+
+                var warnings = new List<string>();
+                GameObject clone = null;
+                var srcGo = src.gameObject;
+                var isInstanceRoot = PrefabUtility.IsAnyPrefabInstanceRoot(srcGo);
+                if (isInstanceRoot)
+                {
+                    clone = EditCopy.InstantiateLikeInstance(src, warnings, "dup");
+                    if (clone != null)
+                    {
+                        if (parent != null) clone.transform.SetParent(parent, false);
+                        else SceneManager.MoveGameObjectToScene(clone, srcGo.scene);
+                    }
+                    else
+                    {
+                        warnings.Add($"'{srcGo.name}' 是 prefab 實例，但重建失敗，退回 Object.Instantiate —— " +
+                                     "複本是普通節點，跟 prefab 的連結斷了（之後改 prefab 不會同步到這顆）");
+                    }
+                }
+                else
+                {
+                    if (PrefabUtility.IsPartOfPrefabInstance(srcGo))
+                    {
+                        var owner = PrefabUtility.GetOutermostPrefabInstanceRoot(srcGo);
+                        warnings.Add($"原節點在 prefab 實例 '{(owner != null ? owner.name : "?")}' 裡面，" +
+                                     "複本會變成掛在實例上的 added GameObject（普通節點，不屬於 prefab）");
+                    }
+
+                    var nested = CountNestedInstanceRoots(src);
+                    if (nested > 0)
+                        warnings.Add($"子樹裡有 {nested} 個 nested prefab 實例，Object.Instantiate 後在複本裡" +
+                                     "都變成普通節點（prefab 連結斷了）");
+                }
+
+                if (clone == null)
+                {
+                    clone = parent != null
+                        ? Object.Instantiate(srcGo, parent, false)
+                        : Object.Instantiate(srcGo);
+                    if (parent == null) SceneManager.MoveGameObjectToScene(clone, srcGo.scene);
+                }
+
+                clone.name = newName;
+                clone.SetActive(srcGo.activeSelf);
+                clone.transform.SetSiblingIndex(src.GetSiblingIndex() + 1);
+                Undo.RegisterCreatedObjectUndo(clone, $"uprefab dup {newName}");
+                Dirty();
+
+                var full = parent != null ? $"{ParentPathOf(nodePath)}/{EditResolve.EscapeName(newName)}" : EditResolve.EscapeName(newName);
+                EditBatch.Touch(full);
+                var sb = new StringBuilder(
+                    $"複製 {nodePath} -> {full}（sibling index {clone.transform.GetSiblingIndex()}" +
+                    $"，含 {EditResolve.CountDescendants(clone.transform)} 個子節點" +
+                    (isInstanceRoot && PrefabUtility.IsAnyPrefabInstanceRoot(clone) ? "，保留 prefab 連結" : "") + "）");
+                foreach (var w in warnings) sb.Append("\n# dup: " + w);
+                sb.Append(LayerLintSuffix(clone.transform));
+                return sb.ToString();
+            });
+        }
+
+        private static Transform FindDirectChild(Transform parent, string name)
+        {
+            for (var i = 0; i < parent.childCount; i++)
+            {
+                var c = parent.GetChild(i);
+                if (c.name == name) return c;
+            }
+            return null;
+        }
+
+        private static int CountNestedInstanceRoots(Transform t)
+        {
+            var n = 0;
+            for (var i = 0; i < t.childCount; i++)
+            {
+                var c = t.GetChild(i);
+                if (PrefabUtility.IsAnyPrefabInstanceRoot(c.gameObject)) n++;
+                else n += CountNestedInstanceRoots(c);
+            }
+            return n;
+        }
+
+        /// <summary>
+        /// 使用者給的 nodePath 去掉最後一段（尊重 `\/` 逃逸）。拿使用者原本的字串而不是從
+        /// Transform 重組，是因為那條路徑已經證明解得開 —— 自動命名的節點重組出來不一定對得上。
+        /// </summary>
+        private static string ParentPathOf(string nodePath)
+        {
+            for (var i = nodePath.Length - 1; i >= 0; i--)
+            {
+                if (nodePath[i] != '/') continue;
+                var bs = 0;
+                for (var j = i - 1; j >= 0 && nodePath[j] == '\\'; j--) bs++;
+                if (bs % 2 == 0) return nodePath.Substring(0, i);
+            }
+            return "";
         }
 
         public static string SetActive(string nodePath, bool active)
@@ -485,6 +636,11 @@ namespace MonoFSM.Editor.PrefabEditing
                     return SetPos(EditBatch.Need(a, 0, verb, "nodePath"),
                         float.Parse(xyz[0]), float.Parse(xyz[1]), float.Parse(xyz[2]));
                 }
+                case "rect":
+                    return SetRect(EditBatch.Need(a, 0, verb, "nodePath"), a);
+                case "dup":
+                    return Duplicate(EditBatch.Need(a, 0, verb, "nodePath"),
+                        EditBatch.Need(a, 1, verb, "newName"));
                 case "active":
                     return SetActive(EditBatch.Need(a, 0, verb, "nodePath"),
                         EditBatch.Bool(a, 1, verb));
@@ -517,7 +673,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
                         "不認得的操作 '" + verb +
-                        "'。可用的：add prefab comp set ref aref addel pos active layer mv idx auto del delcomp save mark " +
+                        "'。可用的：add prefab comp set ref aref addel pos rect active layer mv idx dup auto del delcomp save mark " +
                         EditFsm.Verbs);
                 }
             }

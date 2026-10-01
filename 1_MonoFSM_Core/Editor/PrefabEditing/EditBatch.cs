@@ -27,7 +27,9 @@ namespace MonoFSM.Editor.PrefabEditing
     /// pos|&lt;node&gt;|x,y,z                     設 localPosition
 /// scale|&lt;node&gt;|x,y,z                   設 localScale（僅 prefab）
 /// rot|&lt;node&gt;|x,y,z                     設 localEulerAngles（僅 prefab）
-    /// mv|&lt;node&gt;|&lt;newParent&gt;                 換 parent（僅 scene）
+    /// rect|&lt;node&gt;|&lt;ax,ay&gt;|&lt;w,h&gt;|&lt;anchor&gt;|&lt;px,py&gt;  UI 的 anchoredPosition/sizeDelta/anchor/pivot（ApplyRect）
+    /// mv|&lt;node&gt;|&lt;newParent&gt;                 換 parent（prefab / scene 皆可）
+    /// dup|&lt;node&gt;|&lt;newName&gt;                 複製節點到同一個 parent、排在原節點後面（僅 scene）
     /// del|&lt;node&gt;                            刪節點
     /// save                                  存檔（僅 scene；prefab 每次都自動存）
     ///
@@ -335,6 +337,61 @@ namespace MonoFSM.Editor.PrefabEditing
                         "stretch stretch-top stretch-bottom stretch-left stretch-right stretch-h " +
                         "stretch-v，或直接寫 minX,minY,maxX,maxY");
             }
+        }
+
+        /// <summary>
+        /// `rect|&lt;node&gt;|&lt;ax,ay&gt;|&lt;w,h&gt;|&lt;anchor&gt;|&lt;px,py&gt;` 的共用本體（prefab / scene 兩邊都叫這支）。
+        /// UI 節點的 localPosition 是 Canvas 佈局的**輸出**，anchoredPosition 才是輸入，所以 UI
+        /// 位置一律走這裡。args[1..4] 各自留空 = 不動那一項。
+        /// 只負責寫值：prefab 端要的 override 記錄 / 存檔驗證、scene 端的 dirty 由呼叫端各自處理，
+        /// 所以把實際寫到的 serialized property 名丟進 <paramref name="touchedProps"/> 回報。
+        /// </summary>
+        internal static string ApplyRect(
+            Transform node, string desc, string[] args, string verb, List<string> touchedProps)
+        {
+            if (!(node is RectTransform rect))
+                throw new EditResolve.EditAbort(
+                    $"'{desc}' 上是 {node.GetType().Name} 不是 RectTransform，`rect` 不適用；" +
+                    "非 UI 節點請用 pos（prefab 另有 scale / rot）");
+
+            var changed = new List<string>(4);
+            if (!string.IsNullOrEmpty(At(args, 1)))
+            {
+                rect.anchoredPosition = Vec2(args, 1, verb, "anchoredPosition");
+                touchedProps?.Add("m_AnchoredPosition");
+                changed.Add($"anchoredPosition={rect.anchoredPosition}");
+            }
+
+            if (!string.IsNullOrEmpty(At(args, 2)))
+            {
+                rect.sizeDelta = Vec2(args, 2, verb, "sizeDelta");
+                touchedProps?.Add("m_SizeDelta");
+                changed.Add($"sizeDelta={rect.sizeDelta}");
+            }
+
+            var anchorSpec = At(args, 3);
+            if (!string.IsNullOrEmpty(anchorSpec))
+            {
+                var (min, max) = AnchorPreset(anchorSpec, verb);
+                rect.anchorMin = min;
+                rect.anchorMax = max;
+                touchedProps?.Add("m_AnchorMin");
+                touchedProps?.Add("m_AnchorMax");
+                changed.Add($"anchor={min}..{max}");
+            }
+
+            if (!string.IsNullOrEmpty(At(args, 4)))
+            {
+                rect.pivot = Vec2(args, 4, verb, "pivot");
+                touchedProps?.Add("m_Pivot");
+                changed.Add($"pivot={rect.pivot}");
+            }
+
+            if (changed.Count == 0)
+                throw new EditResolve.EditAbort(
+                    "`rect` 至少要給一項：rect|<node>|<anchoredX,Y>|<sizeW,H>|" +
+                    "<anchor preset 或 minX,minY,maxX,maxY>|<pivotX,Y>");
+            return $"{desc}.RectTransform " + string.Join(" ", changed);
         }
 
         internal static string Need(string[] args, int i, string verb, string what)

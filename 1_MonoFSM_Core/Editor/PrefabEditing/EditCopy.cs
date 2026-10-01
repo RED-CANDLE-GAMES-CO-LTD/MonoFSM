@@ -184,6 +184,31 @@ namespace MonoFSM.Editor.PrefabEditing
 
         private static Transform Rebuild(Transform src, Transform dst, List<string> warnings)
         {
+            var parent = dst.parent;
+            var index = dst.GetSiblingIndex();
+            var name = dst.name;
+
+            var inst = InstantiateLikeInstance(src, warnings, "copyfrom");
+            if (inst == null) return null;
+
+            UnityEngine.Object.DestroyImmediate(dst.gameObject);
+
+            inst.transform.SetParent(parent, false);
+            inst.transform.SetSiblingIndex(index);
+            inst.name = name;
+            return inst.transform;
+        }
+
+        /// <summary>
+        /// 用 src（某個 prefab 實例 root）的同一個來源 asset 再生一顆真實例，套上 src 的
+        /// PropertyModifications，再把 TRS / activeSelf 蓋回 src 的實際值。回傳的實例還沒設 parent
+        /// （在 active scene 的 root 層），名字是 src 的名字。找不到來源 asset 或實例化失敗回 null、
+        /// 理由寫進 warnings。
+        /// 實例上「額外加 / 移除」的 GameObject / Component 不在 modifications 裡、不會帶過去，
+        /// 一律寫進 warnings 讓呼叫端講出來 —— copyfrom 跟 scene 的 dup 都用這支。
+        /// </summary>
+        internal static GameObject InstantiateLikeInstance(Transform src, List<string> warnings, string opName)
+        {
             var assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(src.gameObject);
             var asset = string.IsNullOrEmpty(assetPath)
                 ? null
@@ -195,10 +220,6 @@ namespace MonoFSM.Editor.PrefabEditing
                 return null;
             }
 
-            var parent = dst.parent;
-            var index = dst.GetSiblingIndex();
-            var name = dst.name;
-
             var inst = PrefabUtility.InstantiatePrefab(asset) as GameObject;
             if (inst == null)
             {
@@ -206,14 +227,10 @@ namespace MonoFSM.Editor.PrefabEditing
                 return null;
             }
 
-            UnityEngine.Object.DestroyImmediate(dst.gameObject);
-
-            inst.transform.SetParent(parent, false);
-            inst.transform.SetSiblingIndex(index);
             // m_Name / m_IsActive / TRS 都可能在 modifications 裡，先套再蓋回來源的實際值
             var mods = PrefabUtility.GetPropertyModifications(src.gameObject);
             if (mods != null) PrefabUtility.SetPropertyModifications(inst, mods);
-            inst.name = name;
+            inst.name = src.name;
             CopyLocalTransform(src, inst.transform);
             inst.SetActive(src.gameObject.activeSelf);
 
@@ -223,11 +240,11 @@ namespace MonoFSM.Editor.PrefabEditing
                 var addedGo = PrefabUtility.GetAddedGameObjects(src.gameObject);
                 if (addedGo != null && addedGo.Count > 0)
                     warnings.Add($"'{src.name}' 上有 {addedGo.Count} 個 added GameObject" +
-                                 "（實例額外加的節點），copyfrom 不會複製，請手動補");
+                                 $"（實例額外加的節點），{opName} 不會複製，請手動補");
                 var addedComp = PrefabUtility.GetAddedComponents(src.gameObject);
                 if (addedComp != null && addedComp.Count > 0)
                     warnings.Add($"'{src.name}' 上有 {addedComp.Count} 個 added Component，" +
-                                 "copyfrom 不會複製，請手動補");
+                                 $"{opName} 不會複製，請手動補");
                 var removed = PrefabUtility.GetRemovedComponents(src.gameObject);
                 if (removed != null && removed.Count > 0)
                     warnings.Add($"'{src.name}' 上有 {removed.Count} 個 removed Component，" +
@@ -238,7 +255,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 warnings.Add($"'{src.name}' override 盤點失敗：{e.GetType().Name}");
             }
 
-            return inst.transform;
+            return inst;
         }
 
         // ---------- 3) src -> copy 對照表 ----------
