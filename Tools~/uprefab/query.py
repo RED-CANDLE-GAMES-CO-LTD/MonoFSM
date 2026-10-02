@@ -375,6 +375,27 @@ def catalog_one(con, cls: str):
     return row
 
 
+def serial_find(con, keyword: str, limit: int = 20):
+    """名稱含 keyword（不分大小寫）的 [Serializable] plain class / struct。"""
+    try:
+        return con.execute(
+            "SELECT class, path, kw, bases, summary, fields FROM serial_types "
+            "WHERE class LIKE ? ORDER BY length(class), class LIMIT ?",
+            (f"%{keyword}%", limit)).fetchall()
+    except Exception:
+        return []
+
+
+def serial_one(con, cls: str):
+    """精確（不分大小寫）找 [Serializable] plain class / struct；同名多支檔案時全回。"""
+    try:
+        return con.execute(
+            "SELECT class, path, kw, bases, summary, fields FROM serial_types "
+            "WHERE class=? COLLATE NOCASE ORDER BY path", (cls,)).fetchall()
+    except Exception:
+        return []
+
+
 def catalog_list(con, kind=None, kinds=None, keyword=None, missing=False,
                  include_abstract=False, include_obsolete=False, limit=200):
     sql = ("SELECT class, path, kind, bases, is_abstract, is_obsolete, summary, "

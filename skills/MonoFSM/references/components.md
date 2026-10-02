@@ -158,10 +158,10 @@
 #### 時間基準：三邊必須一致
 
 三件套都有 `_useLevelSimulationTime` 開關：不勾 = 全域 `WorldUpdateSimulator.SimulationTime`，
-勾 = `LevelSimulationTime`（關卡開始為 0）。**三邊要勾一樣**，否則是拿兩個不同基準相減，
+勾 = `WorldUpdateSimulator.LevelSimulationTime`（關卡開始為 0）。**三邊要勾一樣**，否則是拿兩個不同基準相減，
 冷卻會算成完全錯誤的值，而且沒有任何錯誤訊息。沒有特殊需求就三邊都不勾。
 
-> 2026-08-29 之前 `SinceVarFloatTimeStampCondition` 硬寫全域 `SimulationTime`、沒有這個開關，
+> 2026-08-29 之前 `SinceVarFloatTimeStampCondition` 硬寫全域 `WorldUpdateSimulator.SimulationTime`、沒有這個開關，
 > 所以當時的結論是「同一顆時間戳無法同時餵給 condition 和 UI 顯示」。
 > 現在 condition 補上了開關、也有了 `TimeStampProgressValueSource` 直接吐 0~1，
 > **這個限制已解除**，不必再為了 UI 改走 state statusTimer 路線。
@@ -207,14 +207,14 @@
 - **凡需要 position / Transform 目標來源的欄位一律優先用它**，別再自己宣告 VarVector3 + Transform 手寫判斷
 - 無需 Init；`GetTargetPosition(fallback)` 取位置、`HasTarget` 判斷、`ActiveSource` 顯示來源
 - 詳見 `references/value-source.md`
-- 腳本路徑：`MonoFSM-Pro/Runtime/ValueSource/TargetPositionResolver.cs`
+- 腳本路徑：`MonoFSM/1_MonoFSM_Core/Runtime/0_Pattern/DataProvider/EntityProvider/ValueSource/TargetPositionResolver.cs`
 
 ### `Vec3HomingDirectionSource`
 - 繼承：`AbstractValueSource<Vector3>`，實作 `IUpdateSimulate`、`ISceneAwake`
 - 用途：追蹤導彈式方向計算（Slerp 慣性轉向）
 - `_turnSpeed`：轉向速度，越小弧度越大
 - 使用 `TargetPositionResolver` 解析目標位置
-- 腳本路徑：`MonoFSM-Pro/Runtime/ValueProvider/Vec3HomingDirectionSource.cs`
+- 腳本路徑：`MonoFSM-Pro/Runtime/ValueSource/Vec3HomingDirectionSource.cs`
 
 ### `NavMeshAgentMoveValueSource`
 - 繼承：`AbstractValueSource<Vector2>`

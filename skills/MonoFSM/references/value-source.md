@@ -145,11 +145,11 @@ public class VarStatBaseValueRef : AbstractValueSource<float>, IFloatProvider
 
 | 類別 | 用途 | 路徑 |
 |------|------|------|
-| `Vec3FromTransformPositionSource` | 靜態 Transform 位置 | `MonoFSM-Pro/Runtime/ValueProvider/Vec3FromTransformPositionSource.cs` |
-| `Vec3FromTransformRotationSource` | Transform forward 方向 | `MonoFSM-Pro/Runtime/ValueProvider/Vec3FromTransformRotationSource.cs` |
-| `Vec3AverageFromEntity` | 多 Entity 位置平均 | `MonoFSM-Pro/Runtime/ValueProvider/Vec3AverageFromEntity.cs` |
-| `Vec3ForceFromSplineRiver` | 河流物理力計算 | `MonoFSM-Pro/Runtime/ValueProvider/Vec3ForceFromSplineRiver.cs` |
-| `Vec3HomingDirectionSource` | 追蹤導彈式方向（Slerp 慣性轉向） | `MonoFSM-Pro/Runtime/ValueProvider/Vec3HomingDirectionSource.cs` |
+| `Vec3FromTransformPositionSource` | 靜態 Transform 位置 | `MonoFSM-Pro/Runtime/ValueSource/Vec3FromTransformPositionSource.cs` |
+| `Vec3FromTransformRotationSource` | Transform forward 方向 | `MonoFSM-Pro/Runtime/ValueSource/Vec3FromTransformRotationSource.cs` |
+| `Vec3AverageFromEntity` | 多 Entity 位置平均 | `MonoFSM-Pro/Runtime/ValueSource/Vec3AverageFromEntity.cs` |
+| `Vec3ForceFromSplineRiver` | 河流物理力計算 | `MonoFSM-Pro/Runtime/ValueSource/Vec3ForceFromSplineRiver.cs` |
+| `Vec3HomingDirectionSource` | 追蹤導彈式方向（Slerp 慣性轉向） | `MonoFSM-Pro/Runtime/ValueSource/Vec3HomingDirectionSource.cs` |
 
 ### Vec2 / Float 系列
 
@@ -157,8 +157,8 @@ public class VarStatBaseValueRef : AbstractValueSource<float>, IFloatProvider
 |------|------|------|
 | `Vec2MonoInputValueSource` | 玩家輸入 | `MonoFSM/MonoFSM_InputAction/InputAction/Vec2MonoInputValueSource.cs` |
 | `NavMeshAgentMoveValueSource` | NavMesh 導航方向（Vec2） | `MonoFSM-Pro/Runtime/NavMeshPro/NavMeshAgentMoveValueSource.cs` |
-| `FloatDisBetweenEntity` | 兩 Entity 間距離 | `MonoFSM-Pro/Runtime/ValueProvider/FloatDisBetweenEntity.cs` |
-| `Vector3FromFloatSource` | 從 Float 組合 Vec3 | `MonoFSM-Pro/Runtime/ValueProvider/Vector3FromFloatSource.cs` |
+| `FloatDistanceBetweenEntity` | 兩 Entity 間距離 | `MonoFSM-Pro/Runtime/ValueSource/FloatDistanceBetweenEntity.cs` |
+| `Vec3FromFloatSource` | 從 Float 組合 Vec3 | `MonoFSM-Pro/Runtime/ValueSource/Vec3FromFloatSource.cs` |
 
 ---
 
@@ -212,7 +212,7 @@ protected override void OnActionExecuteImplement()
 - 用 `IsValueExist` 判斷 runtime 有值，不是只檢查 Var 引用是否存在（引用存在 ≠ runtime 有值）
 - `GetTargetPosition` 的 `fallback` 參數偏鳥，呼叫前建議先用 `HasTarget` 擋掉無來源情形
 
-腳本路徑：`MonoFSM-Pro/Runtime/ValueSource/TargetPositionResolver.cs`
+腳本路徑：`MonoFSM/1_MonoFSM_Core/Runtime/0_Pattern/DataProvider/EntityProvider/ValueSource/TargetPositionResolver.cs`
 
 ---
 
@@ -299,4 +299,4 @@ _currentDirection = Vector3.Slerp(_currentDirection, toTarget, _turnSpeed * delt
 - 找不到則 fallback 到 entity 的 transform
 - 常用於需要取得角色「視覺位置」而非邏輯位置的場合
 
-腳本路徑：`MonoFSM-Pro/Runtime/ValueProvider/Vec3AverageFromEntity.cs`
+腳本路徑：`MonoFSM-Pro/Runtime/ValueSource/Vec3AverageFromEntity.cs`

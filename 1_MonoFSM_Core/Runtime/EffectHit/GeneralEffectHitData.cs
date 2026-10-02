@@ -21,6 +21,16 @@ namespace MonoFSM.Runtime.Interact.EffectHit
     }
 
     /// <summary>
+    /// render payload 帶回來的數值（由觸發端的 IRenderSyncAmountProvider 在寫 sync entry 時取好）。
+    /// HasAmount == false 代表沒帶，播放端要自己讀本機的值。
+    /// </summary>
+    public interface IRenderHitAmount
+    {
+        bool HasAmount { get; }
+        float Amount { get; }
+    }
+
+    /// <summary>
     /// 一次 effect 命中的完整資料包：誰打的（dealer / Source）、打到誰（receiver / Target）、
     /// 打在哪（hitPoint / hitNormal / hitDirection），以及**被打到的那顆 detect target**
     /// （<see cref="_receiverSourceObj" />）—— 一顆 Detectable 底下有多個部位時要靠它反查是哪一顆。

@@ -29,11 +29,12 @@ namespace MonoFSM.Editor.PrefabEditing
         // ---- scene 生命週期 ----
 
         /// <summary>
-        /// 建一個新 scene 並存檔（會取代目前開著的 scene；切換前先存所有 dirty scene，見 SaveDirtyOpenScenes）。
+        /// 建一個新 scene 並存檔（會取代目前開著的 scene；有 dirty scene 時預設拒絕，見 CheckDirtyOpenScenes）。
         /// </summary>
         /// <param name="scenePath">例：Assets/Scenes/Test.unity</param>
         /// <param name="withDefaults">true = 帶 Main Camera + Directional Light</param>
-        public static string NewScene(string scenePath, bool withDefaults = false)
+        /// <param name="saveDirty">true = 使用者明確同意，先存掉 dirty scene 再切</param>
+        public static string NewScene(string scenePath, bool withDefaults = false, bool saveDirty = false)
         {
             return Guard(() =>
             {
@@ -42,7 +43,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (Application.isPlaying)
                     throw new Abort("Play Mode 中不能建 scene");
 
-                var saved = SaveDirtyOpenScenes();
+                var saved = CheckDirtyOpenScenes(saveDirty);
 
                 var setup = withDefaults
                     ? NewSceneSetup.DefaultGameObjects
@@ -64,7 +65,7 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 會漏，而且漏掉的東西只會在 Play Mode 才炸。專案已經有現成模板
         /// （`Assets/1_Prototype/Module Test/Network FSM Template.unity`），複製它才對。
         /// </summary>
-        public static string CopyScene(string templatePath, string newScenePath)
+        public static string CopyScene(string templatePath, string newScenePath, bool saveDirty = false)
         {
             return Guard(() =>
             {
@@ -80,8 +81,8 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (AssetDatabase.LoadAssetAtPath<SceneAsset>(newScenePath) != null)
                     throw new Abort($"{newScenePath} 已存在，不覆蓋");
 
-                // 要在 CopyAsset 之前：Untitled 擋下來時不會留下一份複製到一半的 scene
-                var saved = SaveDirtyOpenScenes();
+                // 要在 CopyAsset 之前：dirty 擋下來時不會留下一份複製到一半的 scene
+                var saved = CheckDirtyOpenScenes(saveDirty);
 
                 EnsureDirectory(newScenePath);
                 if (!AssetDatabase.CopyAsset(templatePath, newScenePath))
@@ -95,7 +96,7 @@ namespace MonoFSM.Editor.PrefabEditing
             });
         }
 
-        public static string OpenScene(string scenePath)
+        public static string OpenScene(string scenePath, bool saveDirty = false)
         {
             return Guard(() =>
             {
@@ -103,7 +104,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     throw new Abort("Play Mode 中不能開 scene");
                 if (AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath) == null)
                     throw new Abort($"找不到 scene: {scenePath}");
-                var saved = SaveDirtyOpenScenes();
+                var saved = CheckDirtyOpenScenes(saveDirty);
                 var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
                 return $"{saved}開啟 {scene.path}（{scene.rootCount} 個 root）";
             });
@@ -254,7 +255,11 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (prop.propertyType != SerializedPropertyType.ObjectReference)
                     throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用");
 
-                prop.objectReferenceValue = AssetRef.Resolve(targetAssetPath, comp, fieldPath);
+                var resolved = AssetRef.Resolve(targetAssetPath, comp, fieldPath);
+                prop.objectReferenceValue = resolved;
+                if (resolved != null && prop.objectReferenceValue == null)
+                    throw new Abort(
+                        $"'{fieldPath}' 拒收 {resolved.GetType().Name}（{targetAssetPath}）：型別跟欄位宣告型別對不上，Unity 會靜默寫成 null");
                 so.ApplyModifiedPropertiesWithoutUndo();
                 Dirty();
                 return $"{nodePath}.{comp.GetType().Name}.{fieldPath} -> res:{targetAssetPath}";
@@ -274,6 +279,22 @@ namespace MonoFSM.Editor.PrefabEditing
                 Dirty();
                 return $"{nodePath}.{comp.GetType().Name}.{fieldPath}[{index}] " +
                        $"新增（現有 {prop.arraySize} 筆）";
+            });
+        }
+
+        /// <summary>刪陣列 / List 第 index 格（elementPath 寫 `field[i]` 或 `field.Array.data[i]`）。</summary>
+        public static string RemoveArrayElement(string nodePath, string componentType, string elementPath)
+        {
+            return Guard(() =>
+            {
+                EditResolve.SplitElementPath(elementPath, "delel", out var fieldPath, out var index);
+                var comp = CompAt(nodePath, componentType);
+                var so = new SerializedObject(comp);
+                var prop = EditResolve.Prop(so, fieldPath, comp);
+                var left = EditResolve.RemoveArrayElement(prop, index, fieldPath);
+                so.ApplyModifiedPropertiesWithoutUndo();
+                Dirty();
+                return $"{nodePath}.{comp.GetType().Name}.{fieldPath}[{index}] 刪除（剩 {left} 筆）";
             });
         }
 
@@ -593,7 +614,18 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 一次跑多行操作（語法見 EditBatch）。scene 一直開著，所以整批只付一次呼叫成本，
         /// 中間也不需要重複 load/save。
         /// </summary>
-        public static string Batch(string ops) => EditBatch.Run(ops, Dispatch);
+        public static string Batch(string ops) => EditBatch.Run(ops, Dispatch, out _, SceneSpace.Instance);
+
+        /// <summary>scene 版的路徑 ⇄ 節點換算（多 root、第一段是 root 名），給 mark / `$` 存節點用。</summary>
+        private sealed class SceneSpace : EditBatch.INodeSpace
+        {
+            internal static readonly SceneSpace Instance = new();
+
+            public Transform Resolve(string path, out string suggestion) =>
+                EditResolve.TryNodeInRootsExact(Roots(Active()), path, out suggestion);
+
+            public string PathOf(Transform node) => EditResolve.PathInRoots(Roots(Active()), node);
+        }
 
         private static string Dispatch(string verb, string[] a)
         {
@@ -628,6 +660,10 @@ namespace MonoFSM.Editor.PrefabEditing
                     return AddArrayElement(EditBatch.Need(a, 0, verb, "nodePath"),
                         EditBatch.Need(a, 1, verb, "componentType"),
                         EditBatch.Need(a, 2, verb, "fieldPath"));
+                case "delel":
+                    return RemoveArrayElement(EditBatch.Need(a, 0, verb, "nodePath"),
+                        EditBatch.Need(a, 1, verb, "componentType"),
+                        EditBatch.Need(a, 2, verb, "<field>[i]"));
                 case "pos":
                 {
                     var xyz = EditBatch.Need(a, 1, verb, "x,y,z").Split(',');
@@ -673,7 +709,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
                         "不認得的操作 '" + verb +
-                        "'。可用的：add prefab comp set ref aref addel pos rect active layer mv idx dup auto del delcomp save mark " +
+                        "'。可用的：add prefab comp set ref aref addel delel pos rect active layer mv idx dup auto del delcomp save mark " +
                         EditFsm.Verbs);
                 }
             }
@@ -704,9 +740,17 @@ namespace MonoFSM.Editor.PrefabEditing
                         ? ""
                         : "  <" + string.Join(" ", go.GetComponents<Component>()
                             .Where(c => c != null).Select(c => c.GetType().Name)) + ">";
+                    // 跟子節點同一套 `(prefab:res:…)` 後綴（HierarchyTextExporter），root 層才看得出是不是 prefab instance
+                    var prefabPart = "";
+                    if (PrefabUtility.IsAnyPrefabInstanceRoot(go))
+                    {
+                        var src = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(go);
+                        if (!string.IsNullOrEmpty(src))
+                            prefabPart = $" (prefab:res:{CompactValueFormatter.StripAssetsPrefix(src)})";
+                    }
                     sb.AppendLine(
                         $"  {(go.activeSelf ? "" : "~")}{go.name}  " +
-                        $"(+{EditResolve.CountDescendants(go.transform)} nodes){comps}");
+                        $"(+{EditResolve.CountDescendants(go.transform)} nodes){comps}{prefabPart}");
                 }
                 return PrefabTextReader.HardCap(sb.ToString(), charBudget);
             }
@@ -794,15 +838,20 @@ namespace MonoFSM.Editor.PrefabEditing
         // ---- 內部 ----
 
         /// <summary>
-        /// 用 Single 模式切 scene 之前呼叫：把所有 dirty 的已開 scene 存起來，回傳一行「存了哪些」
-        /// （沒東西要存回空字串）。Single 模式會直接丟掉沒存的改動、Editor 不會問 ——
-        /// 2026-09-29 `up scene copy` 就差點把使用者開著的 scene 改動丟掉。
+        /// 用 Single 模式切 scene 之前呼叫。Single 模式會直接丟掉沒存的改動、Editor 不會問。
         ///
-        /// 有 dirty 的 Untitled（沒路徑）scene 就整個 Abort、一個都不存：
-        /// 靜默存到某個自動路徑使用者找不到，丟掉又是資料遺失，只能交給人決定。
+        /// 預設（saveDirty=false）：有任何 dirty 的已開 scene 就 Abort —— 不切、不存，列出路徑。
+        /// 2026-09-29 版本是「自動存掉再切」，結果連兩天存了使用者故意不存的 scene
+        /// （`TestKCC Train Move`、`_Recovery/0_下山逃脫_July_lake 1.unity`）。dirty scene 是
+        /// 使用者的東西，存或不存只有使用者能決定，所以預設停下來交給人。
+        /// saveDirty=true（CLI `--save-dirty`）：使用者明確同意才照舊存完再切，回傳一行「存了哪些」。
+        ///
+        /// 刻意不提供 discard：丟掉就救不回來，CLI 不該有這個按鈕。
+        /// 有 dirty 的 Untitled（沒路徑）scene 不管 saveDirty 都整個 Abort：
+        /// 靜默存到某個自動路徑使用者找不到，丟掉又是資料遺失。
         /// 故意不用 SaveCurrentModifiedScenesIfUserWantsTo —— 它會跳對話框卡住 CLI。
         /// </summary>
-        private static string SaveDirtyOpenScenes()
+        private static string CheckDirtyOpenScenes(bool saveDirty)
         {
             var dirty = new List<Scene>();
             for (var i = 0; i < SceneManager.sceneCount; i++)
@@ -812,10 +861,22 @@ namespace MonoFSM.Editor.PrefabEditing
                 if (string.IsNullOrEmpty(s.path))
                     throw new Abort(
                         $"有未存檔的 Untitled scene（{(string.IsNullOrEmpty(s.name) ? "Untitled" : s.name)}），" +
-                        "它沒有路徑、不能自動存；切 scene 會把它丟掉。請在 Editor 裡先存（File > Save As）或手動關掉再重跑");
+                        "它沒有路徑、不能自動存；切 scene 會把它丟掉（--save-dirty 也救不了）。" +
+                        "請使用者在 Editor 裡先存（File > Save As）或手動關掉再重跑");
                 dirty.Add(s);
             }
             if (dirty.Count == 0) return "";
+
+            if (!saveDirty)
+            {
+                var sb = new StringBuilder();
+                sb.Append($"Editor 裡有 {dirty.Count} 個未存檔的 scene，沒有切 scene、也沒有替使用者存：");
+                foreach (var s in dirty) sb.Append($"\n  - {s.path}");
+                sb.Append("\n  這是使用者的改動，存不存要使用者決定（可能是故意不存的）：" +
+                          "請使用者在 Editor 自己存（Cmd+S）或放棄改動後再重跑；" +
+                          "使用者明確說要存，才重跑同一條指令加 --save-dirty");
+                throw new Abort(sb.ToString());
+            }
 
             var names = new List<string>(dirty.Count);
             foreach (var s in dirty)
@@ -824,7 +885,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     throw new Abort($"切 scene 前存檔失敗：{s.path}（沒有切 scene）");
                 names.Add(s.path);
             }
-            return $"切換前已存檔 {names.Count} 個 dirty scene：{string.Join("、", names)}\n";
+            return $"切換前已存檔 {names.Count} 個 dirty scene（--save-dirty）：{string.Join("、", names)}\n";
         }
 
         private static Scene Active()

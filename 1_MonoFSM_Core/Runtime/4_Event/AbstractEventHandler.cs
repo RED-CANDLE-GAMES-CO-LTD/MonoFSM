@@ -81,6 +81,26 @@ namespace MonoFSM.Core
         //FIXME: 要有篩選機制？靠Drawer去找囉？
         private AbstractEntitySource[] _entityProviders;
 
+        /// <summary>
+        /// render sync（hub / 1:1）寫 entry 時呼叫：問直屬 render action 裡第一顆啟用中的
+        /// IRenderSyncAmountProvider 要數值。呼叫點在 EventHandleImplement 的 simulate actions 之前，
+        /// 所以讀得到這次 hit 的 hitEntity，也還沒被同一顆 event 底下的 despawn / consume 改掉。
+        /// </summary>
+        public bool TryGetRenderSyncAmount(out float amount)
+        {
+            amount = 0f;
+            if (_renderActions == null)
+                return false;
+            for (var i = 0; i < _renderActions.Length; i++)
+            {
+                var action = _renderActions[i];
+                if (action is IRenderSyncAmountProvider provider && action.isActiveAndEnabled)
+                    return provider.TryGetRenderSyncAmount(out amount);
+            }
+
+            return false;
+        }
+
         public void EnterRenderInvoke()
         {
             _lastRenderEventTime = Time.time;

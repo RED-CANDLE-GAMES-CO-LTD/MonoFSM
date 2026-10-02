@@ -39,6 +39,17 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
 
         [AutoParent] private Animator _bindAnim;
         [AutoParent] private Rigidbody _bindRb;
+
+        /// <summary>
+        /// 跟 <see cref="Root" /> 一樣，但 edit-time 會先補解析 AutoParent 欄位（editor 下沒點開 Inspector 前是 null，Root 會退成自己）。
+        /// runtime 等同 Root（AutoReferenceFieldEditor 是 Conditional UNITY_EDITOR，play 中也直接 return）。
+        /// </summary>
+        public Transform ResolveRoot()
+        {
+            AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_bindRb));
+            AutoAttributeManager.AutoReferenceFieldEditor(this, nameof(_bindAnim));
+            return Root;
+        }
         protected override bool IsIgnoreRename => true;
 
         // protected override void Awake()
@@ -355,7 +366,8 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
         readonly System.Collections.Generic.List<Collider> _collidersDisabledOnMount = new();
 
         /// <summary>
-        /// 關掉 root 底下所有 enabled 的 collider，並記錄起來供 Unmount 還原
+        /// 關掉 root 底下所有 enabled 的 collider，並記錄起來供 Unmount 還原。
+        /// 同一個 GameObject 掛了 KeepColliderOnMount 的 collider 會被跳過（mount 中也要能被碰到的 trigger）。
         /// </summary>
         public void DisableCollidersForMount(Transform root)
         {
@@ -363,6 +375,7 @@ namespace _1_MonoFSM_Core.Runtime.MonoData
             foreach (var col in root.GetComponentsInChildren<Collider>())
             {
                 if (!col.enabled) continue;
+                if (col.TryGetComponent<KeepColliderOnMount>(out _)) continue;
                 col.enabled = false;
                 _collidersDisabledOnMount.Add(col);
             }

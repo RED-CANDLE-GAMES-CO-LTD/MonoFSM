@@ -295,7 +295,18 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 使用者退出按 Discard / 或 stage 之後被存檔，都會用 stage 那份舊內容整份蓋回，
         /// do 的改動無聲消失（2026-09-16 實際發生）。拒絕比事後警告可靠 —— 事後 agent 已經回報完成了。
         /// </summary>
-        public static string Batch(string assetPath, string ops, bool quiet, bool force)
+        public static string Batch(string assetPath, string ops, bool quiet, bool force) =>
+            Batch(assetPath, ops, quiet, force, false);
+
+        /// <summary>
+        /// dryRun=true：整批照跑在 LoadPrefabContents 的記憶體副本上（含 copyfrom 收尾、存檔前 callback、
+        /// revert），錯誤訊息跟真跑一模一樣，但**不 SaveAsPrefabAsset**，最後直接 Unload 丟掉。
+        /// 沒存檔就沒有 reload 驗證（`auto` 的「存檔後有沒有變成 override」只有真跑才驗得到）。
+        ///
+        /// 為什麼要：以前 `--dry-run` 只有 swap-script 吃，`do` 被 argparse 收下卻默默忽略，
+        /// 2026-09-25 有 agent 當試跑用，結果直接存檔。
+        /// </summary>
+        public static string Batch(string assetPath, string ops, bool quiet, bool force, bool dryRun)
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(assetPath) == null)
                 return $"# 找不到 prefab: {assetPath}";
@@ -305,13 +316,17 @@ namespace MonoFSM.Editor.PrefabEditing
             if (stage != null && stage.assetPath == assetPath)
             {
                 var dirty = stage.scene.isDirty ? "（stage 有未存的改動）" : "";
-                if (!force)
+                if (dryRun)
+                    // 不寫檔就不會跟 stage 互蓋，不用擋；但 stage 未存的改動不在這次試跑的內容裡，要講
+                    stageNote = $"# 注意：這支 prefab 正開在 Prefab Mode{dirty}，dry-run 跑的是磁碟上的版本\n";
+                else if (!force)
                     return $"# 未修改：這支 prefab 正開在 Prefab Mode{dirty}。" +
                            "stage 跟 do 是兩份內容，之後 stage 一存檔或退出按 Discard 就會把這次改動整份蓋掉。" +
                            "請使用者先在 Editor 存檔並關掉 Prefab Mode 再跑，或加 --force 硬寫" +
                            "（stage 有未存改動時不要 --force，那份舊內容遲早會蓋回來）。\n";
-                stageNote = $"# ⚠ --force：這支 prefab 正開在 Prefab Mode{dirty}，" +
-                            "stage 之後被存檔或退出按 Discard 會蓋掉這次改動\n";
+                else
+                    stageNote = $"# ⚠ --force：這支 prefab 正開在 Prefab Mode{dirty}，" +
+                                "stage 之後被存檔或退出按 Discard 會蓋掉這次改動\n";
             }
 
             var root = PrefabUtility.LoadPrefabContents(assetPath);
@@ -323,9 +338,11 @@ namespace MonoFSM.Editor.PrefabEditing
             try
             {
                 var log = EditBatch.Run(
-                    ops, (verb, a) => Dispatch(root.transform, verb, a, touches, reverts), out var done);
+                    ops, (verb, a) => Dispatch(root.transform, verb, a, touches, reverts), out var done,
+                    new EditBatch.PrefabSpace(root.transform));
                 // 有任何一行失敗就整批不存檔 —— 半套的 FSM 比沒改更難收拾
-                if (log.Contains("# 未修改")) return log + "# 整批未存檔。";
+                if (log.Contains("# 未修改"))
+                    return stageNote + log + (dryRun ? "# dry-run：停在失敗那行，未存檔。" : "# 整批未存檔。");
 
                 // copyfrom：兩棵互指的子樹第一輪必然解不到引用，整批跑完再解一次。
                 // 一定要排在 UnloadAll 之前（來源物件還在才算得出路徑）。
@@ -334,6 +351,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 // 若被序列化出去會變成指向另一個 preview scene 的壞引用。
                 EditCopy.UnloadAll();
 
+                guard.SnapshotNames(root.transform); // 警告行要能標出「這顆是被自動命名改名的」
                 var callbackLog = RunBeforeSaveCallbacks(root);
                 // revert 一定要排在 callback 之後：OnBeforePrefabSave 會重跑 [Auto*] 之類的
                 // 填值邏輯，在 callback 之前清掉的 override 會被它原封不動寫回來。
@@ -341,6 +359,17 @@ namespace MonoFSM.Editor.PrefabEditing
                 // auto 的 expected 以「存檔前一刻」的 in-memory 值為準：callback 可能又重綁過，
                 // 而存檔後再取會被「沒成為 override 的寫入」洗回 base 值（驗證就失去意義）。
                 foreach (var touch in touches) touch.RepinBeforeSave();
+                if (dryRun)
+                {
+                    var dryPrefix = quiet && !callbackLog.Contains("個失敗") && !revertLog.Contains("失敗") &&
+                                    !copyLog.Contains("解不掉")
+                        ? ""
+                        : log;
+                    return stageNote + dryPrefix + copyLog + callbackLog + revertLog +
+                           $"# dry-run：{done} 個操作 OK，未存檔（記憶體副本已丟掉）\n" +
+                           "# reload 驗證跳過：沒存檔就沒有存檔後的版本可比（auto 會不會變成 override 只有真跑才知道）\n";
+                }
+
                 var saved = PrefabUtility.SaveAsPrefabAsset(root, assetPath, out var saveOk);
                 if (!saveOk || saved == null)
                     return log + copyLog + callbackLog + revertLog + $"# 存檔失敗：{assetPath}\n";
@@ -391,10 +420,19 @@ namespace MonoFSM.Editor.PrefabEditing
             // 專案裡幾乎每個 MonoBehaviour 都實作這個介面，逐個列名字會洗掉整份 log，
             // 所以只報數量；出錯的才點名，那才是要看的東西。
             var ok = 0;
+            var removed = 0;
             var failed = new List<string>();
             foreach (var receiver in receivers)
             {
-                if (receiver == null) continue;
+                // receivers 是開跑前的快照，前面的 callback 可能把後面的元件 destroy 掉
+                // （NetworkAutoSuggestVarSyncComp.ReconcileSyncs 會換掉 sync 元件）。
+                // interface 型別的 `receiver == null` 不走 UnityEngine.Object 的 == overload，
+                // destroy 掉的照樣通過，所以要轉回 Object 再判斷。
+                if (receiver is UnityEngine.Object o && o == null)
+                {
+                    removed++;
+                    continue;
+                }
                 try
                 {
                     receiver.OnBeforePrefabSave();
@@ -408,6 +446,7 @@ namespace MonoFSM.Editor.PrefabEditing
             }
 
             return $"# 存檔前 callback：{ok} 個 OK" +
+                   (removed > 0 ? $"，已被前面的 callback 移除 {removed} 個" : "") +
                    (failed.Count > 0 ? $"，{failed.Count} 個失敗 -> {string.Join("; ", failed)}" : "") +
                    "\n";
         }
@@ -641,11 +680,16 @@ namespace MonoFSM.Editor.PrefabEditing
                     var prop = EditResolve.Prop(so, fieldPath, comp);
                     if (prop.propertyType != SerializedPropertyType.ObjectReference)
                         throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用");
-                    prop.objectReferenceValue = AssetRef.Resolve(target, comp, fieldPath);
+                    var resolved = AssetRef.Resolve(target, comp, fieldPath);
+                    prop.objectReferenceValue = resolved;
+                    if (resolved != null && prop.objectReferenceValue == null)
+                        throw new Abort(
+                            $"'{fieldPath}' 拒收 {resolved.GetType().Name}（{target}）：型別跟欄位宣告型別對不上，Unity 會靜默寫成 null");
                     so.ApplyModifiedPropertiesWithoutUndo();
                     touches.RemoveAll(t => t.IsSameSerializedField(comp, fieldPath)); // 同批重寫同欄位：最後一次寫入才是 expected
                     touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
-                    return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> res:{target}";
+                    return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath} -> " +
+                           (prop.objectReferenceValue == null ? "null" : $"res:{target}");
                 }
                 case "addel":
                 {
@@ -662,6 +706,22 @@ namespace MonoFSM.Editor.PrefabEditing
                     touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
                     return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}[{index}] " +
                            $"新增（現有 {prop.arraySize} 筆）";
+                }
+                case "delel":
+                {
+                    // delel|<node>|<comp>|<field>[i]：刪第 i 格、後面往前補。node 留空 = root
+                    var nodePath = EditBatch.At(a, 0);
+                    EditResolve.SplitElementPath(EditBatch.Need(a, 2, verb, "<field>[i]"), verb,
+                        out var fieldPath, out var index);
+                    var comp = EditResolve.Comp(EditResolve.Node(root, nodePath), nodePath,
+                        EditBatch.Need(a, 1, verb, "componentType"));
+                    var so = new SerializedObject(comp);
+                    var prop = EditResolve.Prop(so, fieldPath, comp);
+                    var left = EditResolve.RemoveArrayElement(prop, index, fieldPath);
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                    touches.RemoveAll(t => t.IsSameSerializedField(comp, fieldPath));
+                    touches.Add(VerifyTouch.Serialized(comp, fieldPath, verb));
+                    return $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}.{fieldPath}[{index}] 刪除（剩 {left} 筆）";
                 }
                 case "revert":
                 {
@@ -789,18 +849,23 @@ namespace MonoFSM.Editor.PrefabEditing
                 {
                     var nodePath = EditBatch.Need(a, 0, verb, "nodePath");
                     var newParentPath = EditBatch.At(a, 1);
+                    //第三格 world = 保留 world pose（換 parent 但模型不要跑位）；預設保留 local pose
+                    var mode = EditBatch.At(a, 2);
+                    var keepWorld = mode == "world";
+                    if (!string.IsNullOrEmpty(mode) && !keepWorld)
+                        throw new Abort($"mv 第三格只收 'world'（保留 world pose），收到 '{mode}'");
                     var node = EditResolve.Node(root, nodePath);
                     if (string.IsNullOrEmpty(newParentPath))
                     {
-                        node.SetParent(root, false);
-                        return $"{nodePath} -> (root)";
+                        node.SetParent(root, keepWorld);
+                        return $"{nodePath} -> (root){(keepWorld ? " [world]" : "")}";
                     }
 
                     var parent = EditResolve.Node(root, newParentPath);
                     if (parent.IsChildOf(node))
                         throw new Abort($"'{newParentPath}' 在 '{nodePath}' 底下，會造成迴圈");
-                    node.SetParent(parent, false);
-                    return $"{nodePath} -> {newParentPath}/{node.name}";
+                    node.SetParent(parent, keepWorld);
+                    return $"{nodePath} -> {newParentPath}/{node.name}{(keepWorld ? " [world]" : "")}";
                 }
                 case "copyfrom":
                 {
@@ -918,7 +983,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     var ctx = new EditFsm.Ctx { Node = p => EditResolve.Node(root, p) };
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
-                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel revert pos rect scale rot active layer idx mv copyfrom auto rename del delcomp delmissing invoke mark " +
+                        $"prefab batch 不支援 '{verb}'。可用的：add comp set ref aref addel delel revert pos rect scale rot active layer idx mv copyfrom auto rename del delcomp delmissing invoke mark " +
                         EditFsm.Verbs + "（save / dup 只有 scene do 有；prefab 裡要複製子樹用 copyfrom）");
                 }
             }

@@ -1,4 +1,4 @@
-﻿/* Author: Oran Bar
+/* Author: Oran Bar
  * Summary: This attribute automatically assigns a class variable to one of the gameobject's components; if nothing is found, it will continue to look for it going down the scene hiearchy (children).
  * It acts as the equivalent of a GetComponentInChildren call done in Awake.
  * Components that Auto has not been able to find are logged as errors in the console.
@@ -51,6 +51,13 @@ public class AutoChildrenAttribute : AutoFamilyAttribute
     /// </summary>
     public bool IncludeStopNode = false;
 
+    /// <summary>
+    /// 搭配 <see cref="StopAtType"/>（只影響單一欄位）：邊界內找不到時，退回不設邊界的 GetComponentInChildren。
+    /// 給「自己沒有、本來就借子樹裡那顆」的舊資料留後路（例：entity 自己沒有 SchemaFolder，用 Modules 底下 pack 的）。
+    /// 邊界內有就一定用邊界內的，不會被子樹搶走。
+    /// </summary>
+    public bool FallbackUnboundedIfMissing = false;
+
     public AutoChildrenAttribute(bool logMissingAsError = false)
         : base(logMissingAsError) { }
 
@@ -79,7 +86,10 @@ public class AutoChildrenAttribute : AutoFamilyAttribute
         if (StopAtType != null)
         {
             var targetType = LimitedType ?? componentType;
-            return CollectWithBoundarySingle(mb.transform, targetType, StopAtType, IncludeStopNode, isRoot: true);
+            var scoped = CollectWithBoundarySingle(mb.transform, targetType, StopAtType, IncludeStopNode, isRoot: true);
+            if (scoped != null || !FallbackUnboundedIfMissing)
+                return scoped;
+            return mb.GetComponentInChildren(targetType, includeInactive);
         }
 
         var result = mb.GetComponentInChildren(LimitedType ?? componentType, includeInactive);

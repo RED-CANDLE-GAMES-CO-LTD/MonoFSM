@@ -32,10 +32,17 @@ KIND_ROOTS = {
 _DECL_RE_CACHE: dict[str, re.Pattern] = {}
 
 # `[SerializeField] private Foo _bar;` / `public Foo bar;`（含泛型與陣列）
+# attribute 可以跨行（Tooltip 用 `+` 接好幾行字串），字串裡的 `]` 不算結尾；
+# attribute 之間夾 `//` 註解行（`// [TypeFilter()]` 這種註解掉的）也要跳過，
+# 不然 attrs 鏈斷掉，前面的 [SerializeField] 就看不到了。
+_ATTR_PAT = r'\[(?:"(?:[^"\\\n]|\\.)*"|[^\]"])*\]'
+_COMMENT_LINE_PAT = r"//[^\n]*\n"
 FIELD_RE = re.compile(
-    r"^[ \t]*(?P<attrs>(?:\[[^\]\n]*\][ \t\r\n]*)*)"
-    r"(?P<mods>(?:public|private|protected|internal|readonly|static|new)[ \t]+)*"
-    r"(?P<type>[\w.]+(?:\s*<[^;=<>]*>)?(?:\[\])?)[ \t]+"
+    r"^[ \t]*(?P<attrs>(?:(?:" + _ATTR_PAT + "|" + _COMMENT_LINE_PAT + r")[ \t\r\n]*)*)"
+    r"(?P<mods>(?:public|private|protected|internal|readonly|static|new)\s+)*"
+    # 型別和名稱之間允許換行：Rider 把太長的行（多半是尾巴掛了長註解）折成
+    # `public VarEntity\n    _foo; //...`，[ \t]+ 會整個漏掉（SpawnAction._spawnedEntityVar 那次）
+    r"(?P<type>[\w.]+(?:\s*<[^;=<>]*>)?(?:\[\])?)\s+"
     r"(?P<name>[A-Za-z_]\w*)[ \t]*(?P<tail>[;={])",
     re.M,
 )
@@ -100,6 +107,31 @@ def _obsolete_above(lines: list[str], start: int, idx: int) -> bool:
     """
     return any("Obsolete" in lines[i] for i in range(start, idx + 1)
                if ATTR_LINE_RE.match(lines[i]))
+
+
+def _skip_noise_up(lines: list[str], idx: int) -> int:
+    """從 idx 往上跳過 attribute 行與一般 `//` 註解行（不含 `///`），回傳停下來的位置。"""
+    i = idx
+    while i > 0:
+        ln = lines[i - 1]
+        if ATTR_LINE_RE.match(ln) or (COMMENT_LINE_RE.match(ln) and not ln.lstrip().startswith("///")):
+            i -= 1
+            continue
+        break
+    return i
+
+
+def _doc_above_class(lines: list[str], start: int) -> tuple[str, bool]:
+    """`_doc_above` 的外層：`/// <summary>` 跟宣告之間夾了 `//FIXME`、`// [RequireComponent(...)]`
+    之類的一般註解或 attribute 行時，跳過它們再找 summary（2026-09-25 GeneralEffectReceiver /
+    FusionBootstrapEditorOverride 被誤判成 ⚠無說明）。上面沒有 `///` 才退回原本的
+    「緊貼宣告的 `//` 註解當說明」。"""
+    doc_start = _skip_noise_up(lines, start)
+    if doc_start != start:
+        text, is_doc = _doc_above(lines, doc_start)
+        if is_doc:
+            return text, True
+    return _doc_above(lines, start)
 
 
 def _doc_above(lines: list[str], idx: int) -> tuple[str, bool]:
@@ -170,12 +202,14 @@ def _parse_fields(body: str) -> list[dict]:
     """抽 serialized 欄位。只收 `[SerializeField]` 私有欄位與 public 欄位。"""
     fields = []
     for m in FIELD_RE.finditer(body):
-        if m.group("tail") == "{":
-            continue  # property / 方法
+        if m.group("tail") == "{" or body[m.end():m.end() + 1] == ">":
+            continue  # property / 方法 / `=>` expression-bodied property
         typ = m.group("type").strip()
         if typ.split("<")[0].split("[")[0] in NON_FIELD_TYPES:
             continue
-        attrs_raw = m.group("attrs") or ""
+        # 夾在 attribute 之間的 `//` 註解行先拿掉（註解掉的 `// [SerializeField]` 不算數）
+        attrs_raw = "\n".join(ln for ln in (m.group("attrs") or "").split("\n")
+                              if not ln.lstrip().startswith("//"))
         mods = (m.group("mods") or "").strip()
         attrs = set(ATTR_RE.findall(attrs_raw))
         is_public = mods.startswith("public")
@@ -240,7 +274,7 @@ def parse_file(path: str, text: str) -> dict | None:
     all_lines = text.split("\n")
     idx = len(text[: m.start()].split("\n")) - 1
     start = _skip_attrs_up(all_lines, idx)
-    summary, is_doc = _doc_above(all_lines, start)
+    summary, is_doc = _doc_above_class(all_lines, start)
     body = _class_body(text, m.end())
     return {
         "class": stem,
@@ -262,23 +296,75 @@ def iter_cs_paths(root: str):
                 yield os.path.relpath(os.path.join(dirpath, fn), root)
 
 
-def parse_one(root: str, rel: str):
-    """讀單一 .cs：回傳 (info | None, 該檔所有 class 的 base 表)。"""
+# catalog 的解析規則版本。改了 parse_file / _doc_above* / parse_serializables 的判斷時 +1，
+# indexer 看到版本不同就整批重建一次（增量只看 .cs 的 mtime/size，規則變了它察覺不到）。
+#   2：summary 跳過夾在中間的 `//` / attribute 行；新增 serial_types（[Serializable] plain class / struct）；
+#      `public bool X => …` 不再被當成欄位
+#   3：FIELD_RE 允許修飾字 / 型別 / 名稱之間換行、attribute 跨行、attribute 之間夾 `//` 註解行
+#      （這三種寫法的欄位以前整個漏掉，catalog 比 up fields 少列）
+PARSER_VERSION = 3
+
+SERIAL_DECL_RE = re.compile(
+    r"^[ \t]*(?P<attrs>(?:\[[^\]\n]*\][ \t]*)*)"
+    r"(?:(?:public|internal|private|protected|abstract|sealed|partial|static|readonly)[ \t]+)*"
+    r"(?P<kw>class|struct)\s+(?P<name>\w+)\s*(?:<[^{:\n]*>)?\s*(?P<bases>:[^{]*)?",
+    re.M,
+)
+SERIALIZABLE_RE = re.compile(r"\[\s*(?:System\.)?Serializable(?:Attribute)?\s*[\],(]")
+
+
+def parse_serializables(rel: str, text: str) -> list[dict]:
+    """同檔裡掛 `[Serializable]` 的 class / struct（不論名字是不是檔名）。
+
+    這些不是 component，是別的 component 序列化欄位的型別（例：AbstractConditionBehaviour.cs 的
+    ConditionGroup）。Unity 端 `up types` 只列 Component，查不到就會讓 agent 以為型別不存在、
+    另外造一顆重複的 component —— 所以離線補一張表給 `up types` / `up fields` 用。
+    """
+    if "Serializable" not in text:
+        return []
+    lines = text.split("\n")
+    out = []
+    for m in SERIAL_DECL_RE.finditer(text):
+        idx = len(text[: m.start()].split("\n")) - 1
+        start = _skip_attrs_up(lines, idx)
+        attrs = m.group("attrs") + "".join(lines[start:idx])
+        if not SERIALIZABLE_RE.search(attrs):
+            continue
+        summary, _ = _doc_above_class(lines, start)
+        out.append({
+            "class": m.group("name"),
+            "path": rel,
+            "kw": m.group("kw"),
+            "bases": _parse_bases(m.group("bases")),
+            "summary": summary,
+            "fields": _parse_fields(_class_body(text, m.end())),
+        })
+    return out
+
+
+def parse_one(root: str, rel: str, serial_out: dict | None = None):
+    """讀單一 .cs：回傳 (info | None, 該檔所有 class 的 base 表)。
+
+    serial_out 不是 None 時順便把 `parse_serializables` 的結果存進 serial_out[rel]
+    （同一份文字只讀一次，不另開一輪全庫掃描）。
+    """
     try:
         text = open(os.path.join(root, rel), encoding="utf-8", errors="replace").read()
     except OSError:
         return None, {}
+    if serial_out is not None:
+        serial_out[rel] = parse_serializables(rel, text) if ("class " in text or "struct " in text) else []
     if "class " not in text:
         return None, {}
     return parse_file(rel, text), parse_bases_of_all(text)
 
 
-def scan(root: str, paths: list[str] | None = None):
+def scan(root: str, paths: list[str] | None = None, serial_out: dict | None = None):
     """掃 .cs 產出 catalog 列。paths 為 None 時掃全庫。"""
     if paths is None:
         paths = list(iter_cs_paths(root))
     for rel in paths:
-        info, bases = parse_one(root, rel)
+        info, bases = parse_one(root, rel, serial_out)
         if not bases and info is None:
             continue
         yield info, rel, bases
@@ -363,7 +449,8 @@ def rows_to_tuples(rows: dict[str, dict], all_bases: dict[str, list[str]]) -> li
     return out
 
 
-def build_rows(root: str, per_file_bases: dict | None = None) -> list[tuple]:
+def build_rows(root: str, per_file_bases: dict | None = None,
+               serial_out: dict | None = None) -> list[tuple]:
     """全庫掃描版（`up index --rebuild` 用）。
 
     傳入 per_file_bases 時順便把「每支檔案宣告了哪些 class、各自的 base」帶出來，
@@ -371,7 +458,7 @@ def build_rows(root: str, per_file_bases: dict | None = None) -> list[tuple]:
     """
     rows: dict[str, dict] = {}
     all_bases: dict[str, list[str]] = {}
-    for info, rel, bases in scan(root):
+    for info, rel, bases in scan(root, serial_out=serial_out):
         if per_file_bases is not None:
             per_file_bases[rel] = bases
         for name, bs in bases.items():

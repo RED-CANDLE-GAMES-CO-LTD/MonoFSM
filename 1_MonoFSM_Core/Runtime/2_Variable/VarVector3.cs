@@ -4,8 +4,11 @@ using UnityEngine;
 
 namespace MonoFSM.Variable
 {
+    /// <summary>
+    /// Vector3 的 [Var]，常拿來裝方向或位置（例：move action 的 _moveDirOutput / _faceDirOutput 給 SimpleChController 吃）。
+    /// </summary>
     public class VarVector3
-        : AbstractFieldVariable<GameDataVector3, FlagFieldVector3, Vector3>
+        :AbstractFieldVariable<GameDataVector3, FlagFieldVector3, Vector3>
     {
         public override string ValueInfo => CurrentValue.ToString();
         public override bool IsDrawingValueInfo => true;

@@ -136,7 +136,7 @@ GeneralEffectReceiver.OnEffectHitBestMatchEnter          Resolver/GeneralEffectR
 - 既有範例：`Assets/0_Gameplay/0_Network Modules/Plug/[Entity] Socket for Plug 插座 (Receiver).prefab`
   的 `[Receiver] d_plug_Socketing/[Event] EffectEnterBestMatchNode/[Var] d_plug_Socketing hitEntity`
   （同一顆 var 也被 `[Event] EffectEnterNode._hittingEntity` 共用）；
-  `Assets/0_Gameplay/0_Network Modules/[Part] 螺絲.prefab` 的螺絲起子提示分支。
+  `Assets/0_Gameplay/0_Network Modules/[Part] 螺絲 Screw.prefab` 的螺絲起子提示分支。
 
 ## EffectHitTarget 共用 Enum
 
@@ -166,21 +166,16 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 
 **不要在各 Action 中重複定義 `{ Dealer, Receiver }` enum，統一使用 `EffectHitTarget`。**
 
-## 通用 Action：VariableTransferAction
+## 通用 Action：VarFloatEffectApplyAction
 
-透過 `VariableTag` 跨實體傳輸 VarFloat 值，放在 `EffectEnterNode` 下使用。
+透過 `VariableTag` 跨實體傳輸 VarFloat 值，放在 `EffectEnterNode` 下使用（舊名 VariableTransferAction）。
+欄位與型別用 `up fields VarFloatEffectApplyAction` 看，這裡只記怎麼想：
 
-- 繼承：`AbstractArgEventHandler<GeneralEffectHitData>`
-- `_direction`：`DealerToReceiver`（預設）或 `ReceiverToDealer`
-  - DealerToReceiver：從 Dealer entity 取 source → 應用到 Receiver entity
-  - ReceiverToDealer：從 Receiver entity 取 source → 應用到 Dealer entity
-- `_sourceVarTag`：`[SOConfig("VariableType")] VariableTag`，來源 VarFloat 的 tag（null 時用固定值）
-- `_sourceValue`：`VarFloatWrapper`，當 `_sourceVarTag` 為 null 時使用的固定值
-- `_targetVarTag`：`[SOConfig("VariableType")] VariableTag`，目標 VarFloat 的 tag
-- `_operation`：`Add` / `Subtract` / `Set`
-- `_multiplier`：float，傳輸時的乘數
-- `_allowSelfTransfer`：bool，是否允許 Dealer == Receiver 時傳輸
-- 腳本路徑：`MonoFSM-Pro/Runtime/EnemySystem/VariableTransferAction.cs`
+- `_direction` 決定誰是 source：`DealerToReceiver`（預設，傷害類）從 Dealer entity 取值套到 Receiver；
+  `ReceiverToDealer`（吸血、收集類）反過來
+- source / target 各自用 VariableTag 指對方 entity 上的 VarFloat；source tag 留空就用本地固定值
+- `_operation` 是 Add / Subtract / Set，再乘 `_multiplier`
+- 跟 `VarFloatTransferAction`（Core）不同：那顆是 state action，在兩個直接指定的 VarFloat 之間定量轉移，不吃 EffectHit
 
 **使用範例**：燃煤器 Dealer 偵測到煤炭 Receiver，`ReceiverToDealer` + `Add` 把煤炭的燃燒值加到燃煤器的 Fuel。
 
@@ -196,7 +191,7 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 
 ### 為什麼一定要那顆 kinematic Rigidbody
 
-`TriggerDetectorSource`（`MonoFSM/1_MonoFSM_Core/Runtime/Detection/TriggerDetectorSource.cs`）用
+`TriggerDetectorSource`（`MonoFSM/MonoFSM_Physics/Runtime/Interact/SpatialDetection/TriggerDetectorSource.cs`）用
 `OnTriggerStay` 收集 collider，而 Unity 的 trigger 事件在**兩邊都是 static collider 時完全不觸發**。
 所以在靜態物件上手刻 `[Detector] X` 去打另一個靜態物件的 `EffectDetectable` 時，dealer 的
 `HasReceiverOverlap` 永遠是 false，且**不會有任何錯誤訊息**。

@@ -147,6 +147,7 @@ network state 或 authority。
 |------|------|
 | **nested MonoObj 獨立更新** | 每顆 nested MonoObj 都要註冊；StopAtType 讓各 scope 不重複收集 loop component |
 | **Proxy 的 logic / visual 分流** | `Simulate` 由 `ShouldSimulte`（State/Input Authority）擋；`Render` 不吃 authority gate，所以 non-simulated proxy 也能更新本機視覺 |
+| **同一顆 MonoObj 底下的 FSM 依序跑完，前一台寫的值後一台當 tick 就讀得到** | `MonoObj.Simulate` 對 `_updateSimulates` 一顆一顆叫；每台 FSM 在自己那次 Simulate 裡就把 transition 判斷 → OnStateExit → OnStateEnter 的 action 同步跑完，才換下一台。condition / getter 也沒有 per-tick 快取。所以「多台輪流、看對方狀態」（例：掛貨滑索三台車用 root 一顆「上一台出發時間」錯開出車）不用怕同 tick 一起觸發。前提是同一顆 MonoObj（不同 MonoObj 之間的順序沒保證）、action 沒掛 `DelayActionModifier` |
 | **IsReady 檢查** | WorldUpdateSimulator 在 `WorldInit()` 後才開始更新 |
 | **TimeScale** | 透過 `WorldUpdateSimulator.DeltaTime` 取得含 TimeScale 的 deltaTime |
 | **Simulate vs Render** | local 為 FixedUpdate/LateUpdate；Fusion 為 FixedUpdateNetwork/Render。不要把 Render 寫成依賴 local camera 的 authoritative logic |

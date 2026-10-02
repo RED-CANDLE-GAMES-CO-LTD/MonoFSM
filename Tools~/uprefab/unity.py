@@ -46,6 +46,23 @@ BUSY_MAYBE_RAN = (
 )
 BUSY_RETRIES = 10
 BUSY_WAIT = 3.0
+# BUSY_NOT_RUN（別的 session 正在用 execute-dynamic-code）用指數 backoff：多數 up 呼叫一秒內就
+# 跑完，固定等 3s 太浪費；但別人的 prefab read / play 等待可能十幾秒，所以短的試完之後封頂 3s，
+# 總等待跟舊版（3s x 9 ≈ 27s）差不多。BUSY_MAYBE_RAN 是 domain reload，短 backoff 沒用，維持 BUSY_WAIT。
+BUSY_BACKOFF = (0.3, 0.6, 1.2, 2.4)
+BUSY_NOT_RUN_BUDGET = 27.0
+
+
+def _busy_wait(attempt: int) -> float:
+    return BUSY_BACKOFF[attempt] if attempt < len(BUSY_BACKOFF) else BUSY_WAIT
+
+
+def _holder_text() -> str:
+    holders = activity.busy_holders()
+    if not holders:
+        return "佔用者不明（activity log 沒有其他還沒結束的 up 呼叫，可能是直接打 uloop 或 Unity 端自己在跑）"
+    more = f"（另有 {len(holders) - 1} 筆在排）" if len(holders) > 1 else ""
+    return f"被 {holders[0]} 佔用{more}"
 
 # 純讀取的 Unity 端入口（前綴比對 method 名）。寫入類（PrefabEdit / SceneEdit / AssetEdit /
 # EditProbe.Poke …）不在這裡：途中被 domain reload 打斷時可能已經存了一半，自動重跑會做兩次。
@@ -55,6 +72,7 @@ READ_ONLY = (
     "MonoFSM.Editor.PrefabEditing.AssetDeps.",
     "MonoFSM.Editor.PrefabEditing.EditBounds.",
     "uprefab.anim.",  # anim.py 的 inline 唯讀 snippet（LoadPrefabContents 讀節點表）
+    "uprefab.assetrefs.",  # `up asset-refs a b c` 的多顆 inline snippet
     "MonoFSM.Editor.PrefabEditing.EditProbe.ComponentNames",
     "MonoFSM.Editor.PrefabEditing.EditProbe.DumpAll",
     "MonoFSM.Editor.PrefabEditing.EditProbe.Fields",
@@ -96,12 +114,17 @@ def run(args: list[str], timeout: int = 300) -> dict:
 
 
 def _run_raw(args: list[str], timeout: int = 300) -> dict:
+    # uloop 用 cwd 找 Unity 專案，`up` 卻可能在任何子資料夾被叫 —— 2026-10-01 在
+    # MonoFSM/.../3_FlagData 跑 `up fields` 拿到 PROJECT_NOT_FOUND。所有 uloop 呼叫都走這裡，
+    # 統一把 cwd 釘在專案根（跟從根目錄跑完全一樣）；找不到根就照舊用 cwd。
+    project = activity._project_root()
     for attempt in range(RELOAD_RETRIES):
         proc = subprocess.run(
             [_uloop(), *args],
             capture_output=True,
             text=True,
             timeout=timeout,
+            cwd=project or None,
         )
         out = proc.stdout.strip()
         if out:
@@ -130,7 +153,9 @@ def csharp(code: str, timeout: int = 300, method: str | None = None, track: bool
     Unity 暫時忙（domain reload / 別的 session 正在跑）會自己等再重跑，規則見 BUSY_NOT_RUN。
     """
     read_only = bool(method) and method.startswith(READ_ONLY)
-    for attempt in range(BUSY_RETRIES):
+    waited = 0.0
+    attempt = 0
+    while True:
         try:
             return _csharp_tracked(code, timeout, method, track)
         except UnityError as e:
@@ -139,19 +164,34 @@ def csharp(code: str, timeout: int = 300, method: str | None = None, track: bool
             maybe_ran = any(h in msg for h in BUSY_MAYBE_RAN)
             if not (not_run or maybe_ran):
                 raise
-            if (not_run or read_only) and attempt < BUSY_RETRIES - 1:
-                # stderr：不進 stdout 的輸出上限與 usage 字數，但人和 agent 都看得到
-                print(f"# Unity 暫時忙（{msg.splitlines()[0][:80]}），"
-                      f"{BUSY_WAIT:.0f}s 後重跑（{attempt + 1}/{BUSY_RETRIES - 1}）", file=sys.stderr)
-                time.sleep(BUSY_WAIT)
+            if not_run:
+                wait = _busy_wait(attempt)
+                can_retry = waited + wait <= BUSY_NOT_RUN_BUDGET
+            else:
+                wait = BUSY_WAIT
+                can_retry = read_only and attempt < BUSY_RETRIES - 1
+            if can_retry:
+                # stderr：不進 stdout 的輸出上限與 usage 字數，但人和 agent 都看得到。
+                # backoff 頭幾次（< 1s）不印，免得一般的短暫撞車也洗一排
+                if wait >= 1.0:
+                    who = f"，{_holder_text()}" if not_run else ""
+                    print(f"# Unity 暫時忙（{msg.splitlines()[0][:80]}{who}），"
+                          f"{wait:.1f}s 後重跑（已等 {waited:.1f}s）", file=sys.stderr)
+                time.sleep(wait)
+                waited += wait
+                attempt += 1
                 continue
-            why = ("重試用完了" if (not_run or read_only)
+            if not_run:
+                raise UnityError(
+                    f"{msg}\n# ↑ Unity execute-dynamic-code {_holder_text()}，這邊等了 {waited:.0f}s 還沒輪到。"
+                    "這不是這條指令的結果——不要拿它下「找不到 / 沒存檔」之類的結論；"
+                    "程式碼根本沒進 Unity 執行，等對方跑完直接重跑同一條就好") from None
+            why = ("重試用完了" if read_only
                    else "這是寫入類呼叫，執行途中被收掉、不知道跑了多少，所以不自動重跑")
             raise UnityError(
-                f"{msg}\n# ↑ Unity 暫時忙（domain reload / 別的 session 在跑），不是這條指令的結果——"
+                f"{msg}\n# ↑ Unity 暫時忙（domain reload），不是這條指令的結果——"
                 f"不要拿它下「找不到 / 沒存檔」之類的結論。{why}；"
                 "等 Unity 編譯完再重跑同一條（寫入類先用唯讀指令確認有沒有已經寫進去）") from None
-    raise AssertionError("unreachable")
 
 
 def _csharp_tracked(code: str, timeout: int, method: str | None, track: bool) -> str:

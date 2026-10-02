@@ -220,3 +220,64 @@ def end(call_id: str, ok: bool, summary: str = "") -> None:
         first = first[:SUMMARY_CLIP] + "…"
     _append({"ev": "end", "id": call_id, "t": round(time.time(), 3), "ok": bool(ok),
              "summary": first})
+
+
+# 只看最後這麼多 bytes 找「還沒 end 的 begin」—— 500 次呼叫的整份 log 也才 512KB，
+# 但佔用者一定是最近才 begin 的，掃尾巴就夠
+_HOLDER_TAIL = 64 * 1024
+_HOLDER_MAX_AGE = 600.0
+
+
+def _pid_alive(pid) -> bool:
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except (ProcessLookupError, ValueError, TypeError):
+        return False
+    except PermissionError:  # 別的使用者的 process：活著
+        return True
+    except Exception:
+        return True
+
+
+def busy_holders() -> list[str]:
+    """找「正在佔用 Unity execute-dynamic-code」的其他呼叫：activity log 裡有 begin、
+    還沒有 end、不是自己這個 process、而且 process 還活著的那幾筆（新到舊）。
+
+    給 `unity.csharp` 撞到 `Another execution is already in progress` 時印「被誰佔用」用。
+    讀不到 log 一律回空 list —— 這是旁路資訊。
+    """
+    root = _project_root()
+    if not root:
+        return []
+    path = os.path.join(root, LOG_REL)
+    try:
+        with open(path, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            f.seek(max(0, size - _HOLDER_TAIL))
+            raw = f.read().decode("utf-8", errors="replace")
+    except Exception:
+        return []
+    begins: dict[str, dict] = {}
+    for line in raw.splitlines():
+        try:
+            ev = json.loads(line)
+        except Exception:
+            continue
+        if ev.get("ev") == "begin":
+            begins[ev.get("id")] = ev
+        elif ev.get("ev") == "end":
+            begins.pop(ev.get("id"), None)
+    now = time.time()
+    me = os.getpid()
+    out = []
+    for ev in sorted(begins.values(), key=lambda e: -(e.get("t") or 0)):
+        age = now - (ev.get("t") or 0)
+        if age > _HOLDER_MAX_AGE or ev.get("pid") == me or not _pid_alive(ev.get("pid")):
+            continue
+        argv = str(ev.get("argv") or ev.get("method") or "?")
+        if len(argv) > 80:
+            argv = argv[:80] + "…"
+        out.append(f"session {ev.get('session', '?')}（{argv}，已跑 {age:.0f}s）")
+    return out

@@ -121,6 +121,19 @@ private ICurrentEntityOwner Owner
 - 補之前 Owner 是 null，`IsStateCondition` 永遠 false，勾 Inverted 就變成永遠 true。實際發生過：`!Is [State] Destroyed` 沒擋到，
   造成 AnyState → Destroying → Destroyed 一直循環。現在 Owner 找不到的 IsStateCondition 會在 hierarchy 標紅。
 
+## ModulePack：併進宿主 entity 的模組
+
+- `MonoModulePack` 放在宿主 entity **直屬** `Modules/`（`MonoModuleFolder`，DepthOneOnly），宿主 `EnterSceneAwake` 的 `BindModulePackFolders`
+  把 pack 的 Var / State / EffectDetectable / Schema folder 依型別當 external source 併進宿主。要獨立 state 不跟宿主互斥的模組，root 改掛 `MonoEntity`。
+- 宿主自己的四顆 folder 掃描停在 `IEntityScopeBoundary`（`MonoEntity` / `MonoModulePack` / `ModulePackGeometry`），不會把 pack 或 nested entity 的 folder
+  當成自己的；宿主完全沒有某種 folder 時才退回舊的深度優先（`AutoChildrenAttribute.FallbackUnboundedIfMissing`）。
+- **幾何掛點**：pack 的 `_geometryRoot`（掛 `ModulePackGeometry` 的 `[Geometry]`）runtime 會被 reparent 到宿主 `MonoEntity.ModuleGeometryAnchor`
+  （預設 `ViewRoot.Root`；`_moduleGeometryAnchor` 可指定），pose 是宿主存檔時記的相對掛點 pose。**prefab 上看到的位置是搬之前的。**
+- **`_receiverScope`**：`HostColliders`（預設）打到宿主任何 collider 都觸發 pack 的 receiver；`OwnGeometryOnly` 只有 `[Geometry]` 底下的 collider 打得到，
+  但用 entity 查 receiver 的路（按 E 的 `PlayerInteractState`、`IsEffectDealerOrReceiverCondition`）看不到 pack 的 receiver。
+- `EffectDetectable.Get` 跨 external dict 撞 effectType 時 inactive 的 receiver 讓給 active 的。
+- 專案端的實例與坑（nested entity 宿主要指掛點、KeepColliderOnMount）看 alishan-code-map `module-assembly.md`。
+
 ## 除錯：FsmTrace（state 切換 / effect 命中 / Var 改值的時間軸）
 
 - 開關：Unity 主 toolbar 的 `Trace: On/Off <筆數>`（旁邊 `Trace ▾` 有 Clear / Dump），或 `up menu "Tools/MonoFSM/FSM Trace/Enabled"`。

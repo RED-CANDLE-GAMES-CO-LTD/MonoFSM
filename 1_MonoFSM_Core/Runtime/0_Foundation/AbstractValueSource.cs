@@ -35,6 +35,10 @@ namespace MonoFSM.Foundation
         public abstract MonoEntityTag entityTag { get; }
     }
 
+    /// <summary>
+    /// 型別 T 的值來源基底：掛在對應 Var（VarString / VarBool / VarFloat…）的子物件下，被 Var 的 _valueSources 收走，
+    /// 多顆時取第一顆 IsValid（conditionGroup 成立且 active）的。子類只要實作 Value，false/0 是有效值時要覆寫 HasValue。
+    /// </summary>
     public abstract class AbstractValueSource<T> : AbstractGetter, IValueProvider<T> //提供數值
     {
         //可寫回來源（VarBoolRef / VarFloatRef 這類）不是唯讀 Getter，標成 Ref

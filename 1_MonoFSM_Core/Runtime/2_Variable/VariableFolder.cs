@@ -13,6 +13,10 @@ public abstract class AbstractFolder : MonoBehaviour
 
 //FIXME: 這個才該叫做blackboard?，這個是用來放變數的?
 
+/// <summary>
+/// entity 的變數字典（GetVar 的來源）：SceneAwake 時把子樹所有 var（含 inactive）依 _varTag 收進來，AfterSimulate 統一 CommitValue。
+/// 同 tag 撞名時 active 那顆贏、不印 log；兩顆都 inactive 印 Warning；兩顆都 active 才 LogError（先到的贏）。
+/// </summary>
 public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>, IAfterSimulate
 {
     private Dictionary<string, AbstractMonoVariable> _nameMap = new();
@@ -25,19 +29,72 @@ public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>,
     {
         if (value.HasParentVarEntity) //這段擋掉對嗎？因為我想要宣告Train.HasPower
             return false;
-        if (_dict.ContainsKey(value
-                ._varTag)) //FIXME: 這裡是要丟錯誤還是覆寫？目前先丟錯誤，因為tag重複很可能是設計問題（不確定的tag對應不確定的變數），而且tag重複的話GetVar就會撈到不確定的變數了
+
+        //現在很深喔，所有下面的變數包含getter都撈出來（含 inactive，見 MonoDict._collections）
+        var tag = value._varTag;
+        if (tag == null || !_dict.TryGetValue(tag, out var existing) || existing == null)
+            return true;
+
+        //同 tag 撞名：inactive（「關掉 = 設 inactive」像註解一樣保留的舊節點）讓給 active 那顆。
+        //不能整批跳過 inactive：dict 只在 SceneAwake 建一次，之後才被 SetActive 打開的 var 會永遠查不到。
+        //這段只在撞名時走，正常路徑不配置記憶體；log 字串只在真的撞到時才組。
+        //active 對 inactive 是正常用法（舊節點關掉留著當註解），不印 log。
+        var newActive = IsActiveUnderFolder(value);
+        var oldActive = IsActiveUnderFolder(existing);
+        if (newActive && !oldActive)
         {
-            Debug.LogError(
-                $"[VariableFolder] Variable with tag '{value._varTag.name}' already exists in folder '{name}'. Please ensure each variable has a unique tag.",
+            ReplaceExisting(tag, existing);
+            return true;
+        }
+
+        if (oldActive && !newActive)
+            return false;
+
+        if (!newActive) //兩顆都 inactive：都是關掉的節點，先到的留著，提醒一下就好
+        {
+            Debug.LogWarning(
+                $"[VariableFolder] '{name}' tag '{tag.name}' 兩顆 inactive var 撞名，保留 {existing.transform.GetPath()}，忽略 {value.transform.GetPath()}",
                 value);
             return false;
         }
 
-        //現在很深喔，所有下面的變數包含getter都撈出來
-        // if (value.HasParentVarEntity)
-        //     return false;
+        //兩顆都 active 才是真的設計問題（GetVar 會撈到不確定的變數），維持 LogError、先到的贏
+        Debug.LogError(
+            $"[VariableFolder] Variable with tag '{tag.name}' already exists in folder '{name}'. Please ensure each variable has a unique tag. kept:{existing.transform.GetPath()} dropped:{value.transform.GetPath()}",
+            value);
+        return false;
+    }
+
+    /// <summary>
+    /// var 相對於這個 folder 是否 active：只看 var 到 folder 之間每一層的 activeSelf。
+    /// 不用 activeInHierarchy，因為 SceneAwake 時整個 entity 可能還是 inactive（pool / 尚未啟用），那時每顆都會被當成 inactive。
+    /// </summary>
+    private bool IsActiveUnderFolder(AbstractMonoVariable v)
+    {
+        var root = transform;
+        var t = v.transform;
+        while (t != null && t != root)
+        {
+            if (!t.gameObject.activeSelf)
+                return false;
+            t = t.parent;
+        }
+
         return true;
+    }
+
+    /// <summary>
+    /// 撞名時把先收進來的那顆拿掉。MonoDict.Remove 不會清 _stringDict，
+    /// 不手動清的話 Add 的 TryAdd 會失敗，GetVariable(string) 還是拿到舊的那顆。
+    /// </summary>
+    private void ReplaceExisting(VariableTag tag, AbstractMonoVariable existing)
+    {
+        Remove(tag);
+        if (!IsStringDictEnable)
+            return;
+        var stringKey = tag.ToString();
+        if (_stringDict.TryGetValue(stringKey, out var mapped) && mapped == existing)
+            _stringDict.Remove(stringKey);
     }
     public AbstractMonoVariable GetVariable(VariableTag type)
     {

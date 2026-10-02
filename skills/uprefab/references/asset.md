@@ -11,7 +11,8 @@ up asset set <assetPath> <fieldPath> <value>                # 設欄位值（非
 up asset set-ref <assetPath> <fieldPath> <targetAssetPath>  # 欄位指向另一個 asset
 up asset add-element <assetPath> <fieldPath> [--type <T>]   # 陣列/List 欄位尾端加一個元素
 up asset invoke <assetPath> <methodName>                    # 呼叫無參數方法（按 Odin Button）
-up asset fields <assetPath>                                 # 列出 asset 上的 serialized 欄位
+up asset fields <assetPath>                                 # 列出 asset 上的 serialized 欄位（只有名稱 + 型別）
+up asset peek <assetPath> [--members a,b] [--deep [N]]      # 讀欄位「值」（格式同 prefab peek；`up peek <x.asset>` 也會轉過來）
 ```
 
 | 指令 | 說明 |
@@ -22,6 +23,8 @@ up asset fields <assetPath>                                 # 列出 asset 上�
 | `add-element <assetPath> <fieldPath> [--type <T>]` | 回傳新元素的 index，接著用 `set` / `set-ref` 補上 `<fieldPath>.Array.data[<index>].<子欄位>`。`--type` 只給 `[SerializeReference]` 陣列用，見下 |
 | `invoke <assetPath> <methodName>` | 反射呼叫 asset 上一個無參數方法後存檔。方法名打錯會列出可用的無參數方法 |
 | `fields <assetPath>` | 欄位名打錯時自我診斷用 |
+| `peek <assetPath> [--members a,b] [--deep [N]]` | 讀值。`--members` 吃點路徑（`_entries[0]._prefab`、`_events.Array.size`），`--deep` 攤開巢狀 [Serializable] / List 元素。object reference 印 `名字 <型別> @asset 路徑`，`@` 後面可以直接餵給 `aref` / `set-ref`（內建資源印 `@builtin:Cube`）。.mat / .controller / .anim / .prefab 會叫你改用對應指令 |
+| 改完之後的狀態行 | asset 型別實作 `MonoFSM.Core.IAfterCliAssetEditCallbackReceiver` 時，create / set / set-ref / add-element / do 改完會呼叫它並把回傳印成 `# …`。目前 GameEventTag 用它收進 GameEventRegistry：scope 不是 LocalOnly 會印 `已在 GameEventRegistry（id=N）`，CLI 建 event 不用再手動 append |
 
 ## 實例：建一個 registry SO → 加一個陣列元素 → 指向另一個 SO
 
@@ -85,9 +88,13 @@ up asset do "Assets/…/Registry.asset" "addel|_events" "aref|_events.Array.data
 
 ```
 set|<field>|<value>
-aref|<field>|<assetPath>
+aref|<field>|<assetPath>      assetPath 寫 null = 清空引用（set|<field>|null 也行）
 addel|<field>[|<type>]        type 只給 [SerializeReference] 陣列
+delel|<field>[i]              刪第 i 格、後面往前補（也收 <field>.Array.data[i]）
 ```
+
+resize 一次到位用 `set|<field>.Array.size|N`（變小從尾端砍，變大照 Unity 規則補元素）。
+`aref` 的目標型別跟欄位宣告型別對不上時（例如塞一支沒有 MonoObj 的 prefab 進 `_prefab`）會報「拒收」—— 以前 Unity 會靜默寫成 null。
 
 **任一行失敗就整批不套用**：整批共用一個 `SerializedObject`，失敗就不 `ApplyModifiedProperties`
 —— asset 檔案完全沒被碰過。這是它存在的理由：逐次 `asset set` 時第三行打錯字會留下一筆

@@ -64,7 +64,7 @@
   `set` 的錯誤訊息會列出那一層有什麼，繞得過去。
 - **`scene` 系列作用在「當前開著的 active scene」**，不是路徑參數。先 `scene open` / `scene copy`。
 - **Play Mode 中不能開 / 建 scene**（會直接 abort，不會半途壞掉）。
-- **`scene copy` / `open` / `new` 會先存所有 dirty 的已開 scene 再切**（Single 模式，輸出第一行列出存了哪些）；有 dirty 的 Untitled scene 會擋下來、不切。
+- **`scene copy` / `open` / `new` 碰到 dirty 的已開 scene 預設拒絕**：不切、不存，列出 dirty scene 路徑、exit 1。那是使用者的改動（可能故意不存），請使用者自己存 / 放棄；使用者明確說要存才重跑加 `--save-dirty`（存完再切，輸出第一行列出存了哪些）。沒有 discard 選項；dirty 的 Untitled scene 帶 `--save-dirty` 也照樣擋。
 
 ## 反射 / SerializedProperty 的地雷（改工具本身前必讀）
 

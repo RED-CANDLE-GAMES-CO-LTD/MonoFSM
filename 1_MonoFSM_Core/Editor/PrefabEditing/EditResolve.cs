@@ -395,17 +395,7 @@ namespace MonoFSM.Editor.PrefabEditing
             var head = slash < 0 ? Unescape(path) : Unescape(path.Substring(0, slash));
             var rest = slash < 0 ? null : path.Substring(slash + 1);
 
-            // root 也可能整排同名（一個 scene 裡十幾個 AppCallbackListener），所以第一段
-            // 同樣吃 `名稱[n]`
-            // 照原樣比對優先，比不到才試 `[n]` —— 跟 FindByIndexedPath 同一個慣例，
-            // 名字本身結尾就是 `[數字]` 的 root 不受影響
-            var rootGo = roots.FirstOrDefault(g => g != null && g.name == head);
-            if (rootGo == null && TrySplitIndexSuffix(head, out var headName, out var headIndex))
-            {
-                rootGo = roots.Where(g => g != null && g.name == headName)
-                    .Skip(headIndex).FirstOrDefault();
-                if (rootGo != null) head = headName;
-            }
+            var rootGo = FindRoot(roots, ref head);
 
             if (rootGo == null)
                 throw Abort(
@@ -416,6 +406,78 @@ namespace MonoFSM.Editor.PrefabEditing
             return string.IsNullOrEmpty(rest)
                 ? rootGo.transform
                 : Node(rootGo.transform, rest);
+        }
+
+        // root 也可能整排同名（一個 scene 裡十幾個 AppCallbackListener），所以第一段
+        // 同樣吃 `名稱[n]`
+        // 照原樣比對優先，比不到才試 `[n]` —— 跟 FindByIndexedPath 同一個慣例，
+        // 名字本身結尾就是 `[數字]` 的 root 不受影響
+        private static GameObject FindRoot(IList<GameObject> roots, ref string head)
+        {
+            var h = head;
+            var rootGo = roots.FirstOrDefault(g => g != null && g.name == h);
+            if (rootGo == null && TrySplitIndexSuffix(head, out var headName, out var headIndex))
+            {
+                rootGo = roots.Where(g => g != null && g.name == headName)
+                    .Skip(headIndex).FirstOrDefault();
+                if (rootGo != null) head = headName;
+            }
+
+            return rootGo;
+        }
+
+        /// <summary>
+        /// <see cref="NodeInRoots"/> 的精確版（關掉同層容錯）：找不到回 null，不丟例外。
+        /// 容錯對得到的話把那條路徑放進 suggestion（只給提示，不回傳它）。
+        /// 給 EditBatch 的 `mark` 用 —— mark 標錯節點，之後每個 `$label` 都跟著錯。
+        /// </summary>
+        internal static Transform TryNodeInRootsExact(IList<GameObject> roots, string path,
+            out string suggestion)
+        {
+            suggestion = null;
+            if (string.IsNullOrEmpty(path)) return null;
+            var slash = IndexOfUnescapedSlash(path);
+            var headRaw = slash < 0 ? path : path.Substring(0, slash);
+            var head = Unescape(headRaw);
+            var rest = slash < 0 ? null : path.Substring(slash + 1);
+            var rootGo = FindRoot(roots, ref head);
+            if (rootGo == null) return null;
+            if (string.IsNullOrEmpty(rest)) return rootGo.transform;
+            var node = TryNodeExact(rootGo.transform, rest, false, out var sub);
+            if (node == null && sub != null) suggestion = $"{headRaw}/{sub}";
+            return node;
+        }
+
+        /// <summary>
+        /// scene 版的 <see cref="PathOf"/>：含 root 名（同名 root 補 `[n]`），餵回
+        /// <see cref="NodeInRoots"/> 會解到同一顆。node 不在 roots 底下回 null。
+        /// </summary>
+        internal static string PathInRoots(IList<GameObject> roots, Transform node)
+        {
+            if (node == null) return null;
+            var top = node.root;
+            var index = 0;
+            var dup = false;
+            var found = false;
+            foreach (var g in roots)
+            {
+                if (g == null) continue;
+                if (g.transform == top)
+                {
+                    found = true;
+                    continue;
+                }
+
+                if (g.name != top.name) continue;
+                dup = true;
+                if (!found) index++;
+            }
+
+            if (!found) return null;
+            var head = dup ? $"{EscapeName(top.name)}[{index}]" : EscapeName(top.name);
+            if (node == top) return head;
+            var rest = PathOf(top, node);
+            return rest == null ? null : $"{head}/{rest}";
         }
 
         /// <summary>
@@ -628,23 +690,105 @@ namespace MonoFSM.Editor.PrefabEditing
                         Join(matches.Select(t => t.FullName)));
         }
 
-        /// <summary>逐段走 FieldInfo，支援 _rateVar._var 這種巢狀路徑。</summary>
-        internal static Type FieldType(Type type, string fieldPath)
+        /// <summary>
+        /// 逐段走 FieldInfo 算出 fieldPath 的宣告型別，支援 `_rateVar._var` 這種巢狀路徑，
+        /// 以及陣列 / List 元素：`_entries.Array.data[0]._prefab`、`_entries[0]._prefab`
+        /// （元素型別取 T[] / List&lt;T&gt; 的 T）。
+        ///
+        /// instance 給了就跟著實際值往下走：`[SerializeReference]` 欄位（或元素）以實際值的型別為準，
+        /// 宣告成 interface / 抽象基底的時候才找得到子類欄位。值是 null / 走不下去就退回宣告型別。
+        ///
+        /// 2026-10-01 以前不認 `Array.data[i]`，回 null → AssetRef.Resolve 直接把整顆 GameObject
+        /// 塞進 `SpawnTableEntry._prefab`（MonoObj）被 Unity 靜默寫成 null。
+        /// 解不出來回 null（呼叫端各自決定退路）。
+        /// </summary>
+        internal static Type FieldType(Type type, string fieldPath, object instance = null)
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public |
                                        BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
+            if (type == null || string.IsNullOrEmpty(fieldPath)) return null;
+            var segs = fieldPath.Split('.');
             var current = type;
-            FieldInfo field = null;
-            foreach (var seg in fieldPath.Split('.'))
+            var value = instance;
+            var serializeRef = false;
+            for (var i = 0; i < segs.Length; i++)
             {
-                field = null;
+                var seg = segs[i];
+                // `.Array.data[i]`：Unity 的序列化路徑寫法，兩段合起來代表「元素」
+                if (seg == "Array" && i + 1 < segs.Length && segs[i + 1].StartsWith("data["))
+                {
+                    if (!TryIndexSuffix(segs[i + 1].Substring(4), out var ai)) return null;
+                    if (!ToElement(ref current, ref value, ai, serializeRef)) return null;
+                    i++;
+                    continue;
+                }
+
+                var index = -1;
+                var open = seg.IndexOf('[');
+                if (open > 0)
+                {
+                    if (!TryIndexSuffix(seg.Substring(open), out index)) return null;
+                    seg = seg.Substring(0, open);
+                }
+
+                FieldInfo field = null;
                 for (var t = current; t != null && field == null; t = t.BaseType)
                     field = t.GetField(seg, flags);
                 if (field == null) return null;
                 current = field.FieldType;
+                serializeRef = field.GetCustomAttribute<SerializeReference>() != null;
+                value = ReadField(field, value);
+                if (index >= 0)
+                {
+                    if (!ToElement(ref current, ref value, index, serializeRef)) return null;
+                }
+                else if (serializeRef && value != null && !(value is System.Collections.IList))
+                {
+                    current = value.GetType();
+                }
             }
 
-            return field?.FieldType;
+            return current;
+        }
+
+        /// <summary>`[3]` → 3。</summary>
+        private static bool TryIndexSuffix(string s, out int index)
+        {
+            index = -1;
+            return s.Length >= 3 && s[0] == '[' && s[s.Length - 1] == ']' &&
+                   int.TryParse(s.Substring(1, s.Length - 2), out index);
+        }
+
+        /// <summary>陣列 / List 型別 → 元素型別；有值時順便取第 index 個元素（[SerializeReference] 用它的實際型別）。</summary>
+        private static bool ToElement(ref Type current, ref object value, int index, bool serializeRef)
+        {
+            Type elem;
+            if (current.IsArray) elem = current.GetElementType();
+            else if (current.IsGenericType && current.GetGenericTypeDefinition() == typeof(List<>))
+                elem = current.GetGenericArguments()[0];
+            else return false;
+
+            object item = null;
+            if (value is System.Collections.IList list && index >= 0 && index < list.Count)
+                item = list[index];
+            current = serializeRef && item != null ? item.GetType() : elem;
+            value = item;
+            return true;
+        }
+
+        private static object ReadField(FieldInfo field, object owner)
+        {
+            if (owner == null) return null;
+            // 走到 UnityEngine.Object 的引用就不再跟值（那是另一顆物件，型別以宣告為準）
+            if (owner is UnityEngine.Object uo && uo == null) return null;
+            try
+            {
+                return field.GetValue(owner);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         // ---- 欄位 ----
@@ -658,6 +802,13 @@ namespace MonoFSM.Editor.PrefabEditing
         {
             var prop = so.FindProperty(fieldPath);
             if (prop != null) return prop;
+            // `_entries[0]._prefab` 簡寫 → `_entries.Array.data[0]._prefab`（peek / FieldType 都收簡寫，寫入也要收）
+            var expanded = Regex.Replace(fieldPath, @"(?<!\.Array\.data)\[(\d+)\]", ".Array.data[$1]");
+            if (expanded != fieldPath)
+            {
+                prop = so.FindProperty(expanded);
+                if (prop != null) return prop;
+            }
 
             // 巢狀路徑（_timeMax._constValue）錯在最後一段時，列頂層欄位沒有用 ——
             // 要列的是「走得通的那一層底下有什麼」。VarFloatWrapper 這類 wrapper 的內部
@@ -776,12 +927,29 @@ namespace MonoFSM.Editor.PrefabEditing
                 case SerializedPropertyType.AnimationCurve:
                     prop.animationCurveValue = ToAnimationCurve(value, fieldPath);
                     break;
+                case SerializedPropertyType.ObjectReference:
+                    // `set|…|null` 清空引用。variant / nested 上 ApplyModifiedProperties 會記成
+                    // 「override 成 null」（2026-09-10、09-24 電磁砲彈清 `_impactEffectPrefab` 清不掉）
+                    if (value is string str && IsNullLiteral(str))
+                    {
+                        prop.objectReferenceValue = null;
+                        break;
+                    }
+
+                    throw Abort(
+                        $"'{fieldPath}' 是物件引用：指向節點用 ref、指向 asset 用 aref；要清空寫 set|…|null");
+                case SerializedPropertyType.ArraySize:
+                {
+                    // `set|…|_list.Array.size|N`：直接 resize。變大補的元素是預設值 / 複製最後一格（Unity 行為），
+                    // 變小從尾端砍；要刪中間某一格用 delel
+                    var n = Convert.ToInt32(value);
+                    if (n < 0) throw Abort($"'{fieldPath}' 不能設成負數：{n}");
+                    prop.intValue = n;
+                    break;
+                }
                 default:
                     throw Abort(
-                        $"'{fieldPath}' 的型別是 {prop.propertyType}，SetField 不支援" +
-                        (prop.propertyType == SerializedPropertyType.ObjectReference
-                            ? "；請改用 SetRef / SetAssetRef"
-                            : ""));
+                        $"'{fieldPath}' 的型別是 {prop.propertyType}，SetField 不支援");
             }
         }
 
@@ -1038,6 +1206,7 @@ namespace MonoFSM.Editor.PrefabEditing
                     return prop.objectReferenceValue != null
                         ? prop.objectReferenceValue.name
                         : "null";
+                case SerializedPropertyType.ArraySize: return prop.intValue.ToString();
                 default: return prop.propertyType.ToString();
             }
         }
@@ -1063,7 +1232,7 @@ namespace MonoFSM.Editor.PrefabEditing
             }
             else
             {
-                var fieldType = FieldType(owner.GetType(), fieldPath)
+                var fieldType = FieldType(owner.GetType(), fieldPath, owner)
                                 ?? throw Abort(
                                     $"找不到欄位 '{fieldPath}' 的宣告型別，請明確指定 targetComponentType");
                 targetComp = fieldType == typeof(GameObject)
@@ -1123,8 +1292,8 @@ namespace MonoFSM.Editor.PrefabEditing
         /// 陣列 / List 欄位尾端加一個元素，回傳新元素的 index（接著用 set / aref 補
         /// `<fieldPath>.Array.data[index]`）。
         ///
-        /// 為什麼不能用 `set|…|_stateTags.Array.size|1`：ArraySize 這個 propertyType
-        /// 走不進 ApplyValue，只能透過 arraySize 改。
+        /// 要一次 resize 到指定大小用 `set|…|_stateTags.Array.size|N`（2026-10-01 起 ApplyValue 收 ArraySize），
+        /// 刪中間某一格用 delel（RemoveArrayElement）。
         ///
         /// 注意：SerializedProperty.isArray 對 string 也回 true（舊版序列化 API 把 string
         /// 當 char[] 存），不排除的話會把元素插進字串的位元組裡，存出壞掉的 UTF-8。
@@ -1137,6 +1306,47 @@ namespace MonoFSM.Editor.PrefabEditing
             var index = prop.arraySize;
             prop.arraySize++;
             return index;
+        }
+
+        /// <summary>`null`（大小寫不拘、可帶空白）= 清空物件引用。給 set / aref 共用。</summary>
+        internal static bool IsNullLiteral(string s) =>
+            s != null && string.Equals(s.Trim(), "null", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// `field[i]` / `field.Array.data[i]` → (陣列路徑, i)。給 delel 用；只拆最後一段的 index，
+        /// 前面的巢狀路徑（`_entries[0]._items[2]`）原樣交給 Prop 解。
+        /// </summary>
+        internal static void SplitElementPath(string elementPath, string verb, out string arrayPath, out int index)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(
+                elementPath?.Trim() ?? "", @"^(.+?)(?:\.Array\.data)?\[(\d+)\]$");
+            if (!m.Success)
+                throw Abort($"`{verb}` 要寫成 <field>[i] 或 <field>.Array.data[i]，收到 '{elementPath}'");
+            arrayPath = m.Groups[1].Value;
+            index = int.Parse(m.Groups[2].Value);
+        }
+
+        /// <summary>
+        /// 刪陣列 / List 的第 index 格（後面往前補）。回傳刪完剩幾格。
+        ///
+        /// ObjectReference 元素要刪兩次：舊版 Unity 的 DeleteArrayElementAtIndex 對非 null 引用
+        /// 第一次只會把它設成 null、不縮陣列 —— 所以比對 arraySize，沒縮就再刪一次。
+        /// 實例：新加的 MeshRenderer `m_Materials` 預設 size 1、NetworkedVarSyncArray._syncComps 清舊元素，
+        /// 以前只能 delcomp 再重加 component 繞過。
+        /// </summary>
+        internal static int RemoveArrayElement(SerializedProperty prop, int index, string fieldPath)
+        {
+            if (!prop.isArray || prop.propertyType == SerializedPropertyType.String)
+                throw Abort($"'{fieldPath}' 是 {prop.propertyType}，不是陣列/List，不能刪元素");
+            if (index < 0 || index >= prop.arraySize)
+                throw Abort($"'{fieldPath}' 只有 {prop.arraySize} 格，沒有第 {index} 格（0-based）");
+
+            var before = prop.arraySize;
+            prop.DeleteArrayElementAtIndex(index);
+            if (prop.arraySize == before) prop.DeleteArrayElementAtIndex(index);
+            if (prop.arraySize != before - 1)
+                throw Abort($"'{fieldPath}[{index}]' 刪不掉（arraySize 還是 {prop.arraySize}）");
+            return prop.arraySize;
         }
 
         internal static string Describe(string path) =>

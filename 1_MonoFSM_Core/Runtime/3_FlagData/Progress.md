@@ -23,3 +23,10 @@
 改成用 `LocalizationSettings.SelectedLocale` 當失效條件快取（譯文只在換語言時變）。
 非 Play 時刻意不快取，inspector 預覽要跟著 table 編輯即時更新。
 `Title`（`titleStr.ToString()`）沒動，但同樣是每次現算，之後若有人把它接到每幀路徑上要一起處理。
+
+## GameData 總表視窗（2026-10-01）
+`Tools/MonoFSM/GameData 總表`（`Editor/GameDataTable/GameDataTableWindow.cs`）：一列一顆 GameData asset，欄是篩選結果裡 config tag 的聯集。
+單一 asset 的 Inspector 疊層總覽只回答「這顆的值從哪來」，調數值時真正要比的是「同一個 tag 在所有商品 / 道具間的差」，所以另做跨 asset 的表，不去擴充 Inspector。
+表格用 `MultiColumnHeader` 自己畫、不用 Odin `TableList`：欄是 runtime 才知道的 tag 聯集，TableList 只能吃 class 上靜態宣告的欄；另外要左側名稱欄水平捲動時固定（兩顆 header 共用垂直捲動）、只畫可見列。
+讀寫走 `GameData.ConfigOverview.cs` 的 internal helper，Runtime 新增 `AssemblyInfo.cs` 開 `InternalsVisibleTo("MonoFSM.Core.Editor")`：疊層查詢和 Undo 寫入只留一份實作；代價是整個 Editor asmdef 都看得到 Runtime 的 internal，但比把 helper 改 public 讓 runtime 模組誤用好。
+售價有兩條路：現行商店機台讀 `d_Price` config（自然出現在 tag 欄）；`PriceData._basePrice` 是 DataFunction 舊路徑（`GetPriceFromGameData`），沒 setter，表格用 SerializedObject 寫、只在篩選結果有人掛 PriceData 時才出現那欄。Obj config 欄做成可開關的唯讀欄。

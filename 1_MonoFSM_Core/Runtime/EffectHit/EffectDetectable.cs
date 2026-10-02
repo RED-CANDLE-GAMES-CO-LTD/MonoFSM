@@ -68,6 +68,29 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         //     Debug.Log($"[EffectDetectable] ProcessEffectHit from {detector.name} to {name}", this);
         //     //FIXME: 在這邊new data...?
 
+        /// <summary>
+        /// 同一個 effectType 在本地 / 多顆 external dict（併進來的 ModulePack）都有 receiver 時，原本是「先找到的贏」。
+        /// 這裡讓 inactive 的那顆（「關掉 = 設 inactive」留著當註解的舊 receiver）讓給後面 active 的同 type receiver，
+        /// 跟 VariableFolder 撞 tag 時 active 贏是同一個慣例。
+        /// 正常路徑（第一顆就是 active）只多一次 activeInHierarchy；detectable 自己 inactive（pool 中）就照舊回第一顆。
+        /// </summary>
+        public override GeneralEffectReceiver Get(GeneralEffectType key)
+        {
+            var first = base.Get(key);
+            if (first == null || first.gameObject.activeInHierarchy || !gameObject.activeInHierarchy)
+                return first;
+
+            foreach (var dict in _externalDicts)
+            {
+                if (dict == null) continue;
+                var found = dict.Get(key);
+                if (found != null && found.gameObject.activeInHierarchy)
+                    return found;
+            }
+
+            return first;
+        }
+
         protected override void AddImplement(GeneralEffectReceiver item) { }
 
         protected override void RemoveImplement(GeneralEffectReceiver item) { }

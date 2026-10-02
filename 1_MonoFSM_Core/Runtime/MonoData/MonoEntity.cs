@@ -57,6 +57,7 @@ namespace MonoFSM.Runtime
             // IGameDataProvider,
             IValueProvider,
             IAnimatorProvider,
+            IEntityScopeBoundary, //外層 entity 的 folder 掃描不進來
             IValueOfKey<MonoEntityTag> //這樣data也要一直繼承，好ㄇ...
 
     {
@@ -516,6 +517,7 @@ namespace MonoFSM.Runtime
         public void EnterSceneAwake()
         {
             BindModulePackFolders();
+            AttachModulePackGeometries();
 
             // _receiverTypeSet = new HashSet<GeneralEffectType>();
             // Debug.Log("EnterSceneAwake: " +name,this); //跑兩次？
@@ -586,9 +588,13 @@ namespace MonoFSM.Runtime
                 if (pack.GetComponentInParent<MonoEntity>(true) != this) //有別人就不算
                     continue;
 
+                var ownGeometryOnly = pack.Scope == MonoModulePack.ReceiverScope.OwnGeometryOnly;
                 foreach (var sourceFolder in pack.GetAllFolders())
                 {
                     if (sourceFolder == null) continue;
+                    //OwnGeometryOnly：pack 的 receiver 只給 pack 自己的判定 collider 打，不併進宿主（宿主 collider 打不到）
+                    if (ownGeometryOnly && sourceFolder is EffectDetectable)
+                        continue;
 
                     // 找到相同類型的 target folder
                     var sourceType = sourceFolder.GetType();
@@ -608,6 +614,52 @@ namespace MonoFSM.Runtime
                         }
                     }
                 }
+            }
+        }
+
+        [Tooltip("ModulePack 的 [Geometry] runtime 要搬到哪；留空 = ViewRoot.Root（通常是 Context/Animator）")]
+        [SerializeField] private Transform _moduleGeometryAnchor;
+
+        /// <summary>
+        /// ModulePack 的 [Geometry]（ModulePackGeometry）runtime 被搬到的節點。
+        /// 預設 = 宿主 ViewRoot.Root（有剛體就是剛體那顆，否則 Animator），例外宿主用 _moduleGeometryAnchor 指定。
+        /// edit-time 也能用（ViewRoot 的 AutoParent 欄位會當場補解析），pack 存檔時靠它記 local pose。
+        /// </summary>
+        public Transform ModuleGeometryAnchor
+        {
+            get
+            {
+                if (_moduleGeometryAnchor != null)
+                    return _moduleGeometryAnchor;
+                //runtime 走 MonoEntity 的 [AutoChildren] 快取；edit-time 那顆還沒解析，直接找
+                var vr = (this as MonoEntity)?.ViewRoot;
+                if (vr == null)
+                    vr = GetComponentInChildren<ViewRoot>(true);
+
+                return vr != null ? vr.ResolveRoot() : null;
+            }
+        }
+
+        /// <summary>
+        /// 把直屬 pack 的 [Geometry] 搬到宿主掛點。跟 BindModulePackFolders 同一套 pack 篩選規則。
+        /// </summary>
+        private void AttachModulePackGeometries()
+        {
+            if (_monoPackFolder == null || _monoPackFolder.ModulePacks == null) return;
+            Transform anchor = null;
+            var anchorResolved = false;
+            foreach (var pack in _monoPackFolder.ModulePacks)
+            {
+                if (pack == null || pack.GeometryRoot == null) continue;
+                if (pack.gameObject.activeSelf == false) continue;
+                if (pack.GetComponentInParent<MonoEntity>(true) != this) continue;
+                if (!anchorResolved)
+                {
+                    anchor = ModuleGeometryAnchor;
+                    anchorResolved = true;
+                }
+
+                pack.AttachGeometry(anchor);
             }
         }
 

@@ -20,6 +20,8 @@ namespace MonoFSM.Editor.PrefabEditing
         /// </summary>
         internal static Object Resolve(string assetPath, Object owner, string fieldPath)
         {
+            // `aref|…|null` = 清空引用（跟 `set|…|null` 同義）
+            if (EditResolve.IsNullLiteral(assetPath)) return null;
             if (assetPath != null && assetPath.StartsWith(BuiltinPrefix))
                 return Builtin(assetPath.Substring(BuiltinPrefix.Length).Trim());
 
@@ -34,7 +36,7 @@ namespace MonoFSM.Editor.PrefabEditing
             if (main == null)
                 throw new Abort($"找不到 asset: {assetPath}");
 
-            var want = EditResolve.FieldType(owner.GetType(), fieldPath);
+            var want = EditResolve.FieldType(owner.GetType(), fieldPath, owner);
             if (want == null || want.IsInstanceOfType(main))
                 return main;
 

@@ -99,6 +99,22 @@ CREATE TABLE IF NOT EXISTS cs_files (
   path TEXT PRIMARY KEY, mtime REAL, size INTEGER, bases TEXT
 );
 
+-- 同檔 [Serializable] plain class / struct（非 component，別的 component 序列化欄位的型別）
+-- 給 up types / up fields 補 Unity 端（只列 Component）查不到的型別；跟 catalog 一起增量維護
+CREATE TABLE IF NOT EXISTS serial_types (
+  class TEXT, path TEXT, kw TEXT, bases TEXT, summary TEXT, fields TEXT,
+  PRIMARY KEY (class, path)
+);
+
+-- catalog 解析規則版本（catalog.PARSER_VERSION）。不同就整批重建 catalog / serial_types
+CREATE TABLE IF NOT EXISTS catalog_meta (key TEXT PRIMARY KEY, value TEXT);
+
+-- class 改名（.cs.meta guid 沒變）留下的舊名 → guid。prefab YAML 的 m_EditorClassIdentifier
+-- 要等 prefab 重存才會更新，索引時記到的舊名在這裡留底，給 find --comp <舊名> 印「已改名」
+CREATE TABLE IF NOT EXISTS script_aliases (
+  old_class TEXT, guid TEXT, PRIMARY KEY (old_class, guid)
+);
+
 -- (guid, fileID) → 人類可讀標籤的解析結果快取，全庫索引完才算得出來
 CREATE TABLE IF NOT EXISTS target_labels (
   guid TEXT, file_id INTEGER, label TEXT, PRIMARY KEY (guid, file_id)
@@ -182,6 +198,7 @@ def build(root: str, cfg: Config, incremental: bool = True, progress=None) -> di
     for path in set(known) - seen:
         _purge(con, path)
 
+    _reconcile_script_names(con, progress)
     _resolve_stripped_parents(con, progress)
     _resolve_cross_asset_names(con, progress)
     _resolve_target_labels(con, progress)
@@ -451,9 +468,13 @@ def _build_catalog_table(con: sqlite3.Connection, root: str, progress=None,
     known = {p: (m, s, b) for p, m, s, b in
              con.execute("SELECT path, mtime, size, bases FROM cs_files")}
     has_rows = con.execute("SELECT COUNT(*) FROM catalog").fetchone()[0] > 0
-    if not incremental or not known or not has_rows:
+    con.execute("CREATE TABLE IF NOT EXISTS catalog_meta (key TEXT PRIMARY KEY, value TEXT)")
+    ver = con.execute("SELECT value FROM catalog_meta WHERE key='parser_version'").fetchone()
+    stale_parser = (ver[0] if ver else None) != str(catalog_mod.PARSER_VERSION)
+    if not incremental or not known or not has_rows or stale_parser:
         per_file: dict[str, dict] = {}
-        rows = catalog_mod.build_rows(root, per_file)
+        serials: dict[str, list] = {}
+        rows = catalog_mod.build_rows(root, per_file, serials)
         con.execute("DELETE FROM cs_files")
         files = _cs_file_stats(root)
         con.executemany(
@@ -462,6 +483,11 @@ def _build_catalog_table(con: sqlite3.Connection, root: str, progress=None,
              for rel, (mt, sz) in files.items()],
         )
         _write_catalog(con, rows)
+        con.execute("DELETE FROM serial_types")
+        _write_serials(con, serials)
+        con.execute("INSERT OR REPLACE INTO catalog_meta VALUES ('parser_version', ?)",
+                    (str(catalog_mod.PARSER_VERSION),))
+        con.commit()
         if progress:
             progress(f"catalog: {len(rows)}（全建）")
         return len(files)
@@ -495,8 +521,9 @@ def _build_catalog_table(con: sqlite3.Connection, root: str, progress=None,
             "fields": json.loads(r[6] or "[]"), "self_obsolete": bool(r[7]),
         }
 
+    serials: dict[str, list] = {}
     for rel in changed:
-        info, bases = catalog_mod.parse_one(root, rel)
+        info, bases = catalog_mod.parse_one(root, rel, serials)
         for name, bs in bases.items():
             if bs or name not in all_bases:
                 all_bases[name] = bs
@@ -511,6 +538,9 @@ def _build_catalog_table(con: sqlite3.Connection, root: str, progress=None,
         con.execute("DELETE FROM cs_files WHERE path=?", (rel,))
 
     _write_catalog(con, catalog_mod.rows_to_tuples(rows, all_bases))
+    con.executemany("DELETE FROM serial_types WHERE path=?", [(p,) for p in stale_paths])
+    _write_serials(con, serials)
+    con.commit()
     if progress:
         progress(f"catalog: {len(rows)}（增量 {len(changed)} 改 / {len(removed)} 刪）")
     return len(changed) + len(removed)
@@ -523,6 +553,14 @@ def _write_catalog(con: sqlite3.Connection, rows: list[tuple]) -> None:
     con.executemany(
         "INSERT OR REPLACE INTO catalog VALUES (?,?,?,?,?,?,?,?,?,?)", rows)
     con.commit()
+
+
+def _write_serials(con: sqlite3.Connection, serials: dict[str, list]) -> None:
+    con.executemany(
+        "INSERT OR REPLACE INTO serial_types VALUES (?,?,?,?,?,?)",
+        [(r["class"], r["path"], r["kw"], ",".join(r["bases"]), r["summary"],
+          json.dumps(r["fields"], ensure_ascii=False))
+         for lst in serials.values() for r in lst])
 
 
 def _cs_file_stats(root: str) -> dict[str, tuple[float, int]]:
@@ -543,6 +581,73 @@ def refresh_catalog(con: sqlite3.Connection, root: str, progress=None) -> int:
     於是 `up catalog` 一直回舊的 summary / 欄位。與其靠人記得重建，不如查詢時自動補。
     """
     return _build_catalog_table(con, root, progress, incremental=True)
+
+
+def _reconcile_script_names(con: sqlite3.Connection, progress=None) -> int:
+    """comps.type 以 script guid → .cs 的對照表為準，回傳改了幾筆。
+
+    根因（2026-10-01 VariableTransferAction → VarFloatEffectApplyAction）：`_index_asset` 優先吃
+    YAML 的 `m_EditorClassIdentifier`（DLL script 的 guid 對不到 .cs，只能靠它），但那欄要等 prefab
+    重存才會更新 —— class 改名後沒動過的 prefab 一直寫著舊名，索引也就跟著記舊名。另一條路是
+    .cs 改名：scripts 表每次 index 都重掃，但引用它的 prefab 沒變就不會重新索引。
+
+    兩種都在這裡一次修：每次 index 尾端用一句 UPDATE … FROM 把 guid 對得到 .cs 的 comps 改成
+    scripts 表的名字（只動不一致的列，不用重建全庫），被換掉的舊名留到 script_aliases。
+    """
+    cands = con.execute(
+        "SELECT DISTINCT c.type, c.script_guid, s.class, s.path FROM comps c "
+        "JOIN scripts s ON s.guid = c.script_guid WHERE c.type != s.class AND c.type != '?'").fetchall()
+    n = 0
+    root = _root_of(con)
+    for old, guid, new, rel in cands:
+        # scripts 表的 class 是檔名 stem；.cs 裡實際宣告的不是 stem（ShootWithDirectionPreAction.cs 裡只有
+        # ShootWithDirectionAfterProcess）時 YAML 的舊名才是對的 —— 原始碼確認「舊名已不存在、新名有宣告」才改
+        if not _renamed_in_source(root, rel, old, new):
+            continue
+        con.execute("INSERT OR IGNORE INTO script_aliases (old_class, guid) VALUES (?, ?)", (old, guid))
+        cur = con.execute(
+            "UPDATE comps SET type = ?, ns = (SELECT ns FROM scripts WHERE guid = ?) "
+            "WHERE script_guid = ? AND type = ?", (new, guid, guid, old))
+        n += cur.rowcount or 0
+    # 反向：之前記的 alias 現在原始碼不再支持（改回舊名、或當初誤判）→ 還原成 YAML 寫的名字
+    for old, guid, new, rel in con.execute(
+            "SELECT a.old_class, a.guid, s.class, s.path FROM script_aliases a "
+            "JOIN scripts s ON s.guid = a.guid").fetchall():
+        if old == new or not _renamed_in_source(root, rel, old, new):
+            con.execute("UPDATE comps SET type = ? WHERE script_guid = ? AND type = ?", (old, guid, new))
+            con.execute("DELETE FROM script_aliases WHERE old_class = ? AND guid = ?", (old, guid))
+    con.commit()
+    if progress and n:
+        progress(f"script 改名對齊：{n} 筆 component 改用現在的型別名")
+    return n
+
+
+_DECL_CACHE: dict[str, str] = {}
+
+
+def _root_of(con: sqlite3.Connection) -> str:
+    """DB 檔所在目錄 = 專案根（DB_NAME 固定放根目錄）。"""
+    for _, name, file in con.execute("PRAGMA database_list"):
+        if name == "main" and file:
+            return os.path.dirname(file)
+    return os.getcwd()
+
+
+def _renamed_in_source(root: str, rel: str, old: str, new: str) -> bool:
+    text = _DECL_CACHE.get(rel)
+    if text is None:
+        try:
+            raw = open(os.path.join(root, rel), encoding="utf-8", errors="replace").read()
+        except OSError:
+            return False
+        text = re.sub(r"/\*.*?\*/", "", raw, flags=re.S)
+        text = re.sub(r"//[^\n]*", "", text)
+        _DECL_CACHE[rel] = text
+
+    def declared(cls: str) -> bool:
+        return re.search(r"\b(?:class|struct)\s+" + re.escape(cls) + r"\b", text) is not None
+
+    return declared(new) and not declared(old)
 
 
 def _purge(con: sqlite3.Connection, path: str) -> None:

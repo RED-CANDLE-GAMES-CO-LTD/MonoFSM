@@ -177,7 +177,8 @@ namespace MonoFSM.Core.LifeCycle
                 newObj.transform.localScale = transform.lossyScale;
 
             newObj.gameObject.SetActive(true);
-            _spawnedEntityVar?.SetValue(newObj.GetComponent<MonoEntity>(), this); //更新變數
+            //用 MonoObj.Entity（AutoChildren）而不是 root GetComponent：有些道具 root 只有 MonoObj / NetworkObject，entity 在子節點的 physics obj base 上
+            _spawnedEntityVar?.SetValue(newObj.Entity, this); //更新變數
             //Rotation呢？
             _lastSpawnedObj = newObj;
             _spawnEventHandler?.OnSpawn(newObj, position, rotation);

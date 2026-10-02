@@ -7,6 +7,7 @@
 # prefab：整批共用一次 LoadPrefabContents / SaveAsPrefabAsset
 up prefab do "Assets/…/FireBurn FSM 起火點.prefab" -f ops.txt
 up prefab do "Assets/…/FireBurn FSM 起火點.prefab" -f ops.txt --quiet  # 成功只看摘要
+up prefab do "Assets/…/FireBurn FSM 起火點.prefab" -f ops.txt --dry-run  # 試跑：照跑在記憶體副本、不存檔
 
 # scene：對當前開著的 scene；scene 不需要 load/save 配對，最後一行 save 就好
 up scene do -f ops.txt
@@ -20,8 +21,9 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `comp\|<node>\|<comp,comp>` | 對既有節點加 component |
 | `set\|<node>\|<comp>\|<field>\|<value>` | 設值。float / int / bool / string / enum（傳名稱）/ Vector3（`"x,y,z"`）/ Vector2（`"x,y"`）/ Vector4（`"x,y,z,w"`）/ Quaternion（`"x,y,z,w"` 或 `"x,y,z"` 歐拉角）/ Color / LayerMask / **AnimationCurve**（`"[linear:\|ease:\|smooth:\|flat:]t,v;t,v;…"`，預設 `ease:` = 兩端切線 0 的 smoothstep）。long（`m_TableEntryReference.m_KeyId`）超出 int 範圍會自動走 `longValue` |
 | `ref\|<node>\|<comp>\|<field>\|<target>[\|<targetComp>]` | 指向另一個節點。targetComp 省略 = 用欄位宣告型別去找 |
-| `aref\|<node>\|<comp>\|<field>\|<assetPath>` | 指向 asset（prefab / SO）。prefab 會按欄位型別取 component。內建 primitive 用 `builtin:Cube` / `Quad` / `Sphere` / `Capsule` / `Cylinder` / `Plane` / `Default-Material` —— 它們住在 `Library/unity default resources`，`AssetDatabase` 讀不到 |
-| `addel\|<node>\|<comp>\|<field>` | 陣列 / List 欄位尾端加一個元素，回傳新 index；接著用 `set` / `aref` 補 `<field>.Array.data[<i>]`。**不能用 `set` 改 `.Array.size`**（ArraySize propertyType 走不進 ApplyValue） |
+| `aref\|<node>\|<comp>\|<field>\|<assetPath>` | 指向 asset（prefab / SO）。prefab 會按欄位型別取 component。**assetPath 寫 `null` = 清空引用**（`set\|…\|null` 同義；variant / nested 上會寫成「override 成 null」）。型別對不上會報「拒收」，不會靜默寫成 null。內建 primitive 用 `builtin:Cube` / `Quad` / `Sphere` / `Capsule` / `Cylinder` / `Plane` / `Default-Material` —— 它們住在 `Library/unity default resources`，`AssetDatabase` 讀不到 |
+| `addel\|<node>\|<comp>\|<field>` | 陣列 / List 欄位尾端加一個元素，回傳新 index；接著用 `set` / `aref` 補 `<field>.Array.data[<i>]`。要一次 resize 用 `set\|…\|<field>.Array.size\|N`（變小從尾端砍） |
+| `delel\|<node>\|<comp>\|<field>[i]` | 刪陣列 / List 第 i 格、後面往前補（prefab / scene / asset do 都有；也收 `<field>.Array.data[i]`）。新加的 MeshRenderer `m_Materials` 預設就有 1 格 null，要嘛 `aref` 填 `data[0]`、要嘛 `delel` 掉，不要 `addel` 疊上去 |
 | `revert\|<node>\|<comp>\|<fieldPath>` | 清掉單一 property override，讓值回到繼承自 base / nested prefab 的值（**只有 prefab**）。`<comp>` 留空 = GameObject 本身（`m_IsActive`）。**執行時機排在存檔前 callback 之後**，否則 callback 會把 override 寫回來。存檔後會驗「真的不再是 override」 |
 | `pos\|<node>\|x,y,z` | 設 localPosition（`<node>` 留空 = root）。**目標是 RectTransform 時會警告並指向 `rect`** —— Canvas relayout 會蓋掉 localPosition |
 | `rect\|<node>\|<ax,ay>\|<w,h>\|<anchor>\|<px,py>` | UI 專用（prefab / scene 都支援，共用 `EditBatch.ApplyRect`；scene 版 `<node>` 必填）：寫 anchoredPosition / sizeDelta / anchorMin+Max / pivot，每格都可留空 = 不動。anchor 吃 preset 名（`center` / `top-left` / `stretch` / `stretch-h`…）或 `minX,minY,maxX,maxY` |
@@ -30,7 +32,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（含 nested prefab override 記錄與 reload 驗證；第二格必填） |
 | `layer\|<node>\|<layer 名字>[\|children]` | 設 GameObject.layer（prefab / scene 都支援；prefab 版 `<node>` 留空 = root）。吃 layer 名字（大小寫要一致，打錯會列出全部可用 layer），第三格 `children` = 連整棵子樹一起設。含 nested / variant override 記錄與 reload 驗證。**慣例：掛 `TriggerDetectorSource`（含子類）的節點一律 `Detector` layer**（cast / overlap 打什麼看 query mask，不檢查；TriggerDetectorSource 自己在 Editor 的 Reset / OnValidate 也會修正，但只有 prefab 被打開 / inspect 時才跑） —— `prefab do` 存檔後會對「這批新造成的」違規印 `# ⚠ layer 慣例：…` 加修正指令，既有的只報數量；`scene do` 在 add / comp / layer 當下檢查 |
 | `idx\|<node>\|<siblingIndex>` | 調 sibling 順序。**child 順序＝優先序**（value source / condition 取第一個成立的），負數從尾端算（`-1` = 最後） |
-| `mv\|<node>\|<newParent>` | 換 parent（scene 與 prefab 都支援） |
+| `mv\|<node>\|<newParent>[\|world]` | 換 parent（scene 與 prefab 都支援）。預設保留 **local** pose；prefab 版第三格寫 `world` = 保留 world pose（搬到不同層但模型不能跑位時用） |
 | `dup\|<node>\|<newName>` | **只有 scene**：複製整棵子樹到同一個 parent、排在原節點後面一格（`$` 會指到複本）。子樹內部互指的 reference 自動對到複本，指向外面的維持原樣；原節點是 prefab 實例 root 會保留 prefab 連結（實例上 added / removed 的東西帶不過去，會印 `# dup:` 警告）。撞名直接擋不跳過。prefab 裡要複製用 `copyfrom` |
 | `copyfrom\|<srcPrefab>\|<srcNode>\|<dstParent>[\|<newName>]` | **跨 prefab** 複製整棵子樹（只有 prefab）。nested 實例會被重建成真實例（override 保留），指向子樹外的引用依 hierarchy 相對路徑重映射到目的 prefab 的同路徑節點。見下面「跨 prefab 搬子樹」 |
 | `rename\|<node>\|<newName>` | 改節點名（`<node>` 留空 = root）。**只對沒掛 `AbstractDescriptionBehaviour` 的節點有意義**，其餘存檔後會被自動命名蓋掉，見 [naming.md](naming.md) |
@@ -40,7 +42,7 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `delmissing\|<node>` | 移除該節點上所有 MissingScript；已刪 C# 型別後無法用 `delcomp` 時使用。prefab 版 `<node>` 留空 = root |
 | `invoke\|<node>\|<comp>\|<method>` | 呼叫 component 上的無參數方法（按 Odin `[Button]`，例：`SlotRowLayoutTool.RebuildSlots`），只有 prefab。跟 `up asset invoke` 不同，**可以收進批次**：改的是 LoadPrefabContents 的記憶體副本，任一行失敗整批不存檔。方法有回傳值會印在 log（`→ …`），tool 被自己的檢查擋下時靠這個分辨「擋下」跟「重跑結果一樣」；方法內的改動不在逐欄驗證範圍，結果用 read / peek 看 |
 | `save` | 存 scene（**只有 scene**；prefab batch 結束自動存） |
-| `mark\|<label>[\|<node>]` | 給節點取個短名，之後用 `$label` 代換。不給 `<node>` = 標記上一個建立節點的操作 |
+| `mark\|<label>[\|<node>]` | 給節點取個短名，之後用 `$label` 代換（存的是節點本身，之後 rename / mv 也跟得上；找不到節點直接報錯、不走同層容錯）。不給 `<node>` = 標記上一個建立節點的操作 |
 
 **`add` / `comp` / `set` / `ref` / `aref` / `addel` / `revert` / `pos` / `rect` / `scale` / `rot` / `delcomp` / `delmissing` 的 `<node>` 留空 = prefab root**
 （`MonoEntity` / `MonoObj` / `NetworkObject` 都掛在 root 上）。scene 版沒有這個語意 ——
@@ -142,14 +144,20 @@ Unity 載入時直接丟棄，`up prefab peek` 只會回「型別上沒有這個
 MonoFSM 的節點路徑動輒六十個字元（`[StateFolder] StateFolder/[State] idle/[Event]
 OnStateEnter/[Action] Reset Timer`），而「`add` 完緊接著 `ref`」是最常見的組合。
 **這也是對抗自動命名最有效的一招**（見 [naming.md](naming.md)）：`$` 記的是節點本身，
-不受改名影響。任何參數都可以寫：
+不受改名影響 —— `mark` 當下就抓住那顆 Transform，用到時才算「現在的」路徑，同一批先 mark 再
+`rename` / `mv` 照樣指到同一顆（路徑變了會多印一行「`$X` 跟著節點走：舊 → 新」）。`mark` 不走同層容錯，
+找不到直接報錯（附「你可能想要」）；標的節點被 `del` 掉之後再用 `$label` 也是報錯。（prefab / scene 都是；
+`asset do` 沒有節點，`mark` 還是存字串。）任何參數都可以寫：
 
 | 寫法 | 代換成 |
 |---|---|
 | `$` | 上一個**建立節點**的操作（`add` / `prefab` / `state` / `trans` / `if` / `act`）碰到的節點 |
 | `$/子路徑` | 同上，再往下接 |
 | `$label` / `$label/子路徑` | `mark` 標過的節點 |
-| `$$` | 字面上的 `$`（prompt 的 `${token}` 不是識別字，不會被誤代換，不用跳脫） |
+| `$$` | 字面上的 `$`，**參數任何位置**都算（含 `$label/` 後面的子路徑：`$BR/[Action] Set $$[Var] x` → `…/[Action] Set $[Var] x`） |
+| 單一 `$` 接非識別字（`$[Var]`、`${token}`） | 照原樣保留，不代換也不用跳脫 —— 所以節點名裡的 `$[Var]` 直接寫 `$[Var]` 也行 |
+
+只有**參數開頭**的 `$` / `$label` 會被當成節點代換；中段的 `$label` 是字面字。某一行失敗時，只要有參數被代換或跳脫過，輸出會多一段 `# 提示：…實際送出的參數是：` 列出「原始 → 實際」，找不到節點時先看這段。
 
 `set` / `ref` / `pos` 這類不建節點的操作**不會**更新 `$`，所以 `add` 之後可以連著下好幾條
 `ref|$|…`。
@@ -198,10 +206,16 @@ auto|
   名稱相近的候選；欄位名錯 → 列出可用欄位；**巢狀路徑錯 → 列出走得通的那一層底下有什麼**
   （`_timeMax._constValue` → 「走到 `_timeMax`（VarFloatWrapper），這層底下有 `_tempValue: float`」）。
 - `prefab do` 會檢查 `SaveAsPrefabAsset` 成功，並 reload 驗證 touched 欄位（`auto` 驗它真的改到的
-  [Auto*] 欄位）；另外比對這批沒寫的既有 override / added 節點，被蓋掉印 `# ⚠ 連帶損失`。
+  [Auto*] 欄位）；另外比對這批沒寫的既有 override / added 節點，被蓋掉印 `# ⚠ 連帶損失`（按 nested instance 分開比，同一支 prefab 放兩份不會互相誤報；行尾帶「存檔前自動改名：舊 → 新」代表那顆是被 OnBeforePrefabSave 改名的，先懷疑命名、不要直接當資料掉了）。
 - **目標 prefab 正開在 Prefab Mode 時 `do` 會拒絕**（stage 之後存檔或退出按 Discard 會把改動整份蓋回）。
   請使用者存檔並關掉 stage 再跑；`--force` 可硬寫，但 stage 有未存改動時不要用。
   `--quiet` 只壓縮成功 log，錯誤仍保留完整行號與下一步線索。
+- **`prefab do --dry-run` = 試跑**：整批照跑在 LoadPrefabContents 的記憶體副本上（含存檔前 callback、
+  revert，錯誤訊息跟真跑一樣），最後印 `# dry-run：N 個操作 OK，未存檔` 就丟掉，檔案不動。
+  沒存檔所以**沒有 reload 驗證**（`auto` 存檔後會不會變成 override、`# ⚠ 連帶損失` 只有真跑才看得到）。
+  Prefab Mode 開著也能跑，但跑的是磁碟版本、不含 stage 未存的改動。
+  **`scene do` 沒有 dry-run**（直接改開著的 scene，沒有可丟的副本），帶了會 exit 2；要試跑先 `up scene copy` 一份。
+- `prefab` 的旗標帶錯子指令會直接 exit 2（例：`read --dry-run`、`do --segments`），訊息會講那個旗標給哪些子指令用。
 - 要人工補驗時用 `prefab peek`；`prefab read` 已無磁碟快取（2026-09-11 移除），存檔後直接 read 即是現況。
 
 ## 同名節點用 `[n]` 指定第幾個
@@ -282,6 +296,15 @@ component 上宣告 `[DropDownRef] public VarBool _showVarBool;`，用 `ref` 指
 
 `ConditionGroup._conditions` 的 `[SerializeField]` 是被註解掉的 —— 它**不序列化**，靠
 `AutoAttributeManager` 在 runtime 綁定。所以 `prefab read` 看不到值是正常的，別以為沒綁上。
+
+## 新開的物件型 Var 會在 runtime 被寫入 → 一定要勾 `_isRuntimeOnly`
+
+只有物件型 Var（VarEntity / VarGameData / VarMonoObj… 這類 `GenericObjectVariable` 系）有這個欄位；VarBool / VarInt / VarFloat 沒有，不用管。
+被 `SpawnAction._spawnedEntityVar`、`AssignMonoVarValueAction`、`SetVarToDefaultAction` 這類 action
+寫入的 Var，沒勾 `_isRuntimeOnly` 只有 Play Mode 寫值那一刻才 LogError
+`Cannot set value of a non-runtime-only variable`，存檔、peek 都看不出來。加完 Var 當下就
+`set|<var 節點>|<VarXxx>|_isRuntimeOnly|true`。完整說明在 MonoFSM skill `references/value-source.md`。
+（2026-10-02 滑索訂購站的 `d_待出貨商品` 漏勾）
 
 ## prefab batch 存檔時會跑 `IBeforePrefabSaveCallbackReceiver`
 

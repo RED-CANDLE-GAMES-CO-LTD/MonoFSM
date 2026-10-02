@@ -4,6 +4,7 @@ using _1_MonoFSM_Core.Runtime.FSMCore.Core.StateBehaviour;
 using MonoFSM.FSM;
 using MonoFSM.Core;
 using MonoFSM.Core.Attributes;
+using MonoFSM.Core.Runtime.Action;
 using MonoFSM.Core.Simulate;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -59,7 +60,15 @@ public class GeneralState : MonoStateBehaviour
         base.OnExitState();
         StateExitCancellationTokenSource?.Cancel();
         _lastExitTick = WorldUpdateSimulator.CurrentTick;
+
+        //通知子樹裡要收尾的 action（巢狀 state 的 action 也會撈到，由實作者自己比對 bindingState）
+        if (_stateExitListeners != null)
+            for (var i = 0; i < _stateExitListeners.Length; i++)
+                _stateExitListeners[i]?.OnBindingStateExit(this);
     }
+
+    // state exit 時要收尾的 action（例：move action 清 FaceDir），見 IActionStateExit
+    [AutoChildren] private IActionStateExit[] _stateExitListeners;
 
     // 上次進入此 state 的 tick，-1 = 從沒 enter 過
     [ShowInDebugMode] private int _lastEnterTick = -1;

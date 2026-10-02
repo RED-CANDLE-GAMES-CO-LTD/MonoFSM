@@ -1477,3 +1477,125 @@ root 名稱改，而 root 名稱又會被存檔改回 **asset 檔名**（`rename
 - 2026-10-01 節點路徑改由 Unity 為準，離線不再推路徑：`up obj` 的離線後路（`_gid_offline` / `node_by_file_id` / `_is_rooted`）和上一條剛加的 `native_path` 整套刪掉。理由：離線 parent 鏈上的 nested instance 節點名是來源 prefab 的，override 改名看不到、上層接點也可能接錯，推出來的路徑會少層（`Base Character.prefab` 的 `[Anim] Base Character` 被推成 `Base Character/[Anim] Base Character`，真路徑是 `CharacterModules/Character FSM/Context/[Anim] Base Character`），而且「這條可不可信」本身離線也判不準 —— `native_path` 那種白名單只是把誤判縮小，不是消掉。錯的路徑比沒有更糟：拿去 `--node` 噴「找不到」，看起來像節點不存在。現在 `up obj` Unity 沒回應就 exit 1，只印資產路徑 + fileID + 之後可重跑的 anchor；`up find` 的 `→` 行 scene 一律給 anchor 版 `up peek`（peek 會叫 EditAnchor 解）、prefab 給 `prefab locate`（有 `--resolve` 才給 `prefab peek --node`）。離線索引只留 `query.node_name`（只給名字，當 EditAnchor 最後一層名稱比對的 fallback）。**故意沒動**：find 第二行的離線路徑照印 —— 那是搜尋結果（讓人看出命中的是哪一類節點），不是定位用的
 
 - 2026-10-01 `up find` 第二行的離線路徑「可能少層」時印成 `…/<路徑>  <comps>  （離線，不是 --node）`（`query.path_may_be_truncated`，只回 bool）：鏈上（含自己）有 prefab instance 成員（src_guid 非空）、鏈斷、或 prefab 鏈頂不是檔名同名那顆就標。為什麼只標示、不叫 Unity 解：find 一次掃幾十個資產，逐筆走 Unity（scene 還要開著）慢兩個數量級，而真的要定位的那幾筆已經有 `→` 行 / `--resolve` 走 Unity；這行的角色是搜尋結果，只要讓人別拿它當 `--node` 就夠。為什麼本檔原生節點不標：每行都標的話標示就沒資訊量，大家會直接無視。故意不加回推路徑的函式 —— 只判斷「可不可信」，不判斷「真路徑是什麼」
+
+- 2026-10-01 `prefab` 子指令旗標 fail fast：所有子指令共用一個 parser，旗標帶錯子指令 argparse 照收、cmd_prefab 默默忽略（2026-09-25 `do --dry-run` 被當試跑、結果真的存檔）。不拆 argparse 結構，只在 parse 前用 `_PREFAB_FLAG_ACTIONS` 對照表檢查，帶錯就 exit 2 並印這個旗標給哪些子指令用；縮寫（`--dry`）照 argparse 的規則唯一前綴比對。新增 prefab 旗標要記得補表，沒列的不檢查。
+
+- 2026-10-01 uloop 一律在專案根執行：uloop 是用 cwd 找 Unity 專案的，`up` 雖然自己往上找得到根（離線部分正常），但 spawn uloop 時沿用 caller 的 cwd，在子資料夾跑 `up fields` 就拿到 `PROJECT_NOT_FOUND`。修在所有 uloop 呼叫的唯一出口 `unity._run_raw`：`subprocess.run(cwd=activity._project_root())`。選 cwd 不選 `--project-path`：(1) 行為跟「從根目錄跑」完全一樣，是已知正常的路徑，不用賭 uloop 帶 `--project-path` 時有沒有別的分支差異 (2) 不用管旗標要放在子指令前還是後、每個子指令收不收 (3) `up` 傳給 uloop 的參數沒有相對路徑，換 cwd 不影響語意。找不到專案根就退回原本的 cwd。
+
+## P0：切 scene 不替使用者存檔、mark 記節點、OverrideGuard 誤報（2026-10-01）
+
+- **`scene open` / `copy` / `new` 碰到 dirty scene 預設拒絕**（`SceneEdit.CheckDirtyOpenScenes`）：2026-09-29 版是「自動存掉再切」，結果 09-29、10-01 兩次存了使用者故意不存的 scene（含 `_Recovery/…lake 1.unity`）。dirty scene 是使用者的東西，CLI 無權決定。現在：不切、不存、列出路徑、`# 未修改` + exit 1，訊息教下一隻 agent「請使用者自己存 / 放棄；使用者明說要存才加 `--save-dirty`」。`--save-dirty` 才走舊的存完再切。
+  - 刻意不做 discard：丟掉救不回來，CLI 不該有這顆按鈕。dirty 的 Untitled scene 帶 `--save-dirty` 也照擋（沒路徑能存）。
+  - `copy` 的檢查排在 `CopyAsset` 之前，擋下來不會留半份複製檔。Python 端 `cmd_scene` 看到 `# 未修改` 就 exit 1（以前一律 0，agent 會當成功繼續改錯 scene）。
+  - 驗證：使用者的 scene 剛好 dirty，`up scene copy` / `scene open` 都被擋、exit 1、沒建出檔案、沒切 scene。`--save-dirty` 那條沒實跑（要存使用者的 scene，不能試），邏輯是原本的 SaveDirtyOpenScenes 原樣搬過去。
+- **`scene ls` root 層印 `(prefab:res:…)`**：跟 HierarchyTextExporter 子節點同一套格式。
+- **`mark` / `$` 存節點不存路徑**（`EditBatch.INodeSpace`，prefab 用 `PrefabSpace`、scene 用 `SceneEdit.SceneSpace`）：mark 當下精確解析（`TryNodeExact` / 新的 `EditResolve.TryNodeInRootsExact`，不走同層容錯）抓住 Transform，用到時才用 `PathOf` / 新的 `PathInRoots` 算現在的路徑（同名 sibling 補 `[n]`），餵回 verb 一定解到同一顆。2026-09-30 發電鴿的根因：舊版存字串，rename 後舊路徑解不到，verb 的同層容錯（FuzzySegment）落到 `[State] init`，transition 靜默建錯。
+  - 路徑跟 mark 當下不同時印一行 note「`$X` 跟著節點走：舊 → 新」；標的節點被 del 掉、或搬出這個 prefab / scene 就報錯，不 fallback。
+  - `$`（上一個操作）也一併改成節點：每個操作成功後把 Touch 的路徑解一次存起來，之後 rename / mv 照樣跟得上；解不到才退回字串。`$$` 解析沒動（basePath 照舊不 Unescape）。
+  - `asset do` 沒有節點，傳 null space → mark 照舊存字串。
+  - static 欄位在 Run 結束的 finally 清空，不讓 LoadPrefabContents 的物件跨批次活著。
+  - 驗證（自建 fixture）：mark → rename → `add|$S|…` 建在改名後的節點；mark → mv → 跟到新 parent；`$` 經 rename 也對；同名 sibling `Dup[1]` 在 `[0]` 改名後仍指對；mark 打錯字報錯附「你可能想要」；del 後用 `$D` 報錯；scene 端唯讀 mark 解 root 正常。
+- **OverrideGuard 假陽性**（`EditOverrideGuard.cs`）：
+  - (a) 根因：`PropertyModification.target` 是 source asset 的物件，同一支 prefab 放兩份實例時 target 相同。舊版 reload 後用 `target|propertyPath` 當 dictionary key，後一份實例的值蓋掉前一份；instance root 的 `m_LocalPosition` 本來就一定有 mod（z=0 那份 = base 值），所以報「0.852 被蓋回 base 值 0」。instance 對照表也撞 key，兩筆 entry 掛到同一顆節點 → 同一行印兩次。修法：Take 時每個 outermost instance 各建對照表、記下 entry 屬於哪個 instance root；Capture（存檔後）記 root 路徑，Compare 用「root 路徑|target|path」比；分組對不上（root 被 mv 進別的 instance）才退回跨實例找同值。
+  - (b) `mv` 把 added 節點搬出 nested 實例後它就不再是「added」，舊版直接報「不見了」。現在 added 清單比不到時，存檔後同一路徑（精確解析）還找得到節點 / component 就不算損失。另外 `SnapshotNames` 在存檔前 callback 之前記名字，警告行若那顆（或祖先）被 OnBeforePrefabSave 改名，行尾標「存檔前自動改名：舊 → 新」。
+  - `HighlightEffect.rmsCount`（HighlightPlus 執行期計數）列進 `DerivedFields` 排除。
+  - 驗證：fixture 放兩份同 prefab（z=0.852 / z=0）+ 各自 added 子節點，`add||Dummy`、`mv|A/AddedX|Dummy` 都沒有連帶損失。舊版沒有重跑重現（改動已編進去），(a) 的根因是照程式邏輯推出來、跟 09-25 的症狀（值、印兩次）完全對得上。真陽性路徑沒有 fixture 能觸發，沒驗。
+
+## verify-skills 清到乾淨 + 可掛 pre-commit（2026-10-01）
+
+- 驗收：81 筆 → 0 筆（`up verify-skills` 回「乾淨」），baseline 只進 11 個 token。順序是**先修文件、再改工具、最後才 baseline**，不然真漏洞會一起被寫進 ignore。
+- 真失效約 35 筆是路徑改名 / 檔案刪掉（`ValueProvider/` → `ValueSource/`、LightBolt 子資料夾、安全區 / 陷阱 / 小瀑布改名、`[Base] statue 神像`、`_depre 資源車廂`、`TrainMover.cs` 已刪），另有型別改名（`VariableTransferAction` → `VarFloatEffectApplyAction`、`FloatDisBetweenEntity` → `FloatDistanceBetweenEntity`、`Vector3FromFloatSource` → `Vec3FromFloatSource`）。待辦說的「`_parentVarEntity` 已不存在」是錯的：它還在，只是非 serialized，工具也已正確歸到「非 serialized」。
+- **誤判大宗是工具看不到的型別**，改工具不進 baseline：
+  - `_src_decls`：`git grep --recurse-submodules` 撈所有 class / interface / struct / enum 宣告 + namespace（9.7k 筆 0.1 秒）。interface（`IAfterSimulate`）、Editor 類（`SubtreeSummarizerRegistry`）、namespace（`MonoValueProvider`）以前全被報。不用 Python 掃檔是因為 submodule 散在三處，git grep 本來就知道哪些是 tracked。跨行宣告（`class\n MonoBlackboard`）抓不到，量少不管。
+  - 欄位檢查改成沿繼承鏈聯集 catalog fields，`has_member` 也走所有 partial 檔：`MonoEntity._descriptableTags`（宣告在父類）、`GameData._objConfigs`（在 `GameData.Config.cs`）以前被報「欄位不存在」。catalog 漏掉的中間層（`AbstractMonoDescriptable`）用原始碼宣告的 base 補起來。
+  - `BUILTIN_IGNORE` 補 Unity 訊息 / Editor / .NET API（`OnCollisionEnter`、`EditorWindow`、`SerializedProperty`、`IList`…）：引擎 DLL 不在索引裡，這些在任何 Unity 專案都成立，不該每個專案 baseline 一次。
+  - `Xxx` 佔位（`VarXxxProviderRef`）直接跳過。
+- **整份 opt-out**：skillignore 支援 `file:<glob>`，命中的文件只驗路徑、不驗型別欄位。uloop 系列是外部 CLI 的 JSON 協定文件，逐 token baseline 會塞幾百行、協定一改又要重來；路徑照驗是因為路徑爛掉永遠是真失效。刻意不做 SKILL.md frontmatter 版：uloop skill 看起來是 uloop 套件裝進來的，改 frontmatter 更新時可能被蓋掉（沒驗證），而且 description 單行的限制讓動 frontmatter 有風險。
+- `--quiet`：乾淨時零輸出（連 DLL 白名單的 ⚠ 也吞），有失效照印。有失效一律 `exit 1`（不只 quiet）——`up vs --quiet` 就能直接當 pre-commit。
+- `--changed` 含 `..` 就當 ref 區間（`origin/main..HEAD`）；兩種模式都把 submodule 的 .cs 算進來（以前只 log 主 repo，MonoFSM skill 引用的框架 .cs 改了也不會被列）。ref 區間是取主 repo 兩端記錄的 submodule commit，在 submodule 裡 diff；沒 fetch 到就印一行跳過。順手修了路徑含空白被 `split()` 切爛的問題。
+- `--baseline` 收尾會提醒剩幾個路徑失效沒進 baseline（路徑類永遠不自動寫）；真的是在講「這個檔已經不在」就手動加路徑進 skillignore。
+
+## Python 工具批（2026-10-01）
+
+### `unity.csharp` 撞 `Another execution is already in progress`：backoff + 印佔用者
+- 2026-09-29 那版已經會重跑（固定 3s × 9），這次只補兩件：(1) BUSY_NOT_RUN 改指數 backoff 0.3/0.6/1.2/2.4s 再封頂 3s，
+  總預算維持 ~27s —— 多數 up 呼叫一秒內跑完，固定等 3s 太浪費；但別人的 prefab read / play 等待會十幾秒，
+  只照字面「0.3/0.6/1.2 試三次就失敗」會讓並行的唯讀查詢大量假失敗，所以沒照字面做。
+  (2) 重試訊息 / 最後的錯誤印「被 session X（up …，已跑 Ns）佔用」：`activity.busy_holders()` 掃 activity log
+  尾巴 64KB，找「有 begin 沒 end、不是自己 pid、pid 還活著、10 分鐘內」的呼叫。找不到就說「佔用者不明（可能是直接打 uloop）」。
+- 實測：現在的 uloop 版本對並行的 execute-dynamic-code 會自己排隊（第二隻等第一隻跑完才回，不報錯），
+  所以這條路徑自然很難撞到；驗收用 mock 讓 `_csharp_tracked` 連丟 N 次 busy，加一隻真的在 Sleep 的 call 當佔用者。
+- 低於 1s 的 backoff 不印 stderr，免得一般的短暫撞車洗一排。
+
+### catalog summary 跳過夾在中間的 `//` 註解 / attribute 行 + `PARSER_VERSION`
+- `/// <summary>` 跟 class 宣告中間夾 `//FIXME …` 或 `// [RequireComponent(...)]` 就被判成 ⚠無說明（GeneralEffectReceiver /
+  FusionBootstrapEditorOverride）。`_doc_above_class` 先跳過 attribute 和一般 `//` 行找 `///`；找不到才退回原本
+  「緊貼宣告的 `//` 當說明」—— 不然沒 summary、只有 `//` 說明的 class 會掉說明。
+- 增量刷新只看 .cs 的 mtime/size，**解析規則改了它察覺不到**。新增 `catalog.PARSER_VERSION` + `catalog_meta` 表，
+  版本不同就整批重建一次（~5 秒，只發生一次）。以後改 parse_file / `_doc_above*` / `parse_serializables` 記得 +1。
+- 順手修：`public bool IsValid => …` 這種 expression-bodied property 被 FIELD_RE 當成欄位（tail 吃到 `=`）。
+
+### `up types` / `up fields` 補 `[Serializable]` plain class / struct
+- Unity 端 `EditProbe.Types` / `Fields` 只認 Component（C# 這批不能動），所以走離線：`catalog.parse_serializables`
+  抽每支 .cs 裡掛 `[Serializable]` 的 class / struct（不限檔名 stem），存 `serial_types` 表，跟 catalog 共用一次讀檔、一起增量維護。
+- `up types X`：Unity 輸出後面接一段「[Serializable] class / struct —— 非 component，序列化欄位用」，Unity 已列的同名型別不重印。
+  `up fields X`：Unity 回「找不到 component」且 serial_types 有它 → 印離線欄位（public / [SerializeField]，不含繼承），不印 near-match。
+- 全庫 1,442 筆（含第三方），只在關鍵字查詢時出現，所以不會吵。
+
+### `up logs --stack`：已經修好，只是沒記
+- 0f457b09 已改成只附裸 `--include-stack-trace`。2026-10-01 實測 `up logs -n 2 --stack 2` 正常帶出 stack。
+
+### `up asset-refs a b c` 一次掃完
+- 單顆 15–20 秒幾乎全花在 `GetAllAssetPaths × GetDependencies(p,false)` 那一圈（實測 3 顆：掃描 15.9s、欄位定位 0.2s）。
+  多顆時用 inline snippet 只掃一圈、拿每個 path 的依賴清單比對整組 target。單顆照舊走 public `AssetDeps.AssetRefs`。
+- 沒在 C# 加 `AssetRefsMany`（這批限定 Python）：snippet 反射叫 AssetDeps 的 private helper（ResolvePath / IsScannable /
+  IsLfsPointer / TargetIds / AppendFieldHits），輸出格式跟單顆一致、每顆前面多一行 `=== <path>`。helper 改名時回 `#REFLECT-FAIL`，
+  Python 退回逐顆呼叫（慢但正確）。**以後有人動 AssetDeps 時，順手把它收成 public `AssetRefsMany`，這段 snippet 就能刪。**
+- 實測 3 顆 17.0s（單顆 18.4s）。
+
+### `up prefab <action> --help` 只列那個 action 的旗標
+- prefab 的 action 是 positional choices，argparse 對每個 action 吐同一份 4.1k 字 usage。拿 guard 用的
+  `_PREFAB_FLAG_ACTIONS` 把別的 action 的旗標設 SUPPRESS（`read --help` 1.1k 字）。沒帶 action 的 `up prefab --help` 照舊全印，
+  結尾提示可以帶 action。新增 prefab 旗標時記得同時登記進 `_PREFAB_FLAG_ACTIONS`，不然 help 過濾跟 guard 都會漏。
+
+### `up find <32 hex>`：2026-09-29 `_rewrite_guid_argv` 已涵蓋
+- 2026-10-01 實測 `up find <guid>` / `up find --guid <guid>` 都先印「guid → 路徑（等同 up guid）」再照原意跑。
+
+## P1：`asset peek`、引用清成 null、`delel` / Array.size、GameEventTag 自動收錄（2026-10-01）
+
+- **`up asset peek <x.asset> [--members] [--deep]`**（`EditProbe.PeekScriptable`）：跟 prefab peek 共用 `Dump`（參數從 Component 放寬成 `UnityEngine.Object`；欄位掃描遇到 `ScriptableObject` 也停），所以點路徑、`--deep`、List 預覽的行為一模一樣。`up peek <x.asset>` 也直接轉過來（印一行 stderr 提示正確指令）。.mat / .controller / .anim / .prefab 叫你改用對應指令，不硬讀。有 sub-asset 只列名字不展開。
+- **object reference 印 `@asset 路徑`**（`EditProbe.AssetPathSuffix`）：可以直接貼給 `aref`，修掉 `prefab peek --deep` 對 VariableTag 只印名字的問題。同一支 prefab 內部互指不印（`s_contextAssetPath`，不然整片都是同一個 .prefab）；LoadPrefabContents / scene 物件本來就沒有 asset 路徑，自然不印。內建資源印 `@builtin:<名字>`，跟 aref 的寫法一致。
+- **清成 null**：`EditResolve.ApplyValue` 的 ObjectReference 分支收 `null`（prefab / scene / asset 的 `set` 都會走到）；`AssetRef.Resolve("null")` 回 null（`aref|…|null`）。variant 上實測寫成 override null（`m_Mesh* = null`，base 照舊是 Cube）。
+- **順手修的靜默 bug**：`aref` 的目標型別跟欄位宣告型別對不上時，Unity 會把 objectReferenceValue 靜默寫成 null，舊版還回報成功（實測：沒有 MonoObj 的 prefab 塞進 `SpawnTableEntry._prefab`；根因是 `EditResolve.FieldType` 解不出 `_entries.Array.data[0]._prefab` 這種巢狀路徑的宣告型別，`AssetRef.Resolve` 就直接回整顆 GameObject）。現在寫完比對：resolve 出來非 null、寫完卻是 null，就報「拒收」。FieldType 解巢狀 Array 路徑本身沒修。
+- **`delel|…|<field>[i]`**（`EditResolve.SplitElementPath` / `RemoveArrayElement`，prefab / scene / asset do 都有）：ObjectReference 元素在舊版 Unity 第一次 `DeleteArrayElementAtIndex` 只會設成 null，所以比對 arraySize，沒縮就再刪一次，還是沒縮就報錯。**`set|…|<field>.Array.size|N`** 現在能用（ApplyValue 收 ArraySize，Preview 印數字）。驗證：variant 上 `delel m_Materials[0]` → override 存下來剩 1 格；base `Array.size|3`；SO `delel _entries[0]`、`Array.size 3 → 1`。
+- **GameEventTag 自動收錄**：原本的機制是 `OnValidate`（delayCall）+ `AssetPostprocessor.OnPostprocessAllAssets`，兩條都只在 scope ≠ LocalOnly 時收。`asset create` 建出來是預設 LocalOnly → 正確地不收；接著 `asset set _scope …` 走 SerializedObject + SaveAssets，不會 reimport，postprocessor 碰不到；OnValidate 有沒有被 ApplyModifiedProperties 觸發、delayCall 有沒有跑，沒有拿舊版重現（推論）。修法是不要再靠「剛好有觸發」：新增 `MonoFSM.Core.IAfterCliAssetEditCallbackReceiver`，AssetEdit 的 create / set / set-ref / add-element / do 存完呼叫它，回傳的狀態印成 `# …`。GameEventTag 實作：LocalOnly 印「不需要收」，其他就收錄並印 `已在 GameEventRegistry（id=N）`。故意不在 core 寫 GameEventTag 專屬程式碼，也不在每次 CLI 改 asset 都 ImportAsset（代價不明，而且只是換一條也許會觸發的路）。
+  - 驗證：建 LocalOnly → 印不需要收；`set _scope Team` → `id=10`，registry 多一筆；測完用 `delel|_events[10]` 刪掉，registry md5 跟測試前一樣。
+
+## `find --comp` 的型別名改以 script guid 為準（2026-10-01）
+- 現象：`up find --comp VariableTransferAction` 撈得到 8 筆，`up types` 卻查無此型別；Unity 讀到的是 `VarFloatEffectApplyAction`（同 guid）。
+- **根因不是「.cs 改名後 prefab 沒重新索引」**（那是推測，查證後只是次要路徑）：scripts 表（guid → .cs stem）每次 index 都重掃，本來就是新名；
+  但 `_index_asset` 對 MonoBehaviour **優先吃 YAML 的 `m_EditorClassIdentifier`**，guid 表只當 fallback（DLL script 的 guid
+  對不到 .cs，只能靠它）。class 改名後沒被重存的 prefab，那欄一直寫著舊名 → 索引記舊名。全庫一查有 51 組這種舊名。
+- 修法：index 尾端加 `_reconcile_script_names`，找出 comps.type ≠ scripts.class 的 (舊名, guid)，**讀 .cs 確認「舊名已不宣告、新名有宣告」**
+  才把 comps 改成新名，舊名存 `script_aliases`。只動不一致的列，第二次跑 0.05s，不用全庫重建也不用 PARSER_VERSION。
+  - 為什麼要讀原始碼確認：scripts 表的 class 是檔名 stem，但 `ShootWithDirectionPreAction.cs` 裡宣告的是 `ShootWithDirectionAfterProcess`，
+    這時 YAML 的名字才對。一開始沒擋，3 筆被改錯；加了反向檢查（alias 不再被原始碼支持就還原 + 刪 alias）順手修回來。
+  - 比對前先去掉註解：`VarListCountSource.cs` 裡還留著 `// public class VarListCountProvider`，不去註解會判成「舊名還在」。
+- 沒選「查詢時 join」：find / count / by-asset / verify-skills 都直接讀 comps.type，改成 join 要動每條 SQL；寫回去一次，所有查詢自動對。
+- 防呆（`_comp_name_notes`，find 開頭印）：`--comp` 精確名字在 script_aliases → 印「X 可能已改名，guid 對到 Y（路徑）→ up find --comp Y」；
+  guid 對不到 scripts、`Library/PackageCache` 的 .cs/.dll（`pkg_scripts` 表，lazy 掃一次 ~0.4s，guid 沒中才重掃）、DLL 型別表，
+  ns 也不是 UnityEngine/UnityEditor（UIDocument 這種引擎 module 的 guid 在專案裡永遠對不到）→ 印 `⚠ 很可能是 missing script`。
+  實測 CurvySpline（插件已移除）、TargetStateListener 會標；TextMeshProUGUI、UIDocument 不會。
+
+## `FieldType` 走得進陣列元素（2026-10-01）
+
+- `EditResolve.FieldType(type, path, instance)` 認 `Array.data[i]` 跟 `field[i]` 簡寫，元素型別取 T[] / List<T> 的 T；`[SerializeReference]` 欄位或元素有值時以實際值的型別為準（宣告成 interface / 抽象基底時才找得到子類欄位），沒值就用宣告型別。`AssetRef.Resolve` 和 `RefTarget` 都把 owner 傳進去當 instance。
+- 效果：`aref|_entries.Array.data[0]._prefab|<prefab>` 會照宣告型別（MonoObj）去 prefab 上拿 component；prefab 上真的沒有就報「上沒有 MonoObj…這個 prefab root 掛的是：…」，不會再整顆 GameObject 塞進去被 Unity 靜默寫成 null。P1 加的「拒收」檢查留著當最後一道防線。
+- 順手：`EditResolve.Prop` 收 `_entries[0]._prefab` 簡寫（轉成 `.Array.data[0]`），peek 本來就收，寫入端以前不收。
+- 驗證：SpawnTableConfig fixture 用 `Array.data[0]` 跟 `[1]` 兩種寫法 aref 有 MonoObj 的 prefab，peek 回 `<MonoObj> @…prefab`；aref 只有 Transform 的 prefab 會報沒有 MonoObj。`[SerializeReference]` 那條沒有 fixture，沒實測。
+
+## catalog 欄位抽取補三種漏網寫法（2026-10-02）
+- 現象：`up catalog action spawn` 的 SpawnAction 少列 `_spawnedEntityVar`，`up fields` 有。不是截斷 —— catalog 的欄位是 `catalog.py` 離線 regex（`FIELD_RE` / `_parse_fields`）從 .cs 抽的，`up fields` 是 Unity 反射，兩邊本來就不同來源。
+- 根因：`FIELD_RE` 有三處只吃同一行的寫法：(1) 型別和名稱之間只收 `[ \t]+`，Rider 把尾巴掛長註解的宣告折成 `private VarEntity\n    _foo; //…` 就整個漏；(2) attribute 只收單行 `[^\]\n]*`，跨行的 `[Tooltip("…" +\n "…")]` 或字串裡有 `]` 的 Tooltip 會斷鏈；(3) attribute 之間夾 `// [TypeFilter()]` 這種註解行也斷鏈。後兩種斷鏈會讓前面的 `[SerializeField]` 看不到，private 欄位被當成非 serialized 丟掉，`[Auto]` 標記也一起掉。
+- 改法：修 regex（`\s+` 允許換行、attribute 吃跨行與字串、attrs 鏈允許 `//` 註解行，算 attribute 前先濾掉註解行，註解掉的 `// [SerializeField]` 不算數），`PARSER_VERSION` 3 讓既有索引整批重建。全專案 4074 支 .cs 對比：多抓到 30 個欄位、5 個補上 `[Auto]`、沒有掉任何既有欄位；抽 210 個非 abstract 型別跟 `up fields --own` 比，0 差異。
+- 故意不做：catalog 不改成呼叫 Unity 拿欄位 —— catalog 要在 Unity 沒開時也能用、一次列上百顆，走 Unity 太慢又會依賴 Editor；也不加「還有 N 個欄位」提示，因為 catalog 本來就是全列（compact 模式已經有提示行），真正問題是抽漏，不是截斷。還沒處理的寫法：一行宣告多個欄位（`float _a, _b;`）、`@"…"` verbatim 字串裡的 `"`，這次抽樣沒遇到。

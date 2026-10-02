@@ -684,6 +684,22 @@ namespace MonoFSM.Core.Simulate
         private static float _levelStartTime;
 
         /// <summary>
+        /// Enter Play Mode 關掉 domain reload 時 static 不會重置，CurrentTick 會帶著上一輪的值進頭一兩個 frame
+        /// （trace / up hit 的 tick 對不上）。進 Play Mode 前把 tick / 時間相關的 static 歸零。
+        /// </summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticTickState()
+        {
+            CurrentTick = 0;
+            SimulationTime = 0f;
+            _levelStartTime = 0f;
+            _deltaTime = 0f;
+            LocalAlpha = 0f;
+            IsResimulation = false;
+            CurrentPhase = SimPhase.None;
+        }
+
+        /// <summary>
         /// 需要依照環境決定怎麼simulate
         /// </summary>
         /// <param name="deltaTime"></param>

@@ -35,11 +35,12 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | C# 重構後**把舊型別的序列化資料搬到新型別**（`peek` 看不到的孤兒欄位） | `prefab swap-script` | ❌ | [edit.md](references/edit.md) |
 | **路徑失效、名字跟上次讀到的不一樣**、節點名含 `/` 或換行 | —— | | [naming.md](references/naming.md) |
 | **建 / 改 ScriptableObject asset**（registry / config 類） | `asset create` / `set` / `set-ref` / `add-element` | ✅ | [asset.md](references/asset.md) |
+| **讀 ScriptableObject 的欄位值**（config 裡填了什麼、引用指到哪個 asset） | `asset peek <x.asset> [--members] [--deep]`；**不要 Read / grep .asset** | ✅ | [asset.md](references/asset.md) |
 | 一個 asset 要改多個欄位（要原子性） | `asset do <asset> -f ops.txt`（任一行失敗就整批不套用） | ✅ | [asset.md](references/asset.md) |
 | **加 / 改互動文字提示**（localized、按狀態切換） | `prompt` | ✅ | [prompt.md](references/prompt.md) |
 | **只要 localization 條目**（文案持有者是 SO 不是節點） | `loc` | ✅ | [prompt.md](references/prompt.md) |
 | 某個節點被誰指到 / 它指向誰 | `refs` | ✅ | [probe.md](references/probe.md) |
-| **asset 層級**被誰引用（fbx / otf / .asset / material，不是節點），要列到「哪個節點的 Component.欄位」 | `asset-refs`（全庫掃一次十幾秒） | ✅ | `up asset-refs --help` |
+| **asset 層級**被誰引用（fbx / otf / .asset / material，不是節點），要列到「哪個節點的 Component.欄位」 | `asset-refs`（全庫掃一次十幾秒；**多顆一起傳** `up asset-refs a b c` 只掃一次） | ✅ | `up asset-refs --help` |
 | build 太肥、某顆 asset **為什麼會進 build**、怎麼斷開 | `why-in-build`（從 build scene / Resources / Preloaded / Addressables 找最短鏈，最後一跳列到欄位，並列出 build 內其他直接 referrer） | ✅ | `up why-in-build --help` |
 | **組 FSM 時要挑 Action / Condition**（有哪些可用、各自幹嘛、欄位填什麼） | `catalog` | ❌ | [catalog.md](references/catalog.md) |
 | 某個型別叫什麼、有哪些欄位 | `types` / `fields`（Component）、`asset fields`（SO） | ✅ | [probe.md](references/probe.md) |

@@ -23,4 +23,16 @@ namespace MonoFSM.Core
     public interface IRenderInvoker
     {
     }
+
+    /// <summary>
+    /// 讓 render action 在 render sync 寫 entry 的當下（state authority、同一個 EventHandle 裡、
+    /// simulate actions 之前）先把要顯示的數值算好，跟著 sync payload 送到所有端。
+    /// 用在「數值只有觸發端讀得到」的表現（例：傷害數字讀 hitEntity proxy，proxy 端沒偵測所以 hitEntity 是 null）。
+    /// hub 只問 handler 底下第一個啟用中的 provider；播放端從 <see cref="MonoFSM.Runtime.Interact.EffectHit.IRenderHitAmount"/> 拿回來。
+    /// </summary>
+    public interface IRenderSyncAmountProvider
+    {
+        /// <returns>false = 這顆不提供數值，payload 不帶 amount</returns>
+        bool TryGetRenderSyncAmount(out float amount);
+    }
 }

@@ -215,8 +215,77 @@ def _no_match(notes, expanded: bool) -> None:
     print(INHERIT_TIP)
 
 
+def _pkg_script_guid_known(con, root: str, guid: str) -> bool:
+    """guid 是不是 Library/PackageCache 裡的 .cs / .dll（scripts 表刻意不掃 Library，
+    TextMeshProUGUI / Image 這類 package script 的 guid 在那裡對不到，不能就此判成 missing）。
+
+    結果存 pkg_scripts 表；guid 不在表裡才整批重掃一次（套件升級 / 新增後自然補上），
+    所以 missing 判斷只有第一次與真的 missing 時要付 ~0.5 秒。"""
+    con.execute("CREATE TABLE IF NOT EXISTS pkg_scripts (guid TEXT PRIMARY KEY, path TEXT)")
+    if con.execute("SELECT 1 FROM pkg_scripts WHERE guid = ?", (guid,)).fetchone():
+        return True
+    base = os.path.join(root, "Library", "PackageCache")
+    rows = []
+    for dirpath, _, filenames in os.walk(base):
+        for fn in filenames:
+            if not (fn.endswith(".cs.meta") or fn.endswith(".dll.meta")):
+                continue
+            full = os.path.join(dirpath, fn)
+            try:
+                with open(full, encoding="utf-8", errors="ignore") as f:
+                    m = re.search(r"^guid: ([0-9a-f]{32})", f.read(300), re.M)
+            except OSError:
+                continue
+            if m:
+                rows.append((m.group(1), os.path.relpath(full[: -len(".meta")], root)))
+    con.execute("DELETE FROM pkg_scripts")
+    con.executemany("INSERT OR REPLACE INTO pkg_scripts VALUES (?, ?)", rows)
+    con.commit()
+    return con.execute("SELECT 1 FROM pkg_scripts WHERE guid = ?", (guid,)).fetchone() is not None
+
+
+def _comp_name_notes(con, root: str, comp: str | None) -> list[str]:
+    """`find --comp X` 的型別名防呆：X 是改名前的舊名 → 指到現在的名字；X 的 script guid
+    對不到任何 .cs、也不在 DLL 型別表 → 明講是 missing script（不要讓 agent 以為型別還在）。"""
+    if not comp or "%" in comp or "*" in comp:
+        return []
+    out = []
+    try:
+        for guid, new, path in con.execute(
+                "SELECT a.guid, s.class, s.path FROM script_aliases a JOIN scripts s ON s.guid = a.guid "
+                "WHERE a.old_class = ? COLLATE NOCASE", (comp,)):
+            out.append(f"# {comp} 可能已改名：script guid {guid} 現在對到 {new}（{path}）。"
+                       f"prefab YAML 的 m_EditorClassIdentifier 還寫舊名，索引已改用新名 → up find --comp {new}")
+        if out:
+            return out
+        guids = [g for (g,) in con.execute(
+            "SELECT DISTINCT script_guid FROM comps WHERE type = ? COLLATE NOCASE AND script_guid IS NOT NULL",
+            (comp,))]
+        if not guids:
+            return []
+        if con.execute("SELECT 1 FROM scripts WHERE class = ? COLLATE NOCASE", (comp,)).fetchone():
+            return []
+        if con.execute("SELECT 1 FROM dll_types WHERE name = ? COLLATE NOCASE", (comp,)).fetchone():
+            return []
+        # 引擎內建 module 的 script（UIDocument 之類）guid 指向 Unity 安裝目錄的 dll，專案裡永遠對不到
+        if con.execute("SELECT 1 FROM comps WHERE type = ? COLLATE NOCASE AND (ns LIKE 'UnityEngine%' "
+                       "OR ns LIKE 'UnityEditor%') LIMIT 1", (comp,)).fetchone():
+            return []
+        missing = [g for g in guids
+                   if not con.execute("SELECT 1 FROM scripts WHERE guid = ?", (g,)).fetchone()
+                   and not _pkg_script_guid_known(con, root, g)]
+        for g in missing:
+            out.append(f"# ⚠ {comp}：script guid {g} 對不到任何 .cs，也不在 DLL 型別表 → 很可能是 missing script"
+                       "（名字是 YAML 的 m_EditorClassIdentifier 留下的，Unity 會顯示 Missing (Mono Script)）")
+    except Exception:
+        return []
+    return out
+
+
 def cmd_find(args, root, cfg):
     con = indexer.connect(root)
+    for n in _comp_name_notes(con, root, args.comp):
+        print(n)
     paths, layers, notes = _inherit_expand(con, args, root, cfg)
     where = dict(comp=_like(args.comp), name=_like(args.name), path=_like(args.path),
                  scope=args.scope, paths=paths)
@@ -628,12 +697,18 @@ def _probe_text(args) -> str:
 
 def cmd_scene(args, root, cfg):
     a = args.action
-    if a == "new":
-        print(unity.call(f"{SCENE}.NewScene", args.path, args.defaults))
-    elif a == "copy":
-        print(unity.call(f"{SCENE}.CopyScene", args.template, args.path))
-    elif a == "open":
-        print(unity.call(f"{SCENE}.OpenScene", args.path))
+    if a in ("new", "copy", "open"):
+        # 切 scene 的三條：有 dirty scene 時 C# 端預設拒絕（不切、不存），回 `# 未修改：…`。
+        # 要 exit 非 0，呼叫方（agent / script）才不會把「沒切成」當成功繼續往下改錯 scene。
+        if a == "new":
+            out = unity.call(f"{SCENE}.NewScene", args.path, args.defaults, args.save_dirty)
+        elif a == "copy":
+            out = unity.call(f"{SCENE}.CopyScene", args.template, args.path, args.save_dirty)
+        else:
+            out = unity.call(f"{SCENE}.OpenScene", args.path, args.save_dirty)
+        print(out)
+        if out.lstrip().startswith("# 未修改"):
+            raise SystemExit(1)
     elif a == "save":
         print(unity.call(f"{SCENE}.Save"))
     elif a == "ls":
@@ -751,6 +826,11 @@ def _resolve_asset(root: str, path: str) -> str:
 
 
 def cmd_prefab(args, root, cfg):
+    # .asset 不是 prefab：以前回「找不到 prefab」，看不出該換哪條指令
+    if args.action in ("peek", "read", "locate") and args.asset.lower().endswith(".asset"):
+        print(f"# {args.asset} 是 ScriptableObject，不是 prefab。讀值用：up asset peek \"{args.asset}\""
+              + (f" --members {args.members}" if getattr(args, "members", None) else ""))
+        raise SystemExit(2)
     if args.action != "swap-script":  # swap-script 離線讀磁碟，要的是 repo 相對路徑
         args.asset = _resolve_asset(root, args.asset)
     if args.action == "variant":
@@ -790,7 +870,12 @@ def cmd_prefab(args, root, cfg):
     elif args.action == "do":
         # --force 只在有帶時才多傳一個參數：沒帶就走舊的 3 參數 overload，
         # C# 端還沒 compile 到新 overload 時不會連一般的 do 都壞掉
-        if args.force:
+        if args.dry_run:
+            # 5 參數 overload：記憶體副本照跑、不存檔。C# 還沒 compile 到這個 overload 時 Unity 會報
+            # 找不到 method —— 寧可報錯也不能退回 4 參數版（那會真的存檔，就是 2026-09-25 的事故）
+            print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet,
+                             bool(args.force), True))
+        elif args.force:
             print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet, True))
         else:
             print(unity.call(f"{PREFAB}.Batch", args.asset, _ops_text(args), args.quiet))
@@ -929,6 +1014,14 @@ def cmd_asset(args, root, cfg):
         print(unity.call(f"{ASSET}.AddArrayElement", args.path, args.field, args.elem_type))
     elif a == "invoke":
         print(unity.call(f"{ASSET}.Invoke", args.path, args.method))
+    elif a == "peek":
+        ext = os.path.splitext(args.path)[1].lower()
+        redirect = {".mat": "mat", ".controller": "controller", ".overridecontroller": "controller",
+                    ".anim": "anim --values", ".prefab": "prefab peek"}.get(ext)
+        if redirect:
+            print(f"# {ext} 不是 ScriptableObject，改跑 `up {redirect} \"{args.path}\"`")
+            raise SystemExit(2)
+        print(unity.call(f"{PROBE}.PeekScriptable", args.path, args.members, args.deep))
     elif a == "fields":
         # .mat / .controller / .anim 的「值」走離線指令；ListFields 只給欄位型別，還要開 Unity
         ext = os.path.splitext(args.path)[1].lower()
@@ -1056,10 +1149,84 @@ def _asset_token(root: str, token: str) -> str:
     return _to_unity_path(root, token)
 
 
+# 多顆 asset 一次查：全庫 GetDependencies 那一圈（單顆 15–20 秒的來源）只跑一次，
+# 每個 path 的依賴清單拿去比對整組 target。格式、LFS / 可掃描判斷、欄位定位全部沿用
+# AssetDeps 自己的 private helper（反射叫），輸出跟單顆 AssetRefs 一致，只是每顆前面多一行分隔。
+# 為什麼不在 C# 加 AssetRefsMany：這批改動限定 Python（同時有別的 agent 在改 PrefabEditing/*.cs）。
+# helper 改名 / 改簽名時這段回 `#REFLECT-FAIL`，Python 端退回逐顆呼叫 AssetRefs（慢但正確）。
+ASSET_REFS_MANY = r"""
+var T = typeof(MonoFSM.Editor.PrefabEditing.AssetDeps);
+var F = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static;
+var mResolve = T.GetMethod("ResolvePath", F);
+var mScan = T.GetMethod("IsScannable", F);
+var mLfs = T.GetMethod("IsLfsPointer", F);
+var mIds = T.GetMethod("TargetIds", F);
+var mHits = T.GetMethod("AppendFieldHits", F);
+if (mResolve == null || mScan == null || mLfs == null || mIds == null || mHits == null) return "#REFLECT-FAIL";
+var isScan = (System.Func<string, bool>)System.Delegate.CreateDelegate(typeof(System.Func<string, bool>), mScan);
+var isLfs = (System.Func<string, bool>)System.Delegate.CreateDelegate(typeof(System.Func<string, bool>), mLfs);
+var tokens = new string[] { __TOKENS__ };
+int limit = __LIMIT__; bool all = __ALL__;
+var sb = new System.Text.StringBuilder();
+var targets = new System.Collections.Generic.List<string>();
+foreach (var tok in tokens)
+{
+    var a = new object[] { tok, null };
+    var r = (string)mResolve.Invoke(null, a);
+    if (r == null) sb.AppendLine("=== " + tok + "\n" + (string)a[1]);
+    else if (!targets.Contains(r)) targets.Add(r);
+}
+var refs = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>();
+foreach (var t in targets) refs[t] = new System.Collections.Generic.List<string>();
+int lfs = 0;
+var sw = System.Diagnostics.Stopwatch.StartNew();
+foreach (var p in UnityEditor.AssetDatabase.GetAllAssetPaths())
+{
+    if (!isScan(p)) continue;
+    if (isLfs(p)) { lfs++; continue; }
+    foreach (var d in UnityEditor.AssetDatabase.GetDependencies(p, false))
+        if (d != p && refs.TryGetValue(d, out var lst)) lst.Add(p);
+}
+var scanSec = sw.Elapsed.TotalSeconds;
+foreach (var t in targets)
+{
+    var referrers = refs[t];
+    referrers.Sort(System.StringComparer.Ordinal);
+    sb.AppendLine("=== " + t);
+    sb.AppendLine("# " + t + " 被 " + referrers.Count + " 個 asset 直接引用");
+    if (referrers.Count == 0) { sb.AppendLine("（沒有 asset 直接引用它；要看是不是 build root 用 `up why-in-build`）"); continue; }
+    var ids = mIds.Invoke(null, new object[] { t });
+    var shown = all ? referrers.Count : System.Math.Min(limit, referrers.Count);
+    for (var i = 0; i < shown; i++)
+    {
+        sb.AppendLine(referrers[i]);
+        mHits.Invoke(null, new object[] { sb, referrers[i], ids, "    " });
+    }
+    if (shown < referrers.Count) sb.AppendLine("# 還有 " + (referrers.Count - shown) + " 個，用 --all 看全部");
+}
+sb.AppendLine("# " + targets.Count + " 顆共用一次全庫掃描 " + scanSec.ToString("0.0") + "s，欄位定位 " + (sw.Elapsed.TotalSeconds - scanSec).ToString("0.0") + "s");
+if (lfs > 0) sb.AppendLine("# 跳過 " + lfs + " 顆沒 pull 的 git LFS pointer（要掃它們先 `git lfs pull`）");
+return sb.ToString();
+"""
+
+
 def cmd_asset_refs(args, root, cfg):
-    """asset 層級反查：整個 Assets/ + Packages/ 裡誰直接引用它，scene / prefab 再列到欄位。"""
-    print(unity.call(f"{ASSETDEPS}.AssetRefs", _asset_token(root, args.token),
-                     args.limit, bool(args.all)).rstrip("\n"))
+    """asset 層級反查：整個 Assets/ + Packages/ 裡誰直接引用它，scene / prefab 再列到欄位。
+    多顆一次傳進來只掃一遍全庫（單顆 15–20 秒，大半是那一圈 GetDependencies）。"""
+    tokens = [_asset_token(root, t) for t in args.token]
+    if len(tokens) == 1:
+        print(unity.call(f"{ASSETDEPS}.AssetRefs", tokens[0],
+                         args.limit, bool(args.all)).rstrip("\n"))
+        return
+    code = (ASSET_REFS_MANY.replace("__TOKENS__", ", ".join(unity.lit(t) for t in tokens))
+            .replace("__LIMIT__", str(int(args.limit))).replace("__ALL__", "true" if args.all else "false"))
+    out = unity.csharp(code, method="uprefab.assetrefs.many")
+    if out.strip() == "#REFLECT-FAIL":
+        print("# AssetDeps 的 private helper 對不上（被改名？），退回逐顆查 —— 每顆都要再掃一次全庫",
+              file=sys.stderr)
+        out = "\n".join("=== " + t + "\n" + unity.call(f"{ASSETDEPS}.AssetRefs", t, args.limit,
+                                                          bool(args.all)).rstrip("\n") for t in tokens)
+    print(out.rstrip("\n"))
 
 
 def cmd_why_in_build(args, root, cfg):
@@ -1204,8 +1371,57 @@ def cmd_catalog(args, root, cfg):
         print(f"# … 還有 {total - len(rows)} 個，用 --limit 或加關鍵字縮小")
 
 
+SERIAL_NOTE = "非 component，序列化欄位用（掛在別的 component 欄位上，不能 add 成 component）"
+
+
+def _print_serial_types(root, keyword: str, exclude_text: str = "") -> None:
+    """離線補 `[Serializable]` plain class / struct —— Unity 端 Types / Fields 只認 Component，
+    查不到會讓 agent 以為型別不存在、另外造一顆重複的 component（ConditionGroup 那次）。"""
+    try:
+        con = indexer.connect(root)
+        _refresh_catalog(con, root)
+        rows = query.serial_find(con, keyword)
+    except Exception:
+        return
+    # Unity 已經列出來的（真的是 component 的同名型別）不重複印；`#` 開頭的是說明行不算
+    shown = {w for ln in (exclude_text or "").splitlines() if not ln.lstrip().startswith("#")
+             for w in re.findall(r"\w+", ln)}
+    rows = [r for r in rows if r[0] not in shown]
+    if not rows:
+        return
+    print(f"# [Serializable] class / struct —— {SERIAL_NOTE}：")
+    for cls, path, kw, bases, summary, fields in rows:
+        tip = f" — {summary[:80]}" if summary else ""
+        print(f"  {cls}{' (struct)' if kw == 'struct' else ''}  {path}{tip}")
+    print("#   欄位：up fields <型別>")
+
+
 def cmd_types(args, root, cfg):
-    print(unity.call(f"{PROBE}.Types", args.keyword, args.limit))
+    out = unity.call(f"{PROBE}.Types", args.keyword, args.limit)
+    print(out)
+    _print_serial_types(root, args.keyword, out)
+
+
+def _print_serial_fields(root, name: str) -> bool:
+    try:
+        con = indexer.connect(root)
+        _refresh_catalog(con, root)
+        rows = query.serial_one(con, name)
+    except Exception:
+        return False
+    for cls, path, kw, bases, summary, fields in rows:
+        print(f"# {cls} [Serializable] {kw}{f' <{bases}>' if bases else ''}  {path}")
+        print(f"# {SERIAL_NOTE}；欄位是離線從原始碼抽的（public / [SerializeField]，不含繼承來的）")
+        if summary:
+            print(f"# {summary}")
+        flist = json.loads(fields or "[]")
+        if not flist:
+            print("#   （沒有 serialized 欄位）")
+        for f in flist:
+            auto = f"[{f['auto']}] " if f.get("auto") else ""
+            tip = f" — {f['tip']}" if f.get("tip") else ""
+            print(f"  {auto}{f['name']}: {f.get('type', '?')}{tip}")
+    return bool(rows)
 
 
 def cmd_fields(args, root, cfg):
@@ -1235,6 +1451,8 @@ def cmd_fields(args, root, cfg):
                 print(f"#   {auto}{f['name']}{tip}")
         print()
     out = unity.call(f"{PROBE}.Fields", args.type, not args.own)
+    if (out or "").startswith("# 找不到") and _print_serial_fields(root, args.type):
+        return
     print(out)
     if (out or "").startswith("# 找不到"):
         # Unity 端只給「名稱含這段」的候選，打錯字（VarFlaot）時一個都撈不到；
@@ -1308,8 +1526,8 @@ def _peek_asset_path(args, root, asset: str, kind: str, fid, rest) -> None:
     anchor 一律交給 Unity 的 EditAnchor 解（合併後的真路徑），離線索引只拿節點名給它當
     fallback，不推路徑（見 query.node_name 的理由）。
 
-    故意不做的事：scene 不是 Editor 開著的那個時**不自動切 scene** —— `up scene open`
-    會自動存 dirty scene（使用者可能正在編輯），讀錯 scene 又會給出看似正常的錯誤值。
+    故意不做的事：scene 不是 Editor 開著的那個時**不自動切 scene** —— 使用者可能正在編輯
+    （有 dirty scene 時 `up scene open` 會拒絕），讀錯 scene 又會給出看似正常的錯誤值。
     所以只印「開著的是哪個 / 目標是哪個」，切不切讓呼叫端決定。
     """
     comp = args.comp
@@ -1386,6 +1604,11 @@ def _peek_asset_path(args, root, asset: str, kind: str, fid, rest) -> None:
 
 
 def cmd_peek(args, root, cfg):
+    # `.asset`（ScriptableObject）直接走 asset peek —— 沒有節點 / component 的概念，comp 參數忽略
+    if re.match(r"^(?:Assets|Packages)/.+\.asset$", args.node or "", re.I):
+        print(f"# .asset 走 up asset peek（下次直接打：up asset peek \"{args.node}\"）", file=sys.stderr)
+        print(unity.call(f"{PROBE}.PeekScriptable", args.node, args.members, args.deep))
+        return
     m = PEEK_ASSET_RE.match(args.node or "")
     if m:
         _peek_asset_path(args, root, m.group(1), m.group(2),
@@ -1882,6 +2105,125 @@ def _hoist_globals(argv: list) -> list:
     return head + rest
 
 
+# `uprefab prefab` 所有子指令共用一個 parser，旗標帶錯子指令 argparse 照收、cmd_prefab 默默忽略。
+# 2026-09-25 有 agent 對 `do` 帶 `--dry-run` 當試跑，結果照樣存檔 —— 所以帶錯就直接 exit 2。
+# 新增 prefab 旗標時要記得補這張表（沒列在表上的旗標不檢查）。
+_PREFAB_FLAG_ACTIONS = {
+    "--node": ("read", "peek", "bounds"),
+    "--comp": ("peek", "locate"),
+    "--members": ("peek", "locate"),
+    "--deep": ("peek", "peek-batch", "locate"),
+    "--depth": ("read",),
+    "--budget": ("read",),
+    "--fsm": ("read",),
+    "--fsm-only": ("read",),
+    "--structure-only": ("read",),
+    "--full": ("read",),
+    "--cache": ("read",),
+    "--no-cache": ("read",),
+    "--out": ("variant", "copy"),
+    "--name": ("locate", "variant", "copy"),
+    "--limit": ("locate",),
+    "--file": ("do", "peek-batch"),
+    "--quiet": ("do",),
+    "--from": ("swap-script",),
+    "--to": ("swap-script",),
+    "--fileid": ("swap-script",),
+    "--drop": ("swap-script",),
+    "--assembly": ("swap-script",),
+    "--dry-run": ("swap-script", "do"),
+    "--force": ("swap-script", "do"),
+    "--segments": ("bounds",),
+}
+_PREFAB_SHORT_FLAGS = {"-n": "--limit", "-f": "--file"}
+
+
+def _guard_subcommand_flags(argv: list):
+    """`prefab <action>` 帶了該 action 不吃的旗標 → exit 2；`scene ... --dry-run` 也擋（理由見下）。
+    在 _normalize_argv 之後、parse_args 之前跑，所以 cmd / action 已經是正規的小寫名。"""
+    # 找子指令位置的方式跟 _normalize_argv 一樣（跳過全域旗標與它的值），免得把別的指令的參數值當成 prefab
+    cmd_i = 0
+    while cmd_i < len(argv):
+        tok = argv[cmd_i]
+        if tok in _VALUE_FLAGS:
+            cmd_i += 2
+        elif tok.startswith("-") and tok != "-":
+            cmd_i += 1
+        else:
+            break
+    if cmd_i >= len(argv) or argv[cmd_i] not in ("prefab", "scene"):
+        return
+    rest = argv[cmd_i + 1:]
+    if "--" in rest:
+        rest = rest[:rest.index("--")]
+    if argv[cmd_i] == "scene":
+        if any(t == "--dry-run" or t.startswith("--dry") for t in rest):
+            # scene do 直接改開著的 scene，沒有可以丟掉的記憶體副本；做假的 dry-run（跑完不 save）
+            # 會讓 scene 留在被改過的 dirty 狀態，比直接拒絕危險
+            print("uprefab: error: scene 沒有 --dry-run —— scene do 直接改開著的 scene，跑了就改了"
+                  "（不 save 也會留在記憶體裡）。要試跑就先 `up scene copy` 一份再 do", file=sys.stderr)
+            raise SystemExit(2)
+        return
+    if not rest:
+        return
+    action = rest[0].lower()
+    if action not in PREFAB_ACTIONS:
+        return  # 讓 argparse 報 invalid choice
+    for tok in rest[1:]:
+        if tok.startswith("--"):
+            name = tok.split("=", 1)[0]
+            hits = [name] if name in _PREFAB_FLAG_ACTIONS else \
+                [k for k in _PREFAB_FLAG_ACTIONS if k.startswith(name)]  # argparse 吃縮寫
+            if len(hits) != 1:
+                continue
+            flag = hits[0]
+        elif len(tok) >= 2 and tok[:2] in _PREFAB_SHORT_FLAGS:
+            flag = _PREFAB_SHORT_FLAGS[tok[:2]]
+        else:
+            continue
+        allowed = _PREFAB_FLAG_ACTIONS[flag]
+        if action not in allowed:
+            print(f"uprefab: error: `{tok}` 只給 `prefab {' / '.join(allowed)}` 用，"
+                  f"`prefab {action}` 不吃（帶了也會被默默忽略，所以直接擋下）", file=sys.stderr)
+            raise SystemExit(2)
+
+
+def _filter_prefab_help(argv: list, pp: argparse.ArgumentParser) -> None:
+    """`up prefab <action> --help` 只印那個 action 吃的旗標。
+
+    prefab 的 action 是 positional choices 不是 subparser，argparse 對每個 action 都吐同一份
+    完整 usage —— agent 為了確認 read 的旗標把 `prefab --help` 跟 `prefab read --help` 各讀一遍
+    （2026-09-09）。哪個旗標給哪個 action 用的對照表本來就有（_PREFAB_FLAG_ACTIONS，guard 也用它），
+    這裡拿同一張表把別的 action 的旗標設成 SUPPRESS。沒帶 action 的 `up prefab --help` 照舊印全部。
+    """
+    if "-h" not in argv and "--help" not in argv:
+        return
+    cmd_i = 0
+    while cmd_i < len(argv):
+        tok = argv[cmd_i]
+        if tok in _VALUE_FLAGS:
+            cmd_i += 2
+        elif tok.startswith("-") and tok != "-":
+            cmd_i += 1
+        else:
+            break
+    if cmd_i >= len(argv) or argv[cmd_i] != "prefab":
+        return
+    rest = [t for t in argv[cmd_i + 1:] if not t.startswith("-")]
+    action = rest[0].lower() if rest else ""
+    if action not in PREFAB_ACTIONS:
+        pp.epilog = "只看單一 action 吃的旗標：up prefab <action> --help"
+        return
+    for a in pp._actions:
+        longs = [o for o in a.option_strings if o.startswith("--")]
+        if longs and longs[0] in _PREFAB_FLAG_ACTIONS and action not in _PREFAB_FLAG_ACTIONS[longs[0]]:
+            a.help = argparse.SUPPRESS
+        elif a.dest == "ops" and action != "do":
+            a.help = argparse.SUPPRESS
+    pp.usage = f"up prefab {action} <asset> [options]" + (" [ops ...]" if action == "do" else "")
+    pp.epilog = f"只列 `prefab {action}` 吃的旗標；全部 action 的旗標：up prefab --help"
+
+
 def _normalize_argv(argv: list, sub_names: dict, asset_names: dict) -> list:
     """子指令名做大小寫不敏感比對。argparse 的 subparsers 沒有這個開關，只能先改 argv。"""
     out = _hoist_globals(argv)
@@ -2090,6 +2432,11 @@ def main() -> None:
     pc.add_argument("path", nargs="?", help="new / copy / open 的 scene 路徑")
     pc.add_argument("--template", help="copy：來源模板 scene 路徑")
     pc.add_argument("--defaults", action="store_true", help="new：帶 Camera + Light")
+    pc.add_argument("--save-dirty", action="store_true",
+                    help="new / copy / open：Editor 裡有未存檔的 scene 時，先存掉再切。"
+                         "預設不帶 = 有 dirty scene 就拒絕（不切、不存、列出路徑、exit 1）—— "
+                         "那是使用者的改動，只有使用者明確說要存才加這個旗標。"
+                         "沒有 discard 選項；dirty 的 Untitled scene 帶了也照樣擋")
     pc.add_argument("--node", help="ls：子樹路徑（留空只列 root 一層）")
     pc.add_argument("--depth", type=int, default=-1, help="ls：往下幾層")
     pc.add_argument("--budget", type=int, default=20000,
@@ -2154,7 +2501,8 @@ def main() -> None:
                     help="swap-script：寫進 m_EditorClassIdentifier 的 assembly 名")
     pp.add_argument("--dry-run", action="store_true",
                     help="swap-script：只列會被改到哪幾個 document 與它們的原始欄位值，不動檔案"
-                         "（這也是讀「C# 已刪掉的孤兒欄位」的唯一手段）")
+                         "（這也是讀「C# 已刪掉的孤兒欄位」的唯一手段）；"
+                         "do：整批照跑在記憶體副本上（錯誤訊息跟真跑一樣），不存檔、不做 reload 驗證")
     pp.add_argument("--force", action="store_true",
                     help="swap-script：Unity Editor 開著這個專案時仍然硬寫（預設拒絕，"
                          "因為 Editor 一存檔就會整份覆寫且值不可逆地消失）；"
@@ -2194,15 +2542,24 @@ def main() -> None:
     pai.add_argument("method", help="方法名，例如 FindAllFlagsInProject")
     pai.set_defaults(fn=cmd_asset)
 
-    paf = asub.add_parser("fields", help="列出 asset 上的 serialized 欄位（名稱 + 型別）")
+    pap = asub.add_parser("peek", help="讀 ScriptableObject 的欄位值（格式同 prefab peek；引用印 @asset 路徑）")
+    pap.add_argument("path", help="assetPath（.asset）")
+    pap.add_argument("--members",
+                     help="逗號分隔的欄位名，支援點路徑（_items[0]._bindPrefab、_entries.Array.data[2]）；"
+                          "留空 = 全部 serialize 欄位")
+    pap.add_argument("--deep", nargs="?", type=int, const=2, default=0, metavar="N",
+                     help="把巢狀 [Serializable] 類別 / List 元素攤開 N 層（不帶數字 = 2）。預設 0 = 只印型別名")
+
+    paf = asub.add_parser("fields", help="列出 asset 上的 serialized 欄位（名稱 + 型別；要看值用 asset peek）")
     paf.add_argument("path", help="assetPath")
 
     pad = asub.add_parser(
         "do", help="一次跑多行欄位操作；任一行失敗就整批不套用（asset 完全不變）",
         description="一行一個操作，`#` 是註解。asset 沒有節點概念，第一個參數就是 fieldPath：\n"
-                    "  set|<field>|<value>          設值\n"
-                    "  aref|<field>|<assetPath>     欄位指向另一個 asset\n"
+                    "  set|<field>|<value>          設值；物件引用寫 null = 清空；<field>.Array.size|N = resize\n"
+                    "  aref|<field>|<assetPath>     欄位指向另一個 asset（assetPath 寫 null = 清空）\n"
                     "  addel|<field>[|<type>]       陣列尾端加元素（type 只給 [SerializeReference]）\n"
+                    "  delel|<field>[i]             刪陣列第 i 格（也收 <field>.Array.data[i]），後面往前補\n"
                     "不收 invoke —— 那是反射呼叫方法、失敗回不去，放進批次是假的原子性。")
     pad.add_argument("path", help="assetPath")
     pad.add_argument("-f", "--file", help="從檔案讀（- 以外的路徑）")
@@ -2273,7 +2630,8 @@ def main() -> None:
         "asset-refs", help="asset 層級反查：誰直接引用這顆 asset，列到欄位（需要 Unity）",
         description="範圍是整個 Assets/ + Packages/。scene / prefab referrer 會列出節點 [Component.propertyPath]，"
                     "prefab override 會標出來。scene 沒開時非 Play Mode 會暫時 additive 開啟查完關掉。")
-    par.add_argument("token", help="asset 路徑 / guid / webhook 連結（跟 up guid 一樣）")
+    par.add_argument("token", nargs="+",
+                     help="asset 路徑 / guid / webhook 連結（跟 up guid 一樣）；多顆一起傳只掃一次全庫")
     par.add_argument("-n", "--limit", type=int, default=20, help="referrer 只列前幾個（預設 20）")
     par.add_argument("--all", action="store_true", help="referrer 全部列出")
     par.set_defaults(fn=cmd_asset_refs)
@@ -2439,9 +2797,12 @@ def main() -> None:
                     ".uprefab-skillignore，之後只顯示新漂移。"
                     "語意層的過期改用 --changed 挑出該重讀的段落。")
     pvs.add_argument("--path", metavar="KW", help="只掃路徑含這段的文件")
-    pvs.add_argument("--changed", nargs="?", const="1.week", metavar="SINCE",
+    pvs.add_argument("--changed", nargs="?", const="1.week", metavar="SINCE|A..B",
                      help="改成 diff-driven：列出提到「近期改過的 .cs」的 skill 段落"
-                          "（預設 1.week，吃 git --since 的格式）")
+                          "（預設 1.week，吃 git --since 的格式；含 `..` 就當 ref 區間，"
+                          "例 origin/main..HEAD；submodule 的改動一起算）")
+    pvs.add_argument("-q", "--quiet", action="store_true",
+                     help="乾淨時什麼都不印（給 pre-commit / CI）；有失效照常印。有失效一律 exit 1")
     pvs.add_argument("--loose", action="store_true",
                      help="連「查不到又沒有相近型別」的 token 也列（預設只報疑似改名的，"
                           "因為散文裡的 PascalCase 大多不是專案型別）")
@@ -2489,7 +2850,10 @@ def main() -> None:
     asset_names = {k.lower(): k for k in asub.choices}
     sub_names = {k.lower(): k for k in sub.choices}
     argv = sys.argv[1:]
-    args = p.parse_args(_rewrite_guid_argv(_normalize_argv(argv, sub_names, asset_names)))
+    norm_argv = _normalize_argv(argv, sub_names, asset_names)
+    _guard_subcommand_flags(norm_argv)
+    _filter_prefab_help(norm_argv, pp)
+    args = p.parse_args(_rewrite_guid_argv(norm_argv))
     root = find_root(args.root)
     _guard_gid_args(args)
     if args.cmd == "usage":

@@ -9,6 +9,10 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable
 {
+    /// <summary>
+    /// 把一顆 VarBool 設成常數（_sourceValue）或另一顆 VarBool 的值（_sourceVar），掛在 [Event] 底下撥旗標用。
+    /// _target 可以是跨 entity 的 proxy Var（例如 `=> Global: d_TeamStatus` 底下的同 tag Var），寫進去會落到來源那顆。
+    /// </summary>
     [QuickCreate]
     public class SetVarBoolAction
         : AbstractStateAction,

@@ -125,6 +125,7 @@ prompt 這邊特有的一個：`m_KeyId` 是 long，用 `SerializedProperty.intV
 
 `[值]` 是存檔後讀回來的真值，連 `{token}` 展開成 sprite tag 都看得到 ——
 `LocalizedStringValueSource.RuntimeBindings` 在 Editor 非 Play 時會 fallback 直接抓子物件。
+每次 `[值]` 都會丟掉 source 的 `_cached` 重組（`RebuildValueEditor()`），所以 `up loc` / `--case` 剛改的文案一定反映得到。Inspector / hierarchy 上 source 的顯示值沒有這層，改完 table 可能還是舊字，以 `--check` 為準。
 要進 Play Mode 的只剩「條件切換」是否如預期。
 
 讀之前會把 `SelectedLocale` 切到 `--locale` 再還原：不切會拿到別的語言，

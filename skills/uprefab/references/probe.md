@@ -6,10 +6,15 @@
 註解掉的舊欄位。這裡回的是反射看到的真值。
 
 ```bash
-up types CountDownTimer                    # 名稱含這段的 Component 型別
+up types CountDownTimer                    # 名稱含這段的 Component 型別（+ 離線補的 [Serializable] plain class / struct）
 up fields VarFloatCountDownTimer --own     # 可 serialize 欄位（--own = 不含繼承）
+up fields ConditionGroup                   # 非 component 的 [Serializable] 型別：離線從原始碼抽欄位
 up peek "資源生成器 FSM/Timer" VarFloatCountDownTimer --members "IsTimerUp,Description"
 ```
+
+**`up types` 有一段「[Serializable] class / struct —— 非 component」**：那些是別的 component
+序列化欄位的型別（例 `AbstractConditionBehaviour.cs` 裡的 `ConditionGroup`），不能 add 成 component，
+但也**不是不存在** —— 查到這段就別另外造一顆同功能的 component。
 
 `peek` 在 Play Mode 下讀的是**當下的 runtime 值** —— 除「為什麼沒動」最快的一步。
 `--members` 留空會 dump 所有 public 屬性（很吵，通常指定幾個就好）。
@@ -20,7 +25,9 @@ component 的名稱（只取型別名，不呼叫任何 property getter）。
 「scene 的 root 有（26 個）…」害你以為節點不存在 —— 它會認出那是 prefab，
 直接把 asset 路徑與該用的 `up prefab peek …` 指令印出來。prefab 不用開 stage 就讀得到。
 
-**node 貼成資產路徑也行**：`up find` 第一行的 anchor（`Assets/….unity#<fileID>`）可以直接當 node，會叫 Unity 解成真路徑再 peek，並印「下次直接打：up peek "<節點路徑>" …」。目標 scene 不是 Editor 開著的那個時**不會讀、也不會自己切 scene**（`up scene open` 會自動存 dirty scene），只印開著的 / 目標各是哪個；anchor 是 prefab 的話印對應的 `up prefab peek … --node … --comp …`。
+**node 貼成資產路徑也行**：`up find` 第一行的 anchor（`Assets/….unity#<fileID>`）可以直接當 node，會叫 Unity 解成真路徑再 peek，並印「下次直接打：up peek "<節點路徑>" …」。目標 scene 不是 Editor 開著的那個時**不會讀、也不會自己切 scene**（有 dirty scene 時 `up scene open` 會拒絕，要使用者決定存不存），只印開著的 / 目標各是哪個；anchor 是 prefab 的話印對應的 `up prefab peek … --node … --comp …`。
+
+**object reference 會印 asset 路徑**：指向別的 asset 的引用印成 `v_IsDead <VariableTag> @Packages/com.monofsm.pro/…/v_IsDead.asset`，`@` 後面可以直接貼給 `aref`（內建資源印 `@builtin:Cube`）；同一支 prefab 內部互指、scene 物件不印。ScriptableObject（.asset）的值用 `up asset peek`，`up peek <x.asset>` 也會自動轉過去。
 
 ### 巢狀 `[Serializable]` 類別：點路徑與 `--deep`
 

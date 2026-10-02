@@ -60,7 +60,7 @@ namespace MonoFSM.Editor.PrefabEditing
 
             var sb = new StringBuilder($"# {type.FullName}\n");
             var seen = new HashSet<string>();
-            for (var t = type; t != null && t != typeof(MonoBehaviour); t = t.BaseType)
+            for (var t = type; t != null && t != typeof(MonoBehaviour) && t != typeof(ScriptableObject); t = t.BaseType)
             {
                 var own = t.GetFields(flags | BindingFlags.DeclaredOnly)
                     .Where(IsSerialized)
@@ -88,7 +88,7 @@ namespace MonoFSM.Editor.PrefabEditing
                                        BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
             var names = new List<string>();
             var seen = new HashSet<string>();
-            for (var t = type; t != null && t != typeof(MonoBehaviour); t = t.BaseType)
+            for (var t = type; t != null && t != typeof(MonoBehaviour) && t != typeof(ScriptableObject); t = t.BaseType)
                 foreach (var f in t.GetFields(flags))
                     if (IsSerialized(f) && seen.Add(f.Name))
                         names.Add(f.Name);
@@ -187,9 +187,74 @@ namespace MonoFSM.Editor.PrefabEditing
                 return $"# {abort.Message}";
             }
 
-            return Dump(comp, $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}  [asset]" +
-                              LayerSuffix(comp.gameObject),
-                members, serializedByDefault: true, deep: deep);
+            // 引用同一支 prefab 內部的節點不印路徑（全是同一個 .prefab，只是噪音），指向別的 asset 才印
+            s_contextAssetPath = assetPath;
+            try
+            {
+                return Dump(comp, $"{EditResolve.Describe(nodePath)}.{comp.GetType().Name}  [asset]" +
+                                  LayerSuffix(comp.gameObject),
+                    members, serializedByDefault: true, deep: deep);
+            }
+            finally
+            {
+                s_contextAssetPath = null;
+            }
+        }
+
+        /// <summary>
+        /// 讀 ScriptableObject（.asset）的欄位值 —— `up asset peek`。格式跟 prefab peek 一樣
+        /// （`--members` 點路徑、`--deep` 攤開巢狀 [Serializable]），object reference 印 asset 路徑，
+        /// 可以直接餵給 `aref`。
+        ///
+        /// 存在理由：`up asset fields` 只列名稱跟型別，2026-09-24 ~ 10-01 四次要看 SO 的值
+        /// （GameDataListConfig._items、SplinePolePlacerSettings、SpawnTableConfig、GameData._bindPrefab）
+        /// 都只能 grep .asset 再逐個 `up guid`。
+        /// members 留空 = 列出全部 serialize 欄位（不碰 property getter）。
+        /// </summary>
+        public static string PeekScriptable(string assetPath, string members = null, int deep = 0)
+        {
+            var main = AssetDatabase.LoadMainAssetAtPath(assetPath);
+            if (main == null) return $"# 找不到 asset: {assetPath}";
+            if (main is GameObject)
+                return $"# {assetPath} 是 prefab，請用 up prefab peek \"{assetPath}\" --node <節點> --comp <型別>";
+            if (main is SceneAsset)
+                return $"# {assetPath} 是 scene，請先 up scene open 再 up peek \"<root>/<節點>\" --comp <型別>";
+
+            s_contextAssetPath = assetPath;
+            try
+            {
+                var header = $"{assetPath} <{main.GetType().Name}>  [asset]";
+                // 一個檔案多個 ScriptableObject 時（sub-asset），只看 main；列出其他的讓人知道有
+                var subs = AssetDatabase.LoadAllAssetsAtPath(assetPath)
+                    .Where(o => o != null && o != main && o is ScriptableObject)
+                    .Select(o => $"{o.name} <{o.GetType().Name}>").ToList();
+                if (subs.Count > 0) header += $"\n  # 另有 {subs.Count} 個 sub-asset（沒有展開）：{string.Join(", ", subs.Take(8))}";
+                return Dump(main, header, members, serializedByDefault: true, deep: deep);
+            }
+            finally
+            {
+                s_contextAssetPath = null;
+            }
+        }
+
+        /// <summary>
+        /// 正在 peek 的 asset 路徑。object reference 指到同一個檔案時不印路徑（自己指自己是噪音），
+        /// 指到別的 asset 才印 `@路徑`。scene / LoadPrefabContents 的物件本來就沒有 asset 路徑，不受影響。
+        /// </summary>
+        private static string s_contextAssetPath;
+
+        /// <summary>
+        /// object reference 後面接的 `@asset 路徑`（可以直接當 `aref` 的參數）。
+        /// 2026-09-25 `prefab peek --deep` 對 VariableTag 只印 `v_IsDead <VariableTag>`，
+        /// 要 aref 時還得自己去找 `Packages/com.monofsm.pro/...` 那條路徑。
+        /// </summary>
+        private static string AssetPathSuffix(UnityEngine.Object o)
+        {
+            var path = AssetDatabase.GetAssetPath(o);
+            if (string.IsNullOrEmpty(path) || path == s_contextAssetPath) return "";
+            if (path.StartsWith("Library/") || path.StartsWith("Resources/unity_builtin"))
+                return $" @builtin:{o.name}";
+            return $" @{path}";
         }
 
         /// <summary>
@@ -413,7 +478,7 @@ namespace MonoFSM.Editor.PrefabEditing
         /// **不呼叫任何 property getter**）。
         /// </summary>
         private static string Dump(
-            Component comp, string header, string members, bool serializedByDefault,
+            UnityEngine.Object comp, string header, string members, bool serializedByDefault,
             bool listPropertiesWhenEmpty = false, int deep = 0)
         {
             var type = comp.GetType();
@@ -435,7 +500,8 @@ namespace MonoFSM.Editor.PrefabEditing
             else
                 names = SerializedNames(type);
             // Unity 內建 component（MeshRenderer…）的欄位在 native 端，反射一個都看不到
-            if (names.Count == 0 && string.IsNullOrEmpty(members) && !(comp is MonoBehaviour))
+            if (names.Count == 0 && string.IsNullOrEmpty(members) && !(comp is MonoBehaviour) &&
+                !(comp is ScriptableObject))
                 names = NativeSerializedNames(comp);
 
             foreach (var name in names)
@@ -688,7 +754,7 @@ namespace MonoFSM.Editor.PrefabEditing
         /// （`sharedMaterials`），但 `up prefab do aref` 寫的是 serialized path —— 讀寫要對得起來（2026-09-23）。
         /// `m_Materials`、`m_Materials[0]`、`m_Materials.Array.data[0]` 三種寫法都收。
         /// </summary>
-        private static bool TryReadSerialized(Component comp, string path, out object value)
+        private static bool TryReadSerialized(UnityEngine.Object comp, string path, out object value)
         {
             value = null;
             if (comp == null || string.IsNullOrEmpty(path)) return false;
@@ -732,7 +798,7 @@ namespace MonoFSM.Editor.PrefabEditing
         }
 
         /// <summary>native component 的頂層可見 serialized 欄位名（不含 m_Script）。</summary>
-        private static List<string> NativeSerializedNames(Component comp)
+        private static List<string> NativeSerializedNames(UnityEngine.Object comp)
         {
             var names = new List<string>();
             using var so = new SerializedObject(comp);
@@ -930,7 +996,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 case UnityEngine.Object o:
                     return o == null
                         ? $"null <{o.GetType().Name}>"
-                        : $"{o.name} <{o.GetType().Name}>{RefValueInfo(o)}";
+                        : $"{o.name} <{o.GetType().Name}>{AssetPathSuffix(o)}{RefValueInfo(o)}";
                 case IEnumerable e when !(v is string):
                 {
                     // 集合本身不算一層 class 巢狀，所以 classDepth 原樣傳下去：

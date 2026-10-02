@@ -33,6 +33,8 @@ up scope stats
 `find` 的節點行尾會帶 `layer=<名字>`（layer 不是 Default 時才印；數字→名字對照 `ProjectSettings/TagManager.asset`）。這是檔案自己 YAML 寫的 `m_Layer`：variant / nested instance 上的 layer override 不在離線索引裡，要合併後的真值走 `up prefab read`。
 
 anchor 格式 `Assets/.../PPlayer.prefab#272130150518276317`，`#` 後是 fileID，對改名穩定。
+`--comp` 的型別名以 script guid → 現在的 .cs 為準（prefab YAML 的 `m_EditorClassIdentifier` 改名後不會自己更新，索引不信它）。
+查舊名會印 `# X 可能已改名 … 現在對到 Y` —— 照它改查新名；印 `⚠ … 很可能是 missing script` 就是 guid 對不到任何 .cs / package / DLL。
 命中 ≤5 筆時每筆多印一行 `→ up peek "<anchor>" <Comp>`（scene）/ `→ up prefab locate ...` 或（有 `--resolve`）`→ up prefab peek ... --node ... --comp ...`（prefab），**照抄那行就好**。scene 那行一律是 anchor 版（`up peek "<asset>#<fileID>" <Comp>`），prefab 沒帶 `--resolve` 時給 `prefab locate` —— 節點路徑只以 Unity 為準，第二行的離線路徑是搜尋結果，**不要拿去當 node / `--node`**（nested instance 改名、同名 sibling 都看不到，會少層）。路徑可能少層時那行會印成 `…/<路徑>  <comps>  （離線，不是 --node）`；**看到 `…/` + （離線，不是 --node）就用 → 行或 `--resolve` 拿真路徑**（沒標的是鏈上全是本檔原生節點，路徑完整）。anchor 整行直接丟給 `up peek` 也行（會叫 Unity 解成真路徑；scene 不是 Editor 開著的那個就停下來說，不會自己切）。
 
 `includeShallow` 的用途是讓 override target 能解析第三方來源，不是一般 gameplay 搜尋。

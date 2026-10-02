@@ -143,14 +143,22 @@ namespace MonoFSM.Runtime.Variable
         }
 
         //FIXME: 可能有多個？ multiple folder
-        [CompRef] [AutoChildren] [Required] protected VariableFolder _variableFolder;
+        // 四顆 folder 掃到 IEntityScopeBoundary（nested MonoEntity / MonoModulePack / ModulePackGeometry）就停：
+        // pack 的 folder 走 BindModulePackFolders 併進來，nested entity 的歸它自己，不能被宿主 depth-first 搶走。
+        // FallbackUnboundedIfMissing：宿主自己完全沒有這種 folder 時退回舊行為（2026-10-02 掃過 1336 顆 entity，
+        // 336 筆是「自己沒有、借子樹的」，大多是 SchemaFolder 借 FirePoint 起火點 pack 的）。
+        [CompRef] [AutoChildren(StopAtType = typeof(IEntityScopeBoundary), FallbackUnboundedIfMissing = true)] [Required]
+        protected VariableFolder _variableFolder;
 
-        [CompRef] [AutoChildren] protected StateFolder _stateFolder;
+        [CompRef] [AutoChildren(StopAtType = typeof(IEntityScopeBoundary), FallbackUnboundedIfMissing = true)]
+        protected StateFolder _stateFolder;
 
-        [CompRef] [AutoChildren] protected EffectDetectable _effectDetectable;
+        [CompRef] [AutoChildren(StopAtType = typeof(IEntityScopeBoundary), FallbackUnboundedIfMissing = true)]
+        protected EffectDetectable _effectDetectable;
         // [CompRef] [AutoChildren] private EffectReceiverFolder _receiverFolder;
 
-        [CompRef] [AutoChildren] protected SchemaFolder _schemaFolder;
+        [CompRef] [AutoChildren(StopAtType = typeof(IEntityScopeBoundary), FallbackUnboundedIfMissing = true)]
+        protected SchemaFolder _schemaFolder;
 
         //從一開始就應該做getter?? 然後用attribute來標記怎麼做的？ 像是[Networked]掛在getter上面？
         public VariableFolder VariableFolder

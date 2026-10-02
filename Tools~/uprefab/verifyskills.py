@@ -18,6 +18,7 @@ skill 記的是「現況快照」，必然 decay；Progress.md 記的是「當�
 from __future__ import annotations
 
 import difflib
+import fnmatch
 import json
 import os
 import re
@@ -39,19 +40,88 @@ BUILTIN_IGNORE = {
     "README", "TODO", "NOTE", "OK", "API", "CLI", "URL", "JSON", "YAML", "GUID",
     "Awake", "Start", "Update", "FixedUpdate", "LateUpdate", "OnEnable", "OnDisable",
     "True", "False", "None", "Null", "Debug", "Log", "LogError", "Warning", "Error",
+    # Unity 訊息 / Editor / UI / .NET API：引擎 DLL 不在索引裡，但這些名字在任何 Unity 專案都成立
+    "OnCollisionEnter", "OnCollisionStay", "OnCollisionExit",
+    "OnTriggerEnter", "OnTriggerStay", "OnTriggerExit", "OnValidate", "OnDestroy",
+    "EditorWindow", "EditorGUI", "EditorGUILayout", "EditorUtility",
+    "SerializedObject", "SerializedProperty", "SerializedPropertyType", "GlobalObjectId",
+    "InputField", "IPointerClickHandler", "IList", "IEnumerable", "IEnumerator",
 }
+# `VarXxxProviderRef` 這種是「一整批型別」的佔位寫法，不是指某個型別
+_PLACEHOLDER_RE = re.compile(r"Xxx|XXX")
 
 
-def _load_ignore(root: str) -> set[str]:
+FILE_OPTOUT = "file:"
+
+
+def _load_ignore(root: str) -> tuple[set[str], list[str]]:
+    """(token 集合, 整份文件 opt-out 的 glob)。
+
+    `file:<glob>` 那行 = 這批文件**不驗型別／欄位**（路徑照驗 —— 路徑爛掉永遠是真失效）。
+    給 uloop 這種「整份都在描述外部協定」的 skill 用：裡面的 PascalCase 是 JSON 欄位名，
+    逐 token 塞進 ignore 會讓 skillignore 變成幾百行沒人看的雜訊，而且協定一改又要重 baseline。
+    glob 用 fnmatch（`*` 會跨 `/`），對 repo 相對路徑比。"""
     p = os.path.join(root, IGNORE_FILE)
     out = set(BUILTIN_IGNORE)
+    globs: list[str] = []
     if os.path.exists(p):
         with open(p, encoding="utf-8") as fh:
             for ln in fh:
                 ln = ln.split("#", 1)[0].strip()
-                if ln:
+                if ln.startswith(FILE_OPTOUT):
+                    globs.append(ln[len(FILE_OPTOUT):].strip())
+                elif ln:
                     out.add(ln)
-    return out
+    return out, globs
+
+
+_DECL_RE = re.compile(
+    r"^(?P<path>[^:]+):\d+:(?:class|interface|struct|enum|record)\s+(?P<name>[A-Za-z_]\w*)"
+    r"\s*(?:<[^>]*>)?\s*(?::(?P<bases>[^{]*))?")
+
+
+def _src_decls(root: str):
+    """從原始碼撈所有型別宣告：(型別名 → [檔案], 型別名 → [base], namespace 片段集合)。
+
+    離線索引（scripts / comps / catalog）只收 MonoBehaviour / SO 這類掛得上去的型別，
+    interface（`IAfterSimulate`）、Editor 類（`SubtreeSummarizerRegistry`）、泛型 helper
+    （`VarWrapper<TVar,TValue>`）、namespace（`MonoValueProvider`）全都查不到，被報成「型別不存在」——
+    但它們是真的在。partial class 的其他檔案（`GameData.Config.cs` 的 `_objConfigs`）也一樣，
+    catalog 只記一個 path，欄位宣告在另一個檔就被報「欄位不存在」（2026-10-01，佔 81 筆裡約 15 筆）。
+
+    用 `git grep --recurse-submodules`：MonoFSM / MonoFSM-Pro / MonoFSM-Photon-Fusion 都是 submodule，
+    全 repo 9.7k 筆宣告 0.1 秒。跨行宣告（`class\\n    MonoBlackboard : …`）抓不到，量少就不管。"""
+    paths: dict[str, list[str]] = {}
+    bases: dict[str, list[str]] = {}
+    spaces: set[str] = set()
+    try:
+        out = subprocess.run(
+            ["git", "-C", root, "grep", "--recurse-submodules", "-n", "-o", "-E",
+             r"(class|interface|struct|enum|record)[[:space:]]+[A-Za-z_][A-Za-z0-9_]*"
+             r"([[:space:]]*<[^>]*>)?[[:space:]]*(:[^{]*)?", "--", "*.cs"],
+            capture_output=True, text=True, timeout=60).stdout
+        ns = subprocess.run(
+            ["git", "-C", root, "grep", "--recurse-submodules", "-h", "-o", "-E",
+             r"^[[:space:]]*namespace[[:space:]]+[A-Za-z_][A-Za-z0-9_.]*", "--", "*.cs"],
+            capture_output=True, text=True, timeout=60).stdout
+    except Exception as e:  # noqa: BLE001
+        print(f"# ⚠ git grep 失敗，interface / Editor 類 / partial 欄位可能被誤報：{e}")
+        return paths, bases, spaces
+    for ln in out.splitlines():
+        m = _DECL_RE.match(ln)
+        if not m:
+            continue
+        name = m.group("name")
+        paths.setdefault(name, []).append(m.group("path"))
+        for b in (m.group("bases") or "").split(","):
+            b = b.strip().split("<")[0].split(" where ")[0].strip()
+            if b and re.match(r"^[A-Za-z_][\w.]*$", b):
+                bases.setdefault(name, []).append(b.rsplit(".", 1)[-1])
+    for ln in ns.splitlines():
+        full = ln.split()[-1]
+        spaces.add(full)
+        spaces.update(full.split("."))
+    return paths, bases, spaces
 
 
 def _scan_files(root: str, prefix: str | None) -> list[str]:
@@ -174,18 +244,46 @@ def _path_check(root: str, here: str, tok: str, bases: dict) -> tuple[bool, str]
     return False, (f"（相近檔名：{near[0]}）" if near else "")
 
 
-def _src_chain(con, root: str):
-    """回傳 has_member(cls, fld)：沿繼承鏈讀 .cs 原始碼找這個成員有沒有宣告。
+def _src_chain(con, root: str, decl_paths: dict, decl_bases: dict, fields: dict):
+    """回傳 (has_member(cls, fld), chain_fields(cls))。
 
+    has_member：沿繼承鏈讀 .cs 原始碼找這個成員有沒有宣告。
     catalog.fields 只收 serialized 欄位，`AbstractMonoVariable._valueSources` 這種
     [NonSerialized] / private 快取欄位查不到就被報「欄位不存在」—— 但它是真的在的
-    （2026-09-23）。查不到 serialized 時再回原始碼確認，分成「非 serialized」跟「真的沒有」。"""
-    info: dict[str, tuple[str, list[str]]] = {}
+    （2026-09-23）。查不到 serialized 時再回原始碼確認，分成「非 serialized」跟「真的沒有」。
+
+    chain_fields：catalog 的 fields 只有該 class 自己宣告的，`MonoEntity._descriptableTags`
+    宣告在父類 `MonoBlackboard` 就被報「欄位不存在」（2026-10-01）；沿 base 把 serialized 欄位聯集起來。
+    繼承鏈和 partial 檔都用 `_src_decls` 補 —— catalog 漏掉的中間層（`AbstractMonoDescriptable`）
+    才接得起來。"""
+    info: dict[str, tuple[list[str], list[str]]] = {}
     for c, path, bases in con.execute("SELECT class, path, bases FROM catalog"):
-        info[c] = (path, [b.strip().split("<")[0] for b in (bases or "").split(",") if b.strip()])
+        info[c] = ([path] if path else [],
+                   [b.strip().split("<")[0] for b in (bases or "").split(",") if b.strip()])
     for c, path in con.execute("SELECT class, path FROM scripts WHERE path IS NOT NULL"):
-        info.setdefault(c, (path, []))
+        info.setdefault(c, ([path], []))
+    for c, ps in decl_paths.items():
+        cur_paths, cur_bases = info.setdefault(c, ([], []))
+        cur_paths += [p for p in ps if p not in cur_paths]
+        cur_bases += [b for b in decl_bases.get(c, []) if b not in cur_bases]
     cache: dict[str, str] = {}
+
+    def chain(cls: str) -> list[str]:
+        seen, todo, out = set(), [cls], []
+        while todo:
+            c = todo.pop()
+            if c in seen or c not in info:
+                continue
+            seen.add(c)
+            out.append(c)
+            todo += info[c][1]
+        return out
+
+    def chain_fields(cls: str) -> set[str]:
+        fs: set[str] = set()
+        for c in chain(cls):
+            fs |= fields.get(c.lower(), set())
+        return fs
 
     def src(path: str) -> str:
         if path not in cache:
@@ -198,19 +296,9 @@ def _src_chain(con, root: str):
 
     def has_member(cls: str, fld: str) -> bool:
         decl = re.compile(rf"[\w>\]?]\s+{re.escape(fld)}\s*(=|;|\{{|=>)")
-        seen, todo = set(), [cls]
-        while todo:
-            c = todo.pop()
-            if c in seen or c not in info:
-                continue
-            seen.add(c)
-            path, bases = info[c]
-            if path and decl.search(src(path)):
-                return True
-            todo += bases
-        return False
+        return any(decl.search(src(p)) for c in chain(cls) for p in info[c][0])
 
-    return has_member
+    return has_member, chain_fields
 
 
 def _dll_names(con, root: str) -> set[str]:
@@ -272,14 +360,24 @@ def cmd(args, root, cfg):
     if not names:
         raise SystemExit("# 索引是空的 —— 先跑 `up index`")
     bases = _basenames(con)
-    ignore = _load_ignore(root)
+    ignore, optout = _load_ignore(root)
     files = _scan_files(root, args.path)
     if not files:
         raise SystemExit(f"# 沒有要掃的文件（--path '{args.path}' 沒命中）\n"
                          f"# 預設掃：{'、'.join(DEFAULT_ROOTS)}")
 
-    dll_names = _dll_names(con, root)
-    has_member = _src_chain(con, root)
+    quiet = getattr(args, "quiet", False)
+    if quiet:
+        # DLL 白名單對齊的 ⚠ 提示在 --quiet 下也吞掉：pre-commit 只該在真的有失效時出聲
+        import contextlib
+        import io
+        with contextlib.redirect_stdout(io.StringIO()):
+            dll_names = _dll_names(con, root)
+    else:
+        dll_names = _dll_names(con, root)
+    decl_paths, decl_bases, namespaces = _src_decls(root)
+    src_types = set(decl_paths) | namespaces
+    has_member, chain_fields = _src_chain(con, root, decl_paths, decl_bases, fields)
     pool = list(names.values())
     nonser: list[tuple[str, int, str]] = []   # 原始碼有、但不是 serialized 的欄位
     bad: dict[str, list[tuple]] = {}
@@ -289,8 +387,13 @@ def cmd(args, root, cfg):
         with open(os.path.join(root, rel), encoding="utf-8") as fh:
             text = fh.read()
         here = os.path.dirname(os.path.join(root, rel))
+        types_off = any(fnmatch.fnmatch(rel, g) for g in optout)
         for line, kind, (tok, shown) in _candidates(text):
             if tok in ignore or shown in ignore:
+                continue
+            if types_off and kind != "path":
+                continue
+            if kind != "path" and _PLACEHOLDER_RE.search(tok):
                 continue
             if kind == "path":
                 checked += 1
@@ -306,7 +409,7 @@ def cmd(args, root, cfg):
                 cls, fld = _MEMBER_RE.match(tok).group(1, 2)
                 if cls.lower() not in names or cls in ignore:
                     continue
-                fs = fields.get(cls.lower())
+                fs = chain_fields(names[cls.lower()]) or fields.get(cls.lower())
                 if not fs or not fld.startswith("_"):
                     continue  # 只驗序列化欄位（專案慣例以底線開頭），屬性/方法放過
                 checked += 1
@@ -320,7 +423,7 @@ def cmd(args, root, cfg):
                 if len(tok) < 5 or sum(c.isupper() for c in tok) < 2:
                     continue
                 checked += 1
-                if tok.lower() in names or tok in dll_names:
+                if tok.lower() in names or tok in dll_names or tok in src_types:
                     continue
                 hits = _near(tok, pool)
                 strong = hits and difflib.SequenceMatcher(
@@ -333,17 +436,25 @@ def cmd(args, root, cfg):
     total = sum(len(v) for v in bad.values())
     if args.baseline:
         toks = sorted({t for v in bad.values() for (_, k, t, _) in v if k != "路徑不存在"})
+        paths_left = sum(1 for v in bad.values() for (_, k, _, _) in v if k == "路徑不存在")
         p = os.path.join(root, IGNORE_FILE)
-        with open(p, "a", encoding="utf-8") as fh:
-            fh.write(f"\n# baseline：{len(toks)} 個既有誤判（up verify-skills --baseline）\n")
-            fh.write("\n".join(toks) + "\n")
+        if toks:
+            # 沒東西就不寫空標題（已在檔裡的 token 上面就被濾掉了，不會重複）
+            with open(p, "a", encoding="utf-8") as fh:
+                fh.write(f"\n# baseline：{len(toks)} 個既有誤判（up verify-skills --baseline）\n")
+                fh.write("\n".join(toks) + "\n")
         print(f"# 寫進 {IGNORE_FILE}：{len(toks)} 個 token（路徑類不寫入，那些是真失效）")
+        if paths_left:
+            print(f"# ⚠ 還有 {paths_left} 個路徑失效沒進 baseline —— 去修文件；"
+                  f"真的是在講「這個檔已經不在」就手動把那條路徑加進 {IGNORE_FILE}")
         print("# 之後 `up verify-skills` 只會看到新漂移；誤加的自己從檔案刪掉")
         return
 
+    if quiet and not total:
+        return
     tail = f"，另有 {weak} 個查不到但沒有相近型別的（--loose 看）" if weak else ""
     print(f"# 掃 {len(files)} 份文件、{checked} 個引用，{total} 個失效{tail}")
-    if nonser:
+    if nonser and not quiet:
         # 不算失效：成員還在，只是 up fields 看不到（寫 skill 時要知道 prefab 上改不到它）
         print(f"# 另有 {len(nonser)} 個是原始碼有、但非 serialized 的欄位（不算失效"
               f"{'' if args.loose else '，--loose 列出'}）")
@@ -364,20 +475,70 @@ def cmd(args, root, cfg):
     if shown and not os.path.exists(os.path.join(root, IGNORE_FILE)):
         print(f"\n# 第一次跑通常有既有雜訊：確認過就 `up verify-skills --baseline` "
               f"寫進 {IGNORE_FILE}，之後只顯示新漂移")
+    else:
+        print(f"\n# 修法：路徑照「實際在」改；型別／欄位用 `up types` / `up fields` 查現況改寫；"
+              f"確定是誤判（Unity API、prefab 節點名、協定欄位）才加進 {IGNORE_FILE}")
+    # 非 0 才掛得進 pre-commit / CI（`up vs --quiet || exit 1`）
+    raise SystemExit(1)
+
+
+def _git(cwd: str, *a: str) -> str:
+    return subprocess.run(["git", "-C", cwd, *a], capture_output=True, text=True,
+                          timeout=60, check=True).stdout
+
+
+def _submodules(root: str) -> list[str]:
+    try:
+        out = _git(root, "config", "-f", ".gitmodules", "--get-regexp", r"^submodule\..*\.path$")
+    except Exception:  # noqa: BLE001
+        return []
+    return [ln.split(None, 1)[1].strip() for ln in out.splitlines() if " " in ln]
+
+
+def _changed_cs(root: str, spec: str) -> list[str]:
+    """spec 有 `..` 就當 ref 區間（`origin/main..HEAD`，PR-scoped），否則當 git `--since`。
+
+    MonoFSM / MonoFSM-Pro / MonoFSM-Photon-Fusion 都是 submodule，只在主 repo 跑 git log
+    看不到框架 .cs 的改動（偏偏 MonoFSM skill 引用的全是那邊）：
+    - `--since`：每個 submodule 各自 log 一次
+    - ref 區間：主 repo 兩端記錄的 submodule commit 各取出來，在 submodule 裡 diff
+      （submodule 沒 fetch 到那個 commit 就印一行提示跳過，不讓整支掛掉）"""
+    out: list[str] = []
+    is_range = ".." in spec
+    if is_range:
+        out += _git(root, "diff", "--name-only", spec, "--", "*.cs").split("\n")
+        a, b = spec.split("...", 1) if "..." in spec else spec.split("..", 1)
+        a, b = a or "HEAD", b or "HEAD"
+        for sub in _submodules(root):
+            try:
+                sa = _git(root, "rev-parse", f"{a}:{sub}").strip()
+                sb = _git(root, "rev-parse", f"{b}:{sub}").strip()
+            except Exception:  # noqa: BLE001
+                continue  # 該區間兩端有一端還沒有這個 submodule
+            if sa == sb:
+                continue
+            try:
+                out += [f"{sub}/{p}" for p in
+                        _git(os.path.join(root, sub), "diff", "--name-only", sa, sb, "--", "*.cs").split("\n")]
+            except Exception:  # noqa: BLE001
+                print(f"# ⚠ {sub} 裡找不到 {sa[:9]}..{sb[:9]}（沒 fetch？），這段框架改動沒算進來")
+    else:
+        for cwd in [root] + [os.path.join(root, s) for s in _submodules(root)]:
+            if not os.path.exists(os.path.join(cwd, ".git")):
+                continue
+            out += _git(cwd, "log", "--name-only", "--pretty=format:",
+                        f"--since={spec}", "--", "*.cs").split("\n")
+    return [p for p in out if p.endswith(".cs")]
 
 
 def _changed(args, root):
     """diff-driven：近期動過的 .cs → 哪些 skill 段落提到它。這是每週該跑的那一支。"""
     since = args.changed or "1.week"
     try:
-        out = subprocess.run(
-            ["git", "-C", root, "log", "--name-only", "--pretty=format:",
-             f"--since={since}", "--", "*.cs"],
-            capture_output=True, text=True, timeout=60, check=True).stdout
+        changed = _changed_cs(root, since)
     except Exception as e:
         raise SystemExit(f"# git 查不到改動：{e}")
-    stems = sorted({os.path.splitext(os.path.basename(p))[0]
-                    for p in out.split() if p.endswith(".cs")})
+    stems = sorted({os.path.splitext(os.path.basename(p))[0] for p in changed})
     if not stems:
         print(f"# {since} 內沒有 .cs 改動 —— skill 不會因為程式碼而過期")
         return

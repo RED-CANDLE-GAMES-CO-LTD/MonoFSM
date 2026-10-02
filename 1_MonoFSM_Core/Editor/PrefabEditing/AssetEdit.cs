@@ -58,7 +58,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 AssetDatabase.Refresh();
 
                 return $"建立 {assetPath}  <{type.FullName}>" +
-                       (existing != null ? "（已覆蓋原本的）" : "");
+                       (existing != null ? "（已覆蓋原本的）" : "") + AfterEdit(instance);
             });
         }
 
@@ -75,7 +75,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 var so = new SerializedObject(asset);
                 var log = DoSet(so, asset, fieldPath, value);
                 Commit(so, asset);
-                return $"{assetPath}.{log}";
+                return $"{assetPath}.{log}" + AfterEdit(asset);
             });
         }
 
@@ -102,7 +102,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 var so = new SerializedObject(asset);
                 var log = DoRef(so, asset, fieldPath, targetAssetPath);
                 Commit(so, asset);
-                return $"{assetPath}.{log}";
+                return $"{assetPath}.{log}" + AfterEdit(asset);
             });
         }
 
@@ -113,8 +113,42 @@ namespace MonoFSM.Editor.PrefabEditing
             if (prop.propertyType != SerializedPropertyType.ObjectReference)
                 throw new Abort($"'{fieldPath}' 是 {prop.propertyType}，不是物件引用；請改用 SetField");
 
-            prop.objectReferenceValue = AssetRef.Resolve(targetAssetPath, asset, fieldPath);
-            return $"{fieldPath} -> res:{targetAssetPath}";
+            var resolved = AssetRef.Resolve(targetAssetPath, asset, fieldPath);
+            prop.objectReferenceValue = resolved;
+            if (resolved != null && prop.objectReferenceValue == null)
+                throw new Abort(
+                    $"'{fieldPath}' 拒收 {resolved.GetType().Name}（{targetAssetPath}）：型別跟欄位宣告型別對不上，Unity 會靜默寫成 null");
+            return prop.objectReferenceValue == null ? $"{fieldPath} -> null" : $"{fieldPath} -> res:{targetAssetPath}";
+        }
+
+        /// <summary>delel|&lt;field&gt;[i]：刪陣列第 i 格（後面往前補）。</summary>
+        private static string DoRemoveElement(SerializedObject so, Object asset, string elementPath)
+        {
+            EditResolve.SplitElementPath(elementPath, "delel", out var fieldPath, out var index);
+            var prop = EditResolve.Prop(so, fieldPath, asset);
+            var left = EditResolve.RemoveArrayElement(prop, index, fieldPath);
+            return $"{fieldPath}[{index}] 刪除（剩 {left} 筆）";
+        }
+
+        /// <summary>
+        /// CLI 改完 asset 之後讓 asset 自己補做 Inspector 才會觸發的事（見
+        /// <see cref="MonoFSM.Core.IAfterCliAssetEditCallbackReceiver"/>），回傳的訊息附在輸出尾端。
+        /// 2026-09-28 `asset create` + `set _scope` 建 GameEventTag 沒收進 GameEventRegistry：
+        /// 自動收錄靠 OnValidate（Inspector 改值）跟 import postprocessor，CLI 的
+        /// ApplyModifiedProperties + SaveAssets 兩條都不保證會走到。
+        /// </summary>
+        private static string AfterEdit(Object asset)
+        {
+            if (!(asset is MonoFSM.Core.IAfterCliAssetEditCallbackReceiver receiver)) return "";
+            try
+            {
+                var msg = receiver.OnAfterCliAssetEdit();
+                return string.IsNullOrEmpty(msg) ? "" : $"\n# {msg}";
+            }
+            catch (System.Exception e)
+            {
+                return $"\n# ⚠ {asset.GetType().Name}.OnAfterCliAssetEdit 例外：{e.GetType().Name}: {e.Message}";
+            }
         }
 
         /// <summary>
@@ -134,7 +168,7 @@ namespace MonoFSM.Editor.PrefabEditing
                 var so = new SerializedObject(asset);
                 var log = DoAddElement(so, asset, fieldPath, typeName);
                 Commit(so, asset);
-                return $"{assetPath}.{log}";
+                return $"{assetPath}.{log}" + AfterEdit(asset);
             });
         }
 
@@ -283,7 +317,9 @@ namespace MonoFSM.Editor.PrefabEditing
                 return log + $"# 整批未套用：{assetPath} 完全沒有變更（SerializedObject 沒 Apply）。\n";
 
             Commit(so, asset);
-            return log + $"# 套用 {done} 個操作並存檔：{assetPath}\n";
+            var after = AfterEdit(asset);
+            return log + $"# 套用 {done} 個操作並存檔：{assetPath}\n" +
+                   (after.Length > 0 ? after.Substring(1) + "\n" : "");
         }
 
         private static string Dispatch(SerializedObject so, Object asset, string verb, string[] a)
@@ -299,10 +335,12 @@ namespace MonoFSM.Editor.PrefabEditing
                 case "addel":
                     return DoAddElement(so, asset, EditBatch.Need(a, 0, verb, "fieldPath"),
                         EditBatch.At(a, 1));
+                case "delel":
+                    return DoRemoveElement(so, asset, EditBatch.Need(a, 0, verb, "<field>[i]"));
                 default:
                     throw new Abort(
                         $"`{verb}` 不是 asset batch 的操作。可用：set|field|value、" +
-                        "aref|field|assetPath、addel|field[|type]" +
+                        "aref|field|assetPath（null = 清空）、addel|field[|type]、delel|field[i]" +
                         (verb == "invoke"
                             ? "。invoke 不可回滾，不收進批次 —— 用 `up asset invoke`"
                             : ""));

@@ -219,8 +219,9 @@ namespace EditorTool
             savingObjs.Reverse();
             foreach (var savingObj in savingObjs)
             {
-                if (savingObj != null)
-                    savingObj.OnBeforePrefabSave();
+                // 清單是快照，前面的 callback 可能 destroy 掉後面的元件；interface 的 != null 不走 Unity 的 overload
+                if (savingObj is Object so && so == null) continue;
+                savingObj.OnBeforePrefabSave();
             }
 
             // var rootGameObjects = prefab.GetComponentsInChildren<ISceneSavingCallbackReceiver>(true);
@@ -238,7 +239,7 @@ namespace EditorTool
             callbackObjs.Reverse();
             foreach (var callbackObj in callbackObjs)
             {
-                if (callbackObj != null)
+                if (!(callbackObj is Object co && co == null))
                 {
                     try
                     {
@@ -261,7 +262,7 @@ namespace EditorTool
             prefabRoot.GetComponentsInChildren(true, openCallbackObjs);
             AutoAttributeManager.AutoReferenceAllChildren(prefabRoot);
             foreach (var callbackObj in openCallbackObjs)
-                if (callbackObj != null)
+                if (!(callbackObj is Object co && co == null))
                     callbackObj.OnAfterPrefabStageOpen();
         }
 
