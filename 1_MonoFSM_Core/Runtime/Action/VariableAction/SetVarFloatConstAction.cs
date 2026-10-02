@@ -5,6 +5,10 @@ using UnityEngine.Serialization;
 
 namespace MonoFSM.Variable
 {
+    /// <summary>
+    /// 把一顆 VarFloat 設成 _sourceVar 的值（常數或另一顆 VarFloat），掛在 [Event] 底下寫數值用。
+    /// _targetVar 可以是跨 entity 的 proxy Var（例：掛貨滑車 spawn 包裹後寫 d_托盤貨物.d_商品價格）。
+    /// </summary>
     [QuickCreate]
     public class SetVarFloatConstAction : AbstractStateAction
     {
