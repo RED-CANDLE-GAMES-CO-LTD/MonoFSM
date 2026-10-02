@@ -17,7 +17,7 @@ up peek "資源生成器 FSM/Timer" VarFloatCountDownTimer --members "IsTimerUp,
 但也**不是不存在** —— 查到這段就別另外造一顆同功能的 component。
 
 `peek` 在 Play Mode 下讀的是**當下的 runtime 值** —— 除「為什麼沒動」最快的一步。
-`--members` 留空會 dump 所有 public 屬性（很吵，通常指定幾個就好）。
+不寫 `--members`（或只寫 `--members` 不帶值）= serialize 欄位 + 可查的屬性名清單；要屬性值就 `--members` 點名。
 **不知道該給哪顆 component 時把 comp / `--comp` 留空** —— 會列出該節點上掛了哪些
 component 的名稱（只取型別名，不呼叫任何 property getter）。
 
@@ -95,7 +95,11 @@ asset 上沒跑過任何 runtime 邏輯，屬性大半是空的或會炸）。`-
 up prefab locate "Assets/…/X Variant.prefab" --comp TransitionBehaviour -n 20
 up prefab locate "Assets/…/X Variant.prefab" --name "Durability" \
     --comp VarFloat --members CurrentValue,_defaultValue
+up prefab locate "Assets/…/X Variant.prefab" --comp VarFloat --members   # 不帶值 = 每個命中都印全部 serialize 欄位
 ```
+
+**locate 不寫 `--members` 只列路徑、不印值**（跟 peek 不一樣）；只寫 `--members` 不帶值 = 全部欄位，
+點名格式跟 peek 一樣。
 
 它在 Unity 端一次遍歷合併後真值，回 canonical escaped node path、component 與可選欄位；
 表尾會給總命中與截斷提示。這是「單一已知 prefab 內定位」；跨資產仍先走離線 `find`。

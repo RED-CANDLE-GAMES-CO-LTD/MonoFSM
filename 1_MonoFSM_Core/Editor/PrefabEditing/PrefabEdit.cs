@@ -593,7 +593,10 @@ namespace MonoFSM.Editor.PrefabEditing
                     var parentPath = EditBatch.At(a, 1);
                     var name = EditBatch.At(a, 2);
                     var asset = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-                    if (asset == null) throw new Abort($"找不到 prefab: {prefabPath}");
+                    if (asset == null)
+                        throw new Abort(System.IO.File.Exists(prefabPath)
+                            ? $"找不到 prefab: {prefabPath}（檔案在磁碟上但 AssetDatabase 還沒 import —— Editor 失焦 / Auto Refresh 關著。先跑 uloop execute-dynamic-code --code 'UnityEditor.AssetDatabase.ImportAsset(\"{System.IO.Path.GetDirectoryName(prefabPath).Replace('\\', '/')}\", UnityEditor.ImportAssetOptions.ImportRecursive | UnityEditor.ImportAssetOptions.ForceSynchronousImport);' 再重跑這批）"
+                            : $"找不到 prefab: {prefabPath}");
 
                     var parent = EditResolve.Node(root, parentPath);
                     var nodeName = string.IsNullOrEmpty(name) ? asset.name : name;

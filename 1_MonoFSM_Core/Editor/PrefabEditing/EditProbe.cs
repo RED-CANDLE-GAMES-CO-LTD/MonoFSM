@@ -311,7 +311,8 @@ namespace MonoFSM.Editor.PrefabEditing
         /// <param name="componentType">component 短名或 FullName；留空 = 不用 component 篩選</param>
         /// <param name="nameContains">節點名篩選（忽略大小寫）：含 * / ? 當 glob 整段比對，
         /// 否則當 substring；留空 = 不篩選</param>
-        /// <param name="members">有指定 component 時，順便 dump 這些逗號分隔的欄位/屬性</param>
+        /// <param name="members">有指定 component 時，順便 dump 這些逗號分隔的欄位/屬性；
+        /// "*" = 全部 serialize 欄位（CLI `--members` 不帶值）；留空 = 只列路徑不 dump</param>
         /// <param name="limit">最多顯示幾個節點；total / cut 仍回報完整命中數</param>
         public static string LocateAsset(
             string assetPath, string componentType = null, string nameContains = null,
@@ -481,6 +482,10 @@ namespace MonoFSM.Editor.PrefabEditing
             UnityEngine.Object comp, string header, string members, bool serializedByDefault,
             bool listPropertiesWhenEmpty = false, int deep = 0)
         {
+            // "*" = CLI 的 `--members` 不帶值：明確要全部 serialize 欄位（locate 沒帶 --members
+            // 時不 dump，所以要一個非空值表達「也要 dump」），之後一律當成留空處理
+            if (members == "*") members = null;
+
             var type = comp.GetType();
             var sb = new StringBuilder(string.IsNullOrEmpty(header) ? "" : header + "\n");
 

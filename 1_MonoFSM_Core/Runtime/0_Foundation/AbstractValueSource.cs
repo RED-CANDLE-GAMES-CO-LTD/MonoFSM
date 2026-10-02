@@ -22,7 +22,8 @@ namespace MonoFSM.Foundation
         public ConditionGroup _conditionGroup;
 
         //TODO: 需要 hasValue嗎？ not null
-        public virtual bool IsValid => _conditionGroup.IsValid && isActiveAndEnabled; //&& HasValue
+        //先判 active：inactive 的 source 底下的 condition 不該被跑（沒接 reference 的 condition 會噴 error）
+        public virtual bool IsValid => isActiveAndEnabled && _conditionGroup.IsValid; //&& HasValue
         public abstract bool HasValue { get; }
     }
 

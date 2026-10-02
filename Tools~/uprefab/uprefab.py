@@ -396,7 +396,8 @@ def _find_peek_hint(apath, fid, npath, comps, want, resolved) -> str:
         if resolved and resolved[0] == "ok":
             return _prefab_peek_cmd_text(apath, resolved[1], comp)
         sel = f"--comp {comp}" if comp else f"--name '{(npath or '').rsplit('/', 1)[-1]}'"
-        return f"up prefab locate '{apath}' {sel}   （拿合併後的完整路徑；加 --members 可直接讀值）"
+        return (f"up prefab locate '{apath}' {sel}   （拿合併後的完整路徑；"
+                "加 --members 直接印全部欄位值，或 --members _a,_b 只讀幾格）")
     return _peek_cmd_text(query.anchor(apath, fid), comp)
 
 
@@ -825,11 +826,33 @@ def _resolve_asset(root: str, path: str) -> str:
     return path
 
 
+# `--members` 不帶值時 argparse 給的 const。「沒帶 --members」對 peek / asset peek 本來就是
+# 全部欄位，但 prefab locate 沒帶就只列路徑不 dump —— 所以要另一個值表達「locate 也 dump 全部」。
+# 2026-10-02 前 --members 必須帶值，`up find` 提示「加 --members 可直接讀值」照打就報錯。
+MEMBERS_ALL = "*"
+
+
+def _members_flag_text(members) -> str:
+    if not members:
+        return ""
+    return " --members" if members == MEMBERS_ALL else f" --members {members}"
+
+
+def _normalize_members(args) -> None:
+    """只有 prefab locate 把 MEMBERS_ALL 原樣傳給 Unity（EditProbe.Dump 認得 "*"）；
+    其他指令轉回 None = 走原本「沒帶 --members」的全部欄位路徑，不依賴 C# 端認得 "*"。"""
+    if getattr(args, "members", None) != MEMBERS_ALL:
+        return
+    if args.cmd == "prefab" and args.action == "locate":
+        return
+    args.members = None
+
+
 def cmd_prefab(args, root, cfg):
     # .asset 不是 prefab：以前回「找不到 prefab」，看不出該換哪條指令
     if args.action in ("peek", "read", "locate") and args.asset.lower().endswith(".asset"):
         print(f"# {args.asset} 是 ScriptableObject，不是 prefab。讀值用：up asset peek \"{args.asset}\""
-              + (f" --members {args.members}" if getattr(args, "members", None) else ""))
+              + _members_flag_text(getattr(args, "members", None)))
         raise SystemExit(2)
     if args.action != "swap-script":  # swap-script 離線讀磁碟，要的是 repo 相對路徑
         args.asset = _resolve_asset(root, args.asset)
@@ -855,6 +878,10 @@ def cmd_prefab(args, root, cfg):
         out = unity.call(f"{PROBE}.LocateAsset", args.asset, args.comp,
                          args.name, args.members, args.limit, args.deep)
         print(out)
+        if args.members == MEMBERS_ALL and "上沒有 '*'" in (out or ""):
+            # Unity 端還是舊的 EditProbe.Dump（不認 "*"）—— 不是指令打錯
+            print("# Unity 端的 EditProbe.cs 還沒編譯到「--members 不帶值 = 全部欄位」的版本；"
+                  "請在 Editor 編譯後重跑，或先改用 --members _a,_b 點名")
         # locate 走 LoadPrefabContents，看到的是合併後的真值 —— 明講這件事，
         # 免得 total=0 被拿去跟離線 find 的 (no match) 混為一談
         if "# total=0" in (out or ""):
@@ -865,8 +892,8 @@ def cmd_prefab(args, root, cfg):
                       "整段比對時 [ ] 等符號都是字面值不用跳脫")
         elif not args.members and re.search(r"# total=[1-9]", out or ""):
             # usage log：locate → 同節點再 peek 有 50 對，而 405 次 locate 只有 17 次帶 --members
-            print("# 要看欄位值直接在這條 locate 加 --members <欄位,欄位>（例：--members _note,CurrentValue），"
-                  "一次拿完所有命中，不用再逐個 peek")
+            print("# 要看欄位值直接在這條 locate 加 --members（不帶值 = 全部 serialize 欄位；"
+                  "或 --members _note,CurrentValue 只讀幾格），一次拿完所有命中，不用再逐個 peek")
     elif args.action == "do":
         # --force 只在有帶時才多傳一個參數：沒帶就走舊的 3 參數 overload，
         # C# 端還沒 compile 到新 overload 時不會連一般的 do 都壞掉
@@ -1551,7 +1578,8 @@ def _peek_asset_path(args, root, asset: str, kind: str, fid, rest) -> None:
             if why:
                 print(f"# anchor 解不開：{why}")
             sel = f"--comp {comp}" if comp else "--comp <型別> / --name <節點名>"
-            print(f"# 先拿完整路徑（加 --members 可以直接讀值）：up prefab locate '{asset}' {sel}")
+            print(f"# 先拿完整路徑（加 --members 直接印全部欄位值，或 --members _a,_b 只讀幾格）："
+                  f"up prefab locate '{asset}' {sel}")
         raise SystemExit(1)
 
     if not anchor_line and not rest:
@@ -2458,8 +2486,10 @@ def main() -> None:
     pp.add_argument("--node", help="read / peek / bounds：子樹路徑（peek / bounds 留空 = root）")
     pp.add_argument("--comp", help="peek：component 型別")
     pp.add_argument("--members",
-                    help="peek：逗號分隔的欄位名，支援點路徑（_ignoreFilter._ignoreSelfEntity、"
-                         "_entries[0]._family）；留空 = 這顆 component 的所有 serialize 欄位")
+                    nargs="?", const=MEMBERS_ALL,
+                    help="peek / locate：逗號分隔的欄位名，支援點路徑（_ignoreFilter._ignoreSelfEntity、"
+                         "_entries[0]._family）；只寫 --members 不帶值 = 這顆 component 的所有 serialize 欄位。"
+                         "peek 不寫 --members 也是全部；locate 不寫就只列路徑不印值")
     pp.add_argument("--deep", nargs="?", type=int, const=2, default=0, metavar="N",
                     help="peek / peek-batch / locate：把巢狀 [Serializable] 類別攤開 N 層"
                          "（不帶數字 = 2）。預設 0 = 只印型別名（輸出小）")
@@ -2544,9 +2574,9 @@ def main() -> None:
 
     pap = asub.add_parser("peek", help="讀 ScriptableObject 的欄位值（格式同 prefab peek；引用印 @asset 路徑）")
     pap.add_argument("path", help="assetPath（.asset）")
-    pap.add_argument("--members",
+    pap.add_argument("--members", nargs="?", const=MEMBERS_ALL,
                      help="逗號分隔的欄位名，支援點路徑（_items[0]._bindPrefab、_entries.Array.data[2]）；"
-                          "留空 = 全部 serialize 欄位")
+                          "不寫或只寫 --members 不帶值 = 全部 serialize 欄位")
     pap.add_argument("--deep", nargs="?", type=int, const=2, default=0, metavar="N",
                      help="把巢狀 [Serializable] 類別 / List 元素攤開 N 層（不帶數字 = 2）。預設 0 = 只印型別名")
 
@@ -2699,9 +2729,9 @@ def main() -> None:
     pk.add_argument("node", help="節點路徑（第一段是 root object 名）")
     pk.add_argument("comp", nargs="?",
                     help="component 型別；留空 = 只列這個節點上有哪些 component")
-    pk.add_argument("--members",
+    pk.add_argument("--members", nargs="?", const=MEMBERS_ALL,
                     help="逗號分隔的欄位/屬性名，支援點路徑（_ignoreFilter._ignoreSelfEntity、"
-                         "_entries[0]._family）；留空 = serialize 欄位 + 可查的屬性名清單")
+                         "_entries[0]._family）；不寫或只寫 --members 不帶值 = serialize 欄位 + 可查的屬性名清單")
     pk.add_argument("--deep", nargs="?", type=int, const=2, default=0, metavar="N",
                     help="把巢狀 [Serializable] 類別攤開 N 層（不帶數字 = 2）。預設 0 = 只印型別名")
     pk.set_defaults(fn=cmd_peek)
@@ -2856,6 +2886,7 @@ def main() -> None:
     args = p.parse_args(_rewrite_guid_argv(norm_argv))
     root = find_root(args.root)
     _guard_gid_args(args)
+    _normalize_members(args)
     if args.cmd == "usage":
         if args.what == "hot":
             hot.report(root, args.days, args.top, args.min_sessions, args.gap)

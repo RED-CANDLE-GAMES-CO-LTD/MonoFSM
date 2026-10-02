@@ -33,6 +33,7 @@ up scope stats
 up prefab read "Assets/…/X.prefab" --node "[StateFolder] StateFolder"
 up prefab read "Assets/…/X.prefab" --fsm-only --budget 8000
 up prefab locate "Assets/…/X.prefab" --comp TransitionBehaviour --members _target,_conditions
+up prefab locate "Assets/…/X.prefab" --comp TransitionBehaviour --members   # 不帶值 = 全部 serialize 欄位（不寫 --members 只列路徑）
 up prefab peek "Assets/…/X.prefab" --node "…/[Transition] => spawn" \
     --comp TransitionBehaviour --members _target,_conditions   # 只要幾個欄位，別讀整棵
 up obj "[名稱](http://localhost:8888/webhook?globalId=GlobalObjectId_V1-2-…)"   # 貼 scene 物件連結

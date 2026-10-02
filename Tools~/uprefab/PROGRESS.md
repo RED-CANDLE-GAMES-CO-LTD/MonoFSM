@@ -1599,3 +1599,10 @@ root 名稱改，而 root 名稱又會被存檔改回 **asset 檔名**（`rename
 - 根因：`FIELD_RE` 有三處只吃同一行的寫法：(1) 型別和名稱之間只收 `[ \t]+`，Rider 把尾巴掛長註解的宣告折成 `private VarEntity\n    _foo; //…` 就整個漏；(2) attribute 只收單行 `[^\]\n]*`，跨行的 `[Tooltip("…" +\n "…")]` 或字串裡有 `]` 的 Tooltip 會斷鏈；(3) attribute 之間夾 `// [TypeFilter()]` 這種註解行也斷鏈。後兩種斷鏈會讓前面的 `[SerializeField]` 看不到，private 欄位被當成非 serialized 丟掉，`[Auto]` 標記也一起掉。
 - 改法：修 regex（`\s+` 允許換行、attribute 吃跨行與字串、attrs 鏈允許 `//` 註解行，算 attribute 前先濾掉註解行，註解掉的 `// [SerializeField]` 不算數），`PARSER_VERSION` 3 讓既有索引整批重建。全專案 4074 支 .cs 對比：多抓到 30 個欄位、5 個補上 `[Auto]`、沒有掉任何既有欄位；抽 210 個非 abstract 型別跟 `up fields --own` 比，0 差異。
 - 故意不做：catalog 不改成呼叫 Unity 拿欄位 —— catalog 要在 Unity 沒開時也能用、一次列上百顆，走 Unity 太慢又會依賴 Editor；也不加「還有 N 個欄位」提示，因為 catalog 本來就是全列（compact 模式已經有提示行），真正問題是抽漏，不是截斷。還沒處理的寫法：一行宣告多個欄位（`float _a, _b;`）、`@"…"` verbatim 字串裡的 `"`，這次抽樣沒遇到。
+
+## `--members` 可以不帶值（2026-10-02）
+- 現象：`up find` / `up peek` 的提示寫「`up prefab locate … --comp X`，加 `--members` 可直接讀值」，照打 argparse 直接報 `expected one argument`（2026-10-02 查 Gate 的 `AnimatorSetBoolAction`）。
+- 根因：四個 `--members`（prefab / asset peek / scene peek）都是必帶值的 option；「留空 = 全部欄位」指的是「不寫這個旗標」，但 locate 不寫旗標是「只列路徑不 dump」，所以 locate 根本沒辦法表達「印全部欄位」，提示也就跟著錯。
+- 改法：四個 `--members` 改 `nargs="?", const="*"`。`_normalize_members` 在 parse 後把 `"*"` 轉回 None（peek / asset peek / scene peek 走原本「沒帶」= 全部欄位的路徑，不依賴 C#），只有 `prefab locate` 把 `"*"` 原樣傳給 Unity；`EditProbe.Dump` 開頭 `"*"` 當成留空，所以 locate 的輸出格式跟點名時完全一樣。提示文字（find `→` 行、peek 解不開 anchor、locate 結尾）改成「不帶值 = 全部 / 或點名」。
+- 陷阱：C# 端這一行 hot reload 套不上（shim 撞 0Harmony CS0433，不是 code 問題），Unity 還沒編譯前 locate 會印 `* = # 找不到…上沒有 '*'`；Python 端認得這句，會補一行「EditProbe.cs 還沒編譯到新版」，不會被當成欄位真的不存在。
+- 故意不做：不讓 locate 「不寫 --members」就 dump —— 命中幾十筆時預設輸出會爆，locate 的主要用途還是拿路徑。
