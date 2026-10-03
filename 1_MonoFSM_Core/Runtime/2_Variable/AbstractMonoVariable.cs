@@ -853,6 +853,62 @@ namespace MonoFSM.Variable
         /// </summary>
         public virtual void ClearNetworkOverride() { }
 
+        //--- VariableFolder commit 登記（只 commit 值有變的 var）---
+        //_commitFolder：負責 commit 這顆的 folder（最近的祖先 VariableFolder），由 folder 在 SceneAwake 綁定。
+        //_isCommitPending：已經在 folder 的 pending 清單裡，同一 tick 重複登記直接擋掉（零 GC、不查 HashSet）。
+        [NonSerialized] private VariableFolder _commitFolder;
+        [NonSerialized] internal bool _isCommitPending;
+
+        public VariableFolder CommitFolder => _commitFolder;
+
+        /// <summary>
+        ///     true = folder 每 tick 都 commit 這顆（不靠 MarkCommitPending 登記）。
+        ///     給「值會在 setter 以外的地方變、又依賴 LastValue」的 var 用；目前沒有任何型別需要，見 2_Variable/Progress.md。
+        /// </summary>
+        public virtual bool IsCommitPolledEveryTick => false;
+
+        /// <summary>
+        ///     folder 綁定時呼叫。巢狀 folder 時歸屬最近（最深）的那個；回傳 true = 這個 folder 擁有這顆 var。
+        /// </summary>
+        internal bool BindCommitFolder(VariableFolder folder)
+        {
+            var existing = _commitFolder;
+            if (existing != null && existing != folder && !folder.transform.IsChildOf(existing.transform))
+                return false; //已經被更近的 folder 認領
+
+            _commitFolder = folder;
+            OnCommitFolderBound();
+            if (IsCommitPolledEveryTick)
+            {
+                //輪詢的 var 永遠不進 pending：flag 固定 true，MarkCommitPending 直接擋掉
+                _isCommitPending = true;
+                return true;
+            }
+
+            //綁定前的寫入沒有登記到，綁定時一律登記一次，第一個 tick 補 commit。
+            //已經在某個 pending 清單裡（pool 重用、Refresh 重綁）就不重複登記，那份清單會 commit 它
+            MarkCommitPending();
+            return true;
+        }
+
+        /// <summary>folder 綁定後的 hook：Field 型 var 在這裡把 FlagField 的 commit owner 指回自己。</summary>
+        protected virtual void OnCommitFolderBound() { }
+
+        /// <summary>
+        ///     值（或 LastValue）可能變了，登記到 owner folder 的 pending 清單，AfterSimulate 時 commit。
+        ///     沒有 folder（不在任何 VariableFolder 底下）就什麼都不做 —— 跟改版前一樣不會被 commit。
+        /// </summary>
+        public void MarkCommitPending()
+        {
+            if (_isCommitPending)
+                return;
+            var folder = _commitFolder;
+            if (folder is null) //reference 比較，不走 Unity 的 null 檢查
+                return;
+            _isCommitPending = true;
+            folder.EnqueueCommit(this);
+        }
+
         //FIXME: 有value和有 source是兩回事吧？HasProxySource?
         [InfoBox(
             "此變數會使用 ValueProvider 或 Parent VarEntity 的值，無法設定預設值"

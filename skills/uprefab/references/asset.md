@@ -107,7 +107,7 @@ resize 一次到位用 `set|<field>.Array.size|N`（變小從尾端砍，變大�
 
 `GameData.Price` / `bindPrefab` 這類 property 在 Play Mode 下只查 `_dataFunctionDict`，
 而那份 dict 是 `FlagAwake()` 建的。新建的 asset 沒被收進
-`Assets/Resources/AllFlagCollection.asset` 就不會跑 `FlagAwake`，**dict 永遠是空的，
+`Assets/Resources/AllFlagCollection.asset` (guid:3cfb909af3b024f5ba41bf88b294fd50) 就不會跑 `FlagAwake`，**dict 永遠是空的，
 Price 靜默回 0**（Editor 下反而正常，因為 getter 會 `RebuildDataFunctionCheck()`）。
 
 ```bash

@@ -374,12 +374,50 @@ namespace MonoFSM.Editor.PrefabEditing
             {
                 var node = EditResolve.NodeInRoots(Roots(Active()), nodePath);
                 node.localPosition = new Vector3(x, y, z);
+                RecordTransformWrite(node);
                 Dirty();
                 var uiWarning = node is RectTransform
                     ? "\n# 注意：這是 RectTransform，localPosition 會被 Canvas relayout 覆寫。" +
                       "要改 UI 位置請用 `rect|<node>|<x,y>`（寫 anchoredPosition）"
                     : "";
                 return $"{nodePath}.localPosition = {node.localPosition:0.##}" + uiWarning;
+            });
+        }
+
+        /// <summary>
+        /// 直接寫 Transform property 後的收尾：標 dirty，節點在 prefab 實例裡時記成 property override
+        /// （不記的話存檔後可能被實例同步回 base 值，看似成功實際沒進檔）。pos / rot / scale 共用。
+        /// </summary>
+        private static void RecordTransformWrite(Transform node)
+        {
+            EditorUtility.SetDirty(node);
+            if (PrefabUtility.IsPartOfPrefabInstance(node))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(node);
+        }
+
+        /// <summary>
+        /// scale / rot 共用：scene 版沒有「留空 = root」語意，nodePath 必填。
+        /// rot 吃 euler（localEulerAngles），跟 prefab 版同語意。
+        /// </summary>
+        public static string SetScaleOrRot(string verb, string nodePath, Vector3 value)
+        {
+            return Guard(() =>
+            {
+                var node = EditResolve.NodeInRoots(Roots(Active()), nodePath);
+                string msg;
+                if (verb == "scale")
+                {
+                    node.localScale = value;
+                    msg = $"{nodePath}.localScale = {node.localScale:0.##}";
+                }
+                else
+                {
+                    node.localEulerAngles = value;
+                    msg = $"{nodePath}.localEulerAngles = {node.localEulerAngles:0.##}";
+                }
+                RecordTransformWrite(node);
+                Dirty();
+                return msg;
             });
         }
 
@@ -675,6 +713,10 @@ namespace MonoFSM.Editor.PrefabEditing
                     return SetPos(EditBatch.Need(a, 0, verb, "nodePath"),
                         float.Parse(xyz[0]), float.Parse(xyz[1]), float.Parse(xyz[2]));
                 }
+                case "scale":
+                case "rot":
+                    return SetScaleOrRot(verb, EditBatch.Need(a, 0, verb, "nodePath"),
+                        EditBatch.Vec3(a, 1, verb, verb));
                 case "rect":
                     return SetRect(EditBatch.Need(a, 0, verb, "nodePath"), a);
                 case "dup":
@@ -711,10 +753,36 @@ namespace MonoFSM.Editor.PrefabEditing
                     };
                     if (EditFsm.TryDispatch(ctx, verb, a, out var fsm)) return fsm;
                     throw new Abort(
-                        "不認得的操作 '" + verb +
-                        "'。可用的：add prefab comp set ref aref addel delel pos rect active layer mv idx dup auto del delcomp save mark " +
+                        "不認得的操作 '" + verb + "'。" + PrefabOnlyHint(verb) +
+                        "可用的：add prefab comp set ref aref addel delel pos rot scale rect active layer mv idx dup auto del delcomp save mark " +
                         EditFsm.Verbs);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 只有 `prefab do` 才有的 op：scene 沒有對應語意（revert / copyfrom / invoke / delmissing）
+        /// 或尚未支援（rename）。打到時直接印替代寫法，不只說不認得。
+        /// </summary>
+        private static string PrefabOnlyHint(string verb)
+        {
+            switch (verb)
+            {
+                case "rename":
+                    return "`rename` 只有 prefab do，scene do 沒有對應 op（scene 節點請在 Editor 改名，或 `dup` / `add` 時直接取好名字）。";
+                case "revert":
+                    return "`revert` 只有 prefab do（清 variant / nested 的 property override）；scene 實例上的 override 請在 Editor 用 Revert。";
+                case "copyfrom":
+                    return "`copyfrom` 只有 prefab do（跨 prefab 搬子樹）；scene 內複製請用 `dup`。";
+                case "invoke":
+                    return "`invoke` 只有 prefab do，scene do 沒有對應 op。";
+                case "delmissing":
+                    return "`delmissing` 只有 prefab do（清 MissingScript）。";
+                case "rotate":
+                case "euler":
+                    return "要設旋轉請用 `rot|<node>|x,y,z`（吃 euler）。";
+                default:
+                    return "";
             }
         }
 

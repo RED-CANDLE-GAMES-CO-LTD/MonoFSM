@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Profiling;
 using _1_MonoFSM_Core.Runtime.EffectHit.Action;
 using _1_MonoFSM_Core.Runtime.MonoData;
 using MonoFSM.Core.Attributes;
@@ -117,10 +118,8 @@ namespace MonoFSM.Core.Detection
             //current 會是空的，缺席不能算離開（下一 tick 才是權威 diff）
             _isResumeGraceTick = true;
             SetResumeGraceState(ResumeGraceState.EnteredGrace);
-            Debug.Log(
-                $"[EffectDetector] Culling 凍結 overlap:{_thisFrameDetectedObjects.Count}",
-                this
-            );
+            //不用 Debug.Log：scene 啟動時大量 detector 同時 culling，Editor 抓 stack trace 一幀吃 14ms / 100K+ GC
+            this.Log("[EffectDetector] Culling 凍結 overlap:", _thisFrameDetectedObjects.Count);
         }
 
         //凍結（culling）後不把「缺席」判成離開，直到物理確實重新回報過，見 DetectUpdateCheck 結尾
@@ -294,10 +293,7 @@ namespace MonoFSM.Core.Detection
                 return;
             }
 
-            Debug.Log(
-                $"[EffectDetector] ClearAllDetections({reason}) count:{_thisFrameDetectedObjects.Count}",
-                this
-            );
+            this.Log("[EffectDetector] ClearAllDetections", reason, "count:", _thisFrameDetectedObjects.Count);
             _toRemove.Clear();
             _toRemove.AddRange(_thisFrameDetectedObjects.Keys);
             foreach (var detectable in _toRemove)
@@ -435,28 +431,36 @@ namespace MonoFSM.Core.Detection
         public void Simulate(float deltaTime)
         {
             _lastSimulateTime = Time.time;
+            _markerSimulateGate.Begin();
             if (IsManualDetectActive) //交給 action 控，不自己判
+            {
+                _markerSimulateGate.End();
                 return;
+            }
 
             //condition 失效／自己被關掉時，不能只是 return，要把還在重疊的補送 exit
             if (!isActiveAndEnabled)
             {
                 ClearAllDetections("NotActive");
+                _markerSimulateGate.End();
                 return;
             }
 
             if (!_conditions.IsAllValid())
             {
                 ClearAllDetections("ConditionInvalid");
+                _markerSimulateGate.End();
                 return;
             }
 
             if (_detectionSources == null)
             {
                 ClearAllDetections("NoDetectionSource");
+                _markerSimulateGate.End();
                 return;
             }
 
+            _markerSimulateGate.End();
             DetectUpdateCheck();
         }
 
@@ -469,8 +473,47 @@ namespace MonoFSM.Core.Detection
         // [AutoParent]
         // MonoContext _monoContext; //fixme: monoObj本來就會有culling就不會進來了？好像不需要多判一次吧
 
+        /// <summary>DetectUpdateCheck 最近一次的結果（Inspector 除錯用）。</summary>
+        public enum DetectCheckResult
+        {
+            None,
+            FullFlow,
+            EarlyOutNoOverlap,
+            ResetGraceDiscard,
+        }
+
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private DetectCheckResult _lastDetectCheckResult;
+
+        //細分 marker（static readonly，Begin/End 帶 Conditional，不產生 GC）。用來看 detector 時間花在哪一段
+        private static readonly ProfilerMarker _markerPrep = new("EffectDetector.Prep");
+        private static readonly ProfilerMarker _markerCollect = new("EffectDetector.Collect");
+        private static readonly ProfilerMarker _markerStep4 = new("EffectDetector.Step4Dealer");
+        private static readonly ProfilerMarker _markerStep5 = new("EffectDetector.Step5Changes");
+        private static readonly ProfilerMarker _markerSimulateGate = new("EffectDetector.SimulateGate");
+
+        //全場累計（跨所有 detector，static）：早退命中率 = Early / (Early + Full)
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private static int s_earlyOutCount;
+
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private static int s_fullFlowCount;
+
+        //Collect 迴圈裡每個 source 回傳的 result 數：有效（有 EffectDetectable 且通過）/ 無效（沒有 detect target 或 detectable 無效被丟掉）
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private static int s_collectResultTotal;
+
+        [ShowInInspector]
+        [Sirenix.OdinInspector.ReadOnly]
+        private static int s_collectResultKept;
+
         public void DetectUpdateCheck()
         {
+            _markerPrep.Begin();
             // if (_monoContext == null)
             // {
             //     Debug.LogError("_monoContext is null", this);
@@ -493,8 +536,10 @@ namespace MonoFSM.Core.Detection
 
             // 2. 清空當前檢測列表，準備重建
             _thisFrameDetectedObjects.Clear();
+            _markerPrep.End();
 
             // 3. 收集所有 DetectionSource 的當前檢測結果
+            _markerCollect.Begin();
             foreach (var detectionSource in _detectionSources)
             {
                 if (detectionSource == null)
@@ -515,6 +560,7 @@ namespace MonoFSM.Core.Detection
                 var results = detectionSource.GetCurrentDetections();
                 foreach (var result in results)
                 {
+                    s_collectResultTotal++;
                     if (result.isValidHit)
                     {
                         // var detectable = GetEffectDetectable(result.targetObject);
@@ -544,6 +590,7 @@ namespace MonoFSM.Core.Detection
                             if (result.hitNormal.HasValue)
                                 detectData.SetCustomNormal(result.hitNormal.Value);
                             _thisFrameDetectedObjects[detectable] = detectData;
+                            s_collectResultKept++;
                         }
                     }
                 }
@@ -551,6 +598,8 @@ namespace MonoFSM.Core.Detection
                 //放這OK嗎？ 小心上面的foreach?
                 detectionSource.AfterDetection();
             }
+
+            _markerCollect.End();
 
             //reset 後第一個 detect tick 的重疊資料不可信：LocalTransformResetter 這個 tick 才把
             //transform 搬回原點，物理還沒用新位置重跑，TriggerDetectorSource 的 OnTriggerStay
@@ -561,20 +610,43 @@ namespace MonoFSM.Core.Detection
             if (_isResetGraceTick)
             {
                 _isResetGraceTick = false;
-                Debug.Log(
-                    $"[EffectDetector] Reset grace tick，丟棄陳舊 overlap:{_thisFrameDetectedObjects.Count}",
-                    this);
+                this.Log("[EffectDetector] Reset grace tick，丟棄陳舊 overlap:", _thisFrameDetectedObjects.Count);
                 _thisFrameDetectedObjects.Clear();
                 _lastDetectedObjects.Clear();
+                _lastDetectCheckResult = DetectCheckResult.ResetGraceDiscard;
                 return;
             }
 
-            // 4. 檢查 dealer 狀態變化
-            if (CheckDealerStateChanges())
-                HandleDealerStateChanges();
+            //早退：上一 tick 和這一 tick 都沒有任何重疊 → 步驟 4、5 都沒有對象可處理（Handle 只對
+            //「當前偵測到的 detectable」發事件，步驟 5 兩個 dict 都空就是空迴圈），
+            //省掉每 tick 對每個 dealer 算 IsValidOrFrozenByCulling + 字典查詢（Profiler 實測是 detector 的主要 self 成本）。
+            //零成本判斷，只看兩個 dict 的 Count。刻意不早退的情況：
+            //  - 任一邊有東西（含 culling carry 進來的條目、剛離開要補 Exit 的）→ 走完整流程
+            //  - Reset grace tick：上面已經先處理並 return，不受影響
+            //  - 下面 _isResumeGraceTick 的消耗：照常執行，不跟著早退
+            //_dealerLastStates 不在早退期間更新：dealer 有效性在空窗期改變，會在「下一次有重疊的 tick」
+            //由步驟 4 補成 Enter/Exit 事件，效果等同原本（步驟 5 的 Enter 有 IsEnteredReceiver 擋重複）。
+            if (_thisFrameDetectedObjects.Count == 0 && _lastDetectedObjects.Count == 0)
+            {
+                _lastDetectCheckResult = DetectCheckResult.EarlyOutNoOverlap;
+                s_earlyOutCount++;
+            }
+            else
+            {
+                _lastDetectCheckResult = DetectCheckResult.FullFlow;
+                s_fullFlowCount++;
 
-            // 5. 比較前後差異，觸發 Enter/Exit 事件
-            ProcessDetectionChanges(_lastDetectedObjects, _thisFrameDetectedObjects);
+                // 4. 檢查 dealer 狀態變化
+                _markerStep4.Begin();
+                if (CheckDealerStateChanges())
+                    HandleDealerStateChanges();
+                _markerStep4.End();
+
+                // 5. 比較前後差異，觸發 Enter/Exit 事件
+                _markerStep5.Begin();
+                ProcessDetectionChanges(_lastDetectedObjects, _thisFrameDetectedObjects);
+                _markerStep5.End();
+            }
 
             //grace 只負責「自己 resume 的那第一個 tick」，所以在這裡無條件消耗就夠了。
             //跨多個 tick 的責任已經交給 exit diff 的證據型規則（見 ProcessDetectionChanges）：
@@ -861,7 +933,7 @@ namespace MonoFSM.Core.Detection
                 return;
             }
 
-            this.Log($"TriggerEnterEventsForDetectable: {detectData.detectable.name}");
+            this.Log("TriggerEnterEventsForDetectable:", detectData.detectable.name);
             foreach (var dealer in _dealers)
                 TriggerEnterForDealerAndDetectable(dealer, detectData.detectable, detectData);
         }

@@ -36,6 +36,23 @@ namespace MonoFSM.Core.Detection
             this.isValidHit = targetObject != null;
         }
 
+        /// <summary>
+        /// 呼叫端已經查過 BaseEffectDetectTarget 時用（省一次 TryGetComponent）。detectTarget 不可為 null。
+        /// </summary>
+        public DetectionResult(
+            GameObject target,
+            BaseEffectDetectTarget detectTarget,
+            Vector3? hitPoint,
+            Vector3? hitNormal
+        )
+        {
+            _target = target;
+            targetObject = detectTarget;
+            this.hitPoint = hitPoint;
+            this.hitNormal = hitNormal;
+            isValidHit = detectTarget != null;
+        }
+
         public static DetectionResult Invalid => new DetectionResult { isValidHit = false };
     }
 

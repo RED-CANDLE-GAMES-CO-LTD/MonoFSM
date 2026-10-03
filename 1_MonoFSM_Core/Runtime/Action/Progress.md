@@ -17,3 +17,4 @@
   `OnEnterRender()` 裡再呼 abstract `OnEnterRenderImplement()`，所以不會漏；
   直接實作 interface 的 action（SwitchAction / SwitchCase / SetGameObjectActiveByIndexAction /
   AnimatorPlayAction / AnimationClipPlayAction）目前都漏檢查。
+- SetVarBoolAction 的 `this.Log($"...")` 改成泛型 Log 多參數版：Log 的 [Conditional("UNITY_EDITOR")] 只在 build 剝掉，Editor 裡參數照算，字串內插每次執行都 alloc（Profiler 實測 1.8K GC/frame、19 次）。慣例：hot path 的 Log 不准用 $"" 內插，改傳多個參數。

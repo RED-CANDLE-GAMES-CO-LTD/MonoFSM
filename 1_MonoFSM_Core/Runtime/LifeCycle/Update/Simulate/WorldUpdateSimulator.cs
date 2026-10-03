@@ -119,6 +119,12 @@ namespace MonoFSM.Core.Simulate
         // [Auto]
         private MonoEntityBinder _binder;
 
+        /// <summary>
+        ///     同物件上的 MonoEntityBinder（Awake 時 cache）。GetGlobalInstance 每次讀都要用，
+        ///     不要再 GetComponent；Awake 之前被問到時 fallback 成 GetComponent（跟舊行為一樣）。
+        /// </summary>
+        public MonoEntityBinder EntityBinder => _binder != null ? _binder : GetComponent<MonoEntityBinder>();
+
         public static WorldUpdateSimulator GetWorldUpdateSimulator(MonoObj me)
         {
             return me.WorldUpdateSimulator;

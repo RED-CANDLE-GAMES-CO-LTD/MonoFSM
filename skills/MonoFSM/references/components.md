@@ -149,8 +149,8 @@
 消耗端做 `Stamp d_LastXxxTime = now`，**記得加 `[If] Is [State] Ready`** ——
 否則冷卻期間重複觸發（例如 dealer 條件是 `IsPressed` 這種每幀成立的）會一直刷新時間戳，把冷卻無限延長。
 
-實例：`Assets/0_Gameplay/0_Base/Tutorial/復活機台 Variant.prefab`（庫存 + 補充版）、
-`Assets/0_Gameplay/Physics Object/NPC 神像/路邊發電鴿和底座 Base statue Variant.prefab`（單發 CD 版）。
+實例：`Assets/0_Gameplay/0_Base/Tutorial/復活機台 Variant.prefab` (guid:ff8856c4d0d7241da9f6f317ae5211a1)（庫存 + 補充版）、
+`Assets/0_Gameplay/Physics Object/NPC 神像/路邊發電鴿和底座 Base statue Variant.prefab` (guid:7086d3b0fdd274a648273526716e0690)（單發 CD 版）。
 
 **要拆成多條各自獨立的冷卻**：一組三件套 = 一顆時間戳。複製一顆時間戳 Var，
 把對應的 Stamp Action / Condition / ProgressValueSource 各自指過去即可，不需要改任何 C#。

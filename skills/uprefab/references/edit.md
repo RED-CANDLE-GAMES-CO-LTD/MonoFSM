@@ -27,15 +27,15 @@ up scene do "add||資源生成器|MonoEntity,MonoObj" "save"    # 也可以直�
 | `revert\|<node>\|<comp>\|<fieldPath>` | 清掉單一 property override，讓值回到繼承自 base / nested prefab 的值（**只有 prefab**）。`<comp>` 留空 = GameObject 本身（`m_IsActive`）。**執行時機排在存檔前 callback 之後**，否則 callback 會把 override 寫回來。存檔後會驗「真的不再是 override」 |
 | `pos\|<node>\|x,y,z` | 設 localPosition（`<node>` 留空 = root）。**目標是 RectTransform 時會警告並指向 `rect`** —— Canvas relayout 會蓋掉 localPosition |
 | `rect\|<node>\|<ax,ay>\|<w,h>\|<anchor>\|<px,py>` | UI 專用（prefab / scene 都支援，共用 `EditBatch.ApplyRect`；scene 版 `<node>` 必填）：寫 anchoredPosition / sizeDelta / anchorMin+Max / pivot，每格都可留空 = 不動。anchor 吃 preset 名（`center` / `top-left` / `stretch` / `stretch-h`…）或 `minX,minY,maxX,maxY` |
-| `scale\|<node>\|x,y,z` | 設 localScale（**只有 prefab**；`<node>` 留空 = root） |
-| `rot\|<node>\|x,y,z` | 設 localEulerAngles（**只有 prefab**；`<node>` 留空 = root，複製出來的 prefab 要歸零殘留旋轉就靠這個） |
+| `scale\|<node>\|x,y,z` | 設 localScale（prefab / scene 都支援；prefab 版 `<node>` 留空 = root，scene 版必填） |
+| `rot\|<node>\|x,y,z` | 設 localEulerAngles（prefab / scene 都支援；prefab 版 `<node>` 留空 = root，複製出來的 prefab 要歸零殘留旋轉就靠這個，scene 版必填） |
 | `active\|<node>\|<true/false>` | 設 GameObject.activeSelf（含 nested prefab override 記錄與 reload 驗證；第二格必填） |
 | `layer\|<node>\|<layer 名字>[\|children]` | 設 GameObject.layer（prefab / scene 都支援；prefab 版 `<node>` 留空 = root）。吃 layer 名字（大小寫要一致，打錯會列出全部可用 layer），第三格 `children` = 連整棵子樹一起設。含 nested / variant override 記錄與 reload 驗證。**慣例：掛 `TriggerDetectorSource`（含子類）的節點一律 `Detector` layer**（cast / overlap 打什麼看 query mask，不檢查；TriggerDetectorSource 自己在 Editor 的 Reset / OnValidate 也會修正，但只有 prefab 被打開 / inspect 時才跑） —— `prefab do` 存檔後會對「這批新造成的」違規印 `# ⚠ layer 慣例：…` 加修正指令，既有的只報數量；`scene do` 在 add / comp / layer 當下檢查 |
 | `idx\|<node>\|<siblingIndex>` | 調 sibling 順序。**child 順序＝優先序**（value source / condition 取第一個成立的），負數從尾端算（`-1` = 最後） |
 | `mv\|<node>\|<newParent>[\|world]` | 換 parent（scene 與 prefab 都支援）。預設保留 **local** pose；prefab 版第三格寫 `world` = 保留 world pose（搬到不同層但模型不能跑位時用） |
 | `dup\|<node>\|<newName>` | **只有 scene**：複製整棵子樹到同一個 parent、排在原節點後面一格（`$` 會指到複本）。子樹內部互指的 reference 自動對到複本，指向外面的維持原樣；原節點是 prefab 實例 root 會保留 prefab 連結（實例上 added / removed 的東西帶不過去，會印 `# dup:` 警告）。撞名直接擋不跳過。prefab 裡要複製用 `copyfrom` |
 | `copyfrom\|<srcPrefab>\|<srcNode>\|<dstParent>[\|<newName>]` | **跨 prefab** 複製整棵子樹（只有 prefab）。nested 實例會被重建成真實例（override 保留），指向子樹外的引用依 hierarchy 相對路徑重映射到目的 prefab 的同路徑節點。見下面「跨 prefab 搬子樹」 |
-| `rename\|<node>\|<newName>` | 改節點名（`<node>` 留空 = root）。**只對沒掛 `AbstractDescriptionBehaviour` 的節點有意義**，其餘存檔後會被自動命名蓋掉，見 [naming.md](naming.md) |
+| `rename\|<node>\|<newName>` | 改節點名（**只有 prefab**，scene do 打 rename 會印提示；`<node>` 留空 = root）。**只對沒掛 `AbstractDescriptionBehaviour` 的節點有意義**，其餘存檔後會被自動命名蓋掉，見 [naming.md](naming.md) |
 | `auto\|<node>` | **重跑 `[Auto*]` 綁定 —— 結構改完一定要下這行**，見下面 |
 | `del\|<node>` | 刪節點 |
 | `delcomp\|<node>\|<comp,comp>` | 移除節點上的 component。不存在就跳過（語意是「確保它不在」）。prefab 版 `<node>` 留空 = root |

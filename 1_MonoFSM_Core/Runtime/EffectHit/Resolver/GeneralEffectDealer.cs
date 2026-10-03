@@ -312,6 +312,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [PreviewInInspector]
         private HashSet<GeneralEffectReceiver> _receivers = new();
 
+        /// <summary>目前 overlap 中的 receiver。回傳 HashSet 本體（foreach 走 struct enumerator 不產生 GC），呼叫端不准改</summary>
+        public HashSet<GeneralEffectReceiver> Receivers => _receivers;
+
         //FIXME: 沒有清掉？
         [Header("Condition不符合的")]
         [PreviewInDebugMode]

@@ -1,4 +1,5 @@
 using MonoFSM.Foundation;
+using MonoFSM.Runtime;
 using MonoFSM.Runtime.Variable;
 using UnityEngine;
 
@@ -12,14 +13,24 @@ namespace MonoValueProvider
     {
         public static Transform GetEntityTransform(VarEntity entityVar)
         {
-            if (entityVar == null || entityVar.Value == null)
+            //VarEntity 常是 Getter，Value 每讀一次就重算一次來源鏈，只讀一次
+            var entity = entityVar != null ? entityVar.Value : null;
+            if (entity == null)
             {
                 if (Application.isPlaying)
                     Debug.LogError("[TransformOfEntity] Entity variable is null or has no value.", entityVar);
                 return null;
             }
 
-            var entity = entityVar.Value;
+            return GetEntityTransform(entity);
+        }
+
+        /// <summary>
+        ///     已經從 VarEntity 解出 MonoEntity 時用這顆，避免再讀一次 VarEntity.Value。
+        ///     有 Animator 就回 Animator 所在的 Transform（視覺 pivot），否則回 entity 本身。
+        /// </summary>
+        public static Transform GetEntityTransform(MonoEntity entity)
+        {
             //FIXME: 用個pivot?
             var anim = entity.GetCompCache<Animator>();
             if (anim != null)

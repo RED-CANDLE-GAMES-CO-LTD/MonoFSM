@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MonoFSM.Runtime.Interact.EffectHit;
 using MonoFSM.Variable.Attributes;
 using MonoFSMCore.Runtime.LifeCycle;
 using Sirenix.OdinInspector;
@@ -110,15 +111,19 @@ namespace MonoFSM.Core.Detection
             foreach (var col in _thisFrameColliders)
                 if (col != null && col.gameObject != null)
                 {
+                    //沒有 BaseEffectDetectTarget 的 collider 結果一定是 isValidHit=false，EffectDetector 會直接丟掉，
+                    //所以先查 target、沒有就跳過，不用白算 ClosestPoint / bounds（Profiler 實測約 75% 的重疊是這種）
+                    if (!col.TryGetComponent<BaseEffectDetectTarget>(out var detectTarget))
+                        continue;
                     //模擬的打擊點
                     if (IsProperCollider(col))
                     {
                         var hitPoint = col.ClosestPoint(transform.position);
                         var hitNormal = (hitPoint - col.bounds.center).normalized;
-                        _buffer.Add(new DetectionResult(col.gameObject, hitPoint, hitNormal));
+                        _buffer.Add(new DetectionResult(col.gameObject, detectTarget, hitPoint, hitNormal));
                     }
                     else
-                        _buffer.Add(new DetectionResult(col.gameObject));
+                        _buffer.Add(new DetectionResult(col.gameObject, detectTarget, null, null));
                 }
 
             return _buffer;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using MonoFSM.Core;
 using MonoFSM.Core.Simulate;
 using MonoFSM.Variable;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 public abstract class AbstractFolder : MonoBehaviour
@@ -14,7 +15,7 @@ public abstract class AbstractFolder : MonoBehaviour
 //FIXME: 這個才該叫做blackboard?，這個是用來放變數的?
 
 /// <summary>
-/// entity 的變數字典（GetVar 的來源）：SceneAwake 時把子樹所有 var（含 inactive）依 _varTag 收進來，AfterSimulate 統一 CommitValue。
+/// entity 的變數字典（GetVar 的來源）：SceneAwake 時把子樹所有 var（含 inactive）依 _varTag 收進來；AfterSimulate 只 CommitValue 這個 tick 值有變（有登記 pending）的 var。
 /// 同 tag 撞名時 active 那顆贏、不印 log；兩顆都 inactive 印 Warning；兩顆都 active 才 LogError（先到的贏）。
 /// </summary>
 public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>, IAfterSimulate
@@ -147,21 +148,161 @@ public class VariableFolder : MonoDictFolder<VariableTag, AbstractMonoVariable>,
 
     //GetConfig?
 
-    public void CommitVariableValues()
-    {
-        // var variables = GetComponentsInChildren<AbstractVariable>(true);
-        //FIXME: 用
+    //--- commit：只 commit 值有變的 var ---
+    //舊做法每 tick 對 _collections（子樹全部 var）逐顆 CommitValue，~580 個 folder 合計 4ms/frame。
+    //CommitValue 只做 _lastValue = CurrentValue（ValueCommited 目前沒有任何 override），值沒變時是 no-op，
+    //所以改成 var 值變時自己登記（AbstractMonoVariable.MarkCommitPending），這裡只 commit 有登記的。
+    //設計理由、哪些寫入點有登記、為什麼目前沒有輪詢型 var：見同資料夾 Progress.md。
+    [NonSerialized] private AbstractMonoVariable[] _commitPending = Array.Empty<AbstractMonoVariable>();
+    [NonSerialized] private int _commitPendingCount;
+    [NonSerialized] private AbstractMonoVariable[] _commitPolled = Array.Empty<AbstractMonoVariable>();
+    [NonSerialized] private int _commitPolledCount;
+    [NonSerialized] private bool _isCommitBound;
 
-        foreach (var variable in _collections)
+    [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("Commit Debug")]
+    private int CommitPendingCount => _commitPendingCount;
+
+    [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("Commit Debug")]
+    private int CommitPolledCount => _commitPolledCount;
+
+    [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("Commit Debug")]
+    [NonSerialized] private int _commitOwnedCount;
+
+    [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("Commit Debug")]
+    [LabelText("上個 tick commit 數")]
+    [NonSerialized] private int _lastTickCommitCount;
+
+    [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("Commit Debug")]
+    [LabelText("上個 tick 略過（proxy / 已銷毀）")]
+    [NonSerialized] private int _lastTickCommitSkippedCount;
+
+    [ShowInInspector] [Sirenix.OdinInspector.ReadOnly] [FoldoutGroup("Commit Debug")]
+    [LabelText("被更近的 folder 認領")]
+    [NonSerialized] private int _commitOwnedByNestedCount;
+
+    public override void EnterSceneAwake()
+    {
+        base.EnterSceneAwake(); //Refresh：重建 _collections / dict
+        BindCommitVariables();
+    }
+
+    /// <summary>
+    /// 把 _collections 裡的 var 綁到這個 folder（巢狀時歸屬最近的 folder，不會被兩個 folder 重複 commit），
+    /// 並把每顆登記一次，讓第一個 tick 補齊綁定前的狀態。
+    /// </summary>
+    private void BindCommitVariables()
+    {
+        _isCommitBound = true;
+        var collections = _collections;
+        if (collections == null)
         {
-            // Profiler.BeginSample($"Commit in loop");
-            if (variable.HasProxySource)
-                continue;
-            if (variable is ISettable settableVariable)
-                settableVariable.CommitValue();
-            // Profiler.EndSample();
+            Debug.LogWarning($"[VariableFolder] '{name}' 綁 commit 時 _collections 是 null，這個 folder 不會 commit 任何 var", this);
+            return;
         }
 
+        //先把容量配夠，綁定過程中的 EnqueueCommit 就不會擴容
+        if (_commitPending.Length < collections.Length)
+        {
+            var grown = new AbstractMonoVariable[collections.Length];
+            Array.Copy(_commitPending, grown, _commitPendingCount);
+            _commitPending = grown;
+        }
+
+        if (_commitPolled.Length < collections.Length)
+            _commitPolled = new AbstractMonoVariable[collections.Length];
+        else
+            Array.Clear(_commitPolled, 0, _commitPolledCount);
+        _commitPolledCount = 0;
+        _commitOwnedCount = 0;
+        _commitOwnedByNestedCount = 0;
+
+        foreach (var variable in collections)
+        {
+            if (variable == null)
+                continue;
+            if (!variable.BindCommitFolder(this))
+            {
+                _commitOwnedByNestedCount++;
+                continue;
+            }
+
+            _commitOwnedCount++;
+            if (variable.IsCommitPolledEveryTick)
+                _commitPolled[_commitPolledCount++] = variable;
+        }
+    }
+
+    /// <summary>由 AbstractMonoVariable.MarkCommitPending 呼叫；同一顆在 commit 前只會進來一次（var 上的 flag 擋）。</summary>
+    internal void EnqueueCommit(AbstractMonoVariable variable)
+    {
+        if (_commitPendingCount == _commitPending.Length)
+        {
+            //正常不會走到（容量 = _collections 長度，每顆最多一筆）；runtime 才掛進來的 var 之類的例外才擴容
+            Array.Resize(ref _commitPending, Math.Max(8, _commitPending.Length * 2));
+        }
+
+        _commitPending[_commitPendingCount++] = variable;
+    }
+
+    public void CommitVariableValues()
+    {
+        if (!_isCommitBound) //沒走到 EnterSceneAwake 的保險
+            BindCommitVariables();
+
+        var committed = 0;
+        var skipped = 0;
+
+        //只處理進來時已登記的；commit 過程中才登記的留到下一個 tick（跟舊做法「一個 tick commit 一次」一致）
+        var count = _commitPendingCount;
+        for (var i = 0; i < count; i++)
+        {
+            var variable = _commitPending[i];
+            _commitPending[i] = null;
+            variable._isCommitPending = false;
+            if (CommitOne(variable))
+                committed++;
+            else
+                skipped++;
+        }
+
+        var rest = _commitPendingCount - count;
+        if (rest > 0)
+        {
+            Array.Copy(_commitPending, count, _commitPending, 0, rest);
+            Array.Clear(_commitPending, rest, count);
+        }
+
+        _commitPendingCount = rest;
+
+        for (var i = 0; i < _commitPolledCount; i++)
+        {
+            var variable = _commitPolled[i];
+            //被更深的 folder 搶走（runtime 才出現巢狀）就交給它
+            if (!ReferenceEquals(variable.CommitFolder, this))
+                continue;
+            if (CommitOne(variable))
+                committed++;
+            else
+                skipped++;
+        }
+
+        _lastTickCommitCount = committed;
+        _lastTickCommitSkippedCount = skipped;
+    }
+
+    private static bool CommitOne(AbstractMonoVariable variable)
+    {
+        if (variable == null) //已銷毀
+            return false;
+        if (variable.HasProxySource)
+            return false;
+        if (variable is ISettable settableVariable)
+        {
+            settableVariable.CommitValue();
+            return true;
+        }
+
+        return false;
     }
 
     // [PreviewInInspector]

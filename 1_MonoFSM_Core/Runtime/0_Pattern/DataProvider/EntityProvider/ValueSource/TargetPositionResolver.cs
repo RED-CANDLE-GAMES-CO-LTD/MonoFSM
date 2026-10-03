@@ -70,13 +70,31 @@ namespace MonoValueProvider
         [ShowInInspector, ReadOnly]
         public Transform ResolvedTransform
         {
-            get
+            get => ResolveTransformOnce();
+        }
+
+        /// <summary>
+        ///     依優先序（VarTransform > VarEntity > 直接指定的 Transform）解出目標 Transform，
+        ///     **每顆 Var 的 Value 只讀一次**。VarEntity 常是 Getter（例如 d_Chasing Target 底下掛
+        ///     VarEntityRef → proxy var），每讀一次 Value 就重跑一遍 value source 挑選 + proxy GetVar 鏈；
+        ///     舊寫法 HasEntityValue + GetEntityTransform 一次解析要讀 3 次，每 tick 跑的 Move Action /
+        ///     距離 Condition 會被放大好幾倍。不處理 VarVector3（它不是 Transform 來源）。
+        /// </summary>
+        private Transform ResolveTransformOnce()
+        {
+            if (_targetTransformVar != null)
             {
-                if (HasTransformValue) return _targetTransformVar.Value;
-                if (HasEntityValue) return TransformOfEntity.GetEntityTransform(_targetEntityVar);
-                if (HasDirectTransform) return _targetTransform;
-                return null;
+                var t = _targetTransformVar.Value;
+                if (t != null) return t;
             }
+
+            if (_targetEntityVar != null)
+            {
+                var entity = _targetEntityVar.Value;
+                if (entity != null) return TransformOfEntity.GetEntityTransform(entity);
+            }
+
+            return _targetTransform != null ? _targetTransform : null;
         }
 
         /// <summary>
@@ -92,11 +110,7 @@ namespace MonoValueProvider
             {
                 if (_targetPosVar != null)
                     return _targetPosVar.IsValueExist;
-                if (HasTransformValue)
-                    return true;
-                if (HasEntityValue)
-                    return TransformOfEntity.GetEntityTransform(_targetEntityVar) != null;
-                return HasDirectTransform;
+                return ResolveTransformOnce() != null;
             }
         }
 
@@ -105,26 +119,34 @@ namespace MonoValueProvider
         /// </summary>
         public Vector3 GetTargetPosition(Vector3 fallback) //fallback很鳥
         {
+            return TryGetTargetPosition(out var pos) ? pos : fallback;
+        }
+
+        /// <summary>
+        ///     等同 <c>HasTarget ? GetTargetPosition(x) : 失敗</c>，但每顆來源 Var 的 Value 只讀一次。
+        ///     每 tick 都要「先判有沒有目標再取位置」的呼叫端（Move Action、距離 Condition）用這顆，
+        ///     不要再 HasTarget + GetTargetPosition 分兩次問（VarEntity Getter 會被重算 4 次）。
+        ///     優先序：VarVector3（有指派就用，不看 IsValueExist，跟舊行為一致）> VarTransform > VarEntity > Transform。
+        /// </summary>
+        public bool TryGetTargetPosition(out Vector3 position)
+        {
             // 1. VarVector3 — 被指派的靜態位置（最高優先，通常由 Action 動態設定）
-            if (HasPosValue)
-                return _targetPosVar.Value;
-
-            // 2. VarTransform — 直接 Transform 引用
-            if (HasTransformValue)
-                return _targetTransformVar.Value.position;
-
-            // 3. VarEntity — 透過 Entity 拿 Transform 再取 position
-            if (HasEntityValue)
+            if (_targetPosVar != null)
             {
-                var t = TransformOfEntity.GetEntityTransform(_targetEntityVar);
-                if (t != null) return t.position;
+                position = _targetPosVar.Value;
+                return true;
             }
 
-            // 4. Transform — editor 直接指定的引用（最低優先）
-            if (HasDirectTransform)
-                return _targetTransform.position;
+            // 2~4. VarTransform > VarEntity > editor 直接指定的 Transform
+            var t = ResolveTransformOnce();
+            if (t != null)
+            {
+                position = t.position;
+                return true;
+            }
 
-            return fallback;
+            position = default;
+            return false;
         }
 
         /// <summary>

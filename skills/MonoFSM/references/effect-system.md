@@ -133,10 +133,10 @@ GeneralEffectReceiver.OnEffectHitBestMatchEnter          Resolver/GeneralEffectR
   ValueSource；`up catalog getter` 只有反方向的 `GetBestMatchEntityFromDealer` /
   `ListEntityFromEffectDealer`。`IsBestMatchedReceiverCondition` 只讀 `_receiver.IsBestMatched`（bool），
   拿不到 entity。所以這條鏈只能自己接，不要再花時間找現成 getter。
-- 既有範例：`Assets/0_Gameplay/0_Network Modules/Plug/[Entity] Socket for Plug 插座 (Receiver).prefab`
+- 既有範例：`Assets/0_Gameplay/0_Network Modules/Plug/[Entity] Socket for Plug 插座 (Receiver).prefab` (guid:c66c98dd7875e493abab3a02f5b09ba6)
   的 `[Receiver] d_plug_Socketing/[Event] EffectEnterBestMatchNode/[Var] d_plug_Socketing hitEntity`
   （同一顆 var 也被 `[Event] EffectEnterNode._hittingEntity` 共用）；
-  `Assets/0_Gameplay/0_Network Modules/[Part] 螺絲 Screw.prefab` 的螺絲起子提示分支。
+  `Assets/0_Gameplay/0_Network Modules/[Part] 螺絲 Screw.prefab` (guid:f156dccd93d464bb6a2d3044213d74ff) 的螺絲起子提示分支。
 
 ## EffectHitTarget 共用 Enum
 
@@ -183,7 +183,7 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 
 要在 prefab / scene 上新增一個 EffectDetector 時，放這顆現成的 nested prefab：
 
-`MonoFSM/0_MonoFSM_Example_Module/[Detector] Trigger.prefab`（guid `cfc3ca4b9e2e5480a8563ebe7e8036b6`）
+`MonoFSM/0_MonoFSM_Example_Module/[Detector] Trigger.prefab` (guid:cfc3ca4b9e2e5480a8563ebe7e8036b6)（guid `cfc3ca4b9e2e5480a8563ebe7e8036b6`）
 
 它已備妥 EffectDetector + TriggerDetectorSource + Collider + kinematic Rigidbody 的正確組合。
 放進去之後只要調 Collider 大小、加 Dealer、接引用。功能 component 不要掛在這顆 detector 節點身上，另外開節點

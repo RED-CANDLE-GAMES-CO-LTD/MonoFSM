@@ -131,7 +131,7 @@ public class MySimulator : MonoBehaviour, IUpdateSimulate
 `IsRenderCulling`。parent 的 simulation/render culling 會分 phase 傳給 nested MonoObj；
 `_isIgnoreParentObjCulling` 會同時切斷兩種 parent phase 繼承。
 
-共用 module `Packages/com.monofsm.pro/Prefabs/Prefab Modules/Culling Event Target.prefab` 的標準串法：
+共用 module `Packages/com.monofsm.pro/Prefabs/Prefab Modules/Culling Event Target.prefab` (guid:c8a4b79238abc4289b8a81aca39d4ea8) 的標準串法：
 
 - `NearOnly` → `SimulationCullingActiveHandle`
 - `Visible OR Near` → `RenderCullingActiveHandle`

@@ -169,11 +169,13 @@ private ICurrentEntityOwner Owner
 
 物件（receiver 端）要讀「誰在跟我互動」身上的值時，走 best match 的 `EffectEnterBestMatchNode._hittingEntity`，**不要取本機玩家**；組法與坑見 effect-system.md 的「在物件上取『誰在跟我互動』的 selector entity」。
 
-**新增 detector 時放現成的 `MonoFSM/0_MonoFSM_Example_Module/[Detector] Trigger.prefab`，不要手刻**——手刻容易漏掉 kinematic Rigidbody，static-static 的 trigger 完全不觸發且沒有錯誤訊息。細節見 effect-system.md 的「新增 EffectDetector」。
+**新增 detector 時放現成的 `MonoFSM/0_MonoFSM_Example_Module/[Detector] Trigger.prefab` (guid:cfc3ca4b9e2e5480a8563ebe7e8036b6)，不要手刻**——手刻容易漏掉 kinematic Rigidbody，static-static 的 trigger 完全不觸發且沒有錯誤訊息。細節見 effect-system.md 的「新增 EffectDetector」。
 
 ## ValueSource / Variable 系統
 
 `AbstractValueSource<T>` 泛型基類用於每幀計算並提供值（方向、位置、輸入等）。Variable 系統（VarFloat、VarVector3 等）的 `IsValueExist` 用於判斷 runtime 有效值。詳見 [references/value-source.md](references/value-source.md)。
+
+**陷阱：Var 的 LastValue 只在「有被登記 pending」時才 commit**（2026-10-03 起，VariableFolder 不再每 tick 全掃）。`FlagField` 的值變更入口（`SetCurrentValue` / modifier 增減 / `ResetToDefault` / `ClearValue`）會呼叫 `NotifyCommitPending`，下一次 AfterSimulate 才把 `_lastValue` 更新成目前值。**新增任何直接寫 Field 值的路徑，一定要呼叫 `NotifyCommitPending`**，漏了的話 `IsJustBecameTrue`、`VarFloat.IsDirty`、LastValue 比較類 Condition 會卡在舊值。真的會在 setter 外變值的型別，override `IsCommitPolledEveryTick => true` 走每 tick 輪詢。Getter / proxy var 從來不 commit，它們的 LastValue 沒有意義。設計理由見 `1_MonoFSM_Core/Runtime/2_Variable/Progress.md`。
 
 **需要「目標位置」時，用 `TargetPositionResolver`（namespace `MonoValueProvider`，在 Core），不要在欄位寫死 `Transform`**。它是 `[Serializable]`，統一解析 `VarVector3` / `VarTransform` / `VarEntity` 三種來源（優先序：Vector3 > Transform > Entity，各自 `IsValueExist` 才採用）。常用 API：`GetTargetPosition(fallback)`、`ResolvedTransform`、`HasTarget`、`ActiveSource`、`ClearPositionTarget()`。用法：欄位宣告 `[InlineProperty][HideLabel] public TargetPositionResolver _source = new();`，取值前先判 `HasTarget`。位置：`1_MonoFSM_Core/Runtime/0_Pattern/DataProvider/EntityProvider/ValueSource/TargetPositionResolver.cs`。
 
@@ -184,6 +186,8 @@ private ICurrentEntityOwner Owner
 ## C# 效能模式
 
 撰寫 MonoFSM 相關 C# 程式碼時的 GC 避免技巧，見 [references/csharp-patterns.md](references/csharp-patterns.md)。
+
+要找「哪個 Action / Condition / State / Simulate 慢或吃 GC」：Editor / Development build 下 FSM 分派自帶 ProfilerMarker，名稱是 `FSM.Action/<型別>`、`FSM.Condition/<型別>`、`FSM.State/<擁有者 MonoEntity 名>/<State 節點名>`、`FSM.StateRender/<擁有者>/<State 節點名>`、`BeforeSimulate|Simulate|AfterSimulate/<實作型別>`，進 Play Mode 錄完用 `uprofile top --sort self` / `uprofile gc` 直接看（Edit Mode 錄不到 FSM）。新寫的分派迴圈要加 marker 就走 `FsmProfilerMarkers`（per-type 快取，不要每次 `new ProfilerMarker` 或讀 `name`）。
 
 ## Serialized 欄位型別遷移
 

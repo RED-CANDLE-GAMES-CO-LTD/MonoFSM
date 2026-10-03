@@ -686,7 +686,10 @@ namespace MonoFSMCore.Runtime.LifeCycle
             {
                 if (item is not { IsBeforeUpdating: true })
                     continue;
-                item.BeforeSimulate(deltaTime);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                using (FsmProfilerMarkers.BeforeSimulate(item.GetType()).Auto())
+#endif
+                    item.BeforeSimulate(deltaTime);
             }
         }
 
@@ -714,7 +717,14 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 {
                     if (item is not { IsUpdating: true })
                         continue;
-                    Profiler.BeginSample("MonoObj.Simulate", item.gameObject);
+                    //Simulate/<實作型別>：取代原本全部合在一起的 "MonoObj.Simulate"，context 帶 component 方便點回物件
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    var simulateMarker = FsmProfilerMarkers.Simulate(item.GetType());
+                    if (item is UnityEngine.Object simulateContext)
+                        simulateMarker.Begin(simulateContext);
+                    else
+                        simulateMarker.Begin();
+#endif
                     try
                     {
                         item.Simulate(deltaTime);
@@ -726,7 +736,9 @@ namespace MonoFSMCore.Runtime.LifeCycle
                         else
                             Debug.LogException(e, this);
                     }
-                    Profiler.EndSample();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    simulateMarker.End();
+#endif
                 }
             }
 
@@ -759,9 +771,10 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 {
                     if (item is not { isActiveAndEnabled: true })
                         continue;
-                    // Profiler.BeginSample("MonoObj.AfterUpdate", item.gameObject);
-                    item.AfterSimulate(deltaTime);
-                    // Profiler.EndSample();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    using (FsmProfilerMarkers.AfterSimulate(item.GetType()).Auto())
+#endif
+                        item.AfterSimulate(deltaTime);
                 }
             }
             // if (_childrenObjs == null) return;
@@ -790,9 +803,10 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 {
                     if (item is not { isActiveAndEnabled: true })
                         continue;
-                    Profiler.BeginSample("MonoObj.Render", item.gameObject);
-                    item.Render(deltaTimelocalAlpha);
-                    Profiler.EndSample();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    using (FsmProfilerMarkers.Render(item.GetType()).Auto())
+#endif
+                        item.Render(deltaTimelocalAlpha);
                 }
             }
             // if (_childrenObjs == null) return;
@@ -974,9 +988,10 @@ namespace MonoFSMCore.Runtime.LifeCycle
                 {
                     if (item is not { isActiveAndEnabled: true })
                         continue;
-                    Profiler.BeginSample("MonoObj.Render", item.gameObject);
-                    item.AfterRender();
-                    Profiler.EndSample();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    using (FsmProfilerMarkers.AfterRender(item.GetType()).Auto())
+#endif
+                        item.AfterRender();
                 }
             }
             // if (_childrenObjs == null) return;

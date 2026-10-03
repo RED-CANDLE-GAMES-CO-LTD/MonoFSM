@@ -134,7 +134,24 @@ public abstract class AbstractFieldVariable<TScriptableData, TField, TType>
         // Profiler.EndSample();
     }
 
+    /// <summary>
+    /// 讓 FlagField 的每個寫入點（含不經過 SetValue 的直寫、Init、ResetToDefault、ClearValue）都回頭登記到 folder 的 pending。
+    /// </summary>
+    protected override void OnCommitFolderBound()
+    {
+        var field = Field;
+        if (field == null)
+        {
+            Debug.LogError($"[VariableFolder] {name} 綁 commit folder 時 Field 是 null，這顆不會被 commit", this);
+            return;
+        }
+
+        field.BindCommitOwner(this);
+    }
+
     //可以用abstract比較好？但目前只用到VarFloat
+    //注意：VariableFolder 只 commit 有登記的 var，override 這裡不會「每 tick 都被呼叫」；
+    //需要每 tick 的話 override IsCommitPolledEveryTick 回 true
     protected virtual void ValueCommited(TType lastValue, TType currentValue) { }
 
     /// <summary>

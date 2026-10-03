@@ -198,9 +198,50 @@ namespace MonoFSM.Core
         {
         }
 
+        // PROFILER MARKERS（只在 Editor / Development build）
+        // FSM.State/<擁有者>/<State GameObject 名>：名稱在 Initialize 時組好存起來，每 tick 不再讀 name（會 alloc）
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        [System.NonSerialized] private Unity.Profiling.ProfilerMarker _fixedUpdateMarker;
+        [System.NonSerialized] private Unity.Profiling.ProfilerMarker _renderMarker;
+        [System.NonSerialized] private bool _profilerMarkersReady;
+
+        private void EnsureProfilerMarkers()
+        {
+            if (_profilerMarkersReady)
+                return;
+            //擁有者：優先用 BindEntity（[AutoParent] MonoEntity，通常是 prefab root），
+            //module pack 併進宿主時 parent 鏈可能沒有 entity，退回 Owner（MonoFSMOwner，會走 binding root）
+            string ownerName;
+            var entity = BindEntity;
+            if (entity != null)
+                ownerName = entity.name;
+            else
+            {
+                var owner = Owner;
+                ownerName = owner != null ? owner.name : "NoOwner";
+            }
+            var key = ownerName + "/" + gameObject.name;
+            _fixedUpdateMarker = new Unity.Profiling.ProfilerMarker(
+                Unity.Profiling.ProfilerCategory.Scripts, "FSM.State/" + key);
+            _renderMarker = new Unity.Profiling.ProfilerMarker(
+                Unity.Profiling.ProfilerCategory.Scripts, "FSM.StateRender/" + key);
+            _profilerMarkersReady = true;
+        }
+#endif
+
         // IState INTERFACE
 
         void IMonoState.OnFixedUpdate()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            EnsureProfilerMarkers(); //保險：沒走 Initialize 的 state 第一次進來才建
+            using (_fixedUpdateMarker.Auto())
+#endif
+                FixedUpdateDispatch();
+        }
+
+        //原本 IMonoState.OnFixedUpdate 的內容，抽出來只為了讓上面能用 marker 包住（early return 也會 End）
+        private void FixedUpdateDispatch()
         {
             // Traditional Handler approach
             _onStateUpdate?.EventHandle();
@@ -307,6 +348,9 @@ namespace MonoFSM.Core
 
         void IMonoState.Initialize()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            EnsureProfilerMarkers();
+#endif
             OnInitialize();
         }
 
@@ -375,6 +419,10 @@ namespace MonoFSM.Core
 
         void IMonoState.OnRender()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            EnsureProfilerMarkers();
+            using var renderScope = _renderMarker.Auto();
+#endif
             OnRender();
             foreach (var renderAction in _renderActions)
                 if (renderAction.isActiveAndEnabled)

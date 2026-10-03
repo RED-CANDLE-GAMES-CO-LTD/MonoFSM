@@ -196,6 +196,14 @@ var rb = source.GetComponentInParent<Rigidbody>();
 // ✅ 用 GetCompCache
 var rb = source.GetCompCache<Rigidbody>();
 ```
+
+## 每 tick 讀 Var 的成本
+
+- **Getter / proxy 型 Var 的 `.Value` 沒有 cache，每讀一次就重算整條鏈**：從 `_valueSources` 逐顆判 `IsValid` 挑來源（inactive 的子節點也在陣列裡，靠 `isActiveAndEnabled` 跳過），接著讀 VarEntityRef → proxy var → parent VarEntity（常是 GlobalEntitySource）→ GetVar。所以每 tick 跑的 Action / Condition 要**先讀進 local 再用**，不要在同一個 method 裡一直 `x.Value`。
+- 目標位置用 `TargetPositionResolver.TryGetTargetPosition(out pos)`，不要先 `HasTarget` 再 `GetTargetPosition` 分兩次問（等於兩次解析）。
+- **沒掛 condition 的 Transition 會每 tick 去判目標 state 的 CanEnterNode**，所以目標 state 的進場 condition（例如距離判斷）等於在來源 state 裡每 tick 都在跑。
+- 遞迴 / 循環引用 guard 只在 Editor 有，build 裡接成環會直接 StackOverflow，所以接線錯一定要在 Editor 裡測出來。
+
 ## 除錯資訊放 Inspector，不要用 Debug.Log
 
 Jerryee 的除錯慣例是**邊跑邊看 Inspector 的即時值**。`Debug.Log` 會洗版、只看得到過去某個

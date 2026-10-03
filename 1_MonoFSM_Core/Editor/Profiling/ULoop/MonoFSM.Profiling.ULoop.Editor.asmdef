@@ -1,0 +1,27 @@
+{
+    "name": "MonoFSM.Profiling.ULoop.Editor",
+    "rootNamespace": "",
+    "references": [
+        "UnityCLILoop.ToolContracts",
+        "MonoFSM.Core.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "MONOFSM_ULOOP"
+    ],
+    "versionDefines": [
+        {
+            "name": "io.github.hatayama.uloopmcp",
+            "expression": "",
+            "define": "MONOFSM_ULOOP"
+        }
+    ],
+    "noEngineReferences": false
+}

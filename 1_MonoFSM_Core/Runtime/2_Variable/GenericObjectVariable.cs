@@ -55,7 +55,8 @@ namespace MonoFSM.Variable
             if (v == null)
                 return default;
 
-            if (Value is T tValue)
+            //不要再讀一次 Value（Getter / proxy 會整條鏈重算）
+            if (v is T tValue)
                 return tValue;
             Debug.LogError(
                 $"GetValue<T> typeof: {typeof(T)} failed, actual type is {typeof(TValueType)}",
@@ -72,7 +73,9 @@ namespace MonoFSM.Variable
         //     OnValueChanged();
         // }
 
-        // 遞迴檢查相關的靜態成員
+#if UNITY_EDITOR
+        // 遞迴／循環引用檢查：只在 Editor 跑。接線錯（Getter 鏈繞回自己）在 Editor 測就抓得到，
+        // production 每次讀 Value 都付 ThreadLocal + HashSet 的成本不值得，build 裡整套拿掉。
         private static readonly ThreadLocal<int> _recursionDepth = new(() => 0);
 
         private static readonly ThreadLocal<
@@ -80,6 +83,7 @@ namespace MonoFSM.Variable
         > _visitedVariables = new(() => new HashSet<GenericUnityObjectVariable<TValueType>>());
 
         private const int MAX_RECURSION_DEPTH = 10;
+#endif
 
         [CompRef] [Auto] private IVarValueSettingProcessor<TValueType> _beforeSetProcessor;
 
@@ -144,6 +148,7 @@ namespace MonoFSM.Variable
         {
             get
             {
+#if UNITY_EDITOR
                 // Debug.Log($"Accessing Value of {name}", this);
                 // 檢查遞迴深度
                 if (_recursionDepth.Value >= MAX_RECURSION_DEPTH)
@@ -188,6 +193,9 @@ namespace MonoFSM.Variable
                     if (_recursionDepth.Value == 0)
                         _visitedVariables.Value.Clear();
                 }
+#else
+                return GetValueInternal();
+#endif
             }
         }
 
@@ -219,7 +227,10 @@ namespace MonoFSM.Variable
             if (HasParentVarEntity)
             {
                 _valueDebugStatus = "Resolving from ParentVarEntity";
-                if (_parentVarEntity.Value == null)
+                //parent 常是 Getter（GlobalEntitySource / VarEntityRef…），每讀一次 Value 就重跑一次來源鏈：
+                //這裡只讀一次 entity、只 GetVar 一次（舊寫法 null check / 自我引用 / 取 targetVar 各讀一次 = 3 次 + GetVar 2 次）
+                var parentEntity = _parentVarEntity.Value;
+                if (parentEntity == null)
                 {
                     // Debug.LogError(
                     //     $"{name}'s ParentVarEntity is null, cannot resolve var '{_varTag}'",
@@ -231,7 +242,9 @@ namespace MonoFSM.Variable
                 }
 
                 // 檢查自我引用（保留原有檢查）
-                if (_parentVarEntity == this || _parentVarEntity.Value.GetVar(_varTag) == this)
+                //GetVar(null) 回 null，所以先取再判 _varTag == null 跟舊順序結果一樣
+                var targetVar = parentEntity.GetVar(_varTag);
+                if (_parentVarEntity == this || targetVar == this)
                 {
                     _valueDebugStatus = "Self reference detected";
                     Debug.LogError("ParentVarEntity cannot be self", this);
@@ -249,7 +262,6 @@ namespace MonoFSM.Variable
                         _valueDebugStatus = "VarTag is null";
                         return null;
                     }
-                    var targetVar = _parentVarEntity.Value.GetVar(_varTag);
                     if (targetVar == null)
                     {
                         _valueDebugStatus = "Target variable not found in ParentVarEntity";
@@ -261,6 +273,7 @@ namespace MonoFSM.Variable
                         return null;
                     }
 
+#if UNITY_EDITOR
                     // 額外的循環引用檢查
                     if (targetVar is GenericUnityObjectVariable<TValueType> targetGenericVar)
                         if (_visitedVariables.Value.Contains(targetGenericVar))
@@ -272,6 +285,7 @@ namespace MonoFSM.Variable
                             Debug.Break();
                             return null;
                         }
+#endif
 
                     if (RuntimeDebugSetting.IsDebugMode)
                         _valueDebugStatus = $"Resolved from ParentVarEntity: {targetVar.name}";
@@ -350,6 +364,7 @@ namespace MonoFSM.Variable
             _beforeSetProcessor?.BeforeSetValueCallback(value);
             _tempValue = value;
             _defaultValue = value;
+            MarkCommitPending();
             OnValueChanged();
 #if UNITY_EDITOR
             _lastSetByWho = byWho;
@@ -387,6 +402,7 @@ namespace MonoFSM.Variable
                 MonoFSM.FSM.FsmTrace.RecordVarChange(this, oldValue, value, byWho);
 
             _tempValue = value;
+            MarkCommitPending(); //CommitValue 只更新 debug 用的 _lastValue / _lastNonNullValue
             RecordSetbyWhoDebug(byWho, _tempValue, reason);
             // OnValueChanged?.Invoke(_currentValue); //多一個參數的版本
             OnValueChanged();

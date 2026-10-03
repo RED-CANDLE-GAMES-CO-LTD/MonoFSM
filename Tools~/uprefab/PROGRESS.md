@@ -1606,3 +1606,20 @@ root 名稱改，而 root 名稱又會被存檔改回 **asset 檔名**（`rename
 - 改法：四個 `--members` 改 `nargs="?", const="*"`。`_normalize_members` 在 parse 後把 `"*"` 轉回 None（peek / asset peek / scene peek 走原本「沒帶」= 全部欄位的路徑，不依賴 C#），只有 `prefab locate` 把 `"*"` 原樣傳給 Unity；`EditProbe.Dump` 開頭 `"*"` 當成留空，所以 locate 的輸出格式跟點名時完全一樣。提示文字（find `→` 行、peek 解不開 anchor、locate 結尾）改成「不帶值 = 全部 / 或點名」。
 - 陷阱：C# 端這一行 hot reload 套不上（shim 撞 0Harmony CS0433，不是 code 問題），Unity 還沒編譯前 locate 會印 `* = # 找不到…上沒有 '*'`；Python 端認得這句，會補一行「EditProbe.cs 還沒編譯到新版」，不會被當成欄位真的不存在。
 - 故意不做：不讓 locate 「不寫 --members」就 dump —— 命中幾十筆時預設輸出會爆，locate 的主要用途還是拿路徑。
+
+## verify-skills 用 guid 找回改名的 asset（2026-10-03）
+
+- 起因：hazards.md 寫的 `Enemy Ranged Flying 遠程飛行怪 Variant.prefab` 改名成 `…吹風機.prefab`，verify-skills 只會說「不存在」，要人工去找新名字。檔名反查（`_basenames`）只救得了「搬資料夾、檔名沒變」，改檔名就沒線索。
+- 決定（使用者定的）：skill 寫 asset 一律 `` `路徑` (guid:<32 hex>) ``。**路徑不能拿掉** —— 人跟 agent 要直接拿去下 `up` 指令，只寫 guid 每次都要先翻一次；guid 只給工具定位用。用完整 32 位不截短，才能直接拿去查索引。
+- 判斷方式（`_check_path`）：路徑還在且 .meta 的 guid 對得上 → 過；路徑失效但 guid 查得到 → 「改名」；路徑跟 guid 指到不同檔 → 「guid 不一致」，以 guid 為準；guid 也查不到 → 照舊「路徑不存在」並註明 asset 已刪；路徑在、沒附 guid → 「缺 guid」（也 exit 1，pre-commit 才擋得住新寫的沒附）。`--fix` 補 guid、把改名 / 不一致的路徑換成 guid 指的現在路徑（原本寫 `Packages/…` 的換回 Packages 形式），改完重掃一次再報。
+- guid → 路徑先查 assets 索引；索引路徑已不在磁碟上、或索引不收的類型（.mat / .shader）才整個 repo 掃一次 .meta（約 4 萬個，惰性、一次掃完存成 map）。正常情況路徑都在，只讀那一個 .meta 比 guid，不碰索引。
+- 故意不做：.cs 不附 guid —— 腳本改名幾乎都連型別一起改，型別檢查會抓到，檔名反查也已經印「實際在」，再加 87 個 guid 只是讓 code-heavy 的文件更難讀。ProjectSettings/*.asset 沒 .meta 不附。反引號裡包整條指令（`up prefab read <path>`）的也照樣補在反引號後面。同一份文件提到同一個 asset 多次就每次都附，不做「只附第一次」—— 那樣 `--fix` 換路徑時要跨行追蹤，規則也比較難教。
+- 陷阱：.mat / .shader 找不到時 `_path_check` 本來就放過（檔名索引沒收，怕簡寫路徑誤報），所以沒附 guid 的 .mat 改名還是抓不到；有 guid 才會報。
+- 結果：既有 22 份文件、230 個 asset 路徑一次補完，`up verify-skills -q` exit 0。
+
+## 2026-10-03 `scene do` 補 `rot|` / `scale|`，不認得的 op 印替代寫法
+
+- 現象：`scene do` 打 `rot|…` 報「不認得的操作」，`prefab do` 有。根因：兩邊的 Dispatch（`SceneEdit.Dispatch` / `PrefabEdit.Dispatch`）是各自一個 switch，沒有共用 op 表，scene 那份當初只補了 `pos`，`scale` / `rot` 漏了。
+- 改法：沒有硬做「共用 op 表」—— 兩邊的節點解析（prefab 留空 = root、scene 必填）、存檔驗證（prefab 有 VerifyTouch、scene 沒有）、dirty 處理都不同，抽共用表要動的範圍比缺的兩個 op 大太多。改成 `SceneEdit` 補 `scale` / `rot`（共用 `EditBatch.Vec3` 解析、`RecordTransformWrite` 收尾），並順手讓 `pos` 也走 `RecordTransformWrite`（原本 scene 版 pos 不記 prefab instance override）。
+- 故意不補（prefab 才有語意，改成錯誤訊息印替代寫法，`SceneEdit.PrefabOnlyHint`）：`revert`（scene 實例 override 在 Editor 還原）、`copyfrom`（scene 內複製用 `dup`）、`invoke`、`delmissing`。`rename` 暫時也沒補（scene 路徑靠節點名，改名會讓後面同批 op 的路徑失效，要補得先想 `mark` / `$label` 的互動）。
+- 之後 prefab 再加 transform 類 op 時，記得 scene 這邊也要補，或加進 `PrefabOnlyHint`。

@@ -96,7 +96,8 @@ namespace MonoFSM.Variable
                 return;
             }
 
-            this.Log($"SetVariableBool {_target} SetValue:{v}");
+            //不能用 $"" 內插：Conditional 只在 build 剝掉，Editor 裡參數照算，每次執行都組字串（Profiler 實測 1.8K GC/frame）
+            this.Log("SetVariableBool", _target, "SetValue:", v);
             _target.SetValue(v, this);
             // }
         }

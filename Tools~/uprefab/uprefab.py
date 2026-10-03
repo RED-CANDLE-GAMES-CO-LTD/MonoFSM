@@ -2838,6 +2838,9 @@ def main() -> None:
                           "因為散文裡的 PascalCase 大多不是專案型別）")
     pvs.add_argument("--baseline", action="store_true",
                      help="把目前所有型別／欄位誤判寫進 .uprefab-skillignore（路徑類不寫）")
+    pvs.add_argument("--fix", action="store_true",
+                     help="直接改文件：asset 路徑沒附 guid 的補上 `(guid:<hex>)`；有 guid 但路徑改名 / "
+                          "跟 guid 指的檔不一致的，換成 guid 指的現在路徑（以 guid 為準）")
     pvs.add_argument("-n", "--limit", type=int, default=12, help="每份文件最多印幾條")
     pvs.set_defaults(fn=verifyskills.cmd)
 

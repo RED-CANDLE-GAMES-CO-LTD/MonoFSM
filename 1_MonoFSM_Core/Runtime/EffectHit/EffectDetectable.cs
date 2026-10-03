@@ -31,6 +31,9 @@ namespace MonoFSM.Runtime.Interact.EffectHit
         [SerializeField]
         private BaseEffectDetectTarget[] _effectDetectTargets; //FIXME:不該？
 
+        /// <summary>這顆 detectable 底下（不跨進下一層 EffectDetectable）的 detect target，要拿實際 collider 做幾何計算時用</summary>
+        public BaseEffectDetectTarget[] EffectDetectTargets => _effectDetectTargets;
+
         public GameObject TargetObject => gameObject;
         public bool IsValid => gameObject.activeInHierarchy && _interactConditions.IsAllValid();
 

@@ -157,7 +157,13 @@ public abstract class AbstractConditionBehaviour
             //     return false;
             //FIXME: 關著表示不判...
 
-            var finalResult = FinalResultInverted ? !IsValid : IsValid;
+            bool isValid;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            //FSM.Condition/<型別>：讓 uprofile 分得出是哪種 condition 慢或吃 GC（巢狀 condition 會疊在裡面）
+            using (FsmProfilerMarkers.Condition(GetType()).Auto())
+#endif
+                isValid = IsValid;
+            var finalResult = FinalResultInverted ? !isValid : isValid;
 #if UNITY_EDITOR
             RecordResult(finalResult);
 #endif

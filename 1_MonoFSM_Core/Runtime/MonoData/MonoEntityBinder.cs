@@ -146,10 +146,28 @@ namespace MonoFSM.Runtime
 
             //FIXME: 這個是從Binder往下找，可能有多個，不太好？
             var monoObj = mono.GetComponentInParent<MonoObj>();
-            if (monoObj.WorldUpdateSimulator == null) //Play後有一段空窗期，UI (odin)試圖抓值但是world還沒準備好
+            return GetGlobalInstanceFrom(monoObj, tag, mono);
+        }
+
+        /// <summary>
+        ///     已經拿到 mono 所屬的 MonoObj 時用這顆（例如 GlobalEntitySource 把 MonoObj cache 起來），
+        ///     省掉每次 GetComponentInParent。binder 走 WorldUpdateSimulator 上 cache 好的那顆，不再 GetComponent。
+        ///     context 只拿來印 log。
+        /// </summary>
+        public static MonoEntity GetGlobalInstanceFrom(MonoObj monoObj, MonoEntityTag tag, MonoBehaviour context)
+        {
+            if (monoObj == null)
+            {
+                //舊寫法這裡會直接 NullReferenceException，改成看得懂的 error
+                Debug.LogError("[GetGlobalInstance] 找不到所屬 MonoObj " + tag, context);
+                return null;
+            }
+
+            var world = monoObj.WorldUpdateSimulator;
+            if (world == null) //Play後有一段空窗期，UI (odin)試圖抓值但是world還沒準備好
                 // Debug.LogError("WorldUpdateSimulator is not ready yet " + tag, mono);
                 return null;
-            var binder = monoObj?.WorldUpdateSimulator?.GetComponent<MonoEntityBinder>();
+            var binder = world.EntityBinder;
             if (binder == null)
             {
 #if UNITY_EDITOR //如果在Prefab裡不要噴error
@@ -159,7 +177,7 @@ namespace MonoFSM.Runtime
 #endif
                 //FIXME: world還沒準備好？
                 if (Application.isPlaying)
-                    Debug.LogError("No MonoDescriptableBinder found " + tag, mono);
+                    Debug.LogError("No MonoDescriptableBinder found " + tag, context);
                 return null;
             }
 
@@ -172,16 +190,17 @@ namespace MonoFSM.Runtime
                 if (Application.isPlaying && RuntimeDebugSetting.IsDebugMode &&
                     _loggedMissingTags.Add(tag))
                     Debug.LogError(
-                        $"No MonoDescriptable found with tag: {tag} (MonoBehaviour: {mono?.name}, Binder: {binder?.name})",
-                        mono
+                        $"No MonoDescriptable found with tag: {tag} (MonoBehaviour: {context?.name}, Binder: {binder?.name})",
+                        context
                     );
                 // Debug.LogError("No MonoDescriptable found tag:" + tag, mono);
                 // Debug.LogError("No MonoDescriptable found of tag: " + tag, binder);
             }
             else
             {
-                //找到了就把記錄清掉，下次再消失時還能再報一次
-                _loggedMissingTags.Remove(tag);
+                //找到了就把記錄清掉，下次再消失時還能再報一次（空的就不用 hash，這條每次讀 Getter 都會走）
+                if (_loggedMissingTags.Count > 0)
+                    _loggedMissingTags.Remove(tag);
             }
 
             // Debug.Log("GetGlobalInstance " + tag, descriptable);

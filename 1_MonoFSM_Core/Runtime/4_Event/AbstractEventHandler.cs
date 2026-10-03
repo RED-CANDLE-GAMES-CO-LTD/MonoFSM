@@ -266,12 +266,22 @@ namespace MonoFSM.Core
                     {
                         //FIXME: 沒有紀錄callback時間？
                         if (argEventReceiver.IsValid)
-                            argEventReceiver.ArgEventReceived(arg); //在這裡delay?
+                        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                            using (FsmProfilerMarkers.Action(eventReceiver.GetType()).Auto())
+#endif
+                                argEventReceiver.ArgEventReceived(arg); //在這裡delay?
+                        }
                     }
                     else
                     {
                         if (eventReceiver.IsValid)
-                            eventReceiver.EventReceived(); //在這裡delay?
+                        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                            using (FsmProfilerMarkers.Action(eventReceiver.GetType()).Auto())
+#endif
+                                eventReceiver.EventReceived(); //在這裡delay?
+                        }
                     }
                 }
                 catch (System.Exception e) //因為eventhandle有error會導致後面觸發都壞掉

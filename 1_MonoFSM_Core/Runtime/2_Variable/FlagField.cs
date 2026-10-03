@@ -314,6 +314,7 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
         //FIXME: gc...
         _modifiers.RemoveAll(x => x.source == modifier.source);
         _modifiers.Add(modifier);
+        NotifyCommitPending();
         //理論上加了modifier就要重新計算一次，
         OnChangeInvoke(CurrentValue);
     }
@@ -321,6 +322,7 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
     public void RemoveModifier(IStatModifierOwner modifierOwner)
     {
         _modifiers.RemoveAll(x => x.source == modifierOwner);
+        NotifyCommitPending();
         // if (_modifiers.Contains(modifier)) _modifiers.Remove(modifier);
         // _modifier = null;
     }
@@ -364,6 +366,31 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
     public void RevertToLastValue() //FIXME: 什麼時候需要revert?
     {
         CurrentValue = LastValue;
+    }
+
+    //--- commit 登記 ---
+    //VariableFolder 只 commit「這個 tick 有被登記」的 var（見 VariableFolder.CommitVariableValues）。
+    //CommitValue 是否等於 no-op 只看「_lastValue == CurrentValue」，而會讓兩者不同的只有這支檔案裡的寫入點：
+    //SetCurrentValue / AddModifier / RemoveModifier / Init / ResetToDefault / ClearValue。
+    //每個寫入點都呼叫 NotifyCommitPending，外部（VarBoolRelay 直寫 Field、GameData SO 直寫 field.CurrentValue、
+    //網路 SetValueFromNetwork）不用另外處理。新增會改 _currentValue / _lastValue / _modifiers 的地方一定要補呼叫。
+    [NonSerialized] private MonoFSM.Variable.AbstractMonoVariable _commitOwner;
+
+    /// <summary>
+    /// 由 VariableFolder 綁定時設定（AbstractFieldVariable.OnCommitFolderBound）。
+    /// 綁 SO（_bindData）的 field 若被多顆 var 共用，只記最後綁定的那顆（共用同一份 _lastValue，commit 一次就夠）。
+    /// </summary>
+    public void BindCommitOwner(MonoFSM.Variable.AbstractMonoVariable owner)
+    {
+        _commitOwner = owner;
+    }
+
+    private void NotifyCommitPending()
+    {
+        var commitOwner = _commitOwner;
+        if (commitOwner is null) //reference 比較，不走 Unity 的 null 檢查
+            return;
+        commitOwner.MarkCommitPending();
     }
 
     public (T lastValue, T currentValue) CommitValue() //state update之後，要commit
@@ -535,6 +562,7 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
 #endif
         _lastValue = _currentValue;
         _currentValue = value;
+        NotifyCommitPending();
         // Log("SetCurrentValue" + value);
         // if (DebugSetting.IsDebugMode && _isShowDebugLog)
         //     Debug.Log("[FlagField] After CurrentValue" + value);
@@ -640,11 +668,14 @@ public class FlagField<T> : FlagFieldBase, IVariableField // where T : IComparab
             _currentValue = RuntimeDebugSetting.IsDebugMode ? DevValue : ProductionValue;
         // Debug.Log("FlagField Init: " + _currentValue + " Mode: " + DebugSetting.IsDebugMode, owner);
         //沒有register耶？
+        //Init 也走這裡（Init 先把 _lastValue 設成舊值），一起登記
+        NotifyCommitPending();
     }
 
     public void ClearValue()
     {
         _currentValue = default;
+        NotifyCommitPending();
     }
 }
 

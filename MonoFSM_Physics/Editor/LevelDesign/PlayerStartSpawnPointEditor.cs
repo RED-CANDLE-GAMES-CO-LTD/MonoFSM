@@ -83,18 +83,18 @@ public static class StartPointSelector
     }
 
 
-    [MenuItem("RCGMaker/Focus Player in SceneView  #_P", false, 0)]
-    private static void FocusPlayerInSceneView()
-    {
-        var spawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
-        var player = spawnPoint.playerRef.RunTimeInstance;
-        if (player)
-        {
-            Selection.activeGameObject = player.gameObject;
-            if (SceneView.lastActiveSceneView)
-                SceneView.lastActiveSceneView.Focus();
-        }
-    }
+    // [MenuItem("RCGMaker/Focus Player in SceneView  #_P", false, 0)]
+    // private static void FocusPlayerInSceneView()
+    // {
+    //     var spawnPoint = Object.FindFirstObjectByType<PlayerStartSpawnPoint>();
+    //     var player = spawnPoint.playerRef.RunTimeInstance;
+    //     if (player)
+    //     {
+    //         Selection.activeGameObject = player.gameObject;
+    //         if (SceneView.lastActiveSceneView)
+    //             SceneView.lastActiveSceneView.Focus();
+    //     }
+    // }
 
     // [MenuItem("RCGMaker/SpawnPoint/Reset Spawn Point to Ori #_1", false, 200)]
     // private static void ResetSpawnPoint()
