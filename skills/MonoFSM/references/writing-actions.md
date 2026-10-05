@@ -59,6 +59,9 @@ public override string Description =>
 
 「這個狀態期間每幀套用」的東西（骨骼朝向覆寫、beam、IK、跟隨）→ 掛 `[State]` 節點底下，最單純。
 
+**`_conditionGroup` 不成立時整顆 Render 會被跳過**（`OnRender` 直接 return，不會呼叫任何收尾）。所以「條件不成立時要做事」（熄燈、隱藏、復原）
+不能靠 `_conditionGroup`，不然視覺會卡在最後一幀。要自己開一個 `VarBoolWrapper` 欄位，在 `OnRenderImplement` 裡分兩支處理。範例：`BlinkLightRender._isOn`。
+
 **多人時這是 client 端唯一會跑的路徑**：`MonoObj.Simulate()` 在 `!ShouldSimulte` 時整棵子樹直接 return，`AbstractEventHandler` 也有同一道 gate（`_forceExecuteWithoutStateAuthority` 沒用，被 MonoObj 擋在更外層），所以 proxy 上 Action / RaycastCache / timer 全部不執行；只有 Render / AfterRender 兩個 phase 兩端都跑。
 
 推論：**凡是兩端都要看到的持續性視覺，套用端必須是 render behaviour，而它讀的資料要嘛掛 `NetworkedVarTag` 從 SA 同步過來，要嘛在 render 端本地重算。** 只同步資料而套用端還留在 Action（simulate）底下，症狀是「host 正常、client 的視覺不動或指錯方向，但判定是對的」。

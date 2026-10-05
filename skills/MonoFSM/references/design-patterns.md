@@ -74,6 +74,29 @@ Context/Animator/LogicRoot
 hit any?` → Switch Simulate 開關 `d_IsToggleOn`）、`Train FSM Variant.prefab` 的
 Target Speed、`水桶 Water Jug.prefab` 的下雨集水。
 
+### Switch Simulate 的 case 陷阱
+
+- **關掉一個 case = 把 `[Case]` GameObject 設 inactive**（Simulate / Render 都會跳過 `activeSelf=false` 的 case）。
+  **不要只關 `[If]`**：condition inactive 等於不存在，case 會變成沒條件 = 永遠成立。
+- **沒有任何 `[If]` 的 case 永遠成立**，放在 FirstMatch 最後一格就是 fallback（例：計時歸零、狀態復原）。
+- **FirstMatch 會蓋掉後面的 case**：往既有 Switch 前面插一個「常常成立」的 case，排在它後面的 case 在那段時間都不會跑。
+  不確定會不會互相干擾的話，另外開一顆 `[Switch Simulate]`，不要硬塞進現有的。
+
+### 「持續 N 秒才觸發」的組法（不用寫 C#）
+
+```
+[Getter] Xxx 成立 <VarBool> / [If] …                         ← 判斷條件
+[Var] Xxx Timer <VarFloat + VariableFloatBoundModifier>     ← min 0、max N；不用同步
+[Switch Simulate] Switch (FirstMatch)
+  [Case] 觸發     [If] Getter == True  [If] Timer is max (VarFloatIsBoundCondition Max)
+                  [Action] …觸發效果…  [Action] Timer -> Min
+  [Case] 計時     [If] Getter == True  [Action] FloatChangePerSecondAction Timer += 1*dt
+  [Case] 歸零     （沒有 [If]）         [Action] Timer -> Min
+```
+
+`FloatChangePerSecondAction` 的 DeltaTime 讀的是 `WorldUpdateSimulator.DeltaTime`，放在 Switch Simulate 底下也能正常累加；
+`VarFloat.IsMax` 是 `>=`，有沒有 clamp 都判得到。實例：`鍋爐new.prefab` 的「蒸汽 > 98% 持續 5 秒才炸爐」。
+
 ## Callback Cache → Simulate 統一處理模式
 
 Unity 回調（`OnCollisionEnter`、`OnEnable`、`OnDisable`、`OnTriggerEnter` 等）的觸發時機不可控：可能在同一幀多次觸發、可能在 Simulate 執行順序之外發生。**不要在回調中直接執行邏輯或修改狀態**，改為 cache 資料/flag，在 `Simulate()` 統一處理。

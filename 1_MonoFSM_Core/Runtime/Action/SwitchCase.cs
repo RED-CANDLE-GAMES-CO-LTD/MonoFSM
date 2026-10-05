@@ -8,6 +8,11 @@ using UnityEngine;
 
 namespace MonoFSM.Core.Runtime.Action
 {
+    /// <summary>
+    /// SwitchAction / SwitchCaseActionSimulator 底下的一個分支：直屬子層的 [If] 全部成立（AND）才執行直屬子層的 Action / Render。
+    /// 沒有任何 [If] = 永遠成立，放在 FirstMatch 最後一格可當 fallback。要停用整個分支就把這顆 GameObject 設 inactive
+    /// （只關 [If] 會變成沒條件 = 永遠成立）。
+    /// </summary>
     public class SwitchCase : AbstractDescriptionBehaviour, IActionParent, IRenderInvoker
     {
         protected override string DescriptionTag => "Case";
