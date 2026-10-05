@@ -38,3 +38,10 @@
 - `--frames A-` = 從 A 到最後。
 - 已知問題（沒修）：uprofile 沒有 owner 概念，Editor 只有一台，**別隻 agent 的 `stop` 會停掉你的錄製**（這次就發生了：我的 stop 切掉另一隻 agent 的 Play Mode 錄製，資料有存到但錄得比預期短）。要修可以在 start 記 owner（呼叫端傳 session id），stop 不是 owner 就拒絕。
 - wrapper 碰到 `UNITY_SERVER_BUSY`（uloop 不標 Retryable）也會等 5 秒重試。
+
+## 2026-10-03 錄製 owner
+- 起因：Editor 只有一台、錄製狀態只有一份，uprofile agent 的 `stop` 停掉了 EffectDetector agent 的 Play Mode 錄製。
+- start / `start --deep` 把 owner + 開始時間（UTC ISO）存 SessionState；不是 owner 的 start / stop 一律拒絕，印「<owner> 從 <時間> 開始在錄，等它 stop，或加 `--force`」。`--force` 或超過 10 分鐘沒 stop（當作被丟著）才能接手，都會印 warn。`status` 顯示 owner。stop 完（deep 也關完）才放掉 owner。
+- owner 預設值：**不能用 wrapper 的 PPID** —— Claude Code 每個 Bash tool call 都是新的 zsh，PPID 每次都不同，等於每次都是新 owner。改用 `$CLAUDE_AGENT_ID` > `$CLAUDE_CODE_SESSION_ID` > `$CLAUDE_PID` > PPID。實測 subagent 沒有 `CLAUDE_AGENT_ID`，但有自己的 `CLAUDE_CODE_SESSION_ID`（跟 scratchpad 路徑同一個 id），所以不同 agent 拿到的值不同。
+- Play Mode 中拒絕「切成」Editor target 和打開 deep；stop 時「還原」（切回 Play Mode target、關 deep 旗標）照做，因為那是回到預設狀態。
+- 沒有實測的：10 分鐘自動接手（邏輯單純，沒等 10 分鐘）。

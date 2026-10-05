@@ -25,6 +25,7 @@ import hot  # noqa: E402
 import memo  # noqa: E402
 import progress  # noqa: E402
 import session  # noqa: E402
+import simstats  # noqa: E402
 import trace as fsmtrace  # noqa: E402
 import query  # noqa: E402
 import swapscript  # noqa: E402
@@ -1159,10 +1160,94 @@ def cmd_refs(args, root, cfg):
                 f"# 你可能想要：up asset-refs '{args.asset}'（誰引用這顆 asset）"
                 f" 或 up why-in-build '{args.asset}'（它為什麼進 build）")
         args.asset = _resolve_asset(root, args.asset)
+        # 離線段先印：Unity 那段失敗（忙 / 沒開）時這段還在
+        if not args.out and not args.node and not args.comp:
+            _print_prefab_users(root, args.asset, args.limit)
         print(unity.call(
             f"{REFS}.PrefabRefs", args.asset, args.node, args.comp, args.out, args.limit))
     else:
         print(unity.call(f"{REFS}.SceneRefs", args.node, args.comp, args.out, args.limit))
+
+
+def _print_prefab_users(root: str, asset: str, limit: int) -> None:
+    """`up refs <prefab>` 的離線段：誰把這支 prefab 當 nested prefab / variant base 用。
+
+    EditRefs.PrefabRefs 只掃「這支 prefab 自己裡面」的 component 欄位，別支 prefab 的
+    PrefabInstance.m_SourcePrefab 它看不到 —— 2026-10-03 找誰 nest 了 Culling Event Target 最後只能
+    grep guid。離線索引的 instances 表本來就存了 source_guid，這裡直接查。
+    分類：.prefab 裡 m_TransformParent = 0 的 instance 是 variant base，其他是 nested；.unity 是場景擺放。
+    instance 名取 m_Modifications 的 m_Name override（掛在哪個父節點要跨 stripped 解析，離線做不準，不印）。
+    """
+    disk = _to_disk_path(root, asset)
+    meta = os.path.join(root, disk + ".meta")
+    if not os.path.exists(meta):
+        return
+    m = re.search(r"^guid:\s*([0-9a-f]{32})", open(meta, encoding="utf-8", errors="replace").read(), re.M)
+    if not m:
+        return
+    guid = m.group(1)
+    try:
+        con = indexer.connect(root)
+        rows = con.execute(
+            "SELECT a.path, i.file_id, i.parent_file_id, a.id FROM instances i "
+            "JOIN assets a ON a.id = i.asset_id WHERE i.source_guid = ? ORDER BY a.path",
+            (guid,)).fetchall()
+    except Exception:
+        return
+    kinds: dict[str, list] = {}
+    for path, fid, parent, aid in rows:
+        if path.endswith(".unity"):
+            kind = "scene"
+        elif not parent:
+            kind = "variant"
+        else:
+            kind = "nested"
+        name = con.execute(
+            "SELECT value FROM mods WHERE asset_id=? AND instance_file_id=? AND prop='m_Name' LIMIT 1",
+            (aid, fid)).fetchone()
+        kinds.setdefault(kind, []).append((path, name[0].strip("'\"") if name else ""))
+
+    # 間接使用者（別人 nest / variant 了「用到它的 prefab」）只算數量，展開會爆
+    direct = {p for p, *_ in rows}
+    frontier = [r[3] for r in rows if not r[0].endswith(".unity")]
+    indirect: set[str] = set()
+    for _ in range(6):
+        if not frontier:
+            break
+        guids = [g for (g,) in con.execute(
+            "SELECT guid FROM assets WHERE id IN (%s)" % ",".join("?" * len(frontier)), frontier)]
+        if not guids:
+            break
+        nxt = con.execute(
+            "SELECT DISTINCT a.path, a.id FROM instances i JOIN assets a ON a.id = i.asset_id "
+            "WHERE i.source_guid IN (%s)" % ",".join("?" * len(guids)), guids).fetchall()
+        frontier = []
+        for p, aid in nxt:
+            if p in direct or p in indirect:
+                continue
+            indirect.add(p)
+            if not p.endswith(".unity"):
+                frontier.append(aid)
+
+    label = {"variant": "當 variant base", "nested": "當 nested prefab", "scene": "擺在 scene"}
+    total = sum(len(v) for v in kinds.values())
+    short = {"variant": "variant base", "nested": "nested", "scene": "scene"}
+    split = " / ".join(f"{short[k]} {len(kinds[k])}" for k in ("variant", "nested", "scene") if k in kinds)
+    print(f"# 被 {len({p for p, *_ in rows})} 個檔案當 prefab instance 用（{split}；離線索引，"
+          f"剛改過 prefab 先 up index）" if rows else
+          "# 沒有 prefab / scene 把它當 nested prefab 或 variant base（離線索引，剛改過 prefab 先 up index）")
+    shown = 0
+    for kind in ("variant", "nested", "scene"):
+        for path, name in kinds.get(kind, []):
+            if limit and shown >= limit:
+                break
+            shown += 1
+            print(f"  {label[kind]}  {path}{f'  (instance 名 {name})' if name and kind != 'variant' else ''}")
+    if limit and shown < total:
+        print(f"#   還有 {total - shown} 個，-n 調大")
+    if indirect:
+        print(f"# 間接（透過上面那些再被 nest / variant）還有 {len(indirect)} 個檔案；要列就對上面的 prefab 再跑 up refs")
+    print("# ↓ 以下是 Unity 端：這支 prefab 裡的節點被誰的欄位指到")
 
 
 def _asset_token(root: str, token: str) -> str:
@@ -2815,6 +2900,8 @@ def main() -> None:
     _SUB_USAGE["mat"] = mat.USAGE
     controller.register(sub)
     _SUB_USAGE["controller"] = controller.USAGE
+    simstats.register(sub)
+    _SUB_USAGE["sim-stats"] = simstats.USAGE
     for old, new in _RENAMED.items():
         ps = sub.add_parser(old, help=f"已改名成 {new}")
         ps.add_argument("rest", nargs=argparse.REMAINDER)

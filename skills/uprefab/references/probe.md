@@ -216,6 +216,8 @@ variant 階層斷裂。`SerializedObject` 看到的是**合併後真值**，一�
 掃的是 `SerializedObject.NextVisible(true)`，**會走進巢狀欄位**，所以 VarWrapper /
 ValueProvider 那種間接引用（`_targetValue._var`）天生就涵蓋，不用另外想辦法。
 
+**prefab 不帶 `--node` / `--comp` / `--out` 時，開頭先印離線段**：這支 prefab 被哪些檔案當 variant base / nested prefab / scene instance 用（離線索引 `instances.source_guid`，剛改過 prefab 先 `up index`），間接使用者只給數量。要找「誰 nest 了某支 prefab」直接這條，不要 grep guid。
+
 範圍限「同一顆 prefab / 當前 scene 之內」。跨資產的全庫粗查才是離線索引的活（`up find`）——
 目標是 asset 時（「哪些 prefab 引用這個 SO」）離線 `refs.to_guid` 就夠。
 

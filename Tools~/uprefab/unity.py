@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -73,6 +74,7 @@ READ_ONLY = (
     "MonoFSM.Editor.PrefabEditing.EditBounds.",
     "uprefab.anim.",  # anim.py 的 inline 唯讀 snippet（LoadPrefabContents 讀節點表）
     "uprefab.assetrefs.",  # `up asset-refs a b c` 的多顆 inline snippet
+    "uprefab.simstats.",  # `up sim-stats` 的 inline snippet（只讀 runtime 註冊表）
     "MonoFSM.Editor.PrefabEditing.EditProbe.ComponentNames",
     "MonoFSM.Editor.PrefabEditing.EditProbe.DumpAll",
     "MonoFSM.Editor.PrefabEditing.EditProbe.Fields",
@@ -113,12 +115,45 @@ def run(args: list[str], timeout: int = 300) -> dict:
     return data
 
 
+def _parse_json(text: str) -> dict | None:
+    text = text.strip()
+    start, end = text.find("{"), text.rfind("}")
+    if start < 0 or end < start:
+        return None
+    try:
+        data = json.loads(text[start : end + 1])
+    except json.JSONDecodeError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _error_line(cmd: str, err: dict) -> str:
+    """uloop 結構化錯誤（`{"Error": {"ErrorCode", "Message", "NextActions"}}`）壓成一行。"""
+    code = err.get("ErrorCode") or "?"
+    msg = str(err.get("Message") or "").splitlines()[0][:200] if err.get("Message") else ""
+    nxt = err.get("NextActions") or []
+    hint = f"（uloop 建議：{str(nxt[0])[:120]}）" if nxt else ""
+    return f"uloop {cmd} {code}：{msg}{hint}"
+
+
+# uloop 本身是 single-flight：別的 uloop 指令（另一隻 agent 的 play / compile / prefab read）還在跑時，
+# 它自己等 10 秒就放棄，stdout 空、stderr 吐一整包 `{"Success": false, "Error": {"ErrorCode":
+# "UNITY_SERVER_BUSY", "Phase": "dispatch", ...}}`。Phase=dispatch 代表指令根本沒送進 Unity，任何呼叫
+# （含寫入類）都能安全重跑。2026-10-03 `up fields` 撞上別人的 play mode 切換，整包 JSON 進了 context。
+SERVER_BUSY_CODES = ("UNITY_SERVER_BUSY",)
+SERVER_BUSY_BUDGET = 30.0  # 含 uloop 自己每次等的 ~10s，牆鐘時間
+SERVER_BUSY_BACKOFF = (2.0, 4.0, 8.0)
+
+
 def _run_raw(args: list[str], timeout: int = 300) -> dict:
     # uloop 用 cwd 找 Unity 專案，`up` 卻可能在任何子資料夾被叫 —— 2026-10-01 在
     # MonoFSM/.../3_FlagData 跑 `up fields` 拿到 PROJECT_NOT_FOUND。所有 uloop 呼叫都走這裡，
     # 統一把 cwd 釘在專案根（跟從根目錄跑完全一樣）；找不到根就照舊用 cwd。
     project = activity._project_root()
-    for attempt in range(RELOAD_RETRIES):
+    t0 = time.time()
+    busy_attempt = 0
+    attempt = 0
+    while True:
         proc = subprocess.run(
             [_uloop(), *args],
             capture_output=True,
@@ -129,12 +164,31 @@ def _run_raw(args: list[str], timeout: int = 300) -> dict:
         out = proc.stdout.strip()
         if out:
             break
+        err = (_parse_json(proc.stderr) or {}).get("Error")
+        if isinstance(err, dict) and err.get("ErrorCode") in SERVER_BUSY_CODES:
+            elapsed = time.time() - t0
+            wait = SERVER_BUSY_BACKOFF[min(busy_attempt, len(SERVER_BUSY_BACKOFF) - 1)]
+            if elapsed + wait < SERVER_BUSY_BUDGET:
+                m = re.search(r"running '([^']+)'", str(err.get("Message") or ""))
+                who = f"正在跑 {m.group(1)}" if m else "別的 uloop 指令在跑"
+                print(f"# Unity 忙（{who}），{wait:.0f}s 後重試（已等 {elapsed:.0f}s）", file=sys.stderr)
+                time.sleep(wait)
+                busy_attempt += 1
+                continue
+            m = re.search(r"running '([^']+)'", str(err.get("Message") or ""))
+            who = f"正在跑 {m.group(1)}" if m else "別的 uloop 指令在跑"
+            raise UnityError(
+                f"Unity 忙（{who}），等了 {time.time() - t0:.0f}s 還沒輪到 —— 指令沒送進 Unity，"
+                f"不是這條指令的結果；過一下直接重跑同一條")
+        if isinstance(err, dict):
+            raise UnityError(_error_line(args[0], err))
         blob = proc.stdout + proc.stderr
         if any(h in blob for h in RELOAD_HINTS) and attempt < RELOAD_RETRIES - 1:
             time.sleep(RELOAD_WAIT)
+            attempt += 1
             continue
         raise UnityError(
-            f"uloop {args[0]} 沒有輸出（exit={proc.returncode}）\n{proc.stderr.strip()}"
+            f"uloop {args[0]} 沒有輸出（exit={proc.returncode}）\n{proc.stderr.strip()[:800]}"
         )
     try:
         return json.loads(out)
@@ -215,8 +269,11 @@ def _csharp(code: str, timeout: int) -> str:
         for e in data.get("CompilationErrors") or []:
             parts.append(str(e))
         for key in ("ErrorMessage", "Error"):
-            if data.get(key):
-                parts.append(str(data[key]))
+            val = data.get(key)
+            if isinstance(val, dict):  # uloop 結構化錯誤：一行就好，不要整包 dict
+                parts.append(_error_line("execute-dynamic-code", val))
+            elif val:
+                parts.append(str(val))
         raise UnityError("\n".join(parts) or json.dumps(data, ensure_ascii=False)[:800])
 
     result = data.get("Result")

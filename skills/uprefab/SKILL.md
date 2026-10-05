@@ -40,6 +40,7 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | **加 / 改互動文字提示**（localized、按狀態切換） | `prompt` | ✅ | [prompt.md](references/prompt.md) |
 | **只要 localization 條目**（文案持有者是 SO 不是節點） | `loc` | ✅ | [prompt.md](references/prompt.md) |
 | 某個節點被誰指到 / 它指向誰 | `refs` | ✅ | [probe.md](references/probe.md) |
+| **這支 prefab 被誰 nest / 當 variant base**（不用 grep guid） | `refs <prefab>`（不帶 `--node`；開頭先印離線段：variant base / nested / scene 各列檔案） | ❌ 離線段 | [probe.md](references/probe.md) |
 | **asset 層級**被誰引用（fbx / otf / .asset / material，不是節點），要列到「哪個節點的 Component.欄位」 | `asset-refs`（全庫掃一次十幾秒；**多顆一起傳** `up asset-refs a b c` 只掃一次） | ✅ | `up asset-refs --help` |
 | build 太肥、某顆 asset **為什麼會進 build**、怎麼斷開 | `why-in-build`（從 build scene / Resources / Preloaded / Addressables 找最短鏈，最後一跳列到欄位，並列出 build 內其他直接 referrer） | ✅ | `up why-in-build --help` |
 | **組 FSM 時要挑 Action / Condition**（有哪些可用、各自幹嘛、欄位填什麼） | `catalog` | ❌ | [catalog.md](references/catalog.md) |
@@ -53,6 +54,7 @@ ln -sf "$PWD/.claude/scripts/up" ~/.local/bin/up
 | 已知 prefab 內找合併後的 component / 節點路徑 | `prefab locate --comp/--name` | ✅ | [probe.md](references/probe.md) |
 | 同一 prefab 一次查多顆 component 欄位 | `prefab peek-batch -f probes.txt` | ✅ | [probe.md](references/probe.md) |
 | 命中/override 有幾千筆，想先知道集中在哪 | `find --by-asset` / `overrides --by-target` | ❌ | [offline-index.md](references/offline-index.md) |
+| **Play Mode 下每 tick 有多少 MonoObj 在 simulate**、哪種 entity 沒被 culling 擋（按 root entity 分組：註冊 / 在跑 / 被 cull / 距離） | `sim-stats [-n N] [--sort run\|upd\|reg\|cull\|off] [--filter KW]` | ✅ | `up sim-stats --help` |
 | **Play Mode 下改一個 Var 的值**（自動測試撥旗標 / 給錢） | `poke` | ✅ | [probe.md](references/probe.md) |
 | **Play Mode 下對 receiver 打一發 effect**（不用玩家走過去互動） | `hit` | ✅ | [probe.md](references/probe.md) |
 | **「測 X 的互動」自動測試**（物件端 FSM，不經過玩家） | `play` → `hit` → `fsm-trace` → `peek` → `play stop` | ✅ | [probe.md「互動自動測試」](references/probe.md) |

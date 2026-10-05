@@ -24,6 +24,9 @@
 - 放在：State 的直接子物件
 - 觸發子物件中所有 `IEventReceiver`（即 Action）
 - Action 必須放在 Handler 下，不可直接放在 State 下
+- **每種 Handler 一個 State 只會收一顆**（`AbstractStateBehaviour` 用 `[AutoChildren(DepthOneOnly)]` 抓單一欄位），
+  多開一顆不會跑。要「一部分 action 只在 SA 跑」不能另開一顆勾 `_stateAuthorityOnly` 的 Handler，
+  只能整顆 Handler 一起決定，或改用本來就會被 networked var 擋住寫入的 action
 
 ---
 

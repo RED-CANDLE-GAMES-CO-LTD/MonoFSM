@@ -28,6 +28,8 @@ namespace MonoFSM.Editor.Profiling
         public bool Clear;
         public bool Editor;
         public bool Deep;
+        public string Owner = "";
+        public bool Force;
         public int MaxChars = 4000;
     }
 
@@ -65,6 +67,9 @@ namespace MonoFSM.Editor.Profiling
         internal const string ReloadAfterKey = "uprofile.reloadAfter";
         internal const string DeepByUsKey = "uprofile.deepByUs";
         const string LastSaveDeepKey = "uprofile.lastSaveDeep";
+        const string OwnerKey = "uprofile.owner";
+        const string OwnerStartKey = "uprofile.ownerStartUtc";
+        const double StaleMinutes = 10;
         const string LastSaveKey = "uprofile.lastSave";
         // 不放 Temp/：Unity 正常關閉時會把整個 Temp/ 刪掉（2026-10-03 Editor 重開後存的 .data 全沒了）。Library/ 會留著且已 gitignore
         static readonly string DefaultSaveDir = Path.Combine("Library", "uprofile");
@@ -123,6 +128,8 @@ namespace MonoFSM.Editor.Profiling
             var lastSave = SessionState.GetString(LastSaveKey, "");
             if (lastSave.Length > 0)
                 sb.Append("最後存檔: ").Append(lastSave).Append("（frames ").Append(SessionState.GetString(LastSaveRangeKey, "?")).Append("）\n");
+            if (OwnerActive())
+                sb.Append("owner: ").Append(OwnerDesc()).Append('\n');
             if (SessionState.GetBool(RecKey, false))
             {
                 int reloads = SessionState.GetInt(ReloadCountKey, 0);
@@ -154,8 +161,28 @@ namespace MonoFSM.Editor.Profiling
         static string StartRec(UProfileArgs a, out bool ok)
         {
             ok = true;
+            var ownerErr = CheckOwner(a, out string takeoverWarn);
+            if (ownerErr != null)
+            {
+                ok = false;
+                return ownerErr;
+            }
+
             if (ProfilerDriver.enabled)
-                return $"已經在錄了（buffer {BufferDesc()}）。要結束用 `uprofile stop`";
+            {
+                if (takeoverWarn == null)
+                    return $"已經在錄了（buffer {BufferDesc()}）。要結束用 `uprofile stop`";
+                ClaimOwner(a);
+                SessionState.SetBool(RecKey, true);
+                return $"{takeoverWarn}\n接手錄製（沒有重開）| buffer {BufferDesc()}。要結束用 `uprofile stop`";
+            }
+
+            // Play Mode 中一律不切 target（要切就先停 Play Mode）；deep 的同類檢查在 PrepareDeep
+            if (a.Editor && EditorApplication.isPlaying && !ProfilerDriver.profileEditor)
+            {
+                ok = false;
+                return "Play Mode 中不切 Profiler target（會在別人 play 的時候把整個 Editor 插樁）。`--editor` 只在 Edit Mode 用；Play Mode 直接 `uprofile start` 錄遊戲";
+            }
 
             if (a.Deep)
             {
@@ -179,6 +206,7 @@ namespace MonoFSM.Editor.Profiling
             if (a.Clear) ProfilerDriver.ClearAllFrames();
             SessionState.SetInt(StartFrameKey, ProfilerDriver.lastFrameIndex + 1);
             SessionState.SetBool(RecKey, true);
+            ClaimOwner(a);
             SessionState.EraseInt(ReloadCountKey);
             SessionState.EraseInt(ReloadAtKey);
             SessionState.EraseString(ReloadBeforeKey);
@@ -191,11 +219,12 @@ namespace MonoFSM.Editor.Profiling
 
             ProfilerDriver.enabled = true;
             var sb = new StringBuilder();
+            if (takeoverWarn != null) sb.Append(takeoverWarn).Append('\n');
             sb.Append("開始錄 | target: ").Append(ProfilerDriver.profileEditor ? "Editor" : "Play Mode")
                 .Append(SessionState.GetBool(RestoreTargetKey, false) ? "（暫時切的，stop 會切回 Play Mode）" : "")
                 .Append(" | deep profile: ").Append(DeepDesc())
                 .Append(a.Clear ? " | buffer 已清空" : $" | 目前 buffer {BufferDesc()}").Append('\n');
-            sb.Append("跑一陣子後 `uprofile stop`（Editor 失焦時 Edit Mode 幾乎不 tick，frame 會很少）");
+            sb.Append("owner: ").Append(OwnerDesc()).Append("。跑一陣子後 `uprofile stop`（Editor 失焦時 Edit Mode 幾乎不 tick，frame 會很少）");
             if (ProfilerDriver.deepProfiling) sb.Append('\n').Append(DeepMsNote).Append('\n').Append(DeepCrashWarn);
             return sb.ToString();
         }
@@ -219,6 +248,7 @@ namespace MonoFSM.Editor.Profiling
                        "  步驟：停 Play Mode → `uprofile start --deep`（只開 deep + domain reload）→ 進 Play Mode → `uprofile start`";
 
             ok = true;
+            ClaimOwner(a);
             SessionState.SetBool(DeepByUsKey, true);
             ProfilerDriver.deepProfiling = true;
             EditorUtility.RequestScriptReload();
@@ -228,12 +258,80 @@ namespace MonoFSM.Editor.Profiling
                    DeepMsNote;
         }
 
+        // ───────────────────────── owner ─────────────────────────
+        // Editor 只有一台、錄製狀態只有一份：多隻 agent 同時用時，不是 owner 的 start / stop / --deep 一律拒絕。
+        // owner 由 wrapper 帶（--owner > $CLAUDE_AGENT_ID > $CLAUDE_CODE_SESSION_ID > claude PID）。
+
+        static bool OwnerActive() =>
+            SessionState.GetBool(RecKey, false) || SessionState.GetBool(DeepByUsKey, false);
+
+        static string OwnerDesc()
+        {
+            var owner = SessionState.GetString(OwnerKey, "");
+            if (owner.Length == 0) owner = "(不明)";
+            var t = OwnerStart(out double mins);
+            return t == null ? owner : $"{owner} 從 {t} 開始（{mins:0.#} 分鐘前）";
+        }
+
+        static string OwnerStart(out double minutesAgo)
+        {
+            minutesAgo = 0;
+            var raw = SessionState.GetString(OwnerStartKey, "");
+            if (!DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var utc)) return null;
+            minutesAgo = (DateTime.UtcNow - utc).TotalMinutes;
+            return utc.ToLocalTime().ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>回傳 null = 可以動；否則是拒絕訊息。takeoverWarn 非 null = 允許但要印警告（--force 或超過 10 分鐘）。</summary>
+        static string CheckOwner(UProfileArgs a, out string takeoverWarn)
+        {
+            takeoverWarn = null;
+            if (!OwnerActive()) return null;
+            var owner = SessionState.GetString(OwnerKey, "");
+            var me = (a.Owner ?? "").Trim();
+            if (owner.Length == 0 || owner == me) return null;
+            var t = OwnerStart(out double mins);
+            string who = t == null ? owner : $"{owner} 從 {t}";
+            if (a.Force)
+            {
+                takeoverWarn = $"warn: --force 接手 {who} 開始的錄製（它的資料會被你 stop 掉）";
+                return null;
+            }
+
+            if (mins > StaleMinutes)
+            {
+                takeoverWarn = $"warn: {who} 開始錄、已經 {mins:0} 分鐘沒 stop，當作被丟著不管，由 {me} 接手";
+                return null;
+            }
+
+            return $"{who} 開始在錄（{mins:0.#} 分鐘前），等它 stop，或加 `--force`（超過 {StaleMinutes:0} 分鐘沒 stop 會自動讓人接手）";
+        }
+
+        static void ClaimOwner(UProfileArgs a)
+        {
+            SessionState.SetString(OwnerKey, (a.Owner ?? "").Trim());
+            SessionState.SetString(OwnerStartKey, DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture));
+        }
+
+        static void ReleaseOwner()
+        {
+            SessionState.EraseString(OwnerKey);
+            SessionState.EraseString(OwnerStartKey);
+        }
+
         const string DeepCrashWarn =
             "警告：2026-10-03 Play Mode 中開著 deep profile 錄製後 Editor 卡死被關掉（懷疑記憶體吃爆）。錄 ≤5 秒、錄完馬上 `uprofile stop`，不要長時間開著";
 
         static string StopRec(UProfileArgs a, out bool ok)
         {
             ok = true;
+            var ownerErr = CheckOwner(a, out string takeoverWarn);
+            if (ownerErr != null)
+            {
+                ok = false;
+                return ownerErr;
+            }
+
             bool wasOn = ProfilerDriver.enabled;
             bool started = SessionState.GetBool(RecKey, false);
             string interrupted = started && !wasOn ? InterruptedDesc() : null;
@@ -249,6 +347,7 @@ namespace MonoFSM.Editor.Profiling
 
             bool recordedDeep = ProfilerDriver.deepProfiling;
             var sb = new StringBuilder();
+            if (takeoverWarn != null) sb.Append(takeoverWarn).Append('\n');
             int first = ProfilerDriver.firstFrameIndex, last = ProfilerDriver.lastFrameIndex;
             sb.Append(wasOn ? "已停止" : interrupted != null ? "profiler 早就被停掉了" : "本來就沒在錄")
                 .Append(" | buffer ").Append(BufferDesc());
@@ -260,6 +359,7 @@ namespace MonoFSM.Editor.Profiling
             if (interrupted != null) sb.Append("warn: ").Append(interrupted).Append('\n');
             else if (wasOn && reloads > 0) sb.Append($"note: 錄製期間有 {reloads} 次 domain reload，profiler 沒被停掉\n");
             SessionState.EraseBool(RecKey);
+            if (!SessionState.GetBool(DeepByUsKey, false)) ReleaseOwner(); // deep 由 TurnOffDeepIfOurs 關完再放
             if (first < 0 || last < 0)
             {
                 sb.Append("buffer 是空的，沒存檔。");
@@ -298,6 +398,7 @@ namespace MonoFSM.Editor.Profiling
         {
             if (!SessionState.GetBool(DeepByUsKey, false)) return "";
             SessionState.EraseBool(DeepByUsKey);
+            ReleaseOwner();
             if (!ProfilerDriver.deepProfiling) return "";
             ProfilerDriver.deepProfiling = false;
             if (EditorApplication.isPlaying)

@@ -40,7 +40,9 @@ NEUTRAL = {"peek", "logs", "asset-refs", "why-in-build", "debug-effect-trace", "
            # dump 檔隨時被 Unity 覆寫，memo 會拿到舊內容
            "fsm-trace",
            # 離線讀單一 asset 檔，便宜；檔案隨時被 Unity 改，不 memo
-           "anim", "mat", "controller"}
+           "anim", "mat", "controller",
+           # Play Mode runtime 註冊表，每 tick 都在變
+           "sim-stats"}
 
 
 def _dir(root: str) -> str:

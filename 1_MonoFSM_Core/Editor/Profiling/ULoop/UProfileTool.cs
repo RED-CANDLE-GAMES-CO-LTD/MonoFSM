@@ -50,6 +50,12 @@ namespace MonoFSM.Editor.Profiling
         [Description("start 時開 deep profile（會 domain reload；stop 時關掉）")]
         public bool Deep { get; set; } = false;
 
+        [Description("錄製 owner（wrapper 自動帶）；別的 owner 的 start/stop 會被拒絕")]
+        public string Owner { get; set; } = "";
+
+        [Description("強制接手別的 owner 的錄製")]
+        public bool Force { get; set; } = false;
+
         [Description("輸出字數上限")]
         public int MaxChars { get; set; } = 4000;
     }
@@ -90,6 +96,8 @@ namespace MonoFSM.Editor.Profiling
                 Clear = p.Clear,
                 Editor = p.Editor,
                 Deep = p.Deep,
+                Owner = p.Owner,
+                Force = p.Force,
                 MaxChars = p.MaxChars
             };
             var text = UProfileReader.Run(args, out bool ok);

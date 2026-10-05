@@ -141,6 +141,22 @@ public class MySimulator : MonoBehaviour, IUpdateSimulate
 CullingGroup visibility 是各 peer 的 camera-local 結果，只能控制本機 scheduling/visual，不能拿來改
 network state 或 authority。
 
+### 本專案的 culling 怎麼判斷 near
+
+- 距離基準是 local player 身上的 `CullingGroupProxy`（`Assets/0_Gameplay/0_Base/PPlayer.prefab` (guid:c38e8f82bf1d947e892cf5e60cf8520f)），
+  reference point 指自己的 `[Anim] PPlayer` 角色模型。`Player1 [Local]` root 本身停在原點，量距離別拿 root。
+  near = distance band index `< m_NearBandThreshold`；band 和 threshold 的值用
+  `up prefab locate Assets/0_Gameplay/0_Base/PPlayer.prefab --comp CullingGroupProxy --members m_BoundingDistances,m_NearBandThreshold` 查。
+- 有 culling 的 entity 幾乎都是從 `MonoFSM-Photon-Fusion/MonoFSM_Fusion/Network FSM.prefab` (guid:b440b344d39ae4598abce7ec39fb030b) 繼承來的（它 nest 了 Culling Event Target module）。
+  沒 handle 的只剩 GameCore、Player、Train Group 這類 root，本來就該一直跑。場上實況用 `up sim-stats`。
+- **target camera 沒 render 時走 fallback**：native CullingGroup 只在 target camera 的 cull pass 才算距離
+  （Editor Game view 被別的分頁蓋住、build 裡 camera 關掉 / 過場都不會算），沒算過時 `GetDistance` 回 0 = 全部被當 near。
+  所以 proxy 用 `Camera.onPreCull` / `RenderPipelineManager.beginCameraRendering` 記最後一次 cull pass，
+  超過 2 frame 沒有就改用 reference point 自己算 band（每 frame 輪流算 32 個 target，可見度沿用舊值，沒回報過當看不見）；
+  camera 恢復後一次把全部 target 對回 native 的值。目前走哪條看 proxy Inspector 的 `Culling Source` 區塊。
+- profiler 的 `Simulate`（per MonoObj）marker 數 ≠ 實際在跑的 MonoObj 數：它在 `IsUpdateSimulatesNeeded` 過了就記，
+  authority / despawn 的檢查在 marker 裡面才做。實際跑的看 `Simulate/<型別>` 或 `up sim-stats` 的 run 欄。
+
 ## 注意事項
 
 | 項目 | 說明 |

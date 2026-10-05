@@ -185,11 +185,13 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 
 `MonoFSM/0_MonoFSM_Example_Module/[Detector] Trigger.prefab` (guid:cfc3ca4b9e2e5480a8563ebe7e8036b6)（guid `cfc3ca4b9e2e5480a8563ebe7e8036b6`）
 
-它已備妥 EffectDetector + TriggerDetectorSource + Collider + kinematic Rigidbody 的正確組合。
+它有 EffectDetector + TriggerDetectorSource + trigger BoxCollider，**但本身沒有 Rigidbody**。
 放進去之後只要調 Collider 大小、加 Dealer、接引用。功能 component 不要掛在這顆 detector 節點身上，另外開節點
 （一個 GameObject 一顆功能 component）。
+放在已經有 Rigidbody 的節點底下（例如火車 / 車廂的 kinematic `Context`、神像的 `Context/Animator`）就吃得到那顆；
+放在純靜態物件上，要自己在 `[DetectionSource]` 節點補 kinematic Rigidbody（理由見下）。
 
-### 為什麼一定要那顆 kinematic Rigidbody
+### 為什麼需要 kinematic Rigidbody
 
 `TriggerDetectorSource`（`MonoFSM/MonoFSM_Physics/Runtime/Interact/SpatialDetection/TriggerDetectorSource.cs`）用
 `OnTriggerStay` 收集 collider，而 Unity 的 trigger 事件在**兩邊都是 static collider 時完全不觸發**。
@@ -213,6 +215,14 @@ public class MyEffectAction : AbstractArgEventHandler<GeneralEffectHitData>
 - `AbstractArgEventHandler` 的 `_actionParent`（`[AutoParent] AbstractEventHandler`）需要有父層 EventHandler（即 `EffectEnterNode`）才能正常運作
 - `OnActionExecuteImplement` 是舊有 FSM state 觸發用的，Event 驅動的 Action 不需要它，丟 `NotImplementedException` 即可
 - 若不需 Dealer 追蹤 receiver 狀態，可直接呼叫 `receiver.OnEffectHitEnter(hitData)` 略過 dealer 流程
+- **receiver 的 `[If]` 判斷時還拿不到 hittingEntity**：`CanHitReceiver`（判 receiver `[If]`）跑在
+  `GeneralEffectReceiver.OnEffectHitEnter` 寫 `_hittingEntity` 之前。要「看對方身上的值」（對方速度、對方狀態）
+  就把條件放在 **dealer 端的 `[If]`**；放 EnterNode 底下也行，但只會在 enter 那一刻判一次
+- **重疊中條件變成立會補發 enter**：還沒 enter 的重疊，`EffectDetector` 每 tick 都會重試（`TriggerStayForDealerAndDetectable`
+  / `HandleDealerStateChanges`），dealer 或 receiver 的 `[If]` 在重疊途中從不成立變成立，就會補一次 EffectEnter。
+  反過來說，已經 enter 過的對象要先 exit 再進來才會再觸發一次
+- receiver / dealer 底下直接掛多顆 `[If]` 本來就是 AND（`_conditions.IsAllValid()`），不用包 CompositeCondition；
+  「只看第一顆 active」只發生在 Getter Var 底下
 
 ---
 

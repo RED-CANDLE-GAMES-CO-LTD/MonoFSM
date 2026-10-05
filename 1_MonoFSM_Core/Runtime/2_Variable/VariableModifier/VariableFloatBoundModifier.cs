@@ -134,6 +134,10 @@ namespace MonoFSM.Variable
             _lastMaxValue = float.NaN;
         }
 
+        //關掉 clamp 或沒有 VarFloat 時 Simulate 什麼都不做，直接不排進 tick（省掉每 tick 的呼叫）
+        bool IUpdateSimulate.IsUpdating =>
+            _isClampCurrentValueOnBoundChanged && _monoVar != null && isActiveAndEnabled;
+
         public void Simulate(float deltaTime)
         {
             if (!_isClampCurrentValueOnBoundChanged || _monoVar == null)
