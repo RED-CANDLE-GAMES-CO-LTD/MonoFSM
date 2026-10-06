@@ -179,6 +179,24 @@ namespace MonoFSM.Editor.PrefabEditing
             }
         }
 
+        private static string RunOne(string[] parts, string verb, string[] args, Apply apply)
+        {
+            try
+            {
+                for (var j = 1; j < parts.Length; j++) args[j - 1] = Expand(parts[j]);
+                // mark 只動代換表，不碰資料，所以在這裡處理 —— prefab / scene 兩邊都免費拿到
+                return verb == "mark" ? Mark(args) : apply(verb, args);
+            }
+            catch (EditResolve.EditAbort abort)
+            {
+                return $"# 未修改：{abort.Message}";
+            }
+            catch (Exception e)
+            {
+                return $"# 未修改：{e.GetType().Name}: {e.Message}";
+            }
+        }
+
         private static string RunLines(string ops, Apply apply, ref int done)
         {
             EditResolve.DrainNotes(); // 上一次跑剩的殘留（唯讀查詢路徑不會 drain）不要算到這次頭上
@@ -188,26 +206,29 @@ namespace MonoFSM.Editor.PrefabEditing
             for (var i = 0; i < lines.Length; i++)
             {
                 var line = lines[i].Trim();
+                // 節點名可能以空白結尾（`[Dealer] `），整行 Trim 會把它吃掉。
+                // 先照舊用 Trim 後的行跑（行尾多打的空白不能改變既有行為）；失敗時才用保留行尾空白的版本重跑一次。
+                var rawLine = lines[i].TrimStart();
+                var hasTrailingSpace = rawLine.Length > line.Length;
                 if (line.Length == 0 || line.StartsWith("#")) continue;
 
                 var parts = SplitFields(line);
                 var verb = parts[0].Trim().ToLowerInvariant();
                 var args = new string[parts.Length - 1];
 
-                string result;
-                try
+                string result = RunOne(parts, verb, args, apply);
+                if (hasTrailingSpace && result.StartsWith("# 未修改") && parts.Length > 1)
                 {
-                    for (var j = 1; j < parts.Length; j++) args[j - 1] = Expand(parts[j]);
-                    // mark 只動代換表，不碰資料，所以在這裡處理 —— prefab / scene 兩邊都免費拿到
-                    result = verb == "mark" ? Mark(args) : apply(verb, args);
-                }
-                catch (EditResolve.EditAbort abort)
-                {
-                    result = $"# 未修改：{abort.Message}";
-                }
-                catch (Exception e)
-                {
-                    result = $"# 未修改：{e.GetType().Name}: {e.Message}";
+                    EditResolve.DrainNotes(); // 第一次失敗留下的 note 不算
+                    var rawParts = SplitFields(rawLine);
+                    var rawArgs = new string[rawParts.Length - 1];
+                    var retry = RunOne(rawParts, verb, rawArgs, apply);
+                    if (!retry.StartsWith("# 未修改"))
+                    {
+                        result = retry;
+                        parts = rawParts;
+                        args = rawArgs;
+                    }
                 }
 
                 sb.AppendLine($"{i + 1}: {result}");
@@ -352,7 +373,7 @@ namespace MonoFSM.Editor.PrefabEditing
             if (node == null)
                 throw new EditResolve.EditAbort(
                     $"`mark` 找不到節點 {EditResolve.Describe(path)}（mark 不走同層容錯）" +
-                    (suggestion != null ? $"。你可能想要：{suggestion}" : ""));
+                    (suggestion != null ? $"。你可能想要：{EditResolve.Describe(suggestion)}" : ""));
             var exact = _space.PathOf(node) ?? path;
             Marks[label] = new MarkEntry { Node = node, Path = exact };
             return $"${label} = {EditResolve.Describe(exact)}";

@@ -546,6 +546,7 @@ namespace MonoFSM.Editor.PrefabEditing
             foreach (Transform child in cursor)
             {
                 var label = EscapeName(child.name);
+                if (HasEdgeSpace(label)) label = $"\"{label}\"";
                 if (dupNames.Contains(child.name))
                 {
                     counter.TryGetValue(label, out var n);
@@ -1349,8 +1350,20 @@ namespace MonoFSM.Editor.PrefabEditing
             return prop.arraySize;
         }
 
-        internal static string Describe(string path) =>
-            string.IsNullOrEmpty(path) ? "(root)" : path;
+        internal static string Describe(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return "(root)";
+            return HasEdgeSpace(path) ? $"\"{path}\"" : path;
+        }
+
+        /// <summary>路徑任一段（或整串）頭尾有空白。這種名字（`[Dealer] `）印出來肉眼看不出差在空白，要加引號。</summary>
+        internal static bool HasEdgeSpace(string path)
+        {
+            foreach (var seg in path.Split('/'))
+                if (seg.Length > 0 && (char.IsWhiteSpace(seg[0]) || char.IsWhiteSpace(seg[seg.Length - 1])))
+                    return true;
+            return false;
+        }
 
         internal static string Join(IEnumerable<string> items)
         {
