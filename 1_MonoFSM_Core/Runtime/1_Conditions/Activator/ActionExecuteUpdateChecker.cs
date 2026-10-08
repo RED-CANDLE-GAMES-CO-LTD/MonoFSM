@@ -6,6 +6,11 @@ using UnityEngine;
 namespace MonoFSM.Core.Condition
 {
     //FIXME: 改名？
+    /// <summary>
+    ///  每個 Simulate tick 判斷子節點的 [If] 條件，成立就執行子節點的 Action（例：結算畫面「host 按 Enter → 回大廳」）。
+    ///  跑在 Simulate，只在 ShouldSimulte 的端（通常是 host / state authority）會執行；條件連續成立會每個 tick 都觸發，
+    ///  一次性的觸發要靠條件本身（例如「這個 tick 剛按下」）。
+    /// </summary>
     public class ActionExecuteUpdateChecker : AbstractConditionUpdateChecker, IActionParent
     {
         //FIXME: 跑 renderAction?
