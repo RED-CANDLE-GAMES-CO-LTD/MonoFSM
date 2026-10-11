@@ -15,14 +15,20 @@ namespace MonoFSM.Core.Runtime.Pattern.DataProvider.ComponentWrapper
         [InlineProperty] [HideLabel] [SerializeField]
         private VarFloatWrapper _seconds = new();
 
+        //TextValueBinder 每幀都會 Get 來比對，秒數沒變就回同一個字串，不然每幀都產新字串（GC）
+        [NonSerialized] private int _cachedTotalSecs = -1;
+        [NonSerialized] private string _cached;
+
         public override string Value
         {
             get
             {
-                var total = Mathf.Max(0f, _seconds.Value);
-                var minutes = Mathf.FloorToInt(total / 60f);
-                var secs = Mathf.FloorToInt(total % 60f);
-                return $"{minutes:00}:{secs:00}";
+                var totalSecs = Mathf.FloorToInt(Mathf.Max(0f, _seconds.Value));
+                if (totalSecs == _cachedTotalSecs && _cached != null)
+                    return _cached;
+                _cachedTotalSecs = totalSecs;
+                _cached = $"{totalSecs / 60:00}:{totalSecs % 60:00}";
+                return _cached;
             }
         }
 
